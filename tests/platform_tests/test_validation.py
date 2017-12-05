@@ -516,7 +516,7 @@ class TestValidateFixtures(TankTestBase):
     """Integration test running validation on test fixtures."""
     def setUp(self):
         super(TestValidateFixtures, self).setUp()
-        self.setup_fixtures({"descriptor_based": False})
+        self.setup_fixtures(parameters={"descriptor_based": False})
 
         # setup shot
         seq = {"type":"Sequence", "name":"seq_name", "id":3}

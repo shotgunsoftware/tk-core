@@ -641,7 +641,7 @@ class TestTankFromPathWindowsNoSlash(TankTestBase):
         super(TestTankFromPathWindowsNoSlash, self).setUp(parameters = {"project_tank_name": self.PROJECT_NAME})
         
         # set up std fixtures
-        self.setup_fixtures({"descriptor_based": False})
+        self.setup_fixtures(parameters={"descriptor_based": False})
 
         # patch primary local storage def
         self.primary_storage["windows_path"] = self.STORAGE_ROOT

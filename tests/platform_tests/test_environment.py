@@ -85,7 +85,7 @@ class TestDumpEnvironment(TankTestBase):
 
     def setUp(self):
         super(TestDumpEnvironment, self).setUp()
-        self.setup_fixtures({"descriptor_based": False})
+        self.setup_fixtures(parameters={"descriptor_based": False})
 
         self.config_location = self.tk.pipeline_configuration.get_config_location()
 

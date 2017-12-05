@@ -33,7 +33,7 @@ class TestApplication(TankTestBase):
 
     def setUp(self):
         super(TestApplication, self).setUp()
-        self.setup_fixtures({"descriptor_based": False})
+        self.setup_fixtures(parameters={"descriptor_based": False})
         
         # setup shot
         seq = {"type":"Sequence", "code": "seq_name", "id":3 }

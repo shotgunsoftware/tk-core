@@ -471,11 +471,18 @@ class TankTestBase(unittest.TestCase):
         # figure out root point of fixtures config
         config_root = os.path.join(self.fixtures_root, name)
 
+        if name != "config":
+            parameters["descriptor_based"] = False
+
         # first figure out core location
         if "core" in parameters:
             # convert slashes to be windows friendly
             core_path_suffix = parameters["core"].replace("/", os.sep)
             core_source = os.path.join(config_root, core_path_suffix)
+            # Tests using a different core folder than the regular config's can't use a descriptor
+            # base pipeline because the core is patched in place.
+
+            parameters["descriptor_based"] = False
         else:
             # use the default core fixture
             core_source = os.path.join(config_root, "core")
@@ -484,8 +491,8 @@ class TankTestBase(unittest.TestCase):
         core_target = os.path.join(self.project_config, "core")
         self._copy_folder(core_source, core_target)
 
+        pc_yml = os.path.join(self.pipeline_config_root, "config", "core", "pipeline_configuration.yml")
         if parameters.get("descriptor_based", True):
-            pc_yml = os.path.join(self.pipeline_config_root, "config", "core", "pipeline_configuration.yml")
             pc_yml_data = (
                 "{ project_name: %s, use_shotgun_path_cache: true, pc_id: %d, "
                 "project_id: %d, pc_name: %s, source_descriptor: '%s'}\n\n" % (
@@ -497,6 +504,13 @@ class TankTestBase(unittest.TestCase):
             )
             self.create_file(pc_yml, pc_yml_data)
         else:
+            # We're not using a descriptor based config anymore, so remove it if it was prevent.
+            with open(pc_yml, "r") as f:
+                data = yaml.load(f)
+                if "source_descriptor" in data:
+                    del data["source_descriptor"]
+            with open(pc_yml, "w") as f:
+                yaml.dump(data, f)
             # now copy the rest of the config fixtures
             for config_folder in ["env", "hooks", "bundles"]:
                 config_source = os.path.join(config_root, config_folder)
