@@ -76,7 +76,7 @@ class CompletionFilterProxy(QtGui.QSortFilterProxyModel):
         :returns: ``True`` if the row is accepted, ``False`` otherwise.
         """
         index = self.sourceModel().index(row, 0, source_parent)
-        return self._fuzzy_matcher.score(self.sourceModel().data(index), highlighter=None)[0] > 0
+        return self._fuzzy_matcher.score(self.sourceModel().data(index)) > 0
 
     def lessThan(self, left, right):
         """
