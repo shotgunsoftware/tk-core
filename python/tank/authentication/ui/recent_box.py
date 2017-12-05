@@ -67,53 +67,6 @@ class FuzzyMatcher():
 COMPLETER_PROXY_DISPLAY_ROLE = 2048
 
 
-# Credit for the HTMLDelegate goes to
-# https://stackoverflow.com/a/5443112
-class HTMLDelegate(QtGui.QStyledItemDelegate):
-    def paint(self, painter, option, index):
-        options = QtGui.QStyleOptionViewItemV4(option)
-        self.initStyleOption(options, index)
-
-        style = QtGui.QApplication.style() if options.widget is None else options.widget.style()
-
-        doc = QtGui.QTextDocument()
-        doc.setHtml(options.text)
-        doc.setTextWidth(option.rect.width())
-
-        options.text = ""
-        style.drawControl(QtGui.QStyle.CE_ItemViewItem, options, painter)
-
-        ctx = QtGui.QAbstractTextDocumentLayout.PaintContext()
-
-        # Highlighting text if item is selected
-        ctx.palette.setColor(
-            QtGui.QPalette.Text,
-            options.palette.color(QtGui.QPalette.Active, QtGui.QPalette.Text)
-        )
-
-        textRect = style.subElementRect(QtGui.QStyle.SE_ItemViewItemText, options)
-        painter.save()
-        painter.translate(textRect.topLeft())
-        painter.setClipRect(textRect.translated(-textRect.topLeft()))
-        doc.documentLayout().draw(painter, ctx)
-
-        painter.restore()
-
-    def sizeHint(self, option, index):
-        options = QtGui.QStyleOptionViewItemV4(option)
-        self.initStyleOption(options, index)
-
-        # Sometimes the code gets invoked with a size of zero, which messes up the rendering size,
-        # so return 0. Otherwise, some items will not be rendered with the right amount of spacing
-        # under them.
-        doc = QtGui.QTextDocument()
-        doc.setHtml(options.text)
-        doc.setTextWidth(options.rect.width())
-
-        print options.text, options.rect, doc.size()
-        return QtCore.QSize(doc.idealWidth(), doc.size().height())
-
-
 class CompletionFilterProxy(QtGui.QSortFilterProxyModel):
 
     def __init__(self, parent):
@@ -125,9 +78,6 @@ class CompletionFilterProxy(QtGui.QSortFilterProxyModel):
         self.invalidateFilter()
         self.sort(0)
         self.layoutChanged.emit()
-
-    def _highlighter(self, char):
-        return "<b><u>" + char + "</u></b>"
 
     def filterAcceptsRow(self, row, source_parent):
         if not self._fuzzy_matcher:
@@ -144,7 +94,7 @@ class CompletionFilterProxy(QtGui.QSortFilterProxyModel):
         # highlighting.
         text = super(CompletionFilterProxy, self).data(index, role)
         if role == QtCore.Qt.DisplayRole and self._fuzzy_matcher:
-            return self._fuzzy_matcher.score(text, highlighter=self._highlighter)[1]
+            return self._fuzzy_matcher.score(text)[1]
         else:
             return text
 
@@ -199,9 +149,6 @@ class RecentBox(QtGui.QComboBox):
         self._filter_model.setSourceModel(self._drop_down_model)
         self._completer.setModel(self._filter_model)
         self.setCompleter(self._completer)
-
-        self._item_delegate = HTMLDelegate(self)
-        self.completer().popup().setItemDelegate(self._item_delegate)
 
         # Each time the user types something, we'll update the filter.
         self.lineEdit().textEdited.connect(self._current_text_changed)
