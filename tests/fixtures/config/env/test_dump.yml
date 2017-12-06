@@ -1,4 +1,4 @@
-include: ./empty_config.yml
+include: ./includes/empty_config.yml
 
 frameworks:
     test_framework_v1.x.x:

@@ -418,10 +418,10 @@ class TestRuamelParser(TankTestBase):
 
         # get raw environment after
         # ruamel parser only used in py2.6+
-        if sys.version_info < (2,6):
-            env_file = os.path.join(self.project_config, "env", "test_post_update_old_parser.yml")
+        if sys.version_info < (2, 6):
+            env_file = os.path.join(self.project_config, "env", "post_update", "test_post_update_old_parser.yml")
         else:
-            env_file = os.path.join(self.project_config, "env", "test_post_update_new_parser.yml")
+            env_file = os.path.join(self.project_config, "env", "post_update", "test_post_update_new_parser.yml")
 
         fh = open(env_file)
         expected_env = fh.readlines()
@@ -459,7 +459,7 @@ class TestPyYamlParser(TankTestBase):
         fh.close()
 
         # get raw environment after
-        env_file = os.path.join(self.project_config, "env", "test_post_update_old_parser.yml")
+        env_file = os.path.join(self.project_config, "env", "post_update", "test_post_update_old_parser.yml")
         fh = open(env_file)
         expected_env = fh.readlines()
         fh.close()

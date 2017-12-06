@@ -75,4 +75,4 @@ frameworks:
   test_framework_v1.x.x:
     location: {path: '{PIPELINE_CONFIG}/config/bundles/test_framework', type: dev,
       version: v1.0.0}
-includes: [./empty_config.yml, ./engine_location.yml]
+includes: [./includes/empty_config.yml, ./includes/engine_location.yml]
