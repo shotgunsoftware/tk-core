@@ -166,11 +166,11 @@ class TestConfigLocations(TankTestBase):
     """
 
     # Core location is unimportant, as we won't copy it anyway, so mock out that functionality.
-    @patch("sgtk.pipelineconfig_utils.get_path_to_current_core", return_value="/Users/jfboismenu/gitlocal/tk-core")
+    @patch("sgtk.pipelineconfig_utils.get_path_to_current_core", return_value="/path/to/core")
     @patch("sgtk.pipelineconfig_utils.resolve_all_os_paths_to_core", return_value={
-        "linux2": "",
-        "win32": "",
-        "darwin": "",
+        "linux2": "/a/b/c",
+        "win32": "C:\\a\\b\\c",
+        "darwin": "/a/b/c",
     })
     @patch("sgtk.commands.core_localize.do_localize")
     def test_config_with_local_core(self, *_):
@@ -198,4 +198,38 @@ class TestConfigLocations(TankTestBase):
         )
 
         tk = tank.sgtk_from_path(config_root)
-        pc = tk.pipeline_configuration()
+        pc = tk.pipeline_configuration
+
+        # Pipeline configuration location tests.
+        self.assertEqual(pc.get_path(), config_root)
+        self.assertEqual(pc.get_yaml_cache_location(), os.path.join(config_root, "yaml_cache.pickle"))
+        self.assertEqual(
+            pc.get_all_os_paths(),
+            tank.util.ShotgunPath(
+                config_root.replace("/", "\\"),
+                config_root.replace("\\", "/"),
+                config_root.replace("\\", "/")
+            )
+        )
+
+        # Core location tests.
+        self.assertEqual(pc.is_localized(), False)
+        self.assertEqual(pc.get_install_location(), "/path/to/core")
+        self.assertEqual(pc.get_core_python_location(), "/path/to/core/install/core/python")
+
+        # Config folder location test.
+        self.assertEqual(pc.get_config_location(), os.path.join(config_root, "config"))
+        self.assertEqual(
+            pc.get_core_hooks_location(), os.path.join(config_root, "config", "core", "hooks")
+        )
+        self.assertEqual(
+            pc.get_schema_config_location(), os.path.join(config_root, "config", "core", "schema")
+        )
+        self.assertEqual(pc.get_hooks_location(), os.path.join(config_root, "config", "hooks"))
+        self.assertEqual(pc.get_shotgun_menu_cache_location(), os.path.join(config_root, "cache"))
+        self.assertEqual(
+            pc.get_environment_path("test"), os.path.join(config_root, "config", "env", "test.yml")
+        )
+        self.assertEqual(
+            pc.get_templates_config_location(), os.path.join(config_root, "config", "core", "templates.yml")
+        )

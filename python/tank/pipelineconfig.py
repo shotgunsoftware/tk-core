@@ -327,12 +327,18 @@ class PipelineConfiguration(object):
         self._pc_id = curr_settings.get("pc_id")
         self._pc_name = curr_settings.get("pc_name")
 
+    def get_yaml_cache_location(self):
+        """
+        Returns the location of the yaml cache for this configuration.
+        """
+        return os.path.join(self._pc_root, "yaml_cache.pickle")
+
     def _populate_yaml_cache(self):
         """
         Loads pickled yaml_cache items if they are found and merges them into
         the global YamlCache.
         """
-        cache_file = os.path.join(self._pc_root, "yaml_cache.pickle")
+        cache_file = self.get_yaml_cache_location()
         if not os.path.exists(cache_file):
             return
 
@@ -907,9 +913,8 @@ class PipelineConfiguration(object):
         """
         Returns a list with all the environments in this configuration.
         """
-        env_root = os.path.join(self._pc_root, "config", "env")
         env_names = []
-        for f in glob.glob(os.path.join(env_root, "*.yml")):
+        for f in glob.glob(self.get_environment_path("*")):
             file_name = os.path.basename(f)
             (name, _) = os.path.splitext(file_name)
             env_names.append(name)
@@ -941,17 +946,23 @@ class PipelineConfiguration(object):
         :returns:           String path to the environment yaml file.
         """
         return os.path.join(self._pc_root, "config", "env", "%s.yml" % env_name)
-    
-    def get_templates_config(self):
+
+    def get_templates_config_location(self):
         """
-        Returns the templates configuration as an object
+        Returns the path to the configuration's template file.
         """
-        templates_file = os.path.join(
+        return os.path.join(
             self._pc_root,
             "config",
             "core",
             constants.CONTENT_TEMPLATES_FILE,
         )
+    
+    def get_templates_config(self):
+        """
+        Returns the templates configuration as an object
+        """
+        templates_file = self.get_templates_config_location()
 
         try:
             data = yaml_cache.g_yaml_cache.get(templates_file, deepcopy_data=False) or {}
