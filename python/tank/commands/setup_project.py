@@ -587,8 +587,14 @@ class SetupProjectAction(Action):
                 
         location = {"darwin": None, "linux2": None, "win32": None}
         
-        # get the path to the primary storage  
-        primary_local_path = params.get_storage_path(constants.PRIMARY_STORAGE_NAME, sys.platform)        
+        # get the path to the primary storage
+        storage_names = params.get_required_storages()
+        storage_name = constants.PRIMARY_STORAGE_NAME
+        if len(storage_names) == 1:
+            # For single root configurations the storage name is free from so
+            # pick the actual name.
+            storage_name = storage_names[0]
+        primary_local_path = params.get_storage_path(storage_name, sys.platform)        
         
         curr_core_path = pipelineconfig_utils.get_path_to_current_core()
         core_locations = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
