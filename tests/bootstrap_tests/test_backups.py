@@ -99,21 +99,20 @@ class TestBackups(TankTestBase):
             # First update, no backup
             config.update_configuration()
 
-            def dont_cleanup_backup_folders(self, config, core):
-                self.config_backup_folder_path = config
+            def dont_cleanup_backup_folders(self, core):
                 self.core_backup_folder_path = core
 
             # Update the configuration, but don't clean up backups
-            with patch.object(sgtk.bootstrap.resolver.CachedConfiguration, '_cleanup_backup_folders', new=dont_cleanup_backup_folders):
+            with patch.object(sgtk.bootstrap.resolver.CachedConfiguration, "_cleanup_backup_folders", new=dont_cleanup_backup_folders):
                 config.update_configuration()
-                config_backup_folder_path = config.config_backup_folder_path
-                core_backup_folder_path = config.core_backup_folder_path
-                in_use_file_name = os.path.join(core_backup_folder_path, "test.txt")
-            
+
+            core_backup_folder_path = config.core_backup_folder_path
+            in_use_file_name = os.path.join(core_backup_folder_path, "test.txt")
+
             # Create a file
             with open(in_use_file_name, "w") as f:
                 f.write("Test")
-                config._cleanup_backup_folders(config_backup_folder_path, core_backup_folder_path)
+                config._cleanup_backup_folders(core_backup_folder_path)
 
             if sys.platform == "win32":
                 # check that the backup folder was left behind, it is one of the 2 items, the cleanup failed
@@ -121,9 +120,6 @@ class TestBackups(TankTestBase):
             else:
                 # on Unix, having the file open won't fail the folder removal
                 self.assertEqual(os.listdir(core_install_backup_path), ['placeholder'])
-            config_install_backup_path = os.path.join(config_root_path, "install", "config.backup")
-            # check that there are no directory items in config backup folder other than then placeholder file
-            self.assertEqual(os.listdir(config_install_backup_path), ['placeholder'])
 
             # Update a second time and check that the new backup was cleaned up...
             config.update_configuration()
@@ -132,7 +128,6 @@ class TestBackups(TankTestBase):
                 self.assertEqual(2, len(os.listdir(core_install_backup_path))) # ['placeholder', core_backup_folder_path]
             else:
                 self.assertEqual(os.listdir(core_install_backup_path), ['placeholder'])
-            self.assertEqual(os.listdir(config_install_backup_path), ['placeholder'])
 
     def test_cleanup_read_only(self):
         """
@@ -148,19 +143,16 @@ class TestBackups(TankTestBase):
             self.assertIsInstance(config, sgtk.bootstrap.resolver.CachedConfiguration)
             config_root_path = config.path.current_os
             core_install_backup_path = os.path.join(config_root_path, "install", "core.backup")
-            config_install_backup_path = os.path.join(config_root_path, "install", "config.backup")
 
             # First update, no backup
             config.update_configuration()
-            
-            def dont_cleanup_backup_folders(self, config, core):
-                self.config_backup_folder_path = config
+
+            def dont_cleanup_backup_folders(self, core):
                 self.core_backup_folder_path = core
 
             with patch.object(sgtk.bootstrap.resolver.CachedConfiguration, '_cleanup_backup_folders', new=dont_cleanup_backup_folders):
                 # Update the configuration, but don't clean up backups in order to ...
                 config.update_configuration()
-                config_backup_folder_path = config.config_backup_folder_path
                 core_backup_folder_path = config.core_backup_folder_path
                 read_only_file_name = os.path.join(core_backup_folder_path, "test.txt")
 
@@ -171,20 +163,19 @@ class TestBackups(TankTestBase):
             os.chmod(read_only_file_name, file_permissions & ~stat.S_IWRITE)
             if sys.platform == "win32":
                 # ... and a read only folder
-                folder_permissions = os.stat(config_install_backup_path)[stat.ST_MODE]
-                os.chmod(config_install_backup_path, folder_permissions & ~stat.S_IWRITE)
+                folder_permissions = os.stat(core_backup_folder_path)[stat.ST_MODE]
+                os.chmod(core_backup_folder_path, folder_permissions & ~stat.S_IWRITE)
 
             # Now try to clean up the backup folders with read-only file
-            config._cleanup_backup_folders(config_backup_folder_path, core_backup_folder_path)
+            config._cleanup_backup_folders(core_backup_folder_path)
 
             # Verify that backup folders were cleaned up
             # Only the 'placeholder' file should remain
             self.assertEqual(os.listdir(core_install_backup_path), ['placeholder'])
-            self.assertEqual(os.listdir(config_install_backup_path), ['placeholder'])
 
             # Try deleting the 'config_install_backup_path' parent folder
             # which was deliberately set to READ_ONLY on Windows
             # and verify it no longer exists afterward.
-            parent_folder = os.path.join(config_install_backup_path, os.pardir)
+            parent_folder = os.path.join(core_backup_folder_path, os.pardir)
             sgtk.util.filesystem.safe_delete_folder(parent_folder)
             self.assertFalse(os.path.exists(parent_folder))

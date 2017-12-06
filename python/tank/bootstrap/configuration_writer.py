@@ -143,18 +143,17 @@ class ConfigurationWriter(object):
 
     def move_to_backup(self, undo_on_error):
         """
-        Move any existing config and core to a backup location.
+        Move any existing core to a backup location.
 
-        After this method has been executed, there is no config and
-        no install/core folder present in the configuration scaffold.
-        Both have been moved into their respective backup locations.
+        After this method has been executed, there is no install/core folder
+        present in the configuration scaffold. It has been moved into it's
+        backup location.
 
         :param bool undo_on_error: If True, the move to backup will be undone if there is an error during
             the backup process.
 
-        :returns: core_backup_path where the paths
-                  can be None in case nothing was carried over.
-
+        :returns: The location where the core was backed up. ``None`` will be returned it nothing
+                  was carried over.
         """
 
         # The move guard's role is to keep track of every move operation that has happened
@@ -195,7 +194,7 @@ class ConfigurationWriter(object):
                 log.debug("Backup complete.")
                 core_backup_path = core_backup_path
 
-            return (None, core_backup_path)
+            return core_backup_path
 
     @filesystem.with_cleared_umask
     def create_tank_command(self, executable=sys.executable, prefix=sys.prefix):
