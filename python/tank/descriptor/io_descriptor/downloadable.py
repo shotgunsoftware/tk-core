@@ -41,6 +41,9 @@ class IODescriptorDownloadable(IODescriptorBase):
             def _post_download(self, download_path):
                 # .. code that will be executed post download.
     """
+
+    _DOWNLOAD_TRANSACTION_COMPLETE_FILE = "download_complete"
+
     def download_local(self):
         """
         Downloads the data represented by the descriptor into the primary bundle
@@ -73,10 +76,24 @@ class IODescriptorDownloadable(IODescriptorBase):
                 log.error("Failed to create directory %s: %s" % (target_parent, e))
                 raise TankDescriptorIOError("Failed to create directory %s: %s" % (target_parent, e))
 
+
+
+
+
         try:
             # attempt to download the descriptor to the temporary path.
             log.debug("Downloading %s to temporary download path %s." % (self, temporary_path))
             self._download_local(temporary_path)
+
+            # download completed without issue. No write a transaction file
+            # create settings folder
+            metadata_folder = self._get_metadata_folder(temporary_path)
+            filesystem.ensure_folder_exists(metadata_folder)
+            # write end receipt
+            filesystem.touch_file(
+                os.path.join(metadata_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
+            )
+
         except Exception as e:
             # something went wrong during the download, remove the temporary files.
             log.error("Failed to download into path %s: %s. Attempting to remove it."
@@ -188,3 +205,54 @@ class IODescriptorDownloadable(IODescriptorBase):
         downloaded.
         """
         pass
+
+    def _exists_local(self, path):
+        """
+        Checks is the bundle exists on disk and ensures that it has been completely
+        downloaded if possible.
+
+        :param str path: Path to the bundle to test.
+        :returns: True if the bundle is deemed completed, False otherwise.
+        """
+        if not super(IODescriptorDownloadable, self)._exists_local(path):
+            return False
+
+        # Now that we are guaranteed there is a folder on disk, we'll attempt to do some integrity
+        # checking.
+
+        # The metadata folder is a folder that lives inside the bundle.
+        metadata_folder = self._get_metadata_folder(path)
+
+        # If the metadata folder does not exist, this is a bundle that was downloaded with an older
+        # core. We will have to assume that it has been unzipped correctly.
+        if not os.path.isdir(metadata_folder):
+            log.debug(
+                "Pre-core-0.18.120 download found at '%s'. Assuming it is complete.", metadata_folder
+            )
+            return True
+
+        # Great, we're in the presence of a bundle that was downloaded with integrity check logic.
+
+        # The completed file flag is a file that gets written out after the bundle has been
+        # completely unzipped.
+        completed_file_flag = os.path.join(metadata_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
+
+        # If the complete file flag is missing, it means the download operation either failed (unlikely)
+        # or is currently in progress (possible) so consider it as nonexistent.
+        if os.path.exists(completed_file_flag):
+            return True
+        else:
+            log.debug(
+                "Note: Missing download complete ticket file '%s'. "
+                "This suggests a partial or in-progress download" % completed_file_flag
+            )
+            return False
+
+    def _get_metadata_folder(self, path):
+        """
+        Returns the corresponding metadata folder given a path
+        """
+        # Do not set this as a hidden folder (with a . in front) in case somebody does a
+        # rm -rf * or a manual deletion of the files. This will ensure this is treated just like
+        # any other file.
+        return os.path.join(path, "system-metadata")
