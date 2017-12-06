@@ -42,7 +42,7 @@ class IODescriptorDownloadable(IODescriptorBase):
                 # .. code that will be executed post download.
     """
 
-    _DOWNLOAD_TRANSACTION_COMPLETE_FILE = "download_complete"
+    _DOWNLOAD_TRANSACTION_COMPLETE_FILE = "install_complete"
 
     def download_local(self):
         """
@@ -76,23 +76,14 @@ class IODescriptorDownloadable(IODescriptorBase):
                 log.error("Failed to create directory %s: %s" % (target_parent, e))
                 raise TankDescriptorIOError("Failed to create directory %s: %s" % (target_parent, e))
 
-
-
-
-
         try:
             # attempt to download the descriptor to the temporary path.
             log.debug("Downloading %s to temporary download path %s." % (self, temporary_path))
             self._download_local(temporary_path)
 
-            # download completed without issue. No write a transaction file
-            # create settings folder
+            # download completed without issue. Now create settings folder
             metadata_folder = self._get_metadata_folder(temporary_path)
             filesystem.ensure_folder_exists(metadata_folder)
-            # write end receipt
-            filesystem.touch_file(
-                os.path.join(metadata_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
-            )
 
         except Exception as e:
             # something went wrong during the download, remove the temporary files.
@@ -113,6 +104,10 @@ class IODescriptorDownloadable(IODescriptorBase):
             # note: this is so that we don't end up with a partial payload in the target
             # location. All or nothing.
             os.rename(temporary_path, target)
+            # write end receipt
+            filesystem.touch_file(
+                os.path.join(metadata_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
+            )
             move_succeeded = True
             log.debug("Successfully moved the downloaded descriptor to target path: %s." % target)
 
@@ -145,6 +140,10 @@ class IODescriptorDownloadable(IODescriptorBase):
                         )
                     )
                     filesystem.move_folder(temporary_path, target)
+                    # write end receipt
+                    filesystem.touch_file(
+                        os.path.join(metadata_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
+                    )
                     # move_folder leaves all folders in the filesystem
                     # clean out these as well in a graceful way.
                     filesystem.safe_delete_folder(temporary_path)
@@ -255,4 +254,4 @@ class IODescriptorDownloadable(IODescriptorBase):
         # Do not set this as a hidden folder (with a . in front) in case somebody does a
         # rm -rf * or a manual deletion of the files. This will ensure this is treated just like
         # any other file.
-        return os.path.join(path, "system-metadata")
+        return os.path.join(path, "tk-metadata")
