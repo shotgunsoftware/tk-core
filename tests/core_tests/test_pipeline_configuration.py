@@ -184,6 +184,18 @@ class TestConfigLocations(TankTestBase):
         self._test_core_locations(pc, "/path/to/core", is_localized=False)
         self._test_config_locations(pc, config_root)
 
+    @patch("sgtk.pipelineconfig_utils.get_path_to_current_core", return_value="/path/to/core")
+    @patch("sgtk.pipelineconfig_utils.resolve_all_os_paths_to_core", return_value={
+        "linux2": "/a/b/c",
+        "win32": "C:\\a\\b\\c",
+        "darwin": "/a/b/c",
+    })
+    def test_config_with_local_core(self, *_):
+
+        pc, config_root = self._setup_project(is_localized=True)
+        self._test_core_locations(pc, config_root, is_localized=True)
+        self._test_config_locations(pc, config_root)
+
     def _setup_project(self, is_localized):
 
         locality = "local" if is_localized else "nonlocal"
