@@ -19,6 +19,8 @@ from tank_test.tank_test_base import TankTestBase, temp_env_var
 
 import tank
 from tank.commands.setup_project import SetupProjectAction
+from tank.bootstrap.configuration_writer import ConfigurationWriter
+from tank.descriptor import Descriptor, create_descriptor
 from tank_vendor import yaml
 
 
@@ -167,75 +169,114 @@ class TestConfigLocations(TankTestBase):
 
     def setUp(self):
         super(TestConfigLocations, self).setUp()
-        self._project = self.mockgun.create(
-            "Project", {"name": "test_config_locations"}
-        )
+        self._project = self.mockgun.create("Project", {"name": "config_locations_test"})
 
-    # Core location is unimportant, as we won't copy it anyway, so mock out that functionality.
-    @patch("sgtk.pipelineconfig_utils.get_path_to_current_core", return_value="/path/to/core")
-    @patch("sgtk.pipelineconfig_utils.resolve_all_os_paths_to_core", return_value={
-        "linux2": "/a/b/c",
-        "win32": "C:\\a\\b\\c",
-        "darwin": "/a/b/c",
-    })
-    def test_config_with_non_local_core(self, *_):
-
-        pc, config_root = self._setup_project(is_localized=False)
-        self._test_core_locations(pc, "/path/to/core", is_localized=False)
+    def test_classic_config_with_studio_core(self):
+        """
+        Tests the paths for a classic configuration with a studio core.
+        """
+        pc, config_root, core_root = self._setup_project(is_localized=False)
+        self._test_core_locations(pc, core_root, is_localized=False)
         self._test_config_locations(pc, config_root)
 
-    @patch("sgtk.pipelineconfig_utils.get_path_to_current_core", return_value="/path/to/core")
-    @patch("sgtk.pipelineconfig_utils.resolve_all_os_paths_to_core", return_value={
-        "linux2": "/a/b/c",
-        "win32": "C:\\a\\b\\c",
-        "darwin": "/a/b/c",
-    })
-    def test_config_with_local_core(self, *_):
-
-        pc, config_root = self._setup_project(is_localized=True)
+    def test_classic_config_with_local_core(self):
+        """
+        Tests the paths for a classic configuration with a localized core.
+        """
+        pc, config_root, core_root = self._setup_project(is_localized=True)
         self._test_core_locations(pc, config_root, is_localized=True)
         self._test_config_locations(pc, config_root)
 
-    def _setup_project(self, is_localized):
+    def test_zero_config(self):
+        """
+        Tests the paths for a zero-config configuration.
+        """
+        config_root = os.path.join(self.tank_temp, "zero_config")
 
-        locality = "local" if is_localized else "nonlocal"
-        project_folder_name = "with_%s_core" % locality
+        config_desc = create_descriptor(
+            self.mockgun,
+            Descriptor.CONFIG,
+            "sgtk:descriptor:path?path=%s" % os.path.join(self.fixtures_root, "config")
+        )
+        cw = ConfigurationWriter(
+            tank.util.ShotgunPath.from_current_os_path(config_root),
+            self.mockgun
+        )
+
+        cw.ensure_project_scaffold()
+        config_desc.copy(os.path.join(config_root, "config"))
+        cw.write_pipeline_config_file(None, self._project["id"], "basic", [], config_desc)
+        cw.update_roots_file(config_desc)
+        cw.write_install_location_file()
+
+        # Fake a core installation.
+        core_install_folder = os.path.join(config_root, "install", "core")
+        self.create_file(os.path.join(core_install_folder, "_core_upgrader.py"))
+        self.assertTrue(tank.pipelineconfig_utils.is_localized(config_root))
+
+        pc = tank.pipelineconfig.PipelineConfiguration(config_root)
+
+        self._test_core_locations(pc, config_root, True)
+        self._test_config_locations(pc, config_root)
+
+    def _setup_project(self, is_localized):
+        """
+        Setups a Toolkit classic pipeline configuration with a localized or not core.
+        """
+
+        # Create the project's destination folder.
+        locality = "localized" if is_localized else "studio"
+        project_folder_name = "config_with_%s_core" % locality
         config_root = os.path.join(self.tank_temp, project_folder_name, "pipeline_configuration")
 
         os.makedirs(os.path.join(self.tank_temp, project_folder_name))
 
-        if is_localized:
-            patcher = None
-        else:
-            patcher = patch("sgtk.commands.core_localize.do_localize")
-            patcher.start()
+        # Mock a core that will setup the project.
+        core_root = os.path.join(self.tank_temp, "%s_core" % locality)
+        core_install_folder = os.path.join(core_root, "install", "core")
+        os.makedirs(core_install_folder)
 
-        try:
-            SetupProjectAction().run_noninteractive(
-                logging.getLogger("test"),
-                dict(
-                    config_uri=os.path.join(self.fixtures_root, "config"),
-                    project_id=self._project["id"],
-                    project_folder_name=project_folder_name,
-                    config_path_mac=config_root.replace("\\", "/"),
-                    config_path_win=config_root.replace("/", "\\"),
-                    config_path_linux=config_root.replace("\\", "/"),
-                    check_storage_path_exists=False
+        # Mock a localized core if required.
+        if is_localized:
+            self.create_file(os.path.join(core_root, "config", "core", "interpreter_Darwin.cfg"))
+            self.create_file(os.path.join(core_root, "config", "core", "interpreter_Windows.cfg"))
+            self.create_file(os.path.join(core_root, "config", "core", "interpreter_Linux.cfg"))
+            self.create_file(os.path.join(core_root, "config", "core", "shotgun.yml"))
+            self.create_file(os.path.join(core_root, "config", "core", "roots.yml"))
+            self.create_file(os.path.join(core_install_folder, "_core_upgrader.py"))
+            self.assertEqual(tank.pipelineconfig_utils.is_localized(core_root), True)
+
+        # We have to patch these methods because the core doesn't actually exist on disk for the tests.
+        with patch("sgtk.pipelineconfig_utils.get_path_to_current_core", return_value=core_root):
+            with patch("sgtk.pipelineconfig_utils.resolve_all_os_paths_to_core", return_value={
+                "linux2": core_root if sys.platform == "linux2" else None,
+                "win32": core_root if sys.platform == "win32" else None,
+                "darwin": core_root if sys.platform == "darwin" else None
+            }):
+                SetupProjectAction().run_noninteractive(
+                    logging.getLogger("test"),
+                    dict(
+                        config_uri=os.path.join(self.fixtures_root, "config"),
+                        project_id=self._project["id"],
+                        project_folder_name=project_folder_name,
+                        config_path_mac=config_root if sys.platform == "darwin" else None,
+                        config_path_win=config_root if sys.platform == "win32" else None,
+                        config_path_linux=config_root if sys.platform == "linux" else None,
+                        check_storage_path_exists=False,
+                    )
                 )
-            )
-        finally:
-            if patcher:
-                patcher.stop()
 
         tk = tank.sgtk_from_path(config_root)
         pc = tk.pipeline_configuration
 
-        return pc, config_root
+        return pc, config_root, core_root
 
     def _test_core_locations(self, pc, expected_core_root, is_localized):
-
+        """
+        Test locations that are reported by the core,
+        """
         # Core location tests.
-        self.assertEqual(pc.is_localized(), False)
+        self.assertEqual(pc.is_localized(), is_localized)
         self.assertEqual(pc.get_install_location(), expected_core_root)
         self.assertEqual(
             pc.get_core_python_location(),
@@ -243,6 +284,9 @@ class TestConfigLocations(TankTestBase):
         )
 
     def _test_config_locations(self, pc, expected_config_root):
+        """
+        Test locations that are reported by the configuration.
+        """
         # Pipeline configuration location tests.
         self.assertEqual(pc.get_path(), expected_config_root)
         self.assertEqual(
@@ -252,9 +296,9 @@ class TestConfigLocations(TankTestBase):
         self.assertEqual(
             pc.get_all_os_paths(),
             tank.util.ShotgunPath(
-                expected_config_root.replace("/", "\\"),
-                expected_config_root.replace("\\", "/"),
-                expected_config_root.replace("\\", "/")
+                expected_config_root if sys.platform == "win32" else None,
+                expected_config_root if sys.platform == "linux2" else None,
+                expected_config_root if sys.platform == "darwin" else None
             )
         )
 
