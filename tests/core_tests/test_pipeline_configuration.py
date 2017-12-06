@@ -10,11 +10,15 @@
 
 import os
 import sys
+import logging
+
+from mock import patch
 
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import TankTestBase, temp_env_var
 
 import tank
+from tank.commands.setup_project import SetupProjectAction
 from tank_vendor import yaml
 
 
@@ -154,3 +158,44 @@ class TestPipelineConfig(TankTestBase):
             self.tk.pipeline_configuration.get_name(),
             "Firstary"
         )
+
+
+class TestConfigLocations(TankTestBase):
+    """
+    Ensures pipeline configurations report their folders at the right location.
+    """
+
+    # Core location is unimportant, as we won't copy it anyway, so mock out that functionality.
+    @patch("sgtk.pipelineconfig_utils.get_path_to_current_core", return_value="/Users/jfboismenu/gitlocal/tk-core")
+    @patch("sgtk.pipelineconfig_utils.resolve_all_os_paths_to_core", return_value={
+        "linux2": "",
+        "win32": "",
+        "darwin": "",
+    })
+    @patch("sgtk.commands.core_localize.do_localize")
+    def test_config_with_local_core(self, *_):
+
+        project = self.mockgun.create("Project", {"name": "test_config_with_local_core"})
+
+        s = SetupProjectAction()
+
+        project_folder_name = "with_local_core"
+        config_root = os.path.join(self.tank_temp, project_folder_name, "pipeline_configuration")
+
+        os.makedirs(os.path.join(self.tank_temp, project_folder_name))
+
+        s.run_noninteractive(
+            logging.getLogger("test"),
+            dict(
+                config_uri=os.path.join(self.fixtures_root, "config"),
+                project_id=project["id"],
+                project_folder_name=project_folder_name,
+                config_path_mac=config_root.replace("\\", "/"),
+                config_path_win=config_root.replace("/", "\\"),
+                config_path_linux=config_root.replace("\\", "/"),
+                check_storage_path_exists=False
+            )
+        )
+
+        tk = tank.sgtk_from_path(config_root)
+        pc = tk.pipeline_configuration()
