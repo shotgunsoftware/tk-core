@@ -163,7 +163,7 @@ class SetupProjectAction(Action):
         # api is the same as the root path for the associated pc
         if pipelineconfig_utils.is_localized(curr_core_path):
             log.info("Localizing Core...")
-            core_localize.do_localize(log,
+            core_localize.do_localize(log, 
                                       params.get_configuration_location(sys.platform), 
                                       suppress_prompts=True)
 
