@@ -173,13 +173,13 @@ class TestConfigLocations(TankTestBase):
         "darwin": "/a/b/c",
     })
     @patch("sgtk.commands.core_localize.do_localize")
-    def test_config_with_local_core(self, *_):
+    def test_config_with_non_local_core(self, *_):
 
-        project = self.mockgun.create("Project", {"name": "test_config_with_local_core"})
+        project = self.mockgun.create("Project", {"name": "test_config_with_nonlocal_core"})
 
         s = SetupProjectAction()
 
-        project_folder_name = "with_local_core"
+        project_folder_name = "with_nonlocal_core"
         config_root = os.path.join(self.tank_temp, project_folder_name, "pipeline_configuration")
 
         os.makedirs(os.path.join(self.tank_temp, project_folder_name))
