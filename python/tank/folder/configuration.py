@@ -221,13 +221,26 @@ class FolderConfiguration(object):
             if metadata is None:
                 if os.path.basename(project_folder) == "project":
                     # this is a project folder with no project.yml file specified
-                    # in this case, just assume it is the primary storage 
-                    metadata = {"type": "project", "root_name": constants.PRIMARY_STORAGE_NAME}
+                    # in this case, check if we have a single storage and use it
+                    local_roots = self._tk.pipeline_configuration.get_local_storage_roots()
+                    if len(local_roots) == 1:
+                        metadata = {"type": "project", "root_name": local_roots.keys()[0]}
+                    else:
+                        # Fallback to "primary" storage if we don't have any root
+                        # or have multiple roots.
+                        metadata = {"type": "project", "root_name": constants.PRIMARY_STORAGE_NAME}
                 else:
                     raise TankError("Project directory missing required yml file: %s.yml" % project_folder)
 
             if metadata.get("type") != "project":
                 raise TankError("Only items of type 'project' are allowed at the root level: %s" % project_folder)
+
+            # Allow single root configs to automatically pick the single
+            # available root.
+            if not metadata.get("root_name"):
+                local_roots = self._tk.pipeline_configuration.get_local_storage_roots()
+                if len(local_roots) == 1:
+                    metadata["root_name"] = local_roots.keys()[0]
 
             project_obj = Project.create(self._tk, project_folder, metadata)
 

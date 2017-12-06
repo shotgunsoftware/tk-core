@@ -5,5 +5,3 @@
 # the type of dynamic content
 type: "project"
 
-# name of project root as defined in roots.yml
-root_name: "primary"
