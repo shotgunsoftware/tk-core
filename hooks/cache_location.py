@@ -128,12 +128,19 @@ class CacheLocation(HookBaseClass):
         which needs to cache things per-instance can implement this using a sub
         folder inside the bundle cache location).
 
-        :param project_id: The shotgun id of the project to store caches for
+        It is possible to omit some components of the path by explicitly passing
+        a `None` value for them, only the bundle name is required. For example,
+        with `project_id=None`, a site level cache path will be returned.
+        Ommitting the `project_id` can be used to cache data for the site
+        configuration, or to share data accross all projects belonging to a
+        common site.
+
+        :param project_id: The shotgun id of the project to store caches for, or None.
         :param plugin_id: Unique string to identify the scope for a particular plugin
-                          or integration. For more information,
+                          or integration, or None. For more information,
                           see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
                           non-plugin based toolkit projects, this value is None.
-        :param pipeline_configuration_id: The shotgun pipeline config id to store caches for
+        :param pipeline_configuration_id: The shotgun pipeline config id to store caches for, or None.
         :param bundle: The app, engine or framework object which is requesting the cache folder.
         :returns: The path to a folder which should exist on disk.
         """
