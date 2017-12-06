@@ -17,6 +17,7 @@ import copy
 from tank_vendor import yaml
 from tank_test.tank_test_base import *
 
+import tank
 from tank import TankError
 
 class TestGetProjectRoots(TankTestBase):
@@ -50,7 +51,7 @@ class TestGetProjectRoots(TankTestBase):
 
     def test_paths(self):
         """Test paths match those in roots for current os."""
-        root_file =  open(self.root_file_path, "w") 
+        root_file = open(self.root_file_path, "w")
         root_file.write(yaml.dump(self.roots))
         root_file.close()
 
@@ -81,7 +82,7 @@ class TestGetProjectRoots(TankTestBase):
         new_roots = copy.deepcopy(self.roots)
         new_roots["render"]["linux_path"] = None
         
-        root_file =  open(self.root_file_path, "w") 
+        root_file = open(self.root_file_path, "w")
         root_file.write(yaml.dump(new_roots))
         root_file.close()
 
@@ -112,7 +113,7 @@ class TestGetProjectRoots(TankTestBase):
         # take one path out and mark as undefined
         new_roots = copy.deepcopy(self.roots)
         new_roots["master"] = new_roots.pop("primary")
-        root_file =  open(self.root_file_path, "w")
+        root_file = open(self.root_file_path, "w")
         root_file.write(yaml.dump(new_roots))
         root_file.close()
         # We should get a TankError if we don't have a primary storage in a
@@ -122,11 +123,10 @@ class TestGetProjectRoots(TankTestBase):
         # Only keep the master storage
         del new_roots["publish"]
         del new_roots["render"]
-        root_file =  open(self.root_file_path, "w")
+        root_file = open(self.root_file_path, "w")
         root_file.write(yaml.dump(new_roots))
         root_file.close()
         pc = tank.pipelineconfig_factory.from_path(self.project_root)
-        result = pc.get_all_platform_data_roots()
         self.assertEqual(pc.get_all_platform_data_roots().keys(), ["master"])
         self.assertEqual(pc.get_data_roots().keys(), ["master"])
         self.assertEqual(self.project_root, pc.get_primary_data_root())
@@ -186,4 +186,3 @@ class TestGetPrimaryRoot(TankTestBase):
         """
         non_project_path = os.path.join(os.path.dirname(self.project_root), "xxxyyyzzzz")
         self.assertRaises(TankError, tank.pipelineconfig_factory.from_path, non_project_path)
-
