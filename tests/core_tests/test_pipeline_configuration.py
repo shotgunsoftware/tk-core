@@ -165,6 +165,12 @@ class TestConfigLocations(TankTestBase):
     Ensures pipeline configurations report their folders at the right location.
     """
 
+    def setUp(self):
+        super(TestConfigLocations, self).setUp()
+        self._project = self.mockgun.create(
+            "Project", {"name": "test_config_locations"}
+        )
+
     # Core location is unimportant, as we won't copy it anyway, so mock out that functionality.
     @patch("sgtk.pipelineconfig_utils.get_path_to_current_core", return_value="/path/to/core")
     @patch("sgtk.pipelineconfig_utils.resolve_all_os_paths_to_core", return_value={
@@ -172,64 +178,99 @@ class TestConfigLocations(TankTestBase):
         "win32": "C:\\a\\b\\c",
         "darwin": "/a/b/c",
     })
-    @patch("sgtk.commands.core_localize.do_localize")
     def test_config_with_non_local_core(self, *_):
 
-        project = self.mockgun.create("Project", {"name": "test_config_with_nonlocal_core"})
+        pc, config_root = self._setup_project(is_localized=False)
+        self._test_core_locations(pc, "/path/to/core", is_localized=False)
+        self._test_config_locations(pc, config_root)
 
-        s = SetupProjectAction()
+    def _setup_project(self, is_localized):
 
-        project_folder_name = "with_nonlocal_core"
+        locality = "local" if is_localized else "nonlocal"
+        project_folder_name = "with_%s_core" % locality
         config_root = os.path.join(self.tank_temp, project_folder_name, "pipeline_configuration")
 
         os.makedirs(os.path.join(self.tank_temp, project_folder_name))
 
-        s.run_noninteractive(
-            logging.getLogger("test"),
-            dict(
-                config_uri=os.path.join(self.fixtures_root, "config"),
-                project_id=project["id"],
-                project_folder_name=project_folder_name,
-                config_path_mac=config_root.replace("\\", "/"),
-                config_path_win=config_root.replace("/", "\\"),
-                config_path_linux=config_root.replace("\\", "/"),
-                check_storage_path_exists=False
+        if is_localized:
+            patcher = None
+        else:
+            patcher = patch("sgtk.commands.core_localize.do_localize")
+            patcher.start()
+
+        try:
+            SetupProjectAction().run_noninteractive(
+                logging.getLogger("test"),
+                dict(
+                    config_uri=os.path.join(self.fixtures_root, "config"),
+                    project_id=self._project["id"],
+                    project_folder_name=project_folder_name,
+                    config_path_mac=config_root.replace("\\", "/"),
+                    config_path_win=config_root.replace("/", "\\"),
+                    config_path_linux=config_root.replace("\\", "/"),
+                    check_storage_path_exists=False
+                )
             )
-        )
+        finally:
+            if patcher:
+                patcher.stop()
 
         tk = tank.sgtk_from_path(config_root)
         pc = tk.pipeline_configuration
 
-        # Pipeline configuration location tests.
-        self.assertEqual(pc.get_path(), config_root)
-        self.assertEqual(pc.get_yaml_cache_location(), os.path.join(config_root, "yaml_cache.pickle"))
-        self.assertEqual(
-            pc.get_all_os_paths(),
-            tank.util.ShotgunPath(
-                config_root.replace("/", "\\"),
-                config_root.replace("\\", "/"),
-                config_root.replace("\\", "/")
-            )
-        )
+        return pc, config_root
+
+    def _test_core_locations(self, pc, expected_core_root, is_localized):
 
         # Core location tests.
         self.assertEqual(pc.is_localized(), False)
-        self.assertEqual(pc.get_install_location(), "/path/to/core")
-        self.assertEqual(pc.get_core_python_location(), "/path/to/core/install/core/python")
+        self.assertEqual(pc.get_install_location(), expected_core_root)
+        self.assertEqual(
+            pc.get_core_python_location(),
+            os.path.join(expected_core_root, "install", "core", "python")
+        )
+
+    def _test_config_locations(self, pc, expected_config_root):
+        # Pipeline configuration location tests.
+        self.assertEqual(pc.get_path(), expected_config_root)
+        self.assertEqual(
+            pc.get_yaml_cache_location(),
+            os.path.join(expected_config_root, "yaml_cache.pickle")
+        )
+        self.assertEqual(
+            pc.get_all_os_paths(),
+            tank.util.ShotgunPath(
+                expected_config_root.replace("/", "\\"),
+                expected_config_root.replace("\\", "/"),
+                expected_config_root.replace("\\", "/")
+            )
+        )
 
         # Config folder location test.
-        self.assertEqual(pc.get_config_location(), os.path.join(config_root, "config"))
         self.assertEqual(
-            pc.get_core_hooks_location(), os.path.join(config_root, "config", "core", "hooks")
+            pc.get_config_location(),
+            os.path.join(expected_config_root, "config"))
+        self.assertEqual(
+            pc.get_core_hooks_location(),
+            os.path.join(expected_config_root, "config", "core", "hooks")
         )
         self.assertEqual(
-            pc.get_schema_config_location(), os.path.join(config_root, "config", "core", "schema")
-        )
-        self.assertEqual(pc.get_hooks_location(), os.path.join(config_root, "config", "hooks"))
-        self.assertEqual(pc.get_shotgun_menu_cache_location(), os.path.join(config_root, "cache"))
-        self.assertEqual(
-            pc.get_environment_path("test"), os.path.join(config_root, "config", "env", "test.yml")
+            pc.get_schema_config_location(),
+            os.path.join(expected_config_root, "config", "core", "schema")
         )
         self.assertEqual(
-            pc.get_templates_config_location(), os.path.join(config_root, "config", "core", "templates.yml")
+            pc.get_hooks_location(),
+            os.path.join(expected_config_root, "config", "hooks")
+        )
+        self.assertEqual(
+            pc.get_shotgun_menu_cache_location(),
+            os.path.join(expected_config_root, "cache")
+        )
+        self.assertEqual(
+            pc.get_environment_path("test"),
+            os.path.join(expected_config_root, "config", "env", "test.yml")
+        )
+        self.assertEqual(
+            pc.get_templates_config_location(),
+            os.path.join(expected_config_root, "config", "core", "templates.yml")
         )
