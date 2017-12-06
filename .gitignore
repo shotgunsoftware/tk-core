@@ -3,10 +3,6 @@
 # ignore pytest caches
 .cache
 
-# Ignore work in progress files
-conftest.py
-pytest.ini
-
 # Ignore vim temporary and swap files
 *~
 [._]*.s[a-w][a-z]
