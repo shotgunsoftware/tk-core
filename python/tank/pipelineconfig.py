@@ -90,7 +90,7 @@ class PipelineConfiguration(object):
                                                                               our_associated_api_version, 
                                                                               self.get_install_location()))            
 
-        self._roots = pipelineconfig_utils.get_roots_metadata(self._pc_root)
+        self._roots = self._get_roots_metadata()
 
         # get the project tank disk name (Project.tank_name),
         # stored in the pipeline config metadata file.
@@ -167,8 +167,6 @@ class PipelineConfiguration(object):
             # current os path. If it is the same then the descriptor is an installed descriptor. If
             # it isn't then it must be pointing to something inside the bundle cache, which means it
             # isn't installed.
-
-            # FIXME: Thhis needs to be revisited...
             if self._pc_root == descriptor.get_path():
                 is_installed = True
 
@@ -247,7 +245,60 @@ class PipelineConfiguration(object):
     ########################################################################################
     # handling pipeline config metadata
 
+    def get_roots_metadata_location(self):
+        """
+        Returns the location to the roots metadata.
+        """
+        return os.path.join(
+            self._pc_root, "config", "core", constants.STORAGE_ROOTS_FILE
+        )
+
+    def _get_roots_metadata(self):
+        """
+        Loads and validates the roots metadata file.
+
+        The roots.yml file is a reflection of the local storages setup in Shotgun
+        at project setup time and may contain anomalies in the path layout structure.
+
+        The roots data will be prepended to paths and used for comparison so it is
+        critical that the paths are on a correct normalized form once they have been
+        loaded into the system.
+
+        :returns: A dictionary structure with an entry for each storage defined. Each
+                  storage will have three keys mac_path, windows_path and linux_path,
+                  for example
+                  { "primary"  : <ShotgunPath>,
+                    "textures" : <ShotgunPath>
+                  }
+        """
+        # now read in the roots.yml file
+        # this will contain something like
+        # {'primary': {'mac_path': '/studio', 'windows_path': None, 'linux_path': '/studio'}}
+        roots_yml = self.get_roots_metadata_location()
+
+        try:
+            # if file is empty, initialize with empty dict...
+            data = yaml_cache.g_yaml_cache.get(roots_yml, deepcopy_data=False) or {}
+        except Exception as e:
+            raise TankError("Looks like the roots file is corrupt. Please contact "
+                            "support! File: '%s' Error: %s" % (roots_yml, e))
+
+        # if there are more than zero storages defined, ensure one of them is the primary storage
+        if len(data) > 0 and constants.PRIMARY_STORAGE_NAME not in data:
+            raise TankError("Could not find a primary storage in roots file "
+                            "for configuration %s!" % self._pc_root)
+
+        # sanitize path data by passing it through the ShotgunPath
+        shotgun_paths = {}
+        for storage_name in data:
+            shotgun_paths[storage_name] = ShotgunPath.from_shotgun_dict(data[storage_name])
+
+        return shotgun_paths
+
     def _get_config_core_folder(self):
+        """
+        Returns the core folder under the descriptor.
+        """
         return os.path.join(
             self.get_config_location(),
             "core"
@@ -262,10 +313,7 @@ class PipelineConfiguration(object):
         """
     
         # now read in the pipeline_configuration.yml file
-        cfg_yml = os.path.join(
-            self._pc_root, "config", "core",
-            constants.PIPELINECONFIG_FILE
-        )
+        cfg_yml = self.get_pipeline_config_file_location()
     
         if not os.path.exists(cfg_yml):
             raise TankError("Configuration metadata file '%s' missing! "
@@ -297,10 +345,7 @@ class PipelineConfiguration(object):
         curr_settings.update(updates)
         
         # write the record to disk
-        pipe_config_sg_id_path = os.path.join(
-            self._pc_root, "config", "core",
-            constants.PIPELINECONFIG_FILE
-        )
+        pipe_config_sg_id_path = self.get_pipeline_config_file_location()
         
         old_umask = os.umask(0)
         try:
@@ -332,6 +377,15 @@ class PipelineConfiguration(object):
         self._project_id = curr_settings.get("project_id")
         self._pc_id = curr_settings.get("pc_id")
         self._pc_name = curr_settings.get("pc_name")
+
+    def get_pipeline_config_file_location(self):
+        """
+        Returns the location of the pipeline_configuration.yml file.
+        """
+        return os.path.join(
+            self._pc_root, "config", "core",
+            constants.PIPELINECONFIG_FILE
+        )
 
     def get_yaml_cache_location(self):
         """
@@ -895,7 +949,7 @@ class PipelineConfiguration(object):
 
     def get_config_location(self):
         """
-        Returns the config folder for the project
+        Returns the config folder location for the project
 
         :returns: path string
         """

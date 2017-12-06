@@ -294,6 +294,14 @@ class TestConfigLocations(TankTestBase):
             os.path.join(autogen_files_root, "yaml_cache.pickle")
         )
         self.assertEqual(
+            pc.get_pipeline_config_file_location(),
+            os.path.join(autogen_files_root, "config", "core", "pipeline_configuration.yml")
+        )
+        self.assertEqual(
+            pc.get_roots_metadata_location(),
+            os.path.join(autogen_files_root, "config", "core", "roots.yml")
+        )
+        self.assertEqual(
             pc.get_all_os_paths(),
             tank.util.ShotgunPath(
                 autogen_files_root if sys.platform == "win32" else None,
