@@ -235,13 +235,6 @@ class FolderConfiguration(object):
             if metadata.get("type") != "project":
                 raise TankError("Only items of type 'project' are allowed at the root level: %s" % project_folder)
 
-            # Allow single root configs to automatically pick the single
-            # available root.
-            if not metadata.get("root_name"):
-                local_roots = self._tk.pipeline_configuration.get_local_storage_roots()
-                if len(local_roots) == 1:
-                    metadata["root_name"] = local_roots.keys()[0]
-
             project_obj = Project.create(self._tk, project_folder, metadata)
 
             # store it in our lookup tables
