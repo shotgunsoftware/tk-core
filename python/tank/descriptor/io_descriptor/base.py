@@ -14,6 +14,10 @@ import cgi
 import urllib
 import urlparse
 
+from collections import namedtuple
+
+CachedRoots = namedtuple("CachedRoots", ["bundle_cache_root", "fallback_roots"])
+
 from .. import constants
 from ... import LogManager
 from ...util import filesystem
@@ -58,7 +62,7 @@ class IODescriptorBase(object):
         The primary root is where new data is always written to
         if something is downloaded and cached. The fallback_roots
         parameter is a list of paths where the descriptor system
-        will look in case a cached entry is not found in the
+        will look in case a cached entry is not found in they
         primary root. If you specify several fallback roots, they
         will be traversed in order.
 
@@ -74,6 +78,14 @@ class IODescriptorBase(object):
         """
         self._bundle_cache_root = primary_root
         self._fallback_roots = fallback_roots
+
+    def get_cache_roots(self):
+        """
+        Returns cache roots for the descriptor.
+
+        :returns: Named tupple of  (bundle_cache_root, fallback_roots).
+        """
+        return CachedRoots(self._bundle_cache_root, self._fallback_roots)
 
     def __str__(self):
         """

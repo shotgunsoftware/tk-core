@@ -18,7 +18,8 @@ from .errors import (
     TankAppStoreConnectionError, TankAppStoreError, TankDescriptorError,
     InvalidAppStoreCredentialsError, TankInvalidAppStoreCredentialsError,
     CheckVersionConstraintsError, TankCheckVersionConstraintsError,
-    TankInvalidInterpreterLocationError, TankMissingManifestError
+    TankInvalidInterpreterLocationError, TankMissingManifestError,
+    TankUnsupportedBundleFeature
 )
 
 from .descriptor import create_descriptor

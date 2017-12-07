@@ -13,9 +13,13 @@ import copy
 
 from ..util import filesystem
 from .io_descriptor import create_io_descriptor
-from .errors import TankDescriptorError
+from .errors import TankDescriptorError, TankUnsupportedBundleFeature, TankMissingManifestError
 from ..util import LocalFileStorageManager
 from . import constants
+
+from ..log import LogManager
+
+logger = LogManager.get_logger(__name__)
 
 
 def create_descriptor(
@@ -29,92 +33,13 @@ def create_descriptor(
     """
     Factory method. Use this when creating descriptor objects.
 
-    :param sg_connection: Shotgun connection to associated site
-    :param descriptor_type: Either ``Descriptor.APP``, ``CORE``, ``CONFIG``, ``INSTALLED_CONFIG``,
-        ``ENGINE`` or ``FRAMEWORK``
-    :param dict_or_uri: A std descriptor dictionary dictionary or string
-    :param bundle_cache_root_override: Optional override for root path to where
-                                       downloaded apps are cached. If not specified,
-                                       the global bundle cache location will be used. This location is a per-user
-                                       cache that is shared across all sites and projects.
-    :param fallback_roots: Optional List of immutable fallback cache locations where
-                           apps will be searched for. Note that when descriptors
-                           download new content, it always ends up in the
-                           bundle_cache_root.
-    :param resolve_latest: If true, the latest version will be determined and returned.
-
-                           If set to True, no version information needs to be supplied with
-                           the descriptor dictionary/uri for descriptor types which support
-                           a version number concept. Please note that setting this flag
-                           to true will typically affect performance - an external connection
-                           is often required in order to establish what the latest version is.
-
-                           If a remote connection cannot be established when attempting to determine
-                           the latest version, a local scan will be carried out and the highest
-                           version number that is cached locally will be returned.
-    :param constraint_pattern: If resolve_latest is True, this pattern can be used to constrain
-                           the search for latest to only take part over a subset of versions.
-                           This is a string that can be on the following form:
-
-                                - ``v0.1.2``, ``v0.12.3.2``, ``v0.1.3beta`` - a specific version
-                                - ``v0.12.x`` - get the highest v0.12 version
-                                - ``v1.x.x`` - get the highest v1 version
-
-    :returns: :class:`Descriptor` object
+    .. note::
+        This method has been deprecated. You should use :meth:`~Descriptor.create`.
     """
-    from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
-    from .descriptor_cached_config import CachedConfigDescriptor
-    from .descriptor_installed_config import InstalledConfigDescriptor
-    from .descriptor_core import CoreDescriptor
-
-    # use the environment variable if set - if not, fall back on the override or default locations
-    if os.environ.get(constants.BUNDLE_CACHE_PATH_ENV_VAR):
-        bundle_cache_root_override = os.path.expanduser(
-            os.path.expandvars(os.environ.get(constants.BUNDLE_CACHE_PATH_ENV_VAR))
-        )
-    elif bundle_cache_root_override is None:
-        bundle_cache_root_override = _get_default_bundle_cache_root()
-        filesystem.ensure_folder_exists(bundle_cache_root_override)
-    else:
-        # expand environment variables
-        bundle_cache_root_override = os.path.expanduser(os.path.expandvars(bundle_cache_root_override))
-
-    fallback_roots = fallback_roots or []
-
-    # expand environment variables
-    fallback_roots = [os.path.expandvars(os.path.expanduser(x)) for x in fallback_roots]
-
-    # first construct a low level IO descriptor
-    io_descriptor = create_io_descriptor(
-        sg_connection,
-        descriptor_type,
-        dict_or_uri,
-        bundle_cache_root_override,
-        fallback_roots,
-        resolve_latest,
-        constraint_pattern
+    return Descriptor.create(
+        sg_connection, descriptor_type, dict_or_uri, bundle_cache_root_override,
+        fallback_roots, resolve_latest, constraint_pattern
     )
-
-    # now create a high level descriptor and bind that with the low level descriptor
-    if descriptor_type == Descriptor.APP:
-        return AppDescriptor(sg_connection, io_descriptor)
-
-    elif descriptor_type == Descriptor.ENGINE:
-        return EngineDescriptor(sg_connection, io_descriptor)
-
-    elif descriptor_type == Descriptor.FRAMEWORK:
-        return FrameworkDescriptor(sg_connection, io_descriptor)
-
-    elif descriptor_type == Descriptor.CONFIG:
-        return CachedConfigDescriptor(io_descriptor)
-
-    elif descriptor_type == Descriptor.INSTALLED_CONFIG:
-        return InstalledConfigDescriptor(io_descriptor)
-
-    elif descriptor_type == Descriptor.CORE:
-        return CoreDescriptor(io_descriptor)
-    else:
-        raise TankDescriptorError("Unsupported descriptor type %s" % descriptor_type)
 
 
 def _get_default_bundle_cache_root():
@@ -140,6 +65,134 @@ class Descriptor(object):
     """
 
     (APP, FRAMEWORK, ENGINE, CONFIG, CORE, INSTALLED_CONFIG) = range(6)
+
+    @classmethod
+    def create(
+        cls,
+        sg_connection,
+        descriptor_type,
+        dict_or_uri,
+        bundle_cache_root_override=None,
+        fallback_roots=None,
+        resolve_latest=False,
+        constraint_pattern=None
+    ):
+        """
+        Factory method. Use this when creating descriptor objects.
+
+        :param sg_connection: Shotgun connection to associated site
+        :param descriptor_type: Either ``Descriptor.APP``, ``CORE``, ``CONFIG``, ``INSTALLED_CONFIG``,
+            ``ENGINE`` or ``FRAMEWORK``
+        :param dict_or_uri: A std descriptor dictionary dictionary or string
+        :param bundle_cache_root_override: Optional override for root path to where
+                                           downloaded apps are cached. If not specified,
+                                           the global bundle cache location will be used. This location is a per-user
+                                           cache that is shared across all sites and projects.
+        :param fallback_roots: Optional List of immutable fallback cache locations where
+                               apps will be searched for. Note that when descriptors
+                               download new content, it always ends up in the
+                               bundle_cache_root.
+        :param resolve_latest: If true, the latest version will be determined and returned.
+
+                               If set to True, no version information needs to be supplied with
+                               the descriptor dictionary/uri for descriptor types which support
+                               a version number concept. Please note that setting this flag
+                               to true will typically affect performance - an external connection
+                               is often required in order to establish what the latest version is.
+
+                               If a remote connection cannot be established when attempting to determine
+                               the latest version, a local scan will be carried out and the highest
+                               version number that is cached locally will be returned.
+        :param constraint_pattern: If resolve_latest is True, this pattern can be used to constrain
+                               the search for latest to only take part over a subset of versions.
+                               This is a string that can be on the following form:
+
+                                    - ``v0.1.2``, ``v0.12.3.2``, ``v0.1.3beta`` - a specific version
+                                    - ``v0.12.x`` - get the highest v0.12 version
+                                    - ``v1.x.x`` - get the highest v1 version
+
+        :returns: :class:`Descriptor` object
+        """
+        from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
+        from .descriptor_cached_config import CachedConfigDescriptor
+        from .descriptor_installed_config import InstalledConfigDescriptor
+        from .descriptor_core import CoreDescriptor
+
+        # use the environment variable if set - if not, fall back on the override or default locations
+        if os.environ.get(constants.BUNDLE_CACHE_PATH_ENV_VAR):
+            bundle_cache_root_override = os.path.expanduser(
+                os.path.expandvars(os.environ.get(constants.BUNDLE_CACHE_PATH_ENV_VAR))
+            )
+        elif bundle_cache_root_override is None:
+            bundle_cache_root_override = _get_default_bundle_cache_root()
+            filesystem.ensure_folder_exists(bundle_cache_root_override)
+        else:
+            # expand environment variables
+            bundle_cache_root_override = os.path.expanduser(os.path.expandvars(bundle_cache_root_override))
+
+        fallback_roots = fallback_roots or []
+
+        # expand environment variables
+        fallback_roots = [os.path.expandvars(os.path.expanduser(x)) for x in fallback_roots]
+
+        # first construct a low level IO descriptor
+        io_descriptor = create_io_descriptor(
+            sg_connection,
+            descriptor_type,
+            dict_or_uri,
+            bundle_cache_root_override,
+            fallback_roots,
+            resolve_latest,
+            constraint_pattern
+        )
+
+        # now create a high level descriptor and bind that with the low level descriptor
+        if descriptor_type == Descriptor.APP:
+            return AppDescriptor(sg_connection, io_descriptor)
+
+        elif descriptor_type == Descriptor.ENGINE:
+            return EngineDescriptor(sg_connection, io_descriptor)
+
+        elif descriptor_type == Descriptor.FRAMEWORK:
+            return FrameworkDescriptor(sg_connection, io_descriptor)
+
+        elif descriptor_type == Descriptor.CONFIG:
+            return CachedConfigDescriptor(io_descriptor)
+
+        elif descriptor_type == Descriptor.INSTALLED_CONFIG:
+            return InstalledConfigDescriptor(io_descriptor)
+
+        elif descriptor_type == Descriptor.CORE:
+            return CoreDescriptor(io_descriptor)
+        else:
+            raise TankDescriptorError("Unsupported descriptor type %s" % descriptor_type)
+
+    def is_feature_available(self, feature_name):
+        """
+        """
+        try:
+            # Simply try to fetch the feature.
+            self.get_feature_info(feature_name)
+            return True
+        except TankUnsupportedBundleFeature as e:
+            logger.debug(str(e))
+            return False
+
+    def get_feature_info(self, feature_name):
+        """
+        """
+        try:
+            manifest = self._get_manifest()
+        except TankMissingManifestError:
+            raise TankUnsupportedBundleFeature(
+                "Features can't be retrieved because {0} does not have a manifest file.".format(self)
+            )
+
+        if "features" not in manifest:
+            raise TankUnsupportedBundleFeature("{0} does not support the feature api.".format(self))
+        if feature_name not in manifest["features"]:
+            raise TankUnsupportedBundleFeature("{0} does not support feature '{1}'.".format(self, feature_name))
+        return manifest["features"][feature_name]
 
     def __init__(self, io_descriptor):
         """

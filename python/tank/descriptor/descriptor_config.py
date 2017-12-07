@@ -53,6 +53,29 @@ class ConfigDescriptor(Descriptor):
         raise NotImplementedError("ConfigDescriptor.python_interpreter is not implemented.")
 
     @property
+    def core_descriptor(self):
+        if not self.associated_core_descriptor:
+            return None
+
+        if not hasattr(self, "_cached_core_descriptor"):
+            cache_roots = self._io_descriptor.get_cache_roots()
+            self._cached_core_descriptor = Descriptor.create(
+                None, # FIXME: We need to pass down a connection here...
+                Descriptor.CORE,
+                self.associated_core_descriptor,
+                cache_roots.bundle_cache_root,
+                cache_roots.fallback_roots,
+                resolve_latest=False
+            )
+
+        return self._cached_core_descriptor
+
+    def is_associated_core_feature_available(self, feature_name):
+        if self.core_descriptor:
+            return self.core_descriptor.is_feature_available(feature_name)
+        return False
+
+    @property
     def version_constraints(self):
         """
         A dictionary with version constraints. The absence of a key

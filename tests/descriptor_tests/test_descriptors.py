@@ -12,11 +12,14 @@ from __future__ import with_statement
 import os
 import sgtk
 
+import unittest2
+
 from tank_test.tank_test_base import TankTestBase, SealedMock
 from tank_test.tank_test_base import setUpModule # noqa
 from tank.errors import TankError
 from tank.descriptor import (
-    CheckVersionConstraintsError, TankDescriptorError, create_descriptor, Descriptor
+    CheckVersionConstraintsError, TankDescriptorError, create_descriptor, Descriptor,
+    TankMissingManifestError, ConfigDescriptor, CoreDescriptor
 )
 from tank.descriptor.descriptor_installed_config import InstalledConfigDescriptor
 
@@ -59,6 +62,51 @@ class TestConfigDescriptor(TankTestBase):
         self.assertDictEqual(
             self.tk.configuration_descriptor.associated_core_descriptor,
             {"path": os.path.join(self.pipeline_config_root, "install", "core"), "type": "path"}
+        )
+
+    def test_core_descriptor(self):
+        """
+        Ensures the core descriptor for an installed coniguration is created correctly and cache
+        """
+        desc = self.tk.configuration_descriptor.core_descriptor
+
+        # Ensure the descriptor is set and the core is pointing at the right location.
+        self.assertIsNotNone(desc)
+        self.assertEqual(
+            os.path.join(self.pipeline_config_root, "install", "core"),
+            desc.get_path()
+        )
+
+        # Ensure the descriptor is cached.
+        desc_2 = self.tk.configuration_descriptor.core_descriptor
+        self.assertEqual(id(desc), id(desc_2))
+
+        # Ensure that if a configuration has no associated core then .core_descriptor returns
+        # nothing as well.
+        class MissingCoreConfigDescriptor(ConfigDescriptor):
+            @property
+            def associated_core_descriptor(self):
+                return None
+
+        self.assertIsNone(MissingCoreConfigDescriptor(None).core_descriptor)
+
+        class CoreConfigDescriptorWithFeatures(ConfigDescriptor):
+            @property
+            def core_descriptor(self):
+                io_desc = Mock()
+                io_desc.get_manifest.return_value = dict(features=dict(something="else"))
+                return CoreDescriptor(io_desc)
+
+        desc = CoreConfigDescriptorWithFeatures(None)
+
+        self.assertEqual(
+            desc.is_associated_core_feature_available("something"),
+            True
+        )
+
+        self.assertEqual(
+            desc.core_descriptor.get_feature_info("something"),
+            "else"
         )
 
     def test_cached_config_associated_core_descriptor(self):
@@ -716,3 +764,90 @@ class TestConstraintValidation(TankTestBase):
         self.assertRegexpMatches(
             ctx.exception.reasons[2], "Requires at least Shotgun Desktop v3.3.4 but no version was specified"
         )
+
+
+class TestFeaturesApi(unittest2.TestCase):
+
+    def test_missing_manifest(self):
+        """
+        Ensures a missing manifest is handled properly.
+        """
+        io_desc = Mock()
+        io_desc.get_manifest.side_effect = TankMissingManifestError()
+
+        desc = sgtk.descriptor.Descriptor(io_desc)
+        self.assertFalse(desc.is_feature_available("something"))
+
+        with self.assertRaisesRegexp(
+            sgtk.descriptor.TankUnsupportedBundleFeature,
+            "does not have a manifest file"
+        ):
+            desc.get_feature_info("something")
+
+    def test_missing_features_section(self):
+        """
+        Ensures a missing features section is handled properly.
+        """
+        io_desc = Mock()
+        io_desc.get_manifest.return_value = {}
+
+        desc = sgtk.descriptor.Descriptor(io_desc)
+        self.assertFalse(desc.is_feature_available("something"))
+
+        with self.assertRaisesRegexp(
+            sgtk.descriptor.TankUnsupportedBundleFeature,
+            "does not support the feature api"
+        ):
+            desc.get_feature_info("something")
+
+    def test_missing_feature(self):
+        """
+        Ensures a missing feature is handled properly.
+        """
+        io_desc = Mock()
+        io_desc.get_manifest.return_value = dict(features={})
+
+        desc = sgtk.descriptor.Descriptor(io_desc)
+        self.assertFalse(desc.is_feature_available("something"))
+
+        with self.assertRaisesRegexp(
+            sgtk.descriptor.TankUnsupportedBundleFeature,
+            "does not support feature 'something'"
+        ):
+            desc.get_feature_info("something")
+
+    def test_available_feature(self):
+        """
+        Ensures an available feature is handled properly.
+        """
+        io_desc = Mock()
+        io_desc.get_manifest.return_value = dict(features=dict(something="else"))
+
+        desc = sgtk.descriptor.Descriptor(io_desc)
+        self.assertTrue(desc.is_feature_available("something"))
+        self.assertEqual(desc.get_feature_info("something"), "else")
+
+    def test_core_features(self):
+        """
+        Checks that core features are reported properly.
+        """
+        # Create a an IoDescriptor-like object returning the core's info.yml.
+        with open(
+            os.path.join(
+                os.path.dirname(__file__),
+                "..", "..", "info.yml"
+            )
+        ) as fh:
+            info = yaml.safe_load(fh)
+
+        io_desc = Mock()
+        io_desc.get_manifest.return_value = info
+        desc = sgtk.descriptor.Descriptor(io_desc)
+
+        boolean_features = set(["features_api", "config_from_bundle_cache"])
+        for feature_name in boolean_features:
+            self.assertTrue(desc.is_feature_available(feature_name))
+            self.assertTrue(desc.get_feature_info(feature_name))
+
+        # Make sure this test covers all the features.
+        self.assertEqual(boolean_features, set(info["features"].keys()))
