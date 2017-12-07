@@ -74,6 +74,9 @@ class IODescriptorBase(object):
         self._bundle_cache_root = primary_root
         self._fallback_roots = fallback_roots
 
+    def set_use_non_default_bundle_cache_root(self, use_non_default_bundle_cache_root):
+        self._use_non_default_bundle_cache_root = use_non_default_bundle_cache_root
+
     def __str__(self):
         """
         Human readable representation
@@ -569,6 +572,17 @@ class IODescriptorBase(object):
         """
         return True
 
+    def is_purgeable(self):
+        """
+        Returns whether or not the descriptor content can deleted by some bundle cache manager code.
+
+        This base class defaults the behavior to False.
+        Sub-classes might override this as required.
+
+        :returns: False (for base class), the description content cannot be deleted.
+        """
+        return False
+
     def ensure_local(self):
         """
         Convenience method. Ensures that the descriptor exists locally.
@@ -642,10 +656,28 @@ class IODescriptorBase(object):
         index = 0
         for path in all_locations:
 
+        for path in all_locations:
             # we determine local existence based on the existence of the
             # bundle's directory on disk.
             if self._exists_local(path):
-                bundle_cache_usage_srv.log_usage(path)
+
+                # NOTE.1: The purgeability is linked to usage of non default bundle cache
+                # NOTE.2: The condition below is almost never true when using zeroconfig
+                #         as the loop exits most of the time from the first entry of
+                #         the 'all_locations' array
+                #
+                #if path == active_bundle_cache and self.is_purgeable():
+                #    # Minimum checks here, additional checks and
+                #    # path manipulation will be done on the
+                #    # service worker thread.
+                #    bundle_cache_usage_srv.log_usage(path)
+                #
+                if self.is_purgeable():
+                    # Minimum checks here, additional checks and
+                    # path manipulation will be done on the
+                    # service worker thread.
+                    bundle_cache_usage_srv.log_usage(path)
+
                 return path
 
         return None
