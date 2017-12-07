@@ -13,7 +13,7 @@ import copy
 
 from ..util import filesystem
 from .io_descriptor import create_io_descriptor
-from .errors import TankDescriptorError, TankUnsupportedBundleFeature, TankMissingManifestError
+from .errors import TankDescriptorError, TankMissingManifestError
 from ..util import LocalFileStorageManager
 from . import constants
 

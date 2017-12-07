@@ -87,11 +87,6 @@ class TankMissingManifestError(TankDescriptorError):
     """
 
 
-class TankUnsupportedBundleFeature(TankDescriptorError):
-    """
-    """
-
-
 # For backwards compatibility with previous versions of core.
 errors.TankInvalidInterpreterLocationError = TankInvalidInterpreterLocationError
 InvalidAppStoreCredentialsError = TankInvalidAppStoreCredentialsError
