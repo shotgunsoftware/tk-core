@@ -537,4 +537,3 @@ class TestDownloadableIODescriptors(TankTestBase):
         self.assertTrue(os.path.exists(os.path.join(git_location, "tk-metadata", "install_complete")))
         self.assertTrue(desc.exists_local())
         self.assertTrue(desc2.exists_local())
-
