@@ -1,0 +1,2 @@
+primary: {linux_path: /shotgun/pipeline/projects_data, mac_path: /shotgun/pipeline/projects_data,
+  windows_path: 'C:\shotgun\pipeline\projects_data'}

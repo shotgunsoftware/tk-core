@@ -1,0 +1,195 @@
+# Copyright (c) 2013 Shotgun Software Inc.
+# 
+# CONFIDENTIAL AND PROPRIETARY
+# 
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+# Source Code License included in this distribution package. See LICENSE.
+# By accessing, using, copying or modifying this work you indicate your 
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# not expressly granted therein are reserved by Shotgun Software Inc.
+
+#
+# This file is one of the central points in the Tank configuration and a counterpart to
+# the folder configuration structure.
+#
+# the folder structure underneath the project folder is used to create folders on disk - 
+# templates.yml (this file) refers to those folders. Therefore, the two files need to be 
+# in sync. This file contains an overview of all locations that are used in Tank.
+#
+#
+# Whenever an app or an engine refers to a location on disk, it is using a entry defined in 
+# this file. For more information, see the Tank Documentation. 
+
+keys:
+    Sequence:
+        type: str
+    Shot:
+        type: str
+    Step:
+        type: str
+    name:
+        type: str
+    name_alpha:
+        type: str
+        filter_by: alphanumeric
+        alias: name
+    version:
+        type: int
+        format_spec: "03"
+    timestamp:
+        type: str
+    width:
+        type: int
+    height:
+        type: int
+    channel:
+        type: str
+        filter_by: alphanumeric
+    frame:
+        type: sequence
+        format_spec: "04"
+    eye:
+        type: str
+        choices: 
+            - Left
+            - Right
+    sg_asset_type:
+        type: str
+    Asset:
+        type: str
+        exclusions: [Seq, Shot]
+    maya_extension:
+        type: str
+        choices: {'ma':'Maya Ascii (.ma)', 'mb':'Maya Binary (.mb)'}
+        default: ma
+
+
+paths:
+    # ------------------------------------------------------------------------------------
+    # Shot pipeline 
+
+    # define the location of a work area
+    shot_work_area: sequences/{Sequence}/{Shot}/{Step}/work
+
+
+    # ------------------------------------------------------------------------------------
+    # Shot pipeline - maya publishing and snapshotting locations
+
+    # The location of WIP files
+    maya_shot_work: sequences/{Sequence}/{Shot}/{Step}/work/{name}.v{version}.{maya_extension}
+
+    # The location of backups of WIP files
+    maya_shot_snapshot: sequences/{Sequence}/{Shot}/{Step}/work/snapshots/{name}.v{version}.{timestamp}.{maya_extension}
+
+    # The location of published maya files
+    maya_shot_publish: sequences/{Sequence}/{Shot}/{Step}/publish/{name}.v{version}.{maya_extension}
+
+
+
+    # ------------------------------------------------------------------------------------
+    # Shot pipeline - nuke rendering
+
+    nuke_shot_render_mono_dpx: sequences/{Sequence}/{Shot}/{Step}/images/{name_alpha}/v{version}/{width}x{height}/{Shot}_{name_alpha}_{channel}_v{version}.{frame}.dpx
+    nuke_shot_render_stereo: sequences/{Sequence}/{Shot}/{Step}/images/{name_alpha}/v{version}/{width}x{height}/{Shot}_{name_alpha}_{channel}_{eye}_v{version}.{frame}.exr
+
+    nuke_shot_render_pub_mono_dpx: sequences/{Sequence}/{Shot}/{Step}/out/{name_alpha}/v{version}/{width}x{height}/{Shot}_{name_alpha}_{channel}_v{version}.{frame}.dpx
+    nuke_shot_render_pub_stereo: sequences/{Sequence}/{Shot}/{Step}/out/{name_alpha}/v{version}/{width}x{height}/{Shot}_{name_alpha}_{channel}_{eye}_v{version}.{frame}.exr
+
+    shot_quicktime_half_res: sequences/{Sequence}/{Shot}/{Step}/editorial/half/{Shot}_{name_alpha}_{channel}_half_v{version}.mov
+    shot_quicktime_full_res: sequences/{Sequence}/{Shot}/{Step}/editorial/full/{Shot}_{name_alpha}_{channel}_full_v{version}.mov
+
+    # ------------------------------------------------------------------------------------
+    # Shot pipeline - nuke scripts
+
+    # The location of WIP script files
+    nuke_shot_work: sequences/{Sequence}/{Shot}/{Step}/work/{name_alpha}.v{version}.nk
+
+    # The location of backups of WIP files
+    nuke_shot_snapshot: sequences/{Sequence}/{Shot}/{Step}/work/snapshots/{name_alpha}.v{version}.{timestamp}.nk
+
+    # The location of published nuke script files
+    nuke_shot_publish: sequences/{Sequence}/{Shot}/{Step}/publish/{name_alpha}.v{version}.nk
+
+
+    # ------------------------------------------------------------------------------------
+    # Shot pipeline - houdini publishing and snapshotting locations
+
+    # The location of WIP hip files
+    houdini_shot_work: sequences/{Sequence}/{Shot}/{Step}/work/{name_alpha}.v{version}.hip
+
+    # The location of backups of WIP hip files
+    houdini_shot_snapshot: sequences/{Sequence}/{Shot}/{Step}/work/snapshots/{name}.v{version}.{timestamp}.hip
+
+    # The location of published hip files
+    houdini_shot_publish: sequences/{Sequence}/{Shot}/{Step}/publish/{name}.v{version}.hip
+
+
+
+    # ------------------------------------------------------------------------------------
+    # Asset pipeline 
+
+    # define the location of a work area
+    asset_work_area: assets/{sg_asset_type}/{Asset}/{Step}/work
+
+    # ------------------------------------------------------------------------------------
+    # asset pipeline - maya publishing and snapshotting locations
+
+    # The location of WIP files
+    maya_asset_work: assets/{sg_asset_type}/{Asset}/{Step}/work/{name}.v{version}.ma
+
+    # The location of backups of WIP files
+    maya_asset_snapshot: assets/{sg_asset_type}/{Asset}/{Step}/work/snapshots/{name}.v{version}.{timestamp}.ma
+
+    # The location of published maya files
+    maya_asset_publish: assets/{sg_asset_type}/{Asset}/{Step}/publish/{name}.v{version}.ma
+
+
+    # ------------------------------------------------------------------------------------
+    # Asset pipeline - nuke rendering
+
+    # outputs from the tank write node for assets
+    nuke_asset_render: assets/{sg_asset_type}/{Asset}/{Step}/images/{name_alpha}/v{version}/{width}x{height}/{Asset}_{name_alpha}_{channel}_v{version}.{frame}.exr
+
+    nuke_asset_render_pub: assets/{sg_asset_type}/{Asset}/{Step}/out/{name_alpha}/v{version}/{width}x{height}/{Asset}_{name_alpha}_{channel}_v{version}.{frame}.exr
+
+    # ------------------------------------------------------------------------------------
+    # Asset pipeline - nuke scripts
+
+    # The location of WIP script files
+    nuke_asset_work: assets/{sg_asset_type}/{Asset}/{Step}/work/{name_alpha}.v{version}.nk
+
+    # The location of backups of WIP files
+    nuke_asset_snapshot: assets/{sg_asset_type}/{Asset}/{Step}/work/snapshots/{name_alpha}.v{version}.{timestamp}.nk
+
+    # The location of published nuke script files
+    nuke_asset_publish: assets/{sg_asset_type}/{Asset}/{Step}/publish/{name_alpha}.v{version}.nk
+
+
+    # ------------------------------------------------------------------------------------
+    # Asset pipeline - Houdini hip files
+
+    # The location of WIP hip files
+    houdini_asset_work: assets/{sg_asset_type}/{Asset}/{Step}/work/{name_alpha}.v{version}.hip
+
+    # The location of backups of WIP hip files
+    houdini_asset_snapshot: assets/{sg_asset_type}/{Asset}/{Step}/work/snapshots/{name_alpha}.v{version}.{timestamp}.hip
+
+    # The location of published hip files
+    houdini_asset_publish: assets/{sg_asset_type}/{Asset}/{Step}/publish/{name_alpha}.v{version}.hip
+
+
+strings:
+
+    # when a publish record is created in shotgun, populate the name with the following 
+    houdini_shot_publish_name: "Houdini Scene {name}, v{version}"
+
+    # when a publish record is created in shotgun, populate the name with the following 
+    maya_publish_name: "Maya Scene {name}, v{version}"
+
+    # when a publish record is created in shotgun, populate the name with the following 
+    nuke_publish_name: "Nuke Script {name_alpha}, v{version}"
+
+    # when a publish record is created in shotgun, populate the name with the following 
+    houdini_asset_publish_name: "Houdini Scene {name_alpha}, v{version}"
+
+
