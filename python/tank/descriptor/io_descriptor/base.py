@@ -19,11 +19,10 @@ from ... import LogManager
 from ...util import filesystem
 from ...util.version import is_version_newer
 from ..errors import TankDescriptorError, TankMissingManifestError
-
+from ..bundle_cache_usage import bundle_cache_usage_srv
 from tank_vendor import yaml
 
 log = LogManager.get_logger(__name__)
-
 
 class IODescriptorBase(object):
     """
@@ -632,10 +631,21 @@ class IODescriptorBase(object):
         Returns the path to the folder where this item resides. If no
         cache exists for this path, None is returned.
         """
-        for path in self._get_cache_paths():
+
+        """
+        """
+
+        all_locations = self._get_cache_paths()
+        # last entry is always the active bundle cache
+        active_bundle_cache = all_locations[-1]
+
+        index = 0
+        for path in all_locations:
+
             # we determine local existence based on the existence of the
             # bundle's directory on disk.
             if self._exists_local(path):
+                bundle_cache_usage_srv.log_usage(path)
                 return path
 
         return None

@@ -1,0 +1,5 @@
+from worker import BundleCacheUsageWorker
+
+bundle_cache_root = LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE)
+bundle_cache_usage_srv = BundleCacheUsageWorker(bundle_cache_root)
+bundle_cache_usage_srv.start()
