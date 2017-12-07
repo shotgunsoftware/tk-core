@@ -297,7 +297,7 @@ class Descriptor(object):
     def support_url(self):
         """
         A url that points at a support web page associated with this item.
-        If not url has been defined, None is returned.
+        If not url has been defined, ``None`` is returned.
         """
         meta = self._get_manifest()
         support_url = meta.get("support_url")
@@ -343,8 +343,15 @@ class Descriptor(object):
 
     def get_path(self):
         """
-        Returns the path to the folder where this item either currently resides
-        or would reside in case it existed locally.
+        Returns the path to a location where this item is cached.
+
+        When locating the item, any bundle cache fallback paths
+        will first be searched in the order they have been defined,
+        and lastly the main bundle cached will be checked.
+
+        If the item is not locally cached, ``None`` is returned.
+
+        :returns: Path string or ``None`` if not cached.
         """
         return self._io_descriptor.get_path()
 
@@ -353,7 +360,7 @@ class Descriptor(object):
         """
         Information about the changelog for this item.
 
-        :returns: A tuple (changelog_summary, changelog_url). Values may be None
+        :returns: A tuple (changelog_summary, changelog_url). Values may be ``None``
                   to indicate that no changelog exists.
         """
         return self._io_descriptor.get_changelog()
@@ -423,7 +430,7 @@ class Descriptor(object):
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
 
-        :returns: Instance derived from :class:`Descriptor` or None if no cached version
+        :returns: Instance derived from :class:`Descriptor` or ``None`` if no cached version
                   is available.
         """
         io_desc = self._io_descriptor.get_latest_cached_version(constraint_pattern)

@@ -20,6 +20,8 @@ from .errors import TankInvalidInterpreterLocationError
 from .descriptor import Descriptor
 from .. import LogManager
 from ..util import ShotgunPath
+from ..util.version import is_version_older
+from .io_descriptor import descriptor_uri_to_dict
 
 log = LogManager.get_logger(__name__)
 
@@ -92,6 +94,34 @@ class ConfigDescriptor(Descriptor):
                     readme_content.append(line.strip())
 
         return readme_content
+
+    def associated_core_version_less_than(self, version_str):
+        """
+        Attempt to determine if the associated core version is less than
+        a given version. Returning True means that the associated core
+        version is less than the given one, however returning False
+        does not guarantee that the associated version is higher, it may
+        also be an indication that a version number couldn't be determined.
+
+        :param version_str: Version string, e.g. '0.18.123'
+        :returns: true if core version is less, false otherwise
+        """
+        core_desc = self.associated_core_descriptor
+
+        result = False
+        if core_desc:
+            # (note: returning None means we are tracking latest version)
+
+            if isinstance(core_desc, str):
+                # convert to dict
+                core_desc = descriptor_uri_to_dict(core_desc)
+
+            if core_desc["type"] == "app_store":
+                if is_version_older(core_desc["version"], version_str):
+                    result = True
+
+        return result
+
 
     def _get_config_folder(self):
         """

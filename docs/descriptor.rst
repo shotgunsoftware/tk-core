@@ -78,7 +78,7 @@ Several different descriptor types are supported by Toolkit:
 
 - An **app_store** descriptor represents an item in the Toolkit App Store
 - A **shotgun** descriptor represents an item stored in Shotgun
-- A **git** descriptor represents a tag in a git repo sitory
+- A **git** descriptor represents a tag in a git repository
 - A **git_branch** descriptor represents a commit in a git branch
 - A **path** descriptor represents a location on disk
 - A **dev** descriptor represents a developer sandbox
@@ -91,10 +91,10 @@ Descriptors that are downloaded (cached) to the local disk are called **download
 The **app_store**, **shotgun**, **git** and **git_branch** descriptors are downloadable descriptors,
 while the **path**, **dev** and **manual** descriptors are accessed directly from the specified path.
 
-App store
-============
+The Shotgun App store
+=====================
 
-The Toolkit app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
+The Shotgun app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
 tested and approved by Shotgun. App store descriptors should include a name and version token and
 are on the following form::
 
@@ -124,33 +124,8 @@ v2017 of a DCC, the plugin can be set up to track against the latest released ve
 ``sgtk:descriptor:app_store?name=tk-config-dcc&label=v2017``. In this case, when the descriptor is checking
 for the latest available version in the app store, only versions labelled with v2017 will be taken into account.
 
-
-Shotgun
-============
-
-Represents a Shotgun entity to which a payload has been attached.
-This can be an attachment field on any entity. Typically it will be
-a pipeline configuration. In that configuration, the descriptor represents
-a 'cloud based configuration'. It could also be a custom entity or non-project
-entity in the case you want to store a descriptor (app, engine or config)
-that can be easily accessed from any project::
-
-    {
-        type: shotgun,
-        entity_type: PipelineConfiguration,  # entity type
-        name: primary,                       # name of the record in shotgun (e.g. 'code' field)
-        project_id: 123,                     # optional project id. If omitted, name is assumed to be unique.
-        field: sg_config,                    # attachment field where payload can be found
-        version: 456                         # attachment id of particular attachment
-    }
-
-    sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&name=primary&project_id=123&field=sg_config&version=456
-
-When the attachment field is updated, the attachment id (e.g. version field in the descriptor) changes, resulting in
-a new descriptor. This can be used to determine the latest version for a Shotgun attachment descriptor.
-
-Git and Git branch
-=======================
+Tracking against tags in git
+=============================
 
 The ``git`` descriptor type is used to track git tags and typically used when you are tracking released
 versions of something. You can use any syntax that git supports, with a path key containing the path
@@ -180,6 +155,10 @@ The latest version for a descriptor is determined by retrieving the list of tags
 the repository and comparing the version numbers in order to determine the highest one.
 For this comparison, :py:class:`~distutils.version.LooseVersion` is used and we recommend
 that version numbers follow the semantic versioning standard that can be found at http://semver.org.
+
+
+Tracking against commits in a git branch
+========================================
 
 The ``git_branch`` descriptor type is typically used during development and allows you to track
 a commit in a particular branch::
@@ -211,7 +190,6 @@ descriptor is defined as the most recent commit for a given branch.
              (e.g. ``git@github.com:shotgunsoftware/tk-core.git``) in order to eliminate git
              trying to prompt for a password in the background.
 
-
 .. note:: On Windows, it is recommended that you use forward slashes.
 
 .. note:: When using the git descriptor, you need to have the git executable in
@@ -220,11 +198,11 @@ descriptor is defined as the most recent commit for a given branch.
           resolve and normal operation.
 
 
-Path and Dev
-=======================
+Pointing to a path on disk
+==========================
 
 Pointing Toolkit to an app that resides in the local file system is often very useful for managing your own bundles
-or doing development on an app or engine before releasing onto production. To allow for these scenarios, Sgtk
+or doing development on an app or engine before releasing onto production. To allow for these scenarios, Toolkit
 provides the ``dev`` and ``path`` descriptors. Here are some examples::
 
     # locally managed bundle that is used for development
@@ -289,7 +267,72 @@ a specific version number and Toolkit will associate this version number with th
 
 
 
-Manual
+Pointing at a file attachment in Shotgun
+============================================
+
+The Shotgun descriptor allows you to upload an attachment directly
+to Shotgun and then reference it with a descriptor.
+
+This allows for workflows where you can distribute configurations, custom apps
+or other items to your distributed users - regardless of network or file access.
+All they need is a connection to Shotgun.
+
+A practical application of this is Toolkit's cloud based configurations;
+by uploading a zipped up Toolkit configuration to the ``PipelineConfiguration.uploaded_config``
+field (or a custom field named ``PipelineConfiguration.sg_uploaded_config`` if you have an older
+Shotgun site which does not have the field included by default). The :class:`~sgtk.bootstrap.ToolkitManager`
+boostrapping interface will automatically look for an uploaded zip file in this field,
+and if it exists, start your Toolkit session using this configuration. This allows for a workflow
+where a configuration can be distributed to remote users easily.
+
+The Shotgun descriptor is the low level mechanism that is used to implement the cloud
+configurations described above. The descriptor points at a particular attachment
+field in Shotgun and expects a zip file to be uploaded to the field.
+
+Two formats are supported, one explicit based on a shotgun entity id and
+one implicit which uses the name in shotgun to resolve a record. With the
+id based syntax you specify the Shotgun entity type and field name you want
+to look for and the entity id to inspect. For example, if your attachment field is called
+``PipelineConfiguration.sg_uploaded_config`` and you want to access the uploaded payload for
+the Pipeline Configuration entity with id 111, use the following descriptor::
+
+    {
+        type: shotgun,
+        entity_type: PipelineConfiguration,  # entity type
+        id: 111,                             # shotgun entity id
+        field: sg_uploaded_config,           # attachment field where payload can be found
+        version: 222                         # attachment id of particular attachment
+    }
+
+    sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&id=111&field=sg_config&version=222
+
+
+The version token above refers to the version of the attachment. Every time a new
+attachment is uploaded to Shotgun, it gets assigned a unique id and the version
+number in the descriptor allows you to point at a particular version of an uploaded
+attachment. It is also used to handle the underlying logic to understand what the
+latest version of an attachment is.
+
+In some workflows, typically where you follow name based naming conventions, the
+following syntax can be useful::
+
+    {
+        type: shotgun,
+        entity_type: PipelineConfiguration,  # entity type
+        name: Primary,                       # name of the record in shotgun (e.g. 'code' field)
+        project_id: 123,                     # optional project id. If omitted, name is assumed to be unique.
+        field: sg_uploaded_config,           # attachment field where payload can be found
+        version: 456                         # attachment id of particular attachment
+    }
+
+    sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&name=primary&project_id=123&field=sg_config&version=456
+
+Here, instead of specifying the entity id you can specify a ``name`` and an optional ``project_id`` field. The name
+field will be translated into an appropriate Shotgun name field, typically the ``code`` field.
+
+
+
+Manual Descriptors
 =======================
 
 Toolkit also provides a ``manual`` mode to make it easy to manage production installations of apps

@@ -91,7 +91,7 @@ class TestDownloadableIODescriptors(TankTestBase):
             content = f.read()
         return content
 
-    def _download_and_unpack_attachment(self, sg, attachment_id, target, retries=5):
+    def _download_and_unpack_attachment(self, sg, attachment_id, target, retries=5, auto_detect_bundle=False):
         """
         Mock implementation of the tank.util.shotgun.download_and_unpack_attachment() that
         reads a pre-generated zip file and unpacks it to the target.
@@ -101,6 +101,10 @@ class TestDownloadableIODescriptors(TankTestBase):
         :param target: Folder to unpack zip to. if not created, the method will
                        try to create it.
         :param retries: Number of times to retry before giving up
+        :param auto_detect_bundle: Hints that the attachment contains a toolkit bundle
+            (config, app, engine, framework) and that this should be attempted to be
+            detected and unpacked intelligently. For example, if the zip file contains
+            the bundle in a subfolder, this should be correctly unfolded.
         """
         attempt = 0
         done = False
@@ -114,7 +118,7 @@ class TestDownloadableIODescriptors(TankTestBase):
                     fh.write(bundle_content)
 
                 tank.util.filesystem.ensure_folder_exists(target)
-                tank.util.zip.unzip_file(zip_tmp, target)
+                tank.util.zip.unzip_file(zip_tmp, target, auto_detect_bundle)
             except Exception as e:
                 print("Attempt %s: Attachment download failed: %s" % (attempt, e))
                 attempt += 1
