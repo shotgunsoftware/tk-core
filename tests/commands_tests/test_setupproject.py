@@ -85,7 +85,7 @@ class TestSetupProject(TankTestBase):
             "config_uri": self.project_config,
             "config_path_mac": new_config_root if sys.platform == "darwin" else None,
             "config_path_win": new_config_root if sys.platform == "win32" else None,
-            "config_path_linux": new_config_root if sys.platform == "linux" else None,
+            "config_path_linux": new_config_root if sys.platform.startswith("linux") else None,
         })
         new_pc = tank.pipelineconfig_factory.from_path(new_config_root)
         # Check we get back our custom primary root name
