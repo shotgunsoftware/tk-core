@@ -261,7 +261,7 @@ class TestConfigLocations(TankTestBase):
                         project_folder_name=project_folder_name,
                         config_path_mac=config_root if sys.platform == "darwin" else None,
                         config_path_win=config_root if sys.platform == "win32" else None,
-                        config_path_linux=config_root if sys.platform == "linux" else None,
+                        config_path_linux=config_root if sys.platform == "linux2" else None,
                         check_storage_path_exists=False,
                     )
                 )
