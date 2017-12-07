@@ -13,7 +13,7 @@ from __future__ import with_statement
 import os
 import copy
 
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
 from mock import Mock, patch
 

@@ -17,7 +17,7 @@ import tank
 from tank import TankError
 
 from tank.template import TemplatePath
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 from tank.templatekey import (TemplateKey, StringKey, IntegerKey, 
                                 SequenceKey)
 

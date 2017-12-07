@@ -15,7 +15,7 @@ import time
 
 import tank
 from tank import TankError
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 from tank.template import Template, TemplatePath, TemplateString
 from tank.template import make_template_paths, make_template_strings, read_templates
 from tank.templatekey import (TemplateKey, StringKey, IntegerKey, SequenceKey, TimestampKey)

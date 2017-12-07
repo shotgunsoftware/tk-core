@@ -23,7 +23,7 @@ from tank.errors import TankError
 from tank.template import TemplatePath, TemplateString
 from tank.templatekey import StringKey, IntegerKey, SequenceKey
 
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
 class TestInit(TankTestBase):
 
