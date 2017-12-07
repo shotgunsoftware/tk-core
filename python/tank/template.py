@@ -704,10 +704,11 @@ def make_template_paths(data, keys, all_per_platform_roots):
     :returns: Dictionary of form {<template name> : <TemplatePath object>}
     """
 
-    if not all_per_platform_roots:
+    if data and not all_per_platform_roots:
         raise TankError(
             "At least one root must be defined when using 'path' templates."
         )
+
     template_paths = {}
     templates_data = _process_templates_data(data, "path")
 
