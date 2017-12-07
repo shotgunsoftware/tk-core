@@ -20,6 +20,7 @@ import urllib2
 import urlparse
 import time
 import tempfile
+import zipfile
 
 from ..errors import ShotgunAttachmentDownloadError
 from ...errors import TankError
@@ -139,7 +140,7 @@ def __setup_sg_auth_and_proxy(sg):
 
 
 @LogManager.log_timing
-def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
+def download_and_unpack_attachment(sg, attachment_id, target, retries=5, auto_detect_bundle=False):
     """
     Downloads the given attachment from Shotgun, assumes it is a zip file
     and attempts to unpack it into the given location.
@@ -149,6 +150,10 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
     :param target: Folder to unpack zip to. if not created, the method will
                    try to create it.
     :param retries: Number of times to retry before giving up
+    :param auto_detect_bundle: Hints that the attachment contains a toolkit bundle
+        (config, app, engine, framework) and that this should be attempted to be
+        detected and unpacked intelligently. For example, if the zip file contains
+        the bundle in a subfolder, this should be correctly unfolded.
     :raises: ShotgunAttachmentDownloadError on failure
     """
     # @todo: progress feedback here - when the SG api supports it!
@@ -156,8 +161,9 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
     # engines can often be 30-50MiB - as a quick fix, just retry the download if it fails
     attempt = 0
     done = False
+    invalid_zip_file = False
 
-    while not done and attempt < retries:
+    while not invalid_zip_file and not done and attempt < retries:
 
         zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
         try:
@@ -179,7 +185,10 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
 
             log.debug("Unpacking %s bytes to %s..." % (file_size, target))
             filesystem.ensure_folder_exists(target)
-            unzip_file(zip_tmp, target)
+            try:
+                unzip_file(zip_tmp, target, auto_detect_bundle)
+            except zipfile.BadZipfile:
+                invalid_zip_file = True
 
         except Exception as e:
             log.warning(
@@ -194,8 +203,11 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5):
             # remove zip file
             filesystem.safe_delete_file(zip_tmp)
 
-    if not done:
-        # we were not successful
+    if invalid_zip_file:
+        # the attachment in shotgun could not be unpacked
+        raise ShotgunAttachmentDownloadError("Shotgun attachment with id %s is not a zip file!" % attachment_id)
+    elif not done:
+        # we couldn't download for some reason
         raise ShotgunAttachmentDownloadError(
             "Failed to download from '%s' after %s retries. See error log for details." % (sg.base_url, retries)
         )
