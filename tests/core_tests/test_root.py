@@ -15,7 +15,7 @@ import sys
 import copy
 
 from tank_vendor import yaml
-from tank_test.tank_test_base import TankTestBase, setUpModule
+from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
 import tank
 from tank import TankError
