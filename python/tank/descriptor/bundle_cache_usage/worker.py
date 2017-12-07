@@ -83,7 +83,27 @@ class BundleCacheUsageWorker(threading.Thread):
     ###########################################################################
 
     def __log_usage(self, bundle_path):
-        self._bundle_cache_usage.log_usage(bundle_path)
+        """
+
+        :param bundle_path:
+        """
+
+        #
+        # First check whether the specified path in contained in
+        # the "bundle cache" path specified on class creation.
+        #
+
+        #
+        # Second, truncate the received
+        #
+        #
+        #
+        # We can probably do both into a single line of code
+
+        if self._bundle_cache_root in bundle_path:
+            truncated_path = bundle_path.replace(self._bundle_cache_root, "")
+            self._bundle_cache_usage.log_usage(truncated_path)
+            log.debug2("truncated_path=%s" % (truncated_path))
 
     def __consume_task(self):
         function, args, kwargs = self._tasks.get()

@@ -157,6 +157,19 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
         self.assertEquals(w.completed_count, TASK_COUNT)
         self.assertEquals(w.pending_count, 0, "Was not expecting pending tasks after `stop`.")
 
+    def test_log_usage_truncated(self):
+        """
+        Tests that tracked path are truncated & relative to the bundle cache root
+        e.g.: we can combine both and test (afterward) that path actually exists.
+        """
+        worker = BundleCacheUsageWorker(self.bundle_cache_root)
+        worker.start()
+
+        worker.log_usage("mssate")
+
+        worker.stop()
+
+
 class TestBundleCacheUsageWorkerSingleton(TestBundleCacheUsageBase):
     """
     Test that the class is really a singleton
