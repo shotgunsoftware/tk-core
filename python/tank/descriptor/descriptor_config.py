@@ -54,6 +54,9 @@ class ConfigDescriptor(Descriptor):
 
     @property
     def core_descriptor(self):
+        """
+        Retrieves the core :class:`Descriptor` object associated with this configuration.
+        """
         if not self.associated_core_descriptor:
             return None
 
@@ -72,6 +75,20 @@ class ConfigDescriptor(Descriptor):
         return self._cached_core_descriptor
 
     def get_associated_core_feature_info(self, feature_name, default_value=None):
+        """
+        Retrieves information for a given feature in the manifest of the core.
+
+        The ``default_value`` will be returned in the following cases:
+            - a feature is missing from the manifest
+            - the manifest is empty
+            - the manifest is missing
+            - there is no core associated with this configuration.
+
+        :param str feature_name: Name of the feature to retrieve from the manifest.
+        :param obj default_value: Value to return if the feature is missing.
+
+        :returns: The value for the feature if present, ``default_value`` otherwise.
+        """
         if self.core_descriptor:
             return self.core_descriptor.get_feature_info(feature_name, default_value)
         return default_value

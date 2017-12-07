@@ -204,10 +204,11 @@ class CachedConfiguration(Configuration):
 
             # compatibility checks
             self._assert_descriptor_compatible()
-            if not self._descriptor.get_associated_core_feature_info("lean_config.version", 0) > 0:
+            # v1 of the lean_config allows to run the config from the bundle cache.
+            if self._descriptor.get_associated_core_feature_info("lean_config.version", 0) < 1:
+                # Old-style config, so copy the contents inside it.
                 self._descriptor.copy(os.path.join(self._path.current_os, "config"))
 
-            # copy the descriptor payload across into the target install location
             # write out config files
             self._config_writer.write_install_location_file()
             self._config_writer.write_config_info_file(self._descriptor)

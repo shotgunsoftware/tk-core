@@ -169,6 +169,17 @@ class Descriptor(object):
 
     def get_feature_info(self, feature_name, default_value=None):
         """
+        Retrieves information for a given feature in the manifest.
+
+        The ``default_value`` will be returned in the following cases:
+            - a feature is missing from the manifest
+            - the manifest is empty
+            - the manifest is missing
+
+        :param str feature_name: Name of the feature to retrieve from the manifest.
+        :param obj default_value: Value to return if the feature is missing.
+
+        :returns: The value for the feature if present, ``default_value`` otherwise.
         """
         infos = self.get_features_info()
         if feature_name in infos:
@@ -177,6 +188,13 @@ class Descriptor(object):
             return default_value
 
     def get_features_info(self):
+        """
+        Retrieves the feature dictionary from the manifest.
+
+        If the manifest if empty or missing, an empty dictionary will be returned.
+
+        :returns: Dictionary of features.
+        """
         try:
             manifest = self._get_manifest() or {}
         except TankMissingManifestError:

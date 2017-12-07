@@ -830,13 +830,18 @@ class TestFeaturesApi(unittest2.TestCase):
         """
         Ensures an available feature is handled properly.
         """
-        features = dict(two="2", foo="bar")
+        features = dict(two="2", foo="bar", zero=0)
         io_desc = Mock()
         io_desc.get_manifest.return_value = dict(features=features)
         desc = sgtk.descriptor.Descriptor(io_desc)
 
         self.assertEqual(desc.get_feature_info("two", 3), "2")
         self.assertEqual(desc.get_feature_info("two"), "2")
+
+        # Make sure that values that are falsy are still returned.
+        self.assertEqual(desc.get_feature_info("zero", 42), 0)
+        self.assertEqual(desc.get_feature_info("zero"), 0)
+
         self.assertEqual(desc.get_feature_info("missing", "value"), "value")
         self.assertIsNone(desc.get_feature_info("missing"))
         self.assertEqual(desc.get_features_info(), features)
