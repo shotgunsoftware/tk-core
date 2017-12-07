@@ -142,6 +142,14 @@ class IODescriptorDownloadable(IODescriptorBase):
                             target
                         )
                     )
+
+                    # first write out our metadata folder where we store the transaction marker.
+                    # this marks the beginning of the 'copy transaction' and will make sure that
+                    # the logic in _exists_local() will not think the folder is a legacy format
+                    # which doesn't implement transaction handling.
+                    metadata_folder = self._get_metadata_folder(target)
+                    filesystem.ensure_folder_exists(metadata_folder)
+
                     filesystem.move_folder(temporary_path, target)
                     # write end receipt
                     filesystem.touch_file(
