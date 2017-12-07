@@ -209,6 +209,7 @@ def _from_path(path, force_reread_shotgun_cache):
     # now given ALL pipeline configs for ALL projects and their associated projects
     # and project root paths (in sg_data), figure out which pipeline configurations
     # are matching the given path.
+
     associated_sg_pipeline_configs = _get_pipeline_configs_for_path(path, sg_data)
 
     if len(associated_sg_pipeline_configs) == 0:

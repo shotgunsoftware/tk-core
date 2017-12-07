@@ -330,13 +330,13 @@ class ShotgunPath(object):
 
     def _get_windows(self):
         """
-        The windows representation of the path
+        The Windows representation of the path
         """
         return self._windows_path
 
     def _set_windows(self, value):
         """
-        The windows representation of the path
+        The Windows representation of the path
         """
         self._windows_path = self._sanitize_path(value, "\\")
 
@@ -344,13 +344,13 @@ class ShotgunPath(object):
 
     def _get_linux(self):
         """
-        The linux representation of the path
+        The Linux representation of the path
         """
         return self._linux_path
 
     def _set_linux(self, value):
         """
-        The windows representation of the path
+        The Windows representation of the path
         """
         self._linux_path = self._sanitize_path(value, "/")
 
