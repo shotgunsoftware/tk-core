@@ -21,9 +21,7 @@ import logging
 import tank
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
-from tank.platform.environment import InstalledEnvironment
-
-from tank_test.mock_appstore import TankMockStoreDescriptor, patch_app_store
+from tank_test.mock_appstore import patch_app_store
 from mock import patch
 
 
@@ -60,10 +58,7 @@ class TestSetupProject(TankTestBase):
         self._mock_store.add_engine("tk-test", "v1.0.0")
         self._mock_store.add_application("tk-multi-app", "v1.0.0")
         self._mock_store.add_application("tk-multi-nodep", "v1.0.0")
-        #self._mock_store.add_application("tk-multi-nodep", "v2.0.0")
         self._mock_store.add_framework("tk-framework-test", "v1.0.0")
-        #self._mock_store.add_framework("tk-framework-test", "v1.0.1")
-        #self._mock_store.add_framework("tk-framework-test", "v1.1.0")
         self._mock_store.add_framework("tk-framework-2nd-level-dep", "v1.0.0")
 
     @patch("tank.pipelineconfig_utils.resolve_all_os_paths_to_core")
@@ -72,12 +67,14 @@ class TestSetupProject(TankTestBase):
         Test setting up a Project.
         """
         new_config_root = os.path.join(self.tank_temp, "test_setup_project_%s" % "config")
+
         def mocked_resolve_core_path(core_path):
             return {
                 "linux2": core_path,
                 "darwin": core_path,
                 "win32": core_path,
             }
+
         mocked.side_effect = mocked_resolve_core_path
         command = self.tk.get_command("setup_project")
         command.set_logger(logging.getLogger("/dev/null"))
