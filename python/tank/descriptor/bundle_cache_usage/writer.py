@@ -347,9 +347,9 @@ class BundleCacheUsageWriter(object):
                 if os.path.exists(bundle_path) \
                     and os.path.isdir(bundle_path):
                     # TODO: WARNING!!!!
-                    # last chance, add some extra checks!!!!!!!!!!!!!!!
-                    # To make sure we never delete anything below a certain base folder
-                    #
+                    # last chance, add some extra checks to
+                    # make sure we never delete anything below
+                    # a certain base folder
                     safe_delete_folder(bundle_path)
                     log.debug("Deleted bundle '%s'" % str(bundle_path))
 

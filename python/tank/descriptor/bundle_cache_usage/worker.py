@@ -103,6 +103,9 @@ class BundleCacheUsageWorker(threading.Thread):
             log.debug2("truncated_path=%s" % (truncated_path))
 
     def __consume_task(self):
+        """
+        Invoked exclusively form the worker thread.
+        """
         function, args, kwargs = self._tasks.get()
         if function:
             function(*args, **kwargs)
@@ -118,30 +121,41 @@ class BundleCacheUsageWorker(threading.Thread):
     def run(self):
         log.debug("Starting worker thread")
 
-        #  SQLite objects created in a thread can only be used in that same thread.
-        self._bundle_cache_usage = BundleCacheUsageWriter(self._bundle_cache_root)
+        try:
+            #  SQLite objects created in a thread can only be used in that same thread.
+            self._bundle_cache_usage = BundleCacheUsageWriter(self._bundle_cache_root)
 
-        # With the database created & opened above, let's queue a initial
-        # task about checking for OLD bundles
+            # With the database created & opened above, let's queue a initial
+            # task about checking for existing bundles
 
-        while not self._terminate_requested.is_set() or self.pending_count > 0:
+            while not self._terminate_requested.is_set() or self.pending_count > 0:
 
-            # Wait and consume an item
-            self._queued_signal.wait()
-            while self.pending_count > 0:
-                self.__consume_task()
+                # Wait and consume an item
+                self._queued_signal.wait()
+                while self.pending_count > 0:
+                    self.__consume_task()
 
-            # When all tasks have been processed we need to reset Queue signal
-            # so this loop is not consuming all CPU on a closed loop.
-            # Clearing the signal will cause the wait() statement above to sleep
-            # the thread until it is signaled again by queueing a new task.
-            self._queued_signal.clear()
+                # When all tasks have been processed we need to reset Queue signal
+                # so this loop is not consuming all CPU on a closed loop.
+                # Clearing the signal will cause the wait() statement above to sleep
+                # the thread until it is signaled again by queueing a new task.
+                self._queued_signal.clear()
 
-            self._log_debug("worker thread looping")
+                log.debug("worker thread looping")
 
-            with self._member_lock:
-                self._main_loop_count += 1
+                with self._member_lock:
+                    self._main_loop_count += 1
 
+        except Exception as e:
+            #TODO: we're in a worker thread, can we safely log error and message back to the main tread?
+            log.debug("worker thread terminated")
+
+        finally:
+            # Out of the loop, no longer expecting any operation on the DB
+            # we can close it.
+            self._bundle_cache_usage.close()
+
+        log.debug("worker thread terminated")
 
     #
     # Protected methods

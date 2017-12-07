@@ -22,6 +22,12 @@ from sgtk.descriptor.bundle_cache_usage.writer import BundleCacheUsageWriter
 
 from .test_base import TestBundleCacheUsageBase, Utils
 
+DEBUG = True
+
+def log_debug(message):
+    if DEBUG:
+        print("DEBUG: %s" % (message))
+
 
 class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
     """
@@ -169,6 +175,82 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
 
         worker.stop()
 
+
+class TestDatabasePerformanceThroughWorker(TestBundleCacheUsageBase):
+    """
+    Tests database access performance through usage of the 'BundleCacheUsageWorker' class
+    """
+
+    def test_queue_log_usage(self):
+        """
+        Tests performances of tracking a large number of descriptor through usage of the worker class.
+        Since actual database accesses are done asynchronously logging usage on the main thread should
+        be rather quick, completion of all of the database commits should be substantially longer.
+
+        There should be at the very least a 10:1 ratio
+        Development system was showing approximately à 36:0
+        """
+
+        # Force deletion of the instance created in bundle_cache_usage.__init__
+        BundleCacheUsageWorker.delete_instance()
+        w = BundleCacheUsageWorker(self.bundle_cache_root)
+        w.start()
+
+        TASK_COUNT = 1000
+        MINIMAL_EXPECTED_RATIO = 20
+        count = TASK_COUNT
+        start_time = time.time()
+        while count > 0:
+            w.log_usage("bogus-entry")
+            count -= 1
+
+        queuing_time = time.time() - start_time
+        w.stop(10)
+        completing_all_tasks_time = time.time() - start_time
+
+
+        log_debug("queuing_time             : %ss" % (queuing_time))
+        log_debug("completing_all_tasks_time: %ss" % (completing_all_tasks_time))
+
+        self.assertEquals(w.pending_count, 0,
+                          "Was not expecting pending tasks after `stop`.")
+        self.assertGreater(completing_all_tasks_time/queuing_time, MINIMAL_EXPECTED_RATIO,
+                           "Expecting at the very least a %s:1 radio between completing tasks and queuing them" % (
+                            MINIMAL_EXPECTED_RATIO
+                           ))
+
+    def test_queue_log_usage2(self):
+        """
+        Tests performances of tracking a large number of descriptor through usage of the worker class.
+        Since actual database accesses are done asynchronously logging usage on the main thread should
+        be rather quick, completion of all of the database commits should be substantially longer.
+
+        There should be at the very least a 10:1 ratio
+        Development system was showing approximately à 36:0
+        """
+
+        import sgtk.descriptor.bundle_cache_usage as bundle_cache_usage
+
+        TASK_COUNT = 1000
+        MINIMAL_EXPECTED_RATIO = 20
+        count = TASK_COUNT
+        start_time = time.time()
+        while count > 0:
+            bundle_cache_usage.bundle_cache_usage_srv.log_usage("bogus-entry")
+            count -= 1
+
+        queuing_time = time.time() - start_time
+        bundle_cache_usage.bundle_cache_usage_srv.stop(10)
+        completing_all_tasks_time = time.time() - start_time
+
+        log_debug("%s: queuing_time             : %ss" % (self._testMethodName, queuing_time))
+        log_debug("%s: completing_all_tasks_time: %ss" % (self._testMethodName, completing_all_tasks_time))
+        self.assertEquals(bundle_cache_usage.bundle_cache_usage_srv.pending_count, 0,
+                          "Was not expecting pending tasks after `stop`.")
+        self.assertGreater(completing_all_tasks_time/queuing_time, MINIMAL_EXPECTED_RATIO,
+                           "Expecting at the very least a %s:1 radio between completing tasks and queuing them" % (
+                            MINIMAL_EXPECTED_RATIO
+                           ))
 
 class TestBundleCacheUsageWorkerSingleton(TestBundleCacheUsageBase):
     """
