@@ -60,6 +60,7 @@ class TestBundleCacheUsageBase(unittest2.TestCase):
     """
     TMP_FOLDER_PREFIX = "TestBundleCacheUsageBase_"
     EXPECTED_DEFAULT_DB_FILENAME = "bundle_usage.db"
+    DEBUG = False
 
     def setUp(self):
         # Actually we don't want to inherit from tanTestBase
@@ -93,6 +94,10 @@ class TestBundleCacheUsageBase(unittest2.TestCase):
     @property
     def bundle_cache_root(self):
         return os.path.join(self._temp_folder, "bundle_cache")
+
+    def log_debug(self, msg):
+        if TestBundleCacheUsageBase.DEBUG:
+            print("%s: %s" % (self.__class__, msg))
 
     @classmethod
     def _create_test_bundle_cache(cls, root_folder):

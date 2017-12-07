@@ -19,7 +19,7 @@ from ... import LogManager
 from ...util import filesystem
 from ...util.version import is_version_newer
 from ..errors import TankDescriptorError, TankMissingManifestError
-from ..bundle_cache_usage import bundle_cache_usage_srv
+from ..bundle_cache_usage import bundle_cache_usage_srv, LOG_GET_PATH, LOG_DESCRIPTOR_TYPE
 from tank_vendor import yaml
 
 log = LogManager.get_logger(__name__)
@@ -646,17 +646,18 @@ class IODescriptorBase(object):
         cache exists for this path, None is returned.
         """
 
-        """
-        """
-
         all_locations = self._get_cache_paths()
         # last entry is always the active bundle cache
         active_bundle_cache = all_locations[-1]
 
-        log.debug("NICOLAS: get_path(), len(all_locations)=%d" % (len(all_locations)))
-        index = 0
-        for path in all_locations:
-            log.debug("NICOLAS: get_path() --- all_locations[%d]='%s'" % (index, path))
+        if LOG_DESCRIPTOR_TYPE:
+            log.debug("NICOLAS: get_path() --- type: '%s', %s" % (self._descriptor_dict["type"], self.__class__))
+
+        if LOG_GET_PATH:
+            index = 0
+            for path in all_locations:
+                log.debug("NICOLAS: get_path() --- all_locations[%d]='%s'" % (index, path))
+                index+=1
 
         for path in all_locations:
             # we determine local existence based on the existence of the
@@ -680,9 +681,9 @@ class IODescriptorBase(object):
                     # service worker thread.
                     bundle_cache_usage_srv.log_usage(path)
 
+                if LOG_GET_PATH:
+                    log.debug("NICOLAS: get_path() return: '%s'\n" % (path))
                 return path
-
-            index+=1
 
         return None
 

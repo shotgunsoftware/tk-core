@@ -55,9 +55,6 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
         BundleCacheUsageWorker.delete_instance()
         super(TestBundleCacheUsageWorker, self).tearDown()
 
-    def _log_debug(self, msg):
-        if self._debug:
-            print("TestBundleCacheUsageWorker: %s" % (msg))
 
     def test_with_no_task(self):
         """
@@ -121,7 +118,7 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
             w.queue_task(time.sleep, 0.01)
             count -= 1
 
-        self._log_debug("test loop ended")
+        self.log_debug("test loop ended")
         self.assertGreater(w.pending_count, 0, "Was expecting some incomplete tasks.")
 
         # Forcing a shorter timeout
@@ -155,7 +152,7 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
             count -= 1
             # print("count: %s" % (count))
 
-        self._log_debug("test loop ended")
+        self.log_debug("test loop ended")
         elapsed_time = time.time() - start_time
 
         self.assertGreater(w.pending_count, 0, "Was expecting some incomplete tasks.")
@@ -208,10 +205,9 @@ class TestDatabasePerformanceThroughWorker(TestBundleCacheUsageBase):
         w.stop(10)
         completing_all_tasks_time = time.time() - start_time
 
-
-        log_debug("queuing_time             : %ss" % (queuing_time))
-        log_debug("completing_all_tasks_time: %ss" % (completing_all_tasks_time))
-
+        self.log_debug("%s: queuing_time             : %ss" % (self._testMethodName, queuing_time))
+        self.log_debug("%s: completing_all_tasks_time: %ss" % (self._testMethodName, completing_all_tasks_time))
+        self.log_debug("%s: ratio : %s" % (self._testMethodName, ratio))
         self.assertEquals(w.pending_count, 0,
                           "Was not expecting pending tasks after `stop`.")
         self.assertGreater(completing_all_tasks_time/queuing_time, MINIMAL_EXPECTED_RATIO,
