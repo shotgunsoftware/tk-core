@@ -103,8 +103,14 @@ class IODescriptorGit(IODescriptorDownloadable):
 
         # Note: git doesn't like paths in single quotes when running on
         # windows - it also prefers to use forward slashes
+        #
+        # Also note - we are adding a --no-hardlinks flag here to ensure that
+        # when a github repo resides locally on a drive, git isn't trying
+        # to be clever and utilize hard links to save space - this can cause
+        # complications in cleanup scenarios and with file copying. We want
+        # each repo that we clone to be completely independent on a filesystem level.
         log.debug("Git Cloning %r into %s" % (self, target_path))
-        cmd = "git clone -q \"%s\" \"%s\"" % (self._path, target_path)
+        cmd = "git clone --no-hardlinks -q \"%s\" \"%s\"" % (self._path, target_path)
 
         # Note that we use os.system here to allow for git to pop up (in a terminal
         # if necessary) authentication prompting. This DOES NOT seem to be possible

@@ -276,7 +276,12 @@ def move_folder(src, dst, folder_permissions=0o775):
         log.debug("Moving directory: %s -> %s" % (src, dst))
 
         # first copy the content in the core folder
-        src_files = copy_folder(src, dst, folder_permissions)
+        src_files = copy_folder(
+            src,
+            dst,
+            folder_permissions,
+            skip_list=[]  # copy all files
+        )
 
         # now clear out the install location
         log.debug("Clearing out source location...")
@@ -285,12 +290,12 @@ def move_folder(src, dst, folder_permissions=0o775):
                 # on windows, ensure all files are writable
                 if sys.platform == "win32":
                     attr = os.stat(f)[0]
-                    if (not attr & stat.S_IWRITE):
+                    if not attr & stat.S_IWRITE:
                         # file is readonly! - turn off this attribute
                         os.chmod(f, stat.S_IWRITE)
                 os.remove(f)
             except Exception as e:
-                log.error("Could not delete file %s: %s" % (f, e))
+                log.warning("Could not delete file %s: %s" % (f, e))
 
 
 @with_cleared_umask
