@@ -284,6 +284,13 @@ class BundleCacheUsageWriter(object):
     #
     ###################################################################################################################
 
+    def add_unused_bundle(self, bundle_path):
+        """
+        Add an entry to the database which is initialized with a access count of zero.
+        :param bundle_path: a str path to a bundle cache item
+        """
+        self._log_usage(bundle_path, 0)
+
     def close(self):
         """
         Close the last access database connection.
@@ -293,6 +300,9 @@ class BundleCacheUsageWriter(object):
             self._stat_close_count += 1
             self._db_connection.close()
             self._db_connection = None
+
+    def get_unused_bundles(self, since_days=60):
+        return []
 
     def get_usage_count(self, bundle_path):
         bundle_entry = self._find_bundle(bundle_path)

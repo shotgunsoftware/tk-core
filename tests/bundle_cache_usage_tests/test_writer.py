@@ -100,6 +100,22 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self._db = BundleCacheUsageWriter(self.bundle_cache_root)
         self.assertEquals(self.bundle_cache_root, self._db.bundle_cache_root)
 
+    def test_add_unused_bundle(self):
+        """
+        Tests that we can add a new bundle entry with an access count of zero
+        """
+
+        TEST_ENTRY_FAKE_PATH = "test-bundle"
+
+        # Pre Checks
+        self.assertEquals(self.db.bundle_count, 0, "Was not expecting any entry yet.")
+
+        # Log something
+        self.db.add_unused_bundle(TEST_ENTRY_FAKE_PATH)
+
+        self.assertEquals(self.db.bundle_count, 1)
+        self.assertEquals(self.db.get_usage_count(TEST_ENTRY_FAKE_PATH), 0)
+
     def test_db_log_usage_basic(self):
         """
         Tests the logging basic usage is exception free
