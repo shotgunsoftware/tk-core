@@ -66,7 +66,7 @@ class TestConfigDescriptor(TankTestBase):
 
     def test_core_descriptor(self):
         """
-        Ensures the core descriptor for an installed coniguration is created correctly and cache
+        Ensures the core descriptor for an installed configuration is created correctly and cached
         """
         desc = self.tk.configuration_descriptor.core_descriptor
 
@@ -88,25 +88,47 @@ class TestConfigDescriptor(TankTestBase):
             def associated_core_descriptor(self):
                 return None
 
-        self.assertIsNone(MissingCoreConfigDescriptor(None).core_descriptor)
+        desc = MissingCoreConfigDescriptor(None)
+        self.assertIsNone(desc.core_descriptor)
+        self.assertEqual(desc.get_associated_core_feature_info("missing", "value"), "value")
+
+    def test_core_descriptor_features(self):
+        """
+        Ensures feature discovery works whether the core is specified or not.
+        """
+        class CoreConfigDescriptorWithoutFeatures(ConfigDescriptor):
+            @property
+            def core_descriptor(self):
+                io_desc = Mock()
+                io_desc.get_manifest.return_value = dict()
+                return CoreDescriptor(io_desc)
+
+        desc = CoreConfigDescriptorWithoutFeatures(None)
+        self.assertIsNone(
+            desc.get_associated_core_feature_info("missing")
+        )
+        self.assertEqual(
+            desc.get_associated_core_feature_info("missing", "value"),
+            "value"
+        )
 
         class CoreConfigDescriptorWithFeatures(ConfigDescriptor):
             @property
             def core_descriptor(self):
                 io_desc = Mock()
-                io_desc.get_manifest.return_value = dict(features=dict(something="else"))
+                io_desc.get_manifest.return_value = dict(features=dict(two="2"))
                 return CoreDescriptor(io_desc)
 
         desc = CoreConfigDescriptorWithFeatures(None)
 
         self.assertEqual(
-            desc.is_associated_core_feature_available("something"),
-            True
+            desc.get_associated_core_feature_info("two"),
+            "2"
         )
 
         self.assertEqual(
-            desc.core_descriptor.get_feature_info("something"),
-            "else"
+            desc.get_associated_core_feature_info("foo", "bar"),
+            "bar"
         )
 
     def test_cached_config_associated_core_descriptor(self):
@@ -774,15 +796,11 @@ class TestFeaturesApi(unittest2.TestCase):
         """
         io_desc = Mock()
         io_desc.get_manifest.side_effect = TankMissingManifestError()
-
         desc = sgtk.descriptor.Descriptor(io_desc)
-        self.assertFalse(desc.is_feature_available("something"))
 
-        with self.assertRaisesRegexp(
-            sgtk.descriptor.TankUnsupportedBundleFeature,
-            "does not have a manifest file"
-        ):
-            desc.get_feature_info("something")
+        self.assertEqual(desc.get_feature_info("missing", "value"), "value")
+        self.assertIsNone(desc.get_feature_info("missing"))
+        self.assertEqual(desc.get_features_info(), {})
 
     def test_missing_features_section(self):
         """
@@ -790,15 +808,11 @@ class TestFeaturesApi(unittest2.TestCase):
         """
         io_desc = Mock()
         io_desc.get_manifest.return_value = {}
-
         desc = sgtk.descriptor.Descriptor(io_desc)
-        self.assertFalse(desc.is_feature_available("something"))
 
-        with self.assertRaisesRegexp(
-            sgtk.descriptor.TankUnsupportedBundleFeature,
-            "does not support the feature api"
-        ):
-            desc.get_feature_info("something")
+        self.assertEqual(desc.get_feature_info("missing", "value"), "value")
+        self.assertIsNone(desc.get_feature_info("missing"))
+        self.assertEqual(desc.get_features_info(), {})
 
     def test_missing_feature(self):
         """
@@ -806,30 +820,32 @@ class TestFeaturesApi(unittest2.TestCase):
         """
         io_desc = Mock()
         io_desc.get_manifest.return_value = dict(features={})
-
         desc = sgtk.descriptor.Descriptor(io_desc)
-        self.assertFalse(desc.is_feature_available("something"))
 
-        with self.assertRaisesRegexp(
-            sgtk.descriptor.TankUnsupportedBundleFeature,
-            "does not support feature 'something'"
-        ):
-            desc.get_feature_info("something")
+        self.assertEqual(desc.get_feature_info("missing", "value"), "value")
+        self.assertIsNone(desc.get_feature_info("missing"))
+        self.assertEqual(desc.get_features_info(), {})
 
     def test_available_feature(self):
         """
         Ensures an available feature is handled properly.
         """
+        features = dict(two="2", foo="bar")
         io_desc = Mock()
-        io_desc.get_manifest.return_value = dict(features=dict(something="else"))
-
+        io_desc.get_manifest.return_value = dict(features=features)
         desc = sgtk.descriptor.Descriptor(io_desc)
-        self.assertTrue(desc.is_feature_available("something"))
-        self.assertEqual(desc.get_feature_info("something"), "else")
+
+        self.assertEqual(desc.get_feature_info("two", 3), "2")
+        self.assertEqual(desc.get_feature_info("two"), "2")
+        self.assertEqual(desc.get_feature_info("missing", "value"), "value")
+        self.assertIsNone(desc.get_feature_info("missing"))
+        self.assertEqual(desc.get_features_info(), features)
 
     def test_core_features(self):
         """
-        Checks that core features are reported properly.
+        Checks that core features are reported properly. This prevents us from
+        removing something by mistake in info.yml, which would be quite
+        catastrophic.
         """
         # Create a an IoDescriptor-like object returning the core's info.yml.
         with open(
@@ -844,10 +860,13 @@ class TestFeaturesApi(unittest2.TestCase):
         io_desc.get_manifest.return_value = info
         desc = sgtk.descriptor.Descriptor(io_desc)
 
-        boolean_features = set(["features_api", "config_from_bundle_cache"])
-        for feature_name in boolean_features:
-            self.assertTrue(desc.is_feature_available(feature_name))
-            self.assertTrue(desc.get_feature_info(feature_name))
+        features = {
+            "lean_config.version": 1
+        }
 
-        # Make sure this test covers all the features.
-        self.assertEqual(boolean_features, set(info["features"].keys()))
+        # Make sure every feature is at the expected version.
+        for feature, value in features.iteritems():
+            self.assertEqual(desc.get_feature_info(feature), value)
+
+        # Make sure there weren't new features introduced.
+        self.assertEqual(desc.get_features_info(), features)

@@ -10,6 +10,7 @@
 
 import os
 import traceback
+import pprint
 
 from . import constants
 
@@ -190,6 +191,7 @@ class CachedConfiguration(Configuration):
             )
             return
 
+        self._config_writer.ensure_project_scaffold()
 
         # copy the configuration into place
         try:
@@ -197,21 +199,16 @@ class CachedConfiguration(Configuration):
             # make sure the config is locally available.
             self._descriptor.ensure_local()
 
-            # compatibility checks:
-            # if it's a shotgun descriptor type using id, ensure
-            # that the core we are switching *to* is more recent than 18.120
-            descriptor_dict = self._descriptor.get_dict()
-            if descriptor_dict["type"] == "shotgun" and "id" in descriptor_dict:
-                if self._descriptor.associated_core_version_less_than("v0.18.120"):
-                    raise TankBootstrapError(
-                        "Configurations uploaded to Shotgun must use core API "
-                        "version v0.18.120 or later. Please check the "
-                        "core/core_api.yml file in your configuration."
-                    )
+            # Log information about the core being setup with this config.
+            self._log_core_information()
+
+            # compatibility checks
+            self._assert_descriptor_compatible()
+            if not self._descriptor.get_associated_core_feature_info("lean_config.version", 0) > 0:
+                self._descriptor.copy(os.path.join(self._path.current_os, "config"))
 
             # copy the descriptor payload across into the target install location
             # write out config files
-            self._config_writer.ensure_project_scaffold()
             self._config_writer.write_install_location_file()
             self._config_writer.write_config_info_file(self._descriptor)
             self._config_writer.write_shotgun_file(self._descriptor)
@@ -289,6 +286,45 @@ class CachedConfiguration(Configuration):
         self._config_writer.create_tank_command()
 
         self._config_writer.end_transaction()
+
+    def _assert_descriptor_compatible(self):
+        """
+        Ensures the config we're booting into understands the newer Shotgun descriptor.
+        """
+        # if it's a shotgun descriptor type using id, ensure
+        # that the core we are switching *to* is more recent than 18.120
+        descriptor_dict = self._descriptor.get_dict()
+        if descriptor_dict["type"] == "shotgun" and "id" in descriptor_dict:
+            if self._descriptor.associated_core_version_less_than("v0.18.120"):
+                raise TankBootstrapError(
+                    "Configurations uploaded to Shotgun must use core API "
+                    "version v0.18.120 or later. Please check the "
+                    "core/core_api.yml file in your configuration."
+                )
+
+    def _log_core_information(self):
+        """
+        Logs features from core we're about to bootstrap into. This is useful for QA.
+        """
+        try:
+            if not self._descriptor.core_descriptor:
+                log.debug("The core associated with '%s' is not specified.", self._descriptor)
+            else:
+                features = self._descriptor.core_descriptor.get_features_info()
+                log.debug(
+                    "The core '%s' associated with '%s' has the following feature information:",
+                    self._descriptor.core_descriptor, self._descriptor
+                )
+                if features:
+                    log.debug(pprint.pformat(features))
+                else:
+                    log.debug("This version of core can't report features.")
+        except Exception as ex:
+            # Do not let an error in here trip the bootstrap, but do report.
+            log.warning(
+                "The core '%s' associated with '%s' couldn't report its features: %s.",
+                self._descriptor.core_descriptor, self._descriptor, ex
+            )
 
     @property
     def has_local_bundle_cache(self):

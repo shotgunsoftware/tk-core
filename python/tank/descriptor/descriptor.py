@@ -167,32 +167,21 @@ class Descriptor(object):
         else:
             raise TankDescriptorError("Unsupported descriptor type %s" % descriptor_type)
 
-    def is_feature_available(self, feature_name):
+    def get_feature_info(self, feature_name, default_value=None):
         """
         """
-        try:
-            # Simply try to fetch the feature.
-            self.get_feature_info(feature_name)
-            return True
-        except TankUnsupportedBundleFeature as e:
-            logger.debug(str(e))
-            return False
+        infos = self.get_features_info()
+        if feature_name in infos:
+            return infos[feature_name]
+        else:
+            return default_value
 
-    def get_feature_info(self, feature_name):
-        """
-        """
+    def get_features_info(self):
         try:
-            manifest = self._get_manifest()
+            manifest = self._get_manifest() or {}
         except TankMissingManifestError:
-            raise TankUnsupportedBundleFeature(
-                "Features can't be retrieved because {0} does not have a manifest file.".format(self)
-            )
-
-        if "features" not in manifest:
-            raise TankUnsupportedBundleFeature("{0} does not support the feature api.".format(self))
-        if feature_name not in manifest["features"]:
-            raise TankUnsupportedBundleFeature("{0} does not support feature '{1}'.".format(self, feature_name))
-        return manifest["features"][feature_name]
+            return {}
+        return manifest.get("features") or {}
 
     def __init__(self, io_descriptor):
         """

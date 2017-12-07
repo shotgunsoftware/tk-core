@@ -60,7 +60,8 @@ class ConfigDescriptor(Descriptor):
         if not hasattr(self, "_cached_core_descriptor"):
             cache_roots = self._io_descriptor.get_cache_roots()
             self._cached_core_descriptor = Descriptor.create(
-                None, # FIXME: We need to pass down a connection here...
+                # FIXME: We need to pass down a connection here...
+                None,
                 Descriptor.CORE,
                 self.associated_core_descriptor,
                 cache_roots.bundle_cache_root,
@@ -70,10 +71,10 @@ class ConfigDescriptor(Descriptor):
 
         return self._cached_core_descriptor
 
-    def is_associated_core_feature_available(self, feature_name):
+    def get_associated_core_feature_info(self, feature_name, default_value=None):
         if self.core_descriptor:
-            return self.core_descriptor.is_feature_available(feature_name)
-        return False
+            return self.core_descriptor.get_feature_info(feature_name, default_value)
+        return default_value
 
     @property
     def version_constraints(self):
