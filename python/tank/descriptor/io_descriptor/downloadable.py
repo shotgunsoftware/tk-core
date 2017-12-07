@@ -106,7 +106,10 @@ class IODescriptorDownloadable(IODescriptorBase):
             os.rename(temporary_path, target)
             # write end receipt
             filesystem.touch_file(
-                os.path.join(metadata_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
+                os.path.join(
+                    self._get_metadata_folder(target),
+                    self._DOWNLOAD_TRANSACTION_COMPLETE_FILE
+                )
             )
             move_succeeded = True
             log.debug("Successfully moved the downloaded descriptor to target path: %s." % target)
@@ -115,7 +118,7 @@ class IODescriptorDownloadable(IODescriptorBase):
 
             # if the target path already exists, this means someone else is either
             # moving things right now or have moved it already, so we are ok.
-            if not os.path.exists(target):
+            if not self._exists_local(target):
                 # the target path does not exist. so the rename failed for other reasons.
 
                 # if the rename did not work, it may be because the files are locked and
@@ -142,7 +145,10 @@ class IODescriptorDownloadable(IODescriptorBase):
                     filesystem.move_folder(temporary_path, target)
                     # write end receipt
                     filesystem.touch_file(
-                        os.path.join(metadata_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
+                        os.path.join(
+                            self._get_metadata_folder(target),
+                            self._DOWNLOAD_TRANSACTION_COMPLETE_FILE
+                        )
                     )
                     # move_folder leaves all folders in the filesystem
                     # clean out these as well in a graceful way.
@@ -156,8 +162,8 @@ class IODescriptorDownloadable(IODescriptorBase):
                         log.debug("Move failed. Attempting to clear out target path '%s'" % target)
                         filesystem.safe_delete_folder(target)
 
-                    # and raise an error.
-                    log.error(
+                    # ...and raise an error. Include callstack so we get full visibility here.
+                    log.exception(
                         "Failed to copy descriptor %s from the temporary path %s "
                         "to the bundle cache %s. Error: %s" % (self, temporary_path, target, e)
                     )

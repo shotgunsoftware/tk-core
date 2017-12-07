@@ -222,6 +222,7 @@ class TestDownloadableIODescriptors(TankTestBase):
         """
         Downloads the data given by the git descriptors to disk.
         :param target: The path to which the bundle is to be downloaded.
+        :returns: a descriptor instance
         """
         location_dict_branch = {
             "type": "git_branch",
@@ -234,6 +235,8 @@ class TestDownloadableIODescriptors(TankTestBase):
         else:
             desc_git_branch = self._create_desc(location_dict_branch, True)
         desc_git_branch.download_local()
+
+        return desc_git_branch
 
     def _download_git_tag_bundle(self, target=None):
         """
@@ -388,7 +391,7 @@ class TestDownloadableIODescriptors(TankTestBase):
         # make sure there is nothing in the bundle cache
         git_location = os.path.join(self.tank_temp, "bundle_cache", "gitbranch", "tk-config-default.git", "e1c03fa")
         if os.path.exists(git_location):
-            os.rename(git_location, "%s.%s" % (git_location, uuid.uuid4().hex))
+            os.rename(git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex))
 
         # make sure nothing exists
         self.assertFalse(os.path.exists(git_location))
@@ -436,7 +439,7 @@ class TestDownloadableIODescriptors(TankTestBase):
         # make sure there is nothing in the bundle cache
         git_location = os.path.join(self.tank_temp, "bundle_cache", "gitbranch", "tk-config-default.git", "e1c03fa")
         if os.path.exists(git_location):
-            shutil.move(git_location, "%s.%s" % (git_location, uuid.uuid4().hex))
+            shutil.move(git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex))
 
         # make sure nothing exists
         self.assertFalse(os.path.exists(git_location))
@@ -481,7 +484,7 @@ class TestDownloadableIODescriptors(TankTestBase):
         # make sure there is nothing in the bundle cache
         git_location = os.path.join(self.tank_temp, "bundle_cache", "gitbranch", "tk-config-default.git", "e1c03fa")
         if os.path.exists(git_location):
-            shutil.move(git_location, "%s.%s" % (git_location, uuid.uuid4().hex))
+            shutil.move(git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex))
 
         # make sure nothing exists
         self.assertFalse(os.path.exists(git_location))
@@ -503,3 +506,35 @@ class TestDownloadableIODescriptors(TankTestBase):
         # make sure we did not cleanup the temp location - it's left for support forensics
         tmp_files_after = os.listdir(tmp_location)
         self.assertNotEqual(tmp_files_after, tmp_files_before)
+
+    def test_partial_download_handling(self):
+        """
+        Tests the case where for some reason a partial bundle was written to the bundle cache
+        """
+        # make sure there is nothing in the bundle cache
+        git_location = os.path.join(self.tank_temp, "bundle_cache", "gitbranch", "tk-config-default.git", "e1c03fa")
+        if os.path.exists(git_location):
+            shutil.move(git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex))
+
+        # make sure nothing exists
+        self.assertFalse(os.path.exists(git_location))
+
+        # setup shotgun test data and download into bundle cache
+        self._setup_git_data()
+        desc = self._download_git_branch_bundle()
+
+        # remove the transaction file and some other files
+        os.remove(os.path.join(git_location, "tk-metadata", "install_complete"))
+        os.remove(os.path.join(git_location, "info.yml"))
+
+        # exists local should return false for incomplete pkgs
+        self.assertFalse(desc.exists_local())
+
+        # now download again and make sure it exists afterwards
+        desc2 = self._download_git_branch_bundle()
+
+        self.assertTrue(os.path.exists(os.path.join(git_location, "info.yml")))
+        self.assertTrue(os.path.exists(os.path.join(git_location, "tk-metadata", "install_complete")))
+        self.assertTrue(desc.exists_local())
+        self.assertTrue(desc2.exists_local())
+
