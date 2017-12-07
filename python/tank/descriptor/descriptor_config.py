@@ -122,7 +122,6 @@ class ConfigDescriptor(Descriptor):
 
         return result
 
-
     def get_config_folder(self):
         """
         Returns the folder in which the configuration files are located.
