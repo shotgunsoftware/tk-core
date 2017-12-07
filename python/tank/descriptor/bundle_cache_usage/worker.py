@@ -15,10 +15,7 @@ import Queue
 from threading import Event, Thread, Lock
 
 from .writer import BundleCacheUsageWriter
-from ... import LogManager
-
-log = LogManager.get_logger(__name__)
-DEBUG = False
+from . import BundleCacheUsageLogger as log
 
 class BundleCacheUsageWorker(threading.Thread):
 
@@ -38,8 +35,7 @@ class BundleCacheUsageWorker(threading.Thread):
 
         # create the queue instance if it hasn't been created already
         if not cls.__instance:
-
-            log.info("__new__")
+            log.debug("__new__")
 
             # remember the instance so that no more are created
             singleton = super(BundleCacheUsageWorker, cls).__new__(cls, *args, **kwargs)
@@ -60,6 +56,7 @@ class BundleCacheUsageWorker(threading.Thread):
         cls.__instance = None
 
     def __init__(self, bundle_cache_root):
+        log.debug("__init__")
         super(BundleCacheUsageWorker, self).__init__()
         #TODO: returning would cause a silent non-usage of specified parameter
         if (self.__initialized): return
@@ -109,9 +106,9 @@ class BundleCacheUsageWorker(threading.Thread):
         function, args, kwargs = self._tasks.get()
         if function:
             function(*args, **kwargs)
-            self._log_debug("Consumed task")
+            log.debug2("Consumed task")
         else:
-            self._log_debug("Bad Consumed task")
+            log.debug2("Bad Consumed task")
 
         with self._member_lock:
             if self._pending_count > 0:
@@ -119,7 +116,7 @@ class BundleCacheUsageWorker(threading.Thread):
             self._completed_count += 1
 
     def run(self):
-        self._log_debug("Starting worker thread")
+        log.debug("Starting worker thread")
 
         #  SQLite objects created in a thread can only be used in that same thread.
         self._bundle_cache_usage = BundleCacheUsageWriter(self._bundle_cache_root)
@@ -145,17 +142,12 @@ class BundleCacheUsageWorker(threading.Thread):
             with self._member_lock:
                 self._main_loop_count += 1
 
-        self._log_debug("worker thread terminated")
 
     #
     # Protected methods
     # Can run from either threading contextes
     #
     ###########################################################################
-
-    def _log_debug(self, msg):
-        if self._debug:
-            print("%s: %s" % (self.__class__.name, msg))
 
     #
     # Public methods & properties
@@ -182,6 +174,7 @@ class BundleCacheUsageWorker(threading.Thread):
             return self._completed_count
 
     def log_usage(self, bundle_path):
+        log.debug2("log_usage = %s" % (bundle_path))
         self.queue_task(self.__log_usage, bundle_path)
 
     @property
@@ -206,7 +199,7 @@ class BundleCacheUsageWorker(threading.Thread):
         self._queued_signal.set()
 
     def stop(self, timeout=10.0):
-        self._log_debug("Requesting worker thread termination...")
+        log.debug("Requesting worker thread termination...")
 
         self._queued_signal.set()
         self._terminate_requested.set()

@@ -653,8 +653,10 @@ class IODescriptorBase(object):
         # last entry is always the active bundle cache
         active_bundle_cache = all_locations[-1]
 
+        log.debug("NICOLAS: get_path(), len(all_locations)=%d" % (len(all_locations)))
         index = 0
         for path in all_locations:
+            log.debug("NICOLAS: get_path() --- all_locations[%d]='%s'" % (index, path))
 
         for path in all_locations:
             # we determine local existence based on the existence of the
@@ -679,6 +681,8 @@ class IODescriptorBase(object):
                     bundle_cache_usage_srv.log_usage(path)
 
                 return path
+
+            index+=1
 
         return None
 

@@ -18,13 +18,9 @@ import sqlite3
 import os
 import time
 
-from ... import LogManager
 from ...util.filesystem import safe_delete_folder
 from scanner import BundleCacheScanner
-
-log = LogManager.get_logger(__name__)
-DEBUG = False
-
+from . import BundleCacheUsageLogger as log
 
 class BundleCacheUsageWriter(object):
     """
@@ -45,7 +41,7 @@ class BundleCacheUsageWriter(object):
     DB_COL_ACCESS_COUNT_INDEX = 4
 
     def __init__(self, bundle_cache_root):
-        log.info("__init__")
+        log.debug2("__init__")
         self.__init_bundle_cache_root__(bundle_cache_root)
         self.__init_stats__()
         self.__init_db__()
@@ -78,6 +74,7 @@ class BundleCacheUsageWriter(object):
         self._stat_exec_count = 0
 
     def __init_db__(self):
+        log.debug("__init_db__")
         self._db_connection = None
 
         self._connect()
@@ -133,13 +130,12 @@ class BundleCacheUsageWriter(object):
         Commit data uncommited yet.
         """
         if self.connected:
-            log.info("commit")
+            log.debug("commit")
             self._db_connection.commit()
 
     def _connect(self):
         if self._db_connection is None:
-
-            log.info("connect")
+            log.debug("connect")
             self._db_connection = sqlite3.connect(self.path)
             self._stat_connect_count += 1
 
@@ -214,7 +210,7 @@ class BundleCacheUsageWriter(object):
             if bundle_entry:
                 #print("UPDATING: %s" % (bundle_path))
                 # Update
-                log.info("_update_bundle_entry('%s')" % bundle_path)
+                log.debug2("_update_bundle_entry('%s')" % bundle_path)
                 access_count = bundle_entry[BundleCacheUsageWriter.DB_COL_ACCESS_COUNT_INDEX]
                 self._update_bundle_entry(bundle_entry[BundleCacheUsageWriter.DB_COL_ID_INDEX],
                                           now_unix_timestamp,
@@ -222,7 +218,7 @@ class BundleCacheUsageWriter(object):
                                           )
             else:
                 # Insert
-                log.info("_create_bundle_entry('%s')" % bundle_path)
+                log.debug("_create_bundle_entry('%s')" % bundle_path)
                 self._create_bundle_entry(bundle_path, now_unix_timestamp, initial_access_count)
 
             self._db_connection.commit()
@@ -293,7 +289,7 @@ class BundleCacheUsageWriter(object):
         Close the last access database connection.
         """
         if self._db_connection is not None:
-            log.info("close")
+            log.debug("close")
             self._stat_close_count += 1
             self._db_connection.close()
             self._db_connection = None
