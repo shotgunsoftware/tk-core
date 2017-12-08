@@ -122,7 +122,7 @@ def get_roots_metadata(pipeline_config_path):
         raise TankError("Looks like the roots file is corrupt. Please contact "
                         "support! File: '%s' Error: %s" % (roots_yml, e))
 
-    # If there are more than one storages defined, ensure one of them is the primary storage
+    # If there are more than one storage defined, ensure one of them is the primary storage
     # We need to keep this constraint as we are not able to keep roots definition
     # in the order they were defined, so this is the only way we can guarantee we
     # always use the same root for any template which does not have an explicit

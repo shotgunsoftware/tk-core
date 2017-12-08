@@ -622,8 +622,11 @@ class PipelineConfiguration(object):
             raise TankError("Your current pipeline configuration does not have any project data "
                             "storages defined and therefore does not have a primary project data root!")
         elif roots_count == 1:
+            # If we have a single root, it is the primary root.
             return data_roots[data_roots.keys()[0]]
         else:
+            # If we have multiple roots, it is required that one of them is named
+            # "primary".
             return data_roots.get(constants.PRIMARY_STORAGE_NAME)
 
     ########################################################################################
