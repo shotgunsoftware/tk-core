@@ -168,6 +168,15 @@ class BundleCacheUsageWorker(threading.Thread):
     #
     ###########################################################################
 
+    def _queue_task(self, function, *args, **kwargs):
+        log.debug_worker_hf("_queue_task(...)")
+
+        with self._member_lock:
+            self._pending_count += 1
+        self._tasks.put((function, args, kwargs))
+        self._tasks.task_done()
+        self._queued_signal.set()
+
     #
     # Public methods & properties
     # Can run from either threading contextes
@@ -194,6 +203,7 @@ class BundleCacheUsageWorker(threading.Thread):
 
     def log_usage(self, bundle_path):
         log.debug_worker_hf("log_usage = %s" % (bundle_path))
+        self._queue_task(self.__log_usage, bundle_path)
 
     @property
     def pending_count(self):
@@ -208,16 +218,6 @@ class BundleCacheUsageWorker(threading.Thread):
         """
         with self._member_lock:
             return self._pending_count
-
-    def queue_task(self, function, *args, **kwargs):
-        if LOG_THREADING:
-            log.debug("queue_task(...)")
-
-        with self._member_lock:
-            self._pending_count += 1
-        self._tasks.put((function, args, kwargs))
-        self._tasks.task_done()
-        self._queued_signal.set()
 
     def stop(self, timeout=10.0):
         log.debug_worker_threading("termination request ...")

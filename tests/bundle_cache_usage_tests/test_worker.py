@@ -74,11 +74,11 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
         """
         w = BundleCacheUsageWorker(self.bundle_cache_root)
         w.start()
-        w.queue_task(time.sleep, 0.001)
+        w._queue_task(time.sleep, 0.001)
         time.sleep(0.1)
-        w.queue_task(time.sleep, 0.001)
+        w._queue_task(time.sleep, 0.001)
         time.sleep(0.1)
-        w.queue_task(time.sleep, 0.001)
+        w._queue_task(time.sleep, 0.001)
         time.sleep(0.1)
         w.stop()
         self.assertEquals(w._main_loop_count, 4)
@@ -95,10 +95,10 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
         TASK_COUNT = 1000
         count = TASK_COUNT
         while count > 0:
-            w.queue_task(time.sleep, 0.001)
+            w._queue_task(time.sleep, 0.001)
             count -= 1
 
-        self._log_debug("test loop ended")
+        self.log_debug("test loop ended")
         self.assertGreater(w.pending_count, 0, "Was expecting some incomplete tasks.")
         w.stop()
         self.assertEquals(w.completed_count, TASK_COUNT)
@@ -115,7 +115,7 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
         TASK_COUNT = 10000
         count = TASK_COUNT
         while count > 0:
-            w.queue_task(time.sleep, 0.01)
+            w._queue_task(time.sleep, 0.01)
             count -= 1
 
         self.log_debug("test loop ended")
