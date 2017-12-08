@@ -245,7 +245,7 @@ class PipelineConfiguration(object):
     ########################################################################################
     # handling pipeline config metadata
 
-    def get_roots_metadata_location(self):
+    def _get_roots_metadata_location(self):
         """
         Returns the location to the roots metadata.
         """
@@ -274,7 +274,7 @@ class PipelineConfiguration(object):
         # now read in the roots.yml file
         # this will contain something like
         # {'primary': {'mac_path': '/studio', 'windows_path': None, 'linux_path': '/studio'}}
-        roots_yml = self.get_roots_metadata_location()
+        roots_yml = self._get_roots_metadata_location()
 
         try:
             # if file is empty, initialize with empty dict...
@@ -313,7 +313,7 @@ class PipelineConfiguration(object):
         """
     
         # now read in the pipeline_configuration.yml file
-        cfg_yml = self.get_pipeline_config_file_location()
+        cfg_yml = self._get_pipeline_config_file_location()
     
         if not os.path.exists(cfg_yml):
             raise TankError("Configuration metadata file '%s' missing! "
@@ -345,7 +345,7 @@ class PipelineConfiguration(object):
         curr_settings.update(updates)
         
         # write the record to disk
-        pipe_config_sg_id_path = self.get_pipeline_config_file_location()
+        pipe_config_sg_id_path = self._get_pipeline_config_file_location()
         
         old_umask = os.umask(0)
         try:
@@ -378,7 +378,7 @@ class PipelineConfiguration(object):
         self._pc_id = curr_settings.get("pc_id")
         self._pc_name = curr_settings.get("pc_name")
 
-    def get_pipeline_config_file_location(self):
+    def _get_pipeline_config_file_location(self):
         """
         Returns the location of the pipeline_configuration.yml file.
         """
@@ -387,7 +387,7 @@ class PipelineConfiguration(object):
             constants.PIPELINECONFIG_FILE
         )
 
-    def get_yaml_cache_location(self):
+    def _get_yaml_cache_location(self):
         """
         Returns the location of the yaml cache for this configuration.
         """
@@ -398,7 +398,7 @@ class PipelineConfiguration(object):
         Loads pickled yaml_cache items if they are found and merges them into
         the global YamlCache.
         """
-        cache_file = self.get_yaml_cache_location()
+        cache_file = self._get_yaml_cache_location()
         if not os.path.exists(cache_file):
             return
 
@@ -438,7 +438,7 @@ class PipelineConfiguration(object):
         """
         Returns the path to this config for all operating systems,
         as defined in the install_locations file.
-        
+
         :returns: ShotgunPath
         """
         return pipelineconfig_utils.resolve_all_os_paths_to_config(self._pc_root)
@@ -1013,7 +1013,7 @@ class PipelineConfiguration(object):
         """
         return os.path.join(self.get_config_location(), "env", "%s.yml" % env_name)
 
-    def get_templates_config_location(self):
+    def _get_templates_config_location(self):
         """
         Returns the path to the configuration's template file.
         """
@@ -1026,7 +1026,7 @@ class PipelineConfiguration(object):
         """
         Returns the templates configuration as an object
         """
-        templates_file = self.get_templates_config_location()
+        templates_file = self._get_templates_config_location()
 
         try:
             data = yaml_cache.g_yaml_cache.get(templates_file, deepcopy_data=False) or {}

@@ -31,10 +31,12 @@ class ConfigDescriptor(Descriptor):
     Descriptor that describes a Toolkit Configuration
     """
 
-    def __init__(self, sg_connection, io_descriptor):
+    def __init__(self, sg_connection, bundle_cache_root, fallback_roots, io_descriptor):
         super(ConfigDescriptor, self).__init__(io_descriptor)
         self._cached_core_descriptor = None
         self._sg_connection = sg_connection
+        self._bundle_cache_root = bundle_cache_root
+        self._fallback_roots = fallback_roots
 
     @property
     def associated_core_descriptor(self):
@@ -66,13 +68,12 @@ class ConfigDescriptor(Descriptor):
             return None
 
         if not self._cached_core_descriptor:
-            cache_roots = self._io_descriptor.get_cache_roots()
             self._cached_core_descriptor = create_descriptor(
                 self._sg_connection,
                 Descriptor.CORE,
                 self.associated_core_descriptor,
-                cache_roots.bundle_cache_root,
-                cache_roots.fallback_roots,
+                self._bundle_cache_root,
+                self._fallback_roots,
                 resolve_latest=False
             )
 
@@ -169,9 +170,18 @@ class ConfigDescriptor(Descriptor):
 
     def get_config_folder(self):
         """
-        Returns the folder in which the configuration files are located.
+        Retrieves the path to the ``config`` folder.
 
-        Derived classes need to implement this method or a ``NotImplementedError`` will be raised.
+        For configurations that are launched a descriptor, the ``config`` folder
+        will be located in the bundle cache. For configurations that are launched
+        from the ``mac_path``, ``windows_path`` and ``linux_path``, the ``config``
+        folder will be at the root of the pipeline configuration.
+
+        For example, a descriptor-based configuration using ``tk-config-basic`` ``v1.2.0`` would
+        find the configuration at ``%APPDATA%\Shotgun\bundle_cache\app_store\tk-config-basic\v1.2.0``.
+
+        For a path-based configuration at ``\\server\mount\shotgun\project\pipeline``, the ``config``
+        folder would be ``\\server\mount\shotgun\project\pipeline\config``.
 
         :returns: Path to the configuration files folder.
         """

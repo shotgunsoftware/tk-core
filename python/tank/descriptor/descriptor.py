@@ -110,10 +110,14 @@ def create_descriptor(
         return FrameworkDescriptor(sg_connection, io_descriptor)
 
     elif descriptor_type == Descriptor.CONFIG:
-        return CachedConfigDescriptor(sg_connection, io_descriptor)
+        return CachedConfigDescriptor(
+            sg_connection, bundle_cache_root_override, fallback_roots, io_descriptor
+        )
 
     elif descriptor_type == Descriptor.INSTALLED_CONFIG:
-        return InstalledConfigDescriptor(sg_connection, io_descriptor)
+        return InstalledConfigDescriptor(
+            sg_connection, bundle_cache_root_override, fallback_roots, io_descriptor
+        )
 
     elif descriptor_type == Descriptor.CORE:
         return CoreDescriptor(io_descriptor)

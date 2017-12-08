@@ -290,15 +290,15 @@ class TestConfigLocations(TankTestBase):
         # Pipeline configuration location tests.
         self.assertEqual(pc.get_path(), autogen_files_root)
         self.assertEqual(
-            pc.get_yaml_cache_location(),
+            pc._get_yaml_cache_location(),
             os.path.join(autogen_files_root, "yaml_cache.pickle")
         )
         self.assertEqual(
-            pc.get_pipeline_config_file_location(),
+            pc._get_pipeline_config_file_location(),
             os.path.join(autogen_files_root, "config", "core", "pipeline_configuration.yml")
         )
         self.assertEqual(
-            pc.get_roots_metadata_location(),
+            pc._get_roots_metadata_location(),
             os.path.join(autogen_files_root, "config", "core", "roots.yml")
         )
         self.assertEqual(
@@ -335,6 +335,6 @@ class TestConfigLocations(TankTestBase):
             os.path.join(config_files_root, "env", "test.yml")
         )
         self.assertEqual(
-            pc.get_templates_config_location(),
+            pc._get_templates_config_location(),
             os.path.join(config_files_root, "core", "templates.yml")
         )
