@@ -153,6 +153,8 @@ class BundleCacheUsageWorker(threading.Thread):
 
                 # Wait and consume an item
                 self._queued_signal.wait()
+
+                # Note: the 'pending_count' property does wraps lock on _pending_count member
                 while self.pending_count > 0:
                     self.__consume_task()
 
@@ -175,7 +177,6 @@ class BundleCacheUsageWorker(threading.Thread):
             # Out of the loop, no longer expecting any operation on the DB
             # we can close it.
             self._bundle_cache_usage.close()
-
             log.debug_worker_threading("terminated (%d tasks remaining)" % self.pending_count)
 
     #

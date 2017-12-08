@@ -157,7 +157,7 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
         start_time = time.time()
         while count > 0:
             # self.assertFalse(w.task_available)
-            w.log_usage("mssate")
+            w.log_usage("bogus-entry")
             # self.assertTrue(w.task_available)
             # print("task_available: %s" % (w.task_available))
             count -= 1
@@ -179,7 +179,7 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
         worker = BundleCacheUsageWorker(self.bundle_cache_root)
         worker.start()
 
-        worker.log_usage("mssate")
+        worker.log_usage("bogus-entry")
 
         worker.stop()
 
