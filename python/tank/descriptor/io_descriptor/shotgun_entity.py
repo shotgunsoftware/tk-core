@@ -13,6 +13,7 @@ import urlparse
 
 from .downloadable import IODescriptorDownloadable
 from ...util import filesystem, shotgun
+from ...util.shotgun_entity import get_sg_entity_name_field
 from ...util.errors import ShotgunAttachmentDownloadError
 from ..errors import TankDescriptorError
 from ... import LogManager
@@ -252,7 +253,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
                 "Task": "content",
                 "HumanUser": "name"
             }
-            name_field = spec_name_fields.get(self._entity_type, "code")
+            name_field = get_sg_entity_name_field(self._entity_type)
 
             filters = [[name_field, "is", self._name]]
 
