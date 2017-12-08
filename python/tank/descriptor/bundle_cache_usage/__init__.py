@@ -93,10 +93,3 @@ class BundleCacheUsageLogger(object):
 #import pydevd
 #pydevd.settrace('localhost', port=7720, suspend=False)
 
-from worker import BundleCacheUsageWorker
-
-bundle_cache_root = LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE)
-bundle_cache_usage_srv = BundleCacheUsageWorker(bundle_cache_root)
-bundle_cache_usage_logger.debug("NICOLAS: bundle_cache_root=%s" % (bundle_cache_root))
-
-bundle_cache_usage_srv.start()

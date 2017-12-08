@@ -28,39 +28,9 @@ class BundleCacheUsageWorker(threading.Thread):
 
     MAXIMUM_QUEUE_SIZE = 1024
 
-    # keeps track of the single instance of the class
-    __instance = None
-
-    def __new__(cls, *args, **kwargs):
-        """Ensures only one instance of the metrics queue exists."""
-
-        # create the queue instance if it hasn't been created already
-        if not cls.__instance:
-            log.debug_worker_threading("__new__")
-
-            # remember the instance so that no more are created
-            singleton = super(BundleCacheUsageWorker, cls).__new__(cls, *args, **kwargs)
-            singleton._lock = Lock()
-
-            # The underlying collections.deque instance
-            # singleton._queue = deque(maxlen=cls.MAXIMUM_QUEUE_SIZE)
-            bundle_cache_root = args[0] if len(args)>0 else None
-            cls.__instance = singleton
-            cls.__instance.__initialized = False
-            singleton.__init__(bundle_cache_root)
-
-        return cls.__instance
-
-    # TODO: find a better way
-    @classmethod
-    def delete_instance(cls):
-        cls.__instance = None
-
     def __init__(self, bundle_cache_root):
-        log.debug_worker_threading("__init__")
         super(BundleCacheUsageWorker, self).__init__()
-        #TODO: returning would cause a silent non-usage of specified parameter
-        if (self.__initialized): return
+        log.debug_worker_threading("__init__")
         self._terminate_requested = threading.Event()
         self._queued_signal = threading.Event()
         self._tasks = Queue.Queue()
@@ -72,7 +42,6 @@ class BundleCacheUsageWorker(threading.Thread):
         self._debug = False
         self._bundle_cache_usage = None
         self._bundle_cache_root = bundle_cache_root
-        self.__initialized = True
 
     #
     # Private methods
@@ -151,7 +120,7 @@ class BundleCacheUsageWorker(threading.Thread):
 
             while not self._terminate_requested.is_set() or self.pending_count > 0:
 
-                # Wait and consume an item
+                # Wait and consume an item, this is what is pacing the loop
                 self._queued_signal.wait()
 
                 # Note: the 'pending_count' property does wraps lock on _pending_count member
@@ -164,19 +133,23 @@ class BundleCacheUsageWorker(threading.Thread):
                 # the thread until it is signaled again by queueing a new task.
                 self._queued_signal.clear()
 
-                log.debug_worker_threading("looping")
-
                 with self._member_lock:
                     self._main_loop_count += 1
 
         except Exception as e:
-            #TODO: we're in a worker thread, can we safely log error and message back to the main tread?
+            log.error("UNEXPECTED Exception: %s " % (e))
+            #TODO: we're in a worker thread,
+            # can we safely log error and message back to the main tread?
             pass
 
         finally:
-            # Out of the loop, no longer expecting any operation on the DB
-            # we can close it.
-            self._bundle_cache_usage.close()
+            # Need to check that this was assigned, we might be comming
+            # from an exception setting up the DB and bundle cache folder.
+            if self._bundle_cache_usage:
+                # Out of the loop, no longer expecting any operation on the DB
+                # we can close it.
+                self._bundle_cache_usage.close()
+
             log.debug_worker_threading("terminated (%d tasks remaining)" % self.pending_count)
 
     #
@@ -237,10 +210,13 @@ class BundleCacheUsageWorker(threading.Thread):
             return self._pending_count
 
     def stop(self, timeout=10.0):
-        log.debug_worker_threading("termination request ...")
+        log.debug("termination request ...")
 
-        self._queued_signal.set()
+        # Order is important below: signal thread termination FIRST!
+        # Changing order below would cause a failure of the
+        # TestBundleCacheManager.test_create_delete_instance test.
         self._terminate_requested.set()
+        self._queued_signal.set()
         self.join(timeout=timeout)
 
     def get_entries_unused_since_last_days(self, days=60, timeout=2):
@@ -257,26 +233,4 @@ class BundleCacheUsageWorker(threading.Thread):
         signal.wait(timeout)
 
         return response
-
-    def purge_unused_entries_in_last_days(self):
-        """
-        if os.path.exists(bundle_path) \
-                - and os.path.isdir(bundle_path):
-            -  # TODO: WARNING!!!!
-        -  # last chance, add some extra checks to
-        -  # make sure we never delete anything below
-        -  # a certain base folder
-        -                    safe_delete_folder(bundle_path)
-        -                    log.debug("Deleted bundle '%s'" % str(bundle_path))
-        -
-        -  # Delete DB entry
-        -                self._delete_bundle_entry(bundle_path)
-        -                log.debug("Purged bundle '%s'" % str(bundle_path))
-        -
-        -            except Exception as e:
-        -                log.error("Error deleting bundle package: '%s'" % (bundle_path))
-        -                log.exception(e)
-        +            self._delete_bundle_entry(path)
-        +            log.debug_db_delete("Delete bundle entry '%s'" % str(path))
-        """
 

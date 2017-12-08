@@ -47,18 +47,6 @@ class BundleCacheUsageWriter(object):
 
     def __init_bundle_cache_root__(self, bundle_cache_root):
 
-        if bundle_cache_root is None:
-            raise Exception("Class initialization error: "\
-                            "the 'bundle_cache_root' parameter is None .")
-
-        if not os.path.exists(bundle_cache_root):
-            raise Exception("Class initialization error: "\
-                            "the specified 'bundle_cache_root' parameter folder does not exists.")
-
-        if not os.path.isdir(bundle_cache_root):
-            raise Exception("Class initialization error: " \
-                            "the specified 'bundle_cache_root' parameter is not a directory.")
-
         self._bundle_cache_root = bundle_cache_root
 
         self._bundle_cache_usage_db_filename = os.path.join(

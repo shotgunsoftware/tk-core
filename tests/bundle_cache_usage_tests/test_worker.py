@@ -39,7 +39,6 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
     def setUp(self):
         super(TestBundleCacheUsageWorker, self).setUp()
         self._debug = False
-        BundleCacheUsageWorker.delete_instance()
 
         TestBundleCacheUsageBase._create_test_bundle_cache(self.bundle_cache_root)
 
@@ -48,11 +47,6 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
         os.environ["SHOTGUN_HOME"] = self.bundle_cache_root
 
     def tearDown(self):
-        #self.delete_db()
-        # Necessary to force creation of another instance
-        # being a singleton the class would not create a new database
-        # if we are deleting it.
-        BundleCacheUsageWorker.delete_instance()
         super(TestBundleCacheUsageWorker, self).tearDown()
 
     def assertIsWithinPct(self, test_value, expected_value, tolerance ):
@@ -236,8 +230,6 @@ class TestDatabasePerformanceThroughWorker(TestBundleCacheUsageBase):
                                    "tk-shell",
                                    "v0.5.4")
 
-        # Force deletion of the instance created in bundle_cache_usage.__init__
-        BundleCacheUsageWorker.delete_instance()
         w = BundleCacheUsageWorker(self.bundle_cache_root)
         w.start()
 
@@ -264,28 +256,3 @@ class TestDatabasePerformanceThroughWorker(TestBundleCacheUsageBase):
                             MINIMAL_EXPECTED_RATIO
                            ))
 
-
-class TestBundleCacheUsageWorkerSingleton(TestBundleCacheUsageBase):
-    """
-    Test that the class is really a singleton
-    """
-    def test_singleton(self):
-        """ Tests that multile instantiations return the same object."""
-        db1 = BundleCacheUsageWorker(self.bundle_cache_root)
-        db2 = BundleCacheUsageWorker(self.bundle_cache_root)
-        db3 = BundleCacheUsageWorker(self.bundle_cache_root)
-        self.assertTrue(db1 == db2 == db3)
-
-    def test_singleton_params(self):
-        """ Tests multiple instantiations with different parameter values."""
-        wk1 = BundleCacheUsageWorker(self.bundle_cache_root)
-        bundle_cache_root1 = wk1.bundle_cache_root
-
-        new_bundle_cache_root = os.path.join(self.bundle_cache_root, "another-level")
-        os.makedirs(new_bundle_cache_root)
-        wk2 = BundleCacheUsageWorker(new_bundle_cache_root)
-
-        # The second 'instantiation' should have no effect.
-        # The parameter used in the first 'instantiation'
-        # should still be the same
-        self.assertTrue(bundle_cache_root1 == wk2.bundle_cache_root)
