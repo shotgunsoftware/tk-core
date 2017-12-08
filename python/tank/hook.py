@@ -269,10 +269,7 @@ class Hook(object):
         """
         # avoid cyclic refs
         from .util import resolve_publish_path
-        res = resolve_publish_path(self.sgtk, sg_publish_data)
-        if res is not None:
-            return res.decode('utf-8')
-        return res
+        return resolve_publish_path(self.sgtk, sg_publish_data)
 
     def get_publish_paths(self, sg_publish_data_list):
         """
