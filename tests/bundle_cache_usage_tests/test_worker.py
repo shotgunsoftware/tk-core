@@ -228,6 +228,14 @@ class TestDatabasePerformanceThroughWorker(TestBundleCacheUsageBase):
         Development system was showing approximately à 36:0
         """
 
+        # Create a folder structure on disk but no entries are added to DB
+        TestBundleCacheUsageBase._create_test_bundle_cache(self.bundle_cache_root)
+        # See the `_create_test_bundle_cache` for available created test bundles
+        bundle_path = os.path.join(self.bundle_cache_root,
+                                   "app_store",
+                                   "tk-shell",
+                                   "v0.5.4")
+
         # Force deletion of the instance created in bundle_cache_usage.__init__
         BundleCacheUsageWorker.delete_instance()
         w = BundleCacheUsageWorker(self.bundle_cache_root)
@@ -238,55 +246,24 @@ class TestDatabasePerformanceThroughWorker(TestBundleCacheUsageBase):
         count = TASK_COUNT
         start_time = time.time()
         while count > 0:
-            w.log_usage("bogus-entry")
+            w.log_usage(bundle_path)
             count -= 1
 
         queuing_time = time.time() - start_time
         w.stop(10)
         completing_all_tasks_time = time.time() - start_time
+        ratio = completing_all_tasks_time/queuing_time
 
         self.log_debug("%s: queuing_time             : %ss" % (self._testMethodName, queuing_time))
         self.log_debug("%s: completing_all_tasks_time: %ss" % (self._testMethodName, completing_all_tasks_time))
         self.log_debug("%s: ratio : %s" % (self._testMethodName, ratio))
         self.assertEquals(w.pending_count, 0,
                           "Was not expecting pending tasks after `stop`.")
-        self.assertGreater(completing_all_tasks_time/queuing_time, MINIMAL_EXPECTED_RATIO,
+        self.assertGreater(ratio,MINIMAL_EXPECTED_RATIO,
                            "Expecting at the very least a %s:1 radio between completing tasks and queuing them" % (
                             MINIMAL_EXPECTED_RATIO
                            ))
 
-    def test_queue_log_usage2(self):
-        """
-        Tests performances of tracking a large number of descriptor through usage of the worker class.
-        Since actual database accesses are done asynchronously logging usage on the main thread should
-        be rather quick, completion of all of the database commits should be substantially longer.
-
-        There should be at the very least a 10:1 ratio
-        Development system was showing approximately à 36:0
-        """
-
-        import sgtk.descriptor.bundle_cache_usage as bundle_cache_usage
-
-        TASK_COUNT = 1000
-        MINIMAL_EXPECTED_RATIO = 20
-        count = TASK_COUNT
-        start_time = time.time()
-        while count > 0:
-            bundle_cache_usage.bundle_cache_usage_srv.log_usage("bogus-entry")
-            count -= 1
-
-        queuing_time = time.time() - start_time
-        bundle_cache_usage.bundle_cache_usage_srv.stop(10)
-        completing_all_tasks_time = time.time() - start_time
-
-        log_debug("%s: queuing_time             : %ss" % (self._testMethodName, queuing_time))
-        log_debug("%s: completing_all_tasks_time: %ss" % (self._testMethodName, completing_all_tasks_time))
-        self.assertEquals(bundle_cache_usage.bundle_cache_usage_srv.pending_count, 0,
-                          "Was not expecting pending tasks after `stop`.")
-        self.assertGreater(completing_all_tasks_time/queuing_time, MINIMAL_EXPECTED_RATIO,
-                           "Expecting at the very least a %s:1 radio between completing tasks and queuing them" % (
-                            MINIMAL_EXPECTED_RATIO
-                           ))
 
 class TestBundleCacheUsageWorkerSingleton(TestBundleCacheUsageBase):
     """
@@ -312,5 +289,3 @@ class TestBundleCacheUsageWorkerSingleton(TestBundleCacheUsageBase):
         # The parameter used in the first 'instantiation'
         # should still be the same
         self.assertTrue(bundle_cache_root1 == wk2.bundle_cache_root)
-
-
