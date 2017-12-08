@@ -19,8 +19,6 @@ import os
 import time
 from datetime import datetime, timedelta
 
-from ...util.filesystem import safe_delete_folder
-from scanner import BundleCacheScanner
 from . import BundleCacheUsageLogger as log
 
 class BundleCacheUsageWriter(object):
@@ -360,30 +358,14 @@ class BundleCacheUsageWriter(object):
         """
         self._log_usage(bundle_path, 1)
 
-    def purge_bundle(self, bundle_path):
+    def delete_entry(self, path):
         """
-        Delete the specified bundle from both the bundle cache
+        Delete the specified path entry from the database
         and the bundle cache usage database.
-        :param bundle_path:
+        :param path: a str path of an entry to be deleted from database
         """
-        bundle_entry = self._find_bundle(bundle_path)
+        bundle_entry = self._find_bundle(path)
         if bundle_entry:
-            try:
-                # try deleting actual folder
-                if os.path.exists(bundle_path) \
-                    and os.path.isdir(bundle_path):
-                    # TODO: WARNING!!!!
-                    # last chance, add some extra checks to
-                    # make sure we never delete anything below
-                    # a certain base folder
-                    safe_delete_folder(bundle_path)
-                    log.debug("Deleted bundle '%s'" % str(bundle_path))
-
-                # Delete DB entry
-                self._delete_bundle_entry(bundle_path)
-                log.debug("Purged bundle '%s'" % str(bundle_path))
-
-            except Exception as e:
-                log.error("Error deleting bundle package: '%s'" % (bundle_path))
-                log.exception(e)
+            self._delete_bundle_entry(path)
+            log.debug_db_delete("Delete bundle entry '%s'" % str(path))
 

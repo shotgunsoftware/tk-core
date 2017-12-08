@@ -256,3 +256,26 @@ class BundleCacheUsageWorker(threading.Thread):
         signal.wait(timeout)
 
         return response
+
+    def purge_unused_entries_in_last_days(self):
+        """
+        if os.path.exists(bundle_path) \
+                - and os.path.isdir(bundle_path):
+            -  # TODO: WARNING!!!!
+        -  # last chance, add some extra checks to
+        -  # make sure we never delete anything below
+        -  # a certain base folder
+        -                    safe_delete_folder(bundle_path)
+        -                    log.debug("Deleted bundle '%s'" % str(bundle_path))
+        -
+        -  # Delete DB entry
+        -                self._delete_bundle_entry(bundle_path)
+        -                log.debug("Purged bundle '%s'" % str(bundle_path))
+        -
+        -            except Exception as e:
+        -                log.error("Error deleting bundle package: '%s'" % (bundle_path))
+        -                log.exception(e)
+        +            self._delete_bundle_entry(path)
+        +            log.debug_db_delete("Delete bundle entry '%s'" % str(path))
+        """
+

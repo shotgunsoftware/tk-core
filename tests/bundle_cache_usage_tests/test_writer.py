@@ -306,9 +306,9 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         print("elapsed: %s" % (str(elapsed)))
         print("time per iteration: %s" % (str(elapsed/ITERATION_COUNT)))
 
-    def test_purge_bundle(self):
+    def test_delete_entry(self):
         """
-        Tests the `purge_bundle` method
+        Tests the `delete_entry` method
         """
 
         # Create a folder structure on disk but no entries are added to DB
@@ -330,12 +330,10 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.assertEquals(self.db.get_usage_count(bundle_path), 1)
         self.assertEquals(self.db.bundle_count, 1)
 
-        # Purge bundle and verify final DB properties and actual folder
-        self.db.purge_bundle(bundle_path)
+        # Delete bundle and verify final DB properties and actual folder
+        self.db.delete_entry(bundle_path)
         self.assertEquals(self.db.get_usage_count(bundle_path), 0)
         self.assertEquals(self.db.bundle_count, 0)
-        self.assertFalse(os.path.exists(bundle_path))
-        self.assertFalse(os.path.isdir(bundle_path))
 
     def _test_db_read_and_update_performance2(self):
         """
