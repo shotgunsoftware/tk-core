@@ -29,6 +29,7 @@ SG_ENTITY_SPECIAL_NAME_FIELDS = {
     "Delivery": "title",
 }
 
+
 def get_sg_entity_name_field(entity_type):
     """
     Return the Shotgun name field to use for the specified entity type.
