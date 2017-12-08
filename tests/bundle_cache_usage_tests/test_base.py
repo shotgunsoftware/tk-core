@@ -142,8 +142,8 @@ class TestBundleCacheUsageBase(unittest2.TestCase):
         test_bundle_cache_structure = [
             os.path.join(app_store_root, "tk-multi-pythonconsole", "v1.1.1", "info.yml"),
             os.path.join(app_store_root, "tk-multi-launchapp", "v0.9.10", "info.yml"),
-            os.path.join(app_store_root, "tk-multi-publish2", "v1.1.9", "info.yml"),
             os.path.join(app_store_root, "tk-shell", "v0.5.4", "info.yml"),
+            os.path.join(app_store_root, "tk-shell", "v0.5.6", "info.yml"),
             os.path.join(app_store_root, "tk-framework-shotgunutils", "v5.2.3", "info.yml"),
             os.path.join(app_store_root, "tk-photoshopcc", "v1.1.7", "info.yml"),
             os.path.join(app_store_root, "tk-photoshopcc", "v1.1.7", "plugins", "basic", "info.yml"),

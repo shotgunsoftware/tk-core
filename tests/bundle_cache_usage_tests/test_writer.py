@@ -219,6 +219,43 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         # We expect a single record still
         self.assertEquals(self.db.bundle_count, 5, "Was expecting a single row since we've logged the same entry.")
 
+    def test_get_entries_unused_since_last_days(self):
+        """
+        Tests the `_get_entries_unused_since_last_days` method
+        """
+
+        # Create a folder structure on disk but no entries are added to DB
+        TestBundleCacheUsageBase._create_test_bundle_cache(self.bundle_cache_root)
+
+        # See the `_create_test_bundle_cache` for available created test bundles
+
+        bundle_path_old = os.path.join(self.bundle_cache_root, "app_store", "tk-shell", "v0.5.4")
+        bundle_path_new = os.path.join(self.bundle_cache_root, "app_store", "tk-shell", "v0.5.6")
+
+        SLEEP_TIME_IN_SECOND = 2
+        # Log some usage / add bundle
+        self.db.log_usage(bundle_path_old)
+        # Wait some minimal time allow time to pass
+        time.sleep(SLEEP_TIME_IN_SECOND)
+        self.db.log_usage(bundle_path_new)
+
+
+        # First we check that we can get both entries specifying zero-days
+        bundle_list = self.db._get_entries_unused_since_last_days(0)
+        self.assertIsNotNone(bundle_list)
+        self.assertEquals(len(bundle_list), 2)
+
+        # Now test getting entries older than SLEEP_TIME_IN_SECOND
+        # Have to figure out how many days is 2 seconds
+        days = 1.0 / (24.0 * 3600.0) * SLEEP_TIME_IN_SECOND
+
+        bundle_list = self.db._get_entries_unused_since_last_days(days)
+
+        # Test the method returns just one of the two entries
+        self.assertIsNotNone(bundle_list)
+        self.assertEquals(len(bundle_list), 1)
+
+
     def _helper_test_db_read_and_update_performance(self, path, iteration_count = PERF_TEST_ITERATION_COUNT):
         """
 

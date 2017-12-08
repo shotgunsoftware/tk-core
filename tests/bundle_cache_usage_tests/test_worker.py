@@ -55,6 +55,17 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
         BundleCacheUsageWorker.delete_instance()
         super(TestBundleCacheUsageWorker, self).tearDown()
 
+    def assertIsWithinPct(self, test_value, expected_value, tolerance ):
+        """
+
+        :param test_value: A float value to check
+        :param expected_value:  A float value of what is expected
+        :param tolerance: A float tolerance expressed in percentage [0.0, 100.0]
+        """
+        expected_value_pct = expected_value * tolerance / 100.0
+        min_value = expected_value - expected_value_pct
+        max_value = expected_value + expected_value_pct
+        self.assertTrue((test_value >= min_value) and (test_value <= max_value))
 
     def test_with_no_task(self):
         """
@@ -172,6 +183,35 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
 
         worker.stop()
 
+    def test_get_entries_unused_since_last_days(self):
+
+        """
+        Test basic usage of `get_entries_unused_since_last_days` asynchronous method.
+        """
+        worker = BundleCacheUsageWorker(self.bundle_cache_root)
+        worker.start()
+        # log something
+
+        time.sleep(2)
+        entries = worker.get_entries_unused_since_last_days(20)
+
+        for entry in entries:
+            print "entry = %s" % (entry)
+
+    def test_get_entries_unused_since_last_days_timing_out(self):
+        """
+        Tests that the  'get_entries_unused_since_last_days' asynchronous call does timeout
+        by simply not starting the worker thread.
+        """
+        worker = BundleCacheUsageWorker(self.bundle_cache_root)
+
+        expected_timeout = 1.0
+        start_time = time.time()
+        entries = worker.get_entries_unused_since_last_days(days=20, timeout=expected_timeout)
+        elapsed_time = time.time() - start_time
+        self.assertIsWithinPct(elapsed_time, expected_timeout,10)
+        self.assertIsNotNone(entries)
+        self.assertTrue(len(entries) == 0)
 
 class TestDatabasePerformanceThroughWorker(TestBundleCacheUsageBase):
     """

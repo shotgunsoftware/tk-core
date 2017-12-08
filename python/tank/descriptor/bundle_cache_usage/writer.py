@@ -17,6 +17,7 @@ all Tank items in the file system are kept.
 import sqlite3
 import os
 import time
+from datetime import datetime, timedelta
 
 from ...util.filesystem import safe_delete_folder
 from scanner import BundleCacheScanner
@@ -197,6 +198,32 @@ class BundleCacheUsageWriter(object):
             return None
 
         return rows[0]
+
+
+    def _get_entries_unused_since_last_days(self, days):
+        """
+
+        :param days:
+        :param initial_access_count: An optional integer, typically set to 1 from log_usage and zero from initial db polating.
+        """
+
+        oldest_date = datetime.today() - timedelta(days=days)
+        oldest_timestamp = time.mktime(oldest_date.timetuple())
+
+        try:
+            sql_statement = "SELECT * FROM %s " \
+                            "WHERE %s <= %d " % (
+                                BundleCacheUsageWriter.DB_MAIN_TABLE_NAME,
+                                BundleCacheUsageWriter.DB_COL_LAST_ACCESS_DATE,
+                                oldest_timestamp
+                            )
+
+            result = self._execute(sql_statement)
+            return result.fetchall()
+
+        except Exception as e:
+            print(e)
+            raise e
 
     def _log_usage(self, bundle_path, initial_access_count=1):
         """
