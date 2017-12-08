@@ -58,7 +58,7 @@ class IODescriptorBase(object):
         The primary root is where new data is always written to
         if something is downloaded and cached. The fallback_roots
         parameter is a list of paths where the descriptor system
-        will look in case a cached entry is not found in they
+        will look in case a cached entry is not found in the
         primary root. If you specify several fallback roots, they
         will be traversed in order.
 
