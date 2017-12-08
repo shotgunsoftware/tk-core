@@ -69,24 +69,6 @@ def __get_sg_config():
     path = os.path.join(core_cfg, "shotgun.yml")
     return path
 
-def get_project_name_studio_hook_location():
-    """
-    Returns the studio level hook that is used to compute the default project name
-    
-    :returns: The path to the studio level project naming hook.
-    """
-    
-    # NOTE! This code is located here because it needs to be able to run without a project.
-    # the natural place would probably have been to put this inside the pipeline configuration
-    # class, however this object assumes a project that exists.
-    #
-    # @todo longterm we should probably establish a place in the code where we define 
-    # an API or set of functions which can be executed outside the remit of a 
-    # pipeline configuration/Toolkit project.
-    
-    core_cfg = __get_api_core_config_location()
-    path = os.path.join(core_cfg, constants.STUDIO_HOOK_PROJECT_NAME)
-    return path
 
 def __get_sg_config_data(shotgun_cfg_path, user="default"):
     """

@@ -394,19 +394,24 @@ class ProjectSetupParameters(object):
         :returns: project name string. This may contain slashes if the project name spans across
                   more than one folder.
         """
-
         if self._project_id is None:
             raise TankError("No project id specified!")
 
         # see if there is a hook to procedurally evaluate this
-        project_name_hook = shotgun.get_project_name_studio_hook_location()
+        project_name_hook = os.path.join(
+            self.get_associated_core_path(sys.platform),
+            "config", "core", "hooks", "project_name.py"
+        )
+
         if os.path.exists(project_name_hook):
+            self._log.debug("Found custom project name hook at '%s'.", project_name_hook)
             # custom hook is available!
             suggested_folder_name = hook.execute_hook(project_name_hook,
                                                       parent=None,
                                                       sg=self._sg,
                                                       project_id=self._project_id)
         else:
+            self._log.debug("Did not get custom project name hook at '%s'.", project_name_hook)
             # construct a valid name - replace white space with underscore and lower case it.
             proj = self._sg.find_one("Project", [["id", "is", self._project_id]], ["name"])
             suggested_folder_name = re.sub("\W", "_", proj.get("name")).lower()
@@ -680,7 +685,6 @@ class ProjectSetupParameters(object):
         :param windows_path: Path on windows
         :param macosx_path: Path on mac
         """
-
         # and set member variables
         self._core_path = {}
         self._core_path["linux2"] = linux_path

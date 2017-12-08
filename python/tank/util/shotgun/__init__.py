@@ -10,7 +10,6 @@
 
 
 from .connection import \
-    get_project_name_studio_hook_location, \
     get_associated_sg_base_url, \
     get_associated_sg_config_data, \
     get_deferred_sg_connection, \
