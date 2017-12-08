@@ -11,7 +11,6 @@
 from __future__ import with_statement
 import os
 
-
 from tank_test.tank_test_base import TankTestBase, temp_env_var
 from tank_test.tank_test_base import setUpModule # noqa
 

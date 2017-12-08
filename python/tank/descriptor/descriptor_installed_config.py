@@ -34,8 +34,10 @@ class InstalledConfigDescriptor(ConfigDescriptor):
     inside the configuration folder or alongside the shared core.
     """
 
-    def __init__(self, io_descriptor):
-        super(InstalledConfigDescriptor, self).__init__(io_descriptor)
+    def __init__(self, sg_connection, bundle_cache_root, fallback_roots, io_descriptor):
+        super(InstalledConfigDescriptor, self).__init__(
+            sg_connection, bundle_cache_root, fallback_roots, io_descriptor
+        )
         self._io_descriptor.set_is_copiable(False)
 
     @property
@@ -94,7 +96,7 @@ class InstalledConfigDescriptor(ConfigDescriptor):
         except TankMissingManifestError:
             return {}
 
-    def _get_config_folder(self):
+    def get_config_folder(self):
         """
         Returns the path to the ``config`` folder inside the pipeline configuration.
 
@@ -150,7 +152,8 @@ class InstalledConfigDescriptor(ConfigDescriptor):
             # this file will contain the path to the API which is meant to be used with this PC.
             install_path = None
             with open(studio_linkback_file, "rt") as fh:
-                data = fh.read().strip() # remove any whitespace, keep text
+                # remove any whitespace, keep text
+                data = fh.read().strip()
 
             # expand any env vars that are used in the files. For example, you could have
             # an env variable $STUDIO_TANK_PATH=/sgtk/software/shotgun/studio and your

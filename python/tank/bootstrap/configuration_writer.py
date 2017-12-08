@@ -69,6 +69,12 @@ class ConfigurationWriter(object):
         filesystem.ensure_folder_exists(config_path)
         filesystem.ensure_folder_exists(os.path.join(config_path, "cache"))
 
+        # Required for files written to the config like pipeline_confguration.yml,
+        # shotgun.yml, etc.
+        filesystem.ensure_folder_exists(
+            os.path.join(config_path, "config", "core")
+        )
+
         filesystem.ensure_folder_exists(
             os.path.join(config_path, "install", "config.backup"),
             create_placeholder_file=True
