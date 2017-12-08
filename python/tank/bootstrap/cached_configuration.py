@@ -203,9 +203,9 @@ class CachedConfiguration(Configuration):
             self._log_core_information()
 
             # compatibility checks
-            self._assert_descriptor_compatible()
+            self._verify_descriptor_compatible()
             # v1 of the lean_config allows to run the config from the bundle cache.
-            if self._descriptor.get_associated_core_feature_info("lean_config.version", 0) < 1:
+            if self._descriptor.get_associated_core_feature_info("bootstrap.lean_config.version", 0) < 1:
                 # Old-style config, so copy the contents inside it.
                 self._descriptor.copy(os.path.join(self._path.current_os, "config"))
 
@@ -288,7 +288,7 @@ class CachedConfiguration(Configuration):
 
         self._config_writer.end_transaction()
 
-    def _assert_descriptor_compatible(self):
+    def _verify_descriptor_compatible(self):
         """
         Ensures the config we're booting into understands the newer Shotgun descriptor.
         """

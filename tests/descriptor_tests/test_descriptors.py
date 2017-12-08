@@ -88,7 +88,7 @@ class TestConfigDescriptor(TankTestBase):
             def associated_core_descriptor(self):
                 return None
 
-        desc = MissingCoreConfigDescriptor(None)
+        desc = MissingCoreConfigDescriptor(None, None)
         self.assertIsNone(desc.core_descriptor)
         self.assertEqual(desc.get_associated_core_feature_info("missing", "value"), "value")
 
@@ -103,7 +103,7 @@ class TestConfigDescriptor(TankTestBase):
                 io_desc.get_manifest.return_value = dict()
                 return CoreDescriptor(io_desc)
 
-        desc = CoreConfigDescriptorWithoutFeatures(None)
+        desc = CoreConfigDescriptorWithoutFeatures(None, None)
         self.assertIsNone(
             desc.get_associated_core_feature_info("missing")
         )
@@ -119,7 +119,7 @@ class TestConfigDescriptor(TankTestBase):
                 io_desc.get_manifest.return_value = dict(features=dict(two="2"))
                 return CoreDescriptor(io_desc)
 
-        desc = CoreConfigDescriptorWithFeatures(None)
+        desc = CoreConfigDescriptorWithFeatures(None, None)
 
         self.assertEqual(
             desc.get_associated_core_feature_info("two"),
@@ -796,7 +796,7 @@ class TestFeaturesApi(unittest2.TestCase):
         """
         io_desc = Mock()
         io_desc.get_manifest.side_effect = TankMissingManifestError()
-        desc = sgtk.descriptor.Descriptor(io_desc)
+        desc = sgtk.descriptor.CoreDescriptor(io_desc)
 
         self.assertEqual(desc.get_feature_info("missing", "value"), "value")
         self.assertIsNone(desc.get_feature_info("missing"))
@@ -808,7 +808,7 @@ class TestFeaturesApi(unittest2.TestCase):
         """
         io_desc = Mock()
         io_desc.get_manifest.return_value = {}
-        desc = sgtk.descriptor.Descriptor(io_desc)
+        desc = sgtk.descriptor.CoreDescriptor(io_desc)
 
         self.assertEqual(desc.get_feature_info("missing", "value"), "value")
         self.assertIsNone(desc.get_feature_info("missing"))
@@ -820,7 +820,7 @@ class TestFeaturesApi(unittest2.TestCase):
         """
         io_desc = Mock()
         io_desc.get_manifest.return_value = dict(features={})
-        desc = sgtk.descriptor.Descriptor(io_desc)
+        desc = sgtk.descriptor.CoreDescriptor(io_desc)
 
         self.assertEqual(desc.get_feature_info("missing", "value"), "value")
         self.assertIsNone(desc.get_feature_info("missing"))
@@ -833,7 +833,7 @@ class TestFeaturesApi(unittest2.TestCase):
         features = dict(two="2", foo="bar", zero=0)
         io_desc = Mock()
         io_desc.get_manifest.return_value = dict(features=features)
-        desc = sgtk.descriptor.Descriptor(io_desc)
+        desc = sgtk.descriptor.CoreDescriptor(io_desc)
 
         self.assertEqual(desc.get_feature_info("two", 3), "2")
         self.assertEqual(desc.get_feature_info("two"), "2")
@@ -863,10 +863,10 @@ class TestFeaturesApi(unittest2.TestCase):
 
         io_desc = Mock()
         io_desc.get_manifest.return_value = info
-        desc = sgtk.descriptor.Descriptor(io_desc)
+        desc = sgtk.descriptor.CoreDescriptor(io_desc)
 
         features = {
-            "lean_config.version": 1
+            "bootstrap.lean_config.version": 1
         }
 
         # Make sure every feature is at the expected version.

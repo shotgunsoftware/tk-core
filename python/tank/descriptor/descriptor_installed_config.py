@@ -34,8 +34,8 @@ class InstalledConfigDescriptor(ConfigDescriptor):
     inside the configuration folder or alongside the shared core.
     """
 
-    def __init__(self, io_descriptor):
-        super(InstalledConfigDescriptor, self).__init__(io_descriptor)
+    def __init__(self, sg_connection, io_descriptor):
+        super(InstalledConfigDescriptor, self).__init__(sg_connection, io_descriptor)
         self._io_descriptor.set_is_copiable(False)
 
     @property

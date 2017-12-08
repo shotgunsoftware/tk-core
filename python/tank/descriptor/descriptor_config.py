@@ -17,7 +17,7 @@ from tank_vendor import yaml
 from ..errors import TankFileDoesNotExistError
 from . import constants
 from .errors import TankInvalidInterpreterLocationError
-from .descriptor import Descriptor
+from .descriptor import Descriptor, create_descriptor
 from .. import LogManager
 from ..util import ShotgunPath
 from ..util.version import is_version_older
@@ -30,6 +30,11 @@ class ConfigDescriptor(Descriptor):
     """
     Descriptor that describes a Toolkit Configuration
     """
+
+    def __init__(self, sg_connection, io_descriptor):
+        super(ConfigDescriptor, self).__init__(io_descriptor)
+        self._cached_core_descriptor = None
+        self._sg_connection = sg_connection
 
     @property
     def associated_core_descriptor(self):
@@ -60,11 +65,10 @@ class ConfigDescriptor(Descriptor):
         if not self.associated_core_descriptor:
             return None
 
-        if not hasattr(self, "_cached_core_descriptor"):
+        if not self._cached_core_descriptor:
             cache_roots = self._io_descriptor.get_cache_roots()
-            self._cached_core_descriptor = Descriptor.create(
-                # FIXME: We need to pass down a connection here...
-                None,
+            self._cached_core_descriptor = create_descriptor(
+                self._sg_connection,
                 Descriptor.CORE,
                 self.associated_core_descriptor,
                 cache_roots.bundle_cache_root,
