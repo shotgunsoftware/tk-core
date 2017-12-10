@@ -172,7 +172,6 @@ def _from_path(path, force_reread_shotgun_cache):
     :param force_reread_shotgun_cache: Should the cache be force re-populated?
     :returns: Pipeline Configuration object
     """
-
     if not isinstance(path, basestring):
         raise TankError("Cannot create a configuration from path '%s' - path must be a string!" % path)
 
@@ -203,40 +202,56 @@ def _from_path(path, force_reread_shotgun_cache):
                             "has not been configured for the current operating system." % path)
         return PipelineConfiguration(pc_registered_path)
 
-    # now get storage data, use cache unless force flag is set
+    # now get storage and project data from shotgun.
+    # this will use a cache unless the force flag is set
     sg_data = _get_pipeline_configs(force_reread_shotgun_cache)
 
     # now given ALL pipeline configs for ALL projects and their associated projects
     # and project root paths (in sg_data), figure out which pipeline configurations
-    # are matching the given path.
-
+    # are matching the given path. This is done by walking upwards in the path
+    # until a project root is found, and then figuring out which pipeline configurations
+    # belong to that project root.
     associated_sg_pipeline_configs = _get_pipeline_configs_for_path(path, sg_data)
 
     if len(associated_sg_pipeline_configs) == 0:
-        # no matches! The path is unknown or invalid.
+        # no matches! The path is invalid or does not belong to any project on the current sg site.
         raise TankError("The path '%s' does not seem to belong to any known Toolkit project!" % path)
 
     # extract current os path data from the pipeline configuration shotgun data
     (all_pc_data, primary_pc_data) = _get_pipeline_configuration_data(associated_sg_pipeline_configs)
 
-    # figure out if we are running a tank command / api from a
-    # local pipeline config or from a studio level install
+    # Introspect the TANK_CURRENT_PC env var to determine which pipeline configuration
+    # the current sgtk import belongs to.
+    #
+    # if the call returns a path, we are running a localized pipeline configuration, e.g.
+    # the pipeline configuration has its own associated core. If it returns None,
+    # we are running a shared core, e.g. a core API which is used by multiple
+    # pipeline configurations.
     config_context_path = _get_configuration_context()
 
     if config_context_path:
 
-        # we are running the tank command or python core API directly from a configuration
-        #
-        # now if this tank command is associated with the path, the registered path should be in
-        # in the pipeline configuration data coming from
-        if config_context_path not in [x["path"] for x in all_pc_data]:
+        # This is the localized case where the imported code has a 1:1 correspondence
+        # with the pipeline configuration. Now we need to verify that the path is compatible
+        # with this configuraton, or raise an exception.
+
+        # create an instance to represent our path
+        pipeline_configuration = PipelineConfiguration(config_context_path)
+
+        # get associated shotgun id
+        pc_id = pipeline_configuration.get_shotgun_id()
+
+        # check that oue of the (possibly several) pipeline configurations
+        # that we have identified as associated with the input path is actually
+        # the id above.
+        if pc_id not in [x["id"] for x in all_pc_data]:
 
             pcs_msg = ", ".join([
                             "'%s' (Pipeline config id %s, Project id %s)" % (x["path"], x["id"], x["project_id"])
                             for x in all_pc_data])
 
             raise TankError("You are trying to start Toolkit using the pipeline configuration "
-                            "located in '%s'. The path '%s' you are trying to load is not "
+                            "located in '%s' with Shotgun id %s. The path '%s' you are trying to load is not "
                             "associated with that configuration. Instead, it is "
                             "associated with the following pipeline configurations: %s. "
                             "Please use the tank command or Toolkit API in any of those "
@@ -245,10 +260,10 @@ def _from_path(path, force_reread_shotgun_cache):
                             "the 'tank move_configuration command'. It can also occur if you "
                             "are trying to use a tank command associated with one Project "
                             "to try to operate on a Shot or Asset that belongs to another "
-                            "project." % (config_context_path, path, pcs_msg))
+                            "project." % (config_context_path, pc_id, path, pcs_msg))
 
         # okay so this pipeline config is valid!
-        return PipelineConfiguration(config_context_path)
+        return pipeline_configuration
 
     else:
         # we are running a studio level tank command.
@@ -384,7 +399,6 @@ def _get_pipeline_configs_for_path(path, data):
         - mac_path
         - project
         - project.Project.tank_name
-
 
     Edge case notes:
 
@@ -590,6 +604,7 @@ def _get_pipeline_configs(force=False):
         - mac_path
         - project
         - project.Project.tank_name
+        - plugin_ids
 
     :param force: set this to true to force a cache refresh
     :returns: dictionary with keys local_storages and pipeline_configurations.
