@@ -84,27 +84,42 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
     # extract path data from the pipeline configuration shotgun data
     (all_pc_data, primary_pc_data) = _get_pipeline_configuration_data(associated_sg_pipeline_configs)
 
-    # figure out if we are running a tank command / api from a local
-    # pipeline config or from a studio level install
+    # Introspect the TANK_CURRENT_PC env var to determine which pipeline configuration
+    # the current sgtk import belongs to.
+    #
+    # if the call returns a path, we are running a localized pipeline configuration, e.g.
+    # the pipeline configuration has its own associated core. If it returns None,
+    # we are running a shared core, e.g. a core API which is used by multiple
+    # pipeline configurations.
     config_context_path = _get_configuration_context()
 
     if config_context_path:
-        # we are running the tank command or python core API directly from a configuration
-        #
-        # make sure that the tank command we are launching from belong to a shotgun project
-        # that the input entity type/id is associated with.
-        if config_context_path not in [x["path"] for x in all_pc_data]:
+
+        # This is the localized case where the imported code has a 1:1 correspondence
+        # with the pipeline configuration. Now we need to verify that the path is compatible
+        # with this configuration, or raise an exception.
+
+        # create an instance to represent our path
+        pipeline_configuration = PipelineConfiguration(config_context_path)
+
+        # get associated shotgun id
+        pc_id = pipeline_configuration.get_shotgun_id()
+
+        # check that oue of the (possibly several) pipeline configurations
+        # that we have identified as associated with the input path is actually
+        # the id above.
+        if pc_id not in [x["id"] for x in all_pc_data]:
             # the tank command / api proxy that this session was launched for is *not*
             # associated with the given entity type and entity id!
-            raise TankError("The pipeline configuration in '%s' is is associated with a different "
+            raise TankError("The pipeline configuration in '%s' (id %s) is is associated with a different "
                             "project from %s %s. To see which pipeline configurations are available "
                             "for a project, open the pipeline configurations page "
-                            "in Shotgun." % (config_context_path, entity_type, entity_id))
+                            "in Shotgun." % (config_context_path, pc_id, entity_type, entity_id))
 
         # ok we got a pipeline config matching the tank command from which we launched.
         # because we found the pipeline config in the list of PCs for this project,
         # we know that it must be valid!
-        return PipelineConfiguration(config_context_path)
+        return pipeline_configuration
 
     else:
         # we are running the tank command or API proxy from the studio location, e.g.
@@ -233,7 +248,7 @@ def _from_path(path, force_reread_shotgun_cache):
 
         # This is the localized case where the imported code has a 1:1 correspondence
         # with the pipeline configuration. Now we need to verify that the path is compatible
-        # with this configuraton, or raise an exception.
+        # with this configuration, or raise an exception.
 
         # create an instance to represent our path
         pipeline_configuration = PipelineConfiguration(config_context_path)
