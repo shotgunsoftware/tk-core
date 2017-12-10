@@ -563,7 +563,7 @@ def execute_hook(hook_path, parent, **kwargs):
     """
     return execute_hook_method([hook_path], parent, None, **kwargs)
 
-def execute_hook_method(hook_paths, parent, method_name, **kwargs):
+def execute_hook_method(hook_paths, parent, method_name, base_class=None, **kwargs):
     """
     New style hook execution, with method arguments and support for inheritance.
 
@@ -586,14 +586,21 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
 
         4. HookC class is instantiated and method method_name is executed.
 
+    An optional `base_class` can be provided to override the default ``Hook``
+    base class. This is useful for bundles that wish to execute a hook method
+    while providing a default implementation without the need to configure a
+    base hook.
+
     :param hook_paths: List of full paths to hooks, in inheritance order.
     :param parent: Parent object. This will be accessible inside
                    the hook as self.parent, and is typically an
                    app, engine or core object.
     :param method_name: method to execute. If None, the default method will be executed.
+    :param base_class: A python class to use as the base class for the hook
+        class. This will override the default hook base class, ``Hook``.
     :returns: Whatever the hook returns.
     """
-    hook = create_hook_instance(hook_paths, parent)
+    hook = create_hook_instance(hook_paths, parent, base_class=base_class)
 
     # get the method
     method_name = method_name or Hook.DEFAULT_HOOK_METHOD
@@ -661,9 +668,20 @@ def get_hook_class(hook_paths, base_class=None):
     :returns: Instance of the hook.
     """
 
+    if base_class:
+        # ensure the supplied base class is a subclass of Hook
+        if not isinstance(base_class, Hook):
+            raise TankError(
+                "Error retrieving hook class. The supplied base class does not "
+                "inherit from `sgtk.Hook`. Hook paths supplied: %s" %
+                (hook_paths,)
+            )
+    else:
+        base_class = Hook
+
     # keep track of the current base class - this is used when loading hooks to dynamically
     # inherit from the correct base.
-    _current_hook_baseclass.value = base_class or Hook
+    _current_hook_baseclass.value = base_class
 
     for hook_path in hook_paths:
 
