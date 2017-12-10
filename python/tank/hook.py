@@ -563,6 +563,7 @@ def execute_hook(hook_path, parent, **kwargs):
     """
     return execute_hook_method([hook_path], parent, None, **kwargs)
 
+
 def execute_hook_method(hook_paths, parent, method_name, base_class=None, **kwargs):
     """
     New style hook execution, with method arguments and support for inheritance.
@@ -670,7 +671,7 @@ def get_hook_class(hook_paths, base_class=None):
 
     if base_class:
         # ensure the supplied base class is a subclass of Hook
-        if not isinstance(base_class, Hook):
+        if not issubclass(base_class, Hook):
             raise TankError(
                 "Error retrieving hook class. The supplied base class does not "
                 "inherit from `sgtk.Hook`. Hook paths supplied: %s" %
