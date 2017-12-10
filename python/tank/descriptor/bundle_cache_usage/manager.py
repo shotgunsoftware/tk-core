@@ -18,6 +18,12 @@ from ... import LogManager
 
 log = LogManager.get_logger(__name__)
 
+class BundleCacheManagerDeletionException(Exception):
+
+    def __init__(self, filepath, message=None):
+        super(BundleCacheManagerDeletionException, self).__init__(message)
+        self._filepath = filepath
+
 class BundleCacheManager(object):
 
     """
@@ -100,6 +106,66 @@ class BundleCacheManager(object):
                 return dirpath
 
         return None
+    @classmethod
+    def _get_filelist(cls, path):
+
+        file_list = []
+        for (dirpath, dirnames, filenames) in os.walk(path):
+            file_list.append(dirpath)
+            for filename in filenames:
+                fullpath = os.path.join(dirpath, filename)
+                file_list.append(fullpath)
+
+        return file_list
+
+    def _paranoid_delete(self, filelist):
+        """
+
+        Delete files and folder under the specified filelist in a paranoid mode where
+        everything is carrefully checked before deleteion. That means no 'rmtree'-like
+        operation, no walking and deleting items directly.
+
+        On anything unexpected the process stops with a custom exception.
+
+        We cannot delete file right away. The list being in reverse order, we might be
+        trying to delete a file that exists in a symlinked folder. Therefore, we'll first
+        scan the entire list for a link, symlink or such in the list. If found, we'll
+        abort the deletion process before actually deleting anything.
+
+        :param filelist: A list file and folders to be deleted
+        """
+
+        # First, check whether there is a symlink in the list
+        for f in filelist:
+            if os.path.islink(f):
+                # CAVEAT: Always False if symbolic links are not supported by the Python runtime.
+                #         How do we know whether it is supported???
+                raise BundleCacheManagerDeletionException(f, "Found a symlink")
+
+        # We have a crude list, now we need to sort it out in reverse
+        # order so we can later on delete files, and then parent folder
+        # in a logical order.
+        rlist = list(reversed(filelist))
+        # No symlinks, Houston we're clear for deletion
+        for f in rlist:
+            if not os.path.exists(f):
+                raise BundleCacheManagerDeletionException(f, "Attempting to delete non existing file or folder.")
+
+            if os.path.isfile(f):
+                os.remove(f)
+
+            elif os.path.isdir(f):
+                # Because we're deleting items that should be reverse prdered
+                # when we're about to delete a folder, it should be empty already.
+                # let's check it out!
+                try:
+                    os.rmdir(f)
+                except OSError as e:
+                    raise BundleCacheManagerDeletionException(f, "Attempted to delete a non-empty folder")
+
+            else:
+                raise BundleCacheManagerDeletionException(f, "Not a link, not a file, not a directory ???")
+
 
     def find_bundles(self):
         """

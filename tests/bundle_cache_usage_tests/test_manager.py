@@ -16,7 +16,7 @@ import unittest2
 
 import sgtk
 from .test_base import TestBundleCacheUsageBase, Utils
-from sgtk.descriptor.bundle_cache_usage.manager import BundleCacheManager
+from sgtk.descriptor.bundle_cache_usage.manager import BundleCacheManager, BundleCacheManagerDeletionException
 from sgtk.descriptor.bundle_cache_usage.writer import BundleCacheUsageWriter
 from tank_test.tank_test_base import TankTestBase, setUpModule
 
@@ -27,6 +27,9 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
 
     # The number of bundles in the test bundle cache
     EXPECTED_BUNDLE_COUNT = 18
+
+    # The number of items (files and folder) in that fake tk-maya bundle
+    EXPECTED_FILE_AND_FOLDER_COUNT = 9
 
     def setUp(self):
         super(TestBundleCacheManager, self).setUp()
@@ -64,9 +67,8 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
         # See `_create_test_bundle_cache_structure`  documentation.
 
         """
-        # Tests using our test bundle cache test structure
-        mgr = BundleCacheManager(self.bundle_cache_root)
-        files = mgr.find_bundles()
+        # Tests using the test bundle cache test structure created in test setUp()
+        files = BundleCacheManager(self.bundle_cache_root).find_bundles()
         self.assertEquals(len(files), TestBundleCacheManager.EXPECTED_BUNDLE_COUNT)
 
     def test_walk_bundle_cache_non_existing_folder(self):
@@ -117,6 +119,138 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
         test_path = os.path.join(self.bundle_cache_root, os.pardir)
         files = BundleCacheManager(test_path).find_bundles()
         self.assertEquals(len(files), TestBundleCacheManager.EXPECTED_BUNDLE_COUNT)
+
+    def test_get_filelist(self):
+        """ Tests the `_get_filelist` method against a known fake bundle. """
+
+        test_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3")
+        filelist = BundleCacheManager._get_filelist(test_path)
+        self.assertEquals(len(filelist), TestBundleCacheManager.EXPECTED_FILE_AND_FOLDER_COUNT)
+
+
+class TestBundleCacheManagerParanoidDelete(TestBundleCacheUsageBase):
+    """
+    Test various deletion scenarios directly using the `_paranoid_delete method.
+    """
+    def setUp(self):
+        super(TestBundleCacheManagerParanoidDelete, self).setUp()
+        self._test_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3")
+        self._manager = BundleCacheManager(self.bundle_cache_root)
+
+    def test_paranoid_delete_files(self):
+        """ Tests the `_paranoi_delete_files` method against a known fake bundle. """
+        manager = BundleCacheManager(self.bundle_cache_root)
+        filelist = BundleCacheManager._get_filelist(self._test_path)
+        manager._paranoid_delete(filelist)
+
+    def _helper_paranoid_delete_with_link(self, link_dir, use_hardlink):
+        """
+        Helper method for several of the `test_paranoi_delete_with_` methods.
+
+        file`` method against a known fake bundle to which a hardlink
+        to a file will be added. We expect the method to fail because we don't want to delete
+        file or folder links.
+
+        :param link_dir: test using link to a directory else a file
+        :param use_hardlink: test using a hardlink else a symlink
+        """
+
+        # Setup paths for link creation
+        base_path = os.path.join(self.bundle_cache_root,
+                                 "app_store", "tk-maya", "v0.8.3", "plugins", "basic")
+
+        if link_dir:
+            source_file = os.path.join(base_path)
+            dest_path = os.path.join(base_path, "extended")
+        else:
+            source_file = os.path.join(base_path, "some_file.txt")
+            dest_path = os.path.join(base_path, "link_to_some_file.txt")
+
+        # Create link
+        if use_hardlink:
+            os.link(source_file, dest_path)
+        else:
+            os.symlink(source_file, dest_path)
+
+        # get a filelist
+        filelist = self._manager._get_filelist(self._test_path)
+
+        # Now test that an exception is thrown
+        with self.assertRaises(BundleCacheManagerDeletionException):
+            self._manager._paranoid_delete(filelist)
+
+    def test_paranoid_delete_with_file_symlink(self):
+        """
+        Tests the `_paranoid_delete` method against a known fake bundle to which a symlink
+        to a file is added.
+
+        We expect the method to fail because we don't want to delete any links.
+        """
+        self._helper_paranoid_delete_with_link(link_dir=False, use_hardlink=False)
+
+    def test_paranoid_delete_with_file_hardlink(self):
+        """
+        Tests the `_paranoid_delete` method against a known fake bundle to which a hardlink
+        to a file is added.
+
+        We expect the method to fail because we don't want to delete any links.
+        """
+        self._helper_paranoid_delete_with_link(link_dir=False, use_hardlink=True)
+
+    def test_paranoid_delete_with_dir_symlink(self):
+        """
+        Tests the `_paranoid_delete` method against a known fake bundle to which a symlink
+        to a folder is added.
+
+        We expect the method to fail because we don't want to delete any links.
+        """
+        self._helper_paranoid_delete_with_link(link_dir=True, use_hardlink=False)
+
+    def test_paranoid_delete_with_dir_hardlink(self):
+        """
+        Tests the `_paranoid_delete` method against a known fake bundle to which a hardlink
+        to a folder is added.
+
+        We expect the method to fail because we don't want to delete any links.
+        """
+        self._helper_paranoid_delete_with_link(link_dir=True, use_hardlink=True)
+
+    def test_paranoid_delete_with_missing_file(self):
+        """
+        Tests the `_paranoi_delete_files` method against a known fake bundle to which a file
+        file is deleted from the specified list of file. We expect the method to fail because
+        it cannot delete a file specified in the list.
+        """
+
+        filelist = self._manager._get_filelist(self._test_path)
+
+        # delete a file that's in the above list
+        manually_deleted_file = os.path.join(self.bundle_cache_root,
+                                             "app_store", "tk-maya",
+                                             "v0.8.3", "plugins", "basic", "some_file.txt")
+
+        os.remove(manually_deleted_file)
+
+        with self.assertRaises(BundleCacheManagerDeletionException):
+            self._manager._paranoid_delete(filelist)
+
+    def test_paranoid_delete_with_extra_file(self):
+        """
+        Tests the `_paranoi_delete_files` method against a known fake bundle to which an extra
+        file is added (not in the file list). We expect the method to fail because it cannot
+        delete the parent folder of that extra file.
+        """
+
+        filelist = self._manager._get_filelist(self._test_path)
+
+        # Add an extra file
+        extra_file = os.path.join(self.bundle_cache_root,
+                                  "app_store", "tk-maya",
+                                  "v0.8.3", "some_unexpected_extra_file.txt")
+        Utils.write_bogus_data(extra_file)
+
+        with self.assertRaises(BundleCacheManagerDeletionException):
+            self._manager._paranoid_delete(filelist)
 
 
 class TestBundleCacheUsageManagerSingleton(TestBundleCacheUsageBase):

@@ -61,6 +61,55 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
         max_value = expected_value + expected_value_pct
         self.assertTrue((test_value >= min_value) and (test_value <= max_value))
 
+    def test_stress_simple_start_stop(self):
+        """
+        Simple stress-Test for possible lock-ups while starting and stopping the
+        worker thread.
+
+        The test measures elaped time for each individual iteration and expect
+        a near-instantaneous execution.
+        """
+        count = 1000
+        while count > 0:
+            start_time = time.time()
+            worker = BundleCacheUsageWorker(self.bundle_cache_root)
+            worker.start()
+            worker.stop()
+            worker = None
+            elapsed_time = time.time() - start_time
+            # Should pretty much be instant and 250ms is an eternity for a computer
+            self.assertLess(elapsed_time, 0.25, "Lock up detected")
+            count -= 1
+
+    def test_stress_start_stop_with_operation(self):
+        """
+        Stress-Test for possible lock-ups starting, issuing some operations and then
+        and stopping the worker.
+
+        The test measures elaped time for each individual iteration and expect
+        a near-instantaneous execution.
+        """
+        bundle_path = os.path.join(self.bundle_cache_root,
+                                   "app_store",
+                                   "tk-shell",
+                                   "v0.5.4")
+        count = 1000
+        while count > 0:
+            start_time = time.time()
+            worker = BundleCacheUsageWorker(self.bundle_cache_root)
+            worker.start()
+            worker.log_usage(bundle_path)
+            worker.log_usage(bundle_path)
+            worker.log_usage(bundle_path)
+            old_entries = worker.get_entries_unused_since_last_days(0)
+            worker.log_usage(bundle_path)
+            worker.stop()
+            worker = None
+            elapsed_time = time.time() - start_time
+            # Should pretty much be instant and 250ms is an eternity for a computer
+            self.assertLess(elapsed_time, 0.25, "Lock up detected")
+            count -= 1
+
     def test_with_no_task(self):
         """
         Tests that the worker main loop is not looping

@@ -27,12 +27,44 @@ class Utils(object):
     Used throughout this module.
     """
 
+    #
+    # An excerpt from chapter of Jules Verne' TWENTY THOUSAND LEAGUES UNDER THE SEA
+    #
+    # Ref: https://www.gutenberg.org/files/164/164-h/164-h.htm
+    text_data = \
+        "The year 1866 was signalised by a remarkable incident, a mysterious and" \
+        "puzzling phenomenon, which doubtless no one has yet forgotten. Not to mention" \
+        "rumours which agitated the maritime population and excited the public mind, "\
+        " even in the interior of continents, seafaring men were particularly excited." \
+        "Merchants, common sailors, captains of vessels, skippers, both of Europe and "\
+        "America, naval officers of all countries, and the Governments of several States "\
+        "on the two continents, were deeply interested in the matter." \
+        "For some time past vessels had been met by an enormous thing, a long object, "\
+        "spindle-shaped,occasionally phosphorescent, and infinitely larger and more rapid" \
+        "its movements than a whale. The facts relating to this apparition (entered in"\
+        "various log-books) agreed in most respects as to the shape of the object or "\
+        "creature in question, the untiring rapidity of its movements, its surprising "\
+        "power of locomotion, and the peculiar life with which it seemed endowed. If it "\
+        "was a whale, it surpassed in size all those hitherto classified in science. "\
+        "Taking into consideration the mean of observations made at divers times?"\
+        "rejecting the timid estimate of those who assigned to this object a length of two "\
+        "hundred feet, equally with the exaggerated opinions which set it down as a mile in "\
+        "width and three in length?we might fairly conclude that this mysterious being surpassed"\
+        "greatly all dimensions admitted by the learned ones of the day, if it existed"\
+        "at all. And that it DID exist was an undeniable fact; and, with that tendency"\
+        "which disposes the human mind in favour of the marvellous, we can understand"\
+        "the excitement produced in the entire world by this supernatural apparition."\
+        "As to classing it in the list of fables, the idea was out of the question."
+
     @classmethod
     def touch(cls, path):
         """
-        Reference: https://stackoverflow.com/a/12654798/710183
+        Simply 'touch' the specified file
 
-        :param path:
+        Reference:
+        https://stackoverflow.com/a/12654798/710183
+
+        :param path: a str full path and filename to a file we want to create/touch
         """
         dirs = os.path.dirname(path)
 
@@ -43,10 +75,35 @@ class Utils(object):
             os.utime(path, None)
 
     @classmethod
+    def write_bogus_data(cls, path):
+        """
+        Writes bogus test data to the specified file.
+
+        :param path: a str full path and file to write bogus data to.
+        """
+        full_length = len(Utils.text_data)
+        quater_length = full_length / 4
+        random_length = random.randrange(quater_length, full_length)
+
+        data_to_write = Utils.text_data[:random_length]
+
+        dirs = os.path.dirname(path)
+
+        if not os.path.exists(dirs):
+            os.makedirs(dirs)
+
+        with open(path, 'w') as f:
+            f.write(data_to_write)
+
+    @classmethod
     def safe_delete(cls, path):
         if path and os.path.exists(path):
             if os.path.isdir(path):
-                shutil.rmtree(path)
+                try:
+                    shutil.rmtree(path)
+                except Exception as e:
+                    pass
+
             elif os.path.isfile(path):
                 # os.path.
                 pass
@@ -156,7 +213,11 @@ class TestBundleCacheUsageBase(unittest2.TestCase):
             os.path.join(app_store_root, "tk-3dsmaxplus", "v0.4.1", "plugins", "basic", "info.yml"),
             os.path.join(app_store_root, "tk-multi-shotgunpanel", "v1.4.8", "info.yml"),
             os.path.join(app_store_root, "tk-maya", "v0.8.3", "info.yml"),
+            os.path.join(app_store_root, "tk-maya", "v0.8.3", "some_file.txt"),
+            os.path.join(app_store_root, "tk-maya", "v0.8.3", "another_file.txt"),
             os.path.join(app_store_root, "tk-maya", "v0.8.3", "plugins", "basic", "info.yml"),
+            os.path.join(app_store_root, "tk-maya", "v0.8.3", "plugins", "basic", "some_file.txt"),
+            os.path.join(app_store_root, "tk-maya", "v0.8.3", "plugins", "basic", "another_file.txt"),
             os.path.join(app_store_root, "tk-houdini", "v1.2.7", "info.yml"),
             os.path.join(app_store_root, "tk-houdini", "v1.2.7", "plugins", "test", "info.yml"),
             os.path.join(app_store_root, "tk-houdini", "v1.2.7", "plugins", "basic", "info.yml"),
@@ -167,7 +228,8 @@ class TestBundleCacheUsageBase(unittest2.TestCase):
         ]
 
         for item in test_bundle_cache_structure:
-            Utils.touch(item)
+            #Utils.touch(item)
+            Utils.write_bogus_data(item)
 
     ###################################################################################################################
     #
