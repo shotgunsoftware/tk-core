@@ -116,7 +116,7 @@ class TestBundleCacheUsageBase(unittest2.TestCase):
     TestBundleCacheUsageBase test base class
     """
     TMP_FOLDER_PREFIX = "TestBundleCacheUsageBase_"
-    EXPECTED_DEFAULT_DB_FILENAME = "bundle_usage.db"
+    EXPECTED_DEFAULT_DB_FILENAME = "bundle_usage.sqlite3"
     DEBUG = False
 
     def setUp(self):

@@ -211,7 +211,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
         self.db.log_usage("C:\\Windows\Program Files\\test.txt")
         self.db.log_usage("/shotgun/workspace/databse.db")
-        self.db.log_usage("/Users/Marie-Héléne Hébert/databse.db")
+        self.db.log_usage("/Users/Marie-Hélène Hébert/databse.db")
         self.db.log_usage("~/Library/Cache/Shotgun/some-packahe/2.22.2")
         self.db.log_usage("~/Library/Cache/Shotgun/some-packahe/2.11.1")
 
