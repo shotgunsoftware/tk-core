@@ -235,11 +235,13 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
         - project (associated project entity link)
         - project.Project.tank_name (associated project tank name)
 
-    Thism method will either return a pipeline configuration instance based on
+    This method will either return a pipeline configuration instance based on
     one of the ``associated_pipeline_configs`` entries or raise a TankInitError
     exception.
 
     :param list associated_pipeline_configs: Associated Shotgun data.
+    :param str source: String describing what is being manipulated,
+        e.g. a path or 'Project 123'. Used for error messages and log feedback.
     :returns: Pipeline config instance.
     :rtype: :class:`PipelineConfiguration`
     :raises: :class:`TankInitError` with detailed descriptions.
@@ -304,7 +306,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
 
             raise TankInitError(
                 "You are loading the Toolkit platform from the pipeline configuration "
-                "located in '%s', with Shotgun id %s. You are trying to initializing Toolkit "
+                "located in '%s', with Shotgun id %s. You are trying to initialize Toolkit "
                 "from %s, however that is not associated with the pipeline configuration. "
                 "Instead, it's associated with the following configurations: %s. " % (
                     config_context_path, pc_id, source, all_configs_str

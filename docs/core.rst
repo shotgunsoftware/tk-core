@@ -40,9 +40,9 @@ the following factory methods to create a :class:`sgtk.Sgtk` instance:
 .. autofunction:: sgtk_from_entity
 
 .. note::
-    You can also use the methods avbove in conjunction with projects handled
+    You can also use the methods above in conjunction with projects handled
     by the :class:`~sgtk.bootstrap.ToolkitManager`, but since the location
-    of the configuration of such projects isn't explicit and known on beforehand,
+    of the configuration of such projects isn't explicit and known beforehand,
     the factory methods are less useful in this context.
 
 

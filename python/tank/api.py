@@ -802,6 +802,18 @@ def sgtk_from_path(path):
     Creates a Toolkit Core API instance based on a path to a configuration
     or a path to any file inside a project root location.
 
+    .. note::
+
+        This method was designed to initialize toolkit in workflows where the location of configuration
+        is pre-determined, typically via the ``tank setup_project`` command (or via Shotgun Desktop's
+        project setup wizard). These setups are sometimes referred to as 'classic' configurations.
+
+        Modern toolkit workflows handle the configuration management automatically, driven by the
+        configuration information in Shotgun and via the :class:`~sgtk.bootstrap.ToolkitManager` API.
+        For these workflows, there is typically no need to utilize the ``sgtk_from_path`` command.
+        Instead, launch your toolkit engine directly using the :class:`~sgtk.bootstrap.ToolkitManager`
+        methods.
+
     This factory method will do the following:
 
     - If the given path is determined to be pointing at a pipeline configuration,
@@ -827,7 +839,7 @@ def sgtk_from_path(path):
 
        - Get a list of matching pipeline configurations for that project.
 
-       - Ensure that the currently import ``sgtk`` module is a valid configuration for
+       - Ensure that the currently imported ``sgtk`` module is a valid configuration for
          the matching configurations. If more than one configuration is matching, the
          primary will take precendence.
 
@@ -858,17 +870,6 @@ def sgtk_from_path(path):
         # request that the API produced a tk instance suitable for a given file
         tk = sgtk.sgtk_from_path("/mnt/projects/hidden_forest/shots/aa/aa_001/lighting/foreground.v002.ma")
 
-    .. note::
-
-        This method was designed to initialize toolkit in workflows where the location of configuration
-        is pre-determined, typically via the ``tank setup_project`` command (or via Shotgun Desktop's
-        project setup wizard). These setups are sometimes referred to as 'classic' configurations.
-
-        Modern toolkit workflows handle the configuration management automatically, driven by the
-        configuration information in Shotgun and via the :class:`~sgtk.bootstrap.ToolkitManager` API.
-        For these workflows, there is typically no need to utilize the ``sgtk_from_path`` command.
-        Instead, launch your toolkit engine directly using the :class:`~sgtk.bootstrap.ToolkitManager`
-        methods.
 
     :param path: Path to pipeline configuration or to a folder associated with a project.
     :returns: :class:`Sgtk` instance
