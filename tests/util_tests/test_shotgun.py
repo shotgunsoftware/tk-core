@@ -28,7 +28,7 @@ from tank.authentication.user import ShotgunUser
 from tank.authentication.user_impl import SessionUser
 from tank.descriptor import Descriptor
 from tank.descriptor.io_descriptor.appstore import IODescriptorAppStore
-from tank.util import shotgun_entity
+from tank.util import get_sg_entity_name_field
 
 
 class TestShotgunFindPublish(TankTestBase):
@@ -427,11 +427,10 @@ class TestShotgunUtils(TankTestBase):
         # Test most standard entities, and check that custom entities use "code"
         for entity_type in ["Sequence", "Shot", "Asset", "CustomXXXXEntity"]:
             self.assertEqual(
-                shotgun_entity.get_sg_entity_name_field(entity_type), "code"
+                get_sg_entity_name_field(entity_type), "code"
             )
         # Test most standard entities where the name is in a "name" field.
         for entity_type in ["HumanUser", "Project"]:
             self.assertEqual(
-                shotgun_entity.get_sg_entity_name_field(entity_type), "name"
+                get_sg_entity_name_field(entity_type), "name"
             )
-
