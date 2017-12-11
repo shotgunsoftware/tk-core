@@ -12,6 +12,7 @@
 
 import os
 import time
+import random
 import unittest2
 
 import sgtk
@@ -60,6 +61,65 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
             self.assertLess(elapsed_time,
                             TestBundleCacheManager.MAXIMUM_BLOCKING_TIME_IN_SECONDS,
                             "Lock up detected")
+            count -= 1
+
+    def helper_stress_test1(self, manager, bundle_list, iteration_count=100):
+
+        bundle_count = len(bundle_list)
+
+        while iteration_count > 0:
+
+            # Randomly determine
+            if random.randint(0, 1):
+                bundle_path = bundle_list[random.randint(0, bundle_count-1)]
+                start_time = time.time()
+                manager.log_usage(bundle_path)
+                # Check that execution is near instant
+                self.assertLess(time.time() - start_time,
+                                TestBundleCacheManager.MAXIMUM_BLOCKING_TIME_IN_SECONDS,
+                                "The 'log_usage' method took unexpectedly long time to execute")
+
+            if random.randint(0, 1):
+                bundle_path = bundle_list[random.randint(0, bundle_count-1)]
+                start_time = time.time()
+                manager.get_usage_count(bundle_path)
+                # Check that execution is near instant
+                self.assertLess(time.time() - start_time,
+                                TestBundleCacheManager.MAXIMUM_BLOCKING_TIME_IN_SECONDS,
+                                "The 'get_usage_count' method took unexpectedly long time to execute")
+
+            if random.randint(0, 1):
+                bundle_path = bundle_list[random.randint(0, bundle_count-1)]
+                start_time = time.time()
+                manager.get_last_usage_date(bundle_path)
+                # Check that execution is near instant
+                self.assertLess(time.time() - start_time,
+                                TestBundleCacheManager.MAXIMUM_BLOCKING_TIME_IN_SECONDS,
+                                "The 'get_last_usage_date' method took unexpectedly long time to execute")
+
+            # only if equals 0
+            if not random.randint(0, iteration_count):
+                bundle_path = bundle_list[random.randint(0, bundle_count-1)]
+                start_time = time.time()
+                manager._purge_bundle(bundle_path)
+                # Check that execution is rather quick (2 times the blocking delay)
+                self.assertLess(time.time() - start_time,
+                                2*TestBundleCacheManager.MAXIMUM_BLOCKING_TIME_IN_SECONDS,
+                                "The 'get_last_usage_date' method took unexpectedly long time to execute")
+
+            iteration_count -= 1
+
+    def test_stress_test1(self):
+        """
+        Stress test using a semi-random more complete set of methods.
+        """
+        test_bundle_list = self._get_test_bundles(self.bundle_cache_root)
+
+        count = 20
+        while count > 0:
+            manager = BundleCacheManager(self.bundle_cache_root)
+            self.helper_stress_test1(manager, test_bundle_list)
+            BundleCacheManager.delete_instance()
             count -= 1
 
     def test_get_filelist(self):

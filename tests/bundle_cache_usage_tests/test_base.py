@@ -231,6 +231,39 @@ class TestBundleCacheUsageBase(unittest2.TestCase):
             #Utils.touch(item)
             Utils.write_bogus_data(item)
 
+
+    @classmethod
+    def _get_test_bundles(self, bundle_cache_root):
+
+        """
+        Helper method returning the list of fake bundles created
+        in the `_create_test_app_store_cache` method.
+        :return: A list of paths
+        """
+
+        app_store_root = os.path.join(bundle_cache_root, "app_store")
+
+        return [
+            os.path.join(app_store_root, "tk-multi-pythonconsole", "v1.1.1"),
+            os.path.join(app_store_root, "tk-multi-launchapp", "v0.9.10"),
+            os.path.join(app_store_root, "tk-shell", "v0.5.4"),
+            os.path.join(app_store_root, "tk-shell", "v0.5.6"),
+            os.path.join(app_store_root, "tk-framework-shotgunutils", "v5.2.3"),
+            os.path.join(app_store_root, "tk-photoshopcc", "v1.1.7"),
+            os.path.join(app_store_root, "tk-framework-desktopserver", "v1.2.4"),
+            os.path.join(app_store_root, "tk-framework-widget", "v0.2.6"),
+            os.path.join(app_store_root, "tk-nuke", "v0.8.5"),
+            os.path.join(app_store_root, "tk-multi-setframerange", "v0.3.0"),
+            os.path.join(app_store_root, "tk-3dsmaxplus", "v0.4.1"),
+            os.path.join(app_store_root, "tk-multi-shotgunpanel", "v1.4.8"),
+            os.path.join(app_store_root, "tk-maya", "v0.8.3"),
+            os.path.join(app_store_root, "tk-houdini", "v1.2.7"),
+            os.path.join(app_store_root, "tk-flame", "v1.9.6"),
+            os.path.join(app_store_root, "tk-shotgun", "v0.6.0"),
+            os.path.join(app_store_root, "tk-framework-qtwidgets", "v2.6.5"),
+            os.path.join(app_store_root, "tk-multi-loader2", "v1.18.0")
+        ]
+
     ###################################################################################################################
     #
     # Misc. Helper Methods
