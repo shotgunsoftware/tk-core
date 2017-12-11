@@ -137,7 +137,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui._2fa_code.editingFinished.connect(self._strip_whitespaces)
         self.ui.backup_code.editingFinished.connect(self._strip_whitespaces)
 
-        self.ui.site.activated.connect(self._on_site_changed)
+        self.ui.site.activated.connect(lambda x: self._on_site_changed())
         self.ui.site.lineEdit().editingFinished.connect(self._on_site_changed)
 
     def _strip_whitespaces(self):
