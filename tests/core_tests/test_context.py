@@ -670,6 +670,20 @@ class TestFromEntity(TestContext):
         if check_name:
             self.assertEquals(first_entity["name"], second_entity["name"])
 
+    def test_bad_entities(self):
+        """
+        Test exception are raised if bad entities are used.
+        """
+        with self.assertRaisesRegexp(TankError, "Cannot create a context from an entity type 'None'"):
+            context.from_entity(self.tk, None, 7777)
+        with self.assertRaisesRegexp(TankError, "Cannot create a context from an entity id set to 'None'"):
+            context.from_entity(self.tk, "Task", None)
+        with self.assertRaisesRegexp(TankError, "Unable to locate Task with id -1 in Shotgun"):
+            context.from_entity(self.tk, "Task", -1)
+        # PublishedFiles go through some dedicated code.
+        with self.assertRaisesRegexp(TankError, "Entity PublishedFile with id -1 not found in Shotgun!"):
+            context.from_entity(self.tk, "PublishedFile", -1)
+
 
 class TestAsTemplateFields(TestContext):
     def setUp(self):
