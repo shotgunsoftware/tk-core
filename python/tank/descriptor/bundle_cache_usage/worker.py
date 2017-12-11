@@ -16,7 +16,7 @@ from threading import Event, Thread, Lock
 
 from .writer import BundleCacheUsageWriter
 from . import BundleCacheUsageLogger as log
-from . import USE_RELATIVE_PATH, LOG_LOG_USAGE, LOG_THREADING
+from . import LOG_LOG_USAGE, LOG_THREADING
 
 class BundleCacheUsageWorker(threading.Thread):
 
@@ -27,6 +27,8 @@ class BundleCacheUsageWorker(threading.Thread):
     """
 
     MAXIMUM_QUEUE_SIZE = 1024
+    DEFAULT_OP_TIMEOUT = 2 # in seconds
+    DEFAULT_STOP_TIMEOUT = 10 # in seconds
 
     def __init__(self, bundle_cache_root):
         super(BundleCacheUsageWorker, self).__init__()
@@ -34,7 +36,6 @@ class BundleCacheUsageWorker(threading.Thread):
         self._terminate_requested = threading.Event()
         self._queued_signal = threading.Event()
         self._tasks = Queue.Queue()
-        self._cv = threading.Condition()
         self._member_lock = threading.Condition()
         self._completed_count = 0
         self._main_loop_count = 0
@@ -108,25 +109,10 @@ class BundleCacheUsageWorker(threading.Thread):
 
     def __log_usage(self, bundle_path):
         """
-
-        :param bundle_path:
+        Update database's last usage datefor the specified entry.
+        :param bundle_path: A str of a bundle path
         """
-
-        #
-        # First check whether the specified path in contained in
-        # the "bundle cache" path specified on class creation.
-        #
-
-        #
-        # Second, truncate the received
-        #
-        #
-        #
-        # We can probably do both into a single line of code
-
-        if self._bundle_cache_root in bundle_path:
-            self._bundle_cache_usage.log_usage(self._truncate_path(bundle_path))
-
+        self._bundle_cache_usage.log_usage(self._truncate_path(bundle_path))
 
     def __consume_task(self):
         """
@@ -135,14 +121,15 @@ class BundleCacheUsageWorker(threading.Thread):
         function, args, kwargs = self._tasks.get()
         if function:
             function(*args, **kwargs)
-            log.debug_worker_hf("Consumed task")
-        else:
-            log.debug_worker_hf("Bad Consumed task")
 
         with self._member_lock:
             if self._pending_count > 0:
                 self._pending_count -= 1
             self._completed_count += 1
+
+    def __hit_main_loop_count(self):
+        with self._member_lock:
+            self._main_loop_count += 1
 
     def _truncate_path(self, bundle_path):
         truncated_path = bundle_path.replace(self._bundle_cache_root, "")
@@ -150,32 +137,34 @@ class BundleCacheUsageWorker(threading.Thread):
         return truncated_path
 
     def run(self):
+        """
+        Implementation of threading.Thread.run()
+        """
+
         log.debug_worker_threading("starting")
 
         try:
-            #  SQLite objects created in a thread can only be used in that same thread.
+            #  The SQLite object can only be used in the thread it was created in.
             self._bundle_cache_usage = BundleCacheUsageWriter(self._bundle_cache_root)
-
-            # With the database created & opened above, let's queue a initial
-            # task about checking for existing bundles
 
             while not self._terminate_requested.is_set() or self.pending_count > 0:
 
-                # Wait and consume an item, this is what is pacing the loop
+                # Pace the run loop by waiting and consuming as they are queued
                 self._queued_signal.wait()
 
-                # Note: the 'pending_count' property does wraps lock on _pending_count member
+                # Note: the 'pending_count' property DOES wraps lock on _pending_count member
                 while self.pending_count > 0:
                     self.__consume_task()
 
                 # When all tasks have been processed we need to reset Queue signal
-                # so this loop is not consuming all CPU on a closed loop.
-                # Clearing the signal will cause the wait() statement above to sleep
-                # the thread until it is signaled again by queueing a new task.
+                # so this loop is not consuming all CPU.
+                #
+                # Clearing the signal will cause the `self._queued_signal.wait()` statement
+                # above to sleep the thread until it is signaled again by queueing a new task
+                # or requesting end of thread.
                 self._queued_signal.clear()
 
-                with self._member_lock:
-                    self._main_loop_count += 1
+                self.__hit_main_loop_count()
 
         except Exception as e:
             log.error("UNEXPECTED Exception: %s " % (e))
@@ -201,10 +190,9 @@ class BundleCacheUsageWorker(threading.Thread):
     ###########################################################################
 
     def _queue_task(self, function, *args, **kwargs):
-        log.debug_worker_hf("_queue_task(...)")
-
         with self._member_lock:
             self._pending_count += 1
+
         self._tasks.put((function, args, kwargs))
         self._tasks.task_done()
         self._queued_signal.set()
@@ -233,7 +221,7 @@ class BundleCacheUsageWorker(threading.Thread):
         with self._member_lock:
             return self._completed_count
 
-    def delete_entry(self, bundle_path, timeout=2):
+    def delete_entry(self, bundle_path, timeout=DEFAULT_OP_TIMEOUT):
         """
         Blocking method which queues deletion of the specified entry from the database
         :param bundle_path: A str of a database entry to delete
@@ -243,7 +231,7 @@ class BundleCacheUsageWorker(threading.Thread):
         self._queue_task(self.__delete_entry, bundle_path, signal)
         signal.wait(timeout)
 
-    def get_last_usage_date(self, bundle_path, timeout=2):
+    def get_last_usage_date(self, bundle_path, timeout=DEFAULT_OP_TIMEOUT):
         """
         Blocking method that returns the date the specified bundle path was last used.
 
@@ -257,7 +245,7 @@ class BundleCacheUsageWorker(threading.Thread):
 
         return response.get("last_usage_date", None)
 
-    def get_usage_count(self, bundle_path, timeout=2):
+    def get_usage_count(self, bundle_path, timeout=DEFAULT_OP_TIMEOUT):
         """
         Blocking method that returns the number of time the specified bundle was referenced.
 
@@ -272,6 +260,14 @@ class BundleCacheUsageWorker(threading.Thread):
         return response.get("usage_count",0)
 
     def log_usage(self, bundle_path):
+        """
+        Increase the database usage count and access date for the specified bundle_path.
+        If the entry was not in the database already, the usage count will be initialized to 1.
+        The specified path is truncated and relative to the `bundle_cache_root` property.
+
+        :param bundle_path: A str path to a bundle
+        """
+
         log.debug_worker_hf("log_usage = %s" % (bundle_path))
         self._queue_task(self.__log_usage, bundle_path)
 
@@ -289,9 +285,9 @@ class BundleCacheUsageWorker(threading.Thread):
         with self._member_lock:
             return self._pending_count
 
-    def stop(self, timeout=10.0):
-        log.debug("termination request ...")
+    def stop(self, timeout=DEFAULT_STOP_TIMEOUT):
 
+        log.debug("Requesting worker termination...")
         # Order is important below: signal thread termination FIRST!
         # Changing order below would cause a failure of the
         # TestBundleCacheManager.test_create_delete_instance test.
@@ -299,7 +295,7 @@ class BundleCacheUsageWorker(threading.Thread):
         self._queued_signal.set()
         self.join(timeout=timeout)
 
-    def get_entries_unused_since_last_days(self, days=60, timeout=2):
+    def get_entries_unused_since_last_days(self, days=60, timeout=DEFAULT_OP_TIMEOUT):
         """
         Blocking method that returns a list of entries that haven't been seen since the speciafied day count
 
