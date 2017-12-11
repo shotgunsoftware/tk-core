@@ -96,7 +96,7 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
             worker.log_usage(self._test_bundle_path)
             worker.log_usage(self._test_bundle_path)
             worker.log_usage(self._test_bundle_path)
-            old_entries = worker.get_entries_unused_since_last_days(0)
+            old_entries = worker.get_unused_bundles(0)
             worker.log_usage(self._test_bundle_path)
             worker.stop()
             worker = None
@@ -217,7 +217,7 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
 
         worker.stop()
 
-    def test_get_entries_unused_since_last_days(self):
+    def test_get_unused_bundles(self):
 
         """
         Test basic usage of `get_entries_unused_since_last_days` asynchronous method.
@@ -227,12 +227,12 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
         # log something
 
         time.sleep(2)
-        entries = worker.get_entries_unused_since_last_days(20)
+        entries = worker.get_unused_bundles(20)
 
         for entry in entries:
             print "entry = %s" % (entry)
 
-    def test_get_entries_unused_since_last_days_timing_out(self):
+    def test_get_unused_bundles_timing_out(self):
         """
         Tests that the  'get_entries_unused_since_last_days' asynchronous call does timeout
         by simply not starting the worker thread.
@@ -241,7 +241,7 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
 
         expected_timeout = 1.0
         start_time = time.time()
-        entries = worker.get_entries_unused_since_last_days(days=20, timeout=expected_timeout)
+        entries = worker.get_unused_bundles(since_days=20, timeout=expected_timeout)
         elapsed_time = time.time() - start_time
         self.assertIsWithinPct(elapsed_time, expected_timeout,10)
         self.assertIsNotNone(entries)
