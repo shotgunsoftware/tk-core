@@ -178,6 +178,36 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
         self.assertGreaterEqual(now_unix_timestamp, last_date)
         self.assertLess(last_date, now_unix_timestamp+USAGE_TOLERANCE_IN_SECONDS)
 
+    def test_get_unused_bundles(self):
+        """
+        Tests the `get_unused_bundles` method
+        """
+        bundle_path_old = os.path.join(self.bundle_cache_root, "app_store", "tk-shell", "v0.5.4")
+        bundle_path_new = os.path.join(self.bundle_cache_root, "app_store", "tk-shell", "v0.5.6")
+
+        SLEEP_TIME_IN_SECOND = 2
+        # Log some usage / add bundle
+        self._manager.log_usage(bundle_path_old)
+        # Wait some minimal time allow time to pass
+        time.sleep(SLEEP_TIME_IN_SECOND)
+        self._manager.log_usage(bundle_path_new)
+
+        # First we check that we can get both entries specifying zero-days
+        bundle_list = self._manager.get_unused_bundles(0)
+        self.assertIsNotNone(bundle_list)
+        self.assertEquals(len(bundle_list), 2)
+
+        # Now test getting entries older than SLEEP_TIME_IN_SECOND
+        # Have to figure out how many days is 2 seconds
+        days = 1.0 / (24.0 * 3600.0) * SLEEP_TIME_IN_SECOND
+
+        bundle_list = self._manager.get_unused_bundles(days)
+
+        # Test the method returns just one of the two entries
+        self.assertIsNotNone(bundle_list)
+        self.assertEquals(len(bundle_list), 1)
+
+
 
 class TestBundleCacheManagerFindBundles(TestBundleCacheUsageBase):
     """

@@ -64,16 +64,16 @@ class BundleCacheUsageWorker(threading.Thread):
         # We're done, signal caller!
         signal.set()
 
-    def __get_entries_unused_since_last_days(self, days, signal, response):
+    def __get_unused_bundles(self, since_days, signal, response):
         """
         Worker thread only method that queries the database for entries unused for the last N days.
-        :param days:
+        :param since_days:
         :param signal: A threading.Event object created by original client from the main thread.
         :param response: A list
         :return: indirectly returns a list through usage of the response variable
         """
-        log.debug_worker("__get_entries_unused_since_last_days()")
-        list = self._bundle_cache_usage._get_entries_unused_since_last_days(days)
+        log.debug_worker("__get_unused_bundles()")
+        list = self._bundle_cache_usage._get_unused_bundles(since_days)
         for item in list:
             response.append(item)
 
@@ -318,7 +318,7 @@ class BundleCacheUsageWorker(threading.Thread):
         self._queued_signal.set()
         self.join(timeout=timeout)
 
-    def get_entries_unused_since_last_days(self, days=60, timeout=DEFAULT_OP_TIMEOUT):
+    def get_unused_bundles(self, since_days, timeout=DEFAULT_OP_TIMEOUT):
         """
         Blocking method that returns a list of entries that haven't been seen since the speciafied day count
 
@@ -328,7 +328,7 @@ class BundleCacheUsageWorker(threading.Thread):
         signal = threading.Event()
         response = []
         signal.clear()
-        self._queue_task(self.__get_entries_unused_since_last_days, days, signal, response)
+        self._queue_task(self.__get_unused_bundles, since_days, signal, response)
         signal.wait(timeout)
 
         return response

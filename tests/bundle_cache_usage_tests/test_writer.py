@@ -209,9 +209,9 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         # We expect a single record still
         self.assertEquals(self.db.bundle_count, 5, "Was expecting a single row since we've logged the same entry.")
 
-    def test_get_entries_unused_since_last_days(self):
+    def test_get_unused_bundles(self):
         """
-        Tests the `_get_entries_unused_since_last_days` method
+        Tests the `get_unused_bundles` method
         """
 
         # Create a folder structure on disk but no entries are added to DB
@@ -229,9 +229,8 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         time.sleep(SLEEP_TIME_IN_SECOND)
         self.db.log_usage(bundle_path_new)
 
-
         # First we check that we can get both entries specifying zero-days
-        bundle_list = self.db._get_entries_unused_since_last_days(0)
+        bundle_list = self.db.get_unused_bundles(0)
         self.assertIsNotNone(bundle_list)
         self.assertEquals(len(bundle_list), 2)
 
@@ -239,7 +238,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         # Have to figure out how many days is 2 seconds
         days = 1.0 / (24.0 * 3600.0) * SLEEP_TIME_IN_SECOND
 
-        bundle_list = self.db._get_entries_unused_since_last_days(days)
+        bundle_list = self.db.get_unused_bundles(days)
 
         # Test the method returns just one of the two entries
         self.assertIsNotNone(bundle_list)

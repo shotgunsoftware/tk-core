@@ -51,7 +51,7 @@ class BundleCacheUsageWriterBase(object):
         """
         raise NotImplementedError()
 
-    def get_unused_bundles(self, since_days=60):
+    def get_unused_bundles(self, since_days):
         raise NotImplementedError()
 
     def get_usage_count(self, bundle_path):

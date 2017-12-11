@@ -174,7 +174,7 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
         """
         return self._connect().cursor()
 
-    def _get_entries_unused_since_last_days(self, days):
+    def _get_unused_bundles(self, days):
         """
 
         :param days:
@@ -184,20 +184,17 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
         oldest_date = datetime.today() - timedelta(days=days)
         oldest_timestamp = time.mktime(oldest_date.timetuple())
 
-        try:
-            sql_statement = "SELECT * FROM %s " \
-                            "WHERE %s <= %d " % (
-                                BundleCacheUsageSQLiteWriter.DB_MAIN_TABLE_NAME,
-                                BundleCacheUsageSQLiteWriter.DB_COL_LAST_ACCESS_DATE,
-                                oldest_timestamp
-                            )
+        sql_statement = "SELECT * FROM %s " \
+                        "WHERE %s <= %d " % (
+                            BundleCacheUsageSQLiteWriter.DB_MAIN_TABLE_NAME,
+                            BundleCacheUsageSQLiteWriter.DB_COL_LAST_ACCESS_DATE,
+                            oldest_timestamp
+                        )
 
-            result = self._execute(sql_statement)
-            return result.fetchall()
+        result = self._execute(sql_statement)
+        return result.fetchall()
 
-        except Exception as e:
-            print(e)
-            raise e
+        return []
 
     def _log_usage(self, bundle_path, initial_access_count=1):
         """
@@ -295,16 +292,6 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
             self._delete_bundle_entry(bundle_path)
             log.debug_db_delete("Delete entry '%s'" % str(bundle_path))
 
-    def get_unused_bundles(self, since_days=60):
-        return []
-
-    def get_usage_count(self, bundle_path):
-        bundle_entry = self._find_bundle(bundle_path)
-        if bundle_entry is None:
-            return 0
-
-        return bundle_entry[BundleCacheUsageSQLiteWriter.DB_COL_ACCESS_COUNT_INDEX]
-
     def get_last_usage_date(self, bundle_path):
         bundle_entry = self._find_bundle(bundle_path)
         if bundle_entry is None:
@@ -318,6 +305,22 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
             return None
 
         return bundle_entry[BundleCacheUsageSQLiteWriter.DB_COL_LAST_ACCESS_DATE_INDEX]
+
+    def get_unused_bundles(self, since_days):
+        """
+        Returns a list of bundle that haven't been used since the specified number of days.
+
+        :param since_days: An int of the number of days
+        :return: A list of long unused bundle path
+        """
+        return self._get_unused_bundles(since_days)
+
+    def get_usage_count(self, bundle_path):
+        bundle_entry = self._find_bundle(bundle_path)
+        if bundle_entry is None:
+            return 0
+
+        return bundle_entry[BundleCacheUsageSQLiteWriter.DB_COL_ACCESS_COUNT_INDEX]
 
     def log_usage(self, bundle_path):
         """
