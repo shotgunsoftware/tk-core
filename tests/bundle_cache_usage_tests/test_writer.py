@@ -88,8 +88,6 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
     def test_db_main_table(self):
         """
         Tests that a main table gets created
-
-        NOTE: Database connection and initials setup is done in the setUp method
         """
         ret = self.db._execute("SELECT name FROM main.sqlite_master WHERE type='table';")
         table_names = [x[0] for x in ret.fetchall()]
@@ -129,7 +127,6 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
     def test_property_path(self):
         """
         Tests that the 'path' property returns the expected value even after database close
-        NOTE: Database connection and initials setup is done
         """
 
         # Test after initial DB connect
@@ -141,7 +138,6 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
     def test_db_log_usage_for_None_entry(self):
         """
         Tests that log_usage method can handle a None parameter
-        NOTE: Database connection and initials setup is done in the setUp method
         """
 
         # Log some usage
@@ -153,8 +149,6 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
     def test_db_log_usage_for_new_entry(self):
         """
         Tests the basic of logging an entry not already existing in the database
-
-        NOTE: Database connection and initials setup is done in the setUp method
         """
 
         BUNDLE_NAME = TestBundleCacheUsageWriterBasicOperations.TEST_BUNDLE_PATH1
@@ -175,8 +169,6 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
     def test_db_log_usage_for_existing_entry(self):
         """
         Tests logging an existing entry
-
-        NOTE: Database connection and initials setup is done in the setUp method
         """
         BUNDLE_NAME = TestBundleCacheUsageWriterBasicOperations.TEST_BUNDLE_PATH1
 
@@ -205,8 +197,6 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
     def test_logging_entry_with_special_characters(self):
         """
         Tests logging entries which might containt special characters
-
-        NOTE: Database connection and initials setup is done in the setUp method
         """
 
         self.db.log_usage("C:\\Windows\Program Files\\test.txt")
@@ -255,7 +245,6 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.assertIsNotNone(bundle_list)
         self.assertEquals(len(bundle_list), 1)
 
-
     def _helper_test_db_read_and_update_performance(self, path, iteration_count = PERF_TEST_ITERATION_COUNT):
         """
 
@@ -279,9 +268,6 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
     def _test_db_read_and_update_performance_file(self):
         self._helper_test_db_read_and_update_performance(self._temp_folder)
-
-    def _test_db_read_and_update_performance_memory(self):
-        self._helper_test_db_read_and_update_performance(":memory:")
 
     def _test_db_read_and_update_performance(self):
         """
@@ -334,29 +320,3 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.db.delete_entry(bundle_path)
         self.assertEquals(self.db.get_usage_count(bundle_path), 0)
         self.assertEquals(self.db.bundle_count, 0)
-
-    def _test_db_read_and_update_performance2(self):
-        """
-
-        :return:
-        """
-
-        ITERATION_COUNT = 40
-        iteration_count = 0
-
-        db = BundleCacheUsageWriter(self._temp_folder)
-        start_time = time.time()
-        while iteration_count<ITERATION_COUNT:
-            #db = BundleCacheUsageWriter(self._temp_folder)
-            bundle_test_name = "bundle-test-%03d" % (random.randint(0, 100))
-            #bundle_test_name = "bundle-test-%04d" % (iteration_count)
-            db.log_usage(bundle_test_name)
-            #row_count = db.bundle_count
-            iteration_count += 1
-
-        db.commit()
-        db.close()
-
-        elapsed = time.time() - start_time
-        #print("elapsed: %s" % (str(elapsed)))
-        #print("time per iteration: %s" % (str(elapsed/ITERATION_COUNT)))
