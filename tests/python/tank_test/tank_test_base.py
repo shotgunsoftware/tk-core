@@ -284,10 +284,12 @@ class TankTestBase(unittest.TestCase):
         )
 
         # define entity for test project
-        self.project = {"type": "Project",
-                        "id": 1,
-                        "tank_name": project_tank_name,
-                        "name": "project_name"}
+        self.project = {
+            "type": "Project",
+            "id": 1,
+            "tank_name": project_tank_name,
+            "name": "project_name"
+        }
 
         self.project_root = os.path.join(self.tank_temp, self.project["tank_name"].replace("/", os.path.sep) )
 

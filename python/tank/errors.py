@@ -18,6 +18,10 @@ class TankError(Exception):
     Top level exception for all toolkit-core level runtime errors
     """
 
+class TankInitError(TankError):
+    """
+    Exception indicating initialization failure.
+    """
 
 class TankUnreadableFileError(TankError):
     """

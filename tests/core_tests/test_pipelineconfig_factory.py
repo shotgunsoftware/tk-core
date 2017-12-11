@@ -14,12 +14,15 @@ from tank_vendor import yaml
 import sgtk
 import tank
 from tank.api import Tank
-from tank.errors import TankError
+from tank.errors import TankError, TankInitError
 
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
 
 class TestTankFromPath(TankTestBase):
+    """
+    Tests basic tank from path behavior.
+    """
 
     def setUp(self):
         super(TestTankFromPath, self).setUp()
@@ -50,13 +53,111 @@ class TestTankFromPath(TankTestBase):
         Test path not in project tree.
         """
         bad_path = os.path.dirname(self.tank_temp)
-        self.assertRaises(TankError, tank.tank_from_path, bad_path)
+        self.assertRaises(TankInitError, tank.tank_from_path, bad_path)
 
     def test_tank_temp(self):
         """
         Test passing in studio path.
         """
-        self.assertRaises(TankError, tank.tank_from_path, self.tank_temp)
+        self.assertRaises(TankInitError, tank.tank_from_path, self.tank_temp)
+
+
+class TestTankFromEntity(TankTestBase):
+    """
+    Tests basic tank from entity behavior.
+    """
+
+    def setUp(self):
+        super(TestTankFromEntity, self).setUp()
+
+        self.setup_fixtures()
+
+        # in addition to the default project, set up another project
+        # and shots linked to both
+        self.shot = {
+            "type": "Shot",
+            "code": "shot_name",
+            "id": 2,
+            "project": self.project
+        }
+
+        self.non_tk_project = {
+            "type": "Project",
+            "name": "Project with no pipeline config",
+            "id": 12346,
+            "archived": False,
+        }
+
+        self.other_project = {
+            "type": "Project",
+            "name": "not this project",
+            "id": 12345,
+            "archived": False,
+        }
+
+        self.other_shot = {
+            "type": "Shot",
+            "code": "a shot in a different project",
+            "id": 12345,
+            "project": self.project
+        }
+
+        # define entity for pipeline configuration
+        self.other_config = {
+            "type": "PipelineConfiguration",
+            "code": "Primary",
+            "id": 12345,
+            "project": self.other_project,
+        }
+
+        self.add_to_sg_mock_db([
+            self.shot,
+            self.other_project,
+            self.other_shot,
+            self.other_config
+        ])
+
+    def test_from_project(self):
+        """
+        Test from project
+        """
+        result = tank.tank_from_entity("Project", self.project["id"])
+        self.assertIsInstance(result, Tank)
+        self.assertEquals(result.project_path, self.project_root)
+        self.assertEquals(result.pipeline_configuration.get_shotgun_id(), self.sg_pc_entity["id"])
+
+    def test_from_shot(self):
+        """
+        Test from shot
+        """
+        result = tank.tank_from_entity("Shot", self.shot["id"])
+        self.assertIsInstance(result, Tank)
+        self.assertEquals(result.project_path, self.project_root)
+        self.assertEquals(result.pipeline_configuration.get_shotgun_id(), self.sg_pc_entity["id"])
+
+    def test_from_project_with_no_pipeline_config(self):
+        """
+        Test from project which does not have a pipeline configuration
+        """
+        self.assertRaisesRegexp(
+            TankInitError,
+            "No pipeline configurations associated with Project %s" % self.non_tk_project["id"],
+            sgtk.sgtk_from_entity,
+            "Project",
+            self.non_tk_project["id"]
+        )
+
+    def test_from_other_project(self):
+        """
+        Test from project not associated with the current tank code
+        """
+        self.assertRaisesRegexp(
+            TankInitError,
+            "No pipeline configurations assxxociated with Project %s" % self.non_tk_project["id"],
+            sgtk.sgtk_from_entity,
+            "Project",
+            self.other_project["id"]
+        )
 
 
 class TestTankFromPathDuplicatePcPaths(TankTestBase):
@@ -84,8 +185,8 @@ class TestTankFromPathDuplicatePcPaths(TankTestBase):
         """
         Test primary dupes
         """
-        self.assertRaisesRegexp(TankError,
-                                "The path '.*' is associated with more than one Primary pipeline configuration.",
+        self.assertRaisesRegexp(TankInitError,
+                                ".* is associated with more than one Primary pipeline configuration",
                                 sgtk.sgtk_from_path,
                                 self.project_root)
 
@@ -93,8 +194,8 @@ class TestTankFromPathDuplicatePcPaths(TankTestBase):
         """
         Test primary dupes
         """
-        self.assertRaisesRegexp(TankError,
-                                "More than one primary pipeline configuration is associated with the entity",
+        self.assertRaisesRegexp(TankInitError,
+                                ".* is associated with more than one Primary pipeline configuration",
                                 sgtk.sgtk_from_entity,
                                 "Project",
                                 self.project["id"])
@@ -219,7 +320,8 @@ class TestTankFromPathOverlapStorage(TankTestBase):
             "type": "Project",
             "id": 2345,
             "tank_name": "bar",
-            "name": "project_name"
+            "name": "project_name",
+            "archived": False,
         }
 
         # define entity for pipeline configuration
@@ -274,7 +376,7 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         """
         When running this edge case from a studio install, we expect an error:
 
-        TankError: The path '/tmp/foo/bar' is potentially associated with more than one primary
+        TankInitError: The path '/tmp/foo/bar' is potentially associated with more than one primary
         pipeline configuration. This can happen if there is ambiguity in your project setup,
         where projects store their data in an overlapping fashion. In this case, try creating
         your API instance (or tank command) directly from the pipeline configuration rather
@@ -297,8 +399,8 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         if not os.path.exists(test_path_dir):
             os.makedirs(test_path_dir)
 
-        self.assertRaisesRegexp(TankError,
-                                "The path '.*' is associated with more than one Primary pipeline configuration.",
+        self.assertRaisesRegexp(TankInitError,
+                                ".* is associated with more than one Primary pipeline configuration",
                                 sgtk.sgtk_from_path,
                                 test_path)
 
