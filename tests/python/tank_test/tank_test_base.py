@@ -288,7 +288,8 @@ class TankTestBase(unittest.TestCase):
             "type": "Project",
             "id": 1,
             "tank_name": project_tank_name,
-            "name": "project_name"
+            "name": "project_name",
+            "archived": False,
         }
 
         self.project_root = os.path.join(self.tank_temp, self.project["tank_name"].replace("/", os.path.sep) )

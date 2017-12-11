@@ -339,7 +339,11 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
                 "configuration! This is required by Toolkit. It needs to be named '%s'. "
                 "Please double check the Pipeline configuration page in "
                 "Shotgun for the project. The following pipeline configurations are "
-                "associated with the path: %s" % (source, constants.PRIMARY_PIPELINE_CONFIG_NAME, all_configs_str))
+                "associated with the path: %s" % (
+                    source,
+                    constants.PRIMARY_PIPELINE_CONFIG_NAME,
+                    all_configs_str)
+            )
 
         elif len(primary_pc_data) > 1:
             # for an entity lookup, there should be no ambiguity - an entity belongs to a project

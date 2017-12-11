@@ -81,40 +81,23 @@ class TestTankFromEntity(TankTestBase):
             "project": self.project
         }
 
-        self.non_tk_project = {
+        self.other_project = {
             "type": "Project",
             "name": "Project with no pipeline config",
             "id": 12346,
-            "archived": False,
-        }
-
-        self.other_project = {
-            "type": "Project",
-            "name": "not this project",
-            "id": 12345,
-            "archived": False,
         }
 
         self.other_shot = {
             "type": "Shot",
-            "code": "a shot in a different project",
+            "code": "a shot with no pipeline config",
             "id": 12345,
-            "project": self.project
-        }
-
-        # define entity for pipeline configuration
-        self.other_config = {
-            "type": "PipelineConfiguration",
-            "code": "Primary",
-            "id": 12345,
-            "project": self.other_project,
+            "project": self.other_project
         }
 
         self.add_to_sg_mock_db([
             self.shot,
             self.other_project,
             self.other_shot,
-            self.other_config
         ])
 
     def test_from_project(self):
@@ -141,22 +124,22 @@ class TestTankFromEntity(TankTestBase):
         """
         self.assertRaisesRegexp(
             TankInitError,
-            "No pipeline configurations associated with Project %s" % self.non_tk_project["id"],
-            sgtk.sgtk_from_entity,
-            "Project",
-            self.non_tk_project["id"]
-        )
-
-    def test_from_other_project(self):
-        """
-        Test from project not associated with the current tank code
-        """
-        self.assertRaisesRegexp(
-            TankInitError,
-            "No pipeline configurations assxxociated with Project %s" % self.non_tk_project["id"],
+            "No pipeline configurations associated with Project %s" % self.other_project["id"],
             sgtk.sgtk_from_entity,
             "Project",
             self.other_project["id"]
+        )
+
+    def test_from_shot_with_no_pipeline_config(self):
+        """
+        Test from shot which does not have a pipeline configuration
+        """
+        self.assertRaisesRegexp(
+            TankInitError,
+            "No pipeline configurations associated with Shot %s" % self.other_shot["id"],
+            sgtk.sgtk_from_entity,
+            "Shot",
+            self.other_shot["id"]
         )
 
 
