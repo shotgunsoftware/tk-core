@@ -18,16 +18,19 @@ from ... import LogManager
 
 log = LogManager.get_logger(__name__)
 
+
 class BundleCacheManagerException(Exception):
 
     def __init__(self, filepath, message=None):
         super(BundleCacheManagerException, self).__init__(message)
         self._filepath = filepath
 
+
 class BundleCacheManagerDeletionException(BundleCacheManagerException):
 
     def __init__(self, filepath, message=None):
         super(BundleCacheManagerDeletionException, self).__init__(message)
+
 
 class BundleCacheManager(object):
 
