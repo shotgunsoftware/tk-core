@@ -49,7 +49,7 @@ class BundleCacheManager(object):
         #   https://en.wikipedia.org/wiki/Double-checked_locking
         #
         if not cls.__singleton_instance:
-            #log.debug("__new__")
+            log.debug("__new__")
             with cls.__singleton_lock:
                 if not cls.__singleton_instance:
                     cls.__singleton_instance = super(BundleCacheManager, cls).__new__(cls, *args, **kwargs)
@@ -59,7 +59,7 @@ class BundleCacheManager(object):
 
     def __init__(self, bundle_cache_root):
         super(BundleCacheManager, self).__init__()
-        #log.debug("__init__")
+        log.debug("__init__")
         #TODO: returning would cause a silent non-usage of specified parameter
         if (self.__initialized): return
         self._worker = None
@@ -181,11 +181,13 @@ class BundleCacheManager(object):
         except Exception as e:
             log.error("Error deleting the following bundle:%s exception:%s" % (bundle_path, e))
 
+    ###################################################################################################################
     #
-    # Public methods & properties
-    # Can run from either threading contextes
+    # PUBLIC API - methods & properties
     #
-    ###########################################################################
+    # Can be called from any threading contextes (main or worker)
+    #
+    ###################################################################################################################
 
     @property
     def bundle_cache_root(self):
