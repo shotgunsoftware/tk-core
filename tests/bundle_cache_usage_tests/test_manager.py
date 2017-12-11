@@ -20,7 +20,6 @@ from .test_base import TestBundleCacheUsageBase, Utils
 from sgtk.descriptor.bundle_cache_usage.manager import BundleCacheManager
 from sgtk.descriptor.bundle_cache_usage.manager import BundleCacheManagerException
 from sgtk.descriptor.bundle_cache_usage.manager import BundleCacheManagerDeletionException
-from sgtk.descriptor.bundle_cache_usage.writer import BundleCacheUsageWriter
 from tank_test.tank_test_base import TankTestBase, setUpModule
 
 class TestBundleCacheManager(TestBundleCacheUsageBase):
