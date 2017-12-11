@@ -56,8 +56,10 @@ class BundleCacheUsageWorker(threading.Thread):
         :param bundle_path: a str of the database entry to delete
         :param signal: A threading.Event object created by original client from the main thread.
         """
-        log.debug_worker("__delete_entry()")
-        self._bundle_cache_usage.delete_entry(self._truncate_path(bundle_path))
+        truncated_path = self._truncate_path(bundle_path)
+        if truncated_path:
+            log.debug_worker("__delete_entry('%s')" %(truncated_path))
+            self._bundle_cache_usage.delete_entry(truncated_path)
 
         # We're done, signal caller!
         signal.set()
@@ -85,8 +87,10 @@ class BundleCacheUsageWorker(threading.Thread):
         :param response: A dict with a single "last_usage_date" key.
         :return: indirectly returns a list through usage of the response variable
         """
-        last_usage_date = self._bundle_cache_usage.get_last_usage_date(self._truncate_path(bundle_path))
-        log.debug_worker("__get_last_usage_date() = %s" % (last_usage_date))
+        truncated_path = self._truncate_path(bundle_path)
+        if truncated_path:
+            log.debug_worker("__get_last_usage_date('%s')" %(truncated_path))
+            last_usage_date = self._bundle_cache_usage.get_last_usage_date(truncated_path)
         response["last_usage_date"] = last_usage_date
 
         # We're done, signal caller!
@@ -100,8 +104,10 @@ class BundleCacheUsageWorker(threading.Thread):
         :param response: A tuple with a single value
         :return: indirectly returns the count value through usage of the response variable
         """
-        count = self._bundle_cache_usage.get_usage_count(self._truncate_path(bundle_path))
-        log.debug_worker("__get_usage_count() = %d" % (count))
+        truncated_path = self._truncate_path(bundle_path)
+        if truncated_path:
+            count = self._bundle_cache_usage.get_usage_count(truncated_path)
+            log.debug_worker("__get_usage_count('%s') = %d" % (truncated_path, count))
         response["usage_count"] = count
 
         # We're done, signal caller!
@@ -112,7 +118,10 @@ class BundleCacheUsageWorker(threading.Thread):
         Update database's last usage datefor the specified entry.
         :param bundle_path: A str of a bundle path
         """
-        self._bundle_cache_usage.log_usage(self._truncate_path(bundle_path))
+        truncated_path = self._truncate_path(bundle_path)
+        if truncated_path:
+            log.debug_worker("__log_usage('%s')" % (truncated_path))
+            self._bundle_cache_usage.log_usage(truncated_path)
 
     def __consume_task(self):
         """
@@ -132,6 +141,17 @@ class BundleCacheUsageWorker(threading.Thread):
             self._main_loop_count += 1
 
     def _truncate_path(self, bundle_path):
+        """
+        Helper method that returns a truncated path of the specified bundle path.
+        The returned path is relative to the `self._bundle_cache_root` property.
+
+        :param bundle_path:
+        :return: A str truncated path if path exists in `self._bundle_cache_root` else None
+        """
+
+        if not bundle_path.startswith(self._bundle_cache_root):
+            return None
+
         truncated_path = bundle_path.replace(self._bundle_cache_root, "")
         log.debug_worker_hf("truncated_path=%s" % (truncated_path))
         return truncated_path

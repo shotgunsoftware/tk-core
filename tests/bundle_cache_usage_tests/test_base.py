@@ -141,6 +141,13 @@ class TestBundleCacheUsageBase(unittest2.TestCase):
 
         TestBundleCacheUsageBase._create_test_bundle_cache(self._temp_folder)
 
+        self._test_bundle_path = os.path.join(
+            self.bundle_cache_root,
+            "app_store",
+            "tk-shell",
+            "v0.5.4"
+        )
+
         # Preventively delete leftovers
         self.delete_db()
 

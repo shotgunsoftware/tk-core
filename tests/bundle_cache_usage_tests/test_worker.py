@@ -89,20 +89,16 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
         The test measures elaped time for each individual iteration and expect
         a near-instantaneous execution.
         """
-        bundle_path = os.path.join(self.bundle_cache_root,
-                                   "app_store",
-                                   "tk-shell",
-                                   "v0.5.4")
         count = 1000
         while count > 0:
             start_time = time.time()
             worker = BundleCacheUsageWorker(self.bundle_cache_root)
             worker.start()
-            worker.log_usage(bundle_path)
-            worker.log_usage(bundle_path)
-            worker.log_usage(bundle_path)
+            worker.log_usage(self._test_bundle_path)
+            worker.log_usage(self._test_bundle_path)
+            worker.log_usage(self._test_bundle_path)
             old_entries = worker.get_entries_unused_since_last_days(0)
-            worker.log_usage(bundle_path)
+            worker.log_usage(self._test_bundle_path)
             worker.stop()
             worker = None
             elapsed_time = time.time() - start_time
@@ -199,12 +195,8 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
         count = TASK_COUNT
         start_time = time.time()
         while count > 0:
-            # self.assertFalse(w.task_available)
-            w.log_usage("bogus-entry")
-            # self.assertTrue(w.task_available)
-            # print("task_available: %s" % (w.task_available))
+            w.log_usage(self._test_bundle_path)
             count -= 1
-            # print("count: %s" % (count))
 
         self.log_debug("test loop ended")
         elapsed_time = time.time() - start_time
@@ -222,7 +214,7 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
         worker = BundleCacheUsageWorker(self.bundle_cache_root)
         worker.start()
 
-        worker.log_usage("bogus-entry")
+        worker.log_usage(self._test_bundle_path)
 
         worker.stop()
 
@@ -274,10 +266,6 @@ class TestDatabasePerformanceThroughWorker(TestBundleCacheUsageBase):
         # Create a folder structure on disk but no entries are added to DB
         TestBundleCacheUsageBase._create_test_bundle_cache(self.bundle_cache_root)
         # See the `_create_test_bundle_cache` for available created test bundles
-        bundle_path = os.path.join(self.bundle_cache_root,
-                                   "app_store",
-                                   "tk-shell",
-                                   "v0.5.4")
 
         w = BundleCacheUsageWorker(self.bundle_cache_root)
         w.start()
@@ -287,7 +275,7 @@ class TestDatabasePerformanceThroughWorker(TestBundleCacheUsageBase):
         count = TASK_COUNT
         start_time = time.time()
         while count > 0:
-            w.log_usage(bundle_path)
+            w.log_usage(self._test_bundle_path)
             count -= 1
 
         queuing_time = time.time() - start_time
