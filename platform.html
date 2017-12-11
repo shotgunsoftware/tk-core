@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.118 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.120 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.118 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.120 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -170,7 +170,9 @@
 
             
           
-       
+
+    <a href='genindex.html'>Alphabetic Index</a>
+
     <div style='margin-top: 50px;
                 margin-left: 10px;
                 margin-right: 10px;
@@ -187,7 +189,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.118.<br>
+    <b>tk-core</b> v0.18.120.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -197,6 +199,8 @@
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
     </div>
+
+
 
         </div>
       </div>
@@ -450,7 +454,7 @@ does not the default base class behavior.</li>
 <li>Menu management. At engine startup, once the apps have been loaded, the engine needs to create
 its Shotgun menu and add the various apps to this menu.</li>
 <li>Logging methods are typically overridden to write to the application log.</li>
-<li>UI methods are typically overridden to ensure seamless integration of windows launched by Toolkit apps
+<li>UI methods are typically overridden to ensure seamless integration of Windows launched by Toolkit apps
 and the underlying host application window management setup. Engines are launched via the
 <code class="xref py py-meth docutils literal"><span class="pre">stgk.platform.start_engine()</span></code> command. This command will read the configuration files,
 launch the engines, load all apps etc. The goal with the engine is that once it has launched,
@@ -808,6 +812,24 @@ main toolkit logging namespace:</p>
 app, engine or framework to be written to a log file or
 to a logging console, you can attach a std log handler here.</p>
 </div>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Engine.get_metrics_properties">
+<code class="descname">get_metrics_properties</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.get_metrics_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.get_metrics_properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dictionary with properties to use when emitting a metric event for
+this engine.</p>
+<p>The dictionary contains informations about this engine: its name and version,
+and informations about the application hosting the engine: its name and
+version.</p>
+<p>E.g.::
+{</p>
+<blockquote>
+<div>&#8216;Host App&#8217;: &#8216;Maya&#8217;,
+&#8216;Host App Version&#8217;: &#8216;2017&#8217;,
+&#8216;Engine&#8217;: &#8216;tk-maya&#8217;,
+&#8216;Engine Version&#8217;: &#8216;v0.4.1&#8217;,</div></blockquote>
+<p>}</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1621,8 +1643,7 @@ displaying:</p>
 <dd><p>An item-specific location on disk where the app or engine can store
 random cache data. This location is guaranteed to exist on disk.</p>
 <p>This location is configurable via the <code class="docutils literal"><span class="pre">cache_location</span></code> hook.
-It is typically points at a path in the local filesystem, e.g
-on for example on the mac:</p>
+It typically points at a path in the local filesystem, e.g on a mac:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">~/</span><span class="n">Library</span><span class="o">/</span><span class="n">Caches</span><span class="o">/</span><span class="n">Shotgun</span><span class="o">/</span><span class="n">SITENAME</span><span class="o">/</span><span class="n">PROJECT_ID</span><span class="o">/</span><span class="n">BUNDLE_NAME</span>
 </pre></div>
 </div>
@@ -2100,6 +2121,23 @@ the following when you want to load the payload module inside of app.py:</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="sgtk.platform.Engine.site_cache_location">
+<code class="descname">site_cache_location</code><a class="headerlink" href="#sgtk.platform.Engine.site_cache_location" title="Permalink to this definition">¶</a></dt>
+<dd><p>A site location on disk where the app or engine can store
+random cache data. This location is guaranteed to exist on disk.</p>
+<p>This location is configurable via the <code class="docutils literal"><span class="pre">cache_location</span></code> hook.
+It typically points at a path in the local filesystem, e.g on a mac:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">~/</span><span class="n">Library</span><span class="o">/</span><span class="n">Caches</span><span class="o">/</span><span class="n">Shotgun</span><span class="o">/</span><span class="n">SITENAME</span><span class="o">/</span><span class="n">BUNDLE_NAME</span>
+</pre></div>
+</div>
+<p>This can be used to store cache data that the app wants to reuse across
+sessions and can be shared across a site:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">stored_query_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">site_cache_location</span><span class="p">,</span> <span class="s2">&quot;query.dat&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="sgtk.platform.Engine.style_constants">
 <code class="descname">style_constants</code><a class="headerlink" href="#sgtk.platform.Engine.style_constants" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a dictionary of style constants. These can be used to build
@@ -2264,6 +2302,26 @@ to <code class="xref py py-meth docutils literal"><span class="pre">shotgun()</s
 <dt id="sgtk.platform.Application.engine">
 <code class="descname">engine</code><a class="headerlink" href="#sgtk.platform.Application.engine" title="Permalink to this definition">¶</a></dt>
 <dd><p>The engine that this app is connected to.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.platform.Application.get_metrics_properties">
+<code class="descname">get_metrics_properties</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.get_metrics_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.get_metrics_properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dictionary with properties to use when emitting a metric event
+for this application in the current engine.</p>
+<p>The dictionary contains informations about this application, about the
+current engine, and about the application hosting the engine. For each of
+them a name and a version string are available.</p>
+<p>E.g.::
+{</p>
+<blockquote>
+<div>&#8216;Host App&#8217;: &#8216;Maya&#8217;,
+&#8216;Host App Version&#8217;: &#8216;2017&#8217;,
+&#8216;Engine&#8217;: &#8216;tk-maya&#8217;,
+&#8216;Engine Version&#8217;: &#8216;v0.4.1&#8217;,
+&#8216;App&#8217;: &#8216;tk-multi-about&#8217;,
+&#8216;App Version&#8217;: &#8216;1.2.3&#8217;</div></blockquote>
+<p>}</p>
 </dd></dl>
 
 <dl class="method">
@@ -2456,8 +2514,7 @@ mind when writing an event handler.</p>
 <dd><p>An item-specific location on disk where the app or engine can store
 random cache data. This location is guaranteed to exist on disk.</p>
 <p>This location is configurable via the <code class="docutils literal"><span class="pre">cache_location</span></code> hook.
-It is typically points at a path in the local filesystem, e.g
-on for example on the mac:</p>
+It typically points at a path in the local filesystem, e.g on a mac:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">~/</span><span class="n">Library</span><span class="o">/</span><span class="n">Caches</span><span class="o">/</span><span class="n">Shotgun</span><span class="o">/</span><span class="n">SITENAME</span><span class="o">/</span><span class="n">PROJECT_ID</span><span class="o">/</span><span class="n">BUNDLE_NAME</span>
 </pre></div>
 </div>
@@ -2951,6 +3008,23 @@ the following when you want to load the payload module inside of app.py:</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="sgtk.platform.Application.site_cache_location">
+<code class="descname">site_cache_location</code><a class="headerlink" href="#sgtk.platform.Application.site_cache_location" title="Permalink to this definition">¶</a></dt>
+<dd><p>A site location on disk where the app or engine can store
+random cache data. This location is guaranteed to exist on disk.</p>
+<p>This location is configurable via the <code class="docutils literal"><span class="pre">cache_location</span></code> hook.
+It typically points at a path in the local filesystem, e.g on a mac:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">~/</span><span class="n">Library</span><span class="o">/</span><span class="n">Caches</span><span class="o">/</span><span class="n">Shotgun</span><span class="o">/</span><span class="n">SITENAME</span><span class="o">/</span><span class="n">BUNDLE_NAME</span>
+</pre></div>
+</div>
+<p>This can be used to store cache data that the app wants to reuse across
+sessions and can be shared across a site:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">stored_query_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">site_cache_location</span><span class="p">,</span> <span class="s2">&quot;query.dat&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="sgtk.platform.Application.style_constants">
 <code class="descname">style_constants</code><a class="headerlink" href="#sgtk.platform.Application.style_constants" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a dictionary of style constants. These can be used to build
@@ -3163,6 +3237,15 @@ framework code.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="sgtk.platform.Framework.get_metrics_properties">
+<code class="descname">get_metrics_properties</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/framework.html#Framework.get_metrics_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Framework.get_metrics_properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dictionary with properties to use when emitting a metric event
+for this framework in the current engine.</p>
+<p>Frameworks don&#8217;t have any particular properties and just return the result
+of <code class="xref py py-meth docutils literal"><span class="pre">Engine._get_metrics_properties()</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="sgtk.platform.Framework.init_framework">
 <code class="descname">init_framework</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/framework.html#Framework.init_framework"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Framework.init_framework" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implemented by deriving classes in order to initialize the app.
@@ -3267,8 +3350,7 @@ Called by the engine as it is being destroyed.</p>
 <dd><p>An item-specific location on disk where the app or engine can store
 random cache data. This location is guaranteed to exist on disk.</p>
 <p>This location is configurable via the <code class="docutils literal"><span class="pre">cache_location</span></code> hook.
-It is typically points at a path in the local filesystem, e.g
-on for example on the mac:</p>
+It typically points at a path in the local filesystem, e.g on a mac:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">~/</span><span class="n">Library</span><span class="o">/</span><span class="n">Caches</span><span class="o">/</span><span class="n">Shotgun</span><span class="o">/</span><span class="n">SITENAME</span><span class="o">/</span><span class="n">PROJECT_ID</span><span class="o">/</span><span class="n">BUNDLE_NAME</span>
 </pre></div>
 </div>
@@ -3762,6 +3844,23 @@ the following when you want to load the payload module inside of app.py:</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="sgtk.platform.Framework.site_cache_location">
+<code class="descname">site_cache_location</code><a class="headerlink" href="#sgtk.platform.Framework.site_cache_location" title="Permalink to this definition">¶</a></dt>
+<dd><p>A site location on disk where the app or engine can store
+random cache data. This location is guaranteed to exist on disk.</p>
+<p>This location is configurable via the <code class="docutils literal"><span class="pre">cache_location</span></code> hook.
+It typically points at a path in the local filesystem, e.g on a mac:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">~/</span><span class="n">Library</span><span class="o">/</span><span class="n">Caches</span><span class="o">/</span><span class="n">Shotgun</span><span class="o">/</span><span class="n">SITENAME</span><span class="o">/</span><span class="n">BUNDLE_NAME</span>
+</pre></div>
+</div>
+<p>This can be used to store cache data that the app wants to reuse across
+sessions and can be shared across a site:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">stored_query_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">site_cache_location</span><span class="p">,</span> <span class="s2">&quot;query.dat&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="sgtk.platform.Framework.style_constants">
 <code class="descname">style_constants</code><a class="headerlink" href="#sgtk.platform.Framework.style_constants" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a dictionary of style constants. These can be used to build
@@ -4196,7 +4295,7 @@ located in the core hooks area.</p>
 Typically, this settings type is used when you want to allow for a user to associate
 files with a configuration. These files can be icons or other resource files that
 should be part of the configuration. These paths should always be defined without an initial
-slash and using slashes as its path separator. Sgtk will translate it into a valid windows path:</p>
+slash and using slashes as its path separator. Sgtk will translate it into a valid Windows path:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">output_icon</span><span class="p">:</span>
     <span class="nb">type</span><span class="p">:</span> <span class="n">config_path</span>
     <span class="n">description</span><span class="p">:</span> <span class="n">A</span> <span class="n">config</span> <span class="n">centric</span> <span class="n">path</span> <span class="n">that</span> <span class="n">points</span> <span class="n">to</span> <span class="n">a</span> <span class="n">square</span> <span class="n">icon</span> <span class="n">png</span> <span class="n">file</span><span class="o">.</span>
@@ -5728,7 +5827,7 @@ that need to be passed down to the DCC.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.118',
+            VERSION:'v0.18.120',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

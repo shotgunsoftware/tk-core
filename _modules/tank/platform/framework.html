@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.framework &mdash; tk-core v0.18.118 documentation</title>
+  <title>tank.platform.framework &mdash; tk-core v0.18.120 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.118 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.120 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -99,7 +99,9 @@
 
             
           
-       
+
+    <a href='genindex.html'>Alphabetic Index</a>
+
     <div style='margin-top: 50px;
                 margin-left: 10px;
                 margin-right: 10px;
@@ -116,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.118.<br>
+    <b>tk-core</b> v0.18.120.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -126,6 +128,8 @@
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
     </div>
+
+
 
         </div>
       </div>
@@ -233,7 +237,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">destroy_framework</span><span class="p">()</span>
 
     <span class="c1">##########################################################################################</span>
-    <span class="c1"># properties</span>
+    <span class="c1"># Public methods and properties</span>
         
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">shotgun</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -288,6 +292,19 @@
 <span class="sd">        framework code.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">descriptor</span><span class="o">.</span><span class="n">is_shared_framework</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Framework.get_metrics_properties"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Framework.get_metrics_properties">[docs]</a>    <span class="k">def</span> <span class="nf">get_metrics_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a dictionary with properties to use when emitting a metric event</span>
+<span class="sd">        for this framework in the current engine.</span>
+
+<span class="sd">        Frameworks don&#39;t have any particular properties and just return the result</span>
+<span class="sd">        of :meth:`Engine._get_metrics_properties`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Please note that before we used to log some framework information as well</span>
+        <span class="c1"># Now we just add the engine information.</span>
+        <span class="n">properties</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">get_metrics_properties</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">properties</span></div>
         
     <span class="c1">##########################################################################################</span>
     <span class="c1"># init and destroy</span>
@@ -363,24 +380,7 @@
 
 <span class="sd">        :param msg: Message to log.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
-
-
-    <span class="c1">##########################################################################################</span>
-    <span class="c1"># internal API</span>
-
-    <span class="k">def</span> <span class="nf">_get_metrics_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a dictionary with properties to use when emitting a metric event </span>
-<span class="sd">        for this framework in the current engine.</span>
-
-<span class="sd">        Frameworks don&#39;t have any particular properties and just return the result</span>
-<span class="sd">        of :meth:`Engine._get_metrics_properties`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Please note that before we used to log some framework information as well</span>
-        <span class="c1"># Now we just add the engine information.</span>
-        <span class="n">properties</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">_get_metrics_properties</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">properties</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div></div>
 
 <span class="c1">###################################################################################################</span>
 <span class="c1">#</span>
@@ -532,7 +532,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.118',
+            VERSION:'v0.18.120',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

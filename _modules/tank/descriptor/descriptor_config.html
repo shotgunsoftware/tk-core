@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor_config &mdash; tk-core v0.18.118 documentation</title>
+  <title>tank.descriptor.descriptor_config &mdash; tk-core v0.18.120 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.118 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.120 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -99,7 +99,9 @@
 
             
           
-       
+
+    <a href='genindex.html'>Alphabetic Index</a>
+
     <div style='margin-top: 50px;
                 margin-left: 10px;
                 margin-right: 10px;
@@ -116,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.118.<br>
+    <b>tk-core</b> v0.18.120.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -126,6 +128,8 @@
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
     </div>
+
+
 
         </div>
       </div>
@@ -190,6 +194,8 @@
 <span class="kn">from</span> <span class="nn">.descriptor</span> <span class="kn">import</span> <span class="n">Descriptor</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
 <span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">ShotgunPath</span>
+<span class="kn">from</span> <span class="nn">..util.version</span> <span class="kn">import</span> <span class="n">is_version_older</span>
+<span class="kn">from</span> <span class="nn">.io_descriptor</span> <span class="kn">import</span> <span class="n">descriptor_uri_to_dict</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -262,6 +268,34 @@
                     <span class="n">readme_content</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
 
         <span class="k">return</span> <span class="n">readme_content</span>
+
+<div class="viewcode-block" id="ConfigDescriptor.associated_core_version_less_than"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.ConfigDescriptor.associated_core_version_less_than">[docs]</a>    <span class="k">def</span> <span class="nf">associated_core_version_less_than</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version_str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Attempt to determine if the associated core version is less than</span>
+<span class="sd">        a given version. Returning True means that the associated core</span>
+<span class="sd">        version is less than the given one, however returning False</span>
+<span class="sd">        does not guarantee that the associated version is higher, it may</span>
+<span class="sd">        also be an indication that a version number couldn&#39;t be determined.</span>
+
+<span class="sd">        :param version_str: Version string, e.g. &#39;0.18.123&#39;</span>
+<span class="sd">        :returns: true if core version is less, false otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">core_desc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">associated_core_descriptor</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">core_desc</span><span class="p">:</span>
+            <span class="c1"># (note: returning None means we are tracking latest version)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">core_desc</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="c1"># convert to dict</span>
+                <span class="n">core_desc</span> <span class="o">=</span> <span class="n">descriptor_uri_to_dict</span><span class="p">(</span><span class="n">core_desc</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">core_desc</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;app_store&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">is_version_older</span><span class="p">(</span><span class="n">core_desc</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">],</span> <span class="n">version_str</span><span class="p">):</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="k">return</span> <span class="n">result</span></div>
+
 
     <span class="k">def</span> <span class="nf">_get_config_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -384,7 +418,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.118',
+            VERSION:'v0.18.120',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

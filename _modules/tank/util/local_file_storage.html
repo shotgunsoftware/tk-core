@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.local_file_storage &mdash; tk-core v0.18.118 documentation</title>
+  <title>tank.util.local_file_storage &mdash; tk-core v0.18.120 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.118 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.120 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -99,7 +99,9 @@
 
             
           
-       
+
+    <a href='genindex.html'>Alphabetic Index</a>
+
     <div style='margin-top: 50px;
                 margin-left: 10px;
                 margin-right: 10px;
@@ -116,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.118.<br>
+    <b>tk-core</b> v0.18.120.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -126,6 +128,8 @@
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
     </div>
+
+
 
         </div>
       </div>
@@ -474,7 +478,7 @@
             <span class="c1"># new paths are on the form</span>
             <span class="c1"># project 123, config 33:       root/mysite/p123c33</span>
             <span class="c1"># project 123 with plugin id:   root/mysite/p123.review.rv</span>
-            <span class="c1"># site project:                 root/mysite/p0</span>
+            <span class="c1"># site project:                 root/mysite/site</span>
 
             <span class="n">pc_suffix</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
             <span class="k">if</span> <span class="n">pipeline_config_id</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">plugin_id</span><span class="p">:</span>
@@ -486,7 +490,8 @@
             <span class="k">elif</span> <span class="n">plugin_id</span> <span class="ow">and</span> <span class="n">pipeline_config_id</span><span class="p">:</span>
                 <span class="n">pc_suffix</span> <span class="o">=</span> <span class="s2">&quot;c</span><span class="si">%d</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pipeline_config_id</span><span class="p">,</span> <span class="n">filesystem</span><span class="o">.</span><span class="n">create_valid_filename</span><span class="p">(</span><span class="n">plugin_id</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># this is a possible, however not recommended state</span>
+                <span class="c1"># No pipeline config id nor plugin id which is possible for caching</span>
+                <span class="c1"># at the site level.</span>
                 <span class="n">pc_suffix</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
             <span class="k">if</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -531,7 +536,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.118',
+            VERSION:'v0.18.120',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

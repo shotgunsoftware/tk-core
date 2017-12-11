@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptor API &mdash; tk-core v0.18.118 documentation</title>
+  <title>Descriptor API &mdash; tk-core v0.18.120 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.118 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.120 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -96,11 +96,12 @@
 <li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Descriptor API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#descriptor-types">Descriptor types</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#app-store">App store</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#shotgun">Shotgun</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#git-and-git-branch">Git and Git branch</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#path-and-dev">Path and Dev</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#manual">Manual</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-shotgun-app-store">The Shotgun App store</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tracking-against-tags-in-git">Tracking against tags in git</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tracking-against-commits-in-a-git-branch">Tracking against commits in a git branch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pointing-to-a-path-on-disk">Pointing to a path on disk</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pointing-at-a-file-attachment-in-shotgun">Pointing at a file attachment in Shotgun</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#manual-descriptors">Manual Descriptors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#api-reference">API reference</a><ul>
@@ -120,7 +121,9 @@
 
             
           
-       
+
+    <a href='genindex.html'>Alphabetic Index</a>
+
     <div style='margin-top: 50px;
                 margin-left: 10px;
                 margin-right: 10px;
@@ -137,7 +140,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.118.<br>
+    <b>tk-core</b> v0.18.120.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -147,6 +150,8 @@
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
     </div>
+
+
 
         </div>
       </div>
@@ -261,7 +266,7 @@ centralized disk location to which the descriptors are cached.</p>
 <ul class="simple">
 <li>An <strong>app_store</strong> descriptor represents an item in the Toolkit App Store</li>
 <li>A <strong>shotgun</strong> descriptor represents an item stored in Shotgun</li>
-<li>A <strong>git</strong> descriptor represents a tag in a git repo sitory</li>
+<li>A <strong>git</strong> descriptor represents a tag in a git repository</li>
 <li>A <strong>git_branch</strong> descriptor represents a commit in a git branch</li>
 <li>A <strong>path</strong> descriptor represents a location on disk</li>
 <li>A <strong>dev</strong> descriptor represents a developer sandbox</li>
@@ -273,9 +278,9 @@ locations if you want to pre-bake your own collection of caches.
 Descriptors that are downloaded (cached) to the local disk are called <strong>downloadable</strong> descriptors.
 The <strong>app_store</strong>, <strong>shotgun</strong>, <strong>git</strong> and <strong>git_branch</strong> descriptors are downloadable descriptors,
 while the <strong>path</strong>, <strong>dev</strong> and <strong>manual</strong> descriptors are accessed directly from the specified path.</p>
-<div class="section" id="app-store">
-<h3>App store<a class="headerlink" href="#app-store" title="Permalink to this headline">¶</a></h3>
-<p>The Toolkit app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
+<div class="section" id="the-shotgun-app-store">
+<h3>The Shotgun App store<a class="headerlink" href="#the-shotgun-app-store" title="Permalink to this headline">¶</a></h3>
+<p>The Shotgun app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
 tested and approved by Shotgun. App store descriptors should include a name and version token and
 are on the following form:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>{
@@ -305,31 +310,8 @@ v2017 of a DCC, the plugin can be set up to track against the latest released ve
 <code class="docutils literal"><span class="pre">sgtk:descriptor:app_store?name=tk-config-dcc&amp;label=v2017</span></code>. In this case, when the descriptor is checking
 for the latest available version in the app store, only versions labelled with v2017 will be taken into account.</p>
 </div>
-<div class="section" id="shotgun">
-<h3>Shotgun<a class="headerlink" href="#shotgun" title="Permalink to this headline">¶</a></h3>
-<p>Represents a Shotgun entity to which a payload has been attached.
-This can be an attachment field on any entity. Typically it will be
-a pipeline configuration. In that configuration, the descriptor represents
-a &#8216;cloud based configuration&#8217;. It could also be a custom entity or non-project
-entity in the case you want to store a descriptor (app, engine or config)
-that can be easily accessed from any project:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>{
-    type: shotgun,
-    entity_type: PipelineConfiguration,  # entity type
-    name: primary,                       # name of the record in shotgun (e.g. &#39;code&#39; field)
-    project_id: 123,                     # optional project id. If omitted, name is assumed to be unique.
-    field: sg_config,                    # attachment field where payload can be found
-    version: 456                         # attachment id of particular attachment
-}
-
-sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&amp;name=primary&amp;project_id=123&amp;field=sg_config&amp;version=456
-</pre></div>
-</div>
-<p>When the attachment field is updated, the attachment id (e.g. version field in the descriptor) changes, resulting in
-a new descriptor. This can be used to determine the latest version for a Shotgun attachment descriptor.</p>
-</div>
-<div class="section" id="git-and-git-branch">
-<h3>Git and Git branch<a class="headerlink" href="#git-and-git-branch" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="tracking-against-tags-in-git">
+<h3>Tracking against tags in git<a class="headerlink" href="#tracking-against-tags-in-git" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal"><span class="pre">git</span></code> descriptor type is used to track git tags and typically used when you are tracking released
 versions of something. You can use any syntax that git supports, with a path key containing the path
 to the git repository:</p>
@@ -357,6 +339,9 @@ sgtk:descriptor:git?path=https%3A//github.com/user/tk-multi-publish.git&amp;vers
 the repository and comparing the version numbers in order to determine the highest one.
 For this comparison, <code class="xref py py-class docutils literal"><span class="pre">LooseVersion</span></code> is used and we recommend
 that version numbers follow the semantic versioning standard that can be found at <a class="reference external" href="http://semver.org">http://semver.org</a>.</p>
+</div>
+<div class="section" id="tracking-against-commits-in-a-git-branch">
+<h3>Tracking against commits in a git branch<a class="headerlink" href="#tracking-against-commits-in-a-git-branch" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal"><span class="pre">git_branch</span></code> descriptor type is typically used during development and allows you to track
 a commit in a particular branch:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>{type: git_branch, branch: master, path: /path/to/repo.git, version: 17fedd8}
@@ -400,10 +385,10 @@ app download. The git executable is, however, not needed during descriptor
 resolve and normal operation.</p>
 </div>
 </div>
-<div class="section" id="path-and-dev">
-<h3>Path and Dev<a class="headerlink" href="#path-and-dev" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="pointing-to-a-path-on-disk">
+<h3>Pointing to a path on disk<a class="headerlink" href="#pointing-to-a-path-on-disk" title="Permalink to this headline">¶</a></h3>
 <p>Pointing Toolkit to an app that resides in the local file system is often very useful for managing your own bundles
-or doing development on an app or engine before releasing onto production. To allow for these scenarios, Sgtk
+or doing development on an app or engine before releasing onto production. To allow for these scenarios, Toolkit
 provides the <code class="docutils literal"><span class="pre">dev</span></code> and <code class="docutils literal"><span class="pre">path</span></code> descriptors. Here are some examples:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span># locally managed bundle that is used for development
 {
@@ -467,8 +452,64 @@ a specific version number and Toolkit will associate this version number with th
 </pre></div>
 </div>
 </div>
-<div class="section" id="manual">
-<h3>Manual<a class="headerlink" href="#manual" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="pointing-at-a-file-attachment-in-shotgun">
+<h3>Pointing at a file attachment in Shotgun<a class="headerlink" href="#pointing-at-a-file-attachment-in-shotgun" title="Permalink to this headline">¶</a></h3>
+<p>The Shotgun descriptor allows you to upload an attachment directly
+to Shotgun and then reference it with a descriptor.</p>
+<p>This allows for workflows where you can distribute configurations, custom apps
+or other items to your distributed users - regardless of network or file access.
+All they need is a connection to Shotgun.</p>
+<p>A practical application of this is Toolkit&#8217;s cloud based configurations;
+by uploading a zipped up Toolkit configuration to the <code class="docutils literal"><span class="pre">PipelineConfiguration.uploaded_config</span></code>
+field (or a custom field named <code class="docutils literal"><span class="pre">PipelineConfiguration.sg_uploaded_config</span></code> if you have an older
+Shotgun site which does not have the field included by default). The <a class="reference internal" href="bootstrap.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a>
+boostrapping interface will automatically look for an uploaded zip file in this field,
+and if it exists, start your Toolkit session using this configuration. This allows for a workflow
+where a configuration can be distributed to remote users easily.</p>
+<p>The Shotgun descriptor is the low level mechanism that is used to implement the cloud
+configurations described above. The descriptor points at a particular attachment
+field in Shotgun and expects a zip file to be uploaded to the field.</p>
+<p>Two formats are supported, one explicit based on a shotgun entity id and
+one implicit which uses the name in shotgun to resolve a record. With the
+id based syntax you specify the Shotgun entity type and field name you want
+to look for and the entity id to inspect. For example, if your attachment field is called
+<code class="docutils literal"><span class="pre">PipelineConfiguration.sg_uploaded_config</span></code> and you want to access the uploaded payload for
+the Pipeline Configuration entity with id 111, use the following descriptor:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
+    type: shotgun,
+    entity_type: PipelineConfiguration,  # entity type
+    id: 111,                             # shotgun entity id
+    field: sg_uploaded_config,           # attachment field where payload can be found
+    version: 222                         # attachment id of particular attachment
+}
+
+sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&amp;id=111&amp;field=sg_config&amp;version=222
+</pre></div>
+</div>
+<p>The version token above refers to the version of the attachment. Every time a new
+attachment is uploaded to Shotgun, it gets assigned a unique id and the version
+number in the descriptor allows you to point at a particular version of an uploaded
+attachment. It is also used to handle the underlying logic to understand what the
+latest version of an attachment is.</p>
+<p>In some workflows, typically where you follow name based naming conventions, the
+following syntax can be useful:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>{
+    type: shotgun,
+    entity_type: PipelineConfiguration,  # entity type
+    name: Primary,                       # name of the record in shotgun (e.g. &#39;code&#39; field)
+    project_id: 123,                     # optional project id. If omitted, name is assumed to be unique.
+    field: sg_uploaded_config,           # attachment field where payload can be found
+    version: 456                         # attachment id of particular attachment
+}
+
+sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&amp;name=primary&amp;project_id=123&amp;field=sg_config&amp;version=456
+</pre></div>
+</div>
+<p>Here, instead of specifying the entity id you can specify a <code class="docutils literal"><span class="pre">name</span></code> and an optional <code class="docutils literal"><span class="pre">project_id</span></code> field. The name
+field will be translated into an appropriate Shotgun name field, typically the <code class="docutils literal"><span class="pre">code</span></code> field.</p>
+</div>
+<div class="section" id="manual-descriptors">
+<h3>Manual Descriptors<a class="headerlink" href="#manual-descriptors" title="Permalink to this headline">¶</a></h3>
 <p>Toolkit also provides a <code class="docutils literal"><span class="pre">manual</span></code> mode to make it easy to manage production installations of apps
 and engines without any automation. When you use the manual descriptor, it is up to you to install the code in the right
 location and no automated update checks will ever take place. The manual mode uses the following syntax:</p>
@@ -640,7 +681,7 @@ creating new descriptor objects.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be None
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be <code class="docutils literal"><span class="pre">None</span></code>
 to indicate that no changelog exists.</td>
 </tr>
 </tbody>
@@ -836,7 +877,7 @@ by the given pattern. Version patterns are on the following forms:</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or None if no cached version
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or <code class="docutils literal"><span class="pre">None</span></code> if no cached version
 is available.</td>
 </tr>
 </tbody>
@@ -909,8 +950,19 @@ by the given pattern. Version patterns are on the following forms:</p>
 <dl class="method">
 <dt id="sgtk.descriptor.AppDescriptor.get_path">
 <code class="descname">get_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.get_path" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the path to the folder where this item either currently resides
-or would reside in case it existed locally.</p>
+<dd><p>Returns the path to a location where this item is cached.</p>
+<p>When locating the item, any bundle cache fallback paths
+will first be searched in the order they have been defined,
+and lastly the main bundle cached will be checked.</p>
+<p>If the item is not locally cached, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path string or <code class="docutils literal"><span class="pre">None</span></code> if not cached.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -1052,7 +1104,7 @@ the case a None value is passed in, the hook will not execute.</td>
 <dt id="sgtk.descriptor.AppDescriptor.support_url">
 <code class="descname">support_url</code><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.support_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>A url that points at a support web page associated with this item.
-If not url has been defined, None is returned.</p>
+If not url has been defined, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1139,7 +1191,7 @@ creating new descriptor objects.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be None
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be <code class="docutils literal"><span class="pre">None</span></code>
 to indicate that no changelog exists.</td>
 </tr>
 </tbody>
@@ -1335,7 +1387,7 @@ by the given pattern. Version patterns are on the following forms:</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or None if no cached version
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or <code class="docutils literal"><span class="pre">None</span></code> if no cached version
 is available.</td>
 </tr>
 </tbody>
@@ -1408,8 +1460,19 @@ by the given pattern. Version patterns are on the following forms:</p>
 <dl class="method">
 <dt id="sgtk.descriptor.EngineDescriptor.get_path">
 <code class="descname">get_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.get_path" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the path to the folder where this item either currently resides
-or would reside in case it existed locally.</p>
+<dd><p>Returns the path to a location where this item is cached.</p>
+<p>When locating the item, any bundle cache fallback paths
+will first be searched in the order they have been defined,
+and lastly the main bundle cached will be checked.</p>
+<p>If the item is not locally cached, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path string or <code class="docutils literal"><span class="pre">None</span></code> if not cached.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -1551,7 +1614,7 @@ the case a None value is passed in, the hook will not execute.</td>
 <dt id="sgtk.descriptor.EngineDescriptor.support_url">
 <code class="descname">support_url</code><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.support_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>A url that points at a support web page associated with this item.
-If not url has been defined, None is returned.</p>
+If not url has been defined, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1654,7 +1717,7 @@ current environment.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be None
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be <code class="docutils literal"><span class="pre">None</span></code>
 to indicate that no changelog exists.</td>
 </tr>
 </tbody>
@@ -1850,7 +1913,7 @@ by the given pattern. Version patterns are on the following forms:</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or None if no cached version
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or <code class="docutils literal"><span class="pre">None</span></code> if no cached version
 is available.</td>
 </tr>
 </tbody>
@@ -1923,8 +1986,19 @@ by the given pattern. Version patterns are on the following forms:</p>
 <dl class="method">
 <dt id="sgtk.descriptor.FrameworkDescriptor.get_path">
 <code class="descname">get_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.get_path" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the path to the folder where this item either currently resides
-or would reside in case it existed locally.</p>
+<dd><p>Returns the path to a location where this item is cached.</p>
+<p>When locating the item, any bundle cache fallback paths
+will first be searched in the order they have been defined,
+and lastly the main bundle cached will be checked.</p>
+<p>If the item is not locally cached, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path string or <code class="docutils literal"><span class="pre">None</span></code> if not cached.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -2066,7 +2140,7 @@ the case a None value is passed in, the hook will not execute.</td>
 <dt id="sgtk.descriptor.FrameworkDescriptor.support_url">
 <code class="descname">support_url</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.support_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>A url that points at a support web page associated with this item.
-If not url has been defined, None is returned.</p>
+If not url has been defined, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -2208,6 +2282,26 @@ If not readme exists, an empty list is returned</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="sgtk.descriptor.ConfigDescriptor.associated_core_version_less_than">
+<code class="descname">associated_core_version_less_than</code><span class="sig-paren">(</span><em>version_str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_config.html#ConfigDescriptor.associated_core_version_less_than"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.associated_core_version_less_than" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attempt to determine if the associated core version is less than
+a given version. Returning True means that the associated core
+version is less than the given one, however returning False
+does not guarantee that the associated version is higher, it may
+also be an indication that a version number couldn&#8217;t be determined.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>version_str</strong> &#8211; Version string, e.g. &#8216;0.18.123&#8217;</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">true if core version is less, false otherwise</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="sgtk.descriptor.ConfigDescriptor.required_storages">
 <code class="descname">required_storages</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.required_storages" title="Permalink to this definition">¶</a></dt>
@@ -2232,7 +2326,7 @@ make use of the file system.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be None
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be <code class="docutils literal"><span class="pre">None</span></code>
 to indicate that no changelog exists.</td>
 </tr>
 </tbody>
@@ -2357,7 +2451,7 @@ by the given pattern. Version patterns are on the following forms:</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or None if no cached version
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or <code class="docutils literal"><span class="pre">None</span></code> if no cached version
 is available.</td>
 </tr>
 </tbody>
@@ -2430,8 +2524,19 @@ by the given pattern. Version patterns are on the following forms:</p>
 <dl class="method">
 <dt id="sgtk.descriptor.ConfigDescriptor.get_path">
 <code class="descname">get_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.get_path" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the path to the folder where this item either currently resides
-or would reside in case it existed locally.</p>
+<dd><p>Returns the path to a location where this item is cached.</p>
+<p>When locating the item, any bundle cache fallback paths
+will first be searched in the order they have been defined,
+and lastly the main bundle cached will be checked.</p>
+<p>If the item is not locally cached, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path string or <code class="docutils literal"><span class="pre">None</span></code> if not cached.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -2510,7 +2615,7 @@ can make changes at any time.</p>
 <dt id="sgtk.descriptor.ConfigDescriptor.support_url">
 <code class="descname">support_url</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.support_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>A url that points at a support web page associated with this item.
-If not url has been defined, None is returned.</p>
+If not url has been defined, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -2569,7 +2674,7 @@ min_engine, min_desktop</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be None
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be <code class="docutils literal"><span class="pre">None</span></code>
 to indicate that no changelog exists.</td>
 </tr>
 </tbody>
@@ -2694,7 +2799,7 @@ by the given pattern. Version patterns are on the following forms:</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or None if no cached version
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or <code class="docutils literal"><span class="pre">None</span></code> if no cached version
 is available.</td>
 </tr>
 </tbody>
@@ -2767,8 +2872,19 @@ by the given pattern. Version patterns are on the following forms:</p>
 <dl class="method">
 <dt id="sgtk.descriptor.CoreDescriptor.get_path">
 <code class="descname">get_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.get_path" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the path to the folder where this item either currently resides
-or would reside in case it existed locally.</p>
+<dd><p>Returns the path to a location where this item is cached.</p>
+<p>When locating the item, any bundle cache fallback paths
+will first be searched in the order they have been defined,
+and lastly the main bundle cached will be checked.</p>
+<p>If the item is not locally cached, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path string or <code class="docutils literal"><span class="pre">None</span></code> if not cached.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -2847,7 +2963,7 @@ can make changes at any time.</p>
 <dt id="sgtk.descriptor.CoreDescriptor.support_url">
 <code class="descname">support_url</code><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.support_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>A url that points at a support web page associated with this item.
-If not url has been defined, None is returned.</p>
+If not url has been defined, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -2981,7 +3097,7 @@ If not url has been defined, None is returned.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.118',
+            VERSION:'v0.18.120',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

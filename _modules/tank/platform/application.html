@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.application &mdash; tk-core v0.18.118 documentation</title>
+  <title>tank.platform.application &mdash; tk-core v0.18.120 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.118 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.120 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -99,7 +99,9 @@
 
             
           
-       
+
+    <a href='genindex.html'>Alphabetic Index</a>
+
     <div style='margin-top: 50px;
                 margin-left: 10px;
                 margin-right: 10px;
@@ -116,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.118.<br>
+    <b>tk-core</b> v0.18.120.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -126,6 +128,8 @@
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
     </div>
+
+
 
         </div>
       </div>
@@ -291,6 +295,33 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__engine</span>
 
+<div class="viewcode-block" id="Application.get_metrics_properties"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.get_metrics_properties">[docs]</a>    <span class="k">def</span> <span class="nf">get_metrics_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a dictionary with properties to use when emitting a metric event</span>
+<span class="sd">        for this application in the current engine.</span>
+
+<span class="sd">        The dictionary contains informations about this application, about the</span>
+<span class="sd">        current engine, and about the application hosting the engine. For each of</span>
+<span class="sd">        them a name and a version string are available.</span>
+
+<span class="sd">        E.g.::</span>
+<span class="sd">        {</span>
+<span class="sd">            &#39;Host App&#39;: &#39;Maya&#39;,</span>
+<span class="sd">            &#39;Host App Version&#39;: &#39;2017&#39;,</span>
+<span class="sd">            &#39;Engine&#39;: &#39;tk-maya&#39;,</span>
+<span class="sd">            &#39;Engine Version&#39;: &#39;v0.4.1&#39;,</span>
+<span class="sd">            &#39;App&#39;: &#39;tk-multi-about&#39;,</span>
+<span class="sd">            &#39;App Version&#39;: &#39;1.2.3&#39;</span>
+<span class="sd">        }</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">properties</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">get_metrics_properties</span><span class="p">()</span>
+        <span class="n">properties</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="n">EventMetric</span><span class="o">.</span><span class="n">KEY_APP</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">EventMetric</span><span class="o">.</span><span class="n">KEY_APP_VERSION</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span>
+        <span class="p">})</span>
+        <span class="k">return</span> <span class="n">properties</span></div>
+
     <span class="c1">##########################################################################################</span>
     <span class="c1"># init, destroy, and context changing</span>
         
@@ -429,38 +460,8 @@
 
 <span class="sd">        :param msg: Message to log.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div></div>
 
-
-    <span class="c1">##########################################################################################</span>
-    <span class="c1"># internal API</span>
-
-    <span class="k">def</span> <span class="nf">_get_metrics_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a dictionary with properties to use when emitting a metric event</span>
-<span class="sd">        for this application in the current engine.</span>
-
-<span class="sd">        The dictionary contains informations about this application, about the </span>
-<span class="sd">        current engine, and about the application hosting the engine. For each of</span>
-<span class="sd">        them a name and a version string are available.</span>
-
-<span class="sd">        E.g.::</span>
-<span class="sd">        {</span>
-<span class="sd">            &#39;Host App&#39;: &#39;Maya&#39;,</span>
-<span class="sd">            &#39;Host App Version&#39;: &#39;2017&#39;,</span>
-<span class="sd">            &#39;Engine&#39;: &#39;tk-maya&#39;,</span>
-<span class="sd">            &#39;Engine Version&#39;: &#39;v0.4.1&#39;,</span>
-<span class="sd">            &#39;App&#39;: &#39;tk-multi-about&#39;,</span>
-<span class="sd">            &#39;App Version&#39;: &#39;1.2.3&#39;</span>
-<span class="sd">        }</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">properties</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">_get_metrics_properties</span><span class="p">()</span>
-        <span class="n">properties</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-            <span class="n">EventMetric</span><span class="o">.</span><span class="n">KEY_APP</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-            <span class="n">EventMetric</span><span class="o">.</span><span class="n">KEY_APP_VERSION</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span>
-        <span class="p">})</span>
-        <span class="k">return</span> <span class="n">properties</span></div>
 
 <span class="k">def</span> <span class="nf">get_application</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">app_folder</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">instance_name</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -512,7 +513,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.118',
+            VERSION:'v0.18.120',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

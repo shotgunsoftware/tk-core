@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.118 documentation</title>
+  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.120 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.118 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.120 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -99,7 +99,9 @@
 
             
           
-       
+
+    <a href='genindex.html'>Alphabetic Index</a>
+
     <div style='margin-top: 50px;
                 margin-left: 10px;
                 margin-right: 10px;
@@ -116,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.118.<br>
+    <b>tk-core</b> v0.18.120.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -126,6 +128,8 @@
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
     </div>
+
+
 
         </div>
       </div>
@@ -467,7 +471,7 @@
     <span class="k">def</span> <span class="nf">support_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A url that points at a support web page associated with this item.</span>
-<span class="sd">        If not url has been defined, None is returned.</span>
+<span class="sd">        If not url has been defined, ``None`` is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">support_url</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;support_url&quot;</span><span class="p">)</span>
@@ -513,8 +517,15 @@
 
     <span class="k">def</span> <span class="nf">get_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the path to the folder where this item either currently resides</span>
-<span class="sd">        or would reside in case it existed locally.</span>
+<span class="sd">        Returns the path to a location where this item is cached.</span>
+
+<span class="sd">        When locating the item, any bundle cache fallback paths</span>
+<span class="sd">        will first be searched in the order they have been defined,</span>
+<span class="sd">        and lastly the main bundle cached will be checked.</span>
+
+<span class="sd">        If the item is not locally cached, ``None`` is returned.</span>
+
+<span class="sd">        :returns: Path string or ``None`` if not cached.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span>
 
@@ -523,7 +534,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Information about the changelog for this item.</span>
 
-<span class="sd">        :returns: A tuple (changelog_summary, changelog_url). Values may be None</span>
+<span class="sd">        :returns: A tuple (changelog_summary, changelog_url). Values may be ``None``</span>
 <span class="sd">                  to indicate that no changelog exists.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_changelog</span><span class="p">()</span>
@@ -593,7 +604,7 @@
 <span class="sd">                - v0.12.x - get the highest v0.12 version</span>
 <span class="sd">                - v1.x.x - get the highest v1 version</span>
 
-<span class="sd">        :returns: Instance derived from :class:`Descriptor` or None if no cached version</span>
+<span class="sd">        :returns: Instance derived from :class:`Descriptor` or ``None`` if no cached version</span>
 <span class="sd">                  is available.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">io_desc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_latest_cached_version</span><span class="p">(</span><span class="n">constraint_pattern</span><span class="p">)</span>
@@ -678,7 +689,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.118',
+            VERSION:'v0.18.120',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.bundle &mdash; tk-core v0.18.118 documentation</title>
+  <title>tank.platform.bundle &mdash; tk-core v0.18.120 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.118 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.120 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -99,7 +99,9 @@
 
             
           
-       
+
+    <a href='genindex.html'>Alphabetic Index</a>
+
     <div style='margin-top: 50px;
                 margin-left: 10px;
                 margin-right: 10px;
@@ -116,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.118.<br>
+    <b>tk-core</b> v0.18.120.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -126,6 +128,8 @@
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
     </div>
+
+
 
         </div>
       </div>
@@ -243,7 +247,7 @@
 <span class="sd">        Internal Use Only - We provide no guarantees that this method</span>
 <span class="sd">        will be backwards compatible.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">properties</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_metrics_properties</span><span class="p">()</span>
+        <span class="n">properties</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">command_name</span><span class="p">:</span>
             <span class="n">properties</span><span class="p">[</span><span class="n">EventMetric</span><span class="o">.</span><span class="n">KEY_COMMAND</span><span class="p">]</span> <span class="o">=</span> <span class="n">command_name</span>
 
@@ -252,6 +256,7 @@
             <span class="n">action</span><span class="p">,</span>
             <span class="n">properties</span><span class="o">=</span><span class="n">properties</span><span class="p">,</span>
             <span class="n">log_once</span><span class="o">=</span><span class="n">log_once</span><span class="p">,</span>
+            <span class="n">bundle</span><span class="o">=</span><span class="bp">self</span>
         <span class="p">)</span>
 
     <span class="c1">##########################################################################################</span>
@@ -419,8 +424,7 @@
 <span class="sd">        random cache data. This location is guaranteed to exist on disk.</span>
 
 <span class="sd">        This location is configurable via the ``cache_location`` hook.</span>
-<span class="sd">        It is typically points at a path in the local filesystem, e.g</span>
-<span class="sd">        on for example on the mac::</span>
+<span class="sd">        It typically points at a path in the local filesystem, e.g on a mac::</span>
 
 <span class="sd">            ~/Library/Caches/Shotgun/SITENAME/PROJECT_ID/BUNDLE_NAME</span>
 
@@ -428,10 +432,39 @@
 <span class="sd">        sessions::</span>
 
 <span class="sd">            stored_query_data_path = os.path.join(self.cache_location, &quot;query.dat&quot;)</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">project_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_project_id</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_project_cache_location</span><span class="p">(</span><span class="n">project_id</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">site_cache_location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A site location on disk where the app or engine can store</span>
+<span class="sd">        random cache data. This location is guaranteed to exist on disk.</span>
+
+<span class="sd">        This location is configurable via the ``cache_location`` hook.</span>
+<span class="sd">        It typically points at a path in the local filesystem, e.g on a mac::</span>
+
+<span class="sd">            ~/Library/Caches/Shotgun/SITENAME/BUNDLE_NAME</span>
+
+<span class="sd">        This can be used to store cache data that the app wants to reuse across</span>
+<span class="sd">        sessions and can be shared across a site::</span>
+
+<span class="sd">            stored_query_data_path = os.path.join(self.site_cache_location, &quot;query.dat&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># this method is memoized for performance since it is being called a lot!</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">execute_core_hook_method</span><span class="p">(</span>
+                <span class="n">constants</span><span class="o">.</span><span class="n">CACHE_LOCATION_HOOK_NAME</span><span class="p">,</span>
+                <span class="s2">&quot;get_bundle_data_cache_path&quot;</span><span class="p">,</span>
+                <span class="n">project_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">plugin_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">pipeline_configuration_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">bundle</span><span class="o">=</span><span class="bp">self</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -829,8 +862,15 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">execute_core_hook</span><span class="p">(</span><span class="s2">&quot;ensure_folder_exists&quot;</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">bundle_obj</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Error creating folder </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
-        
 
+    <span class="k">def</span> <span class="nf">get_metrics_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Should be re-implemented in deriving classes and return a dictionary with</span>
+<span class="sd">        the properties needed to log a metric event for this bundle.</span>
+
+<span class="sd">        :raises: NotImplementedError</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="c1">##########################################################################################</span>
     <span class="c1"># internal helpers</span>
@@ -1119,14 +1159,6 @@
 
         <span class="k">return</span> <span class="n">engine_name</span>
 
-    <span class="k">def</span> <span class="nf">_get_metrics_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Should be re-implemented in deriving classes and return a dictionary with</span>
-<span class="sd">        the properties needed to log a metric event for this bundle.</span>
-
-<span class="sd">        :raises: NotImplementedError</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
 <span class="k">def</span> <span class="nf">_post_process_settings_r</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">bundle</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -1379,7 +1411,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.118',
+            VERSION:'v0.18.120',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
