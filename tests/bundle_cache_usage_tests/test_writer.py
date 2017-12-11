@@ -19,6 +19,7 @@ import unittest2
 import random
 import shutil
 import time
+from mock import patch
 
 from .test_base import TestBundleCacheUsageBase, Utils
 
@@ -222,23 +223,24 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         bundle_path_old = os.path.join(self.bundle_cache_root, "app_store", "tk-shell", "v0.5.4")
         bundle_path_new = os.path.join(self.bundle_cache_root, "app_store", "tk-shell", "v0.5.6")
 
-        SLEEP_TIME_IN_SECOND = 2
-        # Log some usage / add bundle
-        self.db.log_usage(bundle_path_old)
-        # Wait some minimal time allow time to pass
-        time.sleep(SLEEP_TIME_IN_SECOND)
+        now = int(time.time())
+        ninety_days_ago = now - (90 * 24 * 3600)
+
+        # Log some usage as 90 days ago
+        with patch("time.time") as mocked:
+            mocked.return_value = ninety_days_ago
+            self.db.log_usage(bundle_path_old)
+            old_bundle_date = self.db.get_last_usage_date(bundle_path_old)
+            # Verify that the Mock actually worked
+            self.assertEquals(old_bundle_date, ninety_days_ago)
+            self.assertTrue(mocked.called)
+
+        # Should be logged as the REAL now
         self.db.log_usage(bundle_path_new)
+        # Verify that Mock is no longer in effect
+        self.assertNotEqual(ninety_days_ago, self.db.get_last_usage_date(bundle_path_new))
 
-        # First we check that we can get both entries specifying zero-days
-        bundle_list = self.db.get_unused_bundles(0)
-        self.assertIsNotNone(bundle_list)
-        self.assertEquals(len(bundle_list), 2)
-
-        # Now test getting entries older than SLEEP_TIME_IN_SECOND
-        # Have to figure out how many days is 2 seconds
-        days = 1.0 / (24.0 * 3600.0) * SLEEP_TIME_IN_SECOND
-
-        bundle_list = self.db.get_unused_bundles(days)
+        bundle_list = self.db.get_unused_bundles(60)
 
         # Test the method returns just one of the two entries
         self.assertIsNotNone(bundle_list)
