@@ -30,13 +30,13 @@ class BundleCacheUsageWriter(object):
     DB_FILENAME = "bundle_usage.db"
     DB_COL_ID = "id"
     DB_COL_ID_INDEX = 0
-    DB_COL_PATH = "bundle_path"
+    DB_COL_PATH = "path"
     DB_COL_PATH_INDEX = 1
-    DB_COL_ADD_DATE = "bundle_add_date"
+    DB_COL_ADD_DATE = "add_date"
     DB_COL_ADD_DATE_INDEX = 2
-    DB_COL_LAST_ACCESS_DATE = "bundle_last_access_date"
+    DB_COL_LAST_ACCESS_DATE = "last_access_date"
     DB_COL_LAST_ACCESS_DATE_INDEX = 3
-    DB_COL_ACCESS_COUNT = "bundle_access_count"
+    DB_COL_ACCESS_COUNT = "access_count"
     DB_COL_ACCESS_COUNT_INDEX = 4
 
     def __init__(self, bundle_cache_root):
