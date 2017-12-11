@@ -44,7 +44,7 @@ class BundleCacheManager(object):
         #   https://en.wikipedia.org/wiki/Double-checked_locking
         #
         if not cls.__singleton_instance:
-            log.debug("__new__")
+            #log.debug("__new__")
             with cls.__singleton_lock:
                 if not cls.__singleton_instance:
                     cls.__singleton_instance = super(BundleCacheManager, cls).__new__(cls, *args, **kwargs)
@@ -54,7 +54,7 @@ class BundleCacheManager(object):
 
     def __init__(self, bundle_cache_root):
         super(BundleCacheManager, self).__init__()
-        log.debug("__init__")
+        #log.debug("__init__")
         #TODO: returning would cause a silent non-usage of specified parameter
         if (self.__initialized): return
         self._worker = None
@@ -81,9 +81,13 @@ class BundleCacheManager(object):
                     cls.__singleton_instance._worker.stop()
                     cls.__singleton_instance = None
 
-    @property
-    def bundle_cache_root(self):
-        return self._bundle_cache_root
+    @classmethod
+    def _find_app_store_path(cls, base_folder):
+        for (dirpath, dirnames, filenames) in os.walk(base_folder):
+            if dirpath.endswith('app_store'):
+                return dirpath
+
+        return None
 
     @classmethod
     def _find_descriptors(cls, base_folder, max_walk_depth):
@@ -100,12 +104,31 @@ class BundleCacheManager(object):
         return path_list
 
     @classmethod
-    def _find_app_store_path(cls, base_folder):
-        for (dirpath, dirnames, filenames) in os.walk(base_folder):
-            if dirpath.endswith('app_store'):
-                return dirpath
+    def _get_filelist2(cls, path):
 
-        return None
+        file_list = []
+        base_folder_len = len(path)
+
+        for (dirpath, dirnames, filenames) in os.walk(path):
+
+            level_count = dirpath.count(os.sep)
+            file_list.append((level_count, dirpath))
+
+            for filename in filenames:
+                fullpath = os.path.join(dirpath, filename)
+                file_list.append((level_count+1, fullpath))
+
+        # We have a crude list, now we need to sort it out in reverse order
+        # based on path length (tuple first element)
+
+        # To sort the list in place...
+        file_list.sort(key=lambda x: x, reverse=True)
+
+        # To return a new list, use the sorted() built-in function...
+        #newlist = sorted(ut, key=lambda x: x.count, reverse=True)
+
+        return file_list
+
     @classmethod
     def _get_filelist(cls, path):
 
@@ -166,6 +189,26 @@ class BundleCacheManager(object):
             else:
                 raise BundleCacheManagerDeletionException(f, "Not a link, not a file, not a directory ???")
 
+    def _purge_bundle(self, bundle):
+        try:
+            path = bundle
+            filelist = BundleCacheManager._get_filelist(path)
+            self._paranoid_delete(filelist)
+            # No exception, everything was deleted, delete the entry from database
+            self._worker.delete_entry(bundle)
+            log.debug("Deleted bundle '%s'" % str(bundle))
+        except Exception as e:
+            log.error("Error deleting the following bundle:%s exception:%s" % (bundle, e))
+
+    #
+    # Public methods & properties
+    # Can run from either threading contextes
+    #
+    ###########################################################################
+
+    @property
+    def bundle_cache_root(self):
+        return self._bundle_cache_root
 
     def find_bundles(self):
         """
@@ -183,16 +226,24 @@ class BundleCacheManager(object):
 
         log.debug("find_bundles: populating ...")
         start_time = time.time()
+
         bundle_path_list = []
         bundle_cache_root = self.bundle_cache_root
-        if bundle_cache_root and \
-                os.path.exists(bundle_cache_root) and \
-                os.path.isdir(bundle_cache_root):
-                    bundle_cache_dirs = os.listdir(bundle_cache_root)
-                    for sub_dir in bundle_cache_dirs:
-                        path = os.path.join(bundle_cache_root, sub_dir)
-                        if os.path.isdir(path):
-                            bundle_path_list += BundleCacheManager._find_descriptors(path, MAX_DEPTH_WALK)
+
+        # Process the local app store first
+        bundle_cache_app_store = BundleCacheManager._find_app_store_path(bundle_cache_root)
+
+        if bundle_cache_app_store:
+            log.debug("Found local app store path: %s" % (bundle_cache_app_store))
+
+            if bundle_cache_app_store and \
+                    os.path.exists(bundle_cache_app_store) and \
+                    os.path.isdir(bundle_cache_app_store):
+
+                log.debug("Found local app store path: %s" % (bundle_cache_app_store))
+                bundle_path_list += BundleCacheManager._find_descriptors(bundle_cache_app_store, MAX_DEPTH_WALK)
+        else:
+            log.debug("Could not find the local app store path from: %s" % (bundle_cache_root))
 
         elapsed_time = time.time() - start_time
         log.info("find_bundles: populating done in %ss, found %d entries" % (
@@ -200,26 +251,35 @@ class BundleCacheManager(object):
         ))
 
 
+        # Process other bundle_cache sub folders
+        """
+        TODO: .... to be completed 
+        
+        bundle_cache_dirs = os.listdir(bundle_cache_app_store)
+        for sub_dir in bundle_cache_dirs:
+            path = os.path.join(bundle_cache_app_store, sub_dir)
+            if os.path.isdir(path):
+                bundle_path_list += BundleCacheManager._find_descriptors(path, MAX_DEPTH_WALK)
+        """
+
         return bundle_path_list
+
+    def get_last_usage_date(self, bundle_path):
+        return self._worker.get_last_usage_date(bundle_path)
+
+    def get_usage_count(self, bundle_path):
+        return self._worker.get_usage_count(bundle_path)
+
+    def log_usage(self, bundle_path):
+        self._worker.log_usage(bundle_path)
 
     def purge_unused_entries_in_last_days(self, days):
         """
-        if os.path.exists(bundle_path) \
-                - and os.path.isdir(bundle_path):
-            -  # TODO: WARNING!!!!
-        -  # last chance, add some extra checks to
-        -  # make sure we never delete anything below
-        -  # a certain base folder
-        -                    safe_delete_folder(bundle_path)
-        -                    log.debug("Deleted bundle '%s'" % str(bundle_path))
-        -
-        -  # Delete DB entry
-        -                self._delete_bundle_entry(bundle_path)
-        -                log.debug("Purged bundle '%s'" % str(bundle_path))
-        -
-        -            except Exception as e:
-        -                log.error("Error deleting bundle package: '%s'" % (bundle_path))
-        -                log.exception(e)
-        +            self._delete_bundle_entry(path)
-        +            log.debug_db_delete("Delete bundle entry '%s'" % str(path))
+
+        For each bundle found to be old enough for deletion a file list
+        will be generated. For each individual file ...
+
         """
+
+        for bundle in bundle_list:
+            self._purge_bundle(bundle)

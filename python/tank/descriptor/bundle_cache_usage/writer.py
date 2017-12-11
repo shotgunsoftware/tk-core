@@ -122,8 +122,8 @@ class BundleCacheUsageWriter(object):
 
     def _connect(self):
         if self._db_connection is None:
-            log.debug_db_inst("connect")
             self._db_connection = sqlite3.connect(self.path)
+            log.debug_db_inst("connected: %s" % (self.path))
             self._stat_connect_count += 1
 
         return self._db_connection
@@ -328,14 +328,14 @@ class BundleCacheUsageWriter(object):
         if bundle_entry is None:
             return None
 
-        return bundle_entry[BundleCacheUsageWriter.DB_COL_LAST_ACCESS_DATE]
+        return bundle_entry[BundleCacheUsageWriter.DB_COL_LAST_ACCESS_DATE_INDEX]
 
     def get_last_usage_timestamp(self, bundle_path):
         bundle_entry = self._find_bundle(bundle_path)
         if bundle_entry is None:
             return None
 
-        return bundle_entry[BundleCacheUsageWriter.DB_COL_LAST_ACCESS_DATE]
+        return bundle_entry[BundleCacheUsageWriter.DB_COL_LAST_ACCESS_DATE_INDEX]
 
     def log_usage(self, bundle_path):
         """

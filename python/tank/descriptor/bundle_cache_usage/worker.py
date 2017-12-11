@@ -49,6 +49,18 @@ class BundleCacheUsageWorker(threading.Thread):
     #
     ###########################################################################
 
+    def __delete_entry(self, bundle_path, signal):
+        """
+        Worker thread only method deleting an entry from the database.
+        :param bundle_path: a str of the database entry to delete
+        :param signal: A threading.Event object created by original client from the main thread.
+        """
+        log.debug_worker("__delete_entry()")
+        self._bundle_cache_usage.delete_entry(bundle_path)
+
+        # We're done, signal caller!
+        signal.set()
+
     def __get_entries_unused_since_last_days(self, days, signal, response):
         """
         Worker thread only method that queries the database for entries unused for the last N days.
@@ -61,6 +73,35 @@ class BundleCacheUsageWorker(threading.Thread):
         list = self._bundle_cache_usage._get_entries_unused_since_last_days(days)
         for item in list:
             response.append(item)
+
+        # We're done, signal caller!
+        signal.set()
+
+    def __get_last_usage_date(self, bundle_path, signal, response):
+        """
+        Worker thread only method that queries the database for the last used entries unused for the last N days.
+        :param signal: A threading.Event object created by original client from the main thread.
+        :param response: A dict with a single "last_usage_date" key.
+        :return: indirectly returns a list through usage of the response variable
+        """
+        last_usage_date = self._bundle_cache_usage.get_last_usage_date(bundle_path)
+        log.debug_worker("__get_last_usage_date() = %s" % (last_usage_date))
+        response["last_usage_date"] = last_usage_date
+
+        # We're done, signal caller!
+        signal.set()
+
+    def __get_usage_count(self, bundle_path, signal, response):
+        """
+        Worker thread only method that queries the database for entries unused for the last N days.
+        :param days:
+        :param signal: A threading.Event object created by original client from the main thread.
+        :param response: A tuple with a single value
+        :return: indirectly returns the count value through usage of the response variable
+        """
+        count = self._bundle_cache_usage.get_usage_count(bundle_path)
+        log.debug_worker("__get_usage_count() = %d" % (count))
+        response["usage_count"] = count
 
         # We're done, signal caller!
         signal.set()
@@ -138,8 +179,9 @@ class BundleCacheUsageWorker(threading.Thread):
 
         except Exception as e:
             log.error("UNEXPECTED Exception: %s " % (e))
-            #TODO: we're in a worker thread,
-            # can we safely log error and message back to the main tread?
+            #TODO: we're in a worker thread, find a way to report the error
+            #      to main thread.
+            # Why can't we log error to the regular logger?
             pass
 
         finally:
@@ -190,6 +232,44 @@ class BundleCacheUsageWorker(threading.Thread):
         """
         with self._member_lock:
             return self._completed_count
+
+    def delete_entry(self, bundle_path, timeout=2):
+        """
+        Blocking method which queues deletion of the specified entry from the database
+        :param bundle_path: A str of a database entry to delete
+        """
+        signal = threading.Event()
+        signal.clear()
+        self._queue_task(self.__delete_entry, bundle_path, signal)
+        signal.wait(timeout)
+
+    def get_last_usage_date(self, bundle_path, timeout=2):
+        """
+        Blocking method that returns the date the specified bundle path was last used.
+
+        :return: a datetime object of the last used date
+        """
+        signal = threading.Event()
+        response = {"last_usage_date": None}
+        signal.clear()
+        self._queue_task(self.__get_last_usage_date, bundle_path, signal, response)
+        signal.wait(timeout)
+
+        return response.get("last_usage_date", None)
+
+    def get_usage_count(self, bundle_path, timeout=2):
+        """
+        Blocking method that returns the number of time the specified bundle was referenced.
+
+        :return: integer of the bundle usage count
+        """
+        signal = threading.Event()
+        response = {"usage_count":0}
+        signal.clear()
+        self._queue_task(self.__get_usage_count, bundle_path, signal, response)
+        signal.wait(timeout)
+
+        return response.get("usage_count",0)
 
     def log_usage(self, bundle_path):
         log.debug_worker_hf("log_usage = %s" % (bundle_path))

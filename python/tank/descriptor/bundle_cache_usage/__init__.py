@@ -44,6 +44,10 @@ class BundleCacheUsageLogger(object):
                 bundle_cache_usage_logger.debug(s)
 
     @classmethod
+    def debug_db(cls, message):
+        cls._debug(message)
+
+    @classmethod
     def debug_db_inst(cls, message):
         cls._debug(message)
 
@@ -78,7 +82,8 @@ class BundleCacheUsageLogger(object):
 
     @classmethod
     def error(cls, message):
-        pass
+        if DEBUG:
+            cls._debug(message)
 
     @classmethod
     def exception(cls, exception):
