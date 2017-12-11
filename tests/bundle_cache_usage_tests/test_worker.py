@@ -81,7 +81,7 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
             self.assertLess(elapsed_time, 0.25, "Lock up detected")
             count -= 1
 
-    def test_stress_start_stop_with_operation(self):
+    def test_stress_start_stop_with_operations(self):
         """
         Stress-Test for possible lock-ups starting, issuing some operations and then
         and stopping the worker.

@@ -122,22 +122,19 @@ class TestBundleCacheUsageBase(unittest2.TestCase):
     def setUp(self):
         # Actually we don't want to inherit from tanTestBase
         super(TestBundleCacheUsageBase, self).setUp()
-        #use_fix_folder = "/var/folders/4j/xfybtxms23bgfv0_m9zs4zw00000gs/T/tankTemporary_k8tom0/TestBundleCacheUsageBase_"
-        use_fix_folder = None
-
-        # TODO: cleanup when completed
         current_tmp_root = tempfile.tempdir
-        if use_fix_folder:
-            self._temp_folder = use_fix_folder
-        else:
-            self._temp_folder = os.path.join(tempfile.tempdir,
-                                             TestBundleCacheUsageBase.TMP_FOLDER_PREFIX)
+        self._temp_folder = os.path.join(
+            tempfile.tempdir,
+            TestBundleCacheUsageBase.TMP_FOLDER_PREFIX
+        )
 
         if not os.path.exists(self._temp_folder):
             os.makedirs(self._temp_folder)
 
-        self._expected_db_path = os.path.join(self.bundle_cache_root,
-                                              TestBundleCacheUsageBase.EXPECTED_DEFAULT_DB_FILENAME)
+        self._expected_db_path = os.path.join(
+            self.bundle_cache_root,
+            TestBundleCacheUsageBase.EXPECTED_DEFAULT_DB_FILENAME
+        )
 
         TestBundleCacheUsageBase._create_test_bundle_cache(self._temp_folder)
 
