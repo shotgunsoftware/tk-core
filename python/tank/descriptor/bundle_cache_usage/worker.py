@@ -56,7 +56,7 @@ class BundleCacheUsageWorker(threading.Thread):
         :param signal: A threading.Event object created by original client from the main thread.
         """
         log.debug_worker("__delete_entry()")
-        self._bundle_cache_usage.delete_entry(bundle_path)
+        self._bundle_cache_usage.delete_entry(self._truncate_path(bundle_path))
 
         # We're done, signal caller!
         signal.set()
@@ -84,7 +84,7 @@ class BundleCacheUsageWorker(threading.Thread):
         :param response: A dict with a single "last_usage_date" key.
         :return: indirectly returns a list through usage of the response variable
         """
-        last_usage_date = self._bundle_cache_usage.get_last_usage_date(bundle_path)
+        last_usage_date = self._bundle_cache_usage.get_last_usage_date(self._truncate_path(bundle_path))
         log.debug_worker("__get_last_usage_date() = %s" % (last_usage_date))
         response["last_usage_date"] = last_usage_date
 
@@ -99,7 +99,7 @@ class BundleCacheUsageWorker(threading.Thread):
         :param response: A tuple with a single value
         :return: indirectly returns the count value through usage of the response variable
         """
-        count = self._bundle_cache_usage.get_usage_count(bundle_path)
+        count = self._bundle_cache_usage.get_usage_count(self._truncate_path(bundle_path))
         log.debug_worker("__get_usage_count() = %d" % (count))
         response["usage_count"] = count
 
@@ -125,12 +125,7 @@ class BundleCacheUsageWorker(threading.Thread):
         # We can probably do both into a single line of code
 
         if self._bundle_cache_root in bundle_path:
-            if USE_RELATIVE_PATH:
-                truncated_path = bundle_path.replace(self._bundle_cache_root, "")
-                self._bundle_cache_usage.log_usage(truncated_path)
-                log.debug_worker_hf("truncated_path=%s" % (truncated_path))
-            else:
-                self._bundle_cache_usage.log_usage(bundle_path)
+            self._bundle_cache_usage.log_usage(self._truncate_path(bundle_path))
 
 
     def __consume_task(self):
@@ -148,6 +143,11 @@ class BundleCacheUsageWorker(threading.Thread):
             if self._pending_count > 0:
                 self._pending_count -= 1
             self._completed_count += 1
+
+    def _truncate_path(self, bundle_path):
+        truncated_path = bundle_path.replace(self._bundle_cache_root, "")
+        log.debug_worker_hf("truncated_path=%s" % (truncated_path))
+        return truncated_path
 
     def run(self):
         log.debug_worker_threading("starting")

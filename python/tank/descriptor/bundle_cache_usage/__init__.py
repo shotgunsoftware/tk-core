@@ -1,9 +1,6 @@
 from ... import LogManager
 from ...util import LocalFileStorageManager
 
-# Runtime options
-USE_RELATIVE_PATH = False
-
 # Debugging options
 USE_PYDEVD = False
 PYDEVD_INITIATED = False
