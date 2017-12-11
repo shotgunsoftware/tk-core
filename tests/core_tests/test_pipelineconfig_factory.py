@@ -14,7 +14,7 @@ from tank_vendor import yaml
 import sgtk
 import tank
 from tank.api import Tank
-from tank.errors import TankError, TankInitError
+from tank.errors import TankInitError
 
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
