@@ -100,6 +100,10 @@ class InstalledConfigDescriptor(ConfigDescriptor):
         """
         Returns the path to the ``config`` folder inside the pipeline configuration.
 
+        For example, for a configuration at ``\\server\mount\shotgun\project\pipeline``,
+        the ``config`` folder would be at
+        ``\\server\mount\shotgun\project\pipeline\config``.
+
         :returns: Path to the ``config`` folder.
         """
         return os.path.join(self._io_descriptor.get_path(), "config")

@@ -38,6 +38,12 @@ class CachedConfigDescriptor(ConfigDescriptor):
         """
         Returns the folder in which the configuration files are located.
 
+        The ``config`` folder will be located in the bundle cache.
+
+        For example, a descriptor-based configuration using ``tk-config-basic``
+        ``v1.2.0`` would find the configuration at
+        ``%SHOTGUN_HOME%\bundle_cache\app_store\tk-config-basic\v1.2.0``.
+
         :returns: Path to the configuration files folder.
         """
         self._io_descriptor.ensure_local()

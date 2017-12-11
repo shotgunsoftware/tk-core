@@ -385,6 +385,7 @@ ConfigDescriptor
 .. autoclass:: ConfigDescriptor
     :inherited-members:
     :members:
+    :exclude-members: get_config_folder
 
 CoreDescriptor
 ================================================

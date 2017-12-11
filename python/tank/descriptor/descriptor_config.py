@@ -170,18 +170,9 @@ class ConfigDescriptor(Descriptor):
 
     def get_config_folder(self):
         """
-        Retrieves the path to the ``config`` folder.
+        Returns the folder in which the configuration files are located.
 
-        For configurations that are launched a descriptor, the ``config`` folder
-        will be located in the bundle cache. For configurations that are launched
-        from the ``mac_path``, ``windows_path`` and ``linux_path``, the ``config``
-        folder will be at the root of the pipeline configuration.
-
-        For example, a descriptor-based configuration using ``tk-config-basic`` ``v1.2.0`` would
-        find the configuration at ``%APPDATA%\Shotgun\bundle_cache\app_store\tk-config-basic\v1.2.0``.
-
-        For a path-based configuration at ``\\server\mount\shotgun\project\pipeline``, the ``config``
-        folder would be ``\\server\mount\shotgun\project\pipeline\config``.
+        Derived classes need to implement this method or a ``NotImplementedError`` will be raised.
 
         :returns: Path to the configuration files folder.
         """
