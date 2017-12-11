@@ -62,6 +62,39 @@ class TestTankFromPath(TankTestBase):
         self.assertRaises(TankInitError, tank.tank_from_path, self.tank_temp)
 
 
+class TestArchivedProjects(TankTestBase):
+    """
+    Tests that archived projects are not visible
+    """
+
+    def setUp(self):
+        super(TestArchivedProjects, self).setUp()
+        self.setup_fixtures()
+
+        # archive default project
+        self.mockgun.update("Project", self.project["id"], {"archived": True})
+
+    def test_archived(self):
+        """
+        Tests that archived projects are not visible
+        """
+        self.assertRaisesRegexp(
+            TankInitError,
+            "No pipeline configurations associated with Project %s" % self.project["id"],
+            sgtk.sgtk_from_entity,
+            "Project",
+            self.project["id"]
+        )
+
+        # now unarchive it
+        self.mockgun.update("Project", self.project["id"], {"archived": False})
+
+        result = tank.tank_from_entity("Project", self.project["id"])
+        self.assertIsInstance(result, Tank)
+        self.assertEquals(result.project_path, self.project_root)
+        self.assertEquals(result.pipeline_configuration.get_shotgun_id(), self.sg_pc_entity["id"])
+
+
 class TestTankFromEntity(TankTestBase):
     """
     Tests basic tank from entity behavior.
