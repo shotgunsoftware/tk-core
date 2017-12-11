@@ -814,10 +814,15 @@ class TemplateConfiguration(object):
         self._config_uri = config_uri
         self._roots_data = self._read_roots_file()
 
-        # if there are more than zero storages defined, ensure one of them is the primary storage
-        if len(self._roots_data) > 0 and constants.PRIMARY_STORAGE_NAME not in self._roots_data:
-            raise TankError("Looks like your configuration does not have a primary storage. "
-                            "This is required. Please contact support for more info.")
+        # If there is more than one storage defined, ensure one of them is named
+        # "primary". We need to enforce this restriction to ensure we will always
+        # pick the same storage as our primary storage.
+        if len(self._roots_data) > 1 and constants.PRIMARY_STORAGE_NAME not in self._roots_data:
+            raise TankError(
+                "Looks like your configuration does not have a primary storage. "
+                "This is required for multi-root configurations. Please contact "
+                "support for more info."
+            )
 
         # see if there is a readme file
         self._readme_content = []

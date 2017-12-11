@@ -8,13 +8,16 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import with_statement
+
 import os
 import sys
 import copy
 
 from tank_vendor import yaml
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
+import tank
 from tank import TankError
 
 class TestGetProjectRoots(TankTestBase):
@@ -40,7 +43,7 @@ class TestGetProjectRoots(TankTestBase):
 
     def test_file_missing(self):
         """Case roots file is not present"""
-        expected = {"primary": self.project_root}
+        expected = {self.primary_root_name: self.project_root}
         # Don't make a root file
         pc = tank.pipelineconfig_factory.from_path(self.project_root)
         result = pc.get_data_roots()
@@ -48,7 +51,7 @@ class TestGetProjectRoots(TankTestBase):
 
     def test_paths(self):
         """Test paths match those in roots for current os."""
-        root_file =  open(self.root_file_path, "w") 
+        root_file = open(self.root_file_path, "w")
         root_file.write(yaml.dump(self.roots))
         root_file.close()
 
@@ -79,7 +82,7 @@ class TestGetProjectRoots(TankTestBase):
         new_roots = copy.deepcopy(self.roots)
         new_roots["render"]["linux_path"] = None
         
-        root_file =  open(self.root_file_path, "w") 
+        root_file = open(self.root_file_path, "w")
         root_file.write(yaml.dump(new_roots))
         root_file.close()
 
@@ -101,8 +104,32 @@ class TestGetProjectRoots(TankTestBase):
                     expected_path = "%s/%s" % (new_roots[root_name][shotgun_path_key], project_name)
                 self.assertEqual(expected_path, root_path)
 
+    def test_flexible_primary(self):
+        """
+        Tests getting storage paths back from a pipeline config without a 'primary'
+        storage.
+        """
 
-
+        # take one path out and mark as undefined
+        new_roots = copy.deepcopy(self.roots)
+        new_roots["master"] = new_roots.pop("primary")
+        root_file = open(self.root_file_path, "w")
+        root_file.write(yaml.dump(new_roots))
+        root_file.close()
+        # We should get a TankError if we don't have a primary storage in a
+        # multi-roots file.
+        with self.assertRaisesRegexp(TankError, "Could not find a primary storage"):
+            pc = tank.pipelineconfig_factory.from_path(self.project_root)
+        # Only keep the master storage
+        del new_roots["publish"]
+        del new_roots["render"]
+        root_file = open(self.root_file_path, "w")
+        root_file.write(yaml.dump(new_roots))
+        root_file.close()
+        pc = tank.pipelineconfig_factory.from_path(self.project_root)
+        self.assertEqual(pc.get_all_platform_data_roots().keys(), ["master"])
+        self.assertEqual(pc.get_data_roots().keys(), ["master"])
+        self.assertEqual(self.project_root, pc.get_primary_data_root())
 
 
 class TestGetPrimaryRoot(TankTestBase):
@@ -153,11 +180,9 @@ class TestGetPrimaryRoot(TankTestBase):
         pc = tank.pipelineconfig_factory.from_path(shot_path)
         self.assertEqual(self.project_root, pc.get_primary_data_root())
 
-
     def test_non_project_path(self):
         """
         Test path which is not in the project tree.
         """
         non_project_path = os.path.join(os.path.dirname(self.project_root), "xxxyyyzzzz")
         self.assertRaises(TankError, tank.pipelineconfig_factory.from_path, non_project_path)
-        

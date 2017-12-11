@@ -703,12 +703,26 @@ def make_template_paths(data, keys, all_per_platform_roots):
 
     :returns: Dictionary of form {<template name> : <TemplatePath object>}
     """
+
+    if data and not all_per_platform_roots:
+        raise TankError(
+            "At least one root must be defined when using 'path' templates."
+        )
+
     template_paths = {}
     templates_data = _process_templates_data(data, "path")
 
     for template_name, template_data in templates_data.items():
         definition = template_data["definition"]
-        root_name = template_data["root_name"]
+        root_name = template_data.get("root_name")
+        if not root_name:
+            # If the root name is not explicitly set we use the only one we got
+            # if dealing with a single root or enforce the use of the good old
+            # "primary" storage if dealing with multiple entries.
+            if len(all_per_platform_roots) > 1:
+                root_name = constants.PRIMARY_STORAGE_NAME
+            else:
+                root_name = all_per_platform_roots.keys()[0]
         # to avoid confusion between strings and paths, validate to check
         # that each item contains at least a "/" (#19098)
         if "/" not in definition:
@@ -717,12 +731,18 @@ def make_template_paths(data, keys, all_per_platform_roots):
                             "template should be in the strings section "
                             "instead?" % (template_name, definition))
 
-        root_path = all_per_platform_roots[root_name].get(sys.platform)
+        root_path = all_per_platform_roots.get(root_name, {}).get(sys.platform)
         if root_path is None:
             raise TankError("Undefined Shotgun storage! The local file storage '%s' is not defined for this "
                             "operating system." % root_name)
 
-        template_path = TemplatePath(definition, keys, root_path, template_name, all_per_platform_roots[root_name])
+        template_path = TemplatePath(
+            definition,
+            keys,
+            root_path,
+            template_name,
+            all_per_platform_roots[root_name]
+        )
         template_paths[template_name] = template_path
 
     return template_paths
@@ -792,10 +812,7 @@ def _process_templates_data(data, template_type):
         cur_data = _conform_template_data(template_data, template_name)
         definition = cur_data["definition"]
         if template_type == "path":
-            if "root_name" not in cur_data:
-                cur_data["root_name"] = constants.PRIMARY_STORAGE_NAME
-            
-            root_name = cur_data["root_name"]
+            root_name = cur_data.get("root_name")
         else:
             root_name = None
 
