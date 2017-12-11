@@ -92,9 +92,3 @@ class BundleCacheUsageLogger(object):
     @classmethod
     def info(cls, message):
         pass
-
-#import sys
-#sys.path.append("/Applications/PyCharm.app/Contents/debug-eggs/pycharm-debug.egg")
-#import pydevd
-#pydevd.settrace('localhost', port=7720, suspend=False)
-

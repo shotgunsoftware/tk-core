@@ -44,7 +44,7 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
         self._manager = None
         super(TestBundleCacheManager, self).tearDown()
 
-    def _test_create_delete_instance(self):
+    def test_create_delete_instance(self):
         """
         Test for possible lock-ups by measuring elaped time
         for each individual create/destroy attemps

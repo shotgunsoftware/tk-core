@@ -189,16 +189,15 @@ class BundleCacheManager(object):
             else:
                 raise BundleCacheManagerDeletionException(f, "Not a link, not a file, not a directory ???")
 
-    def _purge_bundle(self, bundle):
+    def _purge_bundle(self, bundle_path):
         try:
-            path = bundle
-            filelist = BundleCacheManager._get_filelist(path)
+            filelist = BundleCacheManager._get_filelist(bundle_path)
             self._paranoid_delete(filelist)
             # No exception, everything was deleted, delete the entry from database
-            self._worker.delete_entry(bundle)
-            log.debug("Deleted bundle '%s'" % str(bundle))
+            self._worker.delete_entry(bundle_path)
+            log.debug("Deleted bundle '%s'" % str(bundle_path))
         except Exception as e:
-            log.error("Error deleting the following bundle:%s exception:%s" % (bundle, e))
+            log.error("Error deleting the following bundle:%s exception:%s" % (bundle_path, e))
 
     #
     # Public methods & properties
@@ -276,7 +275,7 @@ class BundleCacheManager(object):
     def purge_unused_entries_in_last_days(self, days):
         """
 
-        For each bundle found to be old enough for deletion a file list
+        For each old enough bundle found to be old enough for deletion a file list
         will be generated. For each individual file ...
 
         """
