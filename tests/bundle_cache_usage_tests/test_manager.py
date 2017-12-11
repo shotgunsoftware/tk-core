@@ -16,7 +16,8 @@ import unittest2
 
 import sgtk
 from .test_base import TestBundleCacheUsageBase, Utils
-from sgtk.descriptor.bundle_cache_usage.manager import BundleCacheManager, BundleCacheManagerDeletionException
+from sgtk.descriptor.bundle_cache_usage.manager import BundleCacheManager
+from sgtk.descriptor.bundle_cache_usage.manager import BundleCacheManagerException, BundleCacheManagerDeletionException
 from sgtk.descriptor.bundle_cache_usage.writer import BundleCacheUsageWriter
 from tank_test.tank_test_base import TankTestBase, setUpModule
 
@@ -66,6 +67,12 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
 
         filelist = self._manager._get_filelist(self._test_path)
         self.assertEquals(len(filelist), TestBundleCacheManager.EXPECTED_FILE_AND_FOLDER_COUNT)
+
+    def test_get_filelist_with_non_existing_path(self):
+        """ Tests the `_get_filelist` method against a non-existing file path. """
+
+        with self.assertRaises(BundleCacheManagerException):
+            self._manager._get_filelist("bogus_file_path")
 
     def test_get_usage_count(self):
 

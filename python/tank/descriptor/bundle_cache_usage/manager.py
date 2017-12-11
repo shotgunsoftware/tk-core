@@ -18,11 +18,16 @@ from ... import LogManager
 
 log = LogManager.get_logger(__name__)
 
-class BundleCacheManagerDeletionException(Exception):
+class BundleCacheManagerException(Exception):
+
+    def __init__(self, filepath, message=None):
+        super(BundleCacheManagerException, self).__init__(message)
+        self._filepath = filepath
+
+class BundleCacheManagerDeletionException(BundleCacheManagerException):
 
     def __init__(self, filepath, message=None):
         super(BundleCacheManagerDeletionException, self).__init__(message)
-        self._filepath = filepath
 
 class BundleCacheManager(object):
 
@@ -104,36 +109,13 @@ class BundleCacheManager(object):
         return path_list
 
     @classmethod
-    def _get_filelist2(cls, path):
+    def _get_filelist(cls, bundle_path):
+
+        if not os.path.exists(bundle_path):
+            raise BundleCacheManagerException(bundle_path, "The specified path does not exists.")
 
         file_list = []
-        base_folder_len = len(path)
-
-        for (dirpath, dirnames, filenames) in os.walk(path):
-
-            level_count = dirpath.count(os.sep)
-            file_list.append((level_count, dirpath))
-
-            for filename in filenames:
-                fullpath = os.path.join(dirpath, filename)
-                file_list.append((level_count+1, fullpath))
-
-        # We have a crude list, now we need to sort it out in reverse order
-        # based on path length (tuple first element)
-
-        # To sort the list in place...
-        file_list.sort(key=lambda x: x, reverse=True)
-
-        # To return a new list, use the sorted() built-in function...
-        #newlist = sorted(ut, key=lambda x: x.count, reverse=True)
-
-        return file_list
-
-    @classmethod
-    def _get_filelist(cls, path):
-
-        file_list = []
-        for (dirpath, dirnames, filenames) in os.walk(path):
+        for (dirpath, dirnames, filenames) in os.walk(bundle_path):
             file_list.append(dirpath)
             for filename in filenames:
                 fullpath = os.path.join(dirpath, filename)
