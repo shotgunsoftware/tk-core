@@ -8,7 +8,7 @@ PYDEVD_INITIATED = False
 # Debug logging options
 DEBUG = False # master switch
 
-USE_PRINT = True
+USE_PRINT = False
 LOG_GET_PATH = False
 LOG_LOG_USAGE = False
 LOG_THREADING = True
@@ -88,3 +88,12 @@ class BundleCacheUsageLogger(object):
     @classmethod
     def info(cls, message):
         pass
+
+
+from manager import BundleCacheManager
+
+# TODO: Where should this be???
+bundle_cache_root = LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE)
+bundle_cache_usage_mgr = BundleCacheManager(bundle_cache_root)
+bundle_cache_usage_logger.debug("NICOLAS: bundle_cache_root=%s" % (bundle_cache_root))
+

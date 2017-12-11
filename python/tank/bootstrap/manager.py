@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import sys
 import inspect
 
 from . import constants
@@ -17,11 +18,16 @@ from .configuration import Configuration
 from .resolver import ConfigurationResolver
 from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
+
 from .. import LogManager
 from ..errors import TankError
 
 log = LogManager.get_logger(__name__)
 
+try:
+    from ..descriptor import bundle_cache_usage_mgr
+except Execption as e:
+    log.error("Error importing 'bundle_cache_usage_mgr': %s" % (e))
 
 class ToolkitManager(object):
     """
@@ -1118,6 +1124,50 @@ class ToolkitManager(object):
             # Call the old style progress callback with signature (message, current_index, maximum_index).
             progress_callback(message, None, None)
 
+    def _process_bundle_cache_purge(self, progress_callback):
+        """
+        Check for unused bundles in bundle cache and delete them.
+
+        :param progress_callback: Callback function that reports back on the engine startup progress.
+        """
+
+        if int(os.environ.get('TK_DISABLE_BUNDLE_TRACKING', 0)) == 1:
+            log.info("TK_DISABLE_BUNDLE_TRACKING true, bundle usage tracking disabled.")
+        else:
+            log.info("NICOLAS: About to enter... 'get_unused_bundles'")
+            try:
+                log.info("Checking bundle cache for old bundles...")
+                # TODO: make global constant
+                days_since_last_usage = 30
+
+                log.info("NICOLAS: About to call 'get_unused_bundles'")
+                bundle_path_list = bundle_cache_usage_mgr.get_unused_bundles(days_since_last_usage)
+                bundle_count = len(bundle_path_list)
+                # log.info("NICOLAS: get_unused_bundles() = %s" % (str(bundle_path_list)))
+                purge_counter = 1
+                for bundle_path in bundle_path_list:
+                    version_str = os.path.basename(bundle_path[1])
+                    module_name = os.path.basename(os.path.dirname(bundle_path[1]))
+                    message = "NICOLAS: Purging '%s'version %s unused in last %d day%s (%d of %d)." % (
+                        module_name,
+                        version_str,
+                        int(days_since_last_usage),
+                        "s" if int(days_since_last_usage) > 1 else "",
+                        purge_counter,
+                        bundle_count
+                    )
+                    log.info(message)
+
+                    # bundle_cache_usage.purge_bundle(bundle_path)
+                    progress_value = float(purge_counter) / float(bundle_count)
+                    self._report_progress(progress_callback, progress_value, message)
+
+                    purge_counter += 1
+
+            except Exception as e:
+                log.error("Error initialising bundle cache usage: %s" % (e))
+                log.exception(e)
+
     def _cache_apps(self, pipeline_configuration, config_engine_name, progress_callback):
         """
         Caches all apps associated with the given toolkit instance.
@@ -1179,6 +1229,8 @@ class ToolkitManager(object):
                 message = "Checking %s (%s of %s)." % (descriptor, idx + 1, len(descriptors))
                 log.debug("%s exists locally at '%s'.", descriptor, descriptor.get_path())
                 self._report_progress(progress_callback, progress_value, message)
+
+        self._process_bundle_cache_purge(progress_callback)
 
     def _default_progress_callback(self, progress_value, message):
         """

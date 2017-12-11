@@ -218,18 +218,14 @@ class TestFunctionality(TankTestBase):
         self._mock_store.add_framework("tk-framework-test", "v1.0.1")
         self._mock_store.add_framework("tk-framework-test", "v1.1.0")
 
+        from sgtk.pipelineconfig import PipelineConfiguration
+
+        pc = PipelineConfiguration(os.path.join(self.fixtures_root, "bootstrap_tests"))
 
         modified_mgr = ToolkitManager()
         modified_mgr.caching_policy = ToolkitManager.CACHE_FULL
-
-        from sgtk.pipelineconfig import PipelineConfiguration
-
-        pc = self.pipeline_configuration
-
-        #
-        #path = "/shotgun/workspace/tk-core/tests/fixtures"
-        path = "/shotgun/workspace/tk-core/tests/fixtures/bootstrap_tests"
-        pc = PipelineConfiguration(path)
         modified_mgr._cache_apps(pc, "test_engine", None)
+
+
 
 
