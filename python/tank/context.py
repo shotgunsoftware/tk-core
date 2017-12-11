@@ -1554,18 +1554,6 @@ yaml.add_constructor(u'!TankContext', context_yaml_constructor)
 ################################################################################################
 # utility methods
 
-def _get_entity_type_sg_name_field(entity_type):
-    """
-    Return the Shotgun name field to use for the specified entity type.  This
-    is needed as not all entity types are consistent!
-
-    :param entity_type:     The entity type to get the name field for
-    :returns:               The name field for the specified entity type
-    """
-    return {"HumanUser":"name", 
-            "Task":"content", 
-            "Project":"name"}.get(entity_type, "code")
-
 def _get_entity_name(entity_dictionary):
     """
     Extract the entity name from the specified entity dictionary if it can
@@ -1575,7 +1563,7 @@ def _get_entity_name(entity_dictionary):
     :returns:                   The name of the entity if found in the entity
                                 dictionary, otherwise None
     """
-    name_field = _get_entity_type_sg_name_field(entity_dictionary["type"])
+    name_field = shotgun_entity.get_sg_entity_name_field(entity_dictionary["type"])
     entity_name = entity_dictionary.get(name_field)
     if entity_name == None:
         # Also check to see if entity contains 'name':
@@ -1663,7 +1651,7 @@ def _entity_from_sg(tk, entity_type, entity_id):
                             
     """
     # get the sg name field for the specified entity type:
-    name_field = _get_entity_type_sg_name_field(entity_type)
+    name_field = shotgun_entity.get_sg_entity_name_field(entity_type)
     
     # get the entity data from Shotgun
     data = tk.shotgun.find_one(entity_type, [["id", "is", entity_id]], ["project", name_field])
