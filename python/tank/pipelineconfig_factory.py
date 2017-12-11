@@ -77,10 +77,9 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
     # now given the project id, find the pipeline configurations
     if project_id is None:
         raise TankInitError(
-            "Cannot find a valid %s with id %s in Shotgun! "
-            "Please ensure that the object exists "
-            "and that it has been linked up to a Toolkit "
-            "enabled project." % (entity_type, entity_id)
+            "%s %s is not associated with a project and "
+            "can therefore not be associated with a "
+            "pipeline configuration." % (entity_type, entity_id)
         )
 
     # now find the pipeline configurations that are matching this project

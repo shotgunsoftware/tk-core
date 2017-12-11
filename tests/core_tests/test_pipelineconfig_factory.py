@@ -94,11 +94,42 @@ class TestTankFromEntity(TankTestBase):
             "project": self.other_project
         }
 
+        self.non_proj_entity = {
+            "type": "HumanUser",
+            "login": "foo.bar",
+            "id": 999,
+        }
+
         self.add_to_sg_mock_db([
             self.shot,
             self.other_project,
             self.other_shot,
+            self.non_proj_entity
         ])
+
+    def test_bad_project(self):
+        """
+        Test from project which does not have a pipeline configuration
+        """
+        self.assertRaisesRegexp(
+            TankInitError,
+            "No pipeline configurations associated with Project 1791284",
+            sgtk.sgtk_from_entity,
+            "Project",
+            1791284
+        )
+
+    def test_bad_entity(self):
+        """
+        Test from project which does not have a pipeline configuration
+        """
+        self.assertRaisesRegexp(
+            TankInitError,
+            ".* is not associated with a project",
+            sgtk.sgtk_from_entity,
+            self.non_proj_entity["type"],
+            self.non_proj_entity["id"]
+        )
 
     def test_from_project(self):
         """
