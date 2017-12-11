@@ -34,11 +34,10 @@ class BundleCacheUsageLogger(object):
     @classmethod
     def _debug(cls, message):
         if DEBUG:
-            s = "NICOLAS: " + message
             if USE_PRINT:
-                print(s)
+                print(message)
             else:
-                bundle_cache_usage_logger.debug(s)
+                bundle_cache_usage_logger.debug("NICOLAS: " + message)
 
     @classmethod
     def debug_db(cls, message):
