@@ -99,6 +99,7 @@ class TestTankFromPathDuplicatePcPaths(TankTestBase):
                                 "Project",
                                 self.project["id"])
 
+
 class TestTankFromEntityWithMixedSlashes(TankTestBase):
     """
     Tests the case where a Windows local storage uses forward slashes.
@@ -127,8 +128,6 @@ class TestTankFromEntityWithMixedSlashes(TankTestBase):
                 del os.environ["TANK_CURRENT_PC"]
 
 
-
-
 class TestTankFromPathWindowsNoSlash(TankTestBase):
     """
     Tests the edge case where a Windows local storage is set to be 'C:'
@@ -140,7 +139,9 @@ class TestTankFromPathWindowsNoSlash(TankTestBase):
     def setUp(self):
 
         # set up a project named temp, so that it will end up in c:\temp
-        super(TestTankFromPathWindowsNoSlash, self).setUp(parameters = {"project_tank_name": self.PROJECT_NAME})
+        super(TestTankFromPathWindowsNoSlash, self).setUp(
+            parameters={"project_tank_name": self.PROJECT_NAME}
+        )
         
         # set up std fixtures
         self.setup_fixtures()
@@ -153,7 +154,7 @@ class TestTankFromPathWindowsNoSlash(TankTestBase):
         # now re-write roots.yml
         roots = {"primary": {}}
         for os_name in ["windows_path", "linux_path", "mac_path"]:
-            #TODO make os specific roots
+            # TODO make os specific roots
             roots["primary"][os_name] = self.sg_pc_entity[os_name]
         roots_path = os.path.join(self.pipeline_config_root,
                                   "config",
@@ -171,7 +172,6 @@ class TestTankFromPathWindowsNoSlash(TankTestBase):
         # force reload templates
         self.tk.reload_templates()
 
-
     def test_project_path_lookup(self):
         """
         Check that a sgtk init works for this path
@@ -184,9 +184,6 @@ class TestTankFromPathWindowsNoSlash(TankTestBase):
             if not os.path.exists(test_path):
                 os.makedirs(test_path)
             self.assertIsInstance(sgtk.sgtk_from_path(test_path), Tank)
-
-
-
 
 
 class TestTankFromPathOverlapStorage(TankTestBase):
@@ -213,22 +210,28 @@ class TestTankFromPathOverlapStorage(TankTestBase):
     def setUp(self):
 
         # set up two storages and two projects
-        super(TestTankFromPathOverlapStorage, self).setUp(parameters = {"project_tank_name": "foo"})
+        super(TestTankFromPathOverlapStorage, self).setUp(
+            parameters={"project_tank_name": "foo"}
+        )
 
         # add second project
-        self.project_2 = {"type": "Project",
-                          "id": 2345,
-                          "tank_name": "bar",
-                          "name": "project_name"}
+        self.project_2 = {
+            "type": "Project",
+            "id": 2345,
+            "tank_name": "bar",
+            "name": "project_name"
+        }
 
         # define entity for pipeline configuration
-        self.project_2_pc = {"type": "PipelineConfiguration",
-                             "code": "Primary",
-                             "id": 123456,
-                             "project": self.project_2,
-                             "windows_path": "F:\\temp\\bar_pc",
-                             "mac_path": "/tmp/bar_pc",
-                             "linux_path": "/tmp/bar_pc"}
+        self.project_2_pc = {
+            "type": "PipelineConfiguration",
+            "code": "Primary",
+            "id": 123456,
+            "project": self.project_2,
+            "windows_path": "F:\\temp\\bar_pc",
+            "mac_path": "/tmp/bar_pc",
+            "linux_path": "/tmp/bar_pc"
+        }
 
         self.add_to_sg_mock_db(self.project_2)
         self.add_to_sg_mock_db(self.project_2_pc)
@@ -267,7 +270,6 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         # force reload templates
         self.tk.reload_templates()
 
-
     def test_project_path_lookup_studio_mode(self):
         """
         When running this edge case from a studio install, we expect an error:
@@ -299,8 +301,6 @@ class TestTankFromPathOverlapStorage(TankTestBase):
                                 "The path '.*' is associated with more than one Primary pipeline configuration.",
                                 sgtk.sgtk_from_path,
                                 test_path)
-
-
 
     def test_project_path_lookup_local_mode(self):
         """

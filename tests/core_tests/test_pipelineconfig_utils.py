@@ -15,6 +15,7 @@ import sys
 from mock import patch
 
 import sgtk
+import tank
 
 from tank import pipelineconfig_utils
 from tank import (
