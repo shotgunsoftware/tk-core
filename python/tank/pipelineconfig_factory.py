@@ -62,6 +62,8 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
 
     :param str entity_type: Shotgun Entity type
     :param int entity_id: Shotgun id
+    :param bool force_reread_shotgun_cache: If true,
+        fresh values will be cached from Shotgun.
     :returns: Pipeline Configuration instance
     :rtype: :class:`PipelineConfiguration`
     :raises: :class:`TankInitError`
@@ -141,6 +143,8 @@ def _from_path(path, force_reread_shotgun_cache):
     For info, see :meth:`from_path`.
 
     :param str path: Path to a pipeline configuration or associated project folder
+    :param bool force_reread_shotgun_cache: If true,
+        fresh values will be cached from Shotgun.
     :returns: Pipeline Configuration instance
     :rtype: :class:`PipelineConfiguration`
     :raises: :class:`TankInitError`
