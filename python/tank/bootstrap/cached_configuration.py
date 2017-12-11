@@ -88,6 +88,24 @@ class CachedConfiguration(Configuration):
             self._descriptor
         )
 
+    def verify_required_shotgun_fields(self):
+        """
+        Checks so that all shotgun fields required by the configuration
+        are present and valid.
+
+        Depending on the configuration, different checks are carried out.
+
+        For configurations using the template and schema system,
+        (e.g. has a roots.yml and a templates.yml config file set),
+        checks are carried out to ensure Project.tank_name and
+        local storages are correctly set up.
+
+        This will download the config into the bundle cache if not already
+        done.
+
+        :raises: :class:`TankBootstrapError` if checks fail.
+        """
+
     def status(self):
         """
         Compares the actual configuration installed on disk against the

@@ -20,7 +20,6 @@ from tank.templatekey import StringKey, IntegerKey, SequenceKey
 
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
-
 class TestInit(TankTestBase):
     """Tests basic initialization of the sgtk API"""
 
@@ -410,7 +409,7 @@ class TestApiProperties(TankTestBase):
         """
         test api.roots property
         """
-        self.assertEquals(self.tk.roots, {"primary": self.project_root} )
+        self.assertEquals(self.tk.roots, {self.primary_root_name: self.project_root})
 
 
     def test_project_path_property(self):

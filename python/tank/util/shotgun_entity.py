@@ -18,6 +18,27 @@ import re
 from . import constants
 from ..errors import TankError
 
+# A dictionary for Shotgun entities which do not store their name
+# in the standard "code" field.
+SG_ENTITY_SPECIAL_NAME_FIELDS = {
+    "Project": "name",
+    "Task": "content",
+    "HumanUser": "name",
+    "Note": "subject",
+    "Department": "name",
+    "Delivery": "title",
+}
+
+
+def get_sg_entity_name_field(entity_type):
+    """
+    Return the Shotgun name field to use for the specified entity type.
+
+    :param entity_type: The entity type to get the name field for.
+    :returns: The name field for the specified entity type.
+    """
+    # Deal with some known special cases and assume "code" for anything else.
+    return SG_ENTITY_SPECIAL_NAME_FIELDS.get(entity_type, "code")
 
 def sg_entity_to_string(tk, sg_entity_type, sg_id, sg_field_name, data):
     """
