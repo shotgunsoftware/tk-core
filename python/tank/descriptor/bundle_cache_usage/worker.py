@@ -14,7 +14,7 @@ import threading
 import Queue
 from threading import Event, Thread, Lock
 
-from .writer import BundleCacheUsageWriter
+from .writer_sqlite import BundleCacheUsageSQLiteWriter as Writer
 from . import BundleCacheUsageLogger as log
 from . import LOG_LOG_USAGE, LOG_THREADING
 
@@ -91,7 +91,7 @@ class BundleCacheUsageWorker(threading.Thread):
         if truncated_path:
             log.debug_worker("__get_last_usage_date('%s')" %(truncated_path))
             last_usage_date = self._bundle_cache_usage.get_last_usage_date(truncated_path)
-        response["last_usage_date"] = last_usage_date
+            response["last_usage_date"] = last_usage_date
 
         # We're done, signal caller!
         signal.set()
@@ -108,7 +108,7 @@ class BundleCacheUsageWorker(threading.Thread):
         if truncated_path:
             count = self._bundle_cache_usage.get_usage_count(truncated_path)
             log.debug_worker("__get_usage_count('%s') = %d" % (truncated_path, count))
-        response["usage_count"] = count
+            response["usage_count"] = count
 
         # We're done, signal caller!
         signal.set()
@@ -127,9 +127,12 @@ class BundleCacheUsageWorker(threading.Thread):
         """
         Invoked exclusively form the worker thread.
         """
-        function, args, kwargs = self._tasks.get()
-        if function:
-            function(*args, **kwargs)
+        try:
+            function, args, kwargs = self._tasks.get()
+            if function:
+                function(*args, **kwargs)
+        except Exception as e:
+            print e
 
         with self._member_lock:
             if self._pending_count > 0:
@@ -165,7 +168,7 @@ class BundleCacheUsageWorker(threading.Thread):
 
         try:
             #  The SQLite object can only be used in the thread it was created in.
-            self._bundle_cache_usage = BundleCacheUsageWriter(self._bundle_cache_root)
+            self._bundle_cache_usage = Writer(self._bundle_cache_root)
 
             while not self._terminate_requested.is_set() or self.pending_count > 0:
 

@@ -22,7 +22,7 @@ import time
 
 from .test_base import TestBundleCacheUsageBase, Utils
 
-from sgtk.descriptor.bundle_cache_usage.writer import BundleCacheUsageWriter
+from sgtk.descriptor.bundle_cache_usage.writer_sqlite import BundleCacheUsageSQLiteWriter as Writer
 
 
 class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
@@ -45,7 +45,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
             if os.path.exists(self._expected_db_path):
                 os.remove(self._expected_db_path)
 
-        self._db = BundleCacheUsageWriter(self.bundle_cache_root)
+        self._db = Writer(self.bundle_cache_root)
         if os.path.exists(self._expected_db_path):
             self._expected_db_path
 
@@ -71,9 +71,9 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
         Simply verify there isn't any exception
         """
-        db = BundleCacheUsageWriter(self._temp_folder)
+        db = Writer(self._temp_folder)
         self.assertIsNotNone(db)
-        self.assertIsInstance(db, BundleCacheUsageWriter, "Was expecting class type to be BundleCacheUsageWriter")
+        self.assertIsInstance(db, Writer, "Was expecting class type to be Writer")
 
     def test_db_close(self):
         """
@@ -97,7 +97,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.assertEquals(table_names[0], TestBundleCacheUsageWriterBasicOperations.MAIN_TABLE_NAME)
 
     def test_bundle_cache_root_folder(self):
-        self._db = BundleCacheUsageWriter(self.bundle_cache_root)
+        self._db = Writer(self.bundle_cache_root)
         self.assertEquals(self.bundle_cache_root, self._db.bundle_cache_root)
 
     def test_add_unused_bundle(self):
@@ -265,7 +265,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         loop_count = 0
 
         start_time = time.time()
-        db = BundleCacheUsageWriter(path)
+        db = Writer(path)
         while loop_count<iteration_count:
             bundle_test_name = "bundle-test-%03d" % (random.randint(0, 100))
             db.log_usage(bundle_test_name)
@@ -294,7 +294,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
         start_time = time.time()
         while iteration_count<ITERATION_COUNT:
-            db = BundleCacheUsageWriter(self._temp_folder)
+            db = Writer(self._temp_folder)
             bundle_test_name = "bundle-test-%03d" % (random.randint(0, 100))
             db.log_usage(bundle_test_name)
             db.commit()

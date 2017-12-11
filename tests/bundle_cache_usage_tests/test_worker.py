@@ -18,7 +18,6 @@ import os
 import time
 
 from sgtk.descriptor.bundle_cache_usage.worker import BundleCacheUsageWorker
-from sgtk.descriptor.bundle_cache_usage.writer import BundleCacheUsageWriter
 
 from .test_base import TestBundleCacheUsageBase, Utils
 

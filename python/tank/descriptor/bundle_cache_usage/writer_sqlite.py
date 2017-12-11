@@ -20,82 +20,7 @@ import time
 from datetime import datetime, timedelta
 
 from . import BundleCacheUsageLogger as log
-
-class BundleCacheUsageWriterBase(object):
-
-    def __init__(self, bundle_cache_root):
-        log.debug_db_inst("__init__")
-        self._bundle_cache_root = bundle_cache_root
-
-    def add_unused_bundle(self, bundle_path):
-        """
-        Add an entry to the database which usage count is initialized with zero.
-        :param bundle_path: a str path to a bundle cache item
-        """
-        raise NotImplementedError()
-
-    @property
-    def bundle_cache_root(self):
-        """
-        Returns the path to the cache bundle this instance was initialized with.
-        :return: A str path t bundle cache folder.
-        """
-        return self._bundle_cache_root
-
-    @property
-    def bundle_count(self):
-        """
-        Returns the number of bundles tracked in the database.
-        :return: An integer of a tracked bundle count
-        """
-        raise NotImplementedError()
-
-    def close(self):
-        """
-        Close the database connection.
-        """
-        raise NotImplementedError()
-
-    def delete_entry(self, bundle_path):
-        """
-        Delete the specified entry from the database
-        and the bundle cache usage database.
-        :param path: a str path of an entry to be deleted from database
-        """
-        raise NotImplementedError()
-
-    def get_unused_bundles(self, since_days=60):
-        raise NotImplementedError()
-
-    def get_usage_count(self, bundle_path):
-        raise NotImplementedError()
-
-    def get_last_usage_date(self, bundle_path):
-        raise NotImplementedError()
-
-    def get_last_usage_timestamp(self, bundle_path):
-        raise NotImplementedError()
-
-    def log_usage(self, bundle_path):
-        """
-        Increase the database usage count and access date for the specified entry.
-        If the entry was not in the database already, the usage count will be
-        initialized to 1.
-
-        NOTE: The specified path is truncated and relative to the `bundle_cache_root` property.
-
-        :param bundle_path: A str path to a bundle
-        """
-        raise NotImplementedError()
-
-    @property
-    def path(self):
-        """
-        Returns the full path & filename to the database for this instance.
-        NOTE: The filename is not cleared on closing the database.
-        :return: A string of the path & filename to the database file.
-        """
-        raise NotImplementedError()
+from .writer_base import BundleCacheUsageWriterBase
 
 
 class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
@@ -117,12 +42,12 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
     DB_COL_ACCESS_COUNT_INDEX = 4
 
     def __init__(self, bundle_cache_root):
-        super(BundleCacheUsageSQLiteWriter, self).setUp()
+        super(BundleCacheUsageSQLiteWriter, self).__init__(bundle_cache_root)
         log.debug_db_inst("__init__")
 
         self._bundle_cache_usage_db_filename = os.path.join(
             self.bundle_cache_root,
-            BundleCacheUsageWriter.DB_FILENAME
+            BundleCacheUsageSQLiteWriter.DB_FILENAME
         )
 
         self._db_connection = None
@@ -172,12 +97,12 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
                 %s integer,
                 %s integer
             );""" % (
-                BundleCacheUsageWriter.DB_MAIN_TABLE_NAME,
-                BundleCacheUsageWriter.DB_COL_ID,
-                BundleCacheUsageWriter.DB_COL_PATH,
-                BundleCacheUsageWriter.DB_COL_ADD_DATE,
-                BundleCacheUsageWriter.DB_COL_LAST_ACCESS_DATE,
-                BundleCacheUsageWriter.DB_COL_ACCESS_COUNT
+                BundleCacheUsageSQLiteWriter.DB_MAIN_TABLE_NAME,
+                BundleCacheUsageSQLiteWriter.DB_COL_ID,
+                BundleCacheUsageSQLiteWriter.DB_COL_PATH,
+                BundleCacheUsageSQLiteWriter.DB_COL_ADD_DATE,
+                BundleCacheUsageSQLiteWriter.DB_COL_LAST_ACCESS_DATE,
+                BundleCacheUsageSQLiteWriter.DB_COL_ACCESS_COUNT
             )
         self._execute(sql_statement)
 
@@ -196,11 +121,11 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
 
     def _create_bundle_entry(self, bundle_path, timestamp, initial_access_count):
         sql_statement = """INSERT INTO %s(%s, %s, %s, %s) VALUES(?,?,?,?)""" % (
-            BundleCacheUsageWriter.DB_MAIN_TABLE_NAME,
-            BundleCacheUsageWriter.DB_COL_PATH,
-            BundleCacheUsageWriter.DB_COL_ADD_DATE,
-            BundleCacheUsageWriter.DB_COL_LAST_ACCESS_DATE,
-            BundleCacheUsageWriter.DB_COL_ACCESS_COUNT
+            BundleCacheUsageSQLiteWriter.DB_MAIN_TABLE_NAME,
+            BundleCacheUsageSQLiteWriter.DB_COL_PATH,
+            BundleCacheUsageSQLiteWriter.DB_COL_ADD_DATE,
+            BundleCacheUsageSQLiteWriter.DB_COL_LAST_ACCESS_DATE,
+            BundleCacheUsageSQLiteWriter.DB_COL_ACCESS_COUNT
         )
 
         """ Connects and execute some SQL statement"""
@@ -210,8 +135,8 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
     def _delete_bundle_entry(self, bundle_path):
         'DELETE FROM tasks WHERE id=?'
         sql_statement = "DELETE FROM %s WHERE %s=?" % (
-            BundleCacheUsageWriter.DB_MAIN_TABLE_NAME,
-            BundleCacheUsageWriter.DB_COL_PATH,
+            BundleCacheUsageSQLiteWriter.DB_MAIN_TABLE_NAME,
+            BundleCacheUsageSQLiteWriter.DB_COL_PATH,
         )
         result = self._execute(sql_statement, (bundle_path,))
 
@@ -229,8 +154,8 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
         """
         result = self._execute("SELECT * FROM %s "
                                "WHERE %s = ?" % (
-                                   BundleCacheUsageWriter.DB_MAIN_TABLE_NAME,
-                                   BundleCacheUsageWriter.DB_COL_PATH
+                                   BundleCacheUsageSQLiteWriter.DB_MAIN_TABLE_NAME,
+                                   BundleCacheUsageSQLiteWriter.DB_COL_PATH
                                ), (bundle_path,))
 
         if result is None:
@@ -262,8 +187,8 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
         try:
             sql_statement = "SELECT * FROM %s " \
                             "WHERE %s <= %d " % (
-                                BundleCacheUsageWriter.DB_MAIN_TABLE_NAME,
-                                BundleCacheUsageWriter.DB_COL_LAST_ACCESS_DATE,
+                                BundleCacheUsageSQLiteWriter.DB_MAIN_TABLE_NAME,
+                                BundleCacheUsageSQLiteWriter.DB_COL_LAST_ACCESS_DATE,
                                 oldest_timestamp
                             )
 
@@ -286,10 +211,10 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
             if bundle_entry:
                 # Update
                 log.debug_db_hf("_update_bundle_entry('%s')" % bundle_path)
-                access_count = bundle_entry[BundleCacheUsageWriter.DB_COL_ACCESS_COUNT_INDEX]
-                self._update_bundle_entry(bundle_entry[BundleCacheUsageWriter.DB_COL_ID_INDEX],
+                access_count = bundle_entry[BundleCacheUsageSQLiteWriter.DB_COL_ACCESS_COUNT_INDEX]
+                self._update_bundle_entry(bundle_entry[BundleCacheUsageSQLiteWriter.DB_COL_ID_INDEX],
                                           now_unix_timestamp,
-                                          bundle_entry[BundleCacheUsageWriter.DB_COL_ACCESS_COUNT_INDEX]
+                                          bundle_entry[BundleCacheUsageSQLiteWriter.DB_COL_ACCESS_COUNT_INDEX]
                                           )
             else:
                 # Insert
@@ -301,10 +226,10 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
     def _update_bundle_entry(self, entry_id, timestamp, last_access_count):
         sql_statement = "UPDATE %s SET %s = ?, %s = ? " \
                         "WHERE %s = ?" % (
-            BundleCacheUsageWriter.DB_MAIN_TABLE_NAME,
-            BundleCacheUsageWriter.DB_COL_LAST_ACCESS_DATE,
-            BundleCacheUsageWriter.DB_COL_ACCESS_COUNT,
-            BundleCacheUsageWriter.DB_COL_ID
+            BundleCacheUsageSQLiteWriter.DB_MAIN_TABLE_NAME,
+            BundleCacheUsageSQLiteWriter.DB_COL_LAST_ACCESS_DATE,
+            BundleCacheUsageSQLiteWriter.DB_COL_ACCESS_COUNT,
+            BundleCacheUsageSQLiteWriter.DB_COL_ID
         )
         update_tuple = (timestamp, last_access_count + 1, entry_id)
         result = self._execute(sql_statement, update_tuple)
@@ -336,7 +261,7 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
         Returns the number of bundles tracked in the database.
         :return: An integer of a tracked bundle count
         """
-        result = self._execute("SELECT * FROM %s" % (BundleCacheUsageWriter.DB_MAIN_TABLE_NAME))
+        result = self._execute("SELECT * FROM %s" % (BundleCacheUsageSQLiteWriter.DB_MAIN_TABLE_NAME))
         if not result:
             return 0
 
@@ -378,21 +303,21 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
         if bundle_entry is None:
             return 0
 
-        return bundle_entry[BundleCacheUsageWriter.DB_COL_ACCESS_COUNT_INDEX]
+        return bundle_entry[BundleCacheUsageSQLiteWriter.DB_COL_ACCESS_COUNT_INDEX]
 
     def get_last_usage_date(self, bundle_path):
         bundle_entry = self._find_bundle(bundle_path)
         if bundle_entry is None:
             return None
 
-        return bundle_entry[BundleCacheUsageWriter.DB_COL_LAST_ACCESS_DATE_INDEX]
+        return bundle_entry[BundleCacheUsageSQLiteWriter.DB_COL_LAST_ACCESS_DATE_INDEX]
 
     def get_last_usage_timestamp(self, bundle_path):
         bundle_entry = self._find_bundle(bundle_path)
         if bundle_entry is None:
             return None
 
-        return bundle_entry[BundleCacheUsageWriter.DB_COL_LAST_ACCESS_DATE_INDEX]
+        return bundle_entry[BundleCacheUsageSQLiteWriter.DB_COL_LAST_ACCESS_DATE_INDEX]
 
     def log_usage(self, bundle_path):
         """
