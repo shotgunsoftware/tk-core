@@ -598,7 +598,8 @@ def execute_hook_method(hook_paths, parent, method_name, base_class=None, **kwar
                    app, engine or core object.
     :param method_name: method to execute. If None, the default method will be executed.
     :param base_class: A python class to use as the base class for the hook
-        class. This will override the default hook base class, ``Hook``.
+        class. This will override the default hook base class, ``Hook``. The
+        class should derive from ``Hook``.
     :returns: Whatever the hook returns.
     """
     hook = create_hook_instance(hook_paths, parent, base_class=base_class)
@@ -648,7 +649,8 @@ def get_hook_class(hook_paths, base_class=None):
         Example: ["/tmp/a.py", "/tmp/b.py", "/tmp/c.py"]
 
         1. The code in a.py is loaded in. get_hook_baseclass() will return Hook
-           at this point. class HookA is returned from our plugin loader.
+           at this point (or a custom base class, if supplied, that derives from
+           Hook). class HookA is returned from our plugin loader.
 
         2. /tmp/b.py is loaded in. get_hook_baseclass() now returns HookA, so
            if the hook code in B utilises get_hook_baseclass, this will will
@@ -673,9 +675,8 @@ def get_hook_class(hook_paths, base_class=None):
         # ensure the supplied base class is a subclass of Hook
         if not issubclass(base_class, Hook):
             raise TankError(
-                "Error retrieving hook class. The supplied base class does not "
-                "inherit from `sgtk.Hook`. Hook paths supplied: %s" %
-                (hook_paths,)
+                "Invalid custom hook base class. The supplied class '%s' does "
+                "not inherit from Hook." % (Hook,)
             )
     else:
         base_class = Hook

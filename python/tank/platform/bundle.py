@@ -666,7 +666,7 @@ class TankBundle(object):
         An optional `base_class` can be provided to override the default ``Hook``
         base class. This is useful for bundles that create hook instances at
         execution time and wish to provide default implementation without the need
-        to configure the base hook.
+        to configure the base hook. The supplied class must inherit from Hook.
 
         :param hook_expression: Path to hook to execute. See above for syntax details.
         :param base_class: A python class to use as the base class for the created
@@ -683,6 +683,14 @@ class TankBundle(object):
     def get_hook_class(self, hook_expression, base_class=None):
         """
         Returns the class for the hook resolved for the given expression.
+
+        This method is useful for bundles that wish to provide a default class
+        implementation of a hook. The bundle can use this method to retrieve
+        a class from a hook expression and then supply the class as the
+        `base_class` argument to `create_hook_instance` for a configured hook.
+        This provides flexibility for bundles that wish to provide default
+        logic in a Hook subclass that does not have to be configured by the
+        user.
 
         The hook expression is the raw value that is specified in the configuration file.
         If you want to access a configuration setting instead (like how for example
