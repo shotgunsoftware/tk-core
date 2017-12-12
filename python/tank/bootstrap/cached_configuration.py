@@ -308,13 +308,16 @@ class CachedConfiguration(Configuration):
         Logs features from core we're about to bootstrap into. This is useful for QA.
         """
         try:
-            if not self._descriptor.core_descriptor:
-                log.debug("The core associated with '%s' is not specified.", self._descriptor)
+            if not self._descriptor.associated_core_descriptor:
+                log.debug(
+                    "The core associated with '%s' is not specified. The most recent "
+                    "core from the Toolkit app store will be download.", self._descriptor
+                )
             else:
-                features = self._descriptor.core_descriptor.get_features_info()
+                features = self._descriptor.resolve_core_descriptor().get_features_info()
                 log.debug(
                     "The core '%s' associated with '%s' has the following feature information:",
-                    self._descriptor.core_descriptor, self._descriptor
+                    self._descriptor.resolve_core_descriptor(), self._descriptor
                 )
                 if features:
                     log.debug(pprint.pformat(features))
@@ -324,7 +327,7 @@ class CachedConfiguration(Configuration):
             # Do not let an error in here trip the bootstrap, but do report.
             log.warning(
                 "The core '%s' associated with '%s' couldn't report its features: %s.",
-                self._descriptor.core_descriptor, self._descriptor, ex
+                self._descriptor.resolve_core_descriptor(), self._descriptor, ex
             )
 
     @property

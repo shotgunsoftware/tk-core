@@ -68,7 +68,7 @@ class TestConfigDescriptor(TankTestBase):
         """
         Ensures the core descriptor for an installed configuration is created correctly and cached
         """
-        desc = self.tk.configuration_descriptor.core_descriptor
+        desc = self.tk.configuration_descriptor.resolve_core_descriptor()
 
         # Ensure the descriptor is set and the core is pointing at the right location.
         self.assertIsNotNone(desc)
@@ -78,10 +78,10 @@ class TestConfigDescriptor(TankTestBase):
         )
 
         # Ensure the descriptor is cached.
-        desc_2 = self.tk.configuration_descriptor.core_descriptor
+        desc_2 = self.tk.configuration_descriptor.resolve_core_descriptor()
         self.assertEqual(id(desc), id(desc_2))
 
-        # Ensure that if a configuration has no associated core then .core_descriptor returns
+        # Ensure that if a configuration has no associated core then resolve_core_descriptor returns
         # nothing as well.
         class MissingCoreConfigDescriptor(ConfigDescriptor):
             @property
@@ -89,7 +89,7 @@ class TestConfigDescriptor(TankTestBase):
                 return None
 
         desc = MissingCoreConfigDescriptor(None, None, None, None)
-        self.assertIsNone(desc.core_descriptor)
+        self.assertIsNone(self.resolve_core_descriptor())
         self.assertEqual(desc.get_associated_core_feature_info("missing", "value"), "value")
 
     def test_core_descriptor_features(self):

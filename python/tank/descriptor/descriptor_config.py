@@ -59,10 +59,12 @@ class ConfigDescriptor(Descriptor):
         """
         raise NotImplementedError("ConfigDescriptor.python_interpreter is not implemented.")
 
-    @property
-    def core_descriptor(self):
+    def resolve_core_descriptor(self):
         """
-        Retrieves the core :class:`Descriptor` object associated with this configuration.
+        Resolves the :class:`CoreDescriptor` from :attr:`ConfigDescriptor.associated_core_descriptor`.
+
+        :returns: The core descriptor if :attr:`ConfigDescriptor.associated_core_descriptor` is set,
+            ``None`` otherwise.
         """
         if not self.associated_core_descriptor:
             return None
@@ -90,12 +92,12 @@ class ConfigDescriptor(Descriptor):
             - there is no core associated with this configuration.
 
         :param str feature_name: Name of the feature to retrieve from the manifest.
-        :param obj default_value: Value to return if the feature is missing.
+        :param object default_value: Value to return if the feature is missing.
 
         :returns: The value for the feature if present, ``default_value`` otherwise.
         """
-        if self.core_descriptor:
-            return self.core_descriptor.get_feature_info(feature_name, default_value)
+        if self.resolve_core_descriptor():
+            return self.resolve_core_descriptor().get_feature_info(feature_name, default_value)
         return default_value
 
     @property

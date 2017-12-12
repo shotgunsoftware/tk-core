@@ -55,7 +55,7 @@ class CoreDescriptor(Descriptor):
             - the manifest is missing
 
         :param str feature_name: Name of the feature to retrieve from the manifest.
-        :param obj default_value: Value to return if the feature is missing.
+        :param object default_value: Value to return if the feature is missing.
 
         :returns: The value for the feature if present, ``default_value`` otherwise.
         """
