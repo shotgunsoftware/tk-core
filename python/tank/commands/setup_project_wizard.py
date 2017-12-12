@@ -95,7 +95,7 @@ class SetupProjectFactoryAction(Action):
         # now connect to shotgun
         try:
             log.info("Connecting to Shotgun...")
-            sg = shotgun.create_sg_connection()
+            sg = shotgun.get_sg_connection()
             sg_version = ".".join([ str(x) for x in sg.server_info["version"]])
             log.debug("Connected to target Shotgun server! (v%s)" % sg_version)
         except Exception as e:
