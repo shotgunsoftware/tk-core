@@ -89,7 +89,7 @@ class TestConfigDescriptor(TankTestBase):
                 return None
 
         desc = MissingCoreConfigDescriptor(None, None, None, None)
-        self.assertIsNone(self.resolve_core_descriptor())
+        self.assertIsNone(desc.resolve_core_descriptor())
         self.assertEqual(desc.get_associated_core_feature_info("missing", "value"), "value")
 
     def test_core_descriptor_features(self):
@@ -97,8 +97,7 @@ class TestConfigDescriptor(TankTestBase):
         Ensures feature discovery works whether the core is specified or not.
         """
         class CoreConfigDescriptorWithoutFeatures(ConfigDescriptor):
-            @property
-            def core_descriptor(self):
+            def resolve_core_descriptor(self):
                 io_desc = Mock()
                 io_desc.get_manifest.return_value = dict()
                 return CoreDescriptor(io_desc)
@@ -113,8 +112,7 @@ class TestConfigDescriptor(TankTestBase):
         )
 
         class CoreConfigDescriptorWithFeatures(ConfigDescriptor):
-            @property
-            def core_descriptor(self):
+            def resolve_core_descriptor(self):
                 io_desc = Mock()
                 io_desc.get_manifest.return_value = dict(features=dict(two="2"))
                 return CoreDescriptor(io_desc)
