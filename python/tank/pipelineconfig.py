@@ -923,8 +923,7 @@ class PipelineConfiguration(object):
         :returns: path string
         """
         return os.path.join(
-            os.path.join(self.get_config_location(), "core"),
-            "hooks"
+            os.path.join(self.get_config_location(), "core"), "hooks"
         )
 
     def get_schema_config_location(self):
@@ -934,8 +933,7 @@ class PipelineConfiguration(object):
         :returns: path string
         """
         return os.path.join(
-            os.path.join(self.get_config_location(), "core"),
-            "schema"
+            os.path.join(self.get_config_location(), "core"), "schema"
         )
 
     def get_config_location(self):
