@@ -916,6 +916,9 @@ class ToolkitManager(object):
 
         config = self._get_configuration(entity, progress_callback)
 
+        # verify that this configuration works with Shotgun
+        config.verify_required_shotgun_fields()
+
         # see what we have locally
         status = config.status()
 
