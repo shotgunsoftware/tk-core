@@ -35,7 +35,8 @@ def __get_api_core_config_location():
     """
 
     Walk from the location of this file on disk to the config area.
-    this operation is guaranteed to work on any valid tank installation
+    this operation is guaranteed to work ONLY on non-descriptor-based
+    installations.
 
     Pipeline Configuration / Studio Location
        |
@@ -59,13 +60,17 @@ def __get_api_core_config_location():
 
     return core_cfg
 
-def __get_sg_config():
+def __get_sg_config(core_install_location=None):
     """
     Returns the site sg config yml file for this install
     
     :returns: full path to to shotgun.yml config file
     """
-    core_cfg = __get_api_core_config_location()
+    if core_install_location:
+        core_cfg = os.path.join(core_install_location, "config", "core")
+    else:
+        core_cfg = __get_api_core_config_location()
+        
     path = os.path.join(core_cfg, "shotgun.yml")
     return path
 
@@ -112,27 +117,6 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
     return _parse_config_data(file_data, user, shotgun_cfg_path)
 
 
-def __get_sg_config_data_with_script_user(shotgun_cfg_path, user="default"):
-    """
-    Returns the Shotgun configuration yml parameters given a config file, just like
-    __get_sg_config_data, but the script user is expected to be present or an exception will be
-    thrown.
-
-    :param shotgun_cfg_path: path to config file
-    :param user: Optional user to pass when a multi-user config is being read
-
-    :raises TankError: Raised if the script user is not configured.
-
-    :returns: dictionary with mandatory keys host, api_script, api_key and optionally http_proxy
-    """
-    config_data = __get_sg_config_data(shotgun_cfg_path, user)
-    # If the user is configured, we're happy.
-    if config_data.get("api_script") and config_data.get("api_key"):
-        return config_data
-    else:
-        raise TankError("Missing required script user in config '%s'" % shotgun_cfg_path)
-
-
 def _parse_config_data(file_data, user, shotgun_cfg_path):
     """
     Parses configuration data and overrides it with the studio level hook's result if available.
@@ -154,15 +138,16 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
         config_data = file_data
 
     # now check if there is a studio level override hook which want to refine these settings
-    sg_hook_path = os.path.join(__get_api_core_config_location(), constants.STUDIO_HOOK_SG_CONNECTION_SETTINGS)
+    # FIXME: This needs to work for bootstrapped configs.
+    # sg_hook_path = os.path.join(__get_api_core_config_location(), constants.STUDIO_HOOK_SG_CONNECTION_SETTINGS)
 
-    if os.path.exists(sg_hook_path):
-        # custom hook is available!
-        config_data = hook.execute_hook(sg_hook_path,
-                                        parent=None,
-                                        config_data=config_data,
-                                        user=user,
-                                        cfg_path=shotgun_cfg_path)
+    # if os.path.exists(sg_hook_path):
+    #     # custom hook is available!
+    #     config_data = hook.execute_hook(sg_hook_path,
+    #                                     parent=None,
+    #                                     config_data=config_data,
+    #                                     user=user,
+    #                                     cfg_path=shotgun_cfg_path)
 
     def _raise_missing_key(key):
         raise TankError(
@@ -284,13 +269,16 @@ def get_associated_sg_base_url():
         return get_associated_sg_config_data()["host"]
 
 
-def get_associated_sg_config_data():
+def get_associated_sg_config_data(core_install_location=None):
     """
     Returns the shotgun configuration which is associated with this Toolkit setup.
+
+    :param str core_install_location: Core install location.
+
     :returns: The configuration data dictionary with keys host and optional entries
               api_script, api_key and http_proxy.
     """
-    cfg = __get_sg_config()
+    cfg = __get_sg_config(core_install_location)
     return __get_sg_config_data(cfg)
 
 
@@ -393,7 +381,12 @@ def create_sg_connection(user="default"):
                             "via legacy configuration files failed. Details: %s" % e)
 
         log.debug("Creating shotgun connection based on details in %s" % config_file_path)
-        config_data = __get_sg_config_data_with_script_user(config_file_path, user)
+        
+
+        config_data = __get_sg_config_data(shotgun_cfg_path, user)
+        # If the user is configured, we're happy.
+        if not config_data.get("api_script") or not config_data.get("api_key"):
+            raise TankError("Missing required script user in config '%s'" % shotgun_cfg_path)
 
         # Credentials were passed in, so let's run the legacy authentication
         # mechanism for script user.

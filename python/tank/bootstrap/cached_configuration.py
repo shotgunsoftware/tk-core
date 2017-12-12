@@ -21,6 +21,7 @@ from ..util import filesystem
 from tank_vendor import yaml
 from .configuration import Configuration
 from .configuration_writer import ConfigurationWriter
+from ..descriptor import Descriptor, create_descriptor
 
 from .. import LogManager
 
@@ -196,8 +197,10 @@ class CachedConfiguration(Configuration):
         # copy the configuration into place
         try:
 
-            # make sure the config is locally available.
+            # make sure the config and core are downloaded to the bundle cache.
             self._descriptor.ensure_local()
+            core_descriptor = self._get_core_descriptor()
+            core_descriptor.ensure_local()
 
             # Log information about the core being setup with this config.
             self._log_core_information()
@@ -224,11 +227,13 @@ class CachedConfiguration(Configuration):
             # make sure roots file reflects current paths
             self._config_writer.update_roots_file(self._descriptor)
 
-            # and lastly install core
-            self._config_writer.install_core(
-                self._descriptor,
-                self._bundle_cache_fallback_paths
-            )
+            if self._descriptor.get_associated_core_feature_info("bootstrap.lean_config.version", 0) < 1:
+                # and lastly install core if we're bootstrapping into a core that can't be run
+                # from the bundle cache.
+                self._config_writer.install_core(
+                    self._descriptor,
+                    self._bundle_cache_fallback_paths
+                )
 
         except Exception as e:
 
@@ -284,9 +289,32 @@ class CachedConfiguration(Configuration):
         # @todo - prime caches (yaml, path cache)
 
         # make sure tank command and interpreter files are up to date
-        self._config_writer.create_tank_command()
+        self._config_writer.create_tank_command(core_descriptor)
 
         self._config_writer.end_transaction()
+
+    def _get_core_descriptor(self):
+
+        core_descriptor = self._descriptor.get_core_descriptor()
+        if core_descriptor:
+            return core_descriptor
+
+        # FIXME: Should this logic go inside resolve_core_descriptor when where is no associated
+        # descriptor? It would muddy the waters a bit, since you wouldn't get the exact state of
+        # the config on disk, but at the same time it would make a lot of code simpler if
+        # resolve_core_descriptor() and get_associated_core_feature_info() always returned
+        # a valid object.
+        core_uri_or_dict = constants.LATEST_CORE_DESCRIPTOR
+        # resolve latest core
+        use_latest = True
+
+        return create_descriptor(
+            self._sg_connection,
+            Descriptor.CORE,
+            core_uri_or_dict,
+            fallback_roots=self._bundle_cache_fallback_paths,
+            resolve_latest=use_latest
+        )
 
     def _verify_descriptor_compatible(self):
         """

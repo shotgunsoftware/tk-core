@@ -17,7 +17,6 @@ import datetime
 from . import constants
 
 from .errors import TankBootstrapError
-from ..descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
 
 from ..util import filesystem
 from ..util import ShotgunPath
@@ -84,41 +83,16 @@ class ConfigurationWriter(object):
             create_placeholder_file=True
         )
 
-    def install_core(self, config_descriptor, bundle_cache_fallback_paths):
+    def install_core(self, core_descriptor):
         """
         Install a core into the given configuration.
 
         This will copy the core API from the given location into
         the configuration, effectively mimicing a localized setup.
 
-        :param config_descriptor: Config descriptor to use to determine core version
+        :param core_descriptor: Core descriptor to install.
         :param bundle_cache_fallback_paths: bundle cache search path
         """
-        core_uri_or_dict = config_descriptor.associated_core_descriptor
-
-        if core_uri_or_dict is None:
-            # we don't have a core descriptor specified. Get latest from app store.
-            log.debug(
-                "Config does not have a core/core_api.yml file to define which core to use. "
-                "Will use the latest approved core in the app store."
-            )
-            core_uri_or_dict = constants.LATEST_CORE_DESCRIPTOR
-            # resolve latest core
-            use_latest = True
-        else:
-            # we have an exact core descriptor. Get a descriptor for it
-            log.debug("Config has a specific core defined in core/core_api.yml: %s" % core_uri_or_dict)
-            # when core is specified, check if it defines a specific version or not
-            use_latest = is_descriptor_version_missing(core_uri_or_dict)
-
-        core_descriptor = create_descriptor(
-            self._sg_connection,
-            Descriptor.CORE,
-            core_uri_or_dict,
-            fallback_roots=bundle_cache_fallback_paths,
-            resolve_latest=use_latest
-        )
-
         # make sure we have our core on disk
         core_descriptor.ensure_local()
         config_root_path = self._path.current_os
@@ -224,7 +198,7 @@ class ConfigurationWriter(object):
             return (config_backup_path, core_backup_path)
 
     @filesystem.with_cleared_umask
-    def create_tank_command(self, executable=sys.executable, prefix=sys.prefix):
+    def create_tank_command(self, core_descriptor, executable=sys.executable, prefix=sys.prefix):
         """
         Create a tank command for this configuration.
 
@@ -313,7 +287,7 @@ class ConfigurationWriter(object):
                 fh.write(executables[platform])
 
         # now deploy the actual tank command
-        core_target_path = os.path.join(config_root_path, "install", "core")
+        core_target_path = core_descriptor.get_path()
         root_binaries_folder = os.path.join(core_target_path, "setup", "root_binaries")
         for file_name in os.listdir(root_binaries_folder):
             src_file = os.path.join(root_binaries_folder, file_name)

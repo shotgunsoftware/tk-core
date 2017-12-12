@@ -14,23 +14,59 @@ will provide a default host and an optional http proxy. If a script user has
 been configured with the core, its credentials will also be provided.
 """
 
+import os
+
 from .defaults_manager import DefaultsManager
-from ..util import shotgun
+from .. import util
+from ..pipelineconfig_utils import get_sgtk_module_path
+from ..log import LogManager
+
+logger = LogManager.get_logger(__name__)
 
 
 class CoreDefaultsManager(DefaultsManager):
     """
     This defaults manager implementation taps into the core's configuration
     (shotgun.yml) to provide a default host, proxy and user.
+
+    :param bool mask_script_user: Prevents the get_user_credentials method from
+        returning the script user credentials if the are available.
+    :param str core_install_folder: Root of the core's installation folder. This
+        is generally the same as the root of the pipeline configuration, but can
+        also be an external studio-wide core. If the core is not specified,
+        the location of the ``shotgun.yml`` will be calculated relative to the
+        location of the currently imported copy of Toolkit, which is incompatible
+        with a descriptor-based configuration and can only be used with configurations
+        instantiated with :meth:`sgtk.sgtk_from_path`.
+
+        Otherwise, the ``CoreDefaultsManager`` will rely on the global state of
+        Toolkit, which will be deprecated in the future.
     """
 
-    def __init__(self, mask_script_user=False):
+    def __init__(self, mask_script_user=False, core_install_folder=None):
         """
         Constructor
-
-        :param mask_script_user: Prevents the get_user_credentials method from
-            returning the script user credentials if the are available.
         """
+        if core_install_folder:
+            logger.debug(
+                "CoreDefaultsManager will look for shotgun.yml under '%s'", core_install_folder
+            )
+            self._core_install_folder = core_install_folder
+        # This is a hack to avoid breaking the Shotgun Desktop.
+        elif "TANK_CURRENT_PC" in os.environ:
+            logger.debug(
+                "CoreDefaultsManager did not receive a core install folder on creation and will "
+                "fall back on TANK_CURRENT_PC set to '%s' to find shotgun.yml.",
+                os.environ["TANK_CURRENT_PC"]
+            )
+            self._core_install_folder = os.environ["TANK_CURRENT_PC"]
+        else:
+            logger.debug(
+                "CoreDefaultsManager will locate shotgun.yml relative to the Toolkit library "
+                "at '%s'.", get_sgtk_module_path()
+            )
+            self._core_install_folder = None
+
         self._mask_script_user = mask_script_user
         super(CoreDefaultsManager, self).__init__()
 
@@ -48,7 +84,7 @@ class CoreDefaultsManager(DefaultsManager):
         Returns the host found in the core configuration.
         :returns: The host value from the configuration
         """
-        return shotgun.get_associated_sg_config_data().get("host")
+        return self._get_shotgun_yaml_data().get("host")
 
     def get_http_proxy(self):
         """
@@ -59,7 +95,7 @@ class CoreDefaultsManager(DefaultsManager):
         :returns: String with proxy definition suitable for the Shotgun API or
                   None if not necessary.
         """
-        sg_config_data = shotgun.get_associated_sg_config_data()
+        sg_config_data = self._get_shotgun_yaml_data()
         # If http_proxy is not set, fallback on the base class. Note that http_proxy
         # can be set to an empty value, which we want to use in that case.
         if "http_proxy" not in sg_config_data:
@@ -77,7 +113,7 @@ class CoreDefaultsManager(DefaultsManager):
                   User or None in case no credentials could be established.
         """
         if not self._mask_script_user:
-            data = shotgun.get_associated_sg_config_data()
+            data = self._get_shotgun_yaml_data()
             if data.get("api_script") and data.get("api_key"):
                 return {
                     "api_script": data["api_script"],
@@ -85,7 +121,14 @@ class CoreDefaultsManager(DefaultsManager):
                 }
         return super(CoreDefaultsManager, self).get_user_credentials()
 
+    def _get_shotgun_yaml_data(self):
+        """
+        Returns the data from the shotgun.yml file.
+
+        :returns: Dictionary of the data.
+        """
+        return util.shotgun.get_associated_sg_config_data(self._core_install_folder)
+
 
 # For backwards compatibility.
-from .. import util
 util.CoreDefaultsManager = CoreDefaultsManager

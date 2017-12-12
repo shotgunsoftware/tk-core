@@ -17,7 +17,7 @@ from tank_vendor import yaml
 from ..errors import TankFileDoesNotExistError
 from . import constants
 from .errors import TankInvalidInterpreterLocationError
-from .descriptor import Descriptor, create_descriptor
+from ..descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
 from .. import LogManager
 from ..util import ShotgunPath
 from ..util.version import is_version_older
@@ -70,13 +70,14 @@ class ConfigDescriptor(Descriptor):
             return None
 
         if not self._cached_core_descriptor:
+            resolve_latest = is_descriptor_version_missing(self.associated_core_descriptor)
             self._cached_core_descriptor = create_descriptor(
                 self._sg_connection,
                 Descriptor.CORE,
                 self.associated_core_descriptor,
                 self._bundle_cache_root,
                 self._fallback_roots,
-                resolve_latest=False
+                resolve_latest=resolve_latest
             )
 
         return self._cached_core_descriptor
