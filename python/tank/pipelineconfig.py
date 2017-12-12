@@ -295,15 +295,6 @@ class PipelineConfiguration(object):
 
         return shotgun_paths
 
-    def _get_config_core_folder(self):
-        """
-        Returns the core folder under the descriptor.
-        """
-        return os.path.join(
-            self.get_config_location(),
-            "core"
-        )
-
     def _get_metadata(self):
         """
         Loads the pipeline config metadata (the pipeline_configuration.yml) file from disk.
@@ -932,7 +923,7 @@ class PipelineConfiguration(object):
         :returns: path string
         """
         return os.path.join(
-            self._get_config_core_folder(),
+            os.path.join(self.get_config_location(), "core"),
             "hooks"
         )
 
@@ -943,7 +934,7 @@ class PipelineConfiguration(object):
         :returns: path string
         """
         return os.path.join(
-            self._get_config_core_folder(),
+            os.path.join(self.get_config_location(), "core"),
             "schema"
         )
 
@@ -1018,7 +1009,7 @@ class PipelineConfiguration(object):
         Returns the path to the configuration's template file.
         """
         return os.path.join(
-            self._get_config_core_folder(),
+            os.path.join(self.get_config_location(), "core"),
             constants.CONTENT_TEMPLATES_FILE,
         )
     
