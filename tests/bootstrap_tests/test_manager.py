@@ -209,14 +209,7 @@ class TestFunctionality(TankTestBase):
         # TODO: Is this any useful??? Can it serve similar purpose to
         # my own method for creating a fake test bundle cache?
         self.setup_fixtures(os.path.join("bootstrap_tests", "config"))
-
-        self._mock_store.add_engine("tk-test", "v1.0.0")
-        self._mock_store.add_application("tk-multi-nodep", "v1.0.0")
-        self._mock_store.add_application("tk-multi-nodep", "v2.0.0")
-        self._mock_store.add_application("test_app", "v2.0.0")
-        self._mock_store.add_framework("tk-framework-test", "v1.0.0")
-        self._mock_store.add_framework("tk-framework-test", "v1.0.1")
-        self._mock_store.add_framework("tk-framework-test", "v1.1.0")
+        self._mock_store.add_framework("test_framework", "v2.1.0")
 
         from sgtk.pipelineconfig import PipelineConfiguration
 

@@ -577,10 +577,9 @@ class IODescriptorBase(object):
 
     def is_purgeable(self):
         """
-        Returns whether or not the descriptor content can deleted by some bundle cache manager code.
+        Returns whether or not the descriptor content can deleted by bundle cache manager code.
 
-        This base class defaults the behavior to False.
-        Sub-classes might override this as required.
+        This base class defaults the behavior to False, but sub-classes might override this as required.
 
         :returns: False (for base class), the description content cannot be deleted.
         """
