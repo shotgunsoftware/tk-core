@@ -919,7 +919,7 @@ class PipelineConfiguration(object):
     def get_core_hooks_location(self):
         """
         Returns the path to the core hooks location
-        
+
         :returns: path string
         """
         return os.path.join(
@@ -929,7 +929,7 @@ class PipelineConfiguration(object):
     def get_schema_config_location(self):
         """
         Returns the location of the folder schema
-        
+
         :returns: path string
         """
         return os.path.join(
