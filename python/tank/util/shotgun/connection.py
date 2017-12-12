@@ -30,7 +30,6 @@ from .. import yaml_cache
 
 log = LogManager.get_logger(__name__)
 
-
 def __get_api_core_config_location():
     """
 
@@ -138,16 +137,20 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
         config_data = file_data
 
     # now check if there is a studio level override hook which want to refine these settings
-    # FIXME: This needs to work for bootstrapped configs.
-    # sg_hook_path = os.path.join(__get_api_core_config_location(), constants.STUDIO_HOOK_SG_CONNECTION_SETTINGS)
+    # Studio hooks are next to the shotgun.yml file.
+    hook_location = os.path.join(
+        os.path.dirname(shotgun_cfg_path),
+        constants.STUDIO_HOOK_SG_CONNECTION_SETTINGS
+    )
+    sg_hook_path = os.path.join(hook_location, constants.STUDIO_HOOK_SG_CONNECTION_SETTINGS)
 
-    # if os.path.exists(sg_hook_path):
-    #     # custom hook is available!
-    #     config_data = hook.execute_hook(sg_hook_path,
-    #                                     parent=None,
-    #                                     config_data=config_data,
-    #                                     user=user,
-    #                                     cfg_path=shotgun_cfg_path)
+    if os.path.exists(sg_hook_path):
+        # custom hook is available!
+        config_data = hook.execute_hook(sg_hook_path,
+                                        parent=None,
+                                        config_data=config_data,
+                                        user=user,
+                                        cfg_path=shotgun_cfg_path)
 
     def _raise_missing_key(key):
         raise TankError(
