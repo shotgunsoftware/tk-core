@@ -230,7 +230,7 @@ class CachedConfiguration(Configuration):
             if self._descriptor.get_associated_core_feature_info("bootstrap.lean_config.version", 0) < 1:
                 # and lastly install core if we're bootstrapping into a core that can't be run
                 # from the bundle cache.
-                self._config_writer.install_core(self._descriptor)
+                self._config_writer.install_core(core_descriptor)
 
         except Exception as e:
 

@@ -82,10 +82,6 @@ class Configuration(object):
         path = self._path.current_os
         # FIXME: The _get_core_descriptor method needs to be implemented in
         # InstalledConfiguration and BakedConfiguration.
-        core_path = os.path.join(
-            self._get_core_descriptor().get_path(),
-            "python"
-        )
 
         is_lean_config = (
             self._descriptor.get_associated_core_feature_info(
@@ -97,6 +93,13 @@ class Configuration(object):
             core_install_folder = get_core_path_for_config(path)
         else:
             core_install_folder = path
+            if is_lean_config:
+                core_path = os.path.join(
+                    self._get_core_descriptor().get_path(),
+                    "python"
+                )
+            else:
+                core_path = os.path.join(core_install_folder, "install", "core", "python")
 
         # swap the core out
         CoreImportHandler.swap_core(core_path)
