@@ -139,7 +139,7 @@ class BakedConfiguration(Configuration):
 
         config_descriptor.copy(os.path.join(path, "config"))
 
-        config_writer.install_core(config_descriptor, bundle_cache_fallback_paths=[])
+        config_writer.install_core(config_descriptor)
 
         config_writer.write_pipeline_config_file(
             pipeline_config_id=None,

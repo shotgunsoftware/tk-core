@@ -51,6 +51,11 @@ class TestBackups(TankTestBase):
                 copytree(self._core_repo_path, core_copy_path, ignore=ignore_patterns('tests', 'docs', 'coverage_html_report')) 
             self._core_repo_path = core_copy_path
 
+        # Disable any new features.
+        patcher = patch.object(sgtk.descriptor.CoreDescriptor, "get_features_info", return_value={})
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
     def test_cleanup(self):
         """
         Ensures that after a successful update the backup folder created by the

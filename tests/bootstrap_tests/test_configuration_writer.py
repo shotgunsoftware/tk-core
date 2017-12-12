@@ -13,6 +13,7 @@ from __future__ import with_statement
 import contextlib
 import os
 import sys
+import mock
 
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import TankTestBase
@@ -233,7 +234,9 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
             os.makedirs(core_folder)
         os.makedirs(os.path.join(self._root, "install", "core", "setup", "root_binaries"))
 
-        self._cw.create_tank_command(executable, prefix)
+        core_desc = mock.Mock()
+        core_desc.get_path.return_value = "/Users/jfboismenu/gitlocal/tk-core"
+        self._cw.create_tank_command(core_desc, executable, prefix)
 
         interpreters = []
         for platform in ["Windows", "Linux", "Darwin"]:

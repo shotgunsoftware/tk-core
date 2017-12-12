@@ -45,3 +45,6 @@ tests/coverage_html_report
 
 # pyenv
 .python-version
+
+# Visual Studio Code project files
+.vscode

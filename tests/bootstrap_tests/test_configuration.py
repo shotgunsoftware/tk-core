@@ -45,7 +45,7 @@ class TestConfiguration(TankTestBase):
         self._mock_default_user.login = "user"
 
         user = MagicMock(login="another_user")
-        configuration._set_authenticated_user(user)
+        configuration._set_authenticated_user(user, False, None)
 
         self.assertEqual(sgtk.get_authenticated_user(), user)
 
@@ -58,7 +58,7 @@ class TestConfiguration(TankTestBase):
         self._mock_default_user.login = None
 
         user = MagicMock(login="another_user")
-        configuration._set_authenticated_user(user)
+        configuration._set_authenticated_user(user, False, None)
 
         self.assertEqual(
             sgtk.get_authenticated_user(), self._mock_default_user

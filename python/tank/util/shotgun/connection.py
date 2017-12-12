@@ -381,12 +381,11 @@ def create_sg_connection(user="default"):
                             "via legacy configuration files failed. Details: %s" % e)
 
         log.debug("Creating shotgun connection based on details in %s" % config_file_path)
-        
 
-        config_data = __get_sg_config_data(shotgun_cfg_path, user)
+        config_data = __get_sg_config_data(config_file_path, user)
         # If the user is configured, we're happy.
         if not config_data.get("api_script") or not config_data.get("api_key"):
-            raise TankError("Missing required script user in config '%s'" % shotgun_cfg_path)
+            raise TankError("Missing required script user in config '%s'" % config_file_path)
 
         # Credentials were passed in, so let's run the legacy authentication
         # mechanism for script user.
