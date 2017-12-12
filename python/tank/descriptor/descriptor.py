@@ -17,6 +17,10 @@ from .errors import TankDescriptorError
 from ..util import LocalFileStorageManager
 from . import constants
 
+from ..log import LogManager
+
+logger = LogManager.get_logger(__name__)
+
 
 def create_descriptor(
         sg_connection,
@@ -106,10 +110,14 @@ def create_descriptor(
         return FrameworkDescriptor(sg_connection, io_descriptor)
 
     elif descriptor_type == Descriptor.CONFIG:
-        return CachedConfigDescriptor(io_descriptor)
+        return CachedConfigDescriptor(
+            sg_connection, bundle_cache_root_override, fallback_roots, io_descriptor
+        )
 
     elif descriptor_type == Descriptor.INSTALLED_CONFIG:
-        return InstalledConfigDescriptor(io_descriptor)
+        return InstalledConfigDescriptor(
+            sg_connection, bundle_cache_root_override, fallback_roots, io_descriptor
+        )
 
     elif descriptor_type == Descriptor.CORE:
         return CoreDescriptor(io_descriptor)
