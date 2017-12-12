@@ -63,22 +63,23 @@ def is_pipeline_config(pipeline_config_path):
 
 def get_path_to_current_core():
     """
-    Returns the local path of the currently executing code, assuming that this code is 
+    Returns the local path of the currently executing code, assuming that this code is
     located inside a standard toolkit install setup. If the code that is running is part
     of a localized pipeline configuration, the pipeline config root path
     will be returned, otherwise a 'studio' root will be returned.
-    
+
     This method may not return valid results if there has been any symlinks set up as part of
     the install structure.
-    
-    :returns: string with path
+
+    :returns: Path to the core's install location.
+    :rtype: str
     """
-    curr_os_core_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
+    curr_os_core_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
     if not os.path.exists(curr_os_core_root):
         full_path_to_file = os.path.abspath(os.path.dirname(__file__))
         raise TankError("Cannot resolve the core configuration from the location of the Toolkit Code! "
-                        "This can happen if you try to move or symlink the Toolkit API. The "
-                        "Toolkit API is currently picked up from %s which is an "
+                        "This can happen if you try to move or symlink the Toolkit API or if you are running it from"
+                        "the bundle cache. The Toolkit API is currently picked up from %s which is an "
                         "invalid location." % full_path_to_file)
     return curr_os_core_root
 

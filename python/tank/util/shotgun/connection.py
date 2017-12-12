@@ -59,7 +59,7 @@ def __get_api_core_config_location():
 
     return core_cfg
 
-def __get_sg_config(core_install_location=None):
+def __get_shotgun_yml_location(core_install_location=None):
     """
     Returns the site sg config yml file for this install
     
@@ -281,8 +281,8 @@ def get_associated_sg_config_data(core_install_location=None):
     :returns: The configuration data dictionary with keys host and optional entries
               api_script, api_key and http_proxy.
     """
-    cfg = __get_sg_config(core_install_location)
-    return __get_sg_config_data(cfg)
+    cfg_location = __get_shotgun_yml_location(core_install_location)
+    return __get_sg_config_data(cfg_location)
 
 
 def get_deferred_sg_connection():
@@ -369,7 +369,7 @@ def create_sg_connection(user="default"):
 
         # try to find the shotgun.yml path
         try:
-            config_file_path = __get_sg_config()
+            config_file_path = __get_shotgun_yml_location()
         except TankError as e:
             log.error(
                 "Trying to create a shotgun connection but this tk session does not have "
