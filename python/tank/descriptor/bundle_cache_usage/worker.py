@@ -31,6 +31,9 @@ class BundleCacheUsageWorker(threading.Thread):
     DEFAULT_STOP_TIMEOUT = 10 # in seconds
 
     KEY_BUNDLE_COUNT = "bundle_count"
+    KEY_LAST_USAGE_DATE = "last_usage_date"
+    KEY_USAGE_COUNT = "usage_count"
+
     def __init__(self, bundle_cache_root):
         super(BundleCacheUsageWorker, self).__init__()
         log.debug_worker_threading("__init__")
@@ -106,7 +109,7 @@ class BundleCacheUsageWorker(threading.Thread):
         if truncated_path:
             log.debug_worker("__get_last_usage_date('%s')" %(truncated_path))
             last_usage_date = self._bundle_cache_usage.get_last_usage_date(truncated_path)
-            response["last_usage_date"] = last_usage_date
+            response[BundleCacheUsageWorker.KEY_LAST_USAGE_DATE] = last_usage_date
 
         # We're done, signal caller!
         signal.set()
@@ -123,7 +126,7 @@ class BundleCacheUsageWorker(threading.Thread):
         if truncated_path:
             count = self._bundle_cache_usage.get_usage_count(truncated_path)
             log.debug_worker("__get_usage_count('%s') = %d" % (truncated_path, count))
-            response["usage_count"] = count
+            response[BundleCacheUsageWorker.KEY_USAGE_COUNT] = count
 
         # We're done, signal caller!
         signal.set()
@@ -290,12 +293,12 @@ class BundleCacheUsageWorker(threading.Thread):
         :return: a datetime object of the last used date
         """
         signal = threading.Event()
-        response = {"last_usage_date": None}
+        response = {BundleCacheUsageWorker.KEY_LAST_USAGE_DATE: None}
         signal.clear()
         self._queue_task(self.__get_last_usage_date, bundle_path, signal, response)
         signal.wait(timeout)
 
-        return response.get("last_usage_date", None)
+        return response.get(BundleCacheUsageWorker.KEY_LAST_USAGE_DATE, None)
 
     def get_usage_count(self, bundle_path, timeout=DEFAULT_OP_TIMEOUT):
         """
@@ -304,12 +307,12 @@ class BundleCacheUsageWorker(threading.Thread):
         :return: integer of the bundle usage count
         """
         signal = threading.Event()
-        response = {"usage_count":0}
+        response = {BundleCacheUsageWorker.KEY_USAGE_COUNT: 0}
         signal.clear()
         self._queue_task(self.__get_usage_count, bundle_path, signal, response)
         signal.wait(timeout)
 
-        return response.get("usage_count",0)
+        return response.get(BundleCacheUsageWorker.KEY_USAGE_COUNT, 0)
 
     def log_usage(self, bundle_path):
         """
