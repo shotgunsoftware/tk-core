@@ -107,12 +107,12 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         TEST_ENTRY_FAKE_PATH = "test-bundle"
 
         # Pre Checks
-        self.assertEquals(self.db.bundle_count, 0, "Was not expecting any entry yet.")
+        self.assertEquals(self.db.get_bundle_count(), 0, "Was not expecting any entry yet.")
 
         # Log something
         self.db.add_unused_bundle(TEST_ENTRY_FAKE_PATH)
 
-        self.assertEquals(self.db.bundle_count, 1)
+        self.assertEquals(self.db.get_bundle_count(), 1)
         self.assertEquals(self.db.get_usage_count(TEST_ENTRY_FAKE_PATH), 0)
 
     def test_db_log_usage_basic(self):
@@ -145,7 +145,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.db.log_usage(None)
 
         # Low level test for record count
-        self.assertEquals(self.db.bundle_count, 0, "Was not expecting a new entry from None")
+        self.assertEquals(self.db.get_bundle_count(), 0, "Was not expecting a new entry from None")
 
     def test_db_log_usage_for_new_entry(self):
         """
@@ -155,7 +155,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         BUNDLE_NAME = TestBundleCacheUsageWriterBasicOperations.TEST_BUNDLE_PATH1
 
         # Low level test for record count
-        self.assertEquals(self.db.bundle_count, 0)
+        self.assertEquals(self.db.get_bundle_count(), 0)
         # Test before logging anything
         self.assertEquals(self.db.get_usage_count(BUNDLE_NAME), 0)
 
@@ -163,7 +163,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.db.log_usage(BUNDLE_NAME)
 
         # Low level test for record count
-        self.assertEquals(self.db.bundle_count, 1)
+        self.assertEquals(self.db.get_bundle_count(), 1)
         # Test after logging usage
         self.assertEquals(self.db.get_usage_count(BUNDLE_NAME), 1)
 
@@ -189,7 +189,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
         # Low level test for record count, we're logging the same bundle name twice
         # We expect a single record still
-        self.assertEquals(self.db.bundle_count, 1, "Was expecting a single row since we've logged the same entry.")
+        self.assertEquals(self.db.get_bundle_count(), 1, "Was expecting a single row since we've logged the same entry.")
 
         # Test after logging usage
         self.assertEquals(self.db.get_usage_count(BUNDLE_NAME), 3,
@@ -208,7 +208,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
         # Low level test for record count, we're logging the same bundle name twice
         # We expect a single record still
-        self.assertEquals(self.db.bundle_count, 5, "Was expecting a single row since we've logged the same entry.")
+        self.assertEquals(self.db.get_bundle_count(), 5, "Was expecting a single row since we've logged the same entry.")
 
     def test_get_unused_bundles(self):
         """
@@ -304,16 +304,16 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
         # Verify initial DB properties and actual folder
         self.assertEquals(self.db.get_usage_count(bundle_path), 0)
-        self.assertEquals(self.db.bundle_count, 0)
+        self.assertEquals(self.db.get_bundle_count(), 0)
         self.assertTrue(os.path.exists(bundle_path))
         self.assertTrue(os.path.isdir(bundle_path))
 
         # Log some usage / add bundle
         self.db.log_usage(bundle_path)
         self.assertEquals(self.db.get_usage_count(bundle_path), 1)
-        self.assertEquals(self.db.bundle_count, 1)
+        self.assertEquals(self.db.get_bundle_count(), 1)
 
         # Delete bundle and verify final DB properties and actual folder
         self.db.delete_entry(bundle_path)
         self.assertEquals(self.db.get_usage_count(bundle_path), 0)
-        self.assertEquals(self.db.bundle_count, 0)
+        self.assertEquals(self.db.get_bundle_count(), 0)
