@@ -872,10 +872,3 @@ def get_csrf_key(encoded_cookies):
     # Shotgun appends the unique numerical ID of the user to the cookie name:
     # ex: csrf_token_u78
     return "csrf_token_u%s" % _get_shotgun_user_id(cookies)
-
-
-################################################################################
-#
-# logging
-#
-################################################################################

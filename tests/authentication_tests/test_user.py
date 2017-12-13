@@ -29,7 +29,7 @@ class UserTests(TankTestBase):
         ))
 
     def _create_test_saml_user(self):
-        return user.ShotgunUser(user_impl.SessionUser(
+        return user.ShotgunSamlUser(user_impl.SessionUser(
             host="https://tank.shotgunstudio.com",
             login="login",
             session_token="session_token",
@@ -78,9 +78,10 @@ class UserTests(TankTestBase):
         """
         # First start with a non-SAML user.
         su = self._create_test_user()
+        self.assertNotIsInstance(su, user.ShotgunSamlUser)
         self.assertFalse('cookies' in su.impl.to_dict())
         su_2 = user.deserialize_user(user.serialize_user(su))
-        self.assertFalse(isinstance(su_2, user.ShotgunSamlUser))
+        self.assertNotIsInstance(su_2, user.ShotgunSamlUser)
         self.assertEquals(su.host, su_2.host)
         self.assertEquals(su.http_proxy, su_2.http_proxy)
         self.assertEquals(su.login, su_2.login)
@@ -88,9 +89,10 @@ class UserTests(TankTestBase):
 
         # Then, with a SAML user.
         su = self._create_test_saml_user()
+        self.assertIsInstance(su, user.ShotgunSamlUser)
         self.assertTrue('cookies' in su.impl.to_dict())
         su_2 = user.deserialize_user(user.serialize_user(su))
-        self.assertTrue(isinstance(su_2, user.ShotgunSamlUser))
+        self.assertIsInstance(su_2, user.ShotgunSamlUser)
         self.assertEquals(su.host, su_2.host)
         self.assertEquals(su.http_proxy, su_2.http_proxy)
         self.assertEquals(su.login, su_2.login)
