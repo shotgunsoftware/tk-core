@@ -163,7 +163,8 @@ class BundleCacheUsageWorker(threading.Thread):
             if function:
                 function(*args, **kwargs)
         except Exception as e:
-            print e
+            log.error("UNEXPECTED Exception: %s " % (e))
+            #TODO: we're in a worker thread, find a way to report the error
 
         with self._member_lock:
             if self._pending_count > 0:
@@ -347,8 +348,6 @@ class BundleCacheUsageWorker(threading.Thread):
 
         :param bundle_path: A str path to a bundle
         """
-
-        log.debug_worker_hf("log_usage = %s" % (bundle_path))
         self._queue_task(self.__log_usage, bundle_path)
 
     @property
@@ -369,7 +368,7 @@ class BundleCacheUsageWorker(threading.Thread):
         """
         Starts the worker thread and wait for a database connection to be ready.
         This is required in case an access is made very early after worker creation.
-        
+
         :param timeout: A float maximum wait time in seconds
         """
         super(BundleCacheUsageWorker, self).start()

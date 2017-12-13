@@ -62,7 +62,7 @@ class BundleCacheManager(object):
 
     def __init__(self, bundle_cache_root):
         super(BundleCacheManager, self).__init__()
-        log.debug_manager("__init__")
+        log.debug_manager("__init__('%s')" % bundle_cache_root)
         #TODO: returning would cause a silent non-usage of specified parameter
         if (self.__initialized): return
         self._worker = None
@@ -247,7 +247,6 @@ class BundleCacheManager(object):
         log.info("populating done in %ss, found %d entries" % (
             time.time() - start_time, len(found_bundles)
         ))
-
 
     def get_bundle_count(self):
         return self._worker.get_bundle_count()
