@@ -56,6 +56,12 @@ class BundleCacheUsageWriterBase(object):
     def get_last_usage_timestamp(self, bundle_path):
         raise NotImplementedError()
 
+    def get_unused_bundles(self, since_days):
+        raise NotImplementedError()
+
+    def get_usage_count(self, bundle_path):
+        raise NotImplementedError()
+
     def log_usage(self, bundle_path):
         """
         Increase the database usage count and access date for the specified entry.

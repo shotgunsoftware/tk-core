@@ -35,7 +35,10 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
     def setUp(self):
         super(TestBundleCacheManager, self).setUp()
         self._test_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3")
+        BundleCacheManager.delete_instance()
         self._manager = BundleCacheManager(self.bundle_cache_root)
+        # Find possible `BundleCacheManager` singletonisation issue
+        self.assertEquals(self.bundle_cache_root, self._manager.bundle_cache_root)
 
     def tearDown(self):
         BundleCacheManager.delete_instance()
@@ -59,7 +62,7 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
                             "Lock up detected")
             count -= 1
 
-    def helper_stress_test1(self, manager, bundle_list, iteration_count=100):
+    def helper_stress_test(self, manager, bundle_list, iteration_count=100):
 
         bundle_count = len(bundle_list)
 
@@ -113,7 +116,7 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
 
             iteration_count -= 1
 
-    def test_stress_test1(self):
+    def test_stress_test(self):
         """
         Stress test using a semi-random more complete set of methods.
         """
@@ -122,7 +125,7 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
         count = 20
         while count > 0:
             manager = BundleCacheManager(self.bundle_cache_root)
-            self.helper_stress_test1(manager, test_bundle_list)
+            self.helper_stress_test(manager, test_bundle_list)
             BundleCacheManager.delete_instance()
             count -= 1
 

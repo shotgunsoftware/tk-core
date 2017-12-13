@@ -113,7 +113,7 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
             worker = None
             elapsed_time = time.time() - start_time
             # Should pretty much be instant and 250ms is an eternity for a computer
-            self.assertLess(elapsed_time, 0.25, "Lock up detected")
+            self.assertLess(elapsed_time, 0.25, "Lock up possibly detected")
             count -= 1
 
     def test_with_no_task(self):
@@ -223,9 +223,8 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
         """
         worker = BundleCacheUsageWorker(self.bundle_cache_root)
         worker.start()
-
         worker.log_usage(self._test_bundle_path)
-
+        # TODO: missing assert statement ???
         worker.stop()
 
     def test_get_unused_bundles(self):
