@@ -259,7 +259,7 @@ class TestBundleCacheManagerFindBundles(TestBundleCacheUsageBase):
 
         """
         # Tests using the test bundle cache test structure created in test setUp()
-        files = BundleCacheManager(self.bundle_cache_root).find_bundles()
+        files = BundleCacheManager(self.bundle_cache_root)._find_bundles()
         self.assertEquals(len(files), TestBundleCacheManagerFindBundles.EXPECTED_BUNDLE_COUNT)
 
     def test_walk_bundle_cache_non_existing_folder(self):
@@ -280,19 +280,19 @@ class TestBundleCacheManagerFindBundles(TestBundleCacheUsageBase):
         #
         test_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya")
         mgr = BundleCacheManager(test_path)
-        files = mgr.find_bundles()
+        files = mgr._find_bundles()
         self.assertEquals(len(files), 0)
         BundleCacheManager.delete_instance()
 
         test_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3")
         mgr = BundleCacheManager(test_path)
-        files = mgr.find_bundles()
+        files = mgr._find_bundles()
         self.assertEquals(len(files), 0)
         BundleCacheManager.delete_instance()
 
         test_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3", "plugins")
         mgr = BundleCacheManager(test_path)
-        files = mgr.find_bundles()
+        files = mgr._find_bundles()
         self.assertEquals(len(files), 0)
 
     def test_walk_bundle_cache_level_up(self):
@@ -308,7 +308,7 @@ class TestBundleCacheManagerFindBundles(TestBundleCacheUsageBase):
         # Try again, starting a level up, the method should be able to find the app_store
         # folder and start from there.
         test_path = os.path.join(self.bundle_cache_root, os.pardir)
-        files = BundleCacheManager(test_path).find_bundles()
+        files = BundleCacheManager(test_path)._find_bundles()
         self.assertEquals(len(files), TestBundleCacheManagerFindBundles.EXPECTED_BUNDLE_COUNT)
 
 

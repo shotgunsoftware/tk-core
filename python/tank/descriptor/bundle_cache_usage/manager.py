@@ -111,6 +111,51 @@ class BundleCacheManager(object):
 
         return path_list
 
+    def _find_app_store_bundles(self):
+        # TODO: Find a tk-core reference about why MAX_DEPTH_WALK should be set to 2
+        MAX_DEPTH_WALK = 2
+
+        bundle_path_list = []
+        bundle_cache_root = self.bundle_cache_root
+
+        # Process the local app store first
+        bundle_cache_app_store = BundleCacheManager._find_app_store_path(bundle_cache_root)
+
+        if bundle_cache_app_store:
+            log.debug("Found local app store path: %s" % (bundle_cache_app_store))
+
+            if bundle_cache_app_store and \
+                    os.path.exists(bundle_cache_app_store) and \
+                    os.path.isdir(bundle_cache_app_store):
+
+                log.debug("Found local app store path: %s" % (bundle_cache_app_store))
+                bundle_path_list += BundleCacheManager._find_descriptors(bundle_cache_app_store, MAX_DEPTH_WALK)
+        else:
+            log.debug("Could not find the local app store path from: %s" % (bundle_cache_root))
+
+        return bundle_path_list
+
+    def _find_bundles(self):
+        """
+        Scan the bundle cache at the specified location for bundles and add them
+        as unused entries to the database.
+
+        Reference: Walk up to a certain level
+        https://stackoverflow.com/questions/42720627/python-os-walk-to-certain-level
+
+        :param bundle_cache_root: A str of a path
+        """
+
+        app_store_bundle_list = self._find_app_store_bundles()
+        # TODO: Process other bundle_cache sub folders
+        bundle_list2 = []
+        bundle_list3 = []
+
+        # Combine all lists into a single one
+        bundle_path_list = list(set(app_store_bundle_list + bundle_list2 + bundle_list3))
+
+        return bundle_path_list
+
     @classmethod
     def _get_filelist(cls, bundle_path):
 
@@ -186,59 +231,23 @@ class BundleCacheManager(object):
     def bundle_cache_root(self):
         return self._bundle_cache_root
 
-    def find_bundles(self):
+    def initial_populate(self):
         """
         Scan the bundle cache at the specified location for bundles and add them
         as unused entries to the database.
 
-        Reference: Walk up to a certain level
-        https://stackoverflow.com/questions/42720627/python-os-walk-to-certain-level
-
-        :param bundle_cache_root: A str of a path
         """
 
-        # TODO: Find a tk-core reference about why MAX_DEPTH_WALK should be set to 2
-        MAX_DEPTH_WALK = 2
-
-        log.debug("find_bundles: populating ...")
+        log.info("Searching for existing bundles ...")
         start_time = time.time()
+        found_bundles = self._find_bundles()
+        for bundle_path in found_bundles:
+            self._worker.add_unused_bundle(bundle_path)
 
-        bundle_path_list = []
-        bundle_cache_root = self.bundle_cache_root
-
-        # Process the local app store first
-        bundle_cache_app_store = BundleCacheManager._find_app_store_path(bundle_cache_root)
-
-        if bundle_cache_app_store:
-            log.debug("Found local app store path: %s" % (bundle_cache_app_store))
-
-            if bundle_cache_app_store and \
-                    os.path.exists(bundle_cache_app_store) and \
-                    os.path.isdir(bundle_cache_app_store):
-
-                log.debug("Found local app store path: %s" % (bundle_cache_app_store))
-                bundle_path_list += BundleCacheManager._find_descriptors(bundle_cache_app_store, MAX_DEPTH_WALK)
-        else:
-            log.debug("Could not find the local app store path from: %s" % (bundle_cache_root))
-
-        elapsed_time = time.time() - start_time
-        log.info("find_bundles: populating done in %ss, found %d entries" % (
-            elapsed_time, len(bundle_path_list)
+        log.info("populating done in %ss, found %d entries" % (
+            time.time() - start_time, len(found_bundles)
         ))
 
-
-        # Process other bundle_cache sub folders
-        """
-        TODO: .... to be completed 
-        
-        bundle_cache_dirs = os.listdir(bundle_cache_app_store)
-        for sub_dir in bundle_cache_dirs:
-            path = os.path.join(bundle_cache_app_store, sub_dir)
-            if os.path.isdir(path):
-                bundle_path_list += BundleCacheManager._find_descriptors(path, MAX_DEPTH_WALK)
-        """
-
-        return bundle_path_list
 
     def get_bundle_count(self):
         return self._worker.get_bundle_count()

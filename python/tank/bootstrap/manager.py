@@ -1134,6 +1134,11 @@ class ToolkitManager(object):
         if os.environ.get('TK_DISABLE_BUNDLE_TRACKING', None):
             log.info("TK_DISABLE_BUNDLE_TRACKING true, bundle usage tracking disabled.")
         else:
+
+            # Check whether database is populated at all
+            if not bundle_cache_usage_mgr.get_bundle_count():
+                bundle_cache_usage_mgr.initial_populate()
+
             log.info("NICOLAS: About to enter... 'get_unused_bundles'")
             try:
                 log.info("Checking bundle cache for old bundles...")

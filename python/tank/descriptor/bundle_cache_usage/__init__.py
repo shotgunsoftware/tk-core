@@ -11,13 +11,13 @@ DEBUG = False # master switch
 USE_PRINT = False
 LOG_GET_PATH = False
 LOG_LOG_USAGE = False
-LOG_THREADING = True
+LOG_THREADING = False
 LOG_DESCRIPTOR_TYPE = False
 
 # Worker class debug controls
-LOG_WORKER = True
+LOG_WORKER = False
 LOG_WORKER_HF = False
-LOG_WORKER_THREADING = True
+LOG_WORKER_THREADING = False
 
 # Manager class debug controls
 LOG_MANAGER = False
@@ -99,9 +99,12 @@ class BundleCacheUsageLogger(object):
 
 
 from manager import BundleCacheManager
+import os
 
 # TODO: Where should this be???
-bundle_cache_root = LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE)
+bundle_cache_root = os.path.join(
+    LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
+    "bundle_cache"
+)
 bundle_cache_usage_mgr = BundleCacheManager(bundle_cache_root)
-bundle_cache_usage_logger.debug("NICOLAS: bundle_cache_root=%s" % (bundle_cache_root))
 

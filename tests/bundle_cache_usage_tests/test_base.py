@@ -117,15 +117,16 @@ class TestBundleCacheUsageBase(TankTestBase):
     """
     TMP_FOLDER_PREFIX = "TestBundleCacheUsageBase_"
     EXPECTED_DEFAULT_DB_FILENAME = "bundle_usage.sqlite3"
+    FAKE_TEST_BUNDLE_COUNT = 18 # as created in `_create_test_app_store_cache`
     DEBUG = False
 
     def setUp(self):
         super(TestBundleCacheUsageBase, self).setUp()
 
-        self._expected_db_path = os.path.join(
-            self.bundle_cache_root,
-            TestBundleCacheUsageBase.EXPECTED_DEFAULT_DB_FILENAME
-        )
+        from sgtk.descriptor.bundle_cache_usage.manager import BundleCacheManager
+        from sgtk.descriptor.bundle_cache_usage.writer_sqlite import BundleCacheUsageSQLiteWriter
+
+        self._expected_db_path = os.path.join(self.bundle_cache_root, BundleCacheUsageSQLiteWriter.DB_FILENAME)
 
         TestBundleCacheUsageBase._create_test_bundle_cache(self.tank_temp)
 
@@ -138,6 +139,7 @@ class TestBundleCacheUsageBase(TankTestBase):
 
         # Preventively delete leftovers
         self.delete_db()
+        BundleCacheManager.delete_instance()
 
     def tearDown(self):
         super(TestBundleCacheUsageBase, self).tearDown()

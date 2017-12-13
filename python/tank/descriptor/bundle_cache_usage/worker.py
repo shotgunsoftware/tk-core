@@ -57,6 +57,16 @@ class BundleCacheUsageWorker(threading.Thread):
     #
     ###########################################################################
 
+    def __add_unused_bundle(self, bundle_path):
+        """
+        Add a database entry initialised with a usage count of zero.
+        :param bundle_path: A str of a bundle path
+        """
+        truncated_path = self._truncate_path(bundle_path)
+        if truncated_path:
+            log.debug_worker("__add_unused_bundle('%s')" % (truncated_path))
+            self._bundle_cache_usage.add_unused_bundle(truncated_path)
+
     def __delete_entry(self, bundle_path, signal):
         """
         Worker thread only method deleting an entry from the database.
@@ -247,6 +257,11 @@ class BundleCacheUsageWorker(threading.Thread):
     # Can run from either threading contextes
     #
     ###########################################################################
+
+    def add_unused_bundle(self, bundle_path):
+        """
+        """
+        self._queue_task(self.__add_unused_bundle, bundle_path)
 
     @property
     def bundle_cache_root(self):
