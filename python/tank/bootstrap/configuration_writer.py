@@ -523,6 +523,9 @@ class ConfigurationWriter(object):
         # now write out roots data
         roots_data = {}
 
+        log.debug("The following roots were found in Shotgun: %s", storage_by_name.keys())
+        log.debug("This configuration requires: %s", config_descriptor.required_storages)
+
         for storage_name in config_descriptor.required_storages:
 
             if storage_name not in storage_by_name:
