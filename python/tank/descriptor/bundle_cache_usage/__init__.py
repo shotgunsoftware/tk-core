@@ -19,6 +19,9 @@ LOG_WORKER = True
 LOG_WORKER_HF = False
 LOG_WORKER_THREADING = True
 
+# Manager class debug controls
+LOG_MANAGER = False
+
 bundle_cache_usage_logger = LogManager.get_logger(__name__)
 
 if USE_PYDEVD:
@@ -65,6 +68,11 @@ class BundleCacheUsageLogger(object):
         """ Log high frequency events """
         if LOG_WORKER_HF:
             cls._debug(message)
+
+    @classmethod
+    def debug_manager(cls, message):
+        if LOG_MANAGER:
+            ls._debug(message)
 
     @classmethod
     def debug_worker_threading(cls, message):
