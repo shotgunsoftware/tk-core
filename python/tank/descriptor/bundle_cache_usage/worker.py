@@ -38,6 +38,7 @@ class BundleCacheUsageWorker(threading.Thread):
         super(BundleCacheUsageWorker, self).__init__()
         log.debug_worker_threading("__init__")
         self._terminate_requested = threading.Event()
+        self._database_created = threading.Event()
         self._queued_signal = threading.Event()
         self._tasks = Queue.Queue()
         self._member_lock = threading.Condition()
@@ -187,6 +188,7 @@ class BundleCacheUsageWorker(threading.Thread):
         try:
             #  The SQLite object can only be used in the thread it was created in.
             self._bundle_cache_usage = Writer(self._bundle_cache_root)
+            self._database_created.set()
 
             while not self._terminate_requested.is_set() or self.pending_count > 0:
 
@@ -339,6 +341,16 @@ class BundleCacheUsageWorker(threading.Thread):
         """
         with self._member_lock:
             return self._pending_count
+
+    def start(self, timeout=DEFAULT_OP_TIMEOUT):
+        """
+        Starts the worker thread and wait for a database connection to be ready.
+        This is required in case an access is made very early after worker creation.
+        
+        :param timeout: A float maximum wait time in seconds
+        """
+        super(BundleCacheUsageWorker, self).start()
+        self._database_created.wait(timeout)
 
     def stop(self, timeout=DEFAULT_STOP_TIMEOUT):
 
