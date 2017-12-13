@@ -29,7 +29,7 @@ class BundleCacheManagerException(Exception):
 class BundleCacheManagerDeletionException(BundleCacheManagerException):
 
     def __init__(self, filepath, message=None):
-        super(BundleCacheManagerDeletionException, self).__init__(message)
+        super(BundleCacheManagerDeletionException, self).__init__(filepath, message)
 
 
 class BundleCacheManager(object):
