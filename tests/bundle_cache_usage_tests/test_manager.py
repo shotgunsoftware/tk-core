@@ -100,15 +100,16 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
                 self.assertLess(time.time() - start_time,
                                 TestBundleCacheManager.MAXIMUM_BLOCKING_TIME_IN_SECONDS,
                                 "The 'get_bundle_count' method took unexpectedly long time to execute")
+
             # only if equals 0
             if not random.randint(0, iteration_count):
                 bundle_path = bundle_list[random.randint(0, bundle_count-1)]
                 start_time = time.time()
-                manager._purge_bundle(bundle_path)
+                manager.purge_bundle(bundle_path)
                 # Check that execution is rather quick (2 times the blocking delay)
                 self.assertLess(time.time() - start_time,
                                 2*TestBundleCacheManager.MAXIMUM_BLOCKING_TIME_IN_SECONDS,
-                                "The 'get_last_usage_date' method took unexpectedly long time to execute")
+                                "The 'purge_bundle' method took unexpectedly long time to execute")
 
             iteration_count -= 1
 
@@ -476,7 +477,7 @@ class TestBundleCacheManagerPurgeBundle(TestBundleCacheUsageBase):
         self.assertIsNotNone(self._manager.get_last_usage_date(test_bundle_path))
 
         # Purge it!
-        self._manager._purge_bundle(test_bundle_path)
+        self._manager.purge_bundle(test_bundle_path)
 
         # Now verify that neither files or database entry exist
         self.assertEquals(0, self._manager.get_usage_count(test_bundle_path))
@@ -527,7 +528,7 @@ class TestBundleCacheManagerPurgeBundle(TestBundleCacheUsageBase):
         self.assertIsNotNone(self._manager.get_last_usage_date(test_bundle_path))
 
         # Purge the bundle
-        self._manager._purge_bundle(test_bundle_path)
+        self._manager.purge_bundle(test_bundle_path)
 
         # Now verify that the bundle root folder and database entry still exist
         self.assertEquals(1, self._manager.get_usage_count(test_bundle_path))
