@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
-from .bundle_cache_usage import bundle_cache_usage_mgr
 from .descriptor import Descriptor
 from .descriptor_core import CoreDescriptor
 from .descriptor_bundle import AppDescriptor, FrameworkDescriptor, EngineDescriptor
