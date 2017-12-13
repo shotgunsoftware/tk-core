@@ -74,6 +74,23 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
             self.assertLess(elapsed_time, 0.25, "Lock up detected")
             count -= 1
 
+    def test_stress_wait_worker_created_db(self):
+        """
+        Stress-Testing that a connection is ready after `start` is called.
+        """
+        count = 1000
+        while count > 0:
+            start_time = time.time()
+            worker = BundleCacheUsageWorker(self.bundle_cache_root)
+            worker.start()
+            self.assertIsNotNone(worker._bundle_cache_usage.connected)
+            worker.stop()
+            worker = None
+            elapsed_time = time.time() - start_time
+            # Should pretty much be instant and 250ms is an eternity for a computer
+            self.assertLess(elapsed_time, 0.25, "Lock up possibly detected")
+            count -= 1
+
     def test_stress_start_stop_with_operations(self):
         """
         Stress-Test for possible lock-ups starting, issuing some operations and then
