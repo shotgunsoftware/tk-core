@@ -111,7 +111,7 @@ class Utils(object):
                 pass
 
 
-class TestBundleCacheUsageBase(unittest2.TestCase):
+class TestBundleCacheUsageBase(TankTestBase):
     """
     TestBundleCacheUsageBase test base class
     """
@@ -120,23 +120,14 @@ class TestBundleCacheUsageBase(unittest2.TestCase):
     DEBUG = False
 
     def setUp(self):
-        # Actually we don't want to inherit from tanTestBase
         super(TestBundleCacheUsageBase, self).setUp()
-        current_tmp_root = tempfile.tempdir
-        self._temp_folder = os.path.join(
-            tempfile.tempdir,
-            TestBundleCacheUsageBase.TMP_FOLDER_PREFIX
-        )
-
-        if not os.path.exists(self._temp_folder):
-            os.makedirs(self._temp_folder)
 
         self._expected_db_path = os.path.join(
             self.bundle_cache_root,
             TestBundleCacheUsageBase.EXPECTED_DEFAULT_DB_FILENAME
         )
 
-        TestBundleCacheUsageBase._create_test_bundle_cache(self._temp_folder)
+        TestBundleCacheUsageBase._create_test_bundle_cache(self.tank_temp)
 
         self._test_bundle_path = os.path.join(
             self.bundle_cache_root,
@@ -150,11 +141,10 @@ class TestBundleCacheUsageBase(unittest2.TestCase):
 
     def tearDown(self):
         super(TestBundleCacheUsageBase, self).tearDown()
-        Utils.safe_delete(self._temp_folder)
 
     @property
     def bundle_cache_root(self):
-        return os.path.join(self._temp_folder, "bundle_cache")
+        return os.path.join(self.tank_temp, "bundle_cache")
 
     def log_debug(self, msg):
         if TestBundleCacheUsageBase.DEBUG:

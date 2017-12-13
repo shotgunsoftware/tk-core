@@ -72,7 +72,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
         Simply verify there isn't any exception
         """
-        db = Writer(self._temp_folder)
+        db = Writer(self.bundle_cache_root)
         self.assertIsNotNone(db)
         self.assertIsInstance(db, Writer, "Was expecting class type to be Writer")
 
@@ -298,13 +298,9 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         Tests the `delete_entry` method
         """
 
-        # Create a folder structure on disk but no entries are added to DB
-        TestBundleCacheUsageBase._create_test_bundle_cache(self.bundle_cache_root)
         # See the `_create_test_bundle_cache` for available created test bundles
-        bundle_path = os.path.join(self.bundle_cache_root,
-                                   "app_store",
-                                   "tk-shell",
-                                   "v0.5.4")
+        # also see `TestBundleCacheUsageBase.setUp()
+        bundle_path = self._test_bundle_path
 
         # Verify initial DB properties and actual folder
         self.assertEquals(self.db.get_usage_count(bundle_path), 0)

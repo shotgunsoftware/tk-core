@@ -37,13 +37,7 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
 
     def setUp(self):
         super(TestBundleCacheUsageWorker, self).setUp()
-        self._debug = False
-
         TestBundleCacheUsageBase._create_test_bundle_cache(self.bundle_cache_root)
-
-       # TODO: How do you get bundle_cache test path as opposed to what is returned by
-        # LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE)
-        os.environ["SHOTGUN_HOME"] = self.bundle_cache_root
 
     def tearDown(self):
         super(TestBundleCacheUsageWorker, self).tearDown()

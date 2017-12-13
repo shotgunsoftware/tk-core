@@ -34,15 +34,10 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
 
     def setUp(self):
         super(TestBundleCacheManager, self).setUp()
-
-       # TODO: How do you get bundle_cache test path as opposed to what is returned by
-        # LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE)
-        os.environ["SHOTGUN_HOME"] = self.bundle_cache_root
         self._test_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3")
         self._manager = BundleCacheManager(self.bundle_cache_root)
 
     def tearDown(self):
-        Utils.safe_delete(self.bundle_cache_root)
         BundleCacheManager.delete_instance()
         self._manager = None
         super(TestBundleCacheManager, self).tearDown()
@@ -228,12 +223,7 @@ class TestBundleCacheManagerFindBundles(TestBundleCacheUsageBase):
     def setUp(self):
         super(TestBundleCacheManagerFindBundles, self).setUp()
 
-       # TODO: How do you get bundle_cache test path as opposed to what is returned by
-        # LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE)
-        os.environ["SHOTGUN_HOME"] = self.bundle_cache_root
-
     def tearDown(self):
-        Utils.safe_delete(self.bundle_cache_root)
         BundleCacheManager.delete_instance()
         super(TestBundleCacheManagerFindBundles, self).tearDown()
 
@@ -440,18 +430,13 @@ class TestBundleCacheManagerPurgeBundle(TestBundleCacheUsageBase):
 
     def setUp(self):
         super(TestBundleCacheManagerPurgeBundle, self).setUp()
-
-        # TODO: How do you get bundle_cache test path as opposed to what is returned by
-        # LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE)
-        os.environ["SHOTGUN_HOME"] = self.bundle_cache_root
-
         self._test_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3")
+        BundleCacheManager.delete_instance()
         self._manager = BundleCacheManager(self.bundle_cache_root)
 
     def tearDown(self):
-        Utils.safe_delete(self.bundle_cache_root)
-        self._manager = None
         BundleCacheManager.delete_instance()
+        self._manager = None
         super(TestBundleCacheManagerPurgeBundle, self).tearDown()
 
     def test_simple_bundle_purge(self):
@@ -459,26 +444,29 @@ class TestBundleCacheManagerPurgeBundle(TestBundleCacheUsageBase):
         Tests purging a normal, nothing special, app store bundle.
         """
 
+        # Comes from `TestBundleCacheUsageBase.setUp()`
+        test_bundle_path = self._test_bundle_path
+
         # Assert the test setup itself
         self.assertTrue(os.path.exists(self._test_path))
-        self.assertEquals(0, self._manager.get_usage_count(self._test_path))
-        self.assertIsNone(self._manager.get_last_usage_date(self._test_path))
+        self.assertEquals(0, self._manager.get_usage_count(test_bundle_path))
+        self.assertIsNone(self._manager.get_last_usage_date(test_bundle_path))
 
         # Log some usage
-        self._manager.log_usage(self._test_path)
-        self.assertEquals(1, self._manager.get_usage_count(self._test_path))
-        self.assertIsNotNone(self._manager.get_last_usage_date(self._test_path))
+        self._manager.log_usage(test_bundle_path)
+        self.assertEquals(1, self._manager.get_usage_count(test_bundle_path))
+        self.assertIsNotNone(self._manager.get_last_usage_date(test_bundle_path))
 
         # Purge it!
-        self._manager._purge_bundle(self._test_path)
+        self._manager._purge_bundle(test_bundle_path)
 
         # Now verify that neither files or database entry exist
-        self.assertEquals(0, self._manager.get_usage_count(self._test_path))
-        self.assertIsNone(self._manager.get_last_usage_date(self._test_path))
-        self.assertFalse(os.path.exists(self._test_path))
+        self.assertEquals(0, self._manager.get_usage_count(test_bundle_path))
+        self.assertIsNone(self._manager.get_last_usage_date(test_bundle_path))
+        self.assertFalse(os.path.exists(test_bundle_path))
 
-        # Finaly, that the parent folder still exists
-        test_path_parent = os.path.abspath(os.path.join(self._test_path, os.pardir))
+        # Finally, that the parent folder still exists
+        test_path_parent = os.path.abspath(os.path.join(test_bundle_path, os.pardir))
         self.assertTrue(os.path.exists(test_path_parent))
 
     def test_purge_bundle_with_link_file(self):
@@ -490,9 +478,10 @@ class TestBundleCacheManagerPurgeBundle(TestBundleCacheUsageBase):
         link_dir = False
         use_hardlink = False
 
+        test_bundle_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3")
+
         # Setup paths for link creation
-        base_path = os.path.join(self.bundle_cache_root,
-                                 "app_store", "tk-maya", "v0.8.3", "plugins", "basic")
+        base_path = os.path.join(test_bundle_path, "plugins", "basic")
 
         if link_dir:
             source_file = os.path.join(base_path)
@@ -508,24 +497,24 @@ class TestBundleCacheManagerPurgeBundle(TestBundleCacheUsageBase):
             os.symlink(source_file, dest_path)
 
         # Assert the test setup itself
-        self.assertTrue(os.path.exists(self._test_path))
-        self.assertEquals(0, self._manager.get_usage_count(self._test_path))
-        self.assertIsNone(self._manager.get_last_usage_date(self._test_path))
+        self.assertTrue(os.path.exists(test_bundle_path))
+        self.assertEquals(0, self._manager.get_usage_count(test_bundle_path))
+        self.assertIsNone(self._manager.get_last_usage_date(test_bundle_path))
         self.assertTrue(os.path.exists(dest_path))
         self.assertTrue(os.path.islink(dest_path))
 
         # Log some usage
-        self._manager.log_usage(self._test_path)
-        self.assertEquals(1, self._manager.get_usage_count(self._test_path))
-        self.assertIsNotNone(self._manager.get_last_usage_date(self._test_path))
+        self._manager.log_usage(test_bundle_path)
+        self.assertEquals(1, self._manager.get_usage_count(test_bundle_path))
+        self.assertIsNotNone(self._manager.get_last_usage_date(test_bundle_path))
 
         # Purge the bundle
-        self._manager._purge_bundle(self._test_path)
+        self._manager._purge_bundle(test_bundle_path)
 
         # Now verify that the bundle root folder and database entry still exist
-        self.assertEquals(1, self._manager.get_usage_count(self._test_path))
-        self.assertIsNotNone(self._manager.get_last_usage_date(self._test_path))
-        self.assertTrue(os.path.exists(self._test_path))
+        self.assertEquals(1, self._manager.get_usage_count(test_bundle_path))
+        self.assertIsNotNone(self._manager.get_last_usage_date(test_bundle_path))
+        self.assertTrue(os.path.exists(test_bundle_path))
         self.assertTrue(os.path.exists(dest_path))
         self.assertTrue(os.path.islink(dest_path))
 
