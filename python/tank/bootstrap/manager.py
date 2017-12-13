@@ -1131,7 +1131,7 @@ class ToolkitManager(object):
         :param progress_callback: Callback function that reports back on the engine startup progress.
         """
 
-        if int(os.environ.get('TK_DISABLE_BUNDLE_TRACKING', 0)) == 1:
+        if os.environ.get('TK_DISABLE_BUNDLE_TRACKING', None):
             log.info("TK_DISABLE_BUNDLE_TRACKING true, bundle usage tracking disabled.")
         else:
             log.info("NICOLAS: About to enter... 'get_unused_bundles'")
