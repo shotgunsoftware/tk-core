@@ -29,14 +29,6 @@ class BundleCacheUsageWriterBase(object):
         """
         return self._bundle_cache_root
 
-    @property
-    def bundle_count(self):
-        """
-        Returns the number of bundles tracked in the database.
-        :return: An integer of a tracked bundle count
-        """
-        raise NotImplementedError()
-
     def close(self):
         """
         Close the database connection.
@@ -51,10 +43,11 @@ class BundleCacheUsageWriterBase(object):
         """
         raise NotImplementedError()
 
-    def get_unused_bundles(self, since_days):
-        raise NotImplementedError()
-
-    def get_usage_count(self, bundle_path):
+    def get_bundle_count(self):
+        """
+        Returns the number of bundles tracked in the database.
+        :return: An integer of a tracked bundle count
+        """
         raise NotImplementedError()
 
     def get_last_usage_date(self, bundle_path):

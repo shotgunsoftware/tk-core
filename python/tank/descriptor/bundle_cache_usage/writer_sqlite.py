@@ -252,19 +252,6 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
         """
         return self._bundle_cache_root
 
-    @property
-    def bundle_count(self):
-        """
-        Returns the number of bundles tracked in the database.
-        :return: An integer of a tracked bundle count
-        """
-        result = self._execute("SELECT * FROM %s" % (BundleCacheUsageSQLiteWriter.DB_MAIN_TABLE_NAME))
-        if not result:
-            return 0
-
-        rows = result.fetchall()
-        return len(rows)
-
     def close(self):
         """
         Close the database connection.
@@ -291,6 +278,18 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
         if self._find_bundle(bundle_path):
             self._delete_bundle_entry(bundle_path)
             log.debug_db_delete("Delete entry '%s'" % str(bundle_path))
+
+    def get_bundle_count(self):
+        """
+        Returns the number of bundles tracked in the database.
+        :return: An integer of a tracked bundle count
+        """
+        result = self._execute("SELECT * FROM %s" % (BundleCacheUsageSQLiteWriter.DB_MAIN_TABLE_NAME))
+        if not result:
+            return 0
+
+        rows = result.fetchall()
+        return len(rows)
 
     def get_last_usage_date(self, bundle_path):
         bundle_entry = self._find_bundle(bundle_path)

@@ -30,6 +30,7 @@ class BundleCacheUsageWorker(threading.Thread):
     DEFAULT_OP_TIMEOUT = 2 # in seconds
     DEFAULT_STOP_TIMEOUT = 10 # in seconds
 
+    KEY_BUNDLE_COUNT = "bundle_count"
     def __init__(self, bundle_cache_root):
         super(BundleCacheUsageWorker, self).__init__()
         log.debug_worker_threading("__init__")
@@ -60,6 +61,20 @@ class BundleCacheUsageWorker(threading.Thread):
         if truncated_path:
             log.debug_worker("__delete_entry('%s')" %(truncated_path))
             self._bundle_cache_usage.delete_entry(truncated_path)
+
+        # We're done, signal caller!
+        signal.set()
+
+    def __get_bundle_count(self, signal, response):
+        """
+        Worker thread only method that queries the database for entries unused for the last N days.
+        :param signal: A threading.Event object created by original client from the main thread.
+        :param response: A list
+        :return: indirectly returns a dict  through usage of the response variable
+        """
+        count = self._bundle_cache_usage.get_bundle_count()
+        log.debug_worker("__get_bundle_count() = %d" % (count))
+        response[BundleCacheUsageWorker.KEY_BUNDLE_COUNT] = count
 
         # We're done, signal caller!
         signal.set()
@@ -253,6 +268,20 @@ class BundleCacheUsageWorker(threading.Thread):
         signal.clear()
         self._queue_task(self.__delete_entry, bundle_path, signal)
         signal.wait(timeout)
+
+    def get_bundle_count(self, timeout=DEFAULT_OP_TIMEOUT):
+        """
+        Blocking method that returns the date the specified bundle path was last used.
+
+        :return: a datetime object of the last used date
+        """
+        signal = threading.Event()
+        response = {BundleCacheUsageWorker.KEY_BUNDLE_COUNT: 0}
+        signal.clear()
+        self._queue_task(self.__get_bundle_count, signal, response)
+        signal.wait(timeout)
+
+        return response.get(BundleCacheUsageWorker.KEY_BUNDLE_COUNT, 0)
 
     def get_last_usage_date(self, bundle_path, timeout=DEFAULT_OP_TIMEOUT):
         """

@@ -93,6 +93,13 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
                                 TestBundleCacheManager.MAXIMUM_BLOCKING_TIME_IN_SECONDS,
                                 "The 'get_last_usage_date' method took unexpectedly long time to execute")
 
+            if random.randint(0, 1):
+                start_time = time.time()
+                manager.get_bundle_count()
+                # Check that execution is near instant
+                self.assertLess(time.time() - start_time,
+                                TestBundleCacheManager.MAXIMUM_BLOCKING_TIME_IN_SECONDS,
+                                "The 'get_bundle_count' method took unexpectedly long time to execute")
             # only if equals 0
             if not random.randint(0, iteration_count):
                 bundle_path = bundle_list[random.randint(0, bundle_count-1)]
@@ -117,6 +124,17 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
             self.helper_stress_test1(manager, test_bundle_list)
             BundleCacheManager.delete_instance()
             count -= 1
+
+    def test_get_bundle_count(self):
+        """ Tests the `get_bundle_count` method. """
+
+        self.assertEquals(0, self._manager.get_bundle_count())
+
+        # Log some usage
+        self._manager.log_usage(self._test_path)
+        # Actually no need to wait, since get_bundle_count method is queued
+        # and waiting for worker
+        self.assertEquals(1, self._manager.get_bundle_count())
 
     def test_get_filelist(self):
         """ Tests the `_get_filelist` method against a known fake bundle. """

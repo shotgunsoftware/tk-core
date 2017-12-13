@@ -250,6 +250,9 @@ class BundleCacheManager(object):
 
         return bundle_path_list
 
+    def get_bundle_count(self):
+        return self._worker.get_bundle_count()
+
     def get_last_usage_date(self, bundle_path):
         return self._worker.get_last_usage_date(bundle_path)
 
