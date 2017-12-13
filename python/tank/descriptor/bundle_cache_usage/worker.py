@@ -14,9 +14,11 @@ import threading
 import Queue
 from threading import Event, Thread, Lock
 
+from .exception import BundleCacheUsageTimeoutException
 from .writer_sqlite import BundleCacheUsageSQLiteWriter as Writer
 from . import BundleCacheUsageLogger as log
 from . import LOG_LOG_USAGE, LOG_THREADING
+
 
 class BundleCacheUsageWorker(threading.Thread):
 
@@ -272,7 +274,8 @@ class BundleCacheUsageWorker(threading.Thread):
         signal = threading.Event()
         signal.clear()
         self._queue_task(self.__delete_entry, bundle_path, signal)
-        signal.wait(timeout)
+        if not signal.wait(timeout):
+            raise BundleCacheUsageTimeoutException("delete_entry")
 
     def get_bundle_count(self, timeout=DEFAULT_OP_TIMEOUT):
         """
@@ -284,7 +287,10 @@ class BundleCacheUsageWorker(threading.Thread):
         response = {BundleCacheUsageWorker.KEY_BUNDLE_COUNT: 0}
         signal.clear()
         self._queue_task(self.__get_bundle_count, signal, response)
-        signal.wait(timeout)
+
+        # The return value is True unless a given timeout expired, in which case it is False.
+        if not signal.wait(timeout):
+            raise BundleCacheUsageTimeoutException("get_bundle_count")
 
         return response.get(BundleCacheUsageWorker.KEY_BUNDLE_COUNT, 0)
 
@@ -298,7 +304,8 @@ class BundleCacheUsageWorker(threading.Thread):
         response = {BundleCacheUsageWorker.KEY_LAST_USAGE_DATE: None}
         signal.clear()
         self._queue_task(self.__get_last_usage_date, bundle_path, signal, response)
-        signal.wait(timeout)
+        if not signal.wait(timeout):
+            raise BundleCacheUsageTimeoutException("get_last_usage_date")
 
         return response.get(BundleCacheUsageWorker.KEY_LAST_USAGE_DATE, None)
 
@@ -312,7 +319,8 @@ class BundleCacheUsageWorker(threading.Thread):
         response = {BundleCacheUsageWorker.KEY_USAGE_COUNT: 0}
         signal.clear()
         self._queue_task(self.__get_usage_count, bundle_path, signal, response)
-        signal.wait(timeout)
+        if not signal.wait(timeout):
+            raise BundleCacheUsageTimeoutException("get_usage_count")
 
         return response.get(BundleCacheUsageWorker.KEY_USAGE_COUNT, 0)
 
@@ -350,7 +358,8 @@ class BundleCacheUsageWorker(threading.Thread):
         :param timeout: A float maximum wait time in seconds
         """
         super(BundleCacheUsageWorker, self).start()
-        self._database_created.wait(timeout)
+        if not self._database_created.wait(timeout):
+            raise BundleCacheUsageTimeoutException("start")
 
     def stop(self, timeout=DEFAULT_STOP_TIMEOUT):
 
@@ -361,6 +370,7 @@ class BundleCacheUsageWorker(threading.Thread):
         self._terminate_requested.set()
         self._queued_signal.set()
         self.join(timeout=timeout)
+        # TODO: Hwo to determine join timeout out?
 
     def get_unused_bundles(self, since_days, timeout=DEFAULT_OP_TIMEOUT):
         """
@@ -373,7 +383,10 @@ class BundleCacheUsageWorker(threading.Thread):
         response = []
         signal.clear()
         self._queue_task(self.__get_unused_bundles, since_days, signal, response)
-        signal.wait(timeout)
+
+        # The return value is True unless a given timeout expired, in which case it is False.
+        if not signal.wait(timeout):
+            raise BundleCacheUsageTimeoutException("get_bundle_count")
 
         return response
 
