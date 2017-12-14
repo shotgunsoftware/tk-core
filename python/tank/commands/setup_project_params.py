@@ -941,7 +941,7 @@ class TemplateConfiguration(object):
         # unzip into temp location
         self._log.debug("Unzipping configuration and inspecting it...")
         zip_unpack_tmp = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
-        unzip_file(zip_path, zip_unpack_tmp)
+        unzip_file(zip_path, zip_unpack_tmp, auto_detect_bundle=True)
         template_items = os.listdir(zip_unpack_tmp)
         for item in ["core", "env", "hooks"]:
             if item not in template_items:
