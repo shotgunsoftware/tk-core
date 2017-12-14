@@ -8,8 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from .configuration import Configuration
+import os
 
+from .errors import TankBootstrapError
+from .configuration import Configuration
 from .. import LogManager
 
 log = LogManager.get_logger(__name__)
@@ -47,7 +49,32 @@ class InstalledConfiguration(Configuration):
 
         :returns: LOCAL_CFG_UP_TO_DATE
         """
-        log.debug("%s is always up to date:" % self)
+        log.debug("Checking that classic config has got all the required files.")
+        # check that the path we have been given actually points at
+        # a classic configuration.
+        config_path = self._path.current_os
+        pipe_cfg_path = os.path.join(config_path, "core", "pipeline_configuration.yml")
+        if not os.path.exists(pipe_cfg_path):
+
+            log.warning(
+                "Your classic/installed pipeline configuration is missing the file %s. "
+                "Pipeline configurations using the fields windows_path, mac_path "
+                "or linux_path need to be created via the Toolkit "
+                "project setup process." % pipe_cfg_path
+            )
+
+            log.warning(
+                "Note: If you want to bootstrap toolkit directly from a "
+                "configuration that is stored locally, use the "
+                "PipelineConfiguration.descriptor field together with a path descriptor."
+            )
+
+            raise TankBootstrapError(
+                "Cannot find required system file 'core/pipeline_configuration.yml' "
+                "in configuration %s." % config_path
+            )
+
+        log.debug("Checking status of %s: Installed configs are always up to date:" % self)
 
         return self.LOCAL_CFG_UP_TO_DATE
 
