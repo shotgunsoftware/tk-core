@@ -103,8 +103,8 @@ class BundleCacheUsageWorker(threading.Thread):
         :param response: A list
         :return: indirectly returns a list through usage of the response variable
         """
-        log.debug_worker("__get_unused_bundles()")
         list = self._bundle_cache_usage._get_unused_bundles(since_days)
+        log.debug_worker("__get_unused_bundles() count = %d" % (len(list)))
         for item in list:
             response.append(item)
 
