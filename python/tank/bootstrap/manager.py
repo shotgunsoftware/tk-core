@@ -18,16 +18,13 @@ from .configuration import Configuration
 from .resolver import ConfigurationResolver
 from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
+from ..descriptor.bundle_cache_usage import bundle_cache_usage_mgr
 
 from .. import LogManager
 from ..errors import TankError
 
 log = LogManager.get_logger(__name__)
 
-try:
-    from ..descriptor.bundle_cache_usage import bundle_cache_usage_mgr
-except Exception as e:
-    log.error("Error importing 'bundle_cache_usage_mgr': %s" % (e))
 
 class ToolkitManager(object):
     """
