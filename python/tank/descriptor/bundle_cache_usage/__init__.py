@@ -5,22 +5,9 @@ from ...util import LocalFileStorageManager
 USE_PYDEVD = False
 PYDEVD_INITIATED = False
 
-# Debug logging options
-DEBUG = False # master switch
-
-USE_PRINT = False
 LOG_GET_PATH = False
 LOG_LOG_USAGE = False
-LOG_THREADING = False
 LOG_DESCRIPTOR_TYPE = False
-
-# Worker class debug controls
-LOG_WORKER = False
-LOG_WORKER_HF = False
-LOG_WORKER_THREADING = False
-
-# Manager class debug controls
-LOG_MANAGER = False
 
 bundle_cache_usage_logger = LogManager.get_logger(__name__)
 
@@ -32,12 +19,28 @@ if USE_PYDEVD:
         pydevd.settrace('localhost', port=7720, stdoutToServer=True, stderrToServer=True, suspend=True)
         PYDEVD_INITIATED = True
 
+
 class BundleCacheUsageLogger(object):
+
+    # Debug logging options
+    DEBUG = True  # master switch
+
+    USE_PRINT = True
+
+    LOG_THREADING = False
+
+    # Manager class debug controls
+    LOG_MANAGER = True
+
+    # Worker class debug controls
+    LOG_WORKER = True
+    LOG_WORKER_HF = False
+    LOG_WORKER_THREADING = True
 
     @classmethod
     def _debug(cls, message):
-        if DEBUG:
-            if USE_PRINT:
+        if cls.DEBUG:
+            if cls.USE_PRINT:
                 print(message)
             else:
                 bundle_cache_usage_logger.debug("NICOLAS: " + message)
@@ -60,33 +63,33 @@ class BundleCacheUsageLogger(object):
 
     @classmethod
     def debug_worker(cls, message):
-        if LOG_WORKER:
+        if cls.LOG_WORKER:
             cls._debug(message)
 
     @classmethod
     def debug_worker_hf(cls, message):
         """ Log high frequency events """
-        if LOG_WORKER_HF:
+        if cls.LOG_WORKER_HF:
             cls._debug(message)
 
     @classmethod
     def debug_manager(cls, message):
-        if LOG_MANAGER:
-            ls._debug(message)
+        if cls.LOG_MANAGER:
+            cls._debug(message)
 
     @classmethod
     def debug_worker_threading(cls, message):
-        if LOG_WORKER_THREADING:
+        if cls.LOG_WORKER_THREADING:
             cls._debug("worker thread " + message)
 
     @classmethod
     def debug(cls, message):
-        if DEBUG:
+        if cls.DEBUG:
             cls._debug(message)
 
     @classmethod
     def error(cls, message):
-        if DEBUG:
+        if cls.DEBUG:
             cls._debug(message)
 
     @classmethod
