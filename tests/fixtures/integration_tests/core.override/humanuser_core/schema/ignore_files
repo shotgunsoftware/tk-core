@@ -1,0 +1,9 @@
+# ingnore files for testing
+ # this comment line should be ignored, though it's indented.
+
+file_to_ignore # comments should be ignored.
+
+# indented should work as well:
+  another_file_to_ignore
+.placeholder
+.DS_Store

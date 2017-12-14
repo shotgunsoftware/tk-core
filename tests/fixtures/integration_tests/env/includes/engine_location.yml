@@ -1,0 +1,4 @@
+
+engine.location:
+  type: dev
+  path: '$TK_FIXTURES_ROOT/config/bundles/test_app'

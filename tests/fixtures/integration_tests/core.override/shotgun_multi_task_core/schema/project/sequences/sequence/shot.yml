@@ -1,0 +1,26 @@
+# Copyright (c) 2013 Shotgun Software Inc.
+# 
+# CONFIDENTIAL AND PROPRIETARY
+# 
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+# Source Code License included in this distribution package. See LICENSE.
+# By accessing, using, copying or modifying this work you indicate your 
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# not expressly granted therein are reserved by Shotgun Software Inc.
+
+# the type of dynamic content
+type: "shotgun_entity"
+
+# the shotgun field to use for the folder name
+name: "code"
+
+# the shotgun entity type to connect to
+entity_type: "Shot"
+
+# shotgun filters to apply when getting the list of items
+# this should be a list of dicts, each dict containing 
+# three fields: path, relation and values
+# (this is std shotgun API syntax)
+# any values starting with $ are resolved into path objects
+filters: [ { "path": "sg_sequence", "relation": "is", "values": [ "$sequence" ] } ]
+

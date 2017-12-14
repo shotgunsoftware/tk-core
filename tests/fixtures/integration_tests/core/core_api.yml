@@ -1,0 +1,3 @@
+location:
+  path: "$TK_FIXTURES_ROOT/../.."
+  type: path
