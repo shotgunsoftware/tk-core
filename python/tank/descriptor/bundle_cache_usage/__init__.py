@@ -106,9 +106,12 @@ bundle_cache_root = os.path.join(
     LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
     "bundle_cache"
 )
+
 bundle_cache_usage_mgr = BundleCacheManager(bundle_cache_root)
-disable_tracking = True if os.environ.get('TK_BUNDLE_USAGE_TRACKING_DISABLE', None) else False
-if disable_tracking:
+
+#TODO: need execute 'initial_populate' as early as possible, hit of pipeline configuration
+#      is occuring earlier than bootstrap.apps_cache
+if not os.environ.get('TK_BUNDLE_USAGE_TRACKING_DISABLE', None):
     bundle_cache_usage_logger.info("TK_BUNDLE_USAGE_TRACKING_DISABLE true, bundle usage tracking disabled.")
 else:
     # Check whether database is populated at all
