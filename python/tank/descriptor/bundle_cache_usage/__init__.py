@@ -107,4 +107,12 @@ bundle_cache_root = os.path.join(
     "bundle_cache"
 )
 bundle_cache_usage_mgr = BundleCacheManager(bundle_cache_root)
+disable_tracking = True if os.environ.get('TK_BUNDLE_USAGE_TRACKING_DISABLE', None) else False
+if disable_tracking:
+    bundle_cache_usage_logger.info("TK_BUNDLE_USAGE_TRACKING_DISABLE true, bundle usage tracking disabled.")
+else:
+    # Check whether database is populated at all
+    if bundle_cache_usage_mgr.get_bundle_count() == 0:
+        bundle_cache_usage_logger.info("Bundle cache database is empty.")
+        bundle_cache_usage_mgr.initial_populate()
 

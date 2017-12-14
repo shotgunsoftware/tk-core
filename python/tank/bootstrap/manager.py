@@ -1131,46 +1131,51 @@ class ToolkitManager(object):
         :param progress_callback: Callback function that reports back on the engine startup progress.
         """
 
-        if os.environ.get('TK_DISABLE_BUNDLE_TRACKING', None):
-            log.info("TK_DISABLE_BUNDLE_TRACKING true, bundle usage tracking disabled.")
+        if os.environ.get('TK_BUNDLE_USAGE_TRACKING_NO_DELETE', None):
+            log.info("TK_BUNDLE_USAGE_TRACKING_DISABLE true, bundle usage tracking disabled.")
         else:
-
-            # Check whether database is populated at all
-            if not bundle_cache_usage_mgr.get_bundle_count():
-                bundle_cache_usage_mgr.initial_populate()
-
-            log.info("NICOLAS: About to enter... 'get_unused_bundles'")
             try:
-                log.info("Checking bundle cache for old bundles...")
+                log.info("Checking bundle cache for unused bundles...")
                 # TODO: make global constant
                 days_since_last_usage = 30
 
-                log.info("NICOLAS: About to call 'get_unused_bundles'")
                 bundle_path_list = bundle_cache_usage_mgr.get_unused_bundles(days_since_last_usage)
                 bundle_count = len(bundle_path_list)
-                # log.info("NICOLAS: get_unused_bundles() = %s" % (str(bundle_path_list)))
                 purge_counter = 1
                 for bundle_path in bundle_path_list:
                     version_str = os.path.basename(bundle_path[1])
                     module_name = os.path.basename(os.path.dirname(bundle_path[1]))
-                    message = "NICOLAS: Purging '%s'version %s unused in last %d day%s (%d of %d)." % (
-                        module_name,
-                        version_str,
-                        int(days_since_last_usage),
-                        "s" if int(days_since_last_usage) > 1 else "",
-                        purge_counter,
-                        bundle_count
-                    )
-                    log.info(message)
 
-                    # bundle_cache_usage.purge_bundle(bundle_path)
+                    if os.environ.get('TK_BUNDLE_USAGE_TRACKING_NO_DELETE', None):
+                        message = "Warning '%s'version %s which was not used in last %d day%s (%d of %d)." % (
+                            module_name,
+                            version_str,
+                            int(days_since_last_usage),
+                            "s" if int(days_since_last_usage) > 1 else "",
+                            purge_counter,
+                            bundle_count
+                        )
+
+                    else:
+                        message = "Purging '%s'version %s which was not used in last %d day%s (%d of %d)." % (
+                            module_name,
+                            version_str,
+                            int(days_since_last_usage),
+                            "s" if int(days_since_last_usage) > 1 else "",
+                            purge_counter,
+                            bundle_count
+                        )
+                        #TODO: re-enable below
+                        bundle_cache_usage.purge_bundle(bundle_path)
+
+                    log.info(message)
                     progress_value = float(purge_counter) / float(bundle_count)
                     self._report_progress(progress_callback, progress_value, message)
 
                     purge_counter += 1
 
             except Exception as e:
-                log.error("Error initialising bundle cache usage: %s" % (e))
+                log.error("Unexpected error purging unused bundles: %s" % (e))
                 log.exception(e)
 
     def _cache_apps(self, pipeline_configuration, config_engine_name, progress_callback):

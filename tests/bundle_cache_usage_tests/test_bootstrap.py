@@ -42,6 +42,34 @@ class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
         """
         super(TestBundleCacheUsageIndirect, self).setUp()
 
+        self._saved_TK_BUNDLE_USAGE_TRACKING_DISABLE = os.environ.get('TK_BUNDLE_USAGE_TRACKING_DISABLE', "")
+        self._saved_TK_BUNDLE_USAGE_TRACKING_NO_DELETE = os.environ.get('TK_BUNDLE_USAGE_TRACKING_NO_DELETE', "")
+
+    def tearDown(self):
+        os.environ["TK_BUNDLE_USAGE_TRACKING_DISABLE"] = self._saved_TK_BUNDLE_USAGE_TRACKING_DISABLE
+        os.environ["TK_BUNDLE_USAGE_TRACKING_NO_DELETE"] = self._saved_TK_BUNDLE_USAGE_TRACKING_NO_DELETE
+        super(TestBundleCacheUsageIndirect, self).tearDown()
+
+    @classmethod
+    def _mocked_report_progress(*args, **kwargs):
+        # TODO: verify what goes through here
+        if len(args) >= 4:
+            pct = int(args[2] * 100)
+            msg = args[3]
+            #print("Progress: %s --- %s" % (str(pct), msg))
+
+    def post_setup(self, disable_bundle_cache_usage=False, no_delete=False):
+
+        if disable_bundle_cache_usage:
+            os.environ["TK_BUNDLE_USAGE_TRACKING_DISABLE"] = "1"
+        else:
+            os.environ["TK_BUNDLE_USAGE_TRACKING_DISABLE"] = ""
+
+        if no_delete:
+            os.environ["TK_BUNDLE_USAGE_TRACKING_NO_DELETE"] = "1"
+        else:
+            os.environ["TK_BUNDLE_USAGE_TRACKING_NO_DELETE"] = ""
+
         self._mock_default_user = MagicMock()
 
         self._patcher_get_default_user = patch(
@@ -81,33 +109,29 @@ class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
         )
         self._bundle_cache_manager = BundleCacheManager(bundle_cache_root)
 
-    @classmethod
-    def _mocked_report_progress(*args, **kwargs):
-        # TODO: verify what goes through here
-        if len(args) >= 4:
-            pct = int(args[2] * 100)
-            msg = args[3]
-            #print("Progress: %s --- %s" % (str(pct), msg))
+        self._patcher_report_progress = patch(
+            "tank.bootstrap.manager.ToolkitManager._report_progress",
+            TestBundleCacheUsageIndirect._mocked_report_progress
+        )
+        self._patcher_report_progress.start()
+        self.addCleanup(self._patcher_report_progress .stop)
 
     def test_bundle_cache_database_created(self):
         """
         Test that the bundle cache usage database gets created after importing base modules.
         """
-
+        self.post_setup()
         # Assert that TookKitManager import and setup caused creation of the database file
         self.assertTrue(os.path.exists(self._expected_db_path))
 
-    def helper_test_cache_apps(self, disable_bundle_cache_usage):
+    def helper_test_cache_apps(self, disable_bundle_cache_usage, no_delete):
 
-        if disable_bundle_cache_usage:
-            os.environ["TK_DISABLE_BUNDLE_TRACKING"] = "1"
-        else:
-            os.environ["TK_DISABLE_BUNDLE_TRACKING"] = ""
+        self.post_setup(disable_bundle_cache_usage, no_delete)
 
-        # Test that we get zero before an initial call to '_cache_apps' is made
-        start_time = time.time()
-        self.assertEquals(0, self._bundle_cache_manager.get_bundle_count())
-        self.assertLess(time.time() - start_time, 0.25, "Was worker stopped?")
+        expected_bundle_count = 0 if disable_bundle_cache_usage \
+            else TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT
+
+        self.assertEquals(expected_bundle_count, self._bundle_cache_manager.get_bundle_count())
 
         # Actual tested statements
         start_time = time.time()
@@ -115,12 +139,15 @@ class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
         expected_wait_time = 0.25 if disable_bundle_cache_usage else 1.0
         self.assertLess(time.time() - start_time, expected_wait_time, "Unexpected long execution time")
 
-        expected_bundle_count = 0 if disable_bundle_cache_usage else TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT
+        if disable_bundle_cache_usage:
+            expected_bundle_count = 0
+        else:
+            expected_bundle_count = TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT
+
         start_time = time.time()
         self.assertEquals(expected_bundle_count, self._bundle_cache_manager.get_bundle_count())
         self.assertLess(time.time() - start_time, 1.0, "Unexpected long execution time")
 
-    @patch("tank.bootstrap.manager.ToolkitManager._report_progress", _mocked_report_progress)
     def test_bundle_cache_usage_initial_db_population(self):
         """
         Tests initial creation of the bundle cache usage database
@@ -128,69 +155,43 @@ class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
 
         The test is performed indirectly through usage of the `ToolkitManager._cache_apps(...)` method.
         """
-        self.helper_test_cache_apps(disable_bundle_cache_usage=True)
-        self.helper_test_cache_apps(disable_bundle_cache_usage=False)
+        self.helper_test_cache_apps(disable_bundle_cache_usage=False, no_delete=False)
 
-    @patch("tank.bootstrap.manager.ToolkitManager._report_progress", _mocked_report_progress)
+    def test_bundle_cache_usage_initial_db_population_with_disable_active(self):
+        """
+        Tests initial creation of the bundle cache usage database
+        with 'TK_DISABLE_BUNDLE_TRACKING' defined which should prevent
+
+        The test is performed indirectly through usage of the `ToolkitManager._cache_apps(...)` method.
+        """
+        self.helper_test_cache_apps(disable_bundle_cache_usage=True, no_delete=False)
+
+    #TODO: re-enable
     @patch("tank.descriptor.io_descriptor.dev.IODescriptorDev.is_purgeable", return_value=True)
-    def _test_cache_apps(self, jjj2):
+    def _test_process_bundle_cache_purge(self, is_purgeable_mock):
         """
         Tests the ToolkitManager._cache_apps(...) and method.
 
         The 'is_purgeable' mock allows us forcing a bundle deletion our Test-Dev descriptor
         """
 
-        #patcher = patch_app_store()
-        #self._mock_store = patcher.start()
-        #self.addCleanup(patcher.stop)
-
-        # TODO: Is this any useful??? Can it serve similar purpose to
-        # my own method for creating a fake test bundle cache?
-        self.setup_fixtures(os.path.join("bootstrap_tests", "config"))
-        self._mock_store.add_framework("test_framework", "v2.1.0")
-
-        # Setup
-        pc = PipelineConfiguration(self.pipeline_config_root)
-        modified_mgr = ToolkitManager()
-        modified_mgr.caching_policy = ToolkitManager.CACHE_FULL
+        self.post_setup()
+        self.assertEquals(TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT,
+                          self._bundle_cache_manager.get_bundle_count())
 
         # Mock `time.time` so we can hit (through usage of the `_cache_apps` below )
         # test bundles with an old timestamp.
         now = int(time.time())
         ninety_days_ago = now - (90 * 24 * 3600)
-
         with patch("time.time") as mocked_time_time:
             mocked_time_time.return_value = ninety_days_ago
-            # Hit some bundles!
-            modified_mgr._cache_apps(pc, "test_engine", None)
+            # Test mocking itself
+            self.assertEquals(ninety_days_ago, int(time.time()))
+            self._toolkit_mgr._cache_apps(self._my_pipeline_config, "test_engine", None)
 
-    @patch("tank.bootstrap.manager.ToolkitManager._report_progress", _mocked_report_progress)
-    @patch("tank.descriptor.io_descriptor.dev.IODescriptorDev.is_purgeable", return_value=True)
-    def _test_process_bundle_cache_purge(self, jjj2):
-        """
-        Tests the ToolkitManager._cache_apps(...) and method.
+        # We expect all bundles to be gone
+        self.assertEquals(0, self._bundle_cache_manager.get_bundle_count())
 
-        The
-        """
-        from tank_test.mock_appstore import TankMockStoreDescriptor, patch_app_store
-
-        patcher = patch_app_store()
-        self._mock_store = patcher.start()
-        self.addCleanup(patcher.stop)
-
-        # TODO: Is this any useful??? Can it serve similar purpose to
-        # my own method for creating a fake test bundle cache?
-        self.setup_fixtures(os.path.join("bootstrap_tests", "config"))
-        self._mock_store.add_framework("test_framework", "v2.1.0")
-
-        from sgtk.pipelineconfig import PipelineConfiguration
-
-        pc = PipelineConfiguration(self.pipeline_config_root)
-        # pc = PipelineConfiguration(os.path.join(self.fixtures_root, "bootstrap_tests"))
-
-        modified_mgr = ToolkitManager()
-        modified_mgr.caching_policy = ToolkitManager.CACHE_FULL
-        modified_mgr._cache_apps(pc, "test_engine", None)
 
 
 
