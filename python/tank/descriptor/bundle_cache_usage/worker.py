@@ -17,7 +17,6 @@ from threading import Event, Thread, Lock
 from .exception import BundleCacheUsageTimeoutException
 from .writer_sqlite import BundleCacheUsageSQLiteWriter as Writer
 from . import BundleCacheUsageLogger as log
-from . import LOG_LOG_USAGE, LOG_THREADING
 
 
 class BundleCacheUsageWorker(threading.Thread):
