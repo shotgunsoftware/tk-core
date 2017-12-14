@@ -1,6 +1,0 @@
-engines:
-  # this is a comment after the engines section
-    test_engine:
-        location: {'type': 'dev', 'path': '{PIPELINE_CONFIG}/config/bundles/test_engine'}
-        debug_logging: false
-        apps: {}
