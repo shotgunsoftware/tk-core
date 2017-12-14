@@ -63,8 +63,9 @@ class BundleCacheUsageWorker(threading.Thread):
         """
         truncated_path = self._truncate_path(bundle_path)
         if truncated_path:
-            log.debug_worker("__add_unused_bundle('%s')" % (truncated_path))
-            self._bundle_cache_usage.add_unused_bundle(truncated_path)
+            now_unix_timestamp = self._get_timestamp()
+            log.debug_worker("__add_unused_bundle('%s, %d')" % (truncated_path, now_unix_timestamp))
+            self._bundle_cache_usage.add_unused_bundle(truncated_path, now_unix_timestamp)
 
     def __delete_entry(self, bundle_path, signal):
         """
@@ -102,8 +103,9 @@ class BundleCacheUsageWorker(threading.Thread):
         :param response: A list
         :return: indirectly returns a list through usage of the response variable
         """
-        list = self._bundle_cache_usage._get_unused_bundles(since_days)
-        log.debug_worker("__get_unused_bundles() count = %d" % (len(list)))
+        oldest_timestamp = self._get_timestamp() - (since_days * 24 * 3600)
+        list = self._bundle_cache_usage._get_unused_bundles(oldest_timestamp)
+        log.debug_worker("__get_unused_bundles(%d) count = %d" % (oldest_timestamp, len(list)))
         for item in list:
             response.append(item)
 
@@ -150,8 +152,9 @@ class BundleCacheUsageWorker(threading.Thread):
         """
         truncated_path = self._truncate_path(bundle_path)
         if truncated_path:
-            log.debug_worker("__log_usage('%s')" % (truncated_path))
-            self._bundle_cache_usage.log_usage(truncated_path)
+            now_unix_timestamp = self._get_timestamp()
+            log.debug_worker("__log_usage('%s', %d)" % (truncated_path, now_unix_timestamp))
+            self._bundle_cache_usage.log_usage(truncated_path, now_unix_timestamp)
 
     def __consume_task(self):
         """
@@ -243,6 +246,18 @@ class BundleCacheUsageWorker(threading.Thread):
     # Can run from either threading contextes
     #
     ###########################################################################
+
+    def _get_timestamp(self):
+        """
+        Utility method used
+        :return:
+        """
+
+        timestamp_override = os.environ.get("TK_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE")
+        if timestamp_override and len(timestamp_override):
+            return int(timestamp_override)
+
+        return int(time.time())
 
     def _queue_task(self, function, *args, **kwargs):
         with self._member_lock:

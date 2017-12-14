@@ -19,7 +19,6 @@ import unittest2
 import random
 import shutil
 import time
-from mock import patch
 
 from .test_base import TestBundleCacheUsageBase, Utils
 
@@ -110,7 +109,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.assertEquals(self.db.get_bundle_count(), 0, "Was not expecting any entry yet.")
 
         # Log something
-        self.db.add_unused_bundle(TEST_ENTRY_FAKE_PATH)
+        self.db.add_unused_bundle(TEST_ENTRY_FAKE_PATH, int(time.time()))
 
         self.assertEquals(self.db.get_bundle_count(), 1)
         self.assertEquals(self.db.get_usage_count(TEST_ENTRY_FAKE_PATH), 0)
@@ -123,7 +122,10 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         """
 
         # Log some usage
-        self.db.log_usage(TestBundleCacheUsageWriterBasicOperations.TEST_BUNDLE_PATH1)
+        self.db.log_usage(
+            TestBundleCacheUsageWriterBasicOperations.TEST_BUNDLE_PATH1,
+            int(time.time())
+        )
 
     def test_property_path(self):
         """
@@ -142,7 +144,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         """
 
         # Log some usage
-        self.db.log_usage(None)
+        self.db.log_usage(None, int(time.time()))
 
         # Low level test for record count
         self.assertEquals(self.db.get_bundle_count(), 0, "Was not expecting a new entry from None")
@@ -160,7 +162,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.assertEquals(self.db.get_usage_count(BUNDLE_NAME), 0)
 
         # Log some usage
-        self.db.log_usage(BUNDLE_NAME)
+        self.db.log_usage(BUNDLE_NAME, int(time.time()))
 
         # Low level test for record count
         self.assertEquals(self.db.get_bundle_count(), 1)
@@ -176,15 +178,15 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.assertEquals(self.db.get_usage_count(BUNDLE_NAME), 0)
 
         # Log some initial usage
-        self.db.log_usage(BUNDLE_NAME)
+        self.db.log_usage(BUNDLE_NAME, int(time.time()))
         self.assertEquals(self.db.get_usage_count(BUNDLE_NAME), 1)
 
         # Log again
-        self.db.log_usage(BUNDLE_NAME)
+        self.db.log_usage(BUNDLE_NAME, int(time.time()))
         self.assertEquals(self.db.get_usage_count(BUNDLE_NAME), 2)
 
         # ... and again
-        self.db.log_usage(BUNDLE_NAME)
+        self.db.log_usage(BUNDLE_NAME, int(time.time()))
         self.assertEquals(self.db.get_usage_count(BUNDLE_NAME), 3)
 
         # Low level test for record count, we're logging the same bundle name twice
@@ -200,11 +202,11 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         Tests logging entries which might containt special characters
         """
 
-        self.db.log_usage("C:\\Windows\Program Files\\test.txt")
-        self.db.log_usage("/shotgun/workspace/databse.db")
-        self.db.log_usage("/Users/Marie-Hélène Hébert/databse.db")
-        self.db.log_usage("~/Library/Cache/Shotgun/some-packahe/2.22.2")
-        self.db.log_usage("~/Library/Cache/Shotgun/some-packahe/2.11.1")
+        self.db.log_usage("C:\\Windows\Program Files\\test.txt", int(time.time()))
+        self.db.log_usage("/shotgun/workspace/databse.db", int(time.time()))
+        self.db.log_usage("/Users/Marie-Hélène Hébert/databse.db", int(time.time()))
+        self.db.log_usage("~/Library/Cache/Shotgun/some-packahe/2.22.2", int(time.time()))
+        self.db.log_usage("~/Library/Cache/Shotgun/some-packahe/2.11.1", int(time.time()))
 
         # Low level test for record count, we're logging the same bundle name twice
         # We expect a single record still
@@ -227,20 +229,15 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         ninety_days_ago = now - (90 * 24 * 3600)
 
         # Log some usage as 90 days ago
-        with patch("time.time") as mocked:
-            mocked.return_value = ninety_days_ago
-            self.db.log_usage(bundle_path_old)
-            old_bundle_date = self.db.get_last_usage_date(bundle_path_old)
-            # Verify that the Mock actually worked
-            self.assertEquals(old_bundle_date, ninety_days_ago)
-            self.assertTrue(mocked.called)
+        self.db.log_usage(bundle_path_old, ninety_days_ago)
+        old_bundle_date = self.db.get_last_usage_date(bundle_path_old)
 
         # Should be logged as the REAL now
-        self.db.log_usage(bundle_path_new)
+        self.db.log_usage(bundle_path_new, now)
         # Verify that Mock is no longer in effect
         self.assertNotEqual(ninety_days_ago, self.db.get_last_usage_date(bundle_path_new))
 
-        bundle_list = self.db.get_unused_bundles(60)
+        bundle_list = self.db.get_unused_bundles(ninety_days_ago)
 
         # Test the method returns just one of the two entries
         self.assertIsNotNone(bundle_list)
@@ -309,7 +306,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.assertTrue(os.path.isdir(bundle_path))
 
         # Log some usage / add bundle
-        self.db.log_usage(bundle_path)
+        self.db.log_usage(bundle_path, int(time.time()))
         self.assertEquals(self.db.get_usage_count(bundle_path), 1)
         self.assertEquals(self.db.get_bundle_count(), 1)
 

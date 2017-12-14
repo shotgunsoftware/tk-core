@@ -14,10 +14,8 @@ all Tank items in the file system are kept.
 
 """
 
-import sqlite3
 import os
-import time
-from datetime import datetime, timedelta
+import sqlite3
 
 from . import BundleCacheUsageLogger as log
 from .writer_base import BundleCacheUsageWriterBase
@@ -174,21 +172,17 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
         """
         return self._connect().cursor()
 
-    def _get_unused_bundles(self, days):
+    def _get_unused_bundles(self, since_timestamps):
         """
 
-        :param days:
+        :param since_timestamps:
         :param initial_access_count: An optional integer, typically set to 1 from log_usage and zero from initial db polating.
         """
-
-        oldest_date = datetime.today() - timedelta(days=days)
-        oldest_timestamp = time.mktime(oldest_date.timetuple())
-
         sql_statement = "SELECT * FROM %s " \
                         "WHERE %s <= %d " % (
                             BundleCacheUsageSQLiteWriter.DB_MAIN_TABLE_NAME,
                             BundleCacheUsageSQLiteWriter.DB_COL_LAST_ACCESS_DATE,
-                            oldest_timestamp
+                            since_timestamps
                         )
 
         result = self._execute(sql_statement)
@@ -196,26 +190,26 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
 
         return []
 
-    def _log_usage(self, bundle_path, initial_access_count=1):
+    def _log_usage(self, bundle_path, unix_timestamp, initial_access_count=1):
         """
 
         :param bundle_path:
+        :param unix_timestamp:
         :param initial_access_count: An optional integer, typically set to 1 from log_usage and zero from initial db polating.
         """
         if bundle_path:
-            now_unix_timestamp = int(time.time())
             bundle_entry = self._find_bundle(bundle_path)
             if bundle_entry:
                 # Update
                 log.debug_db_hf("_update_bundle_entry('%s')" % bundle_path)
                 self._update_bundle_entry(bundle_entry[BundleCacheUsageSQLiteWriter.DB_COL_ID_INDEX],
-                                          now_unix_timestamp,
+                                          unix_timestamp,
                                           bundle_entry[BundleCacheUsageSQLiteWriter.DB_COL_ACCESS_COUNT_INDEX]
                                           )
             else:
                 # Insert
                 log.debug_db_hf("_create_bundle_entry('%s')" % bundle_path)
-                self._create_bundle_entry(bundle_path, now_unix_timestamp, initial_access_count)
+                self._create_bundle_entry(bundle_path, unix_timestamp, initial_access_count)
 
             self._db_connection.commit()
 
@@ -236,12 +230,12 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
     #
     ###################################################################################################################
 
-    def add_unused_bundle(self, bundle_path):
+    def add_unused_bundle(self, bundle_path, unix_timestamp):
         """
         Add an entry to the database which usage count is initialized with zero.
         :param bundle_path: a str path to a bundle cache item
         """
-        self._log_usage(bundle_path, 0)
+        self._log_usage(bundle_path, unix_timestamp, 0)
 
     @property
     def bundle_cache_root(self):
@@ -304,14 +298,14 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
 
         return bundle_entry[BundleCacheUsageSQLiteWriter.DB_COL_LAST_ACCESS_DATE_INDEX]
 
-    def get_unused_bundles(self, since_days):
+    def get_unused_bundles(self, since_timestamps):
         """
         Returns a list of bundle that haven't been used since the specified number of days.
 
-        :param since_days: An int of the number of days
+        :param since_timestamps: An int of the number of days
         :return: A list of long unused bundle path
         """
-        return self._get_unused_bundles(since_days)
+        return self._get_unused_bundles(since_timestamps)
 
     def get_usage_count(self, bundle_path):
         bundle_entry = self._find_bundle(bundle_path)
@@ -320,7 +314,7 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
 
         return bundle_entry[BundleCacheUsageSQLiteWriter.DB_COL_ACCESS_COUNT_INDEX]
 
-    def log_usage(self, bundle_path):
+    def log_usage(self, bundle_path, unix_timestamp):
         """
         Increase the database usage count and access date for the specified entry.
         If the entry was not in the database already, the usage count will be
@@ -330,7 +324,7 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
 
         :param bundle_path: A str path to a bundle
         """
-        self._log_usage(bundle_path, 1)
+        self._log_usage(bundle_path, unix_timestamp, 1)
 
     @property
     def path(self):

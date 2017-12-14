@@ -42,12 +42,14 @@ class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
         """
         super(TestBundleCacheUsageIndirect, self).setUp()
 
-        self._saved_TK_BUNDLE_USAGE_TRACKING_DISABLE = os.environ.get('TK_BUNDLE_USAGE_TRACKING_DISABLE', "")
-        self._saved_TK_BUNDLE_USAGE_TRACKING_NO_DELETE = os.environ.get('TK_BUNDLE_USAGE_TRACKING_NO_DELETE', "")
+        self._saved_TK_BUNDLE_USAGE_TRACKING_NO_DELETE = \
+            os.environ.get("TK_BUNDLE_USAGE_TRACKING_NO_DELETE", "")
+        self._saved_TK_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE = \
+            os.environ.get("TK_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE", "")
 
     def tearDown(self):
-        os.environ["TK_BUNDLE_USAGE_TRACKING_DISABLE"] = self._saved_TK_BUNDLE_USAGE_TRACKING_DISABLE
         os.environ["TK_BUNDLE_USAGE_TRACKING_NO_DELETE"] = self._saved_TK_BUNDLE_USAGE_TRACKING_NO_DELETE
+        os.environ["TK_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = self._saved_TK_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE
         super(TestBundleCacheUsageIndirect, self).tearDown()
 
     @classmethod
@@ -126,6 +128,13 @@ class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
 
     def helper_test_cache_apps(self, no_delete=False, days_ago=0):
 
+        if days_ago:
+            # Override timestamp
+            now = int(time.time())
+            days_ago_timestamp = now - (days_ago * 24 * 3600)
+            os.environ["TK_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = str(days_ago_timestamp)
+            # Will setup a new database with bundle timestamp N days ago
+
         self.post_setup(no_delete)
 
         self.assertEquals(
@@ -134,20 +143,11 @@ class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
             "Expecting all fake test bundles after test setup"
         )
 
-        # Mock `time.time` so we can hit (through usage of the `_cache_apps` below )
-        # test bundles with an old timestamp.
-        if days_ago:
-            now = int(time.time())
-            days_ago_timestamp = now - (days_ago * 24 * 3600)
-            with patch("time.time") as mocked_time_time:
-                mocked_time_time.return_value = days_ago_timestamp
-                # Test mocking itself
-                self.assertEquals(days_ago_timestamp, int(time.time()))
-                # Actual tested statements with a time.time mock
-                self._toolkit_mgr._cache_apps(self._my_pipeline_config, "test_engine", None)
-        else:
-            # Actual tested statements without a time.time mock
-            self._toolkit_mgr._cache_apps(self._my_pipeline_config, "test_engine", None)
+        # Undo TK_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE so we get now timestamp
+        os.environ["TK_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = ""
+
+        # Actual tested statements
+        self._toolkit_mgr._cache_apps(self._my_pipeline_config, "test_engine", None)
 
     @patch("tank.descriptor.io_descriptor.dev.IODescriptorDev.is_purgeable", return_value=True)
     def test_process_bundle_cache_purge_no_old_bundles(self, is_purgeable_mock):
