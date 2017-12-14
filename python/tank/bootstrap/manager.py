@@ -1131,52 +1131,48 @@ class ToolkitManager(object):
         :param progress_callback: Callback function that reports back on the engine startup progress.
         """
 
-        if os.environ.get('TK_BUNDLE_USAGE_TRACKING_NO_DELETE', None):
-            log.info("TK_BUNDLE_USAGE_TRACKING_DISABLE true, bundle usage tracking disabled.")
-        else:
-            try:
-                log.info("Checking bundle cache for unused bundles...")
-                # TODO: make global constant
-                days_since_last_usage = 30
+        try:
+            log.debug("Checking bundle cache for unused bundles...")
+            # TODO: make global constant
+            days_since_last_usage = 30
 
-                bundle_path_list = bundle_cache_usage_mgr.get_unused_bundles(days_since_last_usage)
-                bundle_count = len(bundle_path_list)
-                purge_counter = 1
-                for bundle_path in bundle_path_list:
-                    version_str = os.path.basename(bundle_path[1])
-                    module_name = os.path.basename(os.path.dirname(bundle_path[1]))
+            bundle_path_list = bundle_cache_usage_mgr.get_unused_bundles(days_since_last_usage)
+            bundle_count = len(bundle_path_list)
+            purge_counter = 1
+            for bundle_path in bundle_path_list:
+                version_str = os.path.basename(bundle_path[1])
+                module_name = os.path.basename(os.path.dirname(bundle_path[1]))
 
-                    if os.environ.get('TK_BUNDLE_USAGE_TRACKING_NO_DELETE', None):
-                        message = "Warning '%s'version %s which was not used in last %d day%s (%d of %d)." % (
-                            module_name,
-                            version_str,
-                            int(days_since_last_usage),
-                            "s" if int(days_since_last_usage) > 1 else "",
-                            purge_counter,
-                            bundle_count
-                        )
+                if os.environ.get('TK_BUNDLE_USAGE_TRACKING_NO_DELETE', None):
+                    message = "Warning '%s'version %s was not used in last %d day%s (%d of %d)." % (
+                        module_name,
+                        version_str,
+                        int(days_since_last_usage),
+                        "s" if int(days_since_last_usage) > 1 else "",
+                        purge_counter,
+                        bundle_count
+                    )
 
-                    else:
-                        message = "Purging '%s'version %s which was not used in last %d day%s (%d of %d)." % (
-                            module_name,
-                            version_str,
-                            int(days_since_last_usage),
-                            "s" if int(days_since_last_usage) > 1 else "",
-                            purge_counter,
-                            bundle_count
-                        )
-                        #TODO: re-enable below
-                        bundle_cache_usage.purge_bundle(bundle_path)
+                else:
+                    message = "Purging '%s'version %s which was not used in last %d day%s (%d of %d)." % (
+                        module_name,
+                        version_str,
+                        int(days_since_last_usage),
+                        "s" if int(days_since_last_usage) > 1 else "",
+                        purge_counter,
+                        bundle_count
+                    )
+                    bundle_cache_usage.purge_bundle(bundle_path)
 
-                    log.info(message)
-                    progress_value = float(purge_counter) / float(bundle_count)
-                    self._report_progress(progress_callback, progress_value, message)
+                log.info(message)
+                progress_value = float(purge_counter) / float(bundle_count)
+                self._report_progress(progress_callback, progress_value, message)
 
-                    purge_counter += 1
+                purge_counter += 1
 
-            except Exception as e:
-                log.error("Unexpected error purging unused bundles: %s" % (e))
-                log.exception(e)
+        except Exception as e:
+            log.error("Unexpected error purging unused bundles: %s" % (e))
+            log.exception(e)
 
     def _cache_apps(self, pipeline_configuration, config_engine_name, progress_callback):
         """

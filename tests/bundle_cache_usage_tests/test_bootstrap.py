@@ -58,12 +58,7 @@ class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
             msg = args[3]
             #print("Progress: %s --- %s" % (str(pct), msg))
 
-    def post_setup(self, disable_bundle_cache_usage=False, no_delete=False):
-
-        if disable_bundle_cache_usage:
-            os.environ["TK_BUNDLE_USAGE_TRACKING_DISABLE"] = "1"
-        else:
-            os.environ["TK_BUNDLE_USAGE_TRACKING_DISABLE"] = ""
+    def post_setup(self, no_delete=False):
 
         if no_delete:
             os.environ["TK_BUNDLE_USAGE_TRACKING_NO_DELETE"] = "1"
@@ -123,74 +118,87 @@ class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
         self.post_setup()
         # Assert that TookKitManager import and setup caused creation of the database file
         self.assertTrue(os.path.exists(self._expected_db_path))
+        self.assertEquals(
+            TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT,
+            self._bundle_cache_manager.get_bundle_count(),
+            "Was expecting database to be initially populated with all fake test bundles"
+        )
 
-    def helper_test_cache_apps(self, disable_bundle_cache_usage, no_delete):
+    def helper_test_cache_apps(self, no_delete=False, days_ago=0):
 
-        self.post_setup(disable_bundle_cache_usage, no_delete)
+        self.post_setup(no_delete)
 
-        expected_bundle_count = 0 if disable_bundle_cache_usage \
-            else TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT
-
-        self.assertEquals(expected_bundle_count, self._bundle_cache_manager.get_bundle_count())
-
-        # Actual tested statements
-        start_time = time.time()
-        self._toolkit_mgr._cache_apps(self._my_pipeline_config, "test_engine", None)
-        expected_wait_time = 0.25 if disable_bundle_cache_usage else 1.0
-        self.assertLess(time.time() - start_time, expected_wait_time, "Unexpected long execution time")
-
-        if disable_bundle_cache_usage:
-            expected_bundle_count = 0
-        else:
-            expected_bundle_count = TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT
-
-        start_time = time.time()
-        self.assertEquals(expected_bundle_count, self._bundle_cache_manager.get_bundle_count())
-        self.assertLess(time.time() - start_time, 1.0, "Unexpected long execution time")
-
-    def test_bundle_cache_usage_initial_db_population(self):
-        """
-        Tests initial creation of the bundle cache usage database
-        WITH and without the 'TK_DISABLE_BUNDLE_TRACKING' defined.
-
-        The test is performed indirectly through usage of the `ToolkitManager._cache_apps(...)` method.
-        """
-        self.helper_test_cache_apps(disable_bundle_cache_usage=False, no_delete=False)
-
-    def test_bundle_cache_usage_initial_db_population_with_disable_active(self):
-        """
-        Tests initial creation of the bundle cache usage database
-        with 'TK_DISABLE_BUNDLE_TRACKING' defined which should prevent
-
-        The test is performed indirectly through usage of the `ToolkitManager._cache_apps(...)` method.
-        """
-        self.helper_test_cache_apps(disable_bundle_cache_usage=True, no_delete=False)
-
-    #TODO: re-enable
-    @patch("tank.descriptor.io_descriptor.dev.IODescriptorDev.is_purgeable", return_value=True)
-    def _test_process_bundle_cache_purge(self, is_purgeable_mock):
-        """
-        Tests the ToolkitManager._cache_apps(...) and method.
-
-        The 'is_purgeable' mock allows us forcing a bundle deletion our Test-Dev descriptor
-        """
-
-        self.post_setup()
-        self.assertEquals(TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT,
-                          self._bundle_cache_manager.get_bundle_count())
+        self.assertEquals(
+            TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT,
+            self._bundle_cache_manager.get_bundle_count(),
+            "Expecting all fake test bundles after test setup"
+        )
 
         # Mock `time.time` so we can hit (through usage of the `_cache_apps` below )
         # test bundles with an old timestamp.
-        now = int(time.time())
-        ninety_days_ago = now - (90 * 24 * 3600)
-        with patch("time.time") as mocked_time_time:
-            mocked_time_time.return_value = ninety_days_ago
-            # Test mocking itself
-            self.assertEquals(ninety_days_ago, int(time.time()))
+        if days_ago:
+            now = int(time.time())
+            days_ago_timestamp = now - (days_ago * 24 * 3600)
+            with patch("time.time") as mocked_time_time:
+                mocked_time_time.return_value = days_ago_timestamp
+                # Test mocking itself
+                self.assertEquals(days_ago_timestamp, int(time.time()))
+                # Actual tested statements with a time.time mock
+                self._toolkit_mgr._cache_apps(self._my_pipeline_config, "test_engine", None)
+        else:
+            # Actual tested statements without a time.time mock
             self._toolkit_mgr._cache_apps(self._my_pipeline_config, "test_engine", None)
 
-        # We expect all bundles to be gone
-        self.assertEquals(0, self._bundle_cache_manager.get_bundle_count())
+    @patch("tank.descriptor.io_descriptor.dev.IODescriptorDev.is_purgeable", return_value=True)
+    def test_process_bundle_cache_purge_no_old_bundles(self, is_purgeable_mock):
+        """
+        Tests the ToolkitManager._cache_apps(...) and method.
+
+        The 'is_purgeable' mock allows forcing a bundle deletion of our Test-Dev descriptor
+        """
+
+        # 0 = not mocking days ago
+        self.helper_test_cache_apps(False, 0)
+
+        self.assertEquals(TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT,
+                          self._bundle_cache_manager.get_bundle_count(),
+                          "Not expecting anything to be deleted since no bundle is old"
+        )
+
+    @patch("tank.descriptor.io_descriptor.dev.IODescriptorDev.is_purgeable", return_value=True)
+    def test_process_bundle_cache_purge_with_old_bundles(self, is_purgeable_mock):
+        """
+        Tests the ToolkitManager._process_bundle_cache_purge(...) method with old bundles.
+
+        The 'is_purgeable' mock allows forcing a bundle deletion of our Test-Dev descriptor
+        """
+
+        # 90 = mocking 90 days ago
+        self.helper_test_cache_apps(False, 90)
+
+        self.assertEquals(0,
+                          self._bundle_cache_manager.get_bundle_count(),
+                          "Was expecting all bundles to be deleted."
+        )
+
+    @patch("tank.descriptor.io_descriptor.dev.IODescriptorDev.is_purgeable", return_value=True)
+    def test_process_bundle_cache_purge_with_old_bundles_with_no_delete(self, is_purgeable_mock):
+        """
+        Tests the ToolkitManager._process_bundle_cache_purge(...) method with old bundles AND
+        the 'TK_BUNDLE_USAGE_TRACKING_NO_DELETE' environment variable active.
+
+        The 'is_purgeable' mock allows forcing a bundle deletion of our Test-Dev descriptor
+        """
+
+        # 90 = mocking 90 days ago with 'TK_BUNDLE_USAGE_TRACKING_NO_DELETE' active
+        self.helper_test_cache_apps(True, 90)
+
+        self.assertEquals(TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT,
+                          self._bundle_cache_manager.get_bundle_count(),
+                          "Was not expecting any bundles to be deleted."
+        )
+
+
 
 
 

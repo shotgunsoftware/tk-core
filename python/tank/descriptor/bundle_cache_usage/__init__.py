@@ -110,12 +110,9 @@ bundle_cache_root = os.path.join(
 bundle_cache_usage_mgr = BundleCacheManager(bundle_cache_root)
 
 #TODO: need execute 'initial_populate' as early as possible, hit of pipeline configuration
-#      is occuring earlier than bootstrap.apps_cache
-if not os.environ.get('TK_BUNDLE_USAGE_TRACKING_DISABLE', None):
-    bundle_cache_usage_logger.info("TK_BUNDLE_USAGE_TRACKING_DISABLE true, bundle usage tracking disabled.")
-else:
-    # Check whether database is populated at all
-    if bundle_cache_usage_mgr.get_bundle_count() == 0:
-        bundle_cache_usage_logger.info("Bundle cache database is empty.")
-        bundle_cache_usage_mgr.initial_populate()
+# is occuring earlier than bootstrap.apps_cache
+# Check whether database is populated at all
+if not bundle_cache_usage_mgr.get_bundle_count():
+    bundle_cache_usage_logger.debug("Bundle cache usage database is empty.")
+    bundle_cache_usage_mgr.initial_populate()
 
