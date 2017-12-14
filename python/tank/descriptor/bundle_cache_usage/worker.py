@@ -256,7 +256,7 @@ class BundleCacheUsageWorker(threading.Thread):
         :return:
         """
 
-        timestamp_override = os.environ.get("TK_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE")
+        timestamp_override = os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE")
         if timestamp_override and len(timestamp_override):
             return int(timestamp_override)
 

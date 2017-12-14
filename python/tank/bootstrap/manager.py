@@ -1144,7 +1144,7 @@ class ToolkitManager(object):
                 version_str = os.path.basename(bundle_path)
                 module_name = os.path.basename(os.path.dirname(bundle_path))
 
-                if os.environ.get('TK_BUNDLE_USAGE_TRACKING_NO_DELETE'):
+                if os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE"):
                     message = "Warning '%s'version %s was not used in last %d day%s (%d of %d)." % (
                         module_name,
                         version_str,

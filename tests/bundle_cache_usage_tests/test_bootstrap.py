@@ -42,14 +42,14 @@ class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
         """
         super(TestBundleCacheUsageIndirect, self).setUp()
 
-        self._saved_TK_BUNDLE_USAGE_TRACKING_NO_DELETE = \
-            os.environ.get("TK_BUNDLE_USAGE_TRACKING_NO_DELETE", "")
-        self._saved_TK_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE = \
-            os.environ.get("TK_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE", "")
+        self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE = \
+            os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE", "")
+        self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE = \
+            os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE", "")
 
     def tearDown(self):
-        os.environ["TK_BUNDLE_USAGE_TRACKING_NO_DELETE"] = self._saved_TK_BUNDLE_USAGE_TRACKING_NO_DELETE
-        os.environ["TK_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = self._saved_TK_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE
+        os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE"] = self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE
+        os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE
         super(TestBundleCacheUsageIndirect, self).tearDown()
 
     @classmethod
@@ -63,9 +63,9 @@ class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
     def post_setup(self, no_delete=False):
 
         if no_delete:
-            os.environ["TK_BUNDLE_USAGE_TRACKING_NO_DELETE"] = "1"
+            os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE"] = "1"
         else:
-            os.environ["TK_BUNDLE_USAGE_TRACKING_NO_DELETE"] = ""
+            os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE"] = ""
 
         self._mock_default_user = MagicMock()
 
@@ -132,7 +132,7 @@ class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
             # Override timestamp
             now = int(time.time())
             days_ago_timestamp = now - (days_ago * 24 * 3600)
-            os.environ["TK_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = str(days_ago_timestamp)
+            os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = str(days_ago_timestamp)
             # Will setup a new database with bundle timestamp N days ago
 
         self.post_setup(no_delete)
@@ -143,8 +143,8 @@ class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
             "Expecting all fake test bundles after test setup"
         )
 
-        # Undo TK_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE so we get now timestamp
-        os.environ["TK_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = ""
+        # Undo SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE so we get now timestamp
+        os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = ""
 
         # Actual tested statements
         self._toolkit_mgr._cache_apps(self._my_pipeline_config, "test_engine", None)
@@ -185,12 +185,12 @@ class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
     def test_process_bundle_cache_purge_with_old_bundles_with_no_delete(self, is_purgeable_mock):
         """
         Tests the ToolkitManager._process_bundle_cache_purge(...) method with old bundles AND
-        the 'TK_BUNDLE_USAGE_TRACKING_NO_DELETE' environment variable active.
+        the 'SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE' environment variable active.
 
         The 'is_purgeable' mock allows forcing a bundle deletion of our Test-Dev descriptor
         """
 
-        # 90 = mocking 90 days ago with 'TK_BUNDLE_USAGE_TRACKING_NO_DELETE' active
+        # 90 = mocking 90 days ago with 'SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE' active
         self.helper_test_cache_apps(True, 90)
 
         self.assertEquals(TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT,
