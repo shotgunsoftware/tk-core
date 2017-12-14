@@ -190,7 +190,10 @@ class TestConfigDescriptor(TankTestBase):
         Ensures we can get the required storages.
         """
         # Base class already creates a roots.yml file.
-        self.assertListEqual(self.tk.configuration_descriptor.required_storages, ["primary"])
+        self.assertListEqual(
+            self.tk.configuration_descriptor.required_storages,
+            [self.primary_root_name]
+        )
 
     def test_missing_roots_yml(self):
         # Base class already creates a roots.yml file, so we remove it.

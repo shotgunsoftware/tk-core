@@ -28,6 +28,7 @@ from tank.authentication.user import ShotgunUser
 from tank.authentication.user_impl import SessionUser
 from tank.descriptor import Descriptor
 from tank.descriptor.io_descriptor.appstore import IODescriptorAppStore
+from tank.util import get_sg_entity_name_field
 
 
 class TestShotgunFindPublish(TankTestBase):
@@ -415,4 +416,21 @@ class TestShotgunDownloadUrl(TankTestBase):
         self.assertEqual(self.download_destination, full_path)
 
 
-
+class TestShotgunUtils(TankTestBase):
+    """
+    Test various Shotgun utilities and helpers
+    """
+    def test_entity_name_field(self):
+        """
+        Test retrieving the right "name" field for various entity types.
+        """
+        # Test most standard entities, and check that custom entities use "code"
+        for entity_type in ["Sequence", "Shot", "Asset", "CustomXXXXEntity"]:
+            self.assertEqual(
+                get_sg_entity_name_field(entity_type), "code"
+            )
+        # Test most standard entities where the name is in a "name" field.
+        for entity_type in ["HumanUser", "Project"]:
+            self.assertEqual(
+                get_sg_entity_name_field(entity_type), "name"
+            )

@@ -587,8 +587,15 @@ class SetupProjectAction(Action):
                 
         location = {"darwin": None, "linux2": None, "win32": None}
         
-        # get the path to the primary storage  
-        primary_local_path = params.get_storage_path(constants.PRIMARY_STORAGE_NAME, sys.platform)        
+        # Get the path to the storage we want to use when calculating the default
+        # location for the installed config.
+        # Multi-root configurations require a storage named "primary" so we base
+        # our default on that. If only a single storage is available, we just use it.
+        storage_names = params.get_required_storages()
+        primary_storage_name = constants.PRIMARY_STORAGE_NAME
+        if len(storage_names) == 1:
+            primary_storage_name = storage_names[0]
+        primary_local_path = params.get_storage_path(primary_storage_name, sys.platform)
         
         curr_core_path = pipelineconfig_utils.get_path_to_current_core()
         core_locations = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
@@ -617,14 +624,14 @@ class SetupProjectAction(Action):
             # /studio/project      <--- project data location
             # /studio/project/tank <--- toolkit configuation location
 
-            if params.get_project_path(constants.PRIMARY_STORAGE_NAME, "darwin"):
-                location["darwin"] = "%s/tank" % params.get_project_path(constants.PRIMARY_STORAGE_NAME, "darwin") 
+            if params.get_project_path(primary_storage_name, "darwin"):
+                location["darwin"] = "%s/tank" % params.get_project_path(primary_storage_name, "darwin")
                                                      
-            if params.get_project_path(constants.PRIMARY_STORAGE_NAME, "linux2"):
-                location["linux2"] = "%s/tank" % params.get_project_path(constants.PRIMARY_STORAGE_NAME, "linux2") 
+            if params.get_project_path(primary_storage_name, "linux2"):
+                location["linux2"] = "%s/tank" % params.get_project_path(primary_storage_name, "linux2")
 
-            if params.get_project_path(constants.PRIMARY_STORAGE_NAME, "win32"):
-                location["win32"] = "%s\\tank" % params.get_project_path(constants.PRIMARY_STORAGE_NAME, "win32") 
+            if params.get_project_path(primary_storage_name, "win32"):
+                location["win32"] = "%s\\tank" % params.get_project_path(primary_storage_name, "win32")
 
         else:
             # Core v0.12+ style setup - this is what is our default recommended setup
