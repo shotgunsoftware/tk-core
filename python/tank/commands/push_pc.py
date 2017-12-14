@@ -284,7 +284,7 @@ class PushPCAction(Action):
             try:
                 # copy everything!
                 log.debug("Copying %s -> %s" % (source_path, target_tmp_path))
-                filesystem.copy_folder(source_path, target_tmp_path)
+                filesystem.copy_folder(source_path, target_tmp_path, skip_list=[])
                 
                 # If the source and target configurations are both localized, then also copy the
                 # core-related api files to the target config. Otherwise, skip them.
