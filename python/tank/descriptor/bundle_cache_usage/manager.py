@@ -16,20 +16,9 @@ from worker import BundleCacheUsageWorker
 from ...util import LocalFileStorageManager
 from ... import LogManager
 
+from exception import BundleCacheUsageException
+from exception import BundleCacheUsageFileDeletionException
 from . import BundleCacheUsageLogger as log
-
-
-class BundleCacheManagerException(Exception):
-
-    def __init__(self, filepath, message=None):
-        super(BundleCacheManagerException, self).__init__(message)
-        self._filepath = filepath
-
-
-class BundleCacheManagerDeletionException(BundleCacheManagerException):
-
-    def __init__(self, filepath, message=None):
-        super(BundleCacheManagerDeletionException, self).__init__(filepath, message)
 
 
 class BundleCacheManager(object):
@@ -160,7 +149,7 @@ class BundleCacheManager(object):
     def _get_filelist(cls, bundle_path):
 
         if not os.path.exists(bundle_path):
-            raise BundleCacheManagerException(bundle_path, "The specified path does not exists.")
+            raise BundleCacheUsageException(bundle_path, "The specified path does not exists.")
 
         file_list = []
         for (dirpath, dirnames, filenames) in os.walk(bundle_path):
@@ -193,7 +182,7 @@ class BundleCacheManager(object):
             if os.path.islink(f):
                 # CAVEAT: Always False if symbolic links are not supported by the Python runtime.
                 #         How do we know whether it is supported???
-                raise BundleCacheManagerDeletionException(f, "Found a symlink")
+                raise BundleCacheUsageFileDeletionException(f, "Found a symlink")
 
         # We have a crude list, now we need to sort it out in reverse
         # order so we can later on delete files, and then parent folder
@@ -202,7 +191,10 @@ class BundleCacheManager(object):
         # No symlinks, Houston we're clear for deletion
         for f in rlist:
             if not os.path.exists(f):
-                raise BundleCacheManagerDeletionException(f, "Attempting to delete non existing file or folder.")
+                raise BundleCacheUsageFileDeletionException(
+                    f,
+                    "Attempting to delete non existing file or folder."
+                )
 
             if os.path.isfile(f):
                 os.remove(f)
@@ -214,10 +206,16 @@ class BundleCacheManager(object):
                 try:
                     os.rmdir(f)
                 except OSError as e:
-                    raise BundleCacheManagerDeletionException(f, "Attempted to delete a non-empty folder")
+                    raise BundleCacheUsageFileDeletionException(
+                        f,
+                        "Attempted to delete a non-empty folder: %s" % (e)
+                    )
 
             else:
-                raise BundleCacheManagerDeletionException(f, "Not a link, not a file, not a directory ???")
+                raise BundleCacheUsageFileDeletionException(
+                    f,
+                    "Not a link, not a file, not a directory ???"
+                )
 
     ###################################################################################################################
     #

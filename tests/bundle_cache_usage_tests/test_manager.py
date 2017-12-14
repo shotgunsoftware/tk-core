@@ -19,8 +19,8 @@ from mock import patch
 import sgtk
 from .test_base import TestBundleCacheUsageBase, Utils
 from sgtk.descriptor.bundle_cache_usage.manager import BundleCacheManager
-from sgtk.descriptor.bundle_cache_usage.manager import BundleCacheManagerException
-from sgtk.descriptor.bundle_cache_usage.manager import BundleCacheManagerDeletionException
+from sgtk.descriptor.bundle_cache_usage.exception import BundleCacheUsageException
+from sgtk.descriptor.bundle_cache_usage.exception import BundleCacheUsageFileDeletionException
 from tank_test.tank_test_base import TankTestBase, setUpModule
 
 class TestBundleCacheManager(TestBundleCacheUsageBase):
@@ -149,7 +149,7 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
     def test_get_filelist_with_non_existing_path(self):
         """ Tests the `_get_filelist` method against a non-existing file path. """
 
-        with self.assertRaises(BundleCacheManagerException):
+        with self.assertRaises(BundleCacheUsageException):
             self._manager._get_filelist("bogus_file_path")
 
     def test_get_usage_count(self):
@@ -365,7 +365,7 @@ class TestBundleCacheManagerParanoidDelete(TestBundleCacheUsageBase):
         filelist = self._manager._get_filelist(self._test_path)
 
         # Now test that an exception is thrown
-        with self.assertRaises(BundleCacheManagerDeletionException):
+        with self.assertRaises(BundleCacheUsageFileDeletionException):
             self._manager._paranoid_delete(filelist)
 
     def test_paranoid_delete_with_file_symlink(self):
@@ -422,7 +422,7 @@ class TestBundleCacheManagerParanoidDelete(TestBundleCacheUsageBase):
 
         os.remove(manually_deleted_file)
 
-        with self.assertRaises(BundleCacheManagerDeletionException):
+        with self.assertRaises(BundleCacheUsageFileDeletionException):
             self._manager._paranoid_delete(filelist)
 
     def test_paranoid_delete_with_extra_file(self):
@@ -440,7 +440,7 @@ class TestBundleCacheManagerParanoidDelete(TestBundleCacheUsageBase):
                                   "v0.8.3", "some_unexpected_extra_file.txt")
         Utils.write_bogus_data(extra_file)
 
-        with self.assertRaises(BundleCacheManagerDeletionException):
+        with self.assertRaises(BundleCacheUsageFileDeletionException):
             self._manager._paranoid_delete(filelist)
 
 

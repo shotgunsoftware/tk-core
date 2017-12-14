@@ -9,6 +9,19 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
+class BundleCacheUsageException(Exception):
+
+    def __init__(self, filepath, message=None):
+        super(BundleCacheUsageException, self).__init__(message)
+        self._filepath = filepath
+
+
+class BundleCacheUsageFileDeletionException(BundleCacheUsageException):
+
+    def __init__(self, filepath, message=None):
+        super(BundleCacheUsageFileDeletionException, self).__init__(filepath, message)
+
+
 class BundleCacheUsageTimeoutException(Exception):
 
     def __init__(self, method_name):
