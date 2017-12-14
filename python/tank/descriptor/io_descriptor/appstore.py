@@ -871,4 +871,3 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             log.debug("...could not establish connection: %s" % e)
             can_connect = False
         return can_connect
-
