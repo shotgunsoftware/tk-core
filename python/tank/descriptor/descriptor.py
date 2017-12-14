@@ -271,16 +271,6 @@ class Descriptor(object):
         """
         return self._io_descriptor.is_immutable()
 
-    def is_purgeable(self):
-        """
-        TODO: Determine if this even useful at this level???
-
-        Returns true if descriptor content can be deleted from cache by the bundle cache manager.
-        Typically true from items that can be re-downloaded from the app store or TDB ...
-        :returns: True if this item can be purged from the cache
-        """
-        return self._io_descriptor.is_purgeable()
-
     @property
     def description(self):
         """
