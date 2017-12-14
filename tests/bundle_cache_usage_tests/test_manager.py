@@ -329,7 +329,7 @@ class TestBundleCacheManagerParanoidDelete(TestBundleCacheUsageBase):
     def test_paranoid_delete_files(self):
         """ Tests the `_paranoi_delete_files` method against a known fake bundle. """
         manager = BundleCacheManager(self.bundle_cache_root)
-        filelist = BundleCacheManager._get_filelist(self._test_path)
+        filelist = manager._get_filelist(self._test_path)
         manager._paranoid_delete(filelist)
 
     def _helper_paranoid_delete_with_link(self, link_dir, use_hardlink):
@@ -480,7 +480,10 @@ class TestBundleCacheManagerPurgeBundle(TestBundleCacheUsageBase):
         self.assertIsNotNone(self._manager.get_last_usage_date(test_bundle_path))
 
         # Purge it!
-        self._manager.purge_bundle(test_bundle_path)
+        bundle_list = self._manager.get_unused_bundles(0)
+        self.assertEquals(1, len(bundle_list))
+        truncated_path = bundle_list[0][1]
+        self._manager.purge_bundle(truncated_path)
 
         # Now verify that neither files or database entry exist
         self.assertEquals(0, self._manager.get_usage_count(test_bundle_path))

@@ -1136,14 +1136,15 @@ class ToolkitManager(object):
             # TODO: make global constant
             days_since_last_usage = 30
 
-            bundle_path_list = bundle_cache_usage_mgr.get_unused_bundles(days_since_last_usage)
-            bundle_count = len(bundle_path_list)
+            bundle_entry_list = bundle_cache_usage_mgr.get_unused_bundles(days_since_last_usage)
+            bundle_count = len(bundle_entry_list)
             purge_counter = 1
-            for bundle_path in bundle_path_list:
-                version_str = os.path.basename(bundle_path[1])
-                module_name = os.path.basename(os.path.dirname(bundle_path[1]))
+            for bundle_entry in bundle_entry_list:
+                bundle_path = bundle_entry[1]
+                version_str = os.path.basename(bundle_path)
+                module_name = os.path.basename(os.path.dirname(bundle_path))
 
-                if os.environ.get('TK_BUNDLE_USAGE_TRACKING_NO_DELETE', None):
+                if os.environ.get('TK_BUNDLE_USAGE_TRACKING_NO_DELETE'):
                     message = "Warning '%s'version %s was not used in last %d day%s (%d of %d)." % (
                         module_name,
                         version_str,
@@ -1162,7 +1163,7 @@ class ToolkitManager(object):
                         purge_counter,
                         bundle_count
                     )
-                    bundle_cache_usage.purge_bundle(bundle_path)
+                    bundle_cache_usage_mgr.purge_bundle(bundle_path)
 
                 log.info(message)
                 progress_value = float(purge_counter) / float(bundle_count)

@@ -73,10 +73,8 @@ class BundleCacheUsageWorker(threading.Thread):
         :param bundle_path: a str of the database entry to delete
         :param signal: A threading.Event object created by original client from the main thread.
         """
-        truncated_path = self._truncate_path(bundle_path)
-        if truncated_path:
-            log.debug_worker("__delete_entry('%s')" %(truncated_path))
-            self._bundle_cache_usage.delete_entry(truncated_path)
+        log.debug_worker("__delete_entry('%s')" %(bundle_path))
+        self._bundle_cache_usage.delete_entry(bundle_path)
 
         # We're done, signal caller!
         signal.set()
@@ -190,6 +188,11 @@ class BundleCacheUsageWorker(threading.Thread):
             return None
 
         truncated_path = bundle_path.replace(self._bundle_cache_root, "")
+
+        # also remove leading separator as it prevents os.path.join
+        if truncated_path.startswith(os.sep):
+            truncated_path = truncated_path[len(os.sep):]
+
         log.debug_worker_hf("truncated_path=%s" % (truncated_path))
         return truncated_path
 

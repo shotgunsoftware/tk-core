@@ -143,14 +143,15 @@ class BundleCacheManager(object):
 
         return bundle_path_list
 
-    @classmethod
-    def _get_filelist(cls, bundle_path):
+    def _get_filelist(self, bundle_path):
 
-        if not os.path.exists(bundle_path):
-            raise BundleCacheUsageException(bundle_path, "The specified path does not exists.")
+        # Restore bundle full path which was truncated and set relative to 'bundle_cache_root'
+        full_bundle_path = os.path.join(self.bundle_cache_root, bundle_path)
+        if not os.path.exists(full_bundle_path):
+            raise BundleCacheUsageException("","The specified path does not exists: %s" % (full_bundle_path))
 
         file_list = []
-        for (dirpath, dirnames, filenames) in os.walk(bundle_path):
+        for (dirpath, dirnames, filenames) in os.walk(full_bundle_path):
             file_list.append(dirpath)
             for filename in filenames:
                 fullpath = os.path.join(dirpath, filename)
@@ -261,7 +262,7 @@ class BundleCacheManager(object):
 
     def purge_bundle(self, bundle_path):
         try:
-            filelist = BundleCacheManager._get_filelist(bundle_path)
+            filelist = self._get_filelist(bundle_path)
             self._paranoid_delete(filelist)
             # No exception, everything was deleted, delete the entry from database
             self._worker.delete_entry(bundle_path)
