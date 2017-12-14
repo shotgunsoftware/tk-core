@@ -130,7 +130,7 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
 
         """ Connects and execute some SQL statement"""
         bundle_entry_tuple = (bundle_path, timestamp, timestamp, initial_access_count)
-        result = self._execute(sql_statement, bundle_entry_tuple)
+        self._execute(sql_statement, bundle_entry_tuple)
 
     def _delete_bundle_entry(self, bundle_path):
         'DELETE FROM tasks WHERE id=?'
@@ -138,7 +138,7 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
             BundleCacheUsageSQLiteWriter.DB_MAIN_TABLE_NAME,
             BundleCacheUsageSQLiteWriter.DB_COL_PATH,
         )
-        result = self._execute(sql_statement, (bundle_path,))
+        self._execute(sql_statement, (bundle_path,))
 
     def _find_bundle(self, bundle_path):
         """
@@ -208,7 +208,6 @@ class BundleCacheUsageSQLiteWriter(BundleCacheUsageWriterBase):
             if bundle_entry:
                 # Update
                 log.debug_db_hf("_update_bundle_entry('%s')" % bundle_path)
-                access_count = bundle_entry[BundleCacheUsageSQLiteWriter.DB_COL_ACCESS_COUNT_INDEX]
                 self._update_bundle_entry(bundle_entry[BundleCacheUsageSQLiteWriter.DB_COL_ID_INDEX],
                                           now_unix_timestamp,
                                           bundle_entry[BundleCacheUsageSQLiteWriter.DB_COL_ACCESS_COUNT_INDEX]

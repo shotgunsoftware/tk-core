@@ -13,9 +13,6 @@ import time
 import threading
 
 from worker import BundleCacheUsageWorker
-from ...util import LocalFileStorageManager
-from ... import LogManager
-
 from exception import BundleCacheUsageException
 from exception import BundleCacheUsageFileDeletionException
 from . import BundleCacheUsageLogger as log
@@ -52,8 +49,9 @@ class BundleCacheManager(object):
     def __init__(self, bundle_cache_root):
         super(BundleCacheManager, self).__init__()
         log.debug_manager("__init__('%s')" % bundle_cache_root)
-        #TODO: returning would cause a silent non-usage of specified parameter
-        if (self.__initialized): return
+        # TODO: returning would cause a silent non-usage of specified parameter
+        if (self.__initialized):
+            return
         self._worker = None
 
         if bundle_cache_root is None:
