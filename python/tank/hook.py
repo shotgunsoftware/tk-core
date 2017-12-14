@@ -622,29 +622,12 @@ def execute_hook_method(hook_paths, parent, method_name, base_class=None, **kwar
 
 def create_hook_instance(hook_paths, parent, base_class=None):
     """
-    This method calls `get_hook_class` to retrieve the class for the supplied
-    hook paths. An instance of the hook class is returned.
-
-    :param hook_paths: List of full paths to hooks, in inheritance order.
-    :param parent: Parent object. This will be accessible inside
-                   the hook as self.parent, and is typically an
-                   app, engine or core object.
-    :param base_class: A python class to use as the base class for the created
-        hook. This will override the default hook base class, ``Hook``.
-    :returns: Instance of the hook.
-    """
-    cls = get_hook_class(hook_paths, base_class=base_class)
-    return cls(parent)
-
-
-def get_hook_class(hook_paths, base_class=None):
-    """
     New style hook execution, with method arguments and support for inheritance.
 
     This method takes a list of hook paths and will load each of the classes
     in, while maintaining the correct state of the class returned via
     get_hook_baseclass(). Once all classes have been successfully loaded,
-    the last class in the list is returned.
+    an instance of the last class in the list is returned.
 
         Example: ["/tmp/a.py", "/tmp/b.py", "/tmp/c.py"]
 
@@ -658,7 +641,7 @@ def get_hook_class(hook_paths, base_class=None):
 
         3. /tmp/c.py is finally loaded in, get_hook_baseclass() now returns HookB.
 
-        4. HookC class is returned.
+        4. An instance of the HookC class is returned.
 
     An optional `base_class` can be provided to override the default ``Hook``
     base class. This is useful for bundles that create hook instances at
@@ -723,11 +706,10 @@ def get_hook_class(hook_paths, base_class=None):
         # keep track of the current base class:
         _current_hook_baseclass.value = found_hook_class
 
-    # all class construction done. _current_hook_baseclass contains
-    # the last class we iterated over. This is the one we want to return
+    # all class construction done. _current_hook_baseclass contains the last
+    # class we iterated over. An instance of this is what we want to return
+    return _current_hook_baseclass.value(parent)
 
-    # return the class
-    return _current_hook_baseclass.value
 
 def get_hook_baseclass():
     """
