@@ -65,7 +65,7 @@ def create_descriptor(
                             for example because and internet connection isn't available. If True, the
                             descriptor factory will attempt to fall back on any existing locally cached
                             bundles and return the latest one available. If False, a
-                            :class:`TankDescriptorError` is returned instead.
+                            :class:`TankDescriptorError` is raised instead.
 
     :returns: :class:`Descriptor` object
     :raises: :class:`TankDescriptorError`
