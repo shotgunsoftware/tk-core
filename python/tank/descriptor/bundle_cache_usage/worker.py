@@ -15,7 +15,7 @@ import Queue
 from threading import Event, Thread, Lock
 
 from .exception import BundleCacheUsageTimeoutException
-from .writer_sqlite import BundleCacheUsageSQLiteWriter as Writer
+from .database import BundleCacheUsageDatabase as BundleCacheUsageDatabase
 from . import BundleCacheUsageLogger as log
 
 
@@ -47,7 +47,7 @@ class BundleCacheUsageWorker(threading.Thread):
         self._main_loop_count = 0
         self._pending_count = 0
         self._debug = False
-        self._bundle_cache_usage = None
+        self._database = None
         self._bundle_cache_root = bundle_cache_root
 
     #
@@ -65,7 +65,7 @@ class BundleCacheUsageWorker(threading.Thread):
         if truncated_path:
             now_unix_timestamp = self._get_timestamp()
             log.debug_worker("__add_unused_bundle('%s, %d')" % (truncated_path, now_unix_timestamp))
-            self._bundle_cache_usage.add_unused_bundle(truncated_path, now_unix_timestamp)
+            self._database.add_unused_bundle(truncated_path, now_unix_timestamp)
 
     def __delete_entry(self, bundle_path, signal):
         """
@@ -74,7 +74,7 @@ class BundleCacheUsageWorker(threading.Thread):
         :param signal: A threading.Event object created by original client from the main thread.
         """
         log.debug_worker("__delete_entry('%s')" %(bundle_path))
-        self._bundle_cache_usage.delete_entry(bundle_path)
+        self._database.delete_entry(bundle_path)
 
         # We're done, signal caller!
         signal.set()
@@ -86,7 +86,7 @@ class BundleCacheUsageWorker(threading.Thread):
         :param response: A list
         :return: indirectly returns a dict  through usage of the response variable
         """
-        count = self._bundle_cache_usage.get_bundle_count()
+        count = self._database.get_bundle_count()
         log.debug_worker("__get_bundle_count() = %d" % (count))
         response[BundleCacheUsageWorker.KEY_BUNDLE_COUNT] = count
 
@@ -102,7 +102,7 @@ class BundleCacheUsageWorker(threading.Thread):
         :return: indirectly returns a list through usage of the response variable
         """
         oldest_timestamp = self._get_timestamp() - (since_days * 24 * 3600)
-        list = self._bundle_cache_usage._get_unused_bundles(oldest_timestamp)
+        list = self._database._get_unused_bundles(oldest_timestamp)
         log.debug_worker("__get_unused_bundles(%d) count = %d" % (oldest_timestamp, len(list)))
         for item in list:
             response.append(item)
@@ -120,7 +120,7 @@ class BundleCacheUsageWorker(threading.Thread):
         truncated_path = self._truncate_path(bundle_path)
         if truncated_path:
             log.debug_worker("__get_last_usage_date('%s')" %(truncated_path))
-            last_usage_date = self._bundle_cache_usage.get_last_usage_date(truncated_path)
+            last_usage_date = self._database.get_last_usage_date(truncated_path)
             response[BundleCacheUsageWorker.KEY_LAST_USAGE_DATE] = last_usage_date
 
         # We're done, signal caller!
@@ -136,7 +136,7 @@ class BundleCacheUsageWorker(threading.Thread):
         """
         truncated_path = self._truncate_path(bundle_path)
         if truncated_path:
-            count = self._bundle_cache_usage.get_usage_count(truncated_path)
+            count = self._database.get_usage_count(truncated_path)
             log.debug_worker("__get_usage_count('%s') = %d" % (truncated_path, count))
             response[BundleCacheUsageWorker.KEY_USAGE_COUNT] = count
 
@@ -152,7 +152,7 @@ class BundleCacheUsageWorker(threading.Thread):
         if truncated_path:
             now_unix_timestamp = self._get_timestamp()
             log.debug_worker("__log_usage('%s', %d)" % (truncated_path, now_unix_timestamp))
-            self._bundle_cache_usage.log_usage(truncated_path, now_unix_timestamp)
+            self._database.log_usage(truncated_path, now_unix_timestamp)
 
     def __consume_task(self):
         """
@@ -205,7 +205,7 @@ class BundleCacheUsageWorker(threading.Thread):
 
         try:
             #  The SQLite object can only be used in the thread it was created in.
-            self._bundle_cache_usage = Writer(self._bundle_cache_root)
+            self._database = BundleCacheUsageDatabase(self._bundle_cache_root)
             self._database_created.set()
 
             while not self._terminate_requested.is_set() or self.pending_count > 0:
@@ -237,10 +237,10 @@ class BundleCacheUsageWorker(threading.Thread):
         finally:
             # Need to check that this was assigned, we might be comming
             # from an exception setting up the DB and bundle cache folder.
-            if self._bundle_cache_usage:
+            if self._database:
                 # Out of the loop, no longer expecting any operation on the DB
                 # we can close it.
-                self._bundle_cache_usage.close()
+                self._database.close()
 
             log.debug_worker_threading("terminated (%d tasks remaining)" % self.pending_count)
 

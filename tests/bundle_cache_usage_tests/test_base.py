@@ -124,9 +124,9 @@ class TestBundleCacheUsageBase(TankTestBase):
         super(TestBundleCacheUsageBase, self).setUp()
 
         from sgtk.descriptor.bundle_cache_usage.manager import BundleCacheManager
-        from sgtk.descriptor.bundle_cache_usage.writer_sqlite import BundleCacheUsageSQLiteWriter
+        from sgtk.descriptor.bundle_cache_usage.database import BundleCacheUsageDatabase
 
-        self._expected_db_path = os.path.join(self.bundle_cache_root, BundleCacheUsageSQLiteWriter.DB_FILENAME)
+        self._expected_db_path = os.path.join(self.bundle_cache_root, BundleCacheUsageDatabase.DB_FILENAME)
 
         TestBundleCacheUsageBase._create_test_bundle_cache(self.tank_temp)
 

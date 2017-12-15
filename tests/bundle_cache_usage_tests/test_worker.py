@@ -84,7 +84,7 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
             start_time = time.time()
             worker = BundleCacheUsageWorker(self.bundle_cache_root)
             worker.start()
-            self.assertIsNotNone(worker._bundle_cache_usage.connected)
+            self.assertIsNotNone(worker._database.connected)
             worker.stop()
             worker = None
             elapsed_time = time.time() - start_time
