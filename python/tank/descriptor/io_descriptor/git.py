@@ -131,7 +131,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         for command in commands:
 
             # we use git -C to specify the working directory where to execute the command
-            full_command = "git -C \"%s\" %s" % (cwd, command)
+            full_command = "git -C \"%s\" %s" % (target_path, command)
             log.debug("Executing '%s'" % full_command)
 
             try:
