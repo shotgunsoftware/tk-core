@@ -1009,7 +1009,7 @@ class TemplateConfiguration(object):
                 Descriptor.CONFIG,
                 {"type": "app_store", "name": config_uri},
                 resolve_latest=True,
-                local_fallback_when_disconnected = False
+                local_fallback_when_disconnected=False
             )
             descriptor.ensure_local()
 
