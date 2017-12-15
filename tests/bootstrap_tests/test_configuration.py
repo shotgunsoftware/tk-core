@@ -10,6 +10,7 @@
 
 from __future__ import with_statement
 
+import os
 from mock import MagicMock, patch
 
 from tank_test.tank_test_base import setUpModule # noqa
@@ -63,3 +64,53 @@ class TestConfiguration(TankTestBase):
         self.assertEqual(
             sgtk.get_authenticated_user(), self._mock_default_user
         )
+
+
+class TestInvalidInstalledConfiguration(TankTestBase):
+    """
+    Tests that error messages are raised at startup when
+    the linux/windows/path fields are set to a configuration which
+    isn't valid
+    """
+
+    def setUp(self):
+        super(TestInvalidInstalledConfiguration, self).setUp()
+        self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
+        self._resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
+            plugin_id="tk-maya",
+            bundle_cache_fallback_paths=[self._tmp_bundle_cache]
+        )
+
+        # now get rid of some stuff from our fixtures to emulate
+        # a config which was downloaded directly from github and not
+        # created by setup_project
+        os.remove(
+            os.path.join(self.pipeline_config_root, "config", "core", "pipeline_configuration.yml")
+        )
+
+        os.remove(
+            os.path.join(self.pipeline_config_root, "config", "core", "install_location.yml")
+        )
+
+    def test_resolve_installed_configuration(self):
+        """
+        Makes sure an installed configuration is resolved.
+        """
+        # note: this is using the classic config that is part of the
+        #       std test fixtures.
+        config = self._resolver.resolve_shotgun_configuration(
+            self.tk.pipeline_configuration.get_shotgun_id(),
+            "sgtk:descriptor:not?a=descriptor",
+            self.tk.shotgun,
+            "john.smith"
+        )
+        self.assertIsInstance(
+            config,
+            sgtk.bootstrap.resolver.InstalledConfiguration
+        )
+
+        with self.assertRaisesRegexp(
+                sgtk.bootstrap.TankBootstrapError,
+                "Cannot find required system file"):
+            config.status()
+
