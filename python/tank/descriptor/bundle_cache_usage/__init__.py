@@ -1,6 +1,8 @@
 from ... import LogManager
+
 # Debugging options
-USE_PYDEVD = False
+USE_PYDEVD_PYCHARM = False
+USE_PYDEVD_LICLIPSE = False
 PYDEVD_INITIATED = False
 
 LOG_GET_PATH = False
@@ -9,12 +11,20 @@ LOG_DESCRIPTOR_TYPE = False
 
 bundle_cache_usage_logger = LogManager.get_logger(__name__)
 
-if USE_PYDEVD:
+if USE_PYDEVD_PYCHARM:
     if not PYDEVD_INITIATED:
         import sys
         sys.path.append("/Applications/PyCharm.app/Contents/debug-eggs/pycharm-debug.egg")
         import pydevd
         pydevd.settrace('localhost', port=7720, stdoutToServer=True, stderrToServer=True, suspend=True)
+        PYDEVD_INITIATED = True
+
+if USE_PYDEVD_LICLIPSE:
+    if not PYDEVD_INITIATED:
+        import sys
+        sys.path.append("/Applications/LiClipse.app/Contents/Eclipse/plugins/org.python.pydev_6.2.0.201711281546/pysrc")
+        import pydevd
+        pydevd.settrace('localhost', port=5678, suspend=True, stdoutToServer=True, stderrToServer=True)
         PYDEVD_INITIATED = True
 
 
@@ -23,7 +33,7 @@ class BundleCacheUsageLogger(object):
     # Debug logging options
     DEBUG = True  # master switch
 
-    USE_PRINT = True
+    USE_PRINT = False
 
     LOG_THREADING = False
 
