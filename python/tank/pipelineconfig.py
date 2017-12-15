@@ -24,12 +24,14 @@ from . import constants
 from .platform.environment import InstalledEnvironment, WritableEnvironment
 from .util import shotgun, yaml_cache
 from .util import ShotgunPath
+from .util.local_file_storage import LocalFileStorageManager
 from . import hook
 from . import pipelineconfig_utils
 from . import template_includes
 from . import LogManager
 
 from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
+from .descriptor.bundle_cache_usage.manager import BundleCacheManager
 
 log = LogManager.get_logger(__name__)
 
@@ -62,6 +64,23 @@ class PipelineConfiguration(object):
         :type descriptor: :class:`sgtk.descriptor.ConfigDescriptor`
         """
         self._pc_root = pipeline_configuration_path
+
+        # Initialize the BundleCacheUsage worker service for use by the
+        # `IODescriptorBase.get_path` method.
+        #
+        # TODO: We are specifiying database location from 2 distinct places in tk-core:
+        #       - PipelineConfiguration.__init__
+        #       - ToolkitManager._process_bundle_cache_purge
+        #       The feature would simply break if both are no the same.
+        #       Maybe it would be better to embed call to the
+        #       `LocalFileStorageManager.get_global_root` from within the
+        #       `BundleCacheManager` class?
+        BundleCacheManager(
+            os.path.join(
+                LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
+                "bundle_cache"
+            )
+        )
 
         # validate that the current code version matches or is compatible with
         # the code that is locally stored in this config!!!!

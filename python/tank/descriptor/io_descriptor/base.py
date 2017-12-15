@@ -17,9 +17,10 @@ import urlparse
 from .. import constants
 from ... import LogManager
 from ...util import filesystem
+from ...util import LocalFileStorageManager
 from ...util.version import is_version_newer
 from ..errors import TankDescriptorError, TankMissingManifestError
-from ..bundle_cache_usage import bundle_cache_usage_mgr
+from ..bundle_cache_usage.manager import BundleCacheManager
 from ..bundle_cache_usage import LOG_GET_PATH, LOG_DESCRIPTOR_TYPE # TODO: temporary
 
 from tank_vendor import yaml
@@ -681,7 +682,7 @@ class IODescriptorBase(object):
                     # Minimum checks here, additional checks and
                     # path manipulation will be done on the
                     # service worker thread.
-                    bundle_cache_usage_mgr.log_usage(path)
+                    BundleCacheManager.log_usage(path)
 
                 if LOG_GET_PATH:
                     log.debug("NICOLAS: get_path() return: '%s'\n" % (path))
