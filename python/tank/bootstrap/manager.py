@@ -18,7 +18,8 @@ from .configuration import Configuration
 from .resolver import ConfigurationResolver
 from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
-from ..descriptor.bundle_cache_usage import bundle_cache_usage_mgr
+from ..descriptor.bundle_cache_usage.manager import BundleCacheManager
+from ..util.local_file_storage import LocalFileStorageManager
 
 from .. import LogManager
 from ..errors import TankError
@@ -41,6 +42,10 @@ class ToolkitManager(object):
     # - bootstrapping the toolkit (with method bootstrap_toolkit),
     # - starting up the engine (with method _start_engine).
     (TOOLKIT_BOOTSTRAP_PHASE, ENGINE_STARTUP_PHASE) = range(2)
+
+    # Constants Misc.
+    # How long in days before unused bundles are deleted from the global bundle cache
+    TOOLKIT_BUNDLE_CACHE_AUTO_DELETE_TIMEOUT = 30
 
     # List of constants representing the status of the progress bar when these event occurs during bootstrap.
     _RESOLVING_PROJECT_RATE = 0.0
@@ -943,6 +948,38 @@ class ToolkitManager(object):
 
         return config
 
+    def _process_bundle_cache_purge(self, progress_callback, purge_timeout):
+
+        # TODO: We are specifiying database location from 2 distinct places in tk-core:
+        #       - PipelineConfiguration.__init__
+        #       - ToolkitManager._process_bundle_cache_purge
+        #       The feature would simply break if both are no the same.
+        #       Maybe it would be better to embed call to the
+        #       `LocalFileStorageManager.get_global_root` from within the
+        #       `BundleCacheManager` class?
+        bundle_cache_mgr = BundleCacheManager(
+            os.path.join(
+                LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
+                "bundle_cache"
+            )
+        )
+
+        if bundle_cache_mgr.initial_populate_performed:
+            if os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE"):
+                log.debug("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE set, bundle auto-purge disabled.")
+            else:
+                self._report_progress(progress_callback, self._STARTING_TOOLKIT_RATE, "Cleaning up app cache...")
+                bundle_entry_list = bundle_cache_mgr.get_unused_bundles(purge_timeout)
+                for bundle in bundle_entry_list:
+                    bundle_cache_mgr.purge_bundle(bundle.path)
+                    log.debug(
+                        "Removing all items in bundle cache '%s' which havent't been used in more than %d days (%s)" % (
+                            (bundle.path, purge_timeout, bundle.last_access_date)
+                        )
+                    )
+        else:
+            bundle_cache_mgr.initial_populate()
+
     def _bootstrap_sgtk(self, engine_name, entity, progress_callback=None):
         """
         Create an :class:`~sgtk.Sgtk` instance for the given entity and caches all applications.
@@ -985,6 +1022,13 @@ class ToolkitManager(object):
                 engine_name,
                 progress_callback
             )
+
+            # purge bundles that haven't been used in past N days
+            self._process_bundle_cache_purge(
+                progress_callback,
+                self.TOOLKIT_BUNDLE_CACHE_AUTO_DELETE_TIMEOUT
+            )
+
         else:
             log.debug("Configuration has local bundle cache, skipping bundle caching.")
 
@@ -1121,57 +1165,6 @@ class ToolkitManager(object):
             # Call the old style progress callback with signature (message, current_index, maximum_index).
             progress_callback(message, None, None)
 
-    def _process_bundle_cache_purge(self, progress_callback):
-        """
-        Check for unused bundles in bundle cache and delete them.
-
-        :param progress_callback: Callback function that reports back on the engine startup progress.
-        """
-
-        try:
-            log.debug("Checking bundle cache for unused bundles...")
-            # TODO: make global constant
-            days_since_last_usage = 30
-
-            bundle_entry_list = bundle_cache_usage_mgr.get_unused_bundles(days_since_last_usage)
-            bundle_count = len(bundle_entry_list)
-            purge_counter = 1
-            for bundle_entry in bundle_entry_list:
-                bundle_path = bundle_entry[1]
-                version_str = os.path.basename(bundle_path)
-                module_name = os.path.basename(os.path.dirname(bundle_path))
-
-                if os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE"):
-                    message = "Warning '%s'version %s was not used in last %d day%s (%d of %d)." % (
-                        module_name,
-                        version_str,
-                        int(days_since_last_usage),
-                        "s" if int(days_since_last_usage) > 1 else "",
-                        purge_counter,
-                        bundle_count
-                    )
-
-                else:
-                    message = "Purging '%s'version %s which was not used in last %d day%s (%d of %d)." % (
-                        module_name,
-                        version_str,
-                        int(days_since_last_usage),
-                        "s" if int(days_since_last_usage) > 1 else "",
-                        purge_counter,
-                        bundle_count
-                    )
-                    bundle_cache_usage_mgr.purge_bundle(bundle_path)
-
-                log.info(message)
-                progress_value = float(purge_counter) / float(bundle_count)
-                self._report_progress(progress_callback, progress_value, message)
-
-                purge_counter += 1
-
-        except Exception as e:
-            log.error("Unexpected error purging unused bundles: %s" % (e))
-            log.exception(e)
-
     def _cache_apps(self, pipeline_configuration, config_engine_name, progress_callback):
         """
         Caches all apps associated with the given toolkit instance.
@@ -1233,8 +1226,6 @@ class ToolkitManager(object):
                 message = "Checking %s (%s of %s)." % (descriptor, idx + 1, len(descriptors))
                 log.debug("%s exists locally at '%s'.", descriptor, descriptor.get_path())
                 self._report_progress(progress_callback, progress_value, message)
-
-        self._process_bundle_cache_purge(progress_callback)
 
     def _default_progress_callback(self, progress_value, message):
         """

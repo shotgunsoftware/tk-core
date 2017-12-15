@@ -1,6 +1,4 @@
 from ... import LogManager
-from ...util import LocalFileStorageManager
-
 # Debugging options
 USE_PYDEVD = False
 PYDEVD_INITIATED = False
@@ -100,22 +98,4 @@ class BundleCacheUsageLogger(object):
     def info(cls, message):
         pass
 
-
-from manager import BundleCacheManager
-import os
-
-# TODO: Where should this be???
-bundle_cache_root = os.path.join(
-    LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
-    "bundle_cache"
-)
-
-bundle_cache_usage_mgr = BundleCacheManager(bundle_cache_root)
-
-#TODO: need execute 'initial_populate' as early as possible, hit of pipeline configuration
-# is occuring earlier than bootstrap.apps_cache
-# Check whether database is populated at all
-if not bundle_cache_usage_mgr.get_bundle_count():
-    bundle_cache_usage_logger.debug("Bundle cache usage database is empty.")
-    bundle_cache_usage_mgr.initial_populate()
 

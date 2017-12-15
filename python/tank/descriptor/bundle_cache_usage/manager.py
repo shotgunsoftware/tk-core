@@ -246,6 +246,14 @@ class BundleCacheManager(object):
             time.time() - start_time, len(found_bundles)
         ))
 
+    @property
+    def initial_populate_performed(self):
+        """
+        :return: bool True if the initial database population was performed else False
+        """
+        # TODO: replace with unenbigouos INITIAL_POPULATE_NOT_DONE record.
+        return self.get_bundle_count()>0
+
     def get_bundle_count(self):
         return self._worker.get_bundle_count()
 
@@ -263,8 +271,12 @@ class BundleCacheManager(object):
     def get_usage_count(self, bundle_path):
         return self._worker.get_usage_count(bundle_path)
 
-    def log_usage(self, bundle_path):
-        self._worker.log_usage(bundle_path)
+    @classmethod
+    def log_usage(cls, bundle_path):
+        with cls.__singleton_lock:
+            if cls.__singleton_instance:
+                if cls.__singleton_instance._worker:
+                    cls.__singleton_instance._worker.log_usage(bundle_path)
 
     def purge_bundle(self, bundle_path):
         try:
