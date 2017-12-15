@@ -884,7 +884,8 @@ class TemplateConfiguration(object):
             self._sg,
             Descriptor.CONFIG,
             {"type": "git_branch", "path": git_uri, "branch": "master"},
-            resolve_latest=True
+            resolve_latest=True,
+            local_fallback_when_disconnected=False,
         )
 
     def _read_roots_file(self):
@@ -1007,7 +1008,8 @@ class TemplateConfiguration(object):
                 self._sg,
                 Descriptor.CONFIG,
                 {"type": "app_store", "name": config_uri},
-                resolve_latest=True
+                resolve_latest=True,
+                local_fallback_when_disconnected = False
             )
             descriptor.ensure_local()
 
