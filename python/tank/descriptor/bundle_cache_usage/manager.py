@@ -59,10 +59,14 @@ class BundleCacheManager(object):
             raise ValueError("The 'bundle_cache_root' parameter is None.")
 
         if not os.path.exists(bundle_cache_root):
-            raise ValueError("The specified 'bundle_cache_root' parameter folder does not exists.")
+            raise OSError(
+                "The specified 'bundle_cache_root' parameter folder does not exists: %s" % (bundle_cache_root)
+            )
 
         if not os.path.isdir(bundle_cache_root):
-            raise ValueError("The specified 'bundle_cache_root' parameter is not a directory.")
+            raise OSError(
+                "The specified 'bundle_cache_root' parameter is not a directory." % (bundle_cache_root)
+            )
 
         self._bundle_cache_root = bundle_cache_root
         self._worker = BundleCacheUsageWorker(bundle_cache_root)

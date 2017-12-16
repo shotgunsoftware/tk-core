@@ -75,12 +75,20 @@ class PipelineConfiguration(object):
         #       Maybe it would be better to embed call to the
         #       `LocalFileStorageManager.get_global_root` from within the
         #       `BundleCacheManager` class?
-        BundleCacheManager(
-            os.path.join(
-                LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
-                "bundle_cache"
+        try:
+            #
+            # TODO: I was told that someone might be using `PipelineConfig` on it's own.
+            #       Now, with the added code just below the class now requires that the
+            #       bundle cache be present as the 'BundleCacheManager' will throw an
+            #       OSError exception if the `bundle_cache` folder cannot be found.
+            BundleCacheManager(
+                os.path.join(
+                    LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
+                    "bundle_cache"
+                )
             )
-        )
+        except OSError as e:
+            log.error(e)
 
         # validate that the current code version matches or is compatible with
         # the code that is locally stored in this config!!!!
