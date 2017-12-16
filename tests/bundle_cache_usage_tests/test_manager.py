@@ -267,7 +267,7 @@ class TestBundleCacheManagerFindBundles(TestBundleCacheUsageBase):
         Test with a non existing folder and check that an exception is thrown
         """
         test_path = os.path.join(self.bundle_cache_root, "non-existing-folder")
-        with self.assertRaises(ValueError):
+        with self.assertRaises(OSError):
             files = BundleCacheManager(test_path)
 
 

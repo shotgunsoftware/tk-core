@@ -362,6 +362,13 @@ class TankTestBase(unittest.TestCase):
         # clear bundle in-memory cache
         sgtk.descriptor.io_descriptor.factory.g_cached_instances = {}
 
+        # Now that we have bundle cache usage manager code in PipelineConfig
+        # which requires a 'bundle_cache' folder we need to create the folder
+        # before creating a pipeline.
+        bundle_cache_folder = os.path.join(self.tank_temp, "bundle_cache")
+        if not os.path.exists(bundle_cache_folder):
+            os.makedirs(bundle_cache_folder)
+
         self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
         self.tk = tank.Tank(self.pipeline_configuration)
 
