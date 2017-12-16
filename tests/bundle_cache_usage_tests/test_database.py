@@ -19,6 +19,7 @@ import unittest2
 import random
 import shutil
 import time
+import datetime
 
 from .test_base import TestBundleCacheUsageBase, Utils
 
@@ -214,15 +215,12 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
         # Low level test for record count, we're logging the same bundle name twice
         # We expect a single record still
-        self.assertEquals(self.db.get_bundle_count(), 5, "Was expecting a single row since we've logged the same entry.")
+        self.assertEquals(self.db.get_bundle_count(), 5)
 
     def test_get_unused_bundles(self):
         """
         Tests the `get_unused_bundles` method
         """
-
-        # Create a folder structure on disk but no entries are added to DB
-        TestBundleCacheUsageBase._create_test_bundle_cache(self.bundle_cache_root)
 
         # See the `_create_test_bundle_cache` for available created test bundles
 
@@ -230,73 +228,37 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         bundle_path_new = os.path.join(self.bundle_cache_root, "app_store", "tk-shell", "v0.5.6")
 
         now = int(time.time())
+
+        # Add a bundle 90 days ago
         ninety_days_ago = now - (90 * 24 * 3600)
+        ninety_days_ago_str = datetime.datetime.fromtimestamp(ninety_days_ago).isoformat()
+        self.db.add_unused_bundle(bundle_path_old, ninety_days_ago)
+        self.db.add_unused_bundle(bundle_path_new, ninety_days_ago)
 
-        # Log some usage as 90 days ago
-        self.db.log_usage(bundle_path_old, ninety_days_ago)
-        old_bundle_date = self.db.get_last_usage_date(bundle_path_old)
+        # Log old bundle as 60 days ago
+        sixty_days_ago = now - (60 * 24 * 3600)
+        sixty_days_ago_str = datetime.datetime.fromtimestamp(sixty_days_ago).isoformat()
+        self.db.log_usage(bundle_path_old, sixty_days_ago)
 
-        # Should be logged as the REAL now
+        # Log new bundle as now
         self.db.log_usage(bundle_path_new, now)
-        # Verify that Mock is no longer in effect
-        self.assertNotEqual(ninety_days_ago, self.db.get_last_usage_date(bundle_path_new))
 
-        bundle_list = self.db.get_unused_bundles(ninety_days_ago)
-
-        # Test the method returns just one of the two entries
+        # Get old bundle list
+        bundle_list = self.db.get_unused_bundles(sixty_days_ago)
         self.assertIsNotNone(bundle_list)
         self.assertEquals(len(bundle_list), 1)
 
-    def _helper_test_db_read_and_update_performance(self, path, iteration_count = PERF_TEST_ITERATION_COUNT):
-        """
-
-        :return:
-        """
-
-        loop_count = 0
-
-        start_time = time.time()
-        db = BundleCacheUsageDatabase(path)
-        while loop_count<iteration_count:
-            bundle_test_name = "bundle-test-%03d" % (random.randint(0, 100))
-            db.log_usage(bundle_test_name)
-            db.commit()
-            loop_count += 1
-
-        db.close()
-        elapsed = time.time() - start_time
-        print("\nelapsed: %s" % (str(elapsed)))
-        print("time per iteration: %s" % (str(elapsed/iteration_count)))
-
-    def _test_db_read_and_update_performance_file(self):
-        self._helper_test_db_read_and_update_performance(self._temp_folder)
-
-    def _test_db_read_and_update_performance(self):
-        """
-
-        :return:
-        """
-
-        ITERATION_COUNT = TestBundleCacheUsageWriterBasicOperations.PERF_TEST_ITERATION_COUNT
-        iteration_count = 0
-
-        start_time = time.time()
-        while iteration_count<ITERATION_COUNT:
-            db = BundleCacheUsageDatabase(self._temp_folder)
-            bundle_test_name = "bundle-test-%03d" % (random.randint(0, 100))
-            db.log_usage(bundle_test_name)
-            db.commit()
-            db.close()
-
-            iteration_count += 1
-
-        elapsed = time.time() - start_time
-        print("elapsed: %s" % (str(elapsed)))
-        print("time per iteration: %s" % (str(elapsed/ITERATION_COUNT)))
+        # Now check properties of that old bundle
+        bundle = bundle_list[0]
+        self.assertEquals(bundle_path_old, bundle.path)
+        self.assertEquals(ninety_days_ago, bundle.add_timestamp)
+        self.assertEquals(ninety_days_ago_str, bundle.add_date)
+        self.assertEquals(sixty_days_ago, bundle.last_access_timestamp)
+        self.assertEquals(sixty_days_ago_str, bundle.last_access_date)
 
     def test_delete_entry(self):
         """
-        Tests the `delete_entry` method
+        Tests the `delete_entry` method with both an existing and non-existing entries
         """
 
         # See the `_create_test_bundle_cache` for available created test bundles
@@ -312,10 +274,38 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.assertEquals(self.db.get_usage_count(bundle_path), 1)
         self.assertEquals(self.db.get_bundle_count(), 1)
 
-        # Delete bundle and verify final DB properties and actual folder
+        # Try deleting a non-existing entry
+        self.db.delete_entry("foOOOo-bar!")
+        self.assertEquals(self.db.get_usage_count("foOOOo-bar!"), 0)
+        self.assertEquals(self.db.get_bundle_count(), 1)
+
+        # Delete bundle and verify final DB properties
         self.db.delete_entry(bundle_path)
         self.assertEquals(self.db.get_usage_count(bundle_path), 0)
         self.assertEquals(self.db.get_bundle_count(), 0)
+
+    def test_methods_with_non_existing_entry(self):
+        """
+        Tests methods with a non-existing entry
+        """
+
+        # See the `_create_test_bundle_cache` for available created test bundles
+        # also see `TestBundleCacheUsageBase.setUp()
+        bundle_path = self._test_bundle_path
+
+        # Verify initial DB properties
+        self.assertEquals(self.db.get_usage_count(bundle_path), 0)
+        self.assertEquals(self.db.get_bundle_count(), 0)
+
+        # Log some usage / add bundle
+        self.db.log_usage(bundle_path, int(time.time()))
+        self.assertEquals(self.db.get_usage_count(bundle_path), 1)
+        self.assertEquals(self.db.get_bundle_count(), 1)
+
+        non_existing_bundle_name = "foOOOo-bar!"
+        self.db.delete_entry(non_existing_bundle_name)
+        self.assertEquals(self.db.get_usage_count(non_existing_bundle_name), 0)
+        self.assertEquals(self.db.get_last_usage_timestamp(non_existing_bundle_name), 0)
 
 
 

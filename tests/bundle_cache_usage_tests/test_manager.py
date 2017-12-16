@@ -90,11 +90,11 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
             if random.randint(0, 1):
                 bundle_path = bundle_list[random.randint(0, bundle_count-1)]
                 start_time = time.time()
-                manager.get_last_usage_date(bundle_path)
+                manager.get_last_usage_timestamp(bundle_path)
                 # Check that execution is near instant
                 self.assertLess(time.time() - start_time,
                                 TestBundleCacheManager.MAXIMUM_BLOCKING_TIME_IN_SECONDS,
-                                "The 'get_last_usage_date' method took unexpectedly long time to execute")
+                                "The 'get_last_usage_timestamp' method took unexpectedly long time to execute")
 
             if random.randint(0, 1):
                 start_time = time.time()
@@ -172,12 +172,12 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
                         "Method took unexpectedly long time to execute"
                         )
 
-    def test_get_last_usage_date(self):
+    def test_get_last_usage_timestamp(self):
 
         USAGE_TOLERANCE_IN_SECONDS = 2
 
         # Check that we get an inital None
-        self.assertIsNone(self._manager.get_last_usage_date(self._test_path))
+        self.assertEquals(0, self._manager.get_last_usage_timestamp(self._test_path))
 
         # Log some usage
         now_unix_timestamp = int(time.time())
@@ -185,7 +185,7 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
 
         # Check that it's about now within USAGE_TOLERANCE_IN_SECONDS
         start_time = time.time()
-        last_date = self._manager.get_last_usage_date(self._test_path)
+        last_date = self._manager.get_last_usage_timestamp(self._test_path)
         elapsed_time = time.time() - start_time
         # Check that execution is near instant
         self.assertLess(elapsed_time,
@@ -210,7 +210,7 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
         with patch("time.time") as mocked:
             mocked.return_value = ninety_days_ago
             self._manager.log_usage(bundle_path_old)
-            old_bundle_date = self._manager.get_last_usage_date(bundle_path_old)
+            old_bundle_date = self._manager.get_last_usage_timestamp(bundle_path_old)
             # Verify that the Mock actually worked
             self.assertEquals(old_bundle_date, ninety_days_ago)
             self.assertTrue(mocked.called)
@@ -218,7 +218,7 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
         # Should be logged as the REAL now
         self._manager.log_usage(bundle_path_new)
         # Verify that Mock is no longer in effect
-        self.assertNotEqual(ninety_days_ago, self._manager.get_last_usage_date(bundle_path_new))
+        self.assertNotEqual(ninety_days_ago, self._manager.get_last_usage_timestamp(bundle_path_new))
 
         # First we check that we can get both entries specifying zero-days
         bundle_list = self._manager.get_unused_bundles(0)
@@ -472,22 +472,22 @@ class TestBundleCacheManagerPurgeBundle(TestBundleCacheUsageBase):
         # Assert the test setup itself
         self.assertTrue(os.path.exists(self._test_path))
         self.assertEquals(0, self._manager.get_usage_count(test_bundle_path))
-        self.assertIsNone(self._manager.get_last_usage_date(test_bundle_path))
+        self.assertEquals(0, self._manager.get_last_usage_timestamp(test_bundle_path))
 
         # Log some usage
         self._manager.log_usage(test_bundle_path)
         self.assertEquals(1, self._manager.get_usage_count(test_bundle_path))
-        self.assertIsNotNone(self._manager.get_last_usage_date(test_bundle_path))
+        self.assertIsNotNone(self._manager.get_last_usage_timestamp(test_bundle_path))
 
         # Purge it!
         bundle_list = self._manager.get_unused_bundles(0)
         self.assertEquals(1, len(bundle_list))
-        truncated_path = bundle_list[0][1]
+        truncated_path = bundle_list[0].path
         self._manager.purge_bundle(truncated_path)
 
         # Now verify that neither files or database entry exist
         self.assertEquals(0, self._manager.get_usage_count(test_bundle_path))
-        self.assertIsNone(self._manager.get_last_usage_date(test_bundle_path))
+        self.assertEquals(0, self._manager.get_last_usage_timestamp(test_bundle_path))
         self.assertFalse(os.path.exists(test_bundle_path))
 
         # Finally, that the parent folder still exists
@@ -524,21 +524,21 @@ class TestBundleCacheManagerPurgeBundle(TestBundleCacheUsageBase):
         # Assert the test setup itself
         self.assertTrue(os.path.exists(test_bundle_path))
         self.assertEquals(0, self._manager.get_usage_count(test_bundle_path))
-        self.assertIsNone(self._manager.get_last_usage_date(test_bundle_path))
+        self.assertEquals(0, self._manager.get_last_usage_timestamp(test_bundle_path))
         self.assertTrue(os.path.exists(dest_path))
         self.assertTrue(os.path.islink(dest_path))
 
         # Log some usage
         self._manager.log_usage(test_bundle_path)
         self.assertEquals(1, self._manager.get_usage_count(test_bundle_path))
-        self.assertIsNotNone(self._manager.get_last_usage_date(test_bundle_path))
+        self.assertIsNotNone(self._manager.get_last_usage_timestamp(test_bundle_path))
 
         # Purge the bundle
         self._manager.purge_bundle(test_bundle_path)
 
         # Now verify that the bundle root folder and database entry still exist
         self.assertEquals(1, self._manager.get_usage_count(test_bundle_path))
-        self.assertIsNotNone(self._manager.get_last_usage_date(test_bundle_path))
+        self.assertIsNotNone(self._manager.get_last_usage_timestamp(test_bundle_path))
         self.assertTrue(os.path.exists(test_bundle_path))
         self.assertTrue(os.path.exists(dest_path))
         self.assertTrue(os.path.islink(dest_path))

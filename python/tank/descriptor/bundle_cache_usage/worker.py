@@ -102,7 +102,7 @@ class BundleCacheUsageWorker(threading.Thread):
         :return: indirectly returns a list through usage of the response variable
         """
         oldest_timestamp = self._get_timestamp() - (since_days * 24 * 3600)
-        list = self._database._get_unused_bundles(oldest_timestamp)
+        list = self._database.get_unused_bundles(oldest_timestamp)
         log.debug_worker("__get_unused_bundles(%d) count = %d" % (oldest_timestamp, len(list)))
         for item in list:
             response.append(item)
@@ -110,7 +110,7 @@ class BundleCacheUsageWorker(threading.Thread):
         # We're done, signal caller!
         signal.set()
 
-    def __get_last_usage_date(self, bundle_path, signal, response):
+    def __get_last_usage_timestamp(self, bundle_path, signal, response):
         """
         Worker thread only method that queries the database for the last used entries unused for the last N days.
         :param signal: A threading.Event object created by original client from the main thread.
@@ -119,8 +119,8 @@ class BundleCacheUsageWorker(threading.Thread):
         """
         truncated_path = self._truncate_path(bundle_path)
         if truncated_path:
-            log.debug_worker("__get_last_usage_date('%s')" %(truncated_path))
-            last_usage_date = self._database.get_last_usage_date(truncated_path)
+            log.debug_worker("__get_last_usage_timestamp('%s')" %(truncated_path))
+            last_usage_date = self._database.get_last_usage_timestamp(truncated_path)
             response[BundleCacheUsageWorker.KEY_LAST_USAGE_DATE] = last_usage_date
 
         # We're done, signal caller!
@@ -327,20 +327,20 @@ class BundleCacheUsageWorker(threading.Thread):
 
         return response.get(BundleCacheUsageWorker.KEY_BUNDLE_COUNT, 0)
 
-    def get_last_usage_date(self, bundle_path, timeout=DEFAULT_OP_TIMEOUT):
+    def get_last_usage_timestamp(self, bundle_path, timeout=DEFAULT_OP_TIMEOUT):
         """
         Blocking method that returns the date the specified bundle path was last used.
 
         :return: a datetime object of the last used date
         """
         signal = threading.Event()
-        response = {BundleCacheUsageWorker.KEY_LAST_USAGE_DATE: None}
+        response = {BundleCacheUsageWorker.KEY_LAST_USAGE_DATE: 0}
         signal.clear()
-        self._queue_task(self.__get_last_usage_date, bundle_path, signal, response)
+        self._queue_task(self.__get_last_usage_timestamp, bundle_path, signal, response)
         if not signal.wait(timeout):
-            raise BundleCacheUsageTimeoutException("get_last_usage_date")
+            raise BundleCacheUsageTimeoutException("get_last_usage_timestamp")
 
-        return response.get(BundleCacheUsageWorker.KEY_LAST_USAGE_DATE, None)
+        return response.get(BundleCacheUsageWorker.KEY_LAST_USAGE_DATE)
 
     def get_usage_count(self, bundle_path, timeout=DEFAULT_OP_TIMEOUT):
         """
@@ -362,6 +362,11 @@ class BundleCacheUsageWorker(threading.Thread):
         Increase the database usage count and access date for the specified bundle_path.
         If the entry was not in the database already, the usage count will be initialized to 1.
         The specified path is truncated and relative to the `bundle_cache_root` property.
+
+
+        NOTE: The specified path is truncated and relative to the `bundle_cache_root` property.
+
+
 
         :param bundle_path: A str path to a bundle
         """

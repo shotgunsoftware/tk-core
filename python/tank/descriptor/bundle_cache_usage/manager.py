@@ -10,6 +10,7 @@
 
 import os
 import time
+import datetime
 import threading
 
 from worker import BundleCacheUsageWorker
@@ -249,7 +250,12 @@ class BundleCacheManager(object):
         return self._worker.get_bundle_count()
 
     def get_last_usage_date(self, bundle_path):
-        return self._worker.get_last_usage_date(bundle_path)
+        return datetime.datetime.fromtimestamp(
+            self.get_last_usage_timestamp(bundle_path)
+        ).isoformat()
+
+    def get_last_usage_timestamp(self, bundle_path):
+        return self._worker.get_last_usage_timestamp(bundle_path)
 
     def get_unused_bundles(self, since_days=60):
         return self._worker.get_unused_bundles(since_days)
