@@ -25,6 +25,10 @@ class BundleCacheManager(object):
     Bungle utility class for scanning, purging a bundle packages in the bundle cache
     """
 
+    # A database entry flagging that the intial walking the bundle cache
+    # was performed.
+    INITIAL_DB_POPULATE_DONE_MARKER = "INITIAL_POPULATE_DONE"
+
     # keeps track of the single instance of the class
     __singleton_lock = threading.Lock()
     __singleton_instance = None
@@ -148,6 +152,9 @@ class BundleCacheManager(object):
 
         return bundle_path_list
 
+    def _get_marker_name(self):
+        return os.path.join(self.bundle_cache_root, self.INITIAL_DB_POPULATE_DONE_MARKER)
+
     def _get_filelist(self, bundle_path):
 
         # Restore bundle full path which was truncated and set relative to 'bundle_cache_root'
@@ -250,16 +257,22 @@ class BundleCacheManager(object):
             time.time() - start_time, len(found_bundles)
         ))
 
+        self.log_usage(self._get_marker_name())
+
     @property
     def initial_populate_performed(self):
         """
         :return: bool True if the initial database population was performed else False
         """
-        # TODO: replace with unenbigouos INITIAL_POPULATE_NOT_DONE record.
-        return self.get_bundle_count()>0
+        return self.get_last_usage_timestamp(self._get_marker_name()) > 0
 
     def get_bundle_count(self):
-        return self._worker.get_bundle_count()
+        count = self._worker.get_bundle_count()
+        # Substract marker if present.
+        if self.initial_populate_performed:
+            count -= 1
+
+        return count
 
     def get_last_usage_date(self, bundle_path):
         return datetime.datetime.fromtimestamp(
@@ -270,7 +283,14 @@ class BundleCacheManager(object):
         return self._worker.get_last_usage_timestamp(bundle_path)
 
     def get_unused_bundles(self, since_days=60):
-        return self._worker.get_unused_bundles(since_days)
+        bundle_list = self._worker.get_unused_bundles(since_days)
+        # Remove marker entry if present
+        if self.initial_populate_performed:
+            for bundle in bundle_list:
+                if bundle.path == self.INITIAL_DB_POPULATE_DONE_MARKER:
+                    bundle_list.remove(bundle)
+
+        return bundle_list
 
     def get_usage_count(self, bundle_path):
         return self._worker.get_usage_count(bundle_path)
@@ -286,8 +306,19 @@ class BundleCacheManager(object):
         try:
             filelist = self._get_filelist(bundle_path)
             self._paranoid_delete(filelist)
-            # No exception, everything was deleted, delete the entry from database
+            # No exception, everything was deleted
+
+
+            # Try deleting parent dir if now empty
+            parent_dir = os.path.abspath(
+                os.path.join(self.bundle_cache_root, bundle_path, os.pardir)
+            )
+            if not os.listdir(parent_dir):
+                os.rmdir(parent_dir)
+
+            #  Finally, delete the database entry
             self._worker.delete_entry(bundle_path)
             log.debug("Deleted bundle '%s'" % str(bundle_path))
+
         except Exception as e:
             log.error("Error deleting the following bundle:%s exception:%s" % (bundle_path, e))

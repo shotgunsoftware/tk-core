@@ -33,16 +33,6 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
     """
     Tests the 'BundleCacheUsageWorker' class
     """
-
-    EXPECTED_DEFAULT_DB_FILENAME = "bundle_usage.db"
-
-    def setUp(self):
-        super(TestBundleCacheUsageWorker, self).setUp()
-        TestBundleCacheUsageBase._create_test_bundle_cache(self.bundle_cache_root)
-
-    def tearDown(self):
-        super(TestBundleCacheUsageWorker, self).tearDown()
-
     def assertIsWithinPct(self, test_value, expected_value, tolerance ):
         """
 
@@ -276,10 +266,7 @@ class TestDatabasePerformanceThroughWorker(TestBundleCacheUsageBase):
         Development system was showing approximately à 36:0
         """
 
-        # Create a folder structure on disk but no entries are added to DB
-        TestBundleCacheUsageBase._create_test_bundle_cache(self.bundle_cache_root)
         # See the `_create_test_bundle_cache` for available created test bundles
-
         w = BundleCacheUsageWorker(self.bundle_cache_root)
         w.start()
 

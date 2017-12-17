@@ -29,12 +29,10 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
     """
 
     # The number of items (files and folder) in that fake tk-maya bundle
-    EXPECTED_FILE_AND_FOLDER_COUNT = 9
     MAXIMUM_BLOCKING_TIME_IN_SECONDS = 0.25
 
     def setUp(self):
         super(TestBundleCacheManager, self).setUp()
-        self._test_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3")
         BundleCacheManager.delete_instance()
         self._manager = BundleCacheManager(self.bundle_cache_root)
         # Find possible `BundleCacheManager` singletonisation issue
@@ -63,7 +61,13 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
             count -= 1
 
     def helper_stress_test(self, manager, bundle_list, iteration_count=100):
+        """
+        On each loop, operations are randomly determined.
 
+        :param manager: an object of BundleCacheManager type to use for the test
+        :param bundle_list: a list of bundle path to randomly choose from
+        :param iteration_count: an int of the number of iteration of this set
+        """
         bundle_count = len(bundle_list)
 
         while iteration_count > 0:
@@ -116,9 +120,9 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
 
             iteration_count -= 1
 
-    def test_stress_test(self):
+    def test_stressing_classt(self):
         """
-        Stress test using a semi-random more complete set of methods.
+        Stress test using a semi-random using a more complete set of methods.
         """
         test_bundle_list = self._get_test_bundles(self.bundle_cache_root)
 
@@ -135,7 +139,7 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
         self.assertEquals(0, self._manager.get_bundle_count())
 
         # Log some usage
-        self._manager.log_usage(self._test_path)
+        self._manager.log_usage(self._test_bundle_path)
         # Actually no need to wait, since get_bundle_count method is queued
         # and waiting for worker
         self.assertEquals(1, self._manager.get_bundle_count())
@@ -143,8 +147,9 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
     def test_get_filelist(self):
         """ Tests the `_get_filelist` method against a known fake bundle. """
 
-        filelist = self._manager._get_filelist(self._test_path)
-        self.assertEquals(len(filelist), TestBundleCacheManager.EXPECTED_FILE_AND_FOLDER_COUNT)
+        test_path = os.path.join(self.app_store_root, "tk-maya", "v0.8.3")
+        filelist = self._manager._get_filelist(test_path)
+        self.assertEquals(len(filelist), 9)
 
     def test_get_filelist_with_non_existing_path(self):
         """ Tests the `_get_filelist` method against a non-existing file path. """
@@ -155,16 +160,16 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
     def test_get_usage_count(self):
 
         # Check that we get an inital zero
-        self.assertEquals(0, self._manager.get_usage_count(self._test_path))
+        self.assertEquals(0, self._manager.get_usage_count(self._test_bundle_path))
 
         # Log some usage
-        self._manager.log_usage(self._test_path)
-        self._manager.log_usage(self._test_path)
-        self._manager.log_usage(self._test_path)
+        self._manager.log_usage(self._test_bundle_path)
+        self._manager.log_usage(self._test_bundle_path)
+        self._manager.log_usage(self._test_bundle_path)
 
         # Check that it got incremented
         start_time = time.time()
-        self.assertEquals(3, self._manager.get_usage_count(self._test_path))
+        self.assertEquals(3, self._manager.get_usage_count(self._test_bundle_path))
         elapsed_time = time.time() - start_time
         # Check that execution is near instant
         self.assertLess(elapsed_time,
@@ -177,15 +182,15 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
         USAGE_TOLERANCE_IN_SECONDS = 2
 
         # Check that we get an inital None
-        self.assertEquals(0, self._manager.get_last_usage_timestamp(self._test_path))
+        self.assertEquals(0, self._manager.get_last_usage_timestamp(self._test_bundle_path))
 
         # Log some usage
         now_unix_timestamp = int(time.time())
-        self._manager.log_usage(self._test_path)
+        self._manager.log_usage(self._test_bundle_path)
 
         # Check that it's about now within USAGE_TOLERANCE_IN_SECONDS
         start_time = time.time()
-        last_date = self._manager.get_last_usage_timestamp(self._test_path)
+        last_date = self._manager.get_last_usage_timestamp(self._test_bundle_path)
         elapsed_time = time.time() - start_time
         # Check that execution is near instant
         self.assertLess(elapsed_time,
@@ -232,22 +237,141 @@ class TestBundleCacheManager(TestBundleCacheUsageBase):
         self.assertIsNotNone(bundle_list)
         self.assertEquals(len(bundle_list), 1)
 
+    def helper_test_initial_populate_performed(self, use_mock):
+        """
+        Test the 'initial_populate_performed' property and possible side effect of
+        relevant added code.
+        """
+
+        marker_name = self._manager._get_marker_name()
+
+        self.assertEquals(0, self._manager.get_bundle_count())
+        self.assertEquals(0, self._manager.get_last_usage_timestamp(marker_name))
+        self.assertEquals(0, self._manager.get_usage_count(marker_name))
+        self.assertFalse(self._manager.initial_populate_performed)
+
+        now = int(time.time())
+        ninety_days_ago = now - (90 * 24 * 3600)
+
+        if use_mock:
+            with patch("time.time", return_value=ninety_days_ago) as mocked_time_time:
+                self._manager.initial_populate()
+                # We need to wait because the above call queues requests to a
+                # worker thread. The requests are executed asynchronously.
+                # If we we're to leave the patch code block soon, the mock
+                # would terminate before all request be processes and we
+                # would end up with unexpected timestamps.
+                time.sleep(0.5)
+        else:
+            os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = str(ninety_days_ago)
+            self._manager.initial_populate()
+
+            # We need to wait because the above call queues requests to a
+            # worker thread. The requests are executed asynchronously.
+            # If we we're to leave the patch code block soon, the mock
+            # would terminate before all request be processes and we
+            # would end up with unexpected timestamps.
+            time.sleep(0.5)
+
+            # Disable override
+            os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = ""
+
+        self.assertEquals(self.FAKE_TEST_BUNDLE_COUNT, self._manager.get_bundle_count())
+        self.assertGreater(self._manager.get_last_usage_timestamp(marker_name), 0)
+        self.assertEquals(1, self._manager.get_usage_count(marker_name))
+        self.assertTrue(self._manager.initial_populate_performed)
+
+        bundle_list = self._manager.get_unused_bundles()
+        self.assertEquals(self.FAKE_TEST_BUNDLE_COUNT, len(bundle_list))
+        # Finally, make sure the marker entry is not in the list
+        for bundle in bundle_list:
+            self.assertFalse(BundleCacheManager.INITIAL_DB_POPULATE_DONE_MARKER in bundle.path)
+
+    def test_initial_populate_performed(self):
+        """
+        Test the 'initial_populate_performed' property and possible side effect of
+        relevant added code.
+        """
+        self.helper_test_initial_populate_performed(use_mock=True)
+
+    def test_initial_populate_performed_with_override(self):
+        """
+        Test the 'initial_populate_performed' property and possible side effect of
+        relevant added code using the dedicated
+        'SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE' env. variable to override
+        logged elements.
+        """
+        self.helper_test_initial_populate_performed(use_mock=False)
+
+    def test_SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE_usage(self):
+        """
+        Test use of the 'SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE'
+        environment variable.
+        """
+
+        self.assertEquals(0, self._manager.get_bundle_count())
+
+        # Make sure override is disabled
+        os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = ""
+
+        now = int(time.time())
+        later = now + 1234
+        with patch("time.time", return_value=now) as mocked_time_time:
+            # Log some usage
+            self._manager.log_usage(self._test_bundle_path)
+            # We need to wait because the above call queues requests to a
+            # worker thread. The requests are executed asynchronously.
+            # If we we're to leave the patch code block soon, the mock
+            # would terminate before all request be processes and we
+            # would end up with unexpected timestamps.
+            time.sleep(0.25)
+
+            self.assertEquals(now, self._manager.get_last_usage_timestamp(self._test_bundle_path))
+
+            # Still with the mock active, let's make use of env. var. override
+            os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = str(later)
+
+            self._manager.log_usage(self._test_bundle_path)
+            time.sleep(0.25) # allow worker to process the request
+            self.assertEquals(later, self._manager.get_last_usage_timestamp(self._test_bundle_path))
+
+    def test_SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE_bad_usage(self):
+        """
+        Test usage of the 'SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE'
+        environment variable with bad value.
+        """
+
+        self.assertEquals(0, self._manager.get_bundle_count())
+
+        # Make sure override is disabled
+        os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = ""
+
+        now = int(time.time())
+        later = now + 1234
+        with patch("time.time", return_value=now) as mocked_time_time:
+            # Log some usage
+            self._manager.log_usage(self._test_bundle_path)
+            # We need to wait because the above call queues requests to a
+            # worker thread. The requests are executed asynchronously.
+            # If we we're to leave the patch code block soon, the mock
+            # would terminate before all request be processes and we
+            # would end up with unexpected timestamps.
+            time.sleep(0.25)
+
+            self.assertEquals(now, self._manager.get_last_usage_timestamp(self._test_bundle_path))
+
+            # Still with the mock active, let's make use of env. var. override
+            os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = "agsjhdgkasda"
+
+            self._manager.log_usage(self._test_bundle_path)
+            time.sleep(0.25) # allow worker to process the request
+            self.assertEquals(now, self._manager.get_last_usage_timestamp(self._test_bundle_path))
 
 
 class TestBundleCacheManagerFindBundles(TestBundleCacheUsageBase):
     """
     Test walking the bundle cache searching or discovering bundles in the app_store
     """
-
-    # The number of bundles in the test bundle cache
-    EXPECTED_BUNDLE_COUNT = 18
-
-    def setUp(self):
-        super(TestBundleCacheManagerFindBundles, self).setUp()
-
-    def tearDown(self):
-        BundleCacheManager.delete_instance()
-        super(TestBundleCacheManagerFindBundles, self).tearDown()
 
     def test_walk_bundle_cache(self):
         """
@@ -260,7 +384,7 @@ class TestBundleCacheManagerFindBundles(TestBundleCacheUsageBase):
         """
         # Tests using the test bundle cache test structure created in test setUp()
         files = BundleCacheManager(self.bundle_cache_root)._find_bundles()
-        self.assertEquals(len(files), TestBundleCacheManagerFindBundles.EXPECTED_BUNDLE_COUNT)
+        self.assertEquals(len(files), self.FAKE_TEST_BUNDLE_COUNT)
 
     def test_walk_bundle_cache_non_existing_folder(self):
         """
@@ -309,7 +433,7 @@ class TestBundleCacheManagerFindBundles(TestBundleCacheUsageBase):
         # folder and start from there.
         test_path = os.path.join(self.bundle_cache_root, os.pardir)
         files = BundleCacheManager(test_path)._find_bundles()
-        self.assertEquals(len(files), TestBundleCacheManagerFindBundles.EXPECTED_BUNDLE_COUNT)
+        self.assertEquals(len(files), self.FAKE_TEST_BUNDLE_COUNT)
 
 
 class TestBundleCacheManagerParanoidDelete(TestBundleCacheUsageBase):
@@ -318,7 +442,6 @@ class TestBundleCacheManagerParanoidDelete(TestBundleCacheUsageBase):
     """
     def setUp(self):
         super(TestBundleCacheManagerParanoidDelete, self).setUp()
-        self._test_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3")
         self._manager = BundleCacheManager(self.bundle_cache_root)
 
     def tearDown(self):
@@ -329,7 +452,7 @@ class TestBundleCacheManagerParanoidDelete(TestBundleCacheUsageBase):
     def test_paranoid_delete_files(self):
         """ Tests the `_paranoi_delete_files` method against a known fake bundle. """
         manager = BundleCacheManager(self.bundle_cache_root)
-        filelist = manager._get_filelist(self._test_path)
+        filelist = manager._get_filelist(self._test_bundle_path)
         manager._paranoid_delete(filelist)
 
     def _helper_paranoid_delete_with_link(self, link_dir, use_hardlink):
@@ -344,13 +467,20 @@ class TestBundleCacheManagerParanoidDelete(TestBundleCacheUsageBase):
         :param use_hardlink: test using a hardlink else a symlink
         """
 
+        bundle_path = os.path.join(
+            self.app_store_root,
+            "tk-maya", "v0.8.3"
+        )
+
         # Setup paths for link creation
-        base_path = os.path.join(self.bundle_cache_root,
-                                 "app_store", "tk-maya", "v0.8.3", "plugins", "basic")
+        base_path = os.path.join(
+            self.app_store_root,
+            "tk-maya", "v0.8.3", "plugins", "basic"
+        )
 
         if link_dir:
             source_file = os.path.join(base_path)
-            dest_path = os.path.join(base_path, "extended")
+            dest_path = os.path.join(base_path, "link_to_some_dir")
         else:
             source_file = os.path.join(base_path, "some_file.txt")
             dest_path = os.path.join(base_path, "link_to_some_file.txt")
@@ -362,7 +492,7 @@ class TestBundleCacheManagerParanoidDelete(TestBundleCacheUsageBase):
             os.symlink(source_file, dest_path)
 
         # get a filelist
-        filelist = self._manager._get_filelist(self._test_path)
+        filelist = self._manager._get_filelist(bundle_path)
 
         # Now test that an exception is thrown
         with self.assertRaises(BundleCacheUsageFileDeletionException):
@@ -413,7 +543,9 @@ class TestBundleCacheManagerParanoidDelete(TestBundleCacheUsageBase):
         it cannot delete a file specified in the list.
         """
 
-        filelist = self._manager._get_filelist(self._test_path)
+        bundle_path = os.path.join(self.app_store_root, "tk-maya", "v0.8.3")
+
+        filelist = self._manager._get_filelist(bundle_path)
 
         # delete a file that's in the above list
         manually_deleted_file = os.path.join(self.bundle_cache_root,
@@ -432,7 +564,9 @@ class TestBundleCacheManagerParanoidDelete(TestBundleCacheUsageBase):
         delete the parent folder of that extra file.
         """
 
-        filelist = self._manager._get_filelist(self._test_path)
+        bundle_path = os.path.join(self.app_store_root, "tk-maya", "v0.8.3")
+
+        filelist = self._manager._get_filelist(bundle_path)
 
         # Add an extra file
         extra_file = os.path.join(self.bundle_cache_root,
@@ -452,7 +586,6 @@ class TestBundleCacheManagerPurgeBundle(TestBundleCacheUsageBase):
 
     def setUp(self):
         super(TestBundleCacheManagerPurgeBundle, self).setUp()
-        self._test_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3")
         BundleCacheManager.delete_instance()
         self._manager = BundleCacheManager(self.bundle_cache_root)
 
@@ -470,7 +603,7 @@ class TestBundleCacheManagerPurgeBundle(TestBundleCacheUsageBase):
         test_bundle_path = self._test_bundle_path
 
         # Assert the test setup itself
-        self.assertTrue(os.path.exists(self._test_path))
+        self.assertTrue(os.path.exists(self._test_bundle_path))
         self.assertEquals(0, self._manager.get_usage_count(test_bundle_path))
         self.assertEquals(0, self._manager.get_last_usage_timestamp(test_bundle_path))
 
@@ -549,7 +682,7 @@ class TestBundleCacheUsageManagerSingleton(TestBundleCacheUsageBase):
     """
 
     def test_singleton(self):
-        """ Tests that multile instantiations return the same object."""
+        """ Tests that multiple instantiations return the same object."""
         db1 = BundleCacheManager(self.bundle_cache_root)
         db2 = BundleCacheManager(self.bundle_cache_root)
         db3 = BundleCacheManager(self.bundle_cache_root)

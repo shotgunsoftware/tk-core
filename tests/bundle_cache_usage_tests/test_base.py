@@ -117,7 +117,10 @@ class TestBundleCacheUsageBase(TankTestBase):
     """
     TMP_FOLDER_PREFIX = "TestBundleCacheUsageBase_"
     EXPECTED_DEFAULT_DB_FILENAME = "bundle_usage.sqlite3"
+
+    # The number of bundles in the test bundle cache
     FAKE_TEST_BUNDLE_COUNT = 18 # as created in `_create_test_app_store_cache`
+    FAKE_TEST_BUNDLE_FILE_COUNT = 75  # as created in `_create_test_app_store_cache`
     DEBUG = False
 
     def setUp(self):
@@ -128,21 +131,31 @@ class TestBundleCacheUsageBase(TankTestBase):
 
         self._expected_db_path = os.path.join(self.bundle_cache_root, BundleCacheUsageDatabase.DB_FILENAME)
 
-        TestBundleCacheUsageBase._create_test_bundle_cache(self.tank_temp)
+        self._create_test_bundle_cache()
 
-        self._test_bundle_path = os.path.join(
-            self.bundle_cache_root,
-            "app_store",
-            "tk-shell",
-            "v0.5.4"
-        )
+        self._test_bundle_path = os.path.join(self.app_store_root, "tk-shell", "v0.5.6")
 
-        # Preventively delete leftovers
         self.delete_db()
         BundleCacheManager.delete_instance()
 
+        self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE = \
+            os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE", "")
+
+        self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE = \
+            os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE", "")
+
     def tearDown(self):
+        os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE"] = \
+            self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE
+
+        os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = \
+            self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE
+
         super(TestBundleCacheUsageBase, self).tearDown()
+
+    @property
+    def app_store_root(self):
+        return os.path.join(self.bundle_cache_root, "app_store")
 
     @property
     def bundle_cache_root(self):
@@ -152,8 +165,7 @@ class TestBundleCacheUsageBase(TankTestBase):
         if TestBundleCacheUsageBase.DEBUG:
             print("%s: %s" % (self.__class__, msg))
 
-    @classmethod
-    def _create_test_bundle_cache(cls, root_folder):
+    def _create_test_bundle_cache(self):
         """
         Creates a bundle cache test struture containing 18 fake bundles.
         The structure also includes additional file for the purpose of verifying
@@ -164,16 +176,25 @@ class TestBundleCacheUsageBase(TankTestBase):
         the tested code is expected to limit it's search to the bundle level.
 
         NOTE: The structure is generated dynamically rather than adding a yet a
-
-        :param root_folder: A string path of the destination root folder
         """
+        if not os.path.exists(self.bundle_cache_root):
+            os.makedirs(self.bundle_cache_root)
 
-        bundle_cache_root = os.path.join(root_folder, "bundle_cache")
-        if not os.path.exists(bundle_cache_root):
-            os.makedirs(bundle_cache_root)
+        TestBundleCacheUsageBase._create_test_app_store_cache(self.bundle_cache_root)
 
-        cls._create_test_app_store_cache(bundle_cache_root)
+    def _get_app_store_file_list(self):
+        """
+        Returns the list of file created in our fake/test bundle_cache/app_store folder
+        :return: a list of paths
+        """
+        app_store_file_list = []
+        for (dirpath, dirnames, filenames) in os.walk(self.app_store_root):
+            app_store_file_list.append(dirpath)
+            for filename in filenames:
+                fullpath = os.path.join(dirpath, filename)
+                app_store_file_list.append(fullpath)
 
+        return app_store_file_list
 
     @classmethod
     def _create_test_app_store_cache(cls, bundle_cache_root):
@@ -226,7 +247,6 @@ class TestBundleCacheUsageBase(TankTestBase):
         for item in test_bundle_cache_structure:
             #Utils.touch(item)
             Utils.write_bogus_data(item)
-
 
     @classmethod
     def _get_test_bundles(self, bundle_cache_root):
