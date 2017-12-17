@@ -99,78 +99,6 @@ class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
         self._patcher_report_progress.start()
         self.addCleanup(self._patcher_report_progress .stop)
 
-    def helper_test_cache_apps(self, no_delete=False, days_ago=0):
-
-        if days_ago:
-            # Override timestamp
-            now = int(time.time())
-            days_ago_timestamp = now - (days_ago * 24 * 3600)
-            os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = str(days_ago_timestamp)
-            # Will setup a new database with bundle timestamp N days ago
-
-        self.post_setup(no_delete)
-
-        self.assertEquals(
-            TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT,
-            self._bundle_cache_manager.get_bundle_count(),
-            "Expecting all fake test bundles after test setup"
-        )
-
-        # Undo SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE so we get now timestamp
-        os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = ""
-
-        # Actual tested statements
-        self._toolkit_mgr._cache_apps(self._my_pipeline_config, "test_engine", None)
-
-    @patch("tank.descriptor.io_descriptor.dev.IODescriptorDev.is_purgeable", return_value=True)
-    def _test_process_bundle_cache_purge_no_old_bundles(self, is_purgeable_mock):
-        """
-        Tests the ToolkitManager._cache_apps(...) and method.
-
-        The 'is_purgeable' mock allows forcing a bundle deletion of our Test-Dev descriptor
-        """
-
-        # 0 = not mocking days ago
-        self.helper_test_cache_apps(False, 0)
-
-        self.assertEquals(TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT,
-                          self._bundle_cache_manager.get_bundle_count(),
-                          "Not expecting anything to be deleted since no bundle is old"
-        )
-
-    @patch("tank.descriptor.io_descriptor.dev.IODescriptorDev.is_purgeable", return_value=True)
-    def _test_process_bundle_cache_purge_with_old_bundles(self, is_purgeable_mock):
-        """
-        Tests the ToolkitManager._process_bundle_cache_purge(...) method with old bundles.
-
-        The 'is_purgeable' mock allows forcing a bundle deletion of our Test-Dev descriptor
-        """
-
-        # 90 = mocking 90 days ago
-        self.helper_test_cache_apps(False, 90)
-
-        self.assertEquals(0,
-                          self._bundle_cache_manager.get_bundle_count(),
-                          "Was expecting all bundles to be deleted."
-        )
-
-    @patch("tank.descriptor.io_descriptor.dev.IODescriptorDev.is_purgeable", return_value=True)
-    def _test_process_bundle_cache_purge_with_old_bundles_with_no_delete(self, is_purgeable_mock):
-        """
-        Tests the ToolkitManager._process_bundle_cache_purge(...) method with old bundles AND
-        the 'SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE' environment variable active.
-
-        The 'is_purgeable' mock allows forcing a bundle deletion of our Test-Dev descriptor
-        """
-
-        # 90 = mocking 90 days ago with 'SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE' active
-        self.helper_test_cache_apps(True, 90)
-
-        self.assertEquals(TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT,
-                          self._bundle_cache_manager.get_bundle_count(),
-                          "Was not expecting any bundles to be deleted."
-        )
-
 
 class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
 
@@ -184,17 +112,9 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
         overriding the bundle cache root default path.
         """
         super(TestBundleCacheUsageBootstraptPurge, self).setUp()
-
-        self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE = \
-            os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE", "")
-        self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE = \
-            os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE", "")
-
         self._setup_test_toolkit_manager()
 
     def tearDown(self):
-        os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE"] = self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE
-        os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE
         super(TestBundleCacheUsageBootstraptPurge, self).tearDown()
 
     def _setup_test_config(self):
@@ -269,6 +189,12 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
         self._toolkit_mgr = ToolkitManager()
         self._toolkit_mgr.caching_policy = ToolkitManager.CACHE_FULL
 
+        # Force single release and database file deletion
+        # that is created by creating PipelineConfig
+        BundleCacheManager.delete_instance()
+        if os.path.exists(self._expected_db_path):
+            os.remove(self._expected_db_path)
+
     def _create_info_yaml(self, path):
         """
         create a mock info.yml
@@ -311,13 +237,8 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
         after a call to the `ToolkitManager._bootstrap_sgtk` method.
         """
 
-        # Force single release and database file deletion
-        # that is created by creating PipelineConfig
-        BundleCacheManager.delete_instance()
-        if os.path.exists(self._expected_db_path):
-            os.remove(self._expected_db_path)
-
-        # Assert that TookKitManager import and setup caused creation of the database file
+        # Test that the database will get created from a call to
+        # '_bootstrap_sgtk' method.
         self.assertFalse(os.path.exists(self._expected_db_path))
         self._toolkit_mgr._bootstrap_sgtk("test_engine", None)
         self.assertTrue(os.path.exists(self._expected_db_path))
@@ -325,7 +246,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
         # Create a temporary instance, for querying database
         # state and content. We can supply a None parameter
         # since an instance already exists.
-        bundle_cache_usage_mgr = BundleCacheManager(None)
+        bundle_cache_usage_mgr = BundleCacheManager(self.bundle_cache_root)
         self.assertTrue(
             bundle_cache_usage_mgr.initial_populate_performed,
             "Was expecting database initial population done."
@@ -336,10 +257,157 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
             "Was expecting database to be initially populated with all fake test bundles"
         )
 
+    def helper_test_purge_bundles(self):
+        """
+        Helper method for bundle purge tests.
 
+        Here is the summary of what the method does:
 
+        - Create test app_store (actually done is setUp())
+        - Verify that all file are present (actually done is setUp())
+        - Back in time, database is populated with content of our
+          test app_store (18 fake bundles with 2 versions of 'tk-shell')
+        - Check database has 18 bundles.
+        - In present time we log usage of 'tk-shell/v0.5.6'
+        - Call `_bootstrap_sgtk` 
+        - Expect almost everything to be deleted beside (tk-shell/v0.5.6)
+        - Check database as only 1 bundle left.
+        - Check that all bundles besire tk-shell/v0.5.6 are deleted.
+        """
 
+        now = int(time.time())
+        ninety_days_ago = now - (90 * 24 * 3600)
 
+        # Log some usage as 90 days ago
+        with patch("time.time", return_value=ninety_days_ago) as mocked_time_time:
+
+            # Make an initial call to setup the database (in the past)
+            self._toolkit_mgr._bootstrap_sgtk("test_engine", None)
+
+            # We need to wait because the above call queues requests to a
+            # worker thread. The requests are executed asynchronously.
+            # If we we're to leave the patch code block soon, the mock
+            # would terminate before all request be processes and we
+            # would end up with unexpected timestamps.
+            time.sleep(0.5)
+
+        # Assert database state
+        self.assertTrue(os.path.exists(self._expected_db_path))
+
+        # NOW, we create a temporary instance, for querying database
+        # state and content.
+        bundle_cache_usage_mgr = BundleCacheManager(self.bundle_cache_root)
+        self.assertTrue(
+            bundle_cache_usage_mgr.initial_populate_performed,
+            "Was expecting database initial population done."
+        )
+        self.assertEquals(
+            TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT,
+            bundle_cache_usage_mgr.get_bundle_count(),
+            "Was expecting database to be initially populated with all fake test bundles"
+        )
+
+        # Log usage of tk-shell/v0.5.6 in 'present' time
+        bundle_cache_usage_mgr.log_usage(self._test_bundle_path)
+
+        bundle_list = bundle_cache_usage_mgr.get_unused_bundles()
+        self.assertEquals(
+            TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT-1,
+            len(bundle_list)
+        )
+
+        # Now, in present time (mock is no longer in effect)
+        # call `_bootstrap_sgtk` and expect bundle deletion to be processed
+        self._toolkit_mgr._bootstrap_sgtk("test_engine", None)
+
+    def test_old_bundles_are_purged(self):
+        """
+        Tests that unused bundles are deleted from a call
+        to the `ToolkitManager._bootstrap_sgtk` method.
+
+        Here is the summary of the test:
+
+        IN 'helper_test_purge_bundles':
+        - Create test app_store (actually done is setUp())
+        - Verify that all file are present (actually done is setUp())
+        - Back in time, database is populated with content of our
+          test app_store (18 fake bundles with 2 versions of 'tk-shell')
+        - Check database has 18 bundles.
+        - In present time we log usage of 'tk-shell/v0.5.6'
+        - Call `_bootstrap_sgtk`
+
+        HERE:
+        - Expect almost everything to be deleted beside (tk-shell/v0.5.6)
+        - Check database as only 1 bundle left.
+        - Check that all bundles besire tk-shell/v0.5.6 are deleted.
+        """
+
+        self.helper_test_purge_bundles()
+
+        bundle_cache_usage_mgr = BundleCacheManager(self.bundle_cache_root)
+
+        # Check the database ...
+        self.assertEquals(
+            1, bundle_cache_usage_mgr.get_bundle_count(),
+            "Was expecting database to have just 1 bundle left"
+        )
+
+        # ... and files ...
+        # Since we've log_usage of the tk-shell/v0.5.6 bundle
+        # we expect files to exists still, including, parent folder
+        # and app_store folder.
+        remaining_files = [
+            os.path.join(self.app_store_root),
+            os.path.join(self.app_store_root, "tk-shell"),
+            os.path.join(self.app_store_root, "tk-shell", "v0.5.6"),
+            os.path.join(self.app_store_root, "tk-shell", "v0.5.6", "info.yml")
+        ]
+        for f in remaining_files:
+            self.assertTrue( os.path.exists(f))
+
+    def test_old_bundles_are_purged_with_no_delete(self):
+        """
+        Tests that unused bundles are NOT deleted from a call
+        to the `ToolkitManager._bootstrap_sgtk` method when the .
+        'SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE' env. var is defined.
+
+        Here is the summary of the test:
+
+        IN 'setUp():
+        - Create test app_store (actually done is setUp())
+        - Verify that all file are present (actually done is setUp())
+
+        HERE:
+        - Activate the 'SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE' env. var.
+
+        IN 'helper_test_purge_bundles()'
+        - Back in time, database is populated with content of our
+          test app_store (18 fake bundles with 2 versions of 'tk-shell')
+        - Check database has 18 bundles.
+        - In present time we log usage of 'tk-shell/v0.5.6'
+        - Call `_bootstrap_sgtk`
+
+        HERE:
+        - Check database as all its entries
+        - Check that all files exists
+        """
+
+        os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE"] = "1"
+
+        self.helper_test_purge_bundles()
+
+        bundle_cache_usage_mgr = BundleCacheManager(self.bundle_cache_root)
+
+        # Check the database ...
+        self.assertEquals(
+            TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT,
+            bundle_cache_usage_mgr.get_bundle_count(),
+            "Was expecting database to report all bundles"
+        )
+
+        # ... and files ... nothing should have been deleted
+        app_store_file_list = self._get_app_store_file_list()
+        self.assertEquals(self.FAKE_TEST_BUNDLE_FILE_COUNT, len(app_store_file_list))
 
 
 
