@@ -65,6 +65,7 @@ class BootstrapTests(TestCase):
                     os.path.join(CURRENT_DIR, "boostrap_script.py"),
                     "--config-core", config_core,
                     "--config-template", "sgtk:descriptor:path?path=$TK_TEST_FIXTURES/integration_tests",
+                    # "--response-file", PATH TO A LOCAL FILE THAT THE SCRIPT USES TO COMMUNICATE BACK
                     "--api-script", os.environ["TOOLKIT_INTEGRATION_TEST_API_SCRIPT"],
                     "--api-key", os.environ["TOOLKIT_INTEGRATION_TEST_API_KEY"],
                     "--site", os.environ["TOOLKIT_INTEGRATION_TEST_SITE"]
