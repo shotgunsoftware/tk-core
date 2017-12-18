@@ -14,8 +14,8 @@ import datetime
 import threading
 
 from worker import BundleCacheUsageWorker
-from exception import BundleCacheUsageException
-from exception import BundleCacheUsageFileDeletionException
+from errors import BundleCacheUsageError
+from errors import BundleCacheUsageFileDeletionError
 from . import BundleCacheUsageLogger as log
 
 
@@ -160,7 +160,7 @@ class BundleCacheManager(object):
         # Restore bundle full path which was truncated and set relative to 'bundle_cache_root'
         full_bundle_path = os.path.join(self.bundle_cache_root, bundle_path)
         if not os.path.exists(full_bundle_path):
-            raise BundleCacheUsageException("","The specified path does not exists: %s" % (full_bundle_path))
+            raise BundleCacheUsageError("","The specified path does not exists: %s" % (full_bundle_path))
 
         file_list = []
         for (dirpath, dirnames, filenames) in os.walk(full_bundle_path):
@@ -193,7 +193,7 @@ class BundleCacheManager(object):
             if os.path.islink(f):
                 # CAVEAT: Always False if symbolic links are not supported by the Python runtime.
                 #         How do we know whether it is supported???
-                raise BundleCacheUsageFileDeletionException(f, "Found a symlink")
+                raise BundleCacheUsageFileDeletionError(f, "Found a symlink")
 
         # We have a crude list, now we need to sort it out in reverse
         # order so we can later on delete files, and then parent folder
@@ -202,7 +202,7 @@ class BundleCacheManager(object):
         # No symlinks, Houston we're clear for deletion
         for f in rlist:
             if not os.path.exists(f):
-                raise BundleCacheUsageFileDeletionException(
+                raise BundleCacheUsageFileDeletionError(
                     f,
                     "Attempting to delete non existing file or folder."
                 )
@@ -217,13 +217,13 @@ class BundleCacheManager(object):
                 try:
                     os.rmdir(f)
                 except OSError as e:
-                    raise BundleCacheUsageFileDeletionException(
+                    raise BundleCacheUsageFileDeletionError(
                         f,
                         "Attempted to delete a non-empty folder: %s" % (e)
                     )
 
             else:
-                raise BundleCacheUsageFileDeletionException(
+                raise BundleCacheUsageFileDeletionError(
                     f,
                     "Not a link, not a file, not a directory ???"
                 )

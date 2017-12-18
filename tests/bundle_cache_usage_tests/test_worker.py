@@ -18,7 +18,7 @@ import os
 import time
 
 from sgtk.descriptor.bundle_cache_usage.worker import BundleCacheUsageWorker
-from sgtk.descriptor.bundle_cache_usage.exception import BundleCacheUsageTimeoutException
+from sgtk.descriptor.bundle_cache_usage.errors import BundleCacheUsageTimeoutError
 
 from .test_base import TestBundleCacheUsageBase, Utils
 
@@ -243,7 +243,7 @@ class TestBundleCacheUsageWorker(TestBundleCacheUsageBase):
         entries = []
         expected_timeout = 1.0
         start_time = time.time()
-        with self.assertRaises(BundleCacheUsageTimeoutException):
+        with self.assertRaises(BundleCacheUsageTimeoutError):
             entries = worker.get_unused_bundles(since_days=20, timeout=expected_timeout)
 
         elapsed_time = time.time() - start_time
