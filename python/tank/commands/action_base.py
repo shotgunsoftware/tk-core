@@ -9,6 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from ..errors import TankError
+from .. import pipelineconfig_utils
+
 
 class Action(object):
     """
@@ -104,6 +106,12 @@ class Action(object):
             
     def __str__(self):
         return "Command %s (Category %s)" % (self.name, self.category)
+
+    def _get_path_to_current_core(self):
+        if self.tk:
+            return self.tk.pipeline_configuration.get_install_location()
+        else:
+            return pipelineconfig_utils.get_path_to_current_core()
         
     def _validate_parameters(self, parameters):
         """

@@ -11,6 +11,7 @@
 from .configuration import Configuration
 
 from .. import LogManager
+from ..pipelineconfig_utils import get_core_path_for_config
 
 log = LogManager.get_logger(__name__)
 
@@ -50,6 +51,9 @@ class InstalledConfiguration(Configuration):
         log.debug("%s is always up to date:" % self)
 
         return self.LOCAL_CFG_UP_TO_DATE
+
+    def _get_configuration_core_python_path(self):
+        return get_core_path_for_config(self._path.current_os)
 
     def update_configuration(self):
         """

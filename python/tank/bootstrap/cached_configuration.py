@@ -15,7 +15,7 @@ import pprint
 from . import constants
 
 from .errors import TankBootstrapError
-
+from .core_features import supports_lean_config
 from ..util import filesystem
 
 from tank_vendor import yaml
@@ -207,10 +207,8 @@ class CachedConfiguration(Configuration):
 
             # compatibility checks
             self._verify_descriptor_compatible()
-            # v1 of the lean_config allows to run the config from the bundle cache.
-            if self._descriptor.get_associated_core_feature_info("bootstrap.lean_config.version", 0) < 1:
-                # Old-style config, so copy the contents inside it.
-                self._descriptor.copy(os.path.join(self._path.current_os, "config"))
+
+            self._config_writer.write_config(self._descriptor)
 
             # write out config files
             self._config_writer.write_install_location_file()
@@ -227,10 +225,8 @@ class CachedConfiguration(Configuration):
             # make sure roots file reflects current paths
             self._config_writer.update_roots_file(self._descriptor)
 
-            if self._descriptor.get_associated_core_feature_info("bootstrap.lean_config.version", 0) < 1:
-                # and lastly install core if we're bootstrapping into a core that can't be run
-                # from the bundle cache.
-                self._config_writer.install_core(core_descriptor)
+            # and lastly install core
+            self._config_writer.install_core(core_descriptor)
 
         except Exception as e:
 
@@ -286,9 +282,18 @@ class CachedConfiguration(Configuration):
         # @todo - prime caches (yaml, path cache)
 
         # make sure tank command and interpreter files are up to date
-        self._config_writer.create_tank_command(core_descriptor)
+        self._config_writer.create_tank_command(self._descriptor)
 
         self._config_writer.end_transaction()
+
+    def _get_configuration_core_python_path(self):
+        if supports_lean_config(self._descriptor.resolve_core_descriptor()):
+            return os.path.join(
+                self._get_core_descriptor().get_path(),
+                "python"
+            )
+        else:
+            return os.path.join(self._path.current_os, "install", "core", "python")
 
     def _get_core_descriptor(self):
 

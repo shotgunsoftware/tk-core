@@ -1,10 +1,21 @@
+# Copyright (c) 2017 Shotgun Software Inc.
+#
+# CONFIDENTIAL AND PROPRIETARY
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+# Source Code License included in this distribution package. See LICENSE.
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
+# not expressly granted therein are reserved by Shotgun Software Inc.
+
 from __future__ import print_function
 import sys
 import os
 import shutil
 import pdb # noqa
-
-sys.path.insert(0, "/Users/jfboismenu/gitlocal/tk-core/python")
+import subprocess
+import tempfile
+from optparse import OptionParser
 
 
 def progress_callback(value, message):
@@ -35,17 +46,7 @@ os.environ["TK_FIXTURES_ROOT"] = "/Users/jfboismenu/gitlocal/tk-core/tests/fixtu
 # launches the tank command with a command from the engine
 
 
-def bootstrap():
-    import sgtk
-
-    sgtk.LogManager().initialize_base_file_handler("tk-integration-tests")
-    sgtk.LogManager().initialize_custom_handler()
-
-    sa = sgtk.authentication.ShotgunAuthenticator()
-    user = sa.get_user()
-
-    sg = user.create_sg_connection()
-
+def ensure_project(sg):
     print("Looking for integration test project...")
     project = sg.find_one("Project", [["name", "is", PROJECT_NAME]])
     if not project:
@@ -53,26 +54,80 @@ def bootstrap():
         project = sg.create("Project", {"name": PROJECT_NAME})
     else:
         print("Project already exists.")
+    return project
 
-    print("Starting tests!!!")
 
-    print("Bootstrapping!")
+def setup_logging():
+    sgtk.LogManager().initialize_base_file_handler("tk-integration-tests")
+    sgtk.LogManager().initialize_custom_handler()
 
+
+def authenticate(options):
+    sa = sgtk.authentication.ShotgunAuthenticator()
+    return sa.create_script_user(
+        options.api_script,
+        options.api_key,
+        options.site
+    )
+
+
+def prepare_config(sg, config_core, config_template):
+    core_desc_dict = sgtk.descriptor.descriptor_uri_to_dict(
+        config_core
+    )
+
+    config_descriptor = sgtk.descriptor.create_descriptor(
+        sg,
+        sgtk.descriptor.Descriptor.CONFIG,
+        config_template
+    )
+
+    tests_root = os.path.join(tempfile.gettempdir(), "integration_tests")
+
+    if os.path.exists(tests_root):
+        shutil.rmtree(tests_root)
+
+    config_template_root = os.path.join(tests_root, "config_template")
+
+    if not os.path.exists(config_template_root):
+        os.makedirs(config_template_root)
+
+    config_descriptor.copy(config_template_root)
+    with open(os.path.join(config_template_root, "core", "core_api.yml"), "wt") as fh:
+        yaml.safe_dump(dict(location=core_desc_dict), fh)
+
+    return "sgtk:descriptor:path?path={0}".format(config_template_root)
+
+
+def bootstrap(config_descriptor, user, project):
     manager = sgtk.bootstrap.ToolkitManager(user)
     manager.do_shotgun_config_lookup = False
     manager.progress_callback = progress_callback
     manager.plugin_id = "basic.engine"
-    manager.base_configuration = "sgtk:descriptor:path?path={0}".format(CONFIG_DISK_LOCATION)
+    manager.base_configuration = config_descriptor
 
-    return manager.bootstrap_engine("test_engine", project), project
+    return manager.bootstrap_engine("test_engine", project)
 
 
-def main():
+def run_tank_command(config_root):
+    subprocess.check_call([os.path.join(config_root, "tank")])
 
-    engine, project = bootstrap()
 
-    import sgtk
+def main(options):
 
+    setup_logging()
+    user = authenticate(options)
+    sg = user.create_sg_connection()
+    project = ensure_project(sg)
+    config_descriptor = prepare_config(sg, options.config_core, options.config_template)
+
+    # Bootstrap into the configuration.
+    engine = bootstrap(config_descriptor, user, project)
+
+    # Ensure the tank command works.
+    run_tank_command(engine.sgtk.pipeline_configuration.get_install_location())
+
+    # Now setup a classic Toolkit project.
     command = engine.sgtk.get_command("setup_project")
     command.set_logger(sgtk.LogManager().root_logger)
 
@@ -93,9 +148,42 @@ def main():
         "config_path_linux": INTEGRATION_TESTS_PC_LOCATION if sys.platform.startswith("linux") else None,
     })
 
+    run_tank_command(INTEGRATION_TESTS_PC_LOCATION)
+
+
+def parse_options():
+
+    parser = OptionParser()
+    parser.add_option(
+        "--bootstrap-core", help="Location of the core to use for bootstrapping."
+    )
+    parser.add_option(
+        "--config-core", help="Location of the core for the configuration."
+    )
+    parser.add_option(
+        "--config-template", help="Location of the configuration to use."
+    )
+    parser.add_option(
+        "--site", help="Site to connect to."
+    )
+    parser.add_option(
+        "--api-script", help="API script to authenticate with."
+    )
+    parser.add_option(
+        "--api-key", help="API key to authenticate with."
+    )
+
+    return parser.parse_args()[0]
+
 
 if __name__ == "__main__":
+    options = parse_options()
+
+    sys.path.insert(0, os.path.join(options.bootstrap_core, "python"))
+    import sgtk
+    from tank_vendor import yaml
+
     try:
-        main()
+        main(options)
     except Exception:
-        pdb.post_mortem()
+        raise # pdb.post_mortem()

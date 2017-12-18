@@ -701,16 +701,22 @@ class PipelineConfiguration(object):
         Tries to resolve it via the explicit link which exists between
         the pipeline config and the its core. If this fails, it uses
         runtime introspection to resolve it.
-        
+
         :returns: path string to the current core API install root location
         """
-        core_api_root = pipelineconfig_utils.get_core_path_for_config(self._pc_root)
 
-        if core_api_root is None:
-            # lookup failed. fall back onto runtime introspection
-            core_api_root = pipelineconfig_utils.get_path_to_current_core()
-        
-        return core_api_root
+        # Only bootstrapped configs use source descriptors, so the core's settings are in
+        # _pc_root
+        if "source_descriptor" in self._get_metadata() and self._get_metadata()["source_descriptor"]:
+            return self._pc_root
+        else:
+            core_api_root = pipelineconfig_utils.get_core_path_for_config(self._pc_root)
+
+            if core_api_root is None:
+                # lookup failed. fall back onto runtime introspection
+                core_api_root = pipelineconfig_utils.get_path_to_current_core()
+
+            return core_api_root
 
     def get_core_python_location(self):
         """

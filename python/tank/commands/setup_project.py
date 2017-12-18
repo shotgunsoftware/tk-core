@@ -133,7 +133,7 @@ class SetupProjectAction(Action):
         
         # tell it which core to pick up. For the tank command, we just base it off the 
         # currently running API
-        curr_core_path = pipelineconfig_utils.get_path_to_current_core()
+        curr_core_path = self._get_path_to_current_core()
         core_roots = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
         params.set_associated_core_path(core_roots["linux2"], core_roots["win32"], core_roots["darwin"])
         
@@ -205,7 +205,7 @@ class SetupProjectAction(Action):
         
         # tell it which core to pick up. For the tank command, we just base it off the 
         # currently running API
-        curr_core_path = pipelineconfig_utils.get_path_to_current_core()
+        curr_core_path = self._get_path_to_current_core()
         core_roots = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)        
         params.set_associated_core_path(core_roots["linux2"], core_roots["win32"], core_roots["darwin"])
         
@@ -590,7 +590,7 @@ class SetupProjectAction(Action):
         # get the path to the primary storage  
         primary_local_path = params.get_storage_path(constants.PRIMARY_STORAGE_NAME, sys.platform)        
         
-        curr_core_path = pipelineconfig_utils.get_path_to_current_core()
+        curr_core_path = self._get_path_to_current_core()
         core_locations = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
         
         if pipelineconfig_utils.is_localized(curr_core_path):

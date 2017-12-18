@@ -15,7 +15,7 @@ import sys
 import datetime
 
 from . import constants
-
+from .core_features import supports_lean_config
 from .errors import TankBootstrapError
 
 from ..util import filesystem
@@ -83,6 +83,12 @@ class ConfigurationWriter(object):
             create_placeholder_file=True
         )
 
+    def write_config(self, config_descriptor):
+        # v1 of the lean_config allows to run the config from the bundle cache.
+        if not supports_lean_config(config_descriptor.resolve_core_descriptor()):
+            # Old-style config, so copy the contents inside it.
+            config_descriptor.copy(os.path.join(self._path.current_os, "config"))
+
     def install_core(self, core_descriptor):
         """
         Install a core into the given configuration.
@@ -91,15 +97,24 @@ class ConfigurationWriter(object):
         the configuration, effectively mimicing a localized setup.
 
         :param core_descriptor: Core descriptor to install.
-        :param bundle_cache_fallback_paths: bundle cache search path
+        :param copy_into_configuration: If ``True``, the core will be copied into the
+            ``install`` folder.
         """
         # make sure we have our core on disk
         core_descriptor.ensure_local()
-        config_root_path = self._path.current_os
-        core_target_path = os.path.join(config_root_path, "install", "core")
 
-        log.debug("Copying core into place")
-        core_descriptor.copy(core_target_path)
+        config_root_path = self._path.current_os
+        if supports_lean_config(core_descriptor):
+            log.debug("Writing core location file.")
+            with open(
+                os.path.join(config_root_path, "cache", "core_location.cfg"),
+                "wt"
+            ) as fh:
+                fh.write(core_descriptor.get_path())
+        else:
+            core_target_path = os.path.join(config_root_path, "install", "core")
+            log.debug("Copying core into place.")
+            core_descriptor.copy(core_target_path)
 
     def get_descriptor_metadata_file(self):
         """
@@ -198,7 +213,7 @@ class ConfigurationWriter(object):
             return (config_backup_path, core_backup_path)
 
     @filesystem.with_cleared_umask
-    def create_tank_command(self, core_descriptor, executable=sys.executable, prefix=sys.prefix):
+    def create_tank_command(self, config_descriptor, executable=sys.executable, prefix=sys.prefix):
         """
         Create a tank command for this configuration.
 
@@ -287,8 +302,14 @@ class ConfigurationWriter(object):
                 fh.write(executables[platform])
 
         # now deploy the actual tank command
+        if supports_lean_config(config_descriptor.resolve_core_descriptor()):
+            root_binaries_name = "bootstrap_root_binaries"
+        else:
+            root_binaries_name = "root_binaries"
+
+        core_descriptor = config_descriptor.resolve_core_descriptor()
         core_target_path = core_descriptor.get_path()
-        root_binaries_folder = os.path.join(core_target_path, "setup", "root_binaries")
+        root_binaries_folder = os.path.join(core_target_path, "setup", root_binaries_name)
         for file_name in os.listdir(root_binaries_folder):
             src_file = os.path.join(root_binaries_folder, file_name)
             tgt_file = os.path.join(config_root_path, file_name)

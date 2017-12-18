@@ -12,9 +12,7 @@ import os
 import inspect
 
 from .import_handler import CoreImportHandler
-
-from ..descriptor.descriptor_installed_config import InstalledConfigDescriptor
-from ..pipelineconfig_utils import get_core_path_for_config
+from .core_features import supports_lean_config
 
 from ..log import LogManager
 
@@ -36,7 +34,6 @@ class Configuration(object):
         """
         self._path = path
         self._descriptor = descriptor
-        self._core_descriptor = None
 
     def status(self):
         """
@@ -80,30 +77,14 @@ class Configuration(object):
                         the tk instance with.
         """
         path = self._path.current_os
-        # FIXME: The _get_core_descriptor method needs to be implemented in
-        # InstalledConfiguration and BakedConfiguration.
 
-        is_lean_config = (
-            self._descriptor.get_associated_core_feature_info(
-                "bootstrap.lean_config.version", 0
-            ) > 0
-        )
-
-        if isinstance(self._descriptor, InstalledConfigDescriptor):
-            core_install_folder = get_core_path_for_config(path)
-        else:
-            core_install_folder = path
-            if is_lean_config:
-                core_path = os.path.join(
-                    self._get_core_descriptor().get_path(),
-                    "python"
-                )
-            else:
-                core_path = os.path.join(core_install_folder, "install", "core", "python")
+        core_path = self._get_configuration_core_python_path()
 
         # swap the core out
         CoreImportHandler.swap_core(core_path)
-        os.environ["TANK_CURRENT_PC"] = path
+
+        if supports_lean_config(self._descriptor.resolve_core_descriptor()):
+            os.environ["TANK_CURRENT_PC"] = path
 
         # perform a local import here to make sure we are getting
         # the newly swapped in core code
@@ -112,7 +93,7 @@ class Configuration(object):
 
         log.debug("Core swapped, authenticated user will be set.")
 
-        self._set_authenticated_user(sg_user, is_lean_config, core_install_folder)
+        self._set_authenticated_user(sg_user)
 
         log.debug("Executing tank_from_path('%s')" % path)
 
@@ -136,7 +117,10 @@ class Configuration(object):
 
         return tk
 
-    def _set_authenticated_user(self, user, is_lean_config, core_install_folder):
+    def _get_core_descriptor(self):
+        return self._descriptor.resolve_core_descriptor()
+
+    def _set_authenticated_user(self, user):
         """
         Sets the authenticated user.
 
@@ -167,10 +151,7 @@ class Configuration(object):
         # outside config and shotgun.yml can't be found relative to it, so we'll
         # pass the pipeline configuration root location to the factory, which will
         # figure where shotgun.yml should be located.
-        if is_lean_config:
-            defaults_manager = CoreDefaultsManager(core_install_folder=core_install_folder)
-        else:
-            defaults_manager = CoreDefaultsManager()
+        defaults_manager = CoreDefaultsManager()
 
         # Check to see if there is a user associated with the current project.
         default_user = ShotgunAuthenticator(defaults_manager).get_default_user()
