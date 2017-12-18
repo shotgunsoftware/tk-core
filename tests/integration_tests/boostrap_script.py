@@ -96,6 +96,16 @@ def prepare_config(sg, config_core, config_template):
     with open(os.path.join(config_template_root, "core", "core_api.yml"), "wt") as fh:
         yaml.safe_dump(dict(location=core_desc_dict), fh)
 
+    with open(os.path.join(config_template_root, "core", "shotgun.yml"), "wt") as fh:
+        yaml.safe_dump(
+            dict(
+                site=sg.base_url,
+                api_key=sg.config.api_key,
+                api_script=sg.config.script_name
+            ),
+            fh
+        )
+
     return "sgtk:descriptor:path?path={0}".format(config_template_root)
 
 
@@ -155,9 +165,6 @@ def parse_options():
 
     parser = OptionParser()
     parser.add_option(
-        "--bootstrap-core", help="Location of the core to use for bootstrapping."
-    )
-    parser.add_option(
         "--config-core", help="Location of the core for the configuration."
     )
     parser.add_option(
@@ -178,8 +185,6 @@ def parse_options():
 
 if __name__ == "__main__":
     options = parse_options()
-
-    sys.path.insert(0, os.path.join(options.bootstrap_core, "python"))
     import sgtk
     from tank_vendor import yaml
 
