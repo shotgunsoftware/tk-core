@@ -8,21 +8,27 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+"""
+All custom exceptions that this package emits are defined here.
+"""
 
-class BundleCacheUsageException(Exception):
+from ...errors import TankError
+
+
+class BundleCacheUsageError(TankError):
 
     def __init__(self, filepath, message=None):
-        super(BundleCacheUsageException, self).__init__(message)
+        super(BundleCacheUsageError, self).__init__(message)
         self._filepath = filepath
 
 
-class BundleCacheUsageFileDeletionException(BundleCacheUsageException):
+class BundleCacheUsageFileDeletionError(BundleCacheUsageError):
 
     def __init__(self, filepath, message=None):
-        super(BundleCacheUsageFileDeletionException, self).__init__(filepath, message)
+        super(BundleCacheUsageFileDeletionError, self).__init__(filepath, message)
 
 
-class BundleCacheUsageTimeoutException(Exception):
+class BundleCacheUsageTimeoutError(BundleCacheUsageError):
 
     def __init__(self, method_name):
-        super(BundleCacheUsageTimeoutException, self).__init__(method_name)
+        super(BundleCacheUsageTimeoutError, self).__init__(method_name)
