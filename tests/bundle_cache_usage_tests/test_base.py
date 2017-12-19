@@ -126,7 +126,7 @@ class TestBundleCacheUsageBase(TankTestBase):
     def setUp(self):
         super(TestBundleCacheUsageBase, self).setUp()
 
-        from sgtk.descriptor.bundle_cache_usage.manager import BundleCacheManager
+        from sgtk.descriptor.bundle_cache_usage.purger import BundleCacheUsagePurger
         from sgtk.descriptor.bundle_cache_usage.database import BundleCacheUsageDatabase
 
         self._expected_db_path = os.path.join(self.bundle_cache_root, BundleCacheUsageDatabase.DB_FILENAME)
@@ -136,7 +136,7 @@ class TestBundleCacheUsageBase(TankTestBase):
         self._test_bundle_path = os.path.join(self.app_store_root, "tk-shell", "v0.5.6")
 
         self.delete_db()
-        BundleCacheManager.delete_instance()
+        #BundleCachePurger.delete_instance()
 
         self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE = \
             os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE", "")
