@@ -13,80 +13,39 @@ import time
 import datetime
 import threading
 
-from worker import BundleCacheUsageWorker
+from database import BundleCacheUsageDatabase
 from errors import BundleCacheUsageError
 from errors import BundleCacheUsageFileDeletionError
-from . import BundleCacheUsageLogger as log
+from . import BundleCacheUsageMyLogger as log
 
 
-class BundleCacheManager(object):
+class BundleCacheUsagePurger(object):
 
     """
-    Bungle utility class for scanning, purging a bundle packages in the bundle cache
+    Bundle cache usage utility class for discovering existing bundle packages and deleting unused ones.
+
+    .. note:: All execution of this code is occuring in the main foreground thread.
     """
 
-    # A database entry flagging that the intial walking the bundle cache
-    # was performed.
+    # A database flagging that the the initial bundle cache scan was performed.
     INITIAL_DB_POPULATE_DONE_MARKER = "INITIAL_POPULATE_DONE"
 
-    # keeps track of the single instance of the class
-    __singleton_lock = threading.Lock()
-    __singleton_instance = None
-
-    def __new__(cls, *args, **kwargs):
-        #
-        # Based on tornado.ioloop.IOLoop.instance() approach.
-        #
-        # See:
-        #   https://github.com/facebook/tornado
-        #   https://gist.github.com/werediver/4396488
-        #   https://en.wikipedia.org/wiki/Double-checked_locking
-        #
-        if not cls.__singleton_instance:
-            log.debug_manager("__new__")
-            with cls.__singleton_lock:
-                if not cls.__singleton_instance:
-                    cls.__singleton_instance = super(BundleCacheManager, cls).__new__(cls, *args, **kwargs)
-                    cls.__singleton_instance.__initialized = False
-
-        return cls.__singleton_instance
-
     def __init__(self, bundle_cache_root):
-        super(BundleCacheManager, self).__init__()
-        log.debug_manager("__init__('%s')" % bundle_cache_root)
-        # TODO: returning would cause a silent non-usage of specified parameter
-        if (self.__initialized):
-            return
-        self._worker = None
-
-        if bundle_cache_root is None:
-            raise ValueError("The 'bundle_cache_root' parameter is None.")
-
-        if not os.path.exists(bundle_cache_root):
-            raise OSError(
-                "The specified 'bundle_cache_root' parameter folder does not exists: %s" % (bundle_cache_root)
-            )
-
-        if not os.path.isdir(bundle_cache_root):
-            raise OSError(
-                "The specified 'bundle_cache_root' parameter is not a directory." % (bundle_cache_root)
-            )
-
-        self._bundle_cache_root = bundle_cache_root
-        self._worker = BundleCacheUsageWorker(bundle_cache_root)
-        self._worker.start()
-        self.__initialized = True
-
-    @classmethod
-    def delete_instance(cls):
-        with cls.__singleton_lock:
-            if cls.__singleton_instance:
-                if cls.__singleton_instance._worker:
-                    cls.__singleton_instance._worker.stop()
-                    cls.__singleton_instance = None
+        super(BundleCacheUsagePurger, self).__init__()
+        # Make use of database class path validation.
+        # This way we can catch and log such an error up-front
+        # before the worker thread is actually started.
+        self._database = BundleCacheUsageDatabase(bundle_cache_root)
 
     @classmethod
     def _find_app_store_path(cls, base_folder):
+        """
+        Searches for the 'app_store' folder starting from teh specified folder
+        and return its path.
+
+        :param base_folder: A str path to start the search from
+        :return: A str path or None
+        """
         for (dirpath, dirnames, filenames) in os.walk(base_folder):
             if dirpath.endswith('app_store'):
                 return dirpath
@@ -95,6 +54,16 @@ class BundleCacheManager(object):
 
     @classmethod
     def _find_descriptors(cls, base_folder, max_walk_depth):
+        """
+        Search the specified folder for bundle descriptors.
+
+        .. note:: To prevent returning plugins or deeper files, the search is limited to
+        a certain depth.
+
+        :param base_folder: a str path to start the search from
+        :param max_walk_depth: an int maximum path depth to search into
+        :return: a list of bundle path
+        """
         path_list = []
         base_folder_len = len(base_folder)
         for (dirpath, dirnames, filenames) in os.walk(base_folder):
@@ -108,6 +77,11 @@ class BundleCacheManager(object):
         return path_list
 
     def _find_app_store_bundles(self):
+        """
+         Search for bundle descriptors in the `app_store` folder.
+
+        :return: a list of bundle path
+        """
         # TODO: Find a tk-core reference about why MAX_DEPTH_WALK should be set to 2
         MAX_DEPTH_WALK = 2
 
@@ -115,17 +89,15 @@ class BundleCacheManager(object):
         bundle_cache_root = self.bundle_cache_root
 
         # Process the local app store first
-        bundle_cache_app_store = BundleCacheManager._find_app_store_path(bundle_cache_root)
+        bundle_cache_app_store = BundleCacheUsagePurger._find_app_store_path(bundle_cache_root)
 
         if bundle_cache_app_store:
-            log.debug("Found local app store path: %s" % (bundle_cache_app_store))
-
             if bundle_cache_app_store and \
                     os.path.exists(bundle_cache_app_store) and \
                     os.path.isdir(bundle_cache_app_store):
 
                 log.debug("Found local app store path: %s" % (bundle_cache_app_store))
-                bundle_path_list += BundleCacheManager._find_descriptors(bundle_cache_app_store, MAX_DEPTH_WALK)
+                bundle_path_list += BundleCacheUsagePurger._find_descriptors(bundle_cache_app_store, MAX_DEPTH_WALK)
         else:
             log.debug("Could not find the local app store path from: %s" % (bundle_cache_root))
 
@@ -133,30 +105,37 @@ class BundleCacheManager(object):
 
     def _find_bundles(self):
         """
-        Scan the bundle cache at the specified location for bundles and add them
+        Search the bundle cache for bundle descriptors and add them
         as unused entries to the database.
 
         Reference: Walk up to a certain level
         https://stackoverflow.com/questions/42720627/python-os-walk-to-certain-level
 
-        :param bundle_cache_root: A str of a path
+        :return: a list of bundle path
         """
 
         app_store_bundle_list = self._find_app_store_bundles()
         # TODO: Process other bundle_cache sub folders
-        bundle_list2 = []
-        bundle_list3 = []
 
-        # Combine all lists into a single one
-        bundle_path_list = list(set(app_store_bundle_list + bundle_list2 + bundle_list3))
+        return app_store_bundle_list
 
-        return bundle_path_list
+    @property
+    def _marker_name(self):
+        """
+        Helper property returning the full marker name
 
-    def _get_marker_name(self):
+        .. note:: the marker is used to specify that the initial bundle search was performed.
+
+        :return: A str bundle-like path
+        """
         return os.path.join(self.bundle_cache_root, self.INITIAL_DB_POPULATE_DONE_MARKER)
 
     def _get_filelist(self, bundle_path):
-
+        """
+        Returns a list of files existing under the specified bundle path.
+        :param bundle_path: a valid path to a bundle cache bundle
+        :return: a list of path
+        """
         # Restore bundle full path which was truncated and set relative to 'bundle_cache_root'
         full_bundle_path = os.path.join(self.bundle_cache_root, bundle_path)
         if not os.path.exists(full_bundle_path):
@@ -173,7 +152,6 @@ class BundleCacheManager(object):
 
     def _paranoid_delete(self, filelist):
         """
-
         Delete files and folder under the specified filelist in a paranoid mode where
         everything is carrefully checked before deleteion. That means no 'rmtree'-like
         operation, no walking and deleting items directly.
@@ -203,8 +181,7 @@ class BundleCacheManager(object):
         for f in rlist:
             if not os.path.exists(f):
                 raise BundleCacheUsageFileDeletionError(
-                    f,
-                    "Attempting to delete non existing file or folder."
+                    "Attempting to delete non existing file or folder: %s" % (f)
                 )
 
             if os.path.isfile(f):
@@ -218,14 +195,12 @@ class BundleCacheManager(object):
                     os.rmdir(f)
                 except OSError as e:
                     raise BundleCacheUsageFileDeletionError(
-                        f,
-                        "Attempted to delete a non-empty folder: %s" % (e)
+                        "Attempted to delete a non-empty folder: %s (%s)" % (f, e)
                     )
 
             else:
                 raise BundleCacheUsageFileDeletionError(
-                    f,
-                    "Not a link, not a file, not a directory ???"
+                    "Not a link, not a file, not a directory ??? : %s" % (f)
                 )
 
     ###################################################################################################################
@@ -238,87 +213,88 @@ class BundleCacheManager(object):
 
     @property
     def bundle_cache_root(self):
-        return self._bundle_cache_root
+        """
+        Returns the path to the specified bundle cache root folder.
+
+        :return: A str path, typically to the global bundle cache folder.
+        """
+        return self._database.bundle_cache_root
 
     def initial_populate(self):
         """
-        Scan the bundle cache at the specified location for bundles and add them
-        as unused entries to the database.
-
+        Performs the initial-one-time search for bundles in the bundle cache and populate
+        the database as unused entries.
         """
-
         log.info("Searching for existing bundles ...")
         start_time = time.time()
         found_bundles = self._find_bundles()
         for bundle_path in found_bundles:
-            self._worker.add_unused_bundle(bundle_path)
+            self._database.add_unused_bundle(bundle_path)
 
         log.info("populating done in %ss, found %d entries" % (
             time.time() - start_time, len(found_bundles)
         ))
 
-        self.log_usage(self._get_marker_name())
+        self._database.log_usage(self._marker_name)
 
     @property
     def initial_populate_performed(self):
         """
         :return: bool True if the initial database population was performed else False
         """
-        return self.get_last_usage_timestamp(self._get_marker_name()) > 0
+        return self._database.get_bundle(self._marker_name) is not None
 
     def get_bundle_count(self):
-        count = self._worker.get_bundle_count()
-        # Substract marker if present.
+        """
+        Returns the number of currently tracked bundles in the database
+
+        :return: An int count
+        """
+        count = self._database.get_bundle_count()
+        # Subtract marker if present.
         if self.initial_populate_performed:
             count -= 1
 
         return count
 
-    def get_last_usage_date(self, bundle_path):
-        return datetime.datetime.fromtimestamp(
-            self.get_last_usage_timestamp(bundle_path)
-        ).isoformat()
-
-    def get_last_usage_timestamp(self, bundle_path):
-        return self._worker.get_last_usage_timestamp(bundle_path)
-
     def get_unused_bundles(self, since_days=60):
-        bundle_list = self._worker.get_unused_bundles(since_days)
+        """
+        Returns the list of bundles unused in the specified number of days.
+
+        :param since_days: an int count of days
+        :return: A list of :class:`~BundleCacheUsageDatabaseEntry`
+        """
+        oldest_timestamp = self._database._get_timestamp() - (since_days * 24 * 3600)
+        bundle_list = self._database.get_unused_bundles(oldest_timestamp)
         # Remove marker entry if present
         if self.initial_populate_performed:
             for bundle in bundle_list:
-                if bundle.path == self.INITIAL_DB_POPULATE_DONE_MARKER:
+                if bundle.path.endswith(self.INITIAL_DB_POPULATE_DONE_MARKER):
                     bundle_list.remove(bundle)
 
         return bundle_list
 
-    def get_usage_count(self, bundle_path):
-        return self._worker.get_usage_count(bundle_path)
+    def purge_bundle(self, bundle):
+        """
+        Delete both files and database entry relating to the specified bundle.
 
-    @classmethod
-    def log_usage(cls, bundle_path):
-        with cls.__singleton_lock:
-            if cls.__singleton_instance:
-                if cls.__singleton_instance._worker:
-                    cls.__singleton_instance._worker.log_usage(bundle_path)
-
-    def purge_bundle(self, bundle_path):
+        :param bundle: a :class:`~BundleCacheUsageDatabaseEntry` instance
+        """
         try:
-            filelist = self._get_filelist(bundle_path)
+            filelist = self._get_filelist(bundle.path)
             self._paranoid_delete(filelist)
             # No exception, everything was deleted
 
-
             # Try deleting parent dir if now empty
             parent_dir = os.path.abspath(
-                os.path.join(self.bundle_cache_root, bundle_path, os.pardir)
+                os.path.join(self.bundle_cache_root, bundle.path, os.pardir)
             )
             if not os.listdir(parent_dir):
                 os.rmdir(parent_dir)
 
             #  Finally, delete the database entry
-            self._worker.delete_entry(bundle_path)
-            log.debug("Deleted bundle '%s'" % str(bundle_path))
+            self._database.delete_entry(bundle)
+            log.debug("Deleted bundle '%s'" % str(bundle.path))
 
         except Exception as e:
-            log.error("Error deleting the following bundle:%s exception:%s" % (bundle_path, e))
+            log.error("Error deleting the following bundle:%s exception:%s" % (bundle.path, e))
