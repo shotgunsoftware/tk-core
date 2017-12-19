@@ -21,7 +21,8 @@ from mock import patch, Mock, MagicMock
 
 import sgtk
 from sgtk.bootstrap.manager import ToolkitManager
-from sgtk.descriptor.bundle_cache_usage.manager import BundleCacheManager
+from sgtk.descriptor.bundle_cache_usage.logger import BundleCacheUsageLogger
+from sgtk.descriptor.bundle_cache_usage.purger import BundleCacheUsagePurger
 from sgtk.pipelineconfig import PipelineConfiguration
 from sgtk.util import LocalFileStorageManager
 
@@ -38,7 +39,7 @@ class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
     def setUp(self):
         """
         The test class setup is somehow convoluted because of the import initialisation made,
-        singleton nature of the BundleCacheManager class and override of the SHOTGUN_HOME
+        singleton nature of the BundleCacheUsagePurger class and override of the SHOTGUN_HOME
         which have to be before the earliest sgtk import made in the run_test.py startup script.
 
         We'll be forcing unloading of some import to assert that a db is indeed created
@@ -90,7 +91,7 @@ class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
             LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
             "bundle_cache"
         )
-        self._bundle_cache_manager = BundleCacheManager(bundle_cache_root)
+        self._bundle_cache_manager = BundleCacheUsagePurger(bundle_cache_root)
 
         self._patcher_report_progress = patch(
             "tank.bootstrap.manager.ToolkitManager._report_progress",
@@ -105,7 +106,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
     def setUp(self):
         """
         The test class setup is somehow convoluted because of the import initialisation made,
-        singleton nature of the BundleCacheManager class and override of the SHOTGUN_HOME
+        singleton nature of the BundleCacheUsagePurger class and override of the SHOTGUN_HOME
         which have to be before the earliest sgtk import made in the run_test.py startup script.
 
         We'll be forcing unloading of some import to assert that a db is indeed created
@@ -191,7 +192,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
 
         # Force single release and database file deletion
         # that is created by creating PipelineConfig
-        BundleCacheManager.delete_instance()
+        BundleCacheUsageLogger.delete_instance()
         if os.path.exists(self._expected_db_path):
             os.remove(self._expected_db_path)
 
@@ -243,17 +244,19 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
         self._toolkit_mgr._bootstrap_sgtk("test_engine", None)
         self.assertTrue(os.path.exists(self._expected_db_path))
 
+        time.sleep(1.0)
+
         # Create a temporary instance, for querying database
         # state and content. We can supply a None parameter
         # since an instance already exists.
-        bundle_cache_usage_mgr = BundleCacheManager(self.bundle_cache_root)
+        bundle_cache_usage_purger = BundleCacheUsagePurger(self.bundle_cache_root)
         self.assertTrue(
-            bundle_cache_usage_mgr.initial_populate_performed,
+            bundle_cache_usage_purger.initial_populate_performed,
             "Was expecting database initial population done."
         )
         self.assertEquals(
             TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT,
-            bundle_cache_usage_mgr.get_bundle_count(),
+            bundle_cache_usage_purger.get_bundle_count(),
             "Was expecting database to be initially populated with all fake test bundles"
         )
 
@@ -296,24 +299,29 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
 
         # NOW, we create a temporary instance, for querying database
         # state and content.
-        bundle_cache_usage_mgr = BundleCacheManager(self.bundle_cache_root)
+        bundle_cache_usage_purger = BundleCacheUsagePurger(self.bundle_cache_root)
         self.assertTrue(
-            bundle_cache_usage_mgr.initial_populate_performed,
+            bundle_cache_usage_purger.initial_populate_performed,
             "Was expecting database initial population done."
         )
         self.assertEquals(
             TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT,
-            bundle_cache_usage_mgr.get_bundle_count(),
+            bundle_cache_usage_purger.get_bundle_count(),
             "Was expecting database to be initially populated with all fake test bundles"
         )
 
         # Log usage of tk-shell/v0.5.6 in 'present' time
-        bundle_cache_usage_mgr.log_usage(self._test_bundle_path)
+        BundleCacheUsageLogger.delete_instance()
+        logger = BundleCacheUsageLogger(self.bundle_cache_root)
+        logger.log_usage(self._test_bundle_path)
+        logger.delete_instance()
 
-        bundle_list = bundle_cache_usage_mgr.get_unused_bundles()
+        # Verify that we receive all bundle minus the one we just logged some usage for
+        bundle_list = bundle_cache_usage_purger.get_unused_bundles()
         self.assertEquals(
             TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT-1,
-            len(bundle_list)
+            len(bundle_list),
+            "Was expecting to get all bundles but one (the one we logged usage just above)"
         )
 
         # Now, in present time (mock is no longer in effect)
@@ -344,11 +352,11 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
 
         self.helper_test_purge_bundles()
 
-        bundle_cache_usage_mgr = BundleCacheManager(self.bundle_cache_root)
+        bundle_cache_usage_purger = BundleCacheUsagePurger(self.bundle_cache_root)
 
         # Check the database ...
         self.assertEquals(
-            1, bundle_cache_usage_mgr.get_bundle_count(),
+            1, bundle_cache_usage_purger.get_bundle_count(),
             "Was expecting database to have just 1 bundle left"
         )
 
@@ -396,12 +404,12 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
 
         self.helper_test_purge_bundles()
 
-        bundle_cache_usage_mgr = BundleCacheManager(self.bundle_cache_root)
+        bundle_cache_usage_purger = BundleCacheUsagePurger(self.bundle_cache_root)
 
         # Check the database ...
         self.assertEquals(
             TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT,
-            bundle_cache_usage_mgr.get_bundle_count(),
+            bundle_cache_usage_purger.get_bundle_count(),
             "Was expecting database to report all bundles"
         )
 
