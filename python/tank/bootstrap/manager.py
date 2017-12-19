@@ -18,7 +18,7 @@ from .configuration import Configuration
 from .resolver import ConfigurationResolver
 from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
-from ..descriptor.bundle_cache_usage.manager import BundleCacheManager
+from ..descriptor.bundle_cache_usage.purger import BundleCacheUsagePurger
 from ..util.local_file_storage import LocalFileStorageManager
 
 from .. import LogManager
@@ -950,35 +950,35 @@ class ToolkitManager(object):
 
     def _process_bundle_cache_purge(self, progress_callback, purge_timeout):
 
-        # TODO: We are specifiying database location from 2 distinct places in tk-core:
+        # TODO: NICOLAS: We are specifiying database location from 2 distinct places in tk-core:
         #       - PipelineConfiguration.__init__
         #       - ToolkitManager._process_bundle_cache_purge
         #       The feature would simply break if both are no the same.
         #       Maybe it would be better to embed call to the
         #       `LocalFileStorageManager.get_global_root` from within the
-        #       `BundleCacheManager` class?
-        bundle_cache_mgr = BundleCacheManager(
+        #       `BundleCacheUsagePurger` class?
+        bundle_cache_purger = BundleCacheUsagePurger(
             os.path.join(
                 LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
                 "bundle_cache"
             )
         )
 
-        if bundle_cache_mgr.initial_populate_performed:
+        if bundle_cache_purger.initial_populate_performed:
             if os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE"):
                 log.debug("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE set, bundle auto-purge disabled.")
             else:
                 self._report_progress(progress_callback, self._STARTING_TOOLKIT_RATE, "Cleaning up app cache...")
-                bundle_entry_list = bundle_cache_mgr.get_unused_bundles(purge_timeout)
-                for bundle in bundle_entry_list:
-                    bundle_cache_mgr.purge_bundle(bundle.path)
+                bundle_list = bundle_cache_purger.get_unused_bundles(purge_timeout)
+                for bundle in bundle_list:
+                    bundle_cache_purger.purge_bundle(bundle)
                     log.debug(
                         "Removing all items in bundle cache '%s' which havent't been used in more than %d days (%s)" % (
                             (bundle.path, purge_timeout, bundle.last_usage_date)
                         )
                     )
         else:
-            bundle_cache_mgr.initial_populate()
+            bundle_cache_purger.initial_populate()
 
     def _bootstrap_sgtk(self, engine_name, entity, progress_callback=None):
         """
