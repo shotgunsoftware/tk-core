@@ -171,6 +171,9 @@ class LoginDialog(QtGui.QDialog):
         """
         Displays the window modally.
         """
+        if QtCore.__version__.startswith("4."):
+            self.show()
+
         self.raise_()
         self.activateWindow()
 
