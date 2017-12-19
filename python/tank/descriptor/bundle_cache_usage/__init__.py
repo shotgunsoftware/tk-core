@@ -28,21 +28,21 @@ if USE_PYDEVD_LICLIPSE:
         PYDEVD_INITIATED = True
 
 
-class BundleCacheUsageLogger(object):
+class BundleCacheUsageMyLogger(object):
 
     # Debug logging options
-    DEBUG = True  # master switch
+    DEBUG = False  # master switch
 
-    USE_PRINT = False
+    USE_PRINT = True
 
-    LOG_THREADING = False
+    LOG_THREADING = True
 
     # Manager class debug controls
     LOG_MANAGER = True
 
     # Worker class debug controls
     LOG_WORKER = True
-    LOG_WORKER_HF = False
+    LOG_WORKER_HF = True
     LOG_WORKER_THREADING = True
 
     @classmethod
