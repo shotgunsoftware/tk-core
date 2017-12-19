@@ -171,7 +171,6 @@ class LoginDialog(QtGui.QDialog):
         """
         Displays the window modally.
         """
-        self.show()
         self.raise_()
         self.activateWindow()
 
