@@ -9,26 +9,33 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-All custom exceptions that this package emits are defined here.
+All custom exceptions relative to the bundle cache usage functionality.
 """
 
 from ...errors import TankError
 
 
 class BundleCacheUsageError(TankError):
-
-    def __init__(self, filepath, message=None):
-        super(BundleCacheUsageError, self).__init__(message)
-        self._filepath = filepath
+    """
+    Exception that indicates a general error relating to the bundle cache usage functionality.
+    """
 
 
 class BundleCacheUsageFileDeletionError(BundleCacheUsageError):
-
-    def __init__(self, filepath, message=None):
-        super(BundleCacheUsageFileDeletionError, self).__init__(filepath, message)
+    """
+    Exception that indicates an error deleting a file or bundle in the context
+    of the bundle cache usage functionality.
+    """
 
 
 class BundleCacheUsageTimeoutError(BundleCacheUsageError):
+    """
+    Exception that indicates that an operation timeout in the context
+    of the bundle cache usage functionality.
+    """
 
-    def __init__(self, method_name):
-        super(BundleCacheUsageTimeoutError, self).__init__(method_name)
+
+class BundleCacheUsageInvalidBundleCacheRootError(BundleCacheUsageError):
+    """
+    Exception that indicates that the specified bundle cache root folder is invalid.
+    """

@@ -974,7 +974,7 @@ class ToolkitManager(object):
                     bundle_cache_mgr.purge_bundle(bundle.path)
                     log.debug(
                         "Removing all items in bundle cache '%s' which havent't been used in more than %d days (%s)" % (
-                            (bundle.path, purge_timeout, bundle.last_access_date)
+                            (bundle.path, purge_timeout, bundle.last_usage_date)
                         )
                     )
         else:

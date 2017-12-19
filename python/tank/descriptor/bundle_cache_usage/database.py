@@ -15,21 +15,24 @@ all Tank items in the file system are kept.
 """
 
 import os
+import time
 import sqlite3
 import datetime
 
-from . import BundleCacheUsageLogger as log
+from .errors import BundleCacheUsageInvalidBundleCacheRootError
+
+from . import BundleCacheUsageMyLogger as log
 
 
 class BundleCacheUsageDatabaseEntry(object):
     """
-    Simple helper class for wrapping database returned tuple into easier to access object.
+    Simple helper class wrapping database returned tuple into easier to access object.
     """
 
     def __init__(self, tuple):
         self._path = tuple[BundleCacheUsageDatabase.DB_COL_INDEX_PATH]
         self._add_timestamp = tuple[BundleCacheUsageDatabase.DB_COL_INDEX_ADD_TIMESTAMP]
-        self._last_access_timestamp = tuple[BundleCacheUsageDatabase.DB_COL_INDEX_LAST_ACCESS_TIMESTAMP]
+        self._last_usage_timestamp = tuple[BundleCacheUsageDatabase.DB_COL_INDEX_LAST_USAGE_TIMESTAMP]
         self._usage_count = tuple[BundleCacheUsageDatabase.DB_COL_INDEX_USAGE_COUNT]
 
     @classmethod
@@ -44,7 +47,7 @@ class BundleCacheUsageDatabaseEntry(object):
         #return datetime.datetime.fromtimestamp(n).isoformat()
         # Formats something like: 2017-09-19T13:08:28
 
-        # TODO: is there an existing preset to this?
+        # TODO: NICOLAS: is there an existing preset to this?
         return datetime.datetime.fromtimestamp(timestamp).strftime("%A, %d. %B %Y %I:%M%p")
 
     @property
@@ -53,7 +56,9 @@ class BundleCacheUsageDatabaseEntry(object):
         Returns the entry date when initially added to the database
         :return: an int unix timestamp
         """
-        return BundleCacheUsageDatabaseEntry._format_date_from_timestamp(self.add_timestamp)
+        return BundleCacheUsageDatabaseEntry._format_date_from_timestamp(
+            self.add_timestamp
+        )
 
     @property
     def add_timestamp(self):
@@ -64,20 +69,22 @@ class BundleCacheUsageDatabaseEntry(object):
         return self._add_timestamp
 
     @property
-    def last_access_date(self):
+    def last_usage_date(self):
         """
         Returns the entry last accessed date
         :return: an str datetime
         """
-        return BundleCacheUsageDatabaseEntry._format_date_from_timestamp(self.last_access_timestamp)
+        return BundleCacheUsageDatabaseEntry._format_date_from_timestamp(
+            self.last_usage_timestamp
+        )
 
     @property
-    def last_access_timestamp(self):
+    def last_usage_timestamp(self):
         """
         Returns the entry last accessed timestamp
         :return: an int unix timestamp
         """
-        return self._last_access_timestamp
+        return self._last_usage_timestamp
 
     @property
     def path(self):
@@ -95,6 +102,9 @@ class BundleCacheUsageDatabaseEntry(object):
         """
         return self._usage_count
 
+    def __str__(self):
+        return "%s, %d (%s)" % (self.path, self.last_usage_timestamp, self.last_usage_date)
+
 
 class BundleCacheUsageDatabase(object):
     """
@@ -107,29 +117,34 @@ class BundleCacheUsageDatabase(object):
     (
         DB_COL_INDEX_PATH,
         DB_COL_INDEX_ADD_TIMESTAMP,
-        DB_COL_INDEX_LAST_ACCESS_TIMESTAMP,
+        DB_COL_INDEX_LAST_USAGE_TIMESTAMP,
         DB_COL_INDEX_USAGE_COUNT
     ) = range(4)
 
     def __init__(self, bundle_cache_root):
+
+        if bundle_cache_root is None:
+            raise BundleCacheUsageInvalidBundleCacheRootError(
+                "The 'bundle_cache_root' parameter is None."
+            )
+
+        if not os.path.exists(bundle_cache_root):
+            raise BundleCacheUsageInvalidBundleCacheRootError(
+                "The specified 'bundle_cache_root' parameter folder does not exists: %s" % (bundle_cache_root)
+            )
+
+        if not os.path.isdir(bundle_cache_root):
+            raise BundleCacheUsageInvalidBundleCacheRootError(
+                "The specified 'bundle_cache_root' parameter is not a directory: %s" % (bundle_cache_root)
+            )
+
         self._bundle_cache_root = bundle_cache_root
         self._bundle_cache_usage_db_filename = os.path.join(
             self.bundle_cache_root,
             BundleCacheUsageDatabase.DB_FILENAME
         )
 
-        self._db_connection = None
-        self._connect()
         self._create_main_table()
-
-        # this is to handle unicode properly - make sure that sqlite returns
-        # str objects for TEXT fields rather than unicode. Note that any unicode
-        # objects that are passed into the database will be automatically
-        # converted to UTF-8 strs, so this text_factory guarantees that any character
-        # representation will work for any language, as long as data is either input
-        # as UTF-8 (byte string) or unicode. And in the latter case, the returned data
-        # will always be unicode.
-        self._db_connection.text_factory = str
 
     def _execute(self, sql_statement, tuple=None):
         """
@@ -140,10 +155,25 @@ class BundleCacheUsageDatabase(object):
         :param tuple: An optional tuple with required SQL statement parameters
         :return:
         """
-        if tuple:
-            return self._get_cursor().execute(sql_statement, tuple)
-        else:
-            return self._get_cursor().execute(sql_statement)
+        with sqlite3.connect(self.path) as connection:
+
+            # this is to handle unicode properly - make sure that sqlite returns
+            # str objects for TEXT fields rather than unicode. Note that any unicode
+            # objects that are passed into the database will be automatically
+            # converted to UTF-8 strs, so this text_factory guarantees that any character
+            # representation will work for any language, as long as data is either input
+            # as UTF-8 (byte string) or unicode. And in the latter case, the returned data
+            # will always be unicode.
+            connection.text_factory = str
+
+            cursor = connection.cursor()
+            if cursor:
+                if tuple:
+                    return cursor.execute(sql_statement, tuple)
+                else:
+                    return cursor.execute(sql_statement)
+
+                connection.commit()
 
     def _create_main_table(self):
         """
@@ -161,25 +191,11 @@ class BundleCacheUsageDatabase(object):
             CREATE TABLE IF NOT EXISTS bundles ( 
                 path text NOT NULL UNIQUE PRIMARY KEY,
                 add_timestamp integer,
-                last_access integer,
+                last_usage integer,
                 usage_count integer
             );
             """
         )
-
-    def _connect(self):
-        """
-        Open or re-open a connection to the database and returns it's connected object.
-        The method simply returns the existing connected if database is alreayd opened.
-
-        :return: a :class `~sqlite3.Connection` object.
-        """
-        if self._db_connection is None:
-            self._db_connection = sqlite3.connect(self.path)
-            log.debug("connected: %s" % (self.path))
-
-        return self._db_connection
-
 
     def _find_entry(self, bundle_path):
         """
@@ -203,15 +219,26 @@ class BundleCacheUsageDatabase(object):
 
         return None
 
-    def _get_cursor(self):
+    def _get_timestamp(self):
         """
-        Returns a database cursor.
+        Internal utility method used throughout the interface to return a timestamp
+        The return value can be overriden by assigning a Unix timestamp to the
+        following env. variable: SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE
 
-        :return: A :class:`~sqlite3.Cursor` object
+        :return: An int Unix timestamp.
         """
-        return self._connect().cursor()
+        timestamp_override = os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE")
+        if timestamp_override and len(timestamp_override):
+            try:
+                return int(timestamp_override)
+            except ValueError:
+                # TODO: NICOLAS:  What to do ? Since code might be executed from a worker thread
+                # do we still want to log error from worker thread???
+                pass
 
-    def _log_usage(self, bundle_path, timestamp, initial_usage_count):
+        return int(time.time())
+
+    def _log_usage(self, bundle_path, initial_usage_count):
         """
         Track usage of an entry specified by the `bundle_path` parameter.
         The method creates new entries if the specified entry cannot be found..
@@ -220,18 +247,22 @@ class BundleCacheUsageDatabase(object):
         :param timestamp: An int unix timestamp
         :param initial_usage_count: an int initial entry usage count value
         """
-        if bundle_path:
-            entry = self._find_entry(bundle_path)
+        truncated_path = self._truncate_path(bundle_path)
+        if truncated_path:
+            now_unix_timestamp = self._get_timestamp()
+            log.debug("_log_usage('%s', %d)" % (truncated_path, now_unix_timestamp))
+
+            entry = self._find_entry(truncated_path)
             if entry:
                 # Update
                 self._execute(
                     """
                     UPDATE bundles
-                    SET last_access = ?,
+                    SET last_usage = ?,
                     usage_count = ?
                     WHERE path = ?
                     """,
-                    (timestamp, entry.usage_count + 1, entry.path)
+                    (now_unix_timestamp, entry.usage_count + 1, entry.path)
                 )
             else:
                 # Insert
@@ -240,15 +271,33 @@ class BundleCacheUsageDatabase(object):
                     INSERT INTO bundles(
                         path,
                         add_timestamp,
-                        last_access,
+                        last_usage,
                         usage_count
                     ) 
                     VALUES(?,?,?,?)
                     """,
-                    (bundle_path, timestamp, timestamp, initial_usage_count)
+                    (truncated_path, now_unix_timestamp, now_unix_timestamp, initial_usage_count)
                 )
 
-            self._db_connection.commit()
+    def _truncate_path(self, bundle_path):
+        """
+        Helper method that returns a truncated path of the specified bundle path.
+        The returned path is relative to the `self._bundle_cache_root` property.
+
+        :param bundle_path:
+        :return: A str truncated path if path exists in `self._bundle_cache_root` else None
+        """
+
+        if not bundle_path or not bundle_path.startswith(self._bundle_cache_root):
+            return None
+
+        truncated_path = bundle_path.replace(self._bundle_cache_root, "")
+
+        # also remove leading separator as it prevents os.path.join
+        if truncated_path.startswith(os.sep):
+            truncated_path = truncated_path[len(os.sep):]
+
+        return truncated_path
 
     ###################################################################################################################
     #
@@ -256,7 +305,7 @@ class BundleCacheUsageDatabase(object):
     #
     ###################################################################################################################
 
-    def add_unused_bundle(self, bundle_path, timestamp):
+    def add_unused_bundle(self, bundle_path):
         """
         Add an entry to the database which usage count is initialized to zero.
 
@@ -264,9 +313,9 @@ class BundleCacheUsageDatabase(object):
         differentiating entries added in the initial database population versus
         entries being updated in subsequent sessions.
 
-        :param bundle_path: a str entry identifier
+        :param bundle_path: a str path inside of the bundle cache
         """
-        self._log_usage(bundle_path, timestamp, 0)
+        self._log_usage(bundle_path, 0)
 
     @property
     def bundle_cache_root(self):
@@ -277,37 +326,37 @@ class BundleCacheUsageDatabase(object):
         """
         return self._bundle_cache_root
 
-    def close(self):
-        """
-        Close the database connection.
-        """
-        if self._db_connection is not None:
-            log.debug("close")
-            self._db_connection.close()
-            self._db_connection = None
-
-    @property
-    def connected(self):
-        """
-        Returns whether or not the database is currently connected.
-
-        :return: A bool True if the datase is connected else False.
-        """
-        return self._db_connection is not None
-
-    def delete_entry(self, bundle_path):
+    def delete_entry(self, bundle):
         """
         Delete the specified entry from the database
 
-        :param bundle_path: a str entry identifier
+        :param bundle: a :class:`~BundleCacheUsageDatabaseEntry` object instance
         """
-        self._execute(
+        result = self._execute(
             """
             DELETE FROM bundles
             WHERE path=?
             """,
-            (bundle_path,)
+            (bundle.path,)
         )
+
+    def get_bundle(self, bundle_path):
+        """
+        Returns the database bundle entry matching the specified path or
+        None if a match could not be found in the database.
+
+        :param bundle_path: A str path inside the bundle cache folder.
+        :return: A :class:`~BundleCacheUsageDatabaseEntry` object instance or None
+        """
+
+        truncated_path = self._truncate_path(bundle_path)
+        if truncated_path:
+            bundle = self._find_entry(truncated_path)
+            if bundle:
+                log.debug("get_bundle('%s') = %s" % (bundle_path, bundle))
+                return bundle
+
+        return None
 
     def get_bundle_count(self):
         """
@@ -324,19 +373,6 @@ class BundleCacheUsageDatabase(object):
 
         return result.fetchone()[0] if result else 0
 
-    def get_last_usage_timestamp(self, bundle_path):
-        """
-        Returns the last accessed date of the specified entry as a unix timestamp integer.
-
-        :param bundle_path: a str entry identifier
-        :return: a int unix timestamp or 0 if the entry could not be found.
-        """
-        entry = self._find_entry(bundle_path)
-        if entry:
-            return entry.last_access_timestamp
-
-        return 0
-
     def get_unused_bundles(self, since_timestamps):
         """
         Returns a list of entries that have a last access date older than
@@ -349,7 +385,7 @@ class BundleCacheUsageDatabase(object):
             """
             SELECT *
             FROM bundles
-            WHERE last_access <= ?
+            WHERE last_usage <= ?
             """,
             (since_timestamps,)
         )
@@ -362,27 +398,14 @@ class BundleCacheUsageDatabase(object):
 
         return entry_list
 
-    def get_usage_count(self, bundle_path):
-        """
-        Returns the number of time the specified entry was updated.
-        :param bundle_path: A str identifier
-        :return: An int count
-        """
-        entry = self._find_entry(bundle_path)
-        if entry:
-            return entry.usage_count
-
-        return 0
-
-    def log_usage(self, bundle_path, timestamp):
+    def log_usage(self, bundle_path):
         """
         Update the last access date and increase the access count of the
         specified database entry if it exists in the database already
         otherwise a new entry is created with a usage count of 1.
-        :param bundle_path: A str identifier
-        :param timestamp: A int unix timestamp
+        :param bundle_path: a str path inside of the bundle cache
         """
-        self._log_usage(bundle_path, timestamp, 1)
+        self._log_usage(bundle_path, 1)
 
     @property
     def path(self):
