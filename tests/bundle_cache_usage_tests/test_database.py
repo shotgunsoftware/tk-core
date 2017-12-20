@@ -27,13 +27,11 @@ from .test_base import TestBundleCacheUsageBase, Utils
 from sgtk.descriptor.bundle_cache_usage.database import BundleCacheUsageDatabaseEntry, BundleCacheUsageDatabase
 from sgtk.descriptor.bundle_cache_usage.errors import BundleCacheUsageInvalidBundleCacheRootError
 
+
 class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
     """
     Tests the basic database operations in a non-pipeline context:
         eg.: create table, an entry, update entry
-
-    NOTE: we don't need to inherit from 'tanTestBase' for testing basic DB operations
-    Actually
     """
 
     MAIN_TABLE_NAME = "bundles"
@@ -118,7 +116,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
         # Add unused bundle
         now = int(time.time())
-        with patch("time.time", return_value=now) as mocked_time_time:
+        with patch("time.time", return_value=now):
             self.db.add_unused_bundle(self._test_bundle_path)
 
         self.assertEquals(1, self.db.get_bundle_count())
@@ -235,9 +233,6 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         """
         Tests the `get_unused_bundles` method
         """
-
-        # See the `_create_test_bundle_cache` for available created test bundles
-
         bundle_path_old = os.path.join(self.bundle_cache_root, "app_store", "tk-shell", "v0.5.4")
         bundle_path_new = os.path.join(self.bundle_cache_root, "app_store", "tk-shell", "v0.5.6")
 
@@ -246,13 +241,13 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         # Add a bundle 90 days ago
         ninety_days_ago = now - (90 * 24 * 3600)
         # Log some usage as 90 days ago
-        with patch("time.time", return_value=ninety_days_ago) as mocked_time_time:
+        with patch("time.time", return_value=ninety_days_ago):
             self.db.add_unused_bundle(bundle_path_old)
             self.db.add_unused_bundle(bundle_path_new)
 
         # Log old bundle as 60 days ago
         sixty_days_ago = now - (60 * 24 * 3600)
-        with patch("time.time", return_value=sixty_days_ago) as mocked_time_time:
+        with patch("time.time", return_value=sixty_days_ago):
             self.db.log_usage(bundle_path_old)
 
         # Log new bundle as now
@@ -290,7 +285,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
             (
                 "foOOOo-bar!",
                 1513635533,
-                1513635533+1000,
+                1513635533 + 1000,
                 1
             )
         )
@@ -303,7 +298,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
             (
                 self.db._truncate_path(self._test_bundle_path),
                 1513635533,
-                1513635533+1000,
+                1513635533 + 1000,
                 1
             )
         )
@@ -368,7 +363,6 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.assertEquals(sixty_days_ago, bundle.last_usage_timestamp)
         self.assertEquals(sixty_days_ago_str, bundle.last_usage_date)
 
-
     def test_path_truncated(self):
         """
         Tests that tracked path are truncated & relative to the bundle cache root
@@ -378,10 +372,6 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         bundle = self.db.get_bundle(self._test_bundle_path)
 
         expected_truncated_path = bundle.path.replace(self.bundle_cache_root, "")
-
-        # also remove leading separator as it prevents os.path.join
-        if expected_truncated_path.startswith(os.sep):
-            truncated_path = truncated_path[len(os.sep):]
 
         self.assertEquals(expected_truncated_path, bundle.path)
 
@@ -426,8 +416,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = ""
 
         now = int(time.time())
-        later = now + 1234
-        with patch("time.time", return_value=now) as mocked_time_time:
+        with patch("time.time", return_value=now):
             # Log some usage
             self.db.log_usage(self._test_bundle_path)
 
