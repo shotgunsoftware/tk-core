@@ -35,28 +35,10 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
     """
 
     MAIN_TABLE_NAME = "bundles"
-    PERF_TEST_ITERATION_COUNT = 100
 
     def setUp(self):
         super(TestBundleCacheUsageWriterBasicOperations, self).setUp()
-
-        if self._expected_db_path:
-            if os.path.exists(self._expected_db_path):
-                os.remove(self._expected_db_path)
-
         self._db = BundleCacheUsageDatabase(self.bundle_cache_root)
-        if os.path.exists(self._expected_db_path):
-            self._expected_db_path
-
-    def tearDown(self):
-        # Necessary to force creation of another instance
-        # being a singleton the class would not create a new database
-        # if we are deleting it
-        if self._expected_db_path:
-            if os.path.exists(self._expected_db_path):
-                os.remove(self._expected_db_path)
-
-        super(TestBundleCacheUsageWriterBasicOperations, self).tearDown()
 
     ###################################################################################################################
     #

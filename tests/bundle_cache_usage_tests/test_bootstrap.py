@@ -35,36 +35,6 @@ class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
     """
     Test bundle cache usage indirecvtly through bootstrap related calls.
     """
-
-    def setUp(self):
-        """
-        The test class setup is somehow convoluted because of the import initialisation made,
-        singleton nature of the BundleCacheUsagePurger class and override of the SHOTGUN_HOME
-        which have to be before the earliest sgtk import made in the run_test.py startup script.
-
-        We'll be forcing unloading of some import to assert that a db is indeed created
-        overriding the bundle cache root default path.
-        """
-        super(TestBundleCacheUsageIndirect, self).setUp()
-
-        self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE = \
-            os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE", "")
-        self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE = \
-            os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE", "")
-
-    def tearDown(self):
-        os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE"] = self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE
-        os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE
-        super(TestBundleCacheUsageIndirect, self).tearDown()
-
-    @classmethod
-    def _mocked_report_progress(*args, **kwargs):
-        # TODO: verify what goes through here
-        if len(args) >= 4:
-            pct = int(args[2] * 100)
-            msg = args[3]
-            #print("Progress: %s --- %s" % (str(pct), msg))
-
     def post_setup(self, no_delete=False):
 
         if no_delete:
@@ -92,13 +62,6 @@ class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
             "bundle_cache"
         )
         self._bundle_cache_manager = BundleCacheUsagePurger(bundle_cache_root)
-
-        self._patcher_report_progress = patch(
-            "tank.bootstrap.manager.ToolkitManager._report_progress",
-            TestBundleCacheUsageIndirect._mocked_report_progress
-        )
-        self._patcher_report_progress.start()
-        self.addCleanup(self._patcher_report_progress .stop)
 
 
 class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
@@ -159,7 +122,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
             sg_connection=self.tk.shotgun,
             current_login="john.smith"
         )
-        # TODO: how to fix this below ?
+        # TODO: NICOLAS: how to fix this below ?
         config._path.current_os=self.pipeline_config_root
         config._path.macosx = self.pipeline_config_root
 
@@ -189,12 +152,6 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
 
         self._toolkit_mgr = ToolkitManager()
         self._toolkit_mgr.caching_policy = ToolkitManager.CACHE_FULL
-
-        # Force single release and database file deletion
-        # that is created by creating PipelineConfig
-        BundleCacheUsageLogger.delete_instance()
-        if os.path.exists(self._expected_db_path):
-            os.remove(self._expected_db_path)
 
     def _create_info_yaml(self, path):
         """
@@ -240,11 +197,13 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
 
         # Test that the database will get created from a call to
         # '_bootstrap_sgtk' method.
+        #
+        # The database gets created from pipeline config being created.
+        # For this test we do want to start without a db created
+        self.delete_db()
         self.assertFalse(os.path.exists(self._expected_db_path))
         self._toolkit_mgr._bootstrap_sgtk("test_engine", None)
         self.assertTrue(os.path.exists(self._expected_db_path))
-
-        time.sleep(1.0)
 
         # Create a temporary instance, for querying database
         # state and content. We can supply a None parameter
@@ -287,13 +246,6 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
             # Make an initial call to setup the database (in the past)
             self._toolkit_mgr._bootstrap_sgtk("test_engine", None)
 
-            # We need to wait because the above call queues requests to a
-            # worker thread. The requests are executed asynchronously.
-            # If we we're to leave the patch code block soon, the mock
-            # would terminate before all request be processes and we
-            # would end up with unexpected timestamps.
-            time.sleep(0.5)
-
         # Assert database state
         self.assertTrue(os.path.exists(self._expected_db_path))
 
@@ -310,11 +262,11 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
             "Was expecting database to be initially populated with all fake test bundles"
         )
 
-        # Log usage of tk-shell/v0.5.6 in 'present' time
-        BundleCacheUsageLogger.delete_instance()
-        logger = BundleCacheUsageLogger(self.bundle_cache_root)
-        logger.log_usage(self._test_bundle_path)
-        logger.delete_instance()
+        #
+        # IMPORTANT: This assumes that logger init was done in 'PipelineConfig' class
+        #
+        BundleCacheUsageLogger.log_usage(self._test_bundle_path)
+        time.sleep(self.WAIT_TIME_INSTANT) # allow worker some processing time
 
         # Verify that we receive all bundle minus the one we just logged some usage for
         bundle_list = bundle_cache_usage_purger.get_unused_bundles()

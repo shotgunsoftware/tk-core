@@ -13,23 +13,19 @@
 from tank_test.tank_test_base import TankTestBase, setUpModule
 
 import os
-import sgtk
-import tempfile
-import unittest2
 import random
 import shutil
-import time
 
+from sgtk.descriptor.bundle_cache_usage.database import BundleCacheUsageDatabase
+from sgtk.descriptor.bundle_cache_usage.logger import BundleCacheUsageLogger
 
 class Utils(object):
     """
-    A collection of miscelaneous non-specific methods
-    Used throughout this module.
+    A collection of miscellaneous non-specific methods
+    used throughout this module.
     """
 
-    #
     # An excerpt from chapter of Jules Verne' TWENTY THOUSAND LEAGUES UNDER THE SEA
-    #
     # Ref: https://www.gutenberg.org/files/164/164-h/164-h.htm
     text_data = \
         "The year 1866 was signalised by a remarkable incident, a mysterious and" \
@@ -38,23 +34,7 @@ class Utils(object):
         " even in the interior of continents, seafaring men were particularly excited." \
         "Merchants, common sailors, captains of vessels, skippers, both of Europe and "\
         "America, naval officers of all countries, and the Governments of several States "\
-        "on the two continents, were deeply interested in the matter." \
-        "For some time past vessels had been met by an enormous thing, a long object, "\
-        "spindle-shaped,occasionally phosphorescent, and infinitely larger and more rapid" \
-        "its movements than a whale. The facts relating to this apparition (entered in"\
-        "various log-books) agreed in most respects as to the shape of the object or "\
-        "creature in question, the untiring rapidity of its movements, its surprising "\
-        "power of locomotion, and the peculiar life with which it seemed endowed. If it "\
-        "was a whale, it surpassed in size all those hitherto classified in science. "\
-        "Taking into consideration the mean of observations made at divers times?"\
-        "rejecting the timid estimate of those who assigned to this object a length of two "\
-        "hundred feet, equally with the exaggerated opinions which set it down as a mile in "\
-        "width and three in length?we might fairly conclude that this mysterious being surpassed"\
-        "greatly all dimensions admitted by the learned ones of the day, if it existed"\
-        "at all. And that it DID exist was an undeniable fact; and, with that tendency"\
-        "which disposes the human mind in favour of the marvellous, we can understand"\
-        "the excitement produced in the entire world by this supernatural apparition."\
-        "As to classing it in the list of fables, the idea was out of the question."
+        "on the two continents, were deeply interested in the matter."
 
     @classmethod
     def touch(cls, path):
@@ -115,7 +95,6 @@ class TestBundleCacheUsageBase(TankTestBase):
     """
     TestBundleCacheUsageBase test base class
     """
-    TMP_FOLDER_PREFIX = "TestBundleCacheUsageBase_"
     EXPECTED_DEFAULT_DB_FILENAME = "bundle_usage.sqlite3"
 
     # The number of bundles in the test bundle cache
@@ -123,20 +102,21 @@ class TestBundleCacheUsageBase(TankTestBase):
     FAKE_TEST_BUNDLE_FILE_COUNT = 75  # as created in `_create_test_app_store_cache`
     DEBUG = False
 
+    WAIT_TIME_INSTANT = 0.25
+    WAIT_TIME_SHORT = 0.5
+    WAIT_TIME_MEDIUM = 1.0
+    WAIT_TIME_LONG = 10.0
+    WAIT_TIME_MEGA_LONG = 120.0
+    DEFAULT_LOOP_COUNT = 1000
+
+    WORKER_PROCESSING_TIME = WAIT_TIME_INSTANT
+
     def setUp(self):
         super(TestBundleCacheUsageBase, self).setUp()
 
-        from sgtk.descriptor.bundle_cache_usage.purger import BundleCacheUsagePurger
-        from sgtk.descriptor.bundle_cache_usage.database import BundleCacheUsageDatabase
-
         self._expected_db_path = os.path.join(self.bundle_cache_root, BundleCacheUsageDatabase.DB_FILENAME)
-
         self._create_test_bundle_cache()
-
         self._test_bundle_path = os.path.join(self.app_store_root, "tk-shell", "v0.5.6")
-
-        self.delete_db()
-        #BundleCachePurger.delete_instance()
 
         self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE = \
             os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE", "")
@@ -151,7 +131,24 @@ class TestBundleCacheUsageBase(TankTestBase):
         os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = \
             self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE
 
+        BundleCacheUsageLogger.delete_instance()
+        self.delete_db()
         super(TestBundleCacheUsageBase, self).tearDown()
+
+    def assertIsWithinPct(self, test_value, expected_value, tolerance):
+        """
+        Custom assert method for testing that a value is within tolerance.
+
+        :param test_value: A float value to check
+        :param expected_value:  A float value of what is expected
+        :param tolerance: A float tolerance expressed in percentage [0.0, 100.0]
+        """
+        expected_value_pct = expected_value * tolerance / 100.0
+        min_value = expected_value - expected_value_pct
+        max_value = expected_value + expected_value_pct
+
+        self.assertGreaterEqual(test_value, min_value)
+        self.assertLessEqual(test_value, max_value)
 
     @property
     def app_store_root(self):
@@ -162,7 +159,7 @@ class TestBundleCacheUsageBase(TankTestBase):
         return os.path.join(self.tank_temp, "bundle_cache")
 
     def log_debug(self, msg):
-        if TestBundleCacheUsageBase.DEBUG:
+        if self.DEBUG:
             print("%s: %s" % (self.__class__, msg))
 
     def _create_test_bundle_cache(self):
@@ -296,6 +293,7 @@ class TestBundleCacheUsageBase(TankTestBase):
 
     def delete_db(self):
         if self.db_exists:
+            BundleCacheUsageLogger.delete_instance(self.WAIT_TIME_MEGA_LONG)
             os.remove(self.db_path)
 
     @property
