@@ -81,17 +81,6 @@ class TestInvalidInstalledConfiguration(TankTestBase):
             bundle_cache_fallback_paths=[self._tmp_bundle_cache]
         )
 
-        # now get rid of some stuff from our fixtures to emulate
-        # a config which was downloaded directly from github and not
-        # created by setup_project
-        os.remove(
-            os.path.join(self.pipeline_config_root, "config", "core", "pipeline_configuration.yml")
-        )
-
-        os.remove(
-            os.path.join(self.pipeline_config_root, "config", "core", "install_location.yml")
-        )
-
     def test_resolve_installed_configuration(self):
         """
         Makes sure an installed configuration is resolved.
@@ -109,8 +98,23 @@ class TestInvalidInstalledConfiguration(TankTestBase):
             sgtk.bootstrap.resolver.InstalledConfiguration
         )
 
+        self.assertEquals(config.status(), config.LOCAL_CFG_UP_TO_DATE)
+
+        # now get rid of some stuff from our fixtures to emulate
+        # a config which was downloaded directly from github and not
+        # created by setup_project
+        os.remove(
+            os.path.join(self.pipeline_config_root, "config", "core", "pipeline_configuration.yml")
+        )
+
+        os.remove(
+            os.path.join(self.pipeline_config_root, "config", "core", "install_location.yml")
+        )
+
+
         with self.assertRaisesRegexp(
                 sgtk.bootstrap.TankBootstrapError,
                 "Cannot find required system file"):
             config.status()
+
 

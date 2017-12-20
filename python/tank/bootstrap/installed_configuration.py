@@ -53,7 +53,7 @@ class InstalledConfiguration(Configuration):
         # check that the path we have been given actually points at
         # a classic configuration.
         config_path = self._path.current_os
-        pipe_cfg_path = os.path.join(config_path, "core", "pipeline_configuration.yml")
+        pipe_cfg_path = os.path.join(config_path, "config", "core", "pipeline_configuration.yml")
         if not os.path.exists(pipe_cfg_path):
 
             log.warning(
@@ -70,7 +70,7 @@ class InstalledConfiguration(Configuration):
             )
 
             raise TankBootstrapError(
-                "Cannot find required system file 'core/pipeline_configuration.yml' "
+                "Cannot find required system file 'config/core/pipeline_configuration.yml' "
                 "in configuration %s." % config_path
             )
 
