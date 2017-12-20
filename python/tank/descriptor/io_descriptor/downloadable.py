@@ -270,7 +270,7 @@ class IODescriptorDownloadable(IODescriptorBase):
         # any other file.
         return os.path.join(path, "tk-metadata")
     
-	def is_purgeable(self):
+    def is_purgeable(self):
         """
         Typycally returns true when used with default bundle cache location.
 
