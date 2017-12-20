@@ -14,7 +14,9 @@ from tank_test.tank_test_base import TankTestBase, setUpModule
 
 import os
 import time
+from mock import patch
 
+from sgtk.descriptor.bundle_cache_usage.database import BundleCacheUsageDatabase
 from sgtk.descriptor.bundle_cache_usage.logger import BundleCacheUsageLogger
 from sgtk.descriptor.bundle_cache_usage.errors import (
     BundleCacheUsageTimeoutError,
@@ -253,7 +255,6 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         Development system was showing approximately à 36:0
         """
 
-        # See the `_create_test_bundle_cache` for available created test bundles
         logger = BundleCacheUsageLogger(self.bundle_cache_root)
 
         TASK_COUNT = 1000
@@ -279,11 +280,119 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
                             MINIMAL_EXPECTED_RATIO
                            ))
 
+    def test_error_reporting_queue(self):
+        """
+        Test the error/exception reporting queue and methods
 
-class TestBundleCacheUsageLoggerSingleton(TestBundleCacheUsageBase):
-    """
-    Test that the class is really a singleton
-    """
+        Reference:
+            http://cpython-test-docs.readthedocs.io/en/latest/library/unittest.mock.html
+        """
+        pass
+
+    def helper_divide_a_by_b(self, a, b):
+        return a / b
+
+    def test_indirect_error_reporting_from_worker_thread(self):
+        """
+        Indirectly exercise the error/exception reporting from worker
+        thread through usage of the 'log_usage' method through worker thread.
+
+        Reference:
+            http://cpython-test-docs.readthedocs.io/en/latest/library/unittest.mock.html
+        """
+
+        with patch("logging.Logger.error") as mocked_log_error:
+            logger = BundleCacheUsageLogger(self.bundle_cache_root)
+
+            # Queue non-problematic tasks
+            logger._queue_task(self.helper_divide_a_by_b, 10, 1)
+            time.sleep(0.25) # allow worker processing
+            logger.log_usage(self._test_bundle_path)
+            time.sleep(0.25)  # allow worker processing
+            self.assertEquals(0, mocked_log_error.call_count)
+
+            # Queue a task that will generate an exception
+            logger._queue_task(self.helper_divide_a_by_b, 10, 0)
+            time.sleep(0.25)  # allow worker processing
+            logger.log_usage(self._test_bundle_path)
+            time.sleep(0.25)  # allow worker processing
+            self.assertEquals(1, mocked_log_error.call_count)
+
+            # Again, but now with several errors
+            mocked_log_error.reset_mock()
+            logger._queue_task(self.helper_divide_a_by_b, 10, 0)
+            logger._queue_task(self.helper_divide_a_by_b, 10, 0)
+            logger._queue_task(self.helper_divide_a_by_b, 10, 0)
+            time.sleep(0.25)  # allow worker processing
+            logger.log_usage(self._test_bundle_path)
+            time.sleep(0.25)  # allow worker processing
+            self.assertEquals(3, mocked_log_error.call_count)
+
+    def test_indirect_database_error_reporting_from_worker_thread(self):
+        """
+        Indirectly tests the database error/exception reporting from worker
+        thread through usage of the 'log_usage' method through worker thread.
+
+        Reference:
+            http://cpython-test-docs.readthedocs.io/en/latest/library/unittest.mock.html
+        """
+
+        with patch("logging.Logger.error") as mocked_log_error:
+            with patch(
+                "sgtk.descriptor.bundle_cache_usage.database.BundleCacheUsageDatabase._create_main_table"
+            ) as mocked_create_main_table:
+
+                # Mocking 'BundleCacheUsageDatabase._create_main_table'
+                # prevents creation of the main table and cause pretty
+                # much all writes to fail.
+                logger = BundleCacheUsageLogger(self.bundle_cache_root)
+                self.assertEquals(1, mocked_create_main_table.call_count)
+
+                # With database NOT having a main table
+                # let's try logging some usage.
+                logger.log_usage(self._test_bundle_path)
+                time.sleep(0.25)  # allow worker processing
+
+                # Now, the next call to 'log_usage' should trigger
+                # splitting out the errors
+                logger.log_usage(self._test_bundle_path)
+                self.assertEquals(1, mocked_log_error.call_count)
+                self.assertEquals(
+                    "Unexpected error consuming task : no such table: bundles",
+                    mocked_log_error.call_args_list[0][0][0]
+                )
+
+    def test_indirect_time_override_error_reporting_from_worker_thread(self):
+        """
+        Indirectly tests the database error/exception reporting from worker
+        thread through usage of the 'log_usage' method through worker thread.
+
+        Reference:
+            http://cpython-test-docs.readthedocs.io/en/latest/library/unittest.mock.html
+        """
+
+        with patch("logging.Logger.error") as mocked_log_error:
+            # Mocking 'BundleCacheUsageDatabase._create_main_table'
+            # prevents creation of the main table and cause pretty
+            # much all writes to fail.
+            logger = BundleCacheUsageLogger(self.bundle_cache_root)
+
+            # Assign an invalid timestamp
+            os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = "asgjdhasgjhdasd"
+
+            # With database NOT having a main table
+            # let's try logging some usage.
+            logger.log_usage(self._test_bundle_path)
+            time.sleep(0.25)  # allow worker processing
+
+            # Now, the next call to 'log_usage' should trigger
+            # splitting out the errors
+            logger.log_usage(self._test_bundle_path)
+            self.assertEquals(1, mocked_log_error.call_count)
+            self.assertEquals(
+                "Unexpected error consuming task : invalid literal for int() with base 10: 'asgjdhasgjhdasd'",
+                mocked_log_error.call_args_list[0][0][0]
+            )
 
     def test_singleton(self):
         """ Tests that multiple instantiations return the same object."""

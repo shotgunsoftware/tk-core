@@ -229,12 +229,7 @@ class BundleCacheUsageDatabase(object):
         """
         timestamp_override = os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE")
         if timestamp_override and len(timestamp_override):
-            try:
-                return int(timestamp_override)
-            except ValueError:
-                # TODO: NICOLAS:  What to do ? Since code might be executed from a worker thread
-                # do we still want to log error from worker thread???
-                pass
+            return int(timestamp_override)
 
         return int(time.time())
 

@@ -439,11 +439,9 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
             # with a non-convertable value and assert no exception or error
             os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = "agsjhdgkasda"
 
-            # Since the value cannot be converted, the override gets discarded.
-            self.db.log_usage(self._test_bundle_path)
-            bundle = self.db.get_bundle(self._test_bundle_path)
-            self.assertIsNotNone(bundle)
-            self.assertEquals(now, bundle.last_usage_timestamp)
+            # Since the value cannot be converted, we expect an exception
+            with self.assertRaises(ValueError):
+                self.db.log_usage(self._test_bundle_path)
 
 
 

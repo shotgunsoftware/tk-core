@@ -12,9 +12,13 @@ import threading
 import Queue
 from threading import Event, Thread, Lock
 
+from ...import LogManager
 from .errors import BundleCacheUsageTimeoutError
 from .database import BundleCacheUsageDatabase as BundleCacheUsageDatabase
-from . import BundleCacheUsageMyLogger as log
+from . import BundleCacheUsageMyLogger as tmp_log
+
+
+log = LogManager.get_logger(__name__)
 
 
 class BundleCacheUsageLogger(threading.Thread):
@@ -30,8 +34,6 @@ class BundleCacheUsageLogger(threading.Thread):
         https://docs.python.org/2/library/threading.html
     """
 
-    MAXIMUM_QUEUE_SIZE = 1024
-    DEFAULT_OP_TIMEOUT = 2 # in seconds
     DEFAULT_STOP_TIMEOUT = 10 # in seconds
 
     KEY_BUNDLE_COUNT = "bundle_count"
@@ -52,7 +54,7 @@ class BundleCacheUsageLogger(threading.Thread):
         #   https://en.wikipedia.org/wiki/Double-checked_locking
         #
         if not cls.__singleton_instance:
-            log.debug_worker_threading("__new__")
+            tmp_log.debug_worker_threading("__new__")
             with cls.__singleton_lock:
                 if not cls.__singleton_instance:
                     cls.__singleton_instance = super(BundleCacheUsageLogger, cls).__new__(cls, *args, **kwargs)
@@ -66,10 +68,11 @@ class BundleCacheUsageLogger(threading.Thread):
         if (self.__initialized):
             return
         self.__initialized = True
-        log.debug_worker_threading("__init__")
+        tmp_log.debug_worker_threading("__init__")
         self._terminate_requested = threading.Event()
         self._queued_signal = threading.Event()
         self._tasks = Queue.Queue()
+        self._errors = Queue.Queue()
         self._member_lock = threading.Condition()
         self._completed_count = 0
         self._pending_count = 0
@@ -78,6 +81,7 @@ class BundleCacheUsageLogger(threading.Thread):
         # before the worker thread is actually started.
         BundleCacheUsageDatabase(bundle_cache_root)
         self._bundle_cache_root = bundle_cache_root
+        log.debug("Starting worker thread...")
         self.start()
 
     @ classmethod
@@ -95,6 +99,17 @@ class BundleCacheUsageLogger(threading.Thread):
     # Running exclusively from the worker thread context
     #
     ###########################################################################
+
+    def __log_error(self, exception, message):
+        """
+        Helper method that adds an exception and custom message to a queue allowing
+        reporting of errors from the worker thread back into the main thread.
+
+        :param exception: A
+        :param message: a str custom message
+        """
+        self._errors.put((exception, message))
+        self._errors.task_done()
 
     def __log_usage(self, bundle_path):
         """
@@ -118,8 +133,7 @@ class BundleCacheUsageLogger(threading.Thread):
             if method:
                 method(*args, **kwargs)
         except Exception as e:
-            log.error("UNEXPECTED Exception: %s " % (e))
-            # TODO: NICOLAS: we're in a worker thread, find a way to report the error
+            self.__log_error(e, "Unexpected error consuming task")
 
         with self._member_lock:
             if self._pending_count > 0:
@@ -131,7 +145,7 @@ class BundleCacheUsageLogger(threading.Thread):
         Implementation of threading.Thread.run()
         """
 
-        log.debug_worker_threading("starting")
+        tmp_log.debug_worker_threading("starting")
 
         try:
             while not self._terminate_requested.is_set() or self.pending_count > 0:
@@ -152,13 +166,9 @@ class BundleCacheUsageLogger(threading.Thread):
                 self._queued_signal.clear()
 
         except Exception as e:
-            log.error("UNEXPECTED Exception: %s " % (e))
-            # TODO: NICOLAS: we're in a worker thread, find a way to report the error
-            #      to main thread.
-            # Why can't we log error to the regular logger?
-            pass
+            self.__log_error(e, "Unexpected exception in the worker run() method")
 
-        log.debug_worker_threading("terminated (%d tasks remaining)" % self.pending_count)
+        tmp_log.debug_worker_threading("terminated (%d tasks remaining)" % self.pending_count)
 
     #
     # Protected methods
@@ -166,14 +176,23 @@ class BundleCacheUsageLogger(threading.Thread):
     #
     ###########################################################################
 
+    def _check_for_queued_errors(self):
+        while not self._errors.empty():
+            exception, message = self._errors.get()
+            log.error("%s : %s" % (message, exception))
+
     def _queue_task(self, method, *args, **kwargs):
         """
         Add a task to the worker thread queue.
+
+        .. note:: Called from main thread
 
         :param method: method to call
         :param args: arguments to pass to the method
         :param kwargs: named arguments to pass to the method
         """
+        self._check_for_queued_errors()
+
         with self._member_lock:
             self._pending_count += 1
 
@@ -244,7 +263,7 @@ class BundleCacheUsageLogger(threading.Thread):
         :param timeout: A float timeout in seconds
         """
         if self.isAlive():
-            log.debug_worker_threading(
+            log.debug(
                 "Requesting worker termination (pending tasks = %d) ..."  % (self.pending_count)
             )
             # Order is important below: signal thread termination FIRST!
