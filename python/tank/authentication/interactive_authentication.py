@@ -9,10 +9,10 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Authentication and session renewal handling. 
+Authentication and session renewal handling.
 
 This module handles asking the user for their password, login etc.
-It will try to use a QT UI to prompt the user if possible, but may 
+It will try to use a QT UI to prompt the user if possible, but may
 fall back on a console (stdin/stdout) based workflow if QT isn't available.
 
 --------------------------------------------------------------------------------
@@ -36,8 +36,18 @@ import threading
 import sys
 import os
 
+# When importing qt_abstraction, a lot of code is executed to detects which
+# version of Qt is being used. Running business logic at import time is not
+# something usually done by the Toolkit. The worry is that the import may fail
+# in the context of a DCC, but occur too early for the Toolkit logging to be
+# fully in place to record it.
+try:
+    from .ui.qt_abstraction import QtGui
+except Exception:
+    QtGui = None
 
 logger = LogManager.get_logger(__name__)
+
 
 ###############################################################################################
 # internal classes and methods
@@ -60,30 +70,22 @@ def _get_current_os_user():
             return None
 
 
-def _get_qt_state():
+def _get_ui_state():
     """
-    Returns the state of Qt: the libraries available and if we have a ui or not.
-    :returns: If Qt is available, a tuple of (QtCore, QtGui, has_ui_boolean_flag).
-              Otherwise, (None, None, False)
+    Returns the state of UI: do we have a ui or not.
+    :returns: True or False)
     """
-    qt_core = None
-    qt_gui = None
-    qapp_instance_active = False
-    try:
-        from .ui.qt_abstraction import QtGui, QtCore
-        qt_core = QtCore
-        qt_gui = QtGui
-        qapp_instance_active = (QtGui.QApplication.instance() is not None)
-    except:
-        pass
-    return (qt_core, qt_gui, qapp_instance_active)
+    if QtGui and QtGui.QApplication.instance() is not None:
+        return True
+    else:
+        return False
 
 
 class SessionRenewal(object):
     """
     Handles multi-threaded session renewal. This class handles the use case when
-    multiple threads simultaneously try to ask the user for a password. 
-    
+    multiple threads simultaneously try to ask the user for a password.
+
     Use this class by calling the static method renew_session(). Please see this method
     for more details.
     """
@@ -110,6 +112,10 @@ class SessionRenewal(object):
         Prompts the user for the password. This method should never be called directly
         and _renew_session should be called instead.
 
+        In the case of an SSO session, the session_metadata will be used to attempt a
+        renewal without having to prompt the user. If this fails, then the
+        user will be prompted for their credentials.
+
         :param user: SessionUserImpl instance of the user that needs its session
                      renewed.
         :param credentials_handler: Object that actually prompts the user for
@@ -132,18 +138,25 @@ class SessionRenewal(object):
 
             # We're the first thread, so authenticate.
             try:
-                logger.debug("Not authenticated, requesting user input.")
-                hostname, login, session_token = credentials_handler.authenticate(
+                if user.get_session_metadata() is not None:
+                    logger.debug("Attempting to renew our SSO session.")
+                else:
+                    logger.debug("Not authenticated, requesting user input.")
+
+                # @TODO: Refactor the authenticate methods to return a struct-like
+                #        object instead of a 4 elements tuple.
+                hostname, login, session_token, session_metadata = credentials_handler.authenticate(
                     user.get_host(),
                     user.get_login(),
                     user.get_http_proxy()
                 )
                 SessionRenewal._auth_state = SessionRenewal.SUCCESS
-                logger.debug("Login successful!")
+                logger.debug("Renewal successful!")
                 user.set_session_token(session_token)
+                user.set_session_metadata(session_metadata)
             except AuthenticationCancelled:
                 SessionRenewal._auth_state = SessionRenewal.CANCELLED
-                logger.debug("Authentication cancelled")
+                logger.debug("Renewal cancelled")
                 raise
 
     @staticmethod
@@ -183,7 +196,6 @@ class SessionRenewal(object):
                 # it will keep being propagated.
 
 
-
 ###############################################################################################
 # public methods
 
@@ -198,10 +210,10 @@ def renew_session(user):
                                      this exception is raised.
     """
     logger.debug("Credentials were out of date, renewing them.")
-    QtCore, QtGui, has_ui = _get_qt_state()
+    has_ui = _get_ui_state()
     # If we have a gui, we need gui based authentication
     if has_ui:
-        authenticator = UiAuthenticationHandler(is_session_renewal=True)
+        authenticator = UiAuthenticationHandler(is_session_renewal=True, session_metadata=user.get_session_metadata())
     else:
         authenticator = ConsoleRenewSessionHandler()
     SessionRenewal.renew_session(user, authenticator)
@@ -228,8 +240,10 @@ def authenticate(default_host, default_login, http_proxy, fixed_host):
     # If there is no default login, let's provide the os user's instead.
     default_login = default_login or _get_current_os_user()
 
-    QtCore, QtGui, has_ui = _get_qt_state()
+    has_ui = _get_ui_state()
 
+    # @TODO: refactor the authenticator functions to return a struct-like
+    #        object instead of 5 element tuple.
     # If we have a gui, we need gui based authentication
     if has_ui:
         # If we are renewing for a background thread, use the invoker

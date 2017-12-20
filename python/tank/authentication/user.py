@@ -8,7 +8,21 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import os
+import threading
+import time
+
+from . import interactive_authentication
 from . import user_impl
+from . import shotgun_shared
+from .. import LogManager
+from .errors import AuthenticationCancelled
+
+
+logger = LogManager.get_logger(__name__)
+
+# Ensure that the SSO-related logging will be merged in our loggin.
+shotgun_shared.set_logger_parent(logger)
 
 
 class ShotgunUser(object):
@@ -118,6 +132,104 @@ class ShotgunUser(object):
         return self._impl
 
 
+class ShotgunSamlUser(ShotgunUser):
+    """
+    This specialized shotgun user is needed when SSO is used, as it provides
+    mechanisms for automatic claims renewal.
+
+    User objects are created via the :class:`ShotgunAuthenticator` object, which will handle
+    caching user objects on disk, prompting the user for their credentials etc.
+
+    This specialized class allows the user to query the claims expiration and
+    see if `interactive_authentication.renew_session(user)` needs to be called.
+
+    It is also possible to start/stop/query the state of the automatic claims renewal:
+
+        user = ...
+        if isinstance(user, ShotgunSamlUser):
+            user.start_claims_renewal()
+        ...
+        if user.is_claims_renewal_active():
+            user.stop_claims_renewal()
+    """
+
+    def __init__(self, impl):
+        """
+        :param impl: Internal user implementation class this class proxies.
+        """
+        super(ShotgunSamlUser, self).__init__(impl)
+        self._timer = None
+
+    def get_claims_expiration(self):
+        """
+        Obtains the claims expiration time for the user.
+
+        :returns: The claims expiration time, expressed as the number of seconds since epoch.
+        """
+        return shotgun_shared.get_saml_claims_expiration(self._impl.get_session_metadata())
+
+    def _do_automatic_claims_renewal(self, preemtive_renewal_threshold=0.9):
+        """
+        Handles automatic renewal of the SAML2 claims for the user.
+
+        :param preemtive_renewal_threshold: How far into the claims duration we will attempt renewal.
+                                             Defaults to 90%, usually 3 minutes 45 seconds (90% of 5 mins).
+        """
+        logger.debug("Attempting automatic claims renewal")
+        try:
+            previous_expiration = self.get_claims_expiration()
+            # A call to renew_session when SSO is used will not prompt the user for
+            # their credentials if it is not necessary.
+            interactive_authentication.renew_session(self._impl)
+            new_expiration = self.get_claims_expiration()
+
+            if new_expiration > previous_expiration:
+
+                logger.debug("Automatic claims renewal succeeded.")
+                delta = (new_expiration - time.time()) * preemtive_renewal_threshold
+                # If we are debugging, we will use a shorter expiration time.
+                # SHOTGUN_SSO_RENEWAL_INTERVAL should be a value in seconds.
+                if "SHOTGUN_SSO_RENEWAL_INTERVAL" in os.environ:
+                    delta = int(os.environ["SHOTGUN_SSO_RENEWAL_INTERVAL"])
+                logger.debug("Next claims renewal attempt: %f" % delta)
+                self._timer = threading.Timer(delta, self._do_automatic_claims_renewal, [preemtive_renewal_threshold])
+                self._timer.start()
+            else:
+                logger.warning("No further attempts to auto-renew in the background will be attempted.")
+        except AuthenticationCancelled:
+            logger.debug("Automatic SSO claim renewal was cancelled while processing.")
+            raise
+
+    def start_claims_renewal(self, preemtive_renewal_threshold=0.9):
+        """
+        Start claims renewal mechanism.
+        """
+        if self._timer is None or not self.is_claims_renewal_active():
+            self._do_automatic_claims_renewal(preemtive_renewal_threshold)
+        else:
+            logger.debug("Attempting to start claims renewal when it was already active.")
+
+    def stop_claims_renewal(self):
+        """
+        Stops claims renewal mechanism.
+        """
+        if self._timer:
+            self._timer.cancel()
+        else:
+            logger.debug("Attempting to stop claims renewal when it was not active.")
+
+    def is_claims_renewal_active(self):
+        """
+        Query the current state of the claims renewal mechanism.
+
+        :returns: A bool value on the current active state of the renewal loop.
+        """
+        if self._timer:
+            return self._timer.is_alive()
+        else:
+            return False
+
+
 def serialize_user(user):
     """
     Serializes a user. Meant to be consumed by deserialize.
@@ -138,4 +250,10 @@ def deserialize_user(payload):
 
     :returns: A ShotgunUser derived instance.
     """
-    return ShotgunUser(user_impl.deserialize_user(payload))
+    impl = user_impl.deserialize_user(payload)
+
+    # We use the presence of session_metadata as an indicator that we are using SSO.
+    if isinstance(impl, user_impl.SessionUser) and impl.get_session_metadata() is not None:
+        return ShotgunSamlUser(impl)
+    else:
+        return ShotgunUser(impl)
