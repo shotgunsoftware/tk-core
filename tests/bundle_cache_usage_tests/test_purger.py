@@ -13,7 +13,6 @@
 import os
 import time
 import random
-import unittest2
 from mock import patch
 
 import sgtk
@@ -28,6 +27,7 @@ from sgtk.descriptor.bundle_cache_usage.errors import (
     BundleCacheUsageInvalidBundleCacheRootError
 )
 from tank_test.tank_test_base import TankTestBase, setUpModule
+
 
 class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
     """
@@ -59,25 +59,29 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
 
             # Randomly determine
             if random.randint(0, 1):
-                bundle_path = bundle_list[random.randint(0, bundle_count-1)]
+                bundle_path = bundle_list[random.randint(0, bundle_count - 1)]
                 start_time = time.time()
                 logger.log_usage(bundle_path)
                 # Check that execution is near instant
-                self.assertLess(time.time() - start_time,
-                                TestBundleCacheUsagePurger.MAXIMUM_BLOCKING_TIME_IN_SECONDS,
-                                "The 'log_usage' method took unexpectedly long time to execute")
+                self.assertLess(
+                    time.time() - start_time,
+                    TestBundleCacheUsagePurger.MAXIMUM_BLOCKING_TIME_IN_SECONDS,
+                    "The 'log_usage' method took unexpectedly long time to execute"
+                )
 
             if random.randint(0, 1):
                 start_time = time.time()
                 purger.get_bundle_count()
                 # Check that execution is near instant
-                self.assertLess(time.time() - start_time,
-                                TestBundleCacheUsagePurger.MAXIMUM_BLOCKING_TIME_IN_SECONDS,
-                                "The 'get_bundle_count' method took unexpectedly long time to execute")
+                self.assertLess(
+                    time.time() - start_time,
+                    TestBundleCacheUsagePurger.MAXIMUM_BLOCKING_TIME_IN_SECONDS,
+                    "The 'get_bundle_count' method took unexpectedly long time to execute"
+                )
 
             # only if equals 0
             if not random.randint(0, iteration_count):
-                bundle_path = bundle_list[random.randint(0, bundle_count-1)]
+                bundle_path = bundle_list[random.randint(0, bundle_count - 1)]
                 start_time = time.time()
                 fake_bundle_entry = BundleCacheUsageDatabaseEntry(
                     (
@@ -89,9 +93,11 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
                 )
                 purger.purge_bundle(fake_bundle_entry)
                 # Check that execution is rather quick (2 times the blocking delay)
-                self.assertLess(time.time() - start_time,
-                                2*TestBundleCacheUsagePurger.MAXIMUM_BLOCKING_TIME_IN_SECONDS,
-                                "The 'purge_bundle' method took unexpectedly long time to execute")
+                self.assertLess(
+                    time.time() - start_time,
+                    2 * self.MAXIMUM_BLOCKING_TIME_IN_SECONDS,
+                    "The 'purge_bundle' method took unexpectedly long time to execute"
+                )
 
             iteration_count -= 1
 
@@ -186,7 +192,7 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
         ninety_days_ago = now - (90 * 24 * 3600)
 
         if use_mock:
-            with patch("time.time", return_value=ninety_days_ago) as mocked_time_time:
+            with patch("time.time", return_value=ninety_days_ago):
                 self._purger.initial_populate()
                 # We need to wait because the above call queues requests to a
                 # worker thread. The requests are executed asynchronously.
@@ -258,8 +264,7 @@ class TestBundleCacheUsagePurgerFindBundles(TestBundleCacheUsageBase):
         """
         test_path = os.path.join(self.bundle_cache_root, "non-existing-folder")
         with self.assertRaises(BundleCacheUsageInvalidBundleCacheRootError):
-            files = BundleCacheUsagePurger(test_path)
-
+            BundleCacheUsagePurger(test_path)
 
     def test_walk_bundle_cache_level_down(self):
         # Try again, starting from a few level down. Although there are info.yml
@@ -538,4 +543,3 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
         self.assertTrue(os.path.exists(test_bundle_path))
         self.assertTrue(os.path.exists(dest_path))
         self.assertTrue(os.path.islink(dest_path))
-

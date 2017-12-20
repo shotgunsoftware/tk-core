@@ -12,8 +12,6 @@
 
 from tank_test.tank_test_base import TankTestBase, setUpModule
 
-import sgtk
-import unittest2
 import os
 import time
 
@@ -23,13 +21,12 @@ from sgtk.descriptor.bundle_cache_usage.errors import (
     BundleCacheUsageInvalidBundleCacheRootError
 )
 
-from .test_base import TestBundleCacheUsageBase, Utils
+from .test_base import TestBundleCacheUsageBase
 
-DEBUG = True
 
 def log_debug(message):
-    if DEBUG:
-        print("DEBUG: %s" % (message))
+    """ Single point global method to add extra printout during tests"""
+    print("DEBUG: %s" % (message))
 
 
 class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
@@ -47,7 +44,7 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         BundleCacheUsageLogger.delete_instance()
         super(TestBundleCacheUsageLogger, self).tearDown()
 
-    def assertIsWithinPct(self, test_value, expected_value, tolerance ):
+    def assertIsWithinPct(self, test_value, expected_value, tolerance):
         """
 
         :param test_value: A float value to check
@@ -85,7 +82,7 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         count = 1000
         while count > 0:
             start_time = time.time()
-            logger = BundleCacheUsageLogger(self.bundle_cache_root)
+            BundleCacheUsageLogger(self.bundle_cache_root)
             BundleCacheUsageLogger.delete_instance()
             elapsed_time = time.time() - start_time
             # Should pretty much be instant and 250ms is an eternity for a computer
@@ -270,14 +267,14 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         queuing_time = time.time() - start_time
         logger.stop(10)
         completing_all_tasks_time = time.time() - start_time
-        ratio = completing_all_tasks_time/queuing_time
+        ratio = completing_all_tasks_time / queuing_time
 
         self.log_debug("%s: queuing_time             : %ss" % (self._testMethodName, queuing_time))
         self.log_debug("%s: completing_all_tasks_time: %ss" % (self._testMethodName, completing_all_tasks_time))
         self.log_debug("%s: ratio : %s" % (self._testMethodName, ratio))
         self.assertEquals(logger.pending_count, 0,
                           "Was not expecting pending tasks after `stop`.")
-        self.assertGreater(ratio,MINIMAL_EXPECTED_RATIO,
+        self.assertGreater(ratio, MINIMAL_EXPECTED_RATIO,
                            "Expecting at the very least a %s:1 radio between completing tasks and queuing them" % (
                             MINIMAL_EXPECTED_RATIO
                            ))

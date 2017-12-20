@@ -9,14 +9,13 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import time
-import datetime
-import threading
 
+from ...import LogManager
 from database import BundleCacheUsageDatabase
 from errors import BundleCacheUsageError
 from errors import BundleCacheUsageFileDeletionError
-from . import BundleCacheUsageMyLogger as log
+
+log = LogManager.get_logger(__name__)
 
 
 class BundleCacheUsagePurger(object):
@@ -139,7 +138,7 @@ class BundleCacheUsagePurger(object):
         # Restore bundle full path which was truncated and set relative to 'bundle_cache_root'
         full_bundle_path = os.path.join(self.bundle_cache_root, bundle_path)
         if not os.path.exists(full_bundle_path):
-            raise BundleCacheUsageError("","The specified path does not exists: %s" % (full_bundle_path))
+            raise BundleCacheUsageError("The specified path does not exists: %s" % (full_bundle_path))
 
         file_list = []
         for (dirpath, dirnames, filenames) in os.walk(full_bundle_path):
@@ -220,20 +219,18 @@ class BundleCacheUsagePurger(object):
         """
         return self._database.bundle_cache_root
 
+    @LogManager.log_timing
     def initial_populate(self):
         """
         Performs the initial-one-time search for bundles in the bundle cache and populate
         the database as unused entries.
         """
         log.info("Searching for existing bundles ...")
-        start_time = time.time()
         found_bundles = self._find_bundles()
         for bundle_path in found_bundles:
             self._database.add_unused_bundle(bundle_path)
 
-        log.info("populating done in %ss, found %d entries" % (
-            time.time() - start_time, len(found_bundles)
-        ))
+        log.info("populating done, found %d entries" % (len(found_bundles)))
 
         self._database.log_usage(self._marker_name)
 

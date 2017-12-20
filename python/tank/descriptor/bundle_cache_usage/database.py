@@ -44,8 +44,8 @@ class BundleCacheUsageDatabaseEntry(object):
         :return: A str human readable is the form:  Tuesday, 21. November 2017 04:30PM
         """
 
-        #return datetime.datetime.fromtimestamp(n).isoformat()
-        # Formats something like: 2017-09-19T13:08:28
+        # Usage of the 'datetime.datetime.fromtimestamp(n).isoformat()'
+        # method formats something like: 2017-09-19T13:08:28
 
         # TODO: NICOLAS: is there an existing preset to this?
         return datetime.datetime.fromtimestamp(timestamp).strftime("%A, %d. %B %Y %I:%M%p")
@@ -332,7 +332,7 @@ class BundleCacheUsageDatabase(object):
 
         :param bundle: a :class:`~BundleCacheUsageDatabaseEntry` object instance
         """
-        result = self._execute(
+        self._execute(
             """
             DELETE FROM bundles
             WHERE path=?
