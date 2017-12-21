@@ -247,26 +247,30 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         # On Windows, the sqlite cost of opening, writing and closing
         # seems to be much greater than unix-based systems even
         # the 'WAIT_TIME_MEGA_LONG' wait time was not enough.
-        for count in range(0, self.DEFAULT_LOOP_COUNT / 4):
+        for count in range(0, self.DEFAULT_LOOP_COUNT / 2):
             self._logger.log_usage(self._test_bundle_path)
 
         queuing_time = time.time() - start_time
         self._logger.stop(self.WAIT_TIME_MEGA_LONG)
         completing_all_tasks_time = time.time() - start_time
-        ratio = completing_all_tasks_time / queuing_time
-
         self.assertEquals(
             self._logger.pending_count,
             0,
             "Was not expecting pending tasks after `stop`."
         )
-        self.assertGreater(
-            ratio,
-            MINIMAL_EXPECTED_RATIO,
-            "Expecting at the very least a %d:1 radio between completing tasks and queuing them" % (
-                MINIMAL_EXPECTED_RATIO
+
+        print("\n%s: queuing_time             : %5.3fs" % (self._testMethodName, queuing_time))
+        print("%s: completing_all_tasks_time: %4.1fs" % (self._testMethodName, completing_all_tasks_time))
+        if queuing_time > 0:
+            ratio = completing_all_tasks_time / queuing_time
+            print("%s: ratio                    : %4.1fs" % (self._testMethodName, ratio))
+            self.assertGreater(
+                ratio,
+                MINIMAL_EXPECTED_RATIO,
+                "Expecting at the very least a %d:1 radio between completing tasks and queuing them" % (
+                    MINIMAL_EXPECTED_RATIO
+                )
             )
-        )
 
     def helper_divide_a_by_b(self, a, b):
         """
