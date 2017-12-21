@@ -110,13 +110,22 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         """
         Stress-Testing that a connection is ready after `start` is called.
         """
+
+        # Need override setUp() and start the test with
+        # instance and db file deleted.
+        BundleCacheUsageLogger.delete_instance()
+        os.remove(self.expected_db_path)
+
         for count in range(0, self.DEFAULT_LOOP_COUNT):
+            self.assertFalse(os.path.exists(self.expected_db_path))
             start_time = time.time()
             logger = BundleCacheUsageLogger(self.bundle_cache_root)
             logger.start()
             logger.delete_instance()
             elapsed_time = time.time() - start_time
-            self.assertTrue(os.path.exist(self.expected_db_path))
+            self.assertTrue(os.path.exists(self.expected_db_path))
+            # Delete for next iteration
+            os.remove(self.expected_db_path)
             # Should pretty much be instant
             self.assertLess(elapsed_time, self.WAIT_TIME_SHORT, "Lock up possibly detected")
 
