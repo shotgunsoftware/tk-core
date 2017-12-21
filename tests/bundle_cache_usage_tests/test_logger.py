@@ -243,7 +243,11 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         MINIMAL_EXPECTED_RATIO = 20
 
         start_time = time.time()
-        for count in range(0, self.DEFAULT_LOOP_COUNT):
+
+        # On Windows, the sqlite cost of opening, writing and closing
+        # seems to be much greater than unix-based systems even
+        # the 'WAIT_TIME_MEGA_LONG' wait time was not enough.
+        for count in range(0, self.DEFAULT_LOOP_COUNT / 4):
             self._logger.log_usage(self._test_bundle_path)
 
         queuing_time = time.time() - start_time
