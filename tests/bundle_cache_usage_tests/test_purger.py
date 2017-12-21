@@ -109,6 +109,7 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
         count = 20
         while count > 0:
             logger = BundleCacheUsageLogger(self.bundle_cache_root)
+            logger.start()
             purger = BundleCacheUsagePurger(self.bundle_cache_root)
             database = BundleCacheUsageDatabase(self.bundle_cache_root)
             self.helper_stress_test(purger, logger, database, test_bundle_list)
@@ -459,11 +460,8 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
         self.assertTrue(os.path.exists(self._test_bundle_path))
         self.assertEquals(0, self._purger.get_bundle_count())
 
-        # Log some usage
-        logger = BundleCacheUsageLogger(self.bundle_cache_root)
-        logger.start()
-        time.sleep(0.5)  # logging is async, we need to wait to endure operation is done
-        logger.log_usage(test_bundle_path)
+        # Relying on the PipelineConfig initializing worker thread
+        BundleCacheUsageLogger.log_usage(test_bundle_path)
         time.sleep(0.5) # logging is async, we need to wait to endure operation is done
         self.assertEquals(1, self._purger.get_bundle_count())
 
@@ -512,11 +510,8 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
         self.assertTrue(os.path.exists(dest_path))
         self.assertTrue(os.path.islink(dest_path))
 
-        # Log some usage
-        logger = BundleCacheUsageLogger(self.bundle_cache_root)
-        logger.start()
-        time.sleep(0.5)  # logging is async, we need to wait to endure operation is done
-        logger.log_usage(test_bundle_path)
+        # Relying on the PipelineConfig initializing worker thread
+        BundleCacheUsageLogger.log_usage(test_bundle_path)
         time.sleep(0.5) # logging is async, we need to wait to endure operation is done
         self.assertEquals(1, self._purger.get_bundle_count())
 

@@ -32,6 +32,7 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
 
     def setUp(self):
         super(TestBundleCacheUsageLogger, self).setUp()
+        BundleCacheUsageLogger.delete_instance()
         self._logger = BundleCacheUsageLogger(self.bundle_cache_root)
         self._logger.start()
 
@@ -113,9 +114,7 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
             start_time = time.time()
             logger = BundleCacheUsageLogger(self.bundle_cache_root)
             logger.start()
-            logger.stop()
             logger.delete_instance()
-            logger = None
             elapsed_time = time.time() - start_time
             self.assertTrue(os.path.exist(self.expected_db_path))
             # Should pretty much be instant
@@ -239,7 +238,7 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
             self._logger.log_usage(self._test_bundle_path)
 
         queuing_time = time.time() - start_time
-        self._logger.stop()
+        self._logger.stop(self.WAIT_TIME_MEGA_LONG)
         completing_all_tasks_time = time.time() - start_time
         ratio = completing_all_tasks_time / queuing_time
 

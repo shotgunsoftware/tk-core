@@ -439,7 +439,7 @@ class TankTestBase(unittest.TestCase):
 
             # Must terminate the bundle cache usage logger
             # being started in PipelineConfig
-            BundleCacheUsageLogger.delete_instance()
+            BundleCacheUsageLogger.delete_instance(120)
 
             # get rid of init cache
             if os.path.exists(pipelineconfig_factory._get_cache_location()):
