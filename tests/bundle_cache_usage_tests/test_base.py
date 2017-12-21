@@ -104,8 +104,8 @@ class TestBundleCacheUsageBase(TankTestBase):
     DEBUG = False
 
     WAIT_TIME_INSTANT = 0.25
-    WAIT_TIME_SHORT = 0.5
-    WAIT_TIME_MEDIUM = 1.0
+    WAIT_TIME_SHORT = 1.0
+    WAIT_TIME_MEDIUM = 5.0
     WAIT_TIME_LONG = 10.0
     WAIT_TIME_MEGA_LONG = 120.0
     DEFAULT_LOOP_COUNT = 1000

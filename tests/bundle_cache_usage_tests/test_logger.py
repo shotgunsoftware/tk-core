@@ -243,15 +243,15 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         MINIMAL_EXPECTED_RATIO = 20
 
         start_time = time.time()
-
-        # On Windows, the sqlite cost of opening, writing and closing
-        # seems to be much greater than unix-based systems even
-        # the 'WAIT_TIME_MEGA_LONG' wait time was not enough.
-        for count in range(0, self.DEFAULT_LOOP_COUNT / 2):
+        for count in range(0, self.DEFAULT_LOOP_COUNT):
             self._logger.log_usage(self._test_bundle_path)
 
         queuing_time = time.time() - start_time
-        self._logger.stop(self.WAIT_TIME_MEGA_LONG)
+        try:
+            self._logger.stop(self.WAIT_TIME_MEGA_LONG)
+        except BundleCacheUsageTimeoutError:
+            self._logger.stop(self.WAIT_TIME_MEGA_LONG)
+
         completing_all_tasks_time = time.time() - start_time
         self.assertEquals(
             self._logger.pending_count,
@@ -263,7 +263,7 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         print("%s: completing_all_tasks_time: %4.1fs" % (self._testMethodName, completing_all_tasks_time))
         if queuing_time > 0:
             ratio = completing_all_tasks_time / queuing_time
-            print("%s: ratio                    : %4.1fs" % (self._testMethodName, ratio))
+            print("%s: ratio                    : %4.1fX" % (self._testMethodName, ratio))
             self.assertGreater(
                 ratio,
                 MINIMAL_EXPECTED_RATIO,

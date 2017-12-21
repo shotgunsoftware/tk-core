@@ -15,6 +15,8 @@ from tank_test.tank_test_base import setUpModule
 import os
 import time
 import random
+import sys
+import unittest2 as unittest
 from mock import patch
 
 from .test_base import TestBundleCacheUsageBase, Utils
@@ -33,8 +35,6 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
     """
     Test basic and simpler methods
     """
-
-    MAXIMUM_BLOCKING_TIME_IN_SECONDS = 0.25
 
     def setUp(self):
         super(TestBundleCacheUsagePurger, self).setUp()
@@ -64,7 +64,7 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
                 # Check that execution is near instant
                 self.assertLess(
                     time.time() - start_time,
-                    TestBundleCacheUsagePurger.MAXIMUM_BLOCKING_TIME_IN_SECONDS,
+                    self.WAIT_TIME_INSTANT,
                     "The 'log_usage' method took unexpectedly long time to execute"
                 )
 
@@ -74,7 +74,7 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
                 # Check that execution is near instant
                 self.assertLess(
                     time.time() - start_time,
-                    TestBundleCacheUsagePurger.MAXIMUM_BLOCKING_TIME_IN_SECONDS,
+                    self.WAIT_TIME_MEDIUM,
                     "The 'get_bundle_count' method took unexpectedly long time to execute"
                 )
 
@@ -91,10 +91,9 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
                     )
                 )
                 purger.purge_bundle(fake_bundle_entry)
-                # Check that execution is rather quick (2 times the blocking delay)
                 self.assertLess(
                     time.time() - start_time,
-                    2 * self.MAXIMUM_BLOCKING_TIME_IN_SECONDS,
+                    self.WAIT_TIME_LONG,
                     "The 'purge_bundle' method took unexpectedly long time to execute"
                 )
 
@@ -203,13 +202,6 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
         else:
             os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = str(ninety_days_ago)
             self._purger.initial_populate()
-
-            # We need to wait because the above call queues requests to a
-            # worker thread. The requests are executed asynchronously.
-            # If we we're to leave the patch code block soon, the mock
-            # would terminate before all request be processes and we
-            # would end up with unexpected timestamps.
-            time.sleep(0.5)
 
             # Disable override
             os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = ""
@@ -359,6 +351,7 @@ class TestBundleCacheUsagePurgerParanoidDelete(TestBundleCacheUsageBase):
         with self.assertRaises(BundleCacheUsageFileDeletionError):
             self._purger._paranoid_delete(filelist)
 
+    @unittest.skipIf(sys.platform.startswith("win"), "Skipped on Windows")
     def test_paranoid_delete_with_file_symlink(self):
         """
         Tests the `_paranoid_delete` method against a known fake bundle to which a symlink
@@ -378,6 +371,7 @@ class TestBundleCacheUsagePurgerParanoidDelete(TestBundleCacheUsageBase):
         """
         self._helper_paranoid_delete_with_link(link_dir=False, use_hardlink=True)
 
+    @unittest.skipIf(sys.platform.startswith("win"), "Skipped on Windows")
     def test_paranoid_delete_with_dir_symlink(self):
         """
         Tests the `_paranoid_delete` method against a known fake bundle to which a symlink
@@ -462,7 +456,7 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
 
         # Relying on the PipelineConfig initializing worker thread
         BundleCacheUsageLogger.log_usage(test_bundle_path)
-        time.sleep(0.5) # logging is async, we need to wait to endure operation is done
+        time.sleep(self.WAIT_TIME_SHORT) # logging is async, we need to wait to endure operation is done
         self.assertEquals(1, self._purger.get_bundle_count())
 
         # Purge it!
@@ -478,6 +472,7 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
         test_path_parent = os.path.abspath(os.path.join(test_bundle_path, os.pardir))
         self.assertTrue(os.path.exists(test_path_parent))
 
+    @unittest.skipIf(sys.platform.startswith("win"), "Skipped on Windows")
     def test_purge_bundle_with_link_file(self):
         """
         Tests purging a bundle which magically grown an extra file.
@@ -512,7 +507,7 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
 
         # Relying on the PipelineConfig initializing worker thread
         BundleCacheUsageLogger.log_usage(test_bundle_path)
-        time.sleep(0.5) # logging is async, we need to wait to endure operation is done
+        time.sleep(self.WAIT_TIME_SHORT) # logging is async, we need to wait to endure operation is done
         self.assertEquals(1, self._purger.get_bundle_count())
 
         # Purge the bundle
