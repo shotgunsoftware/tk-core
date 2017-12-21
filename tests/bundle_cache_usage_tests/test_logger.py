@@ -118,7 +118,7 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
             elapsed_time = time.time() - start_time
             self.assertTrue(os.path.exist(self.expected_db_path))
             # Should pretty much be instant
-            self.assertLess(elapsed_time, self.WAIT_TIME_INSTANT, "Lock up possibly detected")
+            self.assertLess(elapsed_time, self.WAIT_TIME_SHORT, "Lock up possibly detected")
 
     def test_stress_start_stop_with_operations(self):
         """
@@ -147,7 +147,7 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
                 "Was not expecting pending tasks after `stop()`."
             )
             # Should be quick, only a few db operation for each loop iteration
-            self.assertLess(elapsed_time, self.WAIT_TIME_SHORT, "Lock up possibly detected")
+            self.assertLess(elapsed_time, self.WAIT_TIME_MEDIUM, "Lock up possibly detected")
 
     def test_main_loop_wait(self):
         """
