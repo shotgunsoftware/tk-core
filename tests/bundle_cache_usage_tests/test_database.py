@@ -13,17 +13,11 @@
 from tank_test.tank_test_base import TankTestBase, setUpModule
 
 import os
-import sgtk
-import tempfile
-import unittest2
-import random
-import shutil
 import time
 import datetime
-from mock import patch, Mock, MagicMock
+from mock import patch
 
-from .test_base import TestBundleCacheUsageBase, Utils
-
+from .test_base import TestBundleCacheUsageBase
 from sgtk.descriptor.bundle_cache_usage.database import BundleCacheUsageDatabaseEntry, BundleCacheUsageDatabase
 from sgtk.descriptor.bundle_cache_usage.errors import BundleCacheUsageInvalidBundleCacheRootError
 

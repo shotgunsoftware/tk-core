@@ -242,7 +242,6 @@ class TestBundleCacheUsageBase(TankTestBase):
         ]
 
         for item in test_bundle_cache_structure:
-            #Utils.touch(item)
             Utils.write_bogus_data(item)
 
     @classmethod

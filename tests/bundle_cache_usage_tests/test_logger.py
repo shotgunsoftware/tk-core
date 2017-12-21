@@ -14,11 +14,8 @@ from tank_test.tank_test_base import TankTestBase, setUpModule
 
 import os
 import time
-import unittest2
-import threading
 from mock import patch
 
-from sgtk.descriptor.bundle_cache_usage.database import BundleCacheUsageDatabase
 from sgtk.descriptor.bundle_cache_usage.logger import BundleCacheUsageLogger
 from sgtk.descriptor.bundle_cache_usage.errors import (
     BundleCacheUsageTimeoutError,
