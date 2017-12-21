@@ -10,7 +10,6 @@
 
 import threading
 import Queue
-from threading import Event, Thread, Lock
 
 from ...import LogManager
 from .errors import BundleCacheUsageTimeoutError
@@ -81,17 +80,16 @@ class BundleCacheUsageLogger(threading.Thread):
         # before the worker thread is actually started.
         BundleCacheUsageDatabase(bundle_cache_root)
         self._bundle_cache_root = bundle_cache_root
-        log.debug("Starting worker thread...")
-        self.start()
 
     @ classmethod
-    def delete_instance(cls):
+    def delete_instance(cls, timeout=DEFAULT_STOP_TIMEOUT):
         """
         Safely lock the instance, stop the worker thread and set the instance to None
+        :param timeout: A float timeout in seconds
         """
         with cls.__singleton_lock:
             if cls.__singleton_instance:
-                cls.__singleton_instance.stop()
+                cls.__singleton_instance.stop(timeout)
                 cls.__singleton_instance = None
 
     #
@@ -262,9 +260,9 @@ class BundleCacheUsageLogger(threading.Thread):
 
         :param timeout: A float timeout in seconds
         """
-        if self.isAlive():
+        if self.is_alive():
             log.debug(
-                "Requesting worker termination (pending tasks = %d) ..."  % (self.pending_count)
+                "Requesting worker termination (pending task count = %d) ..."  % (self.pending_count)
             )
             # Order is important below: signal thread termination FIRST!
             self._terminate_requested.set()
@@ -272,8 +270,12 @@ class BundleCacheUsageLogger(threading.Thread):
             self.join(timeout=timeout)
             # As join() always returns None, you must call isAlive() after
             # join() to decide whether a timeout happened
-            if self.isAlive():
+            if self.is_alive():
                 raise BundleCacheUsageTimeoutError("Timeout waiting for worker thread to terminated.")
+
+            log.debug(
+                "Worker thread terminated cleanly (pending task count = %d) ..."  % (self.pending_count)
+            )
 
 
 

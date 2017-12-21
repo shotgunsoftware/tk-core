@@ -81,12 +81,15 @@ class PipelineConfiguration(object):
             #       Now, with the added code just below the class now requires that the
             #       bundle cache be present as the 'BundleCacheUsageLogger' will throw an
             #       OSError exception if the `bundle_cache` folder cannot be found.
-            BundleCacheUsageLogger(
+            logger = BundleCacheUsageLogger(
                 os.path.join(
                     LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
                     "bundle_cache"
                 )
             )
+            log.debug("Starting bundle cache usage logger.")
+            logger.start()
+
         except OSError as e:
             log.error(e)
 
