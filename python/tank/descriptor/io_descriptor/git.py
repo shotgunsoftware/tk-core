@@ -115,7 +115,10 @@ class IODescriptorGit(IODescriptorDownloadable):
         # Note that we use os.system here to allow for git to pop up (in a terminal
         # if necessary) authentication prompting. This DOES NOT seem to be possible
         # with subprocess.
+        log.debug("Executing command '%s' using os.system()" % cmd)
+        log.debug("Note: in a terminal environment, this may prompt for authentication")
         status = os.system(cmd)
+        log.debug("Command returned exit code %s" % status)
         if status != 0:
             raise TankGitError(
                 "Error executing git operation. The git command '%s' "
@@ -124,34 +127,27 @@ class IODescriptorGit(IODescriptorDownloadable):
         log.debug("Git clone into '%s' successful." % target_path)
 
         # clone worked ok! Now execute git commands on this repo
-        cwd = os.getcwd()
         output = None
-        try:
-            log.debug("Setting cwd to '%s'" % target_path)
-            os.chdir(target_path)
-            for command in commands:
+        for command in commands:
 
-                full_command = "git %s" % command
-                log.debug("Executing '%s'" % full_command)
+            # we use git -C to specify the working directory where to execute the command
+            full_command = "git -C \"%s\" %s" % (target_path, command)
+            log.debug("Executing '%s'" % full_command)
 
-                try:
-                    output = subprocess_check_output(
-                        full_command,
-                        shell=True
-                    )
+            try:
+                output = subprocess_check_output(
+                    full_command,
+                    shell=True
+                )
 
-                    # note: it seems on windows, the result is sometimes wrapped in single quotes.
-                    output = output.strip().strip("'")
+                # note: it seems on windows, the result is sometimes wrapped in single quotes.
+                output = output.strip().strip("'")
 
-                except SubprocessCalledProcessError as e:
-                    raise TankGitError(
-                        "Error executing git operation '%s': %s (Return code %s)" % (full_command, e.output, e.returncode)
-                    )
-                log.debug("Execution successful. stderr/stdout: '%s'" % output)
-
-        finally:
-            log.debug("Restoring cwd (to '%s')" % cwd)
-            os.chdir(cwd)
+            except SubprocessCalledProcessError as e:
+                raise TankGitError(
+                    "Error executing git operation '%s': %s (Return code %s)" % (full_command, e.output, e.returncode)
+                )
+            log.debug("Execution successful. stderr/stdout: '%s'" % output)
 
         # return the last returned stdout/stderr
         return output
