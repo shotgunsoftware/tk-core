@@ -17,7 +17,6 @@ import urlparse
 from .. import constants
 from ... import LogManager
 from ...util import filesystem
-from ...util import LocalFileStorageManager
 from ...util.version import is_version_newer
 from ..errors import TankDescriptorError, TankMissingManifestError
 from ..bundle_cache_usage.logger import BundleCacheUsageLogger

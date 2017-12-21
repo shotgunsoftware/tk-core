@@ -19,6 +19,7 @@ import shutil
 from sgtk.descriptor.bundle_cache_usage.database import BundleCacheUsageDatabase
 from sgtk.descriptor.bundle_cache_usage.logger import BundleCacheUsageLogger
 
+
 class Utils(object):
     """
     A collection of miscellaneous non-specific methods
@@ -157,10 +158,6 @@ class TestBundleCacheUsageBase(TankTestBase):
     @property
     def bundle_cache_root(self):
         return os.path.join(self.tank_temp, "bundle_cache")
-
-    def log_debug(self, msg):
-        if self.DEBUG:
-            print("%s: %s" % (self.__class__, msg))
 
     def _create_test_bundle_cache(self):
         """

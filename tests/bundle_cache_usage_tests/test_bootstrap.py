@@ -10,13 +10,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from tank_test.tank_test_base import setUpModule, temp_env_var
+from tank_test.tank_test_base import setUpModule
 
 import os
-import sys
 import time
-import random
-import unittest2
 from mock import patch, MagicMock
 
 import sgtk
@@ -121,9 +118,10 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
             sg_connection=self.tk.shotgun,
             current_login="john.smith"
         )
-        # TODO: NICOLAS: how to fix this below ?
+        # TODO: NICOLAS: how to fix the hack below ?
+        #       How to link both the resolved config
+        #       and path where actual config exists?
         config._path.current_os = self.pipeline_config_root
-        config._path.macosx = self.pipeline_config_root
 
         return config
 
