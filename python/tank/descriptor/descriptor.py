@@ -25,7 +25,8 @@ def create_descriptor(
         bundle_cache_root_override=None,
         fallback_roots=None,
         resolve_latest=False,
-        constraint_pattern=None):
+        constraint_pattern=None,
+        local_fallback_when_disconnected=True):
     """
     Factory method. Use this when creating descriptor objects.
 
@@ -59,8 +60,15 @@ def create_descriptor(
                                 - ``v0.1.2``, ``v0.12.3.2``, ``v0.1.3beta`` - a specific version
                                 - ``v0.12.x`` - get the highest v0.12 version
                                 - ``v1.x.x`` - get the highest v1 version
+    :param local_fallback_when_disconnected: If resolve_latest is set to True, specify the behaviour
+                            in the case when no connection to a remote descriptor can be established,
+                            for example because and internet connection isn't available. If True, the
+                            descriptor factory will attempt to fall back on any existing locally cached
+                            bundles and return the latest one available. If False, a
+                            :class:`TankDescriptorError` is raised instead.
 
     :returns: :class:`Descriptor` object
+    :raises: :class:`TankDescriptorError`
     """
     from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
     from .descriptor_cached_config import CachedConfigDescriptor
@@ -92,7 +100,8 @@ def create_descriptor(
         bundle_cache_root_override,
         fallback_roots,
         resolve_latest,
-        constraint_pattern
+        constraint_pattern,
+        local_fallback_when_disconnected
     )
 
     # now create a high level descriptor and bind that with the low level descriptor

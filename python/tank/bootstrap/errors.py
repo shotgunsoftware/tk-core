@@ -14,6 +14,7 @@ All custom exceptions that this module emits are defined here.
 
 from ..errors import TankError
 
+
 class TankBootstrapError(TankError):
     """
     Base class for all bootstrap related errors

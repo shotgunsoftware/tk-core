@@ -47,6 +47,30 @@ class AuthenticationCancelled(ShotgunAuthenticationError):
     """
 
     def __init__(self):
+        """
+        Constructor.
+        """
         ShotgunAuthenticationError.__init__(
             self, "Authentication was cancelled by the user."
+        )
+
+
+class AuthenticationSSOError(ShotgunAuthenticationError):
+    """
+    Base class for all SSO-related exceptions coming out from this module.
+    """
+
+
+class ConsoleLoginWithSSONotSupportedError(AuthenticationSSOError):
+    """
+    Thrown when attempting to use Username/Password pair to login onto
+    a SSO-enabled site.
+    """
+
+    def __init__(self, url):
+        """
+        :param str url: Url of the site where login was attempted.
+        """
+        ShotgunAuthenticationError.__init__(
+            self, "Authentication using username/password is not allowed on the console for %s, an SSO-enabled site." % url
         )
