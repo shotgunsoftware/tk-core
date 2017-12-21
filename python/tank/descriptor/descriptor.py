@@ -93,7 +93,7 @@ def create_descriptor(
         fallback_roots,
         resolve_latest,
         constraint_pattern,
-        use_non_default_bundle_cache = (bundle_cache_root_override != _get_default_bundle_cache_root())
+        bundle_cache_root_override != _get_default_bundle_cache_root()
     )
 
     # now create a high level descriptor and bind that with the low level descriptor

@@ -660,7 +660,7 @@ class IODescriptorBase(object):
             index = 0
             for path in all_locations:
                 log.debug("NICOLAS: get_path() --- all_locations[%d]='%s'" % (index, path))
-                index+=1
+                index += 1
 
         for path in all_locations:
             # we determine local existence based on the existence of the
@@ -672,13 +672,7 @@ class IODescriptorBase(object):
                 #         as the loop exits most of the time from the first entry of
                 #         the 'all_locations' array
                 #
-                #if path == active_bundle_cache and self.is_purgeable():
-                #    # Minimum checks here, additional checks and
-                #    # path manipulation will be done on the
-                #    # service worker thread.
-                #    bundle_cache_usage_srv.log_usage(path)
-                #
-                if self.is_purgeable():
+                if path == active_bundle_cache and self.is_purgeable():
                     # Minimum checks here, additional checks and
                     # path manipulation will be done on the
                     # service worker thread.

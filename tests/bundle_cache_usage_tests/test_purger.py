@@ -10,12 +10,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from tank_test.tank_test_base import setUpModule
+
 import os
 import time
 import random
 from mock import patch
 
-import sgtk
 from .test_base import TestBundleCacheUsageBase, Utils
 
 from sgtk.descriptor.bundle_cache_usage.database import BundleCacheUsageDatabase, BundleCacheUsageDatabaseEntry
@@ -26,7 +27,6 @@ from sgtk.descriptor.bundle_cache_usage.errors import (
     BundleCacheUsageFileDeletionError,
     BundleCacheUsageInvalidBundleCacheRootError
 )
-from tank_test.tank_test_base import TankTestBase, setUpModule
 
 
 class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
@@ -39,7 +39,6 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
     def setUp(self):
         super(TestBundleCacheUsagePurger, self).setUp()
         self._purger = BundleCacheUsagePurger(self.bundle_cache_root)
-        # Find possible `BundleCacheUsagePurger` singletonisation issue
         self.assertEquals(self.bundle_cache_root, self._purger.bundle_cache_root)
 
     def tearDown(self):
@@ -449,15 +448,10 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
         super(TestBundleCacheUsagePurgerPurgeBundle, self).setUp()
         self._purger = BundleCacheUsagePurger(self.bundle_cache_root)
 
-    def tearDown(self):
-        BundleCacheUsageLogger.delete_instance()
-        super(TestBundleCacheUsagePurgerPurgeBundle, self).tearDown()
-
     def test_simple_bundle_purge(self):
         """
         Tests purging a normal, nothing special, app store bundle.
         """
-
         # Comes from `TestBundleCacheUsageBase.setUp()`
         test_bundle_path = self._test_bundle_path
 

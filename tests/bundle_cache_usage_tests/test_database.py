@@ -10,7 +10,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from tank_test.tank_test_base import TankTestBase, setUpModule
+from tank_test.tank_test_base import setUpModule
 
 import os
 import time
@@ -111,7 +111,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
         # Log some usage
         now = int(time.time())
-        with patch("time.time", return_value=now) as mocked_time_time:
+        with patch("time.time", return_value=now):
             self.db.log_usage(self._test_bundle_path)
 
         self.assertEquals(1, self.db.get_bundle_count())
@@ -321,13 +321,13 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         ninety_days_ago = now - (90 * 24 * 3600)
         ninety_days_ago_str = datetime.datetime.fromtimestamp(ninety_days_ago).strftime(expected_format)
         # Log some usage as 90 days ago
-        with patch("time.time", return_value=ninety_days_ago) as mocked_time_time:
+        with patch("time.time", return_value=ninety_days_ago):
             self.db.add_unused_bundle(self._test_bundle_path)
 
         # Log usage 60 days ago
         sixty_days_ago = now - (60 * 24 * 3600)
         sixty_days_ago_str = datetime.datetime.fromtimestamp(sixty_days_ago).strftime(expected_format)
-        with patch("time.time", return_value=sixty_days_ago) as mocked_time_time:
+        with patch("time.time", return_value=sixty_days_ago):
             self.db.log_usage(self._test_bundle_path)
 
         # Get old bundle list
@@ -364,7 +364,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
         now = int(time.time())
         later = now + 1234
-        with patch("time.time", return_value=now) as mocked_time_time:
+        with patch("time.time", return_value=now):
             # Log some usage
             self.db.log_usage(self._test_bundle_path)
 

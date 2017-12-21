@@ -10,7 +10,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from tank_test.tank_test_base import TankTestBase, setUpModule
+from tank_test.tank_test_base import setUpModule
 
 import os
 import time
@@ -23,11 +23,6 @@ from sgtk.descriptor.bundle_cache_usage.errors import (
 )
 
 from .test_base import TestBundleCacheUsageBase
-
-
-def log_debug(message):
-    """ Single point global method to add extra printout during tests"""
-    print("DEBUG: %s" % (message))
 
 
 class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
@@ -122,6 +117,7 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
             logger.delete_instance()
             logger = None
             elapsed_time = time.time() - start_time
+            self.assertTrue(os.path.exist(self.expected_db_path))
             # Should pretty much be instant
             self.assertLess(elapsed_time, self.WAIT_TIME_INSTANT, "Lock up possibly detected")
 
@@ -130,7 +126,7 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         Stress-Test for possible lock-ups starting, issuing some operations and then
         and stopping the worker.
 
-        The test measures elaped time for each individual iteration and expect
+        The test measures elapsed time for each individual iteration and expect
         a near-instantaneous execution.
         """
 
@@ -204,7 +200,6 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         for count in range(0, self.DEFAULT_LOOP_COUNT):
             self._logger._queue_task(time.sleep, 0.01)
 
-        self.log_debug("test loop ended")
         self.assertGreater(self._logger.pending_count, 0, "Was expecting some incomplete tasks.")
 
         # Forcing a shorter timeout
@@ -248,9 +243,6 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         completing_all_tasks_time = time.time() - start_time
         ratio = completing_all_tasks_time / queuing_time
 
-        self.log_debug("%s: queuing_time             : %ss" % (self._testMethodName, queuing_time))
-        self.log_debug("%s: completing_all_tasks_time: %ss" % (self._testMethodName, completing_all_tasks_time))
-        self.log_debug("%s: ratio : %s" % (self._testMethodName, ratio))
         self.assertEquals(
             self._logger.pending_count,
             0,

@@ -10,14 +10,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from tank_test.tank_test_base import TankTestBase, setUpModule, temp_env_var
+from tank_test.tank_test_base import setUpModule, temp_env_var
 
 import os
 import sys
 import time
 import random
 import unittest2
-from mock import patch, Mock, MagicMock
+from mock import patch, MagicMock
 
 import sgtk
 from sgtk.bootstrap.manager import ToolkitManager
@@ -26,15 +26,14 @@ from sgtk.descriptor.bundle_cache_usage.purger import BundleCacheUsagePurger
 from sgtk.pipelineconfig import PipelineConfiguration
 from sgtk.util import LocalFileStorageManager
 
-import tank
+from .test_base import TestBundleCacheUsageBase
 
-from .test_base import TestBundleCacheUsageBase, Utils
 
 class TestBundleCacheUsageIndirect(TestBundleCacheUsageBase):
+    """
+    Test bundle cache usage indirectly through bootstrap related calls.
+    """
 
-    """
-    Test bundle cache usage indirecvtly through bootstrap related calls.
-    """
     def post_setup(self, no_delete=False):
 
         if no_delete:
@@ -123,7 +122,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
             current_login="john.smith"
         )
         # TODO: NICOLAS: how to fix this below ?
-        config._path.current_os=self.pipeline_config_root
+        config._path.current_os = self.pipeline_config_root
         config._path.macosx = self.pipeline_config_root
 
         return config
@@ -136,7 +135,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
         # execution of the bundle cache usage code through `_bootstrap_sgtk`
         self._patcher_resolver = patch(
             "tank.bootstrap.manager.ToolkitManager._get_updated_configuration",
-            return_value = config
+            return_value=config
         )
         self._patcher_resolver.start()
         self.addCleanup(self._patcher_resolver.stop)
@@ -241,7 +240,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
         ninety_days_ago = now - (90 * 24 * 3600)
 
         # Log some usage as 90 days ago
-        with patch("time.time", return_value=ninety_days_ago) as mocked_time_time:
+        with patch("time.time", return_value=ninety_days_ago):
 
             # Make an initial call to setup the database (in the past)
             self._toolkit_mgr._bootstrap_sgtk("test_engine", None)
@@ -271,7 +270,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
         # Verify that we receive all bundle minus the one we just logged some usage for
         bundle_list = bundle_cache_usage_purger.get_unused_bundles()
         self.assertEquals(
-            TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT-1,
+            TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT - 1,
             len(bundle_list),
             "Was expecting to get all bundles but one (the one we logged usage just above)"
         )
@@ -323,7 +322,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
             os.path.join(self.app_store_root, "tk-shell", "v0.5.6", "info.yml")
         ]
         for f in remaining_files:
-            self.assertTrue( os.path.exists(f))
+            self.assertTrue(os.path.exists(f))
 
     def test_old_bundles_are_purged_with_no_delete(self):
         """
