@@ -13,6 +13,8 @@
 from tank_test.tank_test_base import TankTestBase, setUpModule
 
 import os
+import time
+import datetime
 import random
 import shutil
 
@@ -124,6 +126,21 @@ class TestBundleCacheUsageBase(TankTestBase):
 
         self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE = \
             os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE", "")
+
+        self._now = time.time()
+        self._expected_date_format = "%A, %d. %B %Y %H:%M%:%S"
+
+        # Bundle date when added to the database
+        self._bundle_creation_time = int(self._now) - (90 * 24 * 3600)
+        self._bundle_creation_date_formatted = datetime.datetime.fromtimestamp(
+            self._bundle_creation_time
+        ).strftime(self._expected_date_format)
+
+        # Bundle last usage date
+        self._bundle_last_usage_time = int(self._now) - (65 * 24 * 3600)
+        self._bundle_last_usage_date_formatted = datetime.datetime.fromtimestamp(
+            self._bundle_last_usage_time
+        ).strftime(self._expected_date_format)
 
     def tearDown(self):
         os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE"] = \

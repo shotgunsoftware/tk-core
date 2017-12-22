@@ -150,12 +150,8 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
         bundle_path_old = os.path.join(self.bundle_cache_root, "app_store", "tk-shell", "v0.5.4")
         bundle_path_new = os.path.join(self.bundle_cache_root, "app_store", "tk-shell", "v0.5.6")
 
-        now = int(time.time())
-        ninety_days_ago = now - (90 * 24 * 3600)
-
-        # Log some usage as 90 days ago
-        with patch("time.time") as mocked:
-            mocked.return_value = ninety_days_ago
+        # Log some usage some time ago
+        with patch("time.time", return_value=self._bundle_last_usage_time):
             database.log_usage(bundle_path_old)
 
         # Should be logged as the REAL now
@@ -187,11 +183,8 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
         self.assertIsNone(database.get_bundle(marker_name))
         self.assertFalse(self._purger.initial_populate_performed)
 
-        now = int(time.time())
-        ninety_days_ago = now - (90 * 24 * 3600)
-
         if use_mock:
-            with patch("time.time", return_value=ninety_days_ago):
+            with patch("time.time", return_value=self._bundle_creation_time):
                 self._purger.initial_populate()
                 # We need to wait because the above call queues requests to a
                 # worker thread. The requests are executed asynchronously.
@@ -200,7 +193,7 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
                 # would end up with unexpected timestamps.
                 time.sleep(0.5)
         else:
-            os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = str(ninety_days_ago)
+            os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = str(self._bundle_creation_time)
             self._purger.initial_populate()
 
             # Disable override
@@ -454,10 +447,11 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
         self.assertTrue(os.path.exists(self._test_bundle_path))
         self.assertEquals(0, self._purger.get_bundle_count())
 
-        # Relying on the PipelineConfig initializing worker thread
-        BundleCacheUsageLogger.log_usage(test_bundle_path)
-        time.sleep(self.WAIT_TIME_SHORT) # logging is async, we need to wait to endure operation is done
-        self.assertEquals(1, self._purger.get_bundle_count())
+        with patch("time.time", return_value=self._bundle_last_usage_time):
+            # Relying on the PipelineConfig initializing worker thread
+            BundleCacheUsageLogger.log_usage(test_bundle_path)
+            time.sleep(self.WAIT_TIME_SHORT) # logging is async, we need to wait to endure operation is done
+            self.assertEquals(1, self._purger.get_bundle_count())
 
         # Purge it!
         bundle_list = self._purger.get_unused_bundles(0)

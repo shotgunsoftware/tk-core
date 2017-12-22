@@ -212,33 +212,28 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         bundle_path_old = os.path.join(self.bundle_cache_root, "app_store", "tk-shell", "v0.5.4")
         bundle_path_new = os.path.join(self.bundle_cache_root, "app_store", "tk-shell", "v0.5.6")
 
-        now = int(time.time())
-
-        # Add a bundle 90 days ago
-        ninety_days_ago = now - (90 * 24 * 3600)
-        # Log some usage as 90 days ago
-        with patch("time.time", return_value=ninety_days_ago):
+        # Add bundle some time ago
+        with patch("time.time", return_value=self._bundle_creation_time):
             self.db.add_unused_bundle(bundle_path_old)
             self.db.add_unused_bundle(bundle_path_new)
 
-        # Log old bundle as 60 days ago
-        sixty_days_ago = now - (60 * 24 * 3600)
-        with patch("time.time", return_value=sixty_days_ago):
+        # Use the bundle later on, still some time ago
+        with patch("time.time", return_value=self._bundle_last_usage_time):
             self.db.log_usage(bundle_path_old)
 
         # Log new bundle as now
         self.db.log_usage(bundle_path_new)
 
         # Get old bundle list
-        bundle_list = self.db.get_unused_bundles(sixty_days_ago)
+        bundle_list = self.db.get_unused_bundles(self._bundle_last_usage_time)
         self.assertIsNotNone(bundle_list)
         self.assertEquals(len(bundle_list), 1)
 
         # Now check properties of that old bundle
         bundle = bundle_list[0]
         self.assertTrue(bundle_path_old.endswith(bundle.path))
-        self.assertEquals(ninety_days_ago, bundle.add_timestamp)
-        self.assertEquals(sixty_days_ago, bundle.last_usage_timestamp)
+        self.assertEquals(self._bundle_creation_time, bundle.creation_time)
+        self.assertEquals(self._bundle_last_usage_time, bundle.last_usage_time)
 
     def test_delete_entry(self):
         """
@@ -314,20 +309,12 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
     def test_date_format(self):
 
-        expected_format = "%A, %d. %B %Y %I:%M%p"
-        now = int(time.time())
-
-        # Add a bundle 90 days ago
-        ninety_days_ago = now - (90 * 24 * 3600)
-        ninety_days_ago_str = datetime.datetime.fromtimestamp(ninety_days_ago).strftime(expected_format)
-        # Log some usage as 90 days ago
-        with patch("time.time", return_value=ninety_days_ago):
+        # Add bundle some time ago
+        with patch("time.time", return_value=self._bundle_creation_time):
             self.db.add_unused_bundle(self._test_bundle_path)
 
-        # Log usage 60 days ago
-        sixty_days_ago = now - (60 * 24 * 3600)
-        sixty_days_ago_str = datetime.datetime.fromtimestamp(sixty_days_ago).strftime(expected_format)
-        with patch("time.time", return_value=sixty_days_ago):
+        # Log usage some other time (more recent)
+        with patch("time.time", return_value=self._bundle_last_usage_time):
             self.db.log_usage(self._test_bundle_path)
 
         # Get old bundle list

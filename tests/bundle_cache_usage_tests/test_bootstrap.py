@@ -234,11 +234,8 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
         - Check that all bundles besire tk-shell/v0.5.6 are deleted.
         """
 
-        now = int(time.time())
-        ninety_days_ago = now - (90 * 24 * 3600)
-
-        # Log some usage as 90 days ago
-        with patch("time.time", return_value=ninety_days_ago):
+        # Trigger initial bundle creation in database some time ago
+        with patch("time.time", return_value=self._bundle_creation_time):
 
             # Make an initial call to setup the database (in the past)
             self._toolkit_mgr._bootstrap_sgtk("test_engine", None)

@@ -44,7 +44,7 @@ class ToolkitManager(object):
 
     # Constants Misc.
     # How long in days before unused bundles are deleted from the global bundle cache
-    TOOLKIT_BUNDLE_CACHE_AUTO_DELETE_TIMEOUT = 30
+    TOOLKIT_BUNDLE_CACHE_AUTO_DELETE_TIMEOUT = 60
 
     # List of constants representing the status of the progress bar when these event occurs during bootstrap.
     _RESOLVING_PROJECT_RATE = 0.0
