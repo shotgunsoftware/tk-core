@@ -26,71 +26,71 @@ from . import BundleCacheUsageMyLogger as log
 
 class BundleCacheUsageDatabaseEntry(object):
     """
-    Simple helper class wrapping database returned tuple into easier to access object.
+    Simple helper class wrapping database returned record into easier to access object.
     """
 
-    def __init__(self, tuple):
-        self._path = tuple[BundleCacheUsageDatabase.DB_COL_INDEX_PATH]
-        self._add_timestamp = tuple[BundleCacheUsageDatabase.DB_COL_INDEX_ADD_TIMESTAMP]
-        self._last_usage_timestamp = tuple[BundleCacheUsageDatabase.DB_COL_INDEX_LAST_USAGE_TIMESTAMP]
-        self._usage_count = tuple[BundleCacheUsageDatabase.DB_COL_INDEX_USAGE_COUNT]
+    def __init__(self, db_record):
+        """
+        Initialise an object with content of the specified database record.
+        :param db_record: a tuple of the following form:
+            ( str path, int record creation time, int last usage time, int usage count )
+        """
+        self._path = db_record[BundleCacheUsageDatabase.DB_COL_INDEX_PATH]
+        self._creation_time = db_record[BundleCacheUsageDatabase.DB_COL_INDEX_CREATION_TIMESTAMP]
+        self._last_usage_time = db_record[BundleCacheUsageDatabase.DB_COL_INDEX_LAST_USAGE_TIMESTAMP]
+        self._usage_count = db_record[BundleCacheUsageDatabase.DB_COL_INDEX_USAGE_COUNT]
 
     @classmethod
-    def _format_date_from_timestamp(cls, timestamp):
+    def _format_date_from_timestamp(cls, time):
         """
         Class local date formatting method.
 
-        :param timestamp: An int unix timestamp
-        :return: A str human readable is the form:  Tuesday, 21. November 2017 04:30PM
+        :param time: An int unix timestamp
+        :return: an str human readable formatted datetime such as: Tuesday, 21. November 2017 14:30:22
         """
-
-        # Usage of the 'datetime.datetime.fromtimestamp(n).isoformat()'
-        # method formats something like: 2017-09-19T13:08:28
-
-        # TODO: NICOLAS: is there an existing preset to this?
-        return datetime.datetime.fromtimestamp(timestamp).strftime("%A, %d. %B %Y %I:%M%p")
+        return datetime.datetime.fromtimestamp(time).strftime("%A, %d. %B %Y %H:%M%:%S")
 
     @property
-    def add_date(self):
+    def creation_date_formatted(self):
         """
         Returns the entry date when initially added to the database
-        :return: an int unix timestamp
+        :return: an str human readable formatted datetime such as: Tuesday, 21. November 2017 14:30:22
         """
         return BundleCacheUsageDatabaseEntry._format_date_from_timestamp(
-            self.add_timestamp
+            self.creation_time
         )
 
     @property
-    def add_timestamp(self):
+    def creation_time(self):
         """
-        Returns the entry timestamp when initially added to the database 
+        Returns the entry time when initially added to the database
         :return: an int unix timestamp
         """
-        return self._add_timestamp
+        return self._creation_time
 
     @property
-    def last_usage_date(self):
+    def last_usage_date_formatted(self):
         """
         Returns the entry last accessed date
-        :return: an str datetime
+        :return: an str human readable formatted datetime such as: Tuesday, 21. November 2017 14:30:22
         """
         return BundleCacheUsageDatabaseEntry._format_date_from_timestamp(
-            self.last_usage_timestamp
+            self.last_usage_time
         )
 
     @property
-    def last_usage_timestamp(self):
+    def last_usage_time(self):
         """
-        Returns the entry last accessed timestamp
+        Returns the entry last accessed time
         :return: an int unix timestamp
         """
-        return self._last_usage_timestamp
+        return self._last_usage_time
 
     @property
     def path(self):
         """
         Returns the entry identifier
-        :return: a str
+        :return: a str truncated path
         """
         return self._path
 
@@ -103,7 +103,7 @@ class BundleCacheUsageDatabaseEntry(object):
         return self._usage_count
 
     def __str__(self):
-        return "%s, %d (%s)" % (self.path, self.last_usage_timestamp, self.last_usage_date)
+        return "%s, %d (%s)" % (self.path, self.last_usage_time, self.last_usage_date_formatted)
 
 
 class BundleCacheUsageDatabase(object):
@@ -116,7 +116,7 @@ class BundleCacheUsageDatabase(object):
     # database column indexes
     (
         DB_COL_INDEX_PATH,
-        DB_COL_INDEX_ADD_TIMESTAMP,
+        DB_COL_INDEX_CREATION_TIMESTAMP,
         DB_COL_INDEX_LAST_USAGE_TIMESTAMP,
         DB_COL_INDEX_USAGE_COUNT
     ) = range(4)
@@ -146,13 +146,13 @@ class BundleCacheUsageDatabase(object):
 
         self._create_main_table()
 
-    def _execute(self, sql_statement, tuple=None):
+    def _execute(self, sql_statement, sql_params=None):
         """
         Connects the database if not already connected and execute the
         specified SQL statement.
 
         :param sql_statement: a str of some SQL statement to be executed.
-        :param tuple: An optional tuple with required SQL statement parameters
+        :param sql_params: An optional tuple with required SQL statement parameters
         :return:
         """
         with sqlite3.connect(self.path) as connection:
@@ -168,8 +168,8 @@ class BundleCacheUsageDatabase(object):
 
             cursor = connection.cursor()
             if cursor:
-                if tuple:
-                    return cursor.execute(sql_statement, tuple)
+                if sql_params:
+                    return cursor.execute(sql_statement, sql_params)
                 else:
                     return cursor.execute(sql_statement)
 
@@ -190,7 +190,7 @@ class BundleCacheUsageDatabase(object):
             """
             CREATE TABLE IF NOT EXISTS bundles ( 
                 path text NOT NULL UNIQUE PRIMARY KEY,
-                add_timestamp integer,
+                creation integer,
                 last_usage integer,
                 usage_count integer
             );
@@ -213,9 +213,9 @@ class BundleCacheUsageDatabase(object):
             (bundle_path,)
         )
         if result:
-            tuple = result.fetchone()
-            if tuple:
-                return BundleCacheUsageDatabaseEntry(tuple)
+            db_record = result.fetchone()
+            if db_record:
+                return BundleCacheUsageDatabaseEntry(db_record)
 
         return None
 
@@ -265,7 +265,7 @@ class BundleCacheUsageDatabase(object):
                     """
                     INSERT INTO bundles(
                         path,
-                        add_timestamp,
+                        creation,
                         last_usage,
                         usage_count
                     ) 
@@ -387,9 +387,9 @@ class BundleCacheUsageDatabase(object):
 
         entry_list = []
         if result:
-            tuples = result.fetchall()
-            for tuple in tuples:
-                entry_list.append(BundleCacheUsageDatabaseEntry(tuple))
+            db_records = result.fetchall()
+            for db_record in db_records:
+                entry_list.append(BundleCacheUsageDatabaseEntry(db_record))
 
         return entry_list
 

@@ -99,8 +99,8 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         bundle = self.db.get_bundle(self._test_bundle_path)
         self.assertIsNotNone(bundle)
         self.assertEquals(0, bundle.usage_count)
-        self.assertEquals(now, bundle.add_timestamp)
-        self.assertEquals(now, bundle.last_usage_timestamp)
+        self.assertEquals(now, bundle.creation_time)
+        self.assertEquals(now, bundle.last_usage_time)
 
     def test_db_log_usage_basic(self):
         """
@@ -118,8 +118,8 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         bundle = self.db.get_bundle(self._test_bundle_path)
         self.assertIsNotNone(bundle)
         self.assertEquals(1, bundle.usage_count)
-        self.assertEquals(now, bundle.add_timestamp)
-        self.assertEquals(now, bundle.last_usage_timestamp)
+        self.assertEquals(now, bundle.creation_time)
+        self.assertEquals(now, bundle.last_usage_time)
 
     def test_property_path(self):
         """
@@ -298,8 +298,8 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.assertIsNotNone(bundle)
         self.assertEquals(1, bundle.usage_count)
         self.assertEquals(1, self.db.get_bundle_count())
-        self.assertLessEqual(now, bundle.last_usage_timestamp)
-        self.assertLessEqual(now, bundle.add_timestamp)
+        self.assertLessEqual(now, bundle.last_usage_time)
+        self.assertLessEqual(now, bundle.creation_time)
 
         non_existing_bundle_name = "foOOOo-bar!"
         self.db.log_usage(non_existing_bundle_name)
@@ -321,10 +321,11 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         bundle = self.db.get_bundle(self._test_bundle_path)
         self.assertIsNotNone(bundle)
         self.assertTrue(self._test_bundle_path.endswith(bundle.path))
-        self.assertEquals(ninety_days_ago, bundle.add_timestamp)
-        self.assertEquals(ninety_days_ago_str, bundle.add_date)
-        self.assertEquals(sixty_days_ago, bundle.last_usage_timestamp)
-        self.assertEquals(sixty_days_ago_str, bundle.last_usage_date)
+
+        self.assertEquals(self._bundle_creation_time, bundle.creation_time)
+        self.assertEquals(self._bundle_creation_date_formatted, bundle.creation_date_formatted)
+        self.assertEquals(self._bundle_last_usage_time, bundle.last_usage_time)
+        self.assertEquals(self._bundle_last_usage_date_formatted, bundle.last_usage_date_formatted)
 
     def test_path_truncated(self):
         """
@@ -357,7 +358,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
             bundle = self.db.get_bundle(self._test_bundle_path)
             self.assertIsNotNone(bundle)
-            self.assertEquals(now, bundle.last_usage_timestamp)
+            self.assertEquals(now, bundle.last_usage_time)
 
             # Still with the mock active, let's make use of env. var. override
             os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = str(later)
@@ -365,7 +366,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
             self.db.log_usage(self._test_bundle_path)
             bundle = self.db.get_bundle(self._test_bundle_path)
             self.assertIsNotNone(bundle)
-            self.assertEquals(later, bundle.last_usage_timestamp)
+            self.assertEquals(later, bundle.last_usage_time)
 
     def test_SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE_bad_usage(self):
         """
@@ -385,7 +386,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
             bundle = self.db.get_bundle(self._test_bundle_path)
             self.assertIsNotNone(bundle)
-            self.assertEquals(now, bundle.last_usage_timestamp)
+            self.assertEquals(now, bundle.last_usage_time)
 
             # Still with the mock active, let's make use of env. var. override
             # with a non-convertable value and assert no exception or error
