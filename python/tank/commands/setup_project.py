@@ -157,16 +157,22 @@ class SetupProjectAction(Action):
         
         # and finally carry out the setup
         run_project_setup(log, sg, params)
-        
-        # check if we should run the localization afterwards
-        # if we are running a localized pc, the root path of the core
-        # api is the same as the root path for the associated pc
-        if pipelineconfig_utils.is_localized(curr_core_path):
-            log.info("Localizing Core...")
-            core_localize.do_localize(log, 
-                                      params.get_configuration_location(sys.platform), 
-                                      suppress_prompts=True)
 
+        config_path = params.get_configuration_location(sys.platform)
+
+        # if the new project's config has a core descriptor, then we should
+        # localize it to use that version of core. alternatively, if the current
+        # core being used is localized, then localize the new config with it.
+        if (pipelineconfig_utils.has_core_descriptor(config_path) or
+            pipelineconfig_utils.is_localized(curr_core_path)):
+
+            log.info("Localizing Core...")
+            core_localize.do_localize(
+                log,
+                self.tk.shotgun,
+                config_path,
+                suppress_prompts=True
+            )
 
     def run_interactive(self, log, args):
         """
@@ -237,16 +243,23 @@ class SetupProjectAction(Action):
         
         # and finally carry out the setup
         run_project_setup(log, sg, params)
-        
-        # check if we should run the localization afterwards
-        # if we are running a localized pc, the root path of the core
-        # api is the same as the root path for the associated pc
-        if pipelineconfig_utils.is_localized(curr_core_path):
+
+        config_path = params.get_configuration_location(sys.platform)
+
+        # if the new project's config has a core descriptor, then we should
+        # localize it to use that version of core. alternatively, if the current
+        # core being used is localized, then localize the new core with it.
+        if (pipelineconfig_utils.has_core_descriptor(config_path) or
+            pipelineconfig_utils.is_localized(curr_core_path)):
+
             log.info("Localizing Core...")
-            core_localize.do_localize(log, 
-                                      params.get_configuration_location(sys.platform), 
-                                      suppress_prompts=True)
-        
+            core_localize.do_localize(
+                log,
+                self.tk.shotgun,
+                config_path,
+                suppress_prompts=True
+            )
+
         # display readme etc.
         readme_content = params.get_configuration_readme()
         if len(readme_content) > 0:
