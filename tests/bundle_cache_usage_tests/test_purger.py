@@ -38,7 +38,7 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
 
     def setUp(self):
         super(TestBundleCacheUsagePurger, self).setUp()
-        self._purger = BundleCacheUsagePurger(self.bundle_cache_root)
+        self._purger = BundleCacheUsagePurger()
         self.assertEquals(self.bundle_cache_root, self._purger.bundle_cache_root)
 
     def tearDown(self):
@@ -107,27 +107,13 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
 
         count = 20
         while count > 0:
-            logger = BundleCacheUsageLogger(self.bundle_cache_root)
+            logger = BundleCacheUsageLogger()
             logger.start()
-            purger = BundleCacheUsagePurger(self.bundle_cache_root)
-            database = BundleCacheUsageDatabase(self.bundle_cache_root)
+            purger = BundleCacheUsagePurger()
+            database = BundleCacheUsageDatabase()
             self.helper_stress_test(purger, logger, database, test_bundle_list)
             BundleCacheUsageLogger.delete_instance()
             count -= 1
-
-    def test_create_instance_with_invalid_parameter(self):
-        """
-        Test initialization with an invalid parameter
-        """
-        with self.assertRaises(BundleCacheUsageInvalidBundleCacheRootError):
-            BundleCacheUsagePurger(None)
-
-        with self.assertRaises(BundleCacheUsageInvalidBundleCacheRootError):
-            BundleCacheUsagePurger("non-existing-path")
-
-        path_to_file = os.path.join(self._test_bundle_path, "info.yml")
-        with self.assertRaises(BundleCacheUsageInvalidBundleCacheRootError):
-            BundleCacheUsagePurger(path_to_file)
 
     def test_get_filelist(self):
         """ Tests the `_get_filelist` method against a known fake bundle. """
@@ -146,7 +132,7 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
         """
         Tests the `get_unused_bundles` method
         """
-        database = BundleCacheUsageDatabase(self.bundle_cache_root)
+        database = BundleCacheUsageDatabase()
         bundle_path_old = os.path.join(self.bundle_cache_root, "app_store", "tk-shell", "v0.5.4")
         bundle_path_new = os.path.join(self.bundle_cache_root, "app_store", "tk-shell", "v0.5.6")
 
@@ -177,7 +163,7 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
 
         marker_name = self._purger._marker_name
 
-        database = BundleCacheUsageDatabase(self.bundle_cache_root)
+        database = BundleCacheUsageDatabase()
 
         self.assertEquals(0, database.get_bundle_count())
         self.assertIsNone(database.get_bundle(marker_name))
@@ -240,52 +226,7 @@ class TestBundleCacheUsagePurgerFindBundles(TestBundleCacheUsageBase):
 
         """
         # Tests using the test bundle cache test structure created in test setUp()
-        files = BundleCacheUsagePurger(self.bundle_cache_root)._find_bundles()
-        self.assertEquals(len(files), self.FAKE_TEST_BUNDLE_COUNT)
-
-    def test_walk_bundle_cache_non_existing_folder(self):
-        """
-        Test with a non existing folder and check that an exception is thrown
-        """
-        test_path = os.path.join(self.bundle_cache_root, "non-existing-folder")
-        with self.assertRaises(BundleCacheUsageInvalidBundleCacheRootError):
-            BundleCacheUsagePurger(test_path)
-
-    def test_walk_bundle_cache_level_down(self):
-        # Try again, starting from a few level down. Although there are info.yml
-        # files to be found they should not be recognized as bundles.
-        #
-        # We're arbitrarly using 'tk-maya/v0.8.3' as base folder since it includes
-        # extra info.yml file(s) found in the plugin subfolder.
-        #
-        test_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya")
-        purger = BundleCacheUsagePurger(test_path)
-        files = purger._find_bundles()
-        self.assertEquals(len(files), 0)
-
-        test_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3")
-        purger = BundleCacheUsagePurger(test_path)
-        files = purger._find_bundles()
-        self.assertEquals(len(files), 0)
-
-        test_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3", "plugins")
-        purger = BundleCacheUsagePurger(test_path)
-        files = purger._find_bundles()
-
-    def test_walk_bundle_cache_level_up(self):
-        """
-        Tests & exercise the `_walk_bundle_cache` private method.
-        The method is expected to find
-
-        # The test structure created in the `_create_test_bundle_cache_structure`
-        # See `_create_test_bundle_cache_structure`  documentation.
-
-        """
-
-        # Try again, starting a level up, the method should be able to find the app_store
-        # folder and start from there.
-        test_path = os.path.join(self.bundle_cache_root, os.pardir)
-        files = BundleCacheUsagePurger(test_path)._find_bundles()
+        files = BundleCacheUsagePurger()._find_app_store_bundles()
         self.assertEquals(len(files), self.FAKE_TEST_BUNDLE_COUNT)
 
 
@@ -295,7 +236,7 @@ class TestBundleCacheUsagePurgerParanoidDelete(TestBundleCacheUsageBase):
     """
     def setUp(self):
         super(TestBundleCacheUsagePurgerParanoidDelete, self).setUp()
-        self._purger = BundleCacheUsagePurger(self.bundle_cache_root)
+        self._purger = BundleCacheUsagePurger()
 
     def tearDown(self):
         Utils.safe_delete(self.bundle_cache_root)
@@ -434,13 +375,13 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
 
     def setUp(self):
         super(TestBundleCacheUsagePurgerPurgeBundle, self).setUp()
-        self._purger = BundleCacheUsagePurger(self.bundle_cache_root)
+        self._purger = BundleCacheUsagePurger()
 
     def test_simple_bundle_purge(self):
         """
         Tests purging a normal, nothing special, app store bundle.
+        .. NOTE: Relying on the PipelineConfig initializing worker thread
         """
-        # Comes from `TestBundleCacheUsageBase.setUp()`
         test_bundle_path = self._test_bundle_path
 
         # Assert the test setup itself
@@ -453,8 +394,8 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
             time.sleep(self.WAIT_TIME_SHORT) # logging is async, we need to wait to endure operation is done
             self.assertEquals(1, self._purger.get_bundle_count())
 
-        # Purge it!
-        bundle_list = self._purger.get_unused_bundles(0)
+        # Get list and purge old bundles
+        bundle_list = self._purger.get_unused_bundles()
         self.assertEquals(1, len(bundle_list))
         self._purger.purge_bundle(bundle_list[0])
 
@@ -505,7 +446,7 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
         self.assertEquals(1, self._purger.get_bundle_count())
 
         # Purge the bundle
-        database = BundleCacheUsageDatabase(self.bundle_cache_root)
+        database = BundleCacheUsageDatabase()
         fake_bundle_entry = BundleCacheUsageDatabaseEntry(
             (
                 database._truncate_path(test_bundle_path),

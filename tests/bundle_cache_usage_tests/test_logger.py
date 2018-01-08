@@ -33,25 +33,8 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
     def setUp(self):
         super(TestBundleCacheUsageLogger, self).setUp()
         BundleCacheUsageLogger.delete_instance()
-        self._logger = BundleCacheUsageLogger(self.bundle_cache_root)
+        self._logger = BundleCacheUsageLogger()
         self._logger.start()
-
-    def test_create_instance_with_invalid_parameter(self):
-        """
-        Test initialization with an invalid parameter
-        """
-        with self.assertRaises(BundleCacheUsageInvalidBundleCacheRootError):
-            BundleCacheUsageLogger.delete_instance()
-            BundleCacheUsageLogger(None)
-
-        with self.assertRaises(BundleCacheUsageInvalidBundleCacheRootError):
-            BundleCacheUsageLogger.delete_instance()
-            BundleCacheUsageLogger("non-existing-path")
-
-        path_to_file = os.path.join(self._test_bundle_path, "info.yml")
-        with self.assertRaises(BundleCacheUsageInvalidBundleCacheRootError):
-            BundleCacheUsageLogger.delete_instance()
-            BundleCacheUsageLogger(path_to_file)
 
     def test_create_delete_instance(self):
         """
@@ -61,7 +44,7 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
 
         for count in range(0, self.DEFAULT_LOOP_COUNT):
             start_time = time.time()
-            BundleCacheUsageLogger(self.bundle_cache_root)
+            BundleCacheUsageLogger()
             BundleCacheUsageLogger.delete_instance()
             elapsed_time = time.time() - start_time
             # Should pretty much be instant
@@ -77,11 +60,11 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         for count in range(0, self.DEFAULT_LOOP_COUNT):
             start_time = time.time()
 
-            BundleCacheUsageLogger(self.bundle_cache_root)
+            BundleCacheUsageLogger()
             BundleCacheUsageLogger.delete_instance()
             BundleCacheUsageLogger.delete_instance()
             BundleCacheUsageLogger.delete_instance()
-            BundleCacheUsageLogger(self.bundle_cache_root)
+            BundleCacheUsageLogger()
             BundleCacheUsageLogger.delete_instance()
             BundleCacheUsageLogger.delete_instance()
             elapsed_time = time.time() - start_time
@@ -98,7 +81,7 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         """
         for count in range(0, self.DEFAULT_LOOP_COUNT):
             start_time = time.time()
-            logger = BundleCacheUsageLogger(self.bundle_cache_root)
+            logger = BundleCacheUsageLogger()
             logger.start()
             BundleCacheUsageLogger.delete_instance()
             logger = None
@@ -114,20 +97,30 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         # Need override setUp() and start the test with
         # instance and db file deleted.
         BundleCacheUsageLogger.delete_instance()
-        os.remove(self.expected_db_path)
+        self.delete_db()
 
-        for count in range(0, self.DEFAULT_LOOP_COUNT):
+        for count in range(0, self.DEFAULT_LOOP_COUNT/4):
             self.assertFalse(os.path.exists(self.expected_db_path))
-            start_time = time.time()
-            logger = BundleCacheUsageLogger(self.bundle_cache_root)
+            logger = BundleCacheUsageLogger()
             logger.start()
+            logger.log_usage("bogus")
+
+            # Wait for either timeout or database created
+            start_time = time.time()
+            while(True):
+                if os.path.exists(self.expected_db_path):
+                    break
+
+                elapsed_time = time.time() - start_time
+                if  elapsed_time > self.WAIT_TIME_SHORT:
+                    # Should pretty quick
+                    self.fail("Timeout waiting for database creation.")
+
+                time.sleep(0.01)  # allow worker processing
+
+            # Reset & delete for next iteration
             logger.delete_instance()
-            elapsed_time = time.time() - start_time
-            self.assertTrue(os.path.exists(self.expected_db_path))
-            # Delete for next iteration
             os.remove(self.expected_db_path)
-            # Should pretty much be instant
-            self.assertLess(elapsed_time, self.WAIT_TIME_SHORT, "Lock up possibly detected")
 
     def test_stress_start_stop_with_operations(self):
         """
@@ -141,7 +134,7 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         OPERATION_COUNT = 3
         for count in range(0, self.DEFAULT_LOOP_COUNT):
             start_time = time.time()
-            logger = BundleCacheUsageLogger(self.bundle_cache_root)
+            logger = BundleCacheUsageLogger()
             logger.start()
             for _ in range(0, OPERATION_COUNT):
                 logger.log_usage(self._test_bundle_path)
@@ -320,9 +313,8 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
     def test_indirect_database_error_reporting_from_worker_thread(self):
         """
         Indirectly tests the database error/exception reporting from worker
-        thread through usage of the 'log_usage' method through worker thread.
+        thread through usage of the 'log_usage' method.
         """
-
         # For this test, we have to override what's being done in setUp()
         # and start with a non-existing db file and no existing instance.
         self.delete_db()
@@ -335,14 +327,16 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
                 # Mocking 'BundleCacheUsageDatabase._create_main_table'
                 # prevents creation of the main table and cause pretty
                 # much all writes to fail.
-                logger = BundleCacheUsageLogger(self.bundle_cache_root)
+                logger = BundleCacheUsageLogger()
                 logger.start()
-                self.assertEquals(1, mocked_create_main_table.call_count)
+                time.sleep(self.WORKER_PROCESSING_TIME)  # allow worker processing
+                self.assertEquals(0, mocked_create_main_table.call_count)
 
                 # With database NOT having a main table
                 # let's try logging some usage.
                 logger.log_usage(self._test_bundle_path)
                 time.sleep(self.WORKER_PROCESSING_TIME)  # allow worker processing
+                self.assertEquals(1, mocked_create_main_table.call_count)
 
                 # Now, the next call to 'log_usage' should trigger
                 # splitting out the errors
@@ -363,11 +357,13 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
             # Mocking 'BundleCacheUsageDatabase._create_main_table'
             # prevents creation of the main table and cause pretty
             # much all writes to fail.
-            logger = BundleCacheUsageLogger(self.bundle_cache_root)
+            logger = BundleCacheUsageLogger()
             logger.start()
 
+            BAD_TIME_STRING = "asgjdhasgjhdasd"
+
             # Assign an invalid timestamp
-            os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = "asgjdhasgjhdasd"
+            os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = BAD_TIME_STRING
 
             # With database NOT having a main table
             # let's try logging some usage.
@@ -379,27 +375,14 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
             logger.log_usage(self._test_bundle_path)
             self.assertEquals(1, mocked_log_error.call_count)
             self.assertEquals(
-                "Unexpected error consuming task : invalid literal for int() with base 10: 'asgjdhasgjhdasd'",
+                "Unexpected error consuming task : invalid literal for int() with base 10: '%s'" % BAD_TIME_STRING,
                 mocked_log_error.call_args_list[0][0][0]
             )
 
     def test_singleton(self):
         """ Tests that multiple instantiations return the same object."""
-        db1 = BundleCacheUsageLogger(self.bundle_cache_root)
-        db2 = BundleCacheUsageLogger(self.bundle_cache_root)
-        db3 = BundleCacheUsageLogger(self.bundle_cache_root)
+        db1 = BundleCacheUsageLogger()
+        db2 = BundleCacheUsageLogger()
+        db3 = BundleCacheUsageLogger()
         self.assertTrue(db1 == db2 == db3)
 
-    def test_singleton_params(self):
-        """ Tests multiple instantiations with different parameter values."""
-        wk1 = BundleCacheUsageLogger(self.bundle_cache_root)
-        bundle_cache_root1 = wk1.bundle_cache_root
-
-        new_bundle_cache_root = os.path.join(self.bundle_cache_root, "another-level")
-        os.makedirs(new_bundle_cache_root)
-        wk2 = BundleCacheUsageLogger(new_bundle_cache_root)
-
-        # The second 'instantiation' should have no effect.
-        # The parameter used in the first 'instantiation'
-        # should still be the same
-        self.assertTrue(bundle_cache_root1 == wk2.bundle_cache_root)

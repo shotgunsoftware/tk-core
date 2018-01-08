@@ -61,7 +61,7 @@ class BundleCacheUsageLogger(threading.Thread):
 
         return cls.__singleton_instance
 
-    def __init__(self, bundle_cache_root):
+    def __init__(self):
         super(BundleCacheUsageLogger, self).__init__()
         # TODO: NICOLAS: returning would cause a silent non-usage of specified parameter
         if (self.__initialized):
@@ -75,11 +75,6 @@ class BundleCacheUsageLogger(threading.Thread):
         self._member_lock = threading.Condition()
         self._completed_count = 0
         self._pending_count = 0
-        # Make use of database class path validation.
-        # This way we can catch and log such an error up-front
-        # before the worker thread is actually started.
-        BundleCacheUsageDatabase(bundle_cache_root)
-        self._bundle_cache_root = bundle_cache_root
 
     @ classmethod
     def delete_instance(cls, timeout=DEFAULT_STOP_TIMEOUT):
@@ -117,7 +112,7 @@ class BundleCacheUsageLogger(threading.Thread):
 
         :param bundle_path: A str of a bundle path
         """
-        database = BundleCacheUsageDatabase(self._bundle_cache_root)
+        database = BundleCacheUsageDatabase()
         database.log_usage(bundle_path)
 
     def __consume_task(self):
@@ -203,15 +198,6 @@ class BundleCacheUsageLogger(threading.Thread):
     # Can run from either threading contextes
     #
     ###########################################################################
-
-    @property
-    def bundle_cache_root(self):
-        """
-        Returns the bundle cache path initially supplied in constructor.
-
-        :return: A str path
-        """
-        return self._bundle_cache_root
 
     @property
     def completed_count(self):

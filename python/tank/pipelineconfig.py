@@ -67,28 +67,13 @@ class PipelineConfiguration(object):
 
         # Initialize the BundleCacheUsage worker service for use by the
         # `IODescriptorBase.get_path` method.
-        #
-        # TODO: We are specifiying database location from 2 distinct places in tk-core:
-        #       - PipelineConfiguration.__init__
-        #       - ToolkitManager._process_bundle_cache_purge
-        #       The feature would simply break if both are no the same.
-        #       Maybe it would be better to embed call to the
-        #       `LocalFileStorageManager.get_global_root` from within the
-        #       `BundleCacheUsageLogger` class?
         try:
-            #
             # TODO: I was told that someone might be using `PipelineConfig` on it's own.
             #       Now, with the added code just below the class now requires that the
             #       bundle cache be present as the 'BundleCacheUsageLogger' will throw an
             #       OSError exception if the `bundle_cache` folder cannot be found.
-            logger = BundleCacheUsageLogger(
-                os.path.join(
-                    LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
-                    "bundle_cache"
-                )
-            )
+            BundleCacheUsageLogger().start()
             log.debug("Starting bundle cache usage logger.")
-            logger.start()
 
         except OSError as e:
             log.error(e)

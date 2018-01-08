@@ -19,6 +19,8 @@ import time
 import sqlite3
 import datetime
 
+from ...util.local_file_storage import LocalFileStorageManager
+
 from .errors import BundleCacheUsageInvalidBundleCacheRootError
 
 from . import BundleCacheUsageMyLogger as log
@@ -121,7 +123,14 @@ class BundleCacheUsageDatabase(object):
         DB_COL_INDEX_USAGE_COUNT
     ) = range(4)
 
-    def __init__(self, bundle_cache_root):
+    def __init__(self):
+
+        bundle_cache_root = os.path.join(
+            LocalFileStorageManager.get_global_root(
+                LocalFileStorageManager.CACHE
+            ),
+            "bundle_cache"
+        )
 
         if bundle_cache_root is None:
             raise BundleCacheUsageInvalidBundleCacheRootError(

@@ -29,12 +29,9 @@ class BundleCacheUsagePurger(object):
     # A database flagging that the the initial bundle cache scan was performed.
     INITIAL_DB_POPULATE_DONE_MARKER = "INITIAL_POPULATE_DONE"
 
-    def __init__(self, bundle_cache_root):
+    def __init__(self):
         super(BundleCacheUsagePurger, self).__init__()
-        # Make use of database class path validation.
-        # This way we can catch and log such an error up-front
-        # before the worker thread is actually started.
-        self._database = BundleCacheUsageDatabase(bundle_cache_root)
+        self._database = BundleCacheUsageDatabase()
 
     @classmethod
     def _find_app_store_path(cls, base_folder):

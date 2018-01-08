@@ -32,7 +32,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
     def setUp(self):
         super(TestBundleCacheUsageWriterBasicOperations, self).setUp()
-        self._db = BundleCacheUsageDatabase(self.bundle_cache_root)
+        self._db = BundleCacheUsageDatabase()
 
     ###################################################################################################################
     #
@@ -46,27 +46,12 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
         Simply verify there isn't any exception
         """
-        db = BundleCacheUsageDatabase(self.bundle_cache_root)
-        self.assertIsNotNone(db)
+        db = BundleCacheUsageDatabase()
         self.assertIsInstance(
             db,
             BundleCacheUsageDatabase,
             "Was expecting class type to be BundleCacheUsageDatabase"
         )
-
-    def test_create_instance_with_invalid_parameter(self):
-        """
-        Test initialization with an invalid parameter
-        """
-        with self.assertRaises(BundleCacheUsageInvalidBundleCacheRootError):
-            BundleCacheUsageDatabase(None)
-
-        with self.assertRaises(BundleCacheUsageInvalidBundleCacheRootError):
-            BundleCacheUsageDatabase("some-invalid-path")
-
-        path_to_file = os.path.join(self._test_bundle_path, "info.yml")
-        with self.assertRaises(BundleCacheUsageInvalidBundleCacheRootError):
-            BundleCacheUsageDatabase(path_to_file)
 
     def test_db_main_table(self):
         """
@@ -78,7 +63,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.assertEquals(table_names[0], TestBundleCacheUsageWriterBasicOperations.MAIN_TABLE_NAME)
 
     def test_bundle_cache_root_folder(self):
-        self._db = BundleCacheUsageDatabase(self.bundle_cache_root)
+        self._db = BundleCacheUsageDatabase()
         self.assertEquals(self.bundle_cache_root, self._db.bundle_cache_root)
 
     def test_add_unused_bundle(self):

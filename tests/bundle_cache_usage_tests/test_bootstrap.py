@@ -205,7 +205,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
         # Create a temporary instance, for querying database
         # state and content. We can supply a None parameter
         # since an instance already exists.
-        bundle_cache_usage_purger = BundleCacheUsagePurger(self.bundle_cache_root)
+        bundle_cache_usage_purger = BundleCacheUsagePurger()
         self.assertTrue(
             bundle_cache_usage_purger.initial_populate_performed,
             "Was expecting database initial population done."
@@ -245,7 +245,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
 
         # NOW, we create a temporary instance, for querying database
         # state and content.
-        bundle_cache_usage_purger = BundleCacheUsagePurger(self.bundle_cache_root)
+        bundle_cache_usage_purger = BundleCacheUsagePurger()
         self.assertTrue(
             bundle_cache_usage_purger.initial_populate_performed,
             "Was expecting database initial population done."
@@ -298,7 +298,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
 
         self.helper_test_purge_bundles()
 
-        bundle_cache_usage_purger = BundleCacheUsagePurger(self.bundle_cache_root)
+        bundle_cache_usage_purger = BundleCacheUsagePurger()
 
         # Check the database ...
         self.assertEquals(
@@ -350,7 +350,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
 
         self.helper_test_purge_bundles()
 
-        bundle_cache_usage_purger = BundleCacheUsagePurger(self.bundle_cache_root)
+        bundle_cache_usage_purger = BundleCacheUsagePurger()
 
         # Check the database ...
         self.assertEquals(
