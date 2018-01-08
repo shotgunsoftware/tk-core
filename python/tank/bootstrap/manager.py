@@ -18,7 +18,6 @@ from .resolver import ConfigurationResolver
 from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
 from ..descriptor.bundle_cache_usage.purger import BundleCacheUsagePurger
-from ..util.local_file_storage import LocalFileStorageManager
 
 from .. import LogManager
 from ..errors import TankError
@@ -947,22 +946,25 @@ class ToolkitManager(object):
 
         return config
 
-    def _process_bundle_cache_purge(self, progress_callback, purge_timeout):
+    def _process_bundle_cache_purge(self, progress_callback):
+        """
+        Queries the bundle cache usage database for bundles unused in a number of days and delete
+        them from both the global bundle cache folder on disk disk and the tracking database.
 
-        # TODO: NICOLAS: We are specifiying database location from 2 distinct places in tk-core:
-        #       - PipelineConfiguration.__init__
-        #       - ToolkitManager._process_bundle_cache_purge
-        #       The feature would simply break if both are no the same.
-        #       Maybe it would be better to embed call to the
-        #       `LocalFileStorageManager.get_global_root` from within the
-        #       `BundleCacheUsagePurger` class?
-        bundle_cache_purger = BundleCacheUsagePurger(
-            os.path.join(
-                LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
-                "bundle_cache"
-            )
-        )
+        The number of days is defined by the `SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE` variables.
 
+        When used for the first time, an initial scan of the global bundle cache is performed
+        to find existing bundles and add them to the tracking database.
+
+        The feature only tracks and deletes bundles in the global bundle cache folder.
+
+        .. note: The deletion behavior can be disabled by defining the
+                 `SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE` environment variable.
+
+        :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
+        """
+
+        bundle_cache_purger = BundleCacheUsagePurger()
         if bundle_cache_purger.initial_populate_performed:
             if os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE"):
                 log.debug("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE set, bundle auto-purge disabled.")
