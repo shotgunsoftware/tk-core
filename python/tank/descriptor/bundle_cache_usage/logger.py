@@ -14,7 +14,6 @@ import Queue
 from ...import LogManager
 from .errors import BundleCacheUsageTimeoutError
 from .database import BundleCacheUsageDatabase as BundleCacheUsageDatabase
-from . import BundleCacheUsageMyLogger as tmp_log
 
 
 log = LogManager.get_logger(__name__)
@@ -53,7 +52,6 @@ class BundleCacheUsageLogger(threading.Thread):
         #   https://en.wikipedia.org/wiki/Double-checked_locking
         #
         if not cls.__singleton_instance:
-            tmp_log.debug_worker_threading("__new__")
             with cls.__singleton_lock:
                 if not cls.__singleton_instance:
                     cls.__singleton_instance = super(BundleCacheUsageLogger, cls).__new__(cls, *args, **kwargs)
@@ -63,11 +61,9 @@ class BundleCacheUsageLogger(threading.Thread):
 
     def __init__(self):
         super(BundleCacheUsageLogger, self).__init__()
-        # TODO: NICOLAS: returning would cause a silent non-usage of specified parameter
         if (self.__initialized):
             return
         self.__initialized = True
-        tmp_log.debug_worker_threading("__init__")
         self._terminate_requested = threading.Event()
         self._queued_signal = threading.Event()
         self._tasks = Queue.Queue()
@@ -138,8 +134,6 @@ class BundleCacheUsageLogger(threading.Thread):
         Implementation of threading.Thread.run()
         """
 
-        tmp_log.debug_worker_threading("starting")
-
         try:
             while not self._terminate_requested.is_set() or self.pending_count > 0:
 
@@ -160,8 +154,6 @@ class BundleCacheUsageLogger(threading.Thread):
 
         except Exception as e:
             self.__log_error(e, "Unexpected exception in the worker run() method")
-
-        tmp_log.debug_worker_threading("terminated (%d tasks remaining)" % self.pending_count)
 
     #
     # Protected methods

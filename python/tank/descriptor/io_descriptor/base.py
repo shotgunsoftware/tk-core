@@ -20,7 +20,6 @@ from ...util import filesystem
 from ...util.version import is_version_newer
 from ..errors import TankDescriptorError, TankMissingManifestError
 from ..bundle_cache_usage.logger import BundleCacheUsageLogger
-from ..bundle_cache_usage import LOG_GET_PATH, LOG_DESCRIPTOR_TYPE # TODO: temporary
 
 from tank_vendor import yaml
 
@@ -652,15 +651,6 @@ class IODescriptorBase(object):
         # last entry is always the active bundle cache
         active_bundle_cache = all_locations[-1]
 
-        if LOG_DESCRIPTOR_TYPE:
-            log.debug("NICOLAS: get_path() --- type: '%s', %s" % (self._descriptor_dict["type"], self.__class__))
-
-        if LOG_GET_PATH:
-            index = 0
-            for path in all_locations:
-                log.debug("NICOLAS: get_path() --- all_locations[%d]='%s'" % (index, path))
-                index += 1
-
         for path in all_locations:
             # we determine local existence based on the existence of the
             # bundle's directory on disk.
@@ -677,8 +667,6 @@ class IODescriptorBase(object):
                     # service worker thread.
                     BundleCacheUsageLogger.log_usage(path)
 
-                if LOG_GET_PATH:
-                    log.debug("NICOLAS: get_path() return: '%s'\n" % (path))
                 return path
 
         return None

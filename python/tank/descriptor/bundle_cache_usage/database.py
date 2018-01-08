@@ -19,11 +19,13 @@ import time
 import sqlite3
 import datetime
 
+from ...import LogManager
 from ...util.local_file_storage import LocalFileStorageManager
 
 from .errors import BundleCacheUsageInvalidBundleCacheRootError
 
-from . import BundleCacheUsageMyLogger as log
+
+log = LogManager.get_logger(__name__)
 
 
 class BundleCacheUsageDatabaseEntry(object):
@@ -257,8 +259,6 @@ class BundleCacheUsageDatabase(object):
         truncated_path = self._truncate_path(bundle_path)
         if truncated_path:
             now_unix_timestamp = self._get_timestamp()
-            log.debug("_log_usage('%s', %d)" % (truncated_path, now_unix_timestamp))
-
             entry = self._find_entry(truncated_path)
             if entry:
                 # Update
@@ -371,7 +371,6 @@ class BundleCacheUsageDatabase(object):
         if truncated_path:
             bundle = self._find_entry(truncated_path)
             if bundle:
-                log.debug("get_bundle('%s') = %s" % (bundle_path, bundle))
                 return bundle
 
         return None
