@@ -615,7 +615,7 @@ class SetupProjectWizard(object):
         # stripped out as the core is copied across as part of a localization if
         # the site we are configuring supports the authentication module, ie,
         # Shotgun 6.0.2 and greater.
-        #
+
         # this is primarily targeting the Shotgun desktop, meaning that even if
         # the shotgun desktop's site configuration contains script credentials,
         # these are not propagated into newly created toolkit projects.

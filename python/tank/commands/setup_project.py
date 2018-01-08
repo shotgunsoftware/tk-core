@@ -72,13 +72,15 @@ class SetupProjectAction(Action):
                                                    "default": None,
                                                    "type": "str" }
 
-        self.parameters["config_uri"] = { "description": ("The configuration to use when setting up this project. "
-                                                          "This can be a path on disk to a directory containing a "
-                                                          "config, a path to a git bare repo (e.g. a git repo path "
-                                                          "which ends with .git) or 'tk-config-default2' "
-                                                          "to fetch the default config from the toolkit app store."),
-                                          "default": "tk-config-default2",
-                                          "type": "str" }
+        self.parameters["config_uri"] = {
+            "description": "The configuration to use when setting up this "
+                "project. This can be a path on disk to a directory containing "
+                "a config, a path to a git bare repo (e.g. a git repo path "
+                "which ends with .git) or '%s' to fetch the default config "
+                "from the toolkit app store." % (constants.DEFAULT_CFG,),
+            "default": constants.DEFAULT_CFG,
+            "type": "str"
+        }
 
         # note how the current platform's default value is None in order to make that required
         self.parameters["config_path_mac"] = { "description": ("The path on disk where the configuration should be "

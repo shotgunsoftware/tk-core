@@ -86,18 +86,15 @@ class CoreLocalizeAction(Action):
         )
 
 
-def do_localize(log, sg_connection, pc_root_path, suppress_prompts):
+def do_localize(log, sg_connection, target_config_path, suppress_prompts):
     """
     Perform the actual localize command.
 
     :param log: logging object
     :param sg_connection: An open shotgun connection
-    :param str pc_root_path: Path to the config that should be localized.
+    :param str target_config_path: Path to the config that should be localized.
     :param bool suppress_prompts: Indicates if prompts should be suppressed.
     """
-
-    # leaving func signature the same, but renaming here for clarity
-    target_config_path = pc_root_path
 
     # the configuration to localize
     target_pipeline_config = pipelineconfig_factory.from_path(
@@ -115,8 +112,8 @@ def do_localize(log, sg_connection, pc_root_path, suppress_prompts):
             "local install of the core!"
         )
 
-    # if a core descriptor is supplied, ensure it is local and use it as the
-    # core to localize.
+    # if a core descriptor is supplied, ensure it is cached locally and use it
+    # as the core to localize.
     if pipelineconfig_utils.has_core_descriptor(target_config_path):
         core_descriptor = pipelineconfig_utils.get_core_descriptor(
             target_config_path,
@@ -126,6 +123,7 @@ def do_localize(log, sg_connection, pc_root_path, suppress_prompts):
         source_core_path = core_descriptor.get_path()
         source_core_version = core_descriptor.get_version()
     else:
+        # fall back to using the core that exists in the source config
         source_core_path = os.path.join(
             source_config_path,
             "install",
@@ -246,7 +244,7 @@ def do_localize(log, sg_connection, pc_root_path, suppress_prompts):
         target_core_backup_folder_name = datetime.datetime.now().strftime(
             "%Y%m%d_%H%M%S")
 
-        # full path tot he core backup folder (including timestamped folder)
+        # full path to the core backup folder (including timestamped folder)
         target_core_backup_folder_path = os.path.join(
             target_core_backup_path, target_core_backup_folder_name)
 
