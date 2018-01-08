@@ -15,7 +15,7 @@ import time
 
 import tank
 from tank import TankError
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 from tank.template import Template, TemplatePath, TemplateString
 from tank.template import make_template_paths, make_template_strings, read_templates
 from tank.templatekey import (TemplateKey, StringKey, IntegerKey, SequenceKey, TimestampKey)
@@ -317,16 +317,43 @@ class TestMakeTemplatePaths(TankTestBase):
         modified_roots["alternate_1"]["linux2"] = "/some/fake/path"
         modified_roots["alternate_1"]["darwin"] = "/some/fake/path"
                 
-        data = {"template_name": {"definition": "something/{Shot}"},
-                "another_template": {"definition": "something/{Shot}",
-                                     "root_name": "alternate_1"}}
+        # Test with root names specified for all templates
+        data = {
+            "template_name": {
+                "definition": "something/{Shot}",
+                "root_name": self.primary_root_name,
+            },
+            "another_template": {
+                "definition": "something/{Shot}",
+                "root_name": "alternate_1"
+            }
+        }
         
         result = make_template_paths(data, self.keys, modified_roots)
         prim_template = result.get("template_name")
         alt_templatte = result.get("another_template")
         self.assertEquals(self.project_root, prim_template.root_path)
         self.assertEquals(modified_roots["alternate_1"][sys.platform], alt_templatte.root_path)
-                
+
+        # Now test with the primary root name not specified, tk-core will assume
+        # a "primary" root name, so make sure we have one.
+        if self.primary_root_name != "primary":
+            modified_roots["primary"] = modified_roots.pop(self.primary_root_name)
+        data = {
+            "template_name": {
+                "definition": "something/{Shot}",
+            },
+            "another_template": {
+                "definition": "something/{Shot}",
+                "root_name": "alternate_1"
+            }
+        }
+        result = make_template_paths(data, self.keys, modified_roots)
+        prim_template = result.get("template_name")
+        alt_templatte = result.get("another_template")
+        self.assertEquals(self.project_root, prim_template.root_path)
+        self.assertEquals(modified_roots["alternate_1"][sys.platform], alt_templatte.root_path)
+
 
 class TestMakeTemplateStrings(TankTestBase):
     def setUp(self):

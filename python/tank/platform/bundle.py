@@ -73,7 +73,7 @@ class TankBundle(object):
         Internal Use Only - We provide no guarantees that this method
         will be backwards compatible.
         """
-        properties = self._get_metrics_properties()
+        properties = {}
         if command_name:
             properties[EventMetric.KEY_COMMAND] = command_name
 
@@ -82,6 +82,7 @@ class TankBundle(object):
             action,
             properties=properties,
             log_once=log_once,
+            bundle=self
         )
 
     ##########################################################################################
@@ -249,8 +250,7 @@ class TankBundle(object):
         random cache data. This location is guaranteed to exist on disk.
 
         This location is configurable via the ``cache_location`` hook.
-        It is typically points at a path in the local filesystem, e.g
-        on for example on the mac::
+        It typically points at a path in the local filesystem, e.g on a mac::
 
             ~/Library/Caches/Shotgun/SITENAME/PROJECT_ID/BUNDLE_NAME
 
@@ -258,10 +258,39 @@ class TankBundle(object):
         sessions::
 
             stored_query_data_path = os.path.join(self.cache_location, "query.dat")
-
         """
         project_id = self.__tk.pipeline_configuration.get_project_id()
         return self.get_project_cache_location(project_id)
+
+    @property
+    def site_cache_location(self):
+        """
+        A site location on disk where the app or engine can store
+        random cache data. This location is guaranteed to exist on disk.
+
+        This location is configurable via the ``cache_location`` hook.
+        It typically points at a path in the local filesystem, e.g on a mac::
+
+            ~/Library/Caches/Shotgun/SITENAME/BUNDLE_NAME
+
+        This can be used to store cache data that the app wants to reuse across
+        sessions and can be shared across a site::
+
+            stored_query_data_path = os.path.join(self.site_cache_location, "query.dat")
+        """
+        # this method is memoized for performance since it is being called a lot!
+        if self.__cache_location.get("site") is None:
+
+            self.__cache_location["site"] = self.__tk.execute_core_hook_method(
+                constants.CACHE_LOCATION_HOOK_NAME,
+                "get_bundle_data_cache_path",
+                project_id=None,
+                plugin_id=None,
+                pipeline_configuration_id=None,
+                bundle=self
+            )
+
+        return self.__cache_location["site"]
 
     @property
     def context(self):
@@ -613,7 +642,7 @@ class TankBundle(object):
         hook_path = os.path.join(hook_folder, "%s.py" % hook_name)
         return hook.execute_hook(hook_path, self, **kwargs)
 
-    def create_hook_instance(self, hook_expression):
+    def create_hook_instance(self, hook_expression, base_class=None):
         """
         Returns the instance of a hook object given an expression.
 
@@ -634,11 +663,22 @@ class TankBundle(object):
 
         .. note:: For more information about hook syntax, see :class:`~sgtk.Hook`
 
+        An optional `base_class` can be provided to override the default ``Hook``
+        base class. This is useful for bundles that create hook instances at
+        execution time and wish to provide default implementation without the need
+        to configure the base hook. The supplied class must inherit from Hook.
+
         :param hook_expression: Path to hook to execute. See above for syntax details.
+        :param base_class: A python class to use as the base class for the created
+            hook. This will override the default hook base class, ``Hook``.
         :returns: :class:`Hook` instance.
         """
         resolved_hook_paths = self.__resolve_hook_expression(None, hook_expression)
-        return hook.create_hook_instance(resolved_hook_paths, self)
+        return hook.create_hook_instance(
+            resolved_hook_paths,
+            self,
+            base_class=base_class
+        )
 
     def ensure_folder_exists(self, path):
         """
@@ -659,8 +699,15 @@ class TankBundle(object):
             self.__tk.execute_core_hook("ensure_folder_exists", path=path, bundle_obj=self)
         except Exception as e:
             raise TankError("Error creating folder %s: %s" % (path, e))
-        
 
+    def get_metrics_properties(self):
+        """
+        Should be re-implemented in deriving classes and return a dictionary with
+        the properties needed to log a metric event for this bundle.
+
+        :raises: NotImplementedError
+        """
+        raise NotImplementedError
 
     ##########################################################################################
     # internal helpers
@@ -949,14 +996,6 @@ class TankBundle(object):
 
         return engine_name
 
-    def _get_metrics_properties(self):
-        """
-        Should be re-implemented in deriving classes and return a dictionary with
-        the properties needed to log a metric event for this bundle.
-
-        :raises: NotImplementedError
-        """
-        raise NotImplementedError
 
 def _post_process_settings_r(tk, key, value, schema, bundle=None):
     """

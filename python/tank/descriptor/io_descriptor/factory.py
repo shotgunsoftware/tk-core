@@ -23,7 +23,8 @@ def create_io_descriptor(
         bundle_cache_root,
         fallback_roots,
         resolve_latest,
-        constraint_pattern=None):
+        constraint_pattern=None,
+        local_fallback_when_disconnected=True):
     """
     Factory method. Use this method to construct all DescriptorIO instances.
 
@@ -57,7 +58,15 @@ def create_io_descriptor(
                                 - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
                                 - v0.12.x - get the highest v0.12 version
                                 - v1.x.x - get the highest v1 version
+    :param local_fallback_when_disconnected: If resolve_latest is set to True, specify the behaviour
+                            in the case when no connection to a remote descriptor can be established,
+                            for example because and internet connection isn't available. If True, the
+                            descriptor factory will attempt to fall back on any existing locally cached
+                            bundles and return the latest one available. If False, a
+                            :class:`TankDescriptorError` is raised instead.
+
     :returns: Descriptor object
+    :raises: :class:`TankDescriptorError`
     """
     from .base import IODescriptorBase
     from .appstore import IODescriptorAppStore
@@ -118,16 +127,34 @@ def create_io_descriptor(
         if descriptor.has_remote_access():
             log.debug("Remote connection is available - attempting to get latest version from remote...")
             descriptor = descriptor.get_latest_version(constraint_pattern)
+            log.debug("Resolved latest to be %r" % descriptor)
+
         else:
-            log.debug("Remote connection is not available - falling back on getting latest version from cache...")
-            latest_cached_descriptor = descriptor.get_latest_cached_version(constraint_pattern)
-            if latest_cached_descriptor is None:
-                raise TankDescriptorError("No cached versions of %r cached locally on disk." % descriptor)
+            if local_fallback_when_disconnected:
+                # get latest from bundle cache
+                log.warning(
+                    "Remote connection is not available - will try to get "
+                    "the latest locally cached version of %s..." % descriptor
+                )
+                latest_cached_descriptor = descriptor.get_latest_cached_version(constraint_pattern)
+                if latest_cached_descriptor is None:
+                    log.warning("No locally cached versions of %r available." % descriptor)
+                    raise TankDescriptorError(
+                        "Could not get latest version of %s. "
+                        "For more details, see the log." % descriptor
+                    )
+                log.debug("Latest locally cached descriptor is %r" % latest_cached_descriptor)
+                descriptor = latest_cached_descriptor
 
-            log.debug("Latest cached descriptor is %r" % latest_cached_descriptor)
-            descriptor = latest_cached_descriptor
+            else:
+                # do not attempt to get the latest locally cached version
+                log.warning("Remote connection not available to determine latest version.")
+                raise TankDescriptorError(
+                    "Could not get latest version of %s. "
+                    "For more details, see the log." % descriptor
+                )
 
-        log.debug("Resolved latest to be %r" % descriptor)
+
 
     return descriptor
 

@@ -23,7 +23,7 @@ from tank.errors import TankError
 from tank.template import TemplatePath, TemplateString
 from tank.templatekey import StringKey, IntegerKey, SequenceKey
 
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
 class TestInit(TankTestBase):
 
@@ -413,7 +413,7 @@ class TestApiProperties(TankTestBase):
         """
         test api.roots property
         """
-        self.assertEquals(self.tk.roots, {"primary": self.project_root} )
+        self.assertEquals(self.tk.roots, {self.primary_root_name: self.project_root})
 
 
     def test_project_path_property(self):
@@ -572,7 +572,7 @@ class TestTankFromPathDuplicatePcPaths(TankTestBase):
 
 class TestTankFromEntityWithMixedSlashes(TankTestBase):
     """
-    Tests the case where a windows local storage uses forward slashes.
+    Tests the case where a Windows local storage uses forward slashes.
     """
 
     def test_with_mixed_slashes(self):
@@ -600,7 +600,7 @@ class TestTankFromEntityWithMixedSlashes(TankTestBase):
 
 class TestGetConfigInstallLocationPathSlashes(TankTestBase):
     """
-    Tests the case where a windows config location uses double slashes.
+    Tests the case where a Windows config location uses double slashes.
     """
 
     @patch("tank.pipelineconfig_utils._get_install_locations")
@@ -629,7 +629,7 @@ class TestGetConfigInstallLocationPathSlashes(TankTestBase):
 
 class TestTankFromPathWindowsNoSlash(TankTestBase):
     """
-    Tests the edge case where a windows local storage is set to be 'C:'
+    Tests the edge case where a Windows local storage is set to be 'C:'
     """
 
     PROJECT_NAME = "temp"

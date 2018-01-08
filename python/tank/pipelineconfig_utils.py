@@ -26,7 +26,7 @@ from .util.shotgun import get_deferred_sg_connection
 
 from .errors import TankError
 
-log = LogManager.get_logger(__name__)
+logger = LogManager.get_logger(__name__)
 
 
 def is_localized(pipeline_config_path):
@@ -122,16 +122,21 @@ def get_roots_metadata(pipeline_config_path):
         raise TankError("Looks like the roots file is corrupt. Please contact "
                         "support! File: '%s' Error: %s" % (roots_yml, e))
 
-    # if there are more than zero storages defined, ensure one of them is the primary storage
-    if len(data) > 0 and constants.PRIMARY_STORAGE_NAME not in data:
-        raise TankError("Could not find a primary storage in roots file "
-                        "for configuration %s!" % pipeline_config_path)
+    # If there are more than one storage defined, ensure one of them is the primary storage
+    # We need to keep this constraint as we are not able to keep roots definition
+    # in the order they were defined, so this is the only way we can guarantee we
+    # always use the same root for any template which does not have an explicit
+    # root setting.
+    if len(data) > 1 and constants.PRIMARY_STORAGE_NAME not in data:
+        raise TankError(
+            "Could not find a primary storage in multi-roots file "
+            "for configuration %s!" % pipeline_config_path
+        )
 
-    # sanitize path data by passing it through the ShotgunPath
+    # Sanitize path data by passing it through the ShotgunPath
     shotgun_paths = {}
-    for storage_name in data:
-        shotgun_paths[storage_name] = ShotgunPath.from_shotgun_dict(data[storage_name])
-
+    for storage_name, storage_definition in data.iteritems():
+        shotgun_paths[storage_name] = ShotgunPath.from_shotgun_dict(storage_definition)
     return shotgun_paths
 
 

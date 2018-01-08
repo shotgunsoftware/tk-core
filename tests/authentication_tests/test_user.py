@@ -28,6 +28,15 @@ class UserTests(TankTestBase):
             http_proxy="http_proxy"
         ))
 
+    def _create_test_saml_user(self):
+        return user.ShotgunSamlUser(user_impl.SessionUser(
+            host="https://tank.shotgunstudio.com",
+            login="login",
+            session_token="session_token",
+            http_proxy="http_proxy",
+            session_metadata="session_metadata",
+        ))
+
     def test_attributes_valid(self):
         user = self._create_test_user()
         self.assertEqual(user.host, "https://tank.shotgunstudio.com")
@@ -67,8 +76,23 @@ class UserTests(TankTestBase):
         """
         Makes sure serialization and deserialization works for users
         """
+        # First start with a non-SAML user.
         su = self._create_test_user()
+        self.assertNotIsInstance(su, user.ShotgunSamlUser)
+        self.assertFalse("session_metadata" in su.impl.to_dict())
         su_2 = user.deserialize_user(user.serialize_user(su))
+        self.assertNotIsInstance(su_2, user.ShotgunSamlUser)
+        self.assertEquals(su.host, su_2.host)
+        self.assertEquals(su.http_proxy, su_2.http_proxy)
+        self.assertEquals(su.login, su_2.login)
+        self.assertEquals(su.impl.get_session_token(), su_2.impl.get_session_token())
+
+        # Then, with a SAML user.
+        su = self._create_test_saml_user()
+        self.assertIsInstance(su, user.ShotgunSamlUser)
+        self.assertTrue("session_metadata" in su.impl.to_dict())
+        su_2 = user.deserialize_user(user.serialize_user(su))
+        self.assertIsInstance(su_2, user.ShotgunSamlUser)
         self.assertEquals(su.host, su_2.host)
         self.assertEquals(su.http_proxy, su_2.http_proxy)
         self.assertEquals(su.login, su_2.login)

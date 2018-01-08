@@ -90,17 +90,7 @@ class Entity(Folder):
         self._entity_expression = shotgun_entity.EntityExpression(self._tk, self._entity_type, field_name_expression)
         self._filters = filters
         self._create_with_parent = create_with_parent    
-    
-    def __get_name_field_for_et(self, entity_type):
-        """
-        return the special name field for a given entity
-        """
-        spec_name_fields = {"Project": "name", "Task": "content", "HumanUser": "name"}
-        if entity_type in spec_name_fields:
-            return spec_name_fields[entity_type]
-        else:
-            return "code"
-    
+
     def get_entity_type(self):
         """
         returns the shotgun entity type for this node
@@ -149,7 +139,7 @@ class Entity(Folder):
                         
             # get the name field - which depends on the entity type
             # Note: this is the 'name' that will get stored in the path cache for this entity
-            name_field = self.__get_name_field_for_et(self._entity_type)
+            name_field = shotgun_entity.get_sg_entity_name_field(self._entity_type)
             name_value = entity[name_field]            
             # construct a full entity link dict w name, id, type
             full_entity_dict = {"type": self._entity_type, "id": entity["id"], "name": name_value} 
@@ -210,7 +200,7 @@ class Entity(Folder):
         fields.update( self._entity_expression.get_shotgun_link_fields() )
         
         # always retrieve the name field for the entity
-        fields.add( self.__get_name_field_for_et(self._entity_type) )        
+        fields.add(shotgun_entity.get_sg_entity_name_field(self._entity_type))
 
         # add any special stuff in
         for custom_field in self._get_additional_sg_fields():

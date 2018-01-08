@@ -20,8 +20,9 @@ at any point.
 """
 
 import cPickle
+import httplib
 from .shotgun_wrapper import ShotgunWrapper
-from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
+from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault, ProtocolError
 
 from . import session_cache
 from .errors import IncompleteCredentials
@@ -37,6 +38,7 @@ class ShotgunUserImpl(object):
     """
     Abstract base class for a Shotgun user. It tracks the user's host and proxy.
     """
+
     def __init__(self, host, http_proxy):
         """
         Constructor.
@@ -44,7 +46,6 @@ class ShotgunUserImpl(object):
         :param host: Host for this Shotgun user.
         :param http_proxy: HTTP proxy to use with this host.
         """
-
         if not host:
             raise IncompleteCredentials("missing host")
 
@@ -103,6 +104,14 @@ class ShotgunUserImpl(object):
         """
         self.__class__._not_implemented("get_login")
 
+    def get_session_metadata(self):
+        """
+        Returns the session metadata for this user.
+
+        :returns: An obscure blob of data.
+        """
+        self.__class__._not_implemented("get_session_metadata")
+
     def to_dict(self):
         """
         Converts the user into a dictionary object.
@@ -153,7 +162,8 @@ class SessionUser(ShotgunUserImpl):
     """
     A user that authenticates to the Shotgun server using a session token.
     """
-    def __init__(self, host, login, session_token, http_proxy, password=None):
+
+    def __init__(self, host, login, session_token, http_proxy, password=None, session_metadata=None):
         """
         Constructor.
 
@@ -162,11 +172,12 @@ class SessionUser(ShotgunUserImpl):
         :param session_token: Session token for the user. If session token is None
             the session token will be looked for in the users file.
         :param http_proxy: HTTP proxy to use with this host. Defaults to None.
+        :param password: Password for the user. Defaults to None.
+        :param session_metadata: Data structure needed when SSO is used. This is an obscure blob of data. Defaults to None.
 
         :raises IncompleteCredentials: If there is not enough values
             provided to initialize the user, this exception will be thrown.
         """
-
         super(SessionUser, self).__init__(host, http_proxy)
 
         if not login:
@@ -193,6 +204,7 @@ class SessionUser(ShotgunUserImpl):
 
         self._login = login
         self._session_token = session_token
+        self._session_metadata = session_metadata
 
         self._try_save()
 
@@ -234,6 +246,22 @@ class SessionUser(ShotgunUserImpl):
         if cache:
             self._try_save()
 
+    def get_session_metadata(self):
+        """
+        Returns the session_metadata string for this user.
+
+        :returns: The session data, an obscure blob.
+        """
+        return self._session_metadata
+
+    def set_session_metadata(self, session_metadata):
+        """
+        Update the user's session_metadata.
+
+        :param session_metadata: SSO session information.
+        """
+        self._session_metadata = session_metadata
+
     def create_sg_connection(self):
         """
         Creates a Shotgun instance using the script user's credentials.
@@ -254,6 +282,9 @@ class SessionUser(ShotgunUserImpl):
         """
         Checks if the credentials for the user are expired.
 
+        This check is done solely on the Shotgun side. If SSO is being used,
+        we do not attempt to contact the IdP to validate the session.
+
         :returns: True if the credentials are expired, False otherwise.
         """
         logger.debug("Connecting to shotgun to determine if credentials have expired...")
@@ -265,6 +296,23 @@ class SessionUser(ShotgunUserImpl):
         try:
             sg.find_one("HumanUser", [])
             return False
+        except ProtocolError as e:
+            # One potential source of the error is that our SAML claims have
+            # expired. We check if we were given a 302 and the
+            # saml_login_request URL.
+            # But if we get there, it means our session_token is still valid
+            # as far as Shotgun is concerned.
+            if (
+                e.errcode == httplib.FOUND and
+                "location" in e.headers and
+                e.headers["location"].endswith("/saml/saml_login_request")
+            ):
+                # If we get here, the session_token is still valid.
+                logger.debug("The SAML claims have expired. But the session_token is still valid")
+                return False
+            else:
+                logger.error("Unexpected exception while validating credentials: %s" % e)
+            return True
         except AuthenticationFault:
             return True
 
@@ -304,6 +352,10 @@ class SessionUser(ShotgunUserImpl):
         data = super(SessionUser, self).to_dict()
         data["login"] = self.get_login()
         data["session_token"] = self.get_session_token()
+        # To preserve backward compatibility with older cores, we avoid
+        # serializing the session_metadata if there are not any.
+        if self.get_session_metadata() is not None:
+            data["session_metadata"] = self.get_session_metadata()
         return data
 
     def _try_save(self):
@@ -315,7 +367,8 @@ class SessionUser(ShotgunUserImpl):
             session_cache.cache_session_data(
                 self.get_host(),
                 self.get_login(),
-                self.get_session_token()
+                self.get_session_token(),
+                self.get_session_metadata()
             )
         except:
             # Do not break execution because somehow we couldn't
@@ -328,6 +381,7 @@ class ScriptUser(ShotgunUserImpl):
     """
     User that authenticates to the Shotgun server using a api name and api key.
     """
+
     def __init__(self, host, api_script, api_key, http_proxy):
         """
         Constructor.
@@ -400,6 +454,15 @@ class ScriptUser(ShotgunUserImpl):
         :returns: The login name string.
         """
         # Script user has no login.
+        return None
+
+    def get_session_metadata(self):
+        """
+        Returns the session_metadata for this user.
+
+        :returns: The metadata for the SSO session.
+        """
+        # Script user has no session_metadata.
         return None
 
     def to_dict(self):

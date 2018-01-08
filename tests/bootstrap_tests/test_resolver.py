@@ -26,6 +26,9 @@ from tank_test.tank_test_base import TankTestBase
 
 
 class TestResolverBase(TankTestBase):
+    """
+    Base class for resolver tests
+    """
 
     def setUp(self):
         super(TestResolverBase, self).setUp()
@@ -60,7 +63,16 @@ class TestResolverBase(TankTestBase):
         fh.write("foo")
         fh.close()
 
-    def _create_pc(self, code, project=None, path=None, users=[], plugin_ids=None, descriptor=None):
+    def _create_pc(
+            self,
+            code,
+            project=None,
+            path=None,
+            users=None,
+            plugin_ids=None,
+            descriptor=None,
+            uploaded_config_dict=None
+    ):
         """
         Creates a pipeline configuration.
 
@@ -70,7 +82,7 @@ class TestResolverBase(TankTestBase):
         :param users: List of users who should be able to use this pipeline.
         :param plugin_ids: Plugin ids for the pipeline configuration.
         :param descriptor: Descriptor for the pipeline configuration
-
+        :param uploaded_config_dict: Full attachment dictionary to represent an uploaded config
         :returns: Dictionary with keys entity_type and entity_id.
         """
 
@@ -78,17 +90,21 @@ class TestResolverBase(TankTestBase):
             "PipelineConfiguration", dict(
                 code=code,
                 project=project,
-                users=users,
+                users=users or [],
                 windows_path=path,
                 mac_path=path,
                 linux_path=path,
                 plugin_ids=plugin_ids,
-                descriptor=descriptor
+                descriptor=descriptor,
+                uploaded_config=uploaded_config_dict,
             )
         )
 
 
 class TestUserRestriction(TestResolverBase):
+    """
+    Testing the logic around user restrictions
+    """
 
     def setUp(self):
         super(TestUserRestriction, self).setUp()
@@ -165,7 +181,7 @@ class TestUserRestriction(TestResolverBase):
 
 class TestPluginMatching(TestResolverBase):
     """
-    Testing the resolver class
+    Tests the matching of plugin ids
     """
 
     def test_plugin_id_matching(self):
@@ -178,43 +194,46 @@ class TestPluginMatching(TestResolverBase):
             bundle_cache_fallback_paths=[self.install_root]
         )
 
+        def _match_plugin_helper(plugin_ids):
+            return resolver._matches_current_plugin_id({"plugin_ids": plugin_ids})
+
         # test full match
         resolver._plugin_id = "foo.maya"
-        self.assertTrue(resolver._match_plugin_id("*"))
+        self.assertTrue(_match_plugin_helper("*"))
 
         # test no match
         resolver._plugin_id = "foo.maya"
-        self.assertFalse(resolver._match_plugin_id(""))
-        self.assertFalse(resolver._match_plugin_id("None"))
-        self.assertFalse(resolver._match_plugin_id(" "))
-        self.assertFalse(resolver._match_plugin_id(",,,,"))
-        self.assertFalse(resolver._match_plugin_id("."))
+        self.assertFalse(_match_plugin_helper(""))
+        self.assertFalse(_match_plugin_helper("None"))
+        self.assertFalse(_match_plugin_helper(" "))
+        self.assertFalse(_match_plugin_helper(",,,,"))
+        self.assertFalse(_match_plugin_helper("."))
 
         # test comma separation
         resolver._plugin_id = "foo.maya"
-        self.assertFalse(resolver._match_plugin_id("foo.hou, foo.may, foo.nuk"))
-        self.assertTrue(resolver._match_plugin_id("foo.hou, foo.maya, foo.nuk"))
+        self.assertFalse(_match_plugin_helper("foo.hou, foo.may, foo.nuk"))
+        self.assertTrue(_match_plugin_helper("foo.hou, foo.maya, foo.nuk"))
 
         # test comma separation
         resolver._plugin_id = "foo"
-        self.assertFalse(resolver._match_plugin_id("foo.*"))
-        self.assertTrue(resolver._match_plugin_id("foo*"))
+        self.assertFalse(_match_plugin_helper("foo.*"))
+        self.assertTrue(_match_plugin_helper("foo*"))
 
         resolver._plugin_id = "foo.maya"
-        self.assertTrue(resolver._match_plugin_id("foo.*"))
-        self.assertTrue(resolver._match_plugin_id("foo*"))
+        self.assertTrue(_match_plugin_helper("foo.*"))
+        self.assertTrue(_match_plugin_helper("foo*"))
 
         resolver._plugin_id = "foo.maya"
-        self.assertTrue(resolver._match_plugin_id("foo.maya"))
-        self.assertFalse(resolver._match_plugin_id("foo.nuke"))
+        self.assertTrue(_match_plugin_helper("foo.maya"))
+        self.assertFalse(_match_plugin_helper("foo.nuke"))
 
         # If the value is None then we always get back False.
-        self.assertFalse(resolver._match_plugin_id(None))
+        self.assertFalse(_match_plugin_helper(None))
 
         # Always False return, even when _plugin_id is None and the value is None.
         resolver._plugin_id = None
-        self.assertFalse(resolver._match_plugin_id(None))
-        self.assertFalse(resolver._match_plugin_id("foo.maya"))
+        self.assertFalse(_match_plugin_helper(None))
+        self.assertFalse(_match_plugin_helper("foo.maya"))
 
     @patch("os.path.isdir", return_value=True)
     def test_single_matching_id(self, _):
@@ -270,6 +289,9 @@ class TestPluginMatching(TestResolverBase):
 
 
 class TestFallbackHandling(TestResolverBase):
+    """
+    Tests the logic for when to communicate with shotgun
+    """
 
     def setUp(self):
         super(TestFallbackHandling, self).setUp()
@@ -561,6 +583,9 @@ class TestResolverPriority(TestResolverBase):
 
 
 class TestPipelineLocationFieldPriority(TestResolverBase):
+    """
+    Tests the field priority between descriptor, xxx_path and uploaded_config
+    """
 
     @patch("os.path.isdir", return_value=True)
     def test_path_override(self, _):
@@ -569,8 +594,19 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         """
 
         self._create_pc(
-            "Primary", self._project, path="sg_path", plugin_ids="foo.*",
-            descriptor="sgtk:descriptor:app_store?version=v0.1.2&name=tk-config-test"
+            "Primary",
+            self._project,
+            path="sg_path",
+            plugin_ids="foo.*",
+            descriptor="sgtk:descriptor:app_store?version=v0.1.2&name=tk-config-test",
+            uploaded_config_dict={
+                "name": "v1.2.3.zip",
+                "url": "https://...",
+                "content_type": "application/zip",
+                "type": "Attachment",
+                "id": 139,
+                "link_type": "upload"
+            }
         )
 
         config = self.resolver.resolve_shotgun_configuration(
@@ -584,12 +620,21 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
 
     def test_pc_descriptor(self):
         """
-        Descriptor field is used when set.
+        Test that descriptor field is used when set.
         """
-
         self._create_pc(
-            "Primary", self._project, plugin_ids="foo.*, bar, baz",
-            descriptor="sgtk:descriptor:app_store?version=v3.1.2&name=tk-config-test"
+            "Primary",
+            self._project,
+            plugin_ids="foo.*, bar, baz",
+            descriptor="sgtk:descriptor:app_store?version=v3.1.2&name=tk-config-test",
+            uploaded_config_dict={
+                "name": "v1.2.3.zip",
+                "url": "https://...",
+                "content_type": "application/zip",
+                "type": "Attachment",
+                "id": 139,
+                "link_type": "upload"
+            }
         )
 
         config = self.resolver.resolve_shotgun_configuration(
@@ -602,6 +647,42 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         self.assertEqual(
             config._descriptor.get_dict(),
             {"name": "tk-config-test", "type": "app_store", "version": "v3.1.2"}
+        )
+
+    def test_pc_uploaded(self):
+        """
+        Test that uploaded zip field is used when no descriptor or path
+        """
+        self._create_pc(
+            "Primary",
+            self._project,
+            plugin_ids="foo.*, bar, baz",
+            uploaded_config_dict={
+                "name": "v1.2.3.zip",
+                "url": "https://...",
+                "content_type": "application/zip",
+                "type": "Attachment",
+                "id": 139,
+                "link_type": "upload"
+            }
+        )
+
+        config = self.resolver.resolve_shotgun_configuration(
+            pipeline_config_identifier=None,
+            fallback_config_descriptor=self.config_1,
+            sg_connection=self.tk.shotgun,
+            current_login="john.smith"
+        )
+
+        self.assertEqual(
+            config._descriptor.get_dict(),
+            {
+                "entity_type": "PipelineConfiguration",
+                "field": "uploaded_config",
+                "id": 124,
+                "type": "shotgun",
+                "version": 139
+            }
         )
 
     def test_pipeline_without_location(self):
@@ -680,7 +761,6 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             descriptor=None,
         )
 
-        import sys
         base_paths[field_lookup[sys.platform]] = None
 
         # Now remove every locators.
@@ -698,6 +778,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             "john.smith",
             self.mockgun
         )
+
         self.assertEqual(len(pcs), 1)
         self.assertEqual(pcs[0]["id"], pc_id)
         self.assertEqual(pcs[0]["config_descriptor"], None)
@@ -719,6 +800,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         self.assertEqual(len(pcs), 1)
         self.assertEqual(pcs[0]["id"], pc_id)
 
+
         # Not clear the plugin fields and the pipeline should not be reported by
         # find_matching_pipeline_configurations.
         self.mockgun.update(
@@ -732,10 +814,9 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         pcs = self.resolver.find_matching_pipeline_configurations(None, "john.smith", self.mockgun)
         self.assertListEqual(pcs, [])
 
-
 class TestResolverSiteConfig(TestResolverBase):
     """
-    All Test Resoolver tests, just with the site config instead of a project config
+    All Test Resolver tests, just with the site config instead of a project config
     """
 
     def setUp(self):
@@ -799,6 +880,8 @@ class TestResolvedConfiguration(TankTestBase):
         """
         Makes sure an installed configuration is resolved.
         """
+        # note: this is using the classic config that is part of the
+        #       std test fixtures.
         config = self._resolver.resolve_shotgun_configuration(
             self.tk.pipeline_configuration.get_shotgun_id(),
             "sgtk:descriptor:not?a=descriptor",
