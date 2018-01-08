@@ -75,9 +75,9 @@ class SetupProjectAction(Action):
         self.parameters["config_uri"] = { "description": ("The configuration to use when setting up this project. "
                                                           "This can be a path on disk to a directory containing a "
                                                           "config, a path to a git bare repo (e.g. a git repo path "
-                                                          "which ends with .git) or 'tk-config-default' "
+                                                          "which ends with .git) or 'tk-config-default2' "
                                                           "to fetch the default config from the toolkit app store."),
-                                          "default": "tk-config-default",
+                                          "default": "tk-config-default2",
                                           "type": "str" }
 
         # note how the current platform's default value is None in order to make that required
@@ -689,8 +689,6 @@ class SetupProjectAction(Action):
 
         return location
 
-
-
     def _ask_location(self, log, default, os_nice_name):
         """
         Helper method - asks the user where to put a pipeline config.
@@ -742,6 +740,10 @@ class SetupProjectAction(Action):
         log.info("  - on Linux:   '%s'" % params.get_associated_core_path("linux2"))
         log.info("  - on Windows: '%s'" % params.get_associated_core_path("win32"))            
         log.info("")
+        log.info("NOTE: If the installed configuration contains a ")
+        log.info("      core_api.yml file, the version of core specified in ")
+        log.info("      that file will be localized after project setup is ")
+        log.info("      complete.")
         log.info("")
 
 

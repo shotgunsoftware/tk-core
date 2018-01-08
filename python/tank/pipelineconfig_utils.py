@@ -22,12 +22,6 @@ from tank_vendor import yaml
 from . import constants
 from . import LogManager
 
-from .descriptor import (
-    Descriptor,
-    create_descriptor,
-    is_descriptor_version_missing
-)
-
 from .util import yaml_cache
 from .util import ShotgunPath
 from .util.shotgun import get_deferred_sg_connection
@@ -178,6 +172,13 @@ def get_core_descriptor(pipeline_config_path, shotgun_connection,
 
     :return: A core descriptor object
     """
+
+    # avoid circular dependencies
+    from .descriptor import (
+        Descriptor,
+        create_descriptor,
+        is_descriptor_version_missing
+    )
 
     descriptor_file_path = _get_core_descriptor_file(pipeline_config_path)
 
