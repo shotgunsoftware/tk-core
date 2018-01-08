@@ -157,8 +157,7 @@ def get_roots_metadata(pipeline_config_path):
 ####################################################################################################################
 # Core API resolve utils
 
-def get_core_descriptor(pipeline_config_path, shotgun_connection,
-    bundle_cache_fallback_paths=None):
+def get_core_descriptor(pipeline_config_path, shotgun_connection, bundle_cache_fallback_paths=None):
     """
     Returns a descriptor object for the uri/dict defined in the config's
     ``core_api.yml`` file (if it exists).
@@ -201,8 +200,8 @@ def get_core_descriptor(pipeline_config_path, shotgun_connection,
         core_descriptor_dict = data["location"]
     except Exception as e:
         raise TankError(
-            "Cannot read invalid core descriptor file '%s': %s" % (
-            descriptor_file_path, e)
+            "Cannot read invalid core descriptor file '%s': %s" %
+            (descriptor_file_path, e)
         )
     finally:
         fh.close()
