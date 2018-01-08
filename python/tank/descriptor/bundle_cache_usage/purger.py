@@ -26,9 +26,6 @@ class BundleCacheUsagePurger(object):
     .. note:: All execution of this code is occuring in the main foreground thread.
     """
 
-    # A database flagging that the the initial bundle cache scan was performed.
-    INITIAL_DB_POPULATE_DONE_MARKER = "INITIAL_POPULATE_DONE"
-
     def __init__(self):
         super(BundleCacheUsagePurger, self).__init__()
         self._database = BundleCacheUsageDatabase()
@@ -114,17 +111,6 @@ class BundleCacheUsagePurger(object):
         # TODO: Process other bundle_cache sub folders
 
         return app_store_bundle_list
-
-    @property
-    def _marker_name(self):
-        """
-        Helper property returning the full marker name
-
-        .. note:: the marker is used to specify that the initial bundle search was performed.
-
-        :return: A str bundle-like path
-        """
-        return os.path.join(self.bundle_cache_root, self.INITIAL_DB_POPULATE_DONE_MARKER)
 
     def _get_filelist(self, bundle_path):
         """
@@ -227,16 +213,15 @@ class BundleCacheUsagePurger(object):
         for bundle_path in found_bundles:
             self._database.add_unused_bundle(bundle_path)
 
-        log.info("populating done, found %d entries" % (len(found_bundles)))
-
-        self._database.log_usage(self._marker_name)
+        log.debug("populating done, found %d entries" % (len(found_bundle_path_list)))
+        self._database.initial_populate_performed = True
 
     @property
     def initial_populate_performed(self):
         """
         :return: bool True if the initial database population was performed else False
         """
-        return self._database.get_bundle(self._marker_name) is not None
+        return self._database.initial_populate_performed
 
     def get_bundle_count(self):
         """
@@ -244,12 +229,7 @@ class BundleCacheUsagePurger(object):
 
         :return: An int count
         """
-        count = self._database.get_bundle_count()
-        # Subtract marker if present.
-        if self.initial_populate_performed:
-            count -= 1
-
-        return count
+        return self._database.get_bundle_count()
 
     def get_unused_bundles(self, since_days=60):
         """
@@ -258,15 +238,15 @@ class BundleCacheUsagePurger(object):
         :param since_days: an int count of days
         :return: A list of :class:`~BundleCacheUsageDatabaseEntry`
         """
-        oldest_timestamp = self._database._get_timestamp() - (since_days * 24 * 3600)
-        bundle_list = self._database.get_unused_bundles(oldest_timestamp)
-        # Remove marker entry if present
-        if self.initial_populate_performed:
-            for bundle in bundle_list:
-                if bundle.path.endswith(self.INITIAL_DB_POPULATE_DONE_MARKER):
-                    bundle_list.remove(bundle)
+        log.debug(
+            "Generating list of items in '%s' that haven't been accessed for %d or more days." % (
+                self.bundle_cache_root,
+                since_days
+            )
+        )
 
-        return bundle_list
+        oldest_timestamp = self._database._get_timestamp() - (since_days * 24 * 3600)
+        return self._database.get_unused_bundles(oldest_timestamp)
 
     def purge_bundle(self, bundle):
         """

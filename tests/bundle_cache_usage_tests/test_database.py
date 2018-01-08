@@ -66,6 +66,26 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self._db = BundleCacheUsageDatabase()
         self.assertEquals(self.bundle_cache_root, self._db.bundle_cache_root)
 
+    def test_initial_populate_marker(self):
+        """ Test special marker usage """
+
+        #  Test that special marker doesn't exists after DB creation.
+        self.assertFalse(self.db.initial_populate_performed)
+        self.assertIsNone(self.db.get_bundle(self.db._marker_name))
+
+        # Set the marker
+        self.db.initial_populate_performed = True
+        self.assertTrue(self.db.initial_populate_performed)
+        self.assertIsNotNone(self.db.get_bundle(self.db._marker_name))
+
+        # Check that row count is not affected
+        self.assertEquals(self.db.get_bundle_count(), 0)
+
+        # Clear the marker
+        self.db.initial_populate_performed = False
+        self.assertFalse(self.db.initial_populate_performed)
+        self.assertIsNone(self.db.get_bundle(self.db._marker_name))
+
     def test_add_unused_bundle(self):
         """
         Tests that we can add a new bundle entry with an access count of zero
@@ -380,6 +400,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
             # Since the value cannot be converted, we expect an exception
             with self.assertRaises(ValueError):
                 self.db.log_usage(self._test_bundle_path)
+
 
 
 

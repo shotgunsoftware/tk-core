@@ -115,6 +115,9 @@ class BundleCacheUsageDatabase(object):
 
     DB_FILENAME = "bundle_usage.sqlite3"
 
+    # A database flag that indicates that the the initial bundle cache scan was performed.
+    INITIAL_DB_POPULATE_DONE_MARKER = "INITIAL_POPULATE_DONE"
+
     # database column indexes
     (
         DB_COL_INDEX_PATH,
@@ -283,6 +286,17 @@ class BundleCacheUsageDatabase(object):
                     (truncated_path, now_unix_timestamp, now_unix_timestamp, initial_usage_count)
                 )
 
+    @property
+    def _marker_path(self):
+        """
+        Helper property returning the full marker name which includes base path
+
+        .. note:: the marker is used to specify that the initial bundle search was performed.
+
+        :return: A str bundle-like path
+        """
+        return os.path.join(self.bundle_cache_root, self.INITIAL_DB_POPULATE_DONE_MARKER)
+
     def _truncate_path(self, bundle_path):
         """
         Helper method that returns a truncated path of the specified bundle path.
@@ -371,8 +385,10 @@ class BundleCacheUsageDatabase(object):
         result = self._execute(
             """
             SELECT COUNT(*)
-            from bundles
+            FROM bundles
+            WHERE path!=?
             """
+            , (self.INITIAL_DB_POPULATE_DONE_MARKER,)
         )
 
         return result.fetchone()[0] if result else 0
@@ -389,9 +405,9 @@ class BundleCacheUsageDatabase(object):
             """
             SELECT *
             FROM bundles
-            WHERE last_usage <= ?
+            WHERE last_usage <= ? AND path!=?
             """,
-            (since_timestamps,)
+            (since_timestamps, self.INITIAL_DB_POPULATE_DONE_MARKER)
         )
 
         entry_list = []
@@ -419,6 +435,34 @@ class BundleCacheUsageDatabase(object):
         :return: A string of the path & filename to the database file.
         """
         return self._bundle_cache_usage_db_filename
+
+    @property
+    def initial_populate_performed(self):
+        """
+        Returns whether or not the initial database population was performed.
+        :return: bool True if the initial population was performed else False
+        """
+        return self.get_bundle(self._marker_path) is not None
+
+    @initial_populate_performed.setter
+    def initial_populate_performed(self, performed):
+        """
+        Sets or clears the initial database population was performed flag by adding a special record marker.
+        :param performed: Bool
+        """
+        if performed:
+            # Add marker
+            self.log_usage(self._marker_path)
+        else:
+            # Remove marker
+            # NOTE: No need to use full path and then truncate
+            self._execute(
+                """
+                DELETE FROM bundles
+                WHERE path=?
+                """,
+                (self.INITIAL_DB_POPULATE_DONE_MARKER,)
+            )
 
 
 

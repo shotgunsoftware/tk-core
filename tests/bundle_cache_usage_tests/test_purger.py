@@ -161,12 +161,9 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
         relevant added code.
         """
 
-        marker_name = self._purger._marker_name
-
         database = BundleCacheUsageDatabase()
 
         self.assertEquals(0, database.get_bundle_count())
-        self.assertIsNone(database.get_bundle(marker_name))
         self.assertFalse(self._purger.initial_populate_performed)
 
         if use_mock:
@@ -190,9 +187,6 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
 
         bundle_list = self._purger.get_unused_bundles()
         self.assertEquals(self.FAKE_TEST_BUNDLE_COUNT, len(bundle_list))
-        # Finally, make sure the marker entry is not in the list
-        for bundle in bundle_list:
-            self.assertFalse(BundleCacheUsagePurger.INITIAL_DB_POPULATE_DONE_MARKER in bundle.path)
 
     def test_initial_populate_performed(self):
         """
