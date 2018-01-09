@@ -213,9 +213,10 @@ class BundleCacheUsagePurger(object):
         Performs the initial-one-time search for bundles in the bundle cache and populate
         the database as unused entries.
         """
-        log.info("Searching for existing bundles ...")
-        found_bundles = self._find_bundles()
-        for bundle_path in found_bundles:
+        log.debug("Searching for existing bundles ...")
+        found_bundle_path_list = self._find_app_store_bundles()
+        for bundle_path in found_bundle_path_list:
+            log.debug("Adding bundle '%s' to database" % (bundle_path))
             self._database.add_unused_bundle(bundle_path)
 
         log.debug("populating done, found %d entries" % (len(found_bundle_path_list)))
@@ -252,6 +253,15 @@ class BundleCacheUsagePurger(object):
         :param bundle: a :class:`~BundleCacheUsageDatabaseEntry` instance
         """
         try:
+            log.debug(
+                "Removing bundle '%s' from disk, last accessed on %s" % (
+                    (
+                        os.path.join(self.bundle_cache_root, bundle.path),
+                        bundle.last_usage_date_formatted
+                    )
+                )
+            )
+
             filelist = self._get_filelist(bundle.path)
             self._paranoid_delete(filelist)
             # No exception, everything was deleted
@@ -265,7 +275,6 @@ class BundleCacheUsagePurger(object):
 
             #  Finally, delete the database entry
             self._database.delete_entry(bundle)
-            log.debug("Deleted bundle '%s'" % str(bundle.path))
 
         except Exception as e:
             log.error("Error deleting the following bundle:%s exception:%s" % (bundle.path, e))

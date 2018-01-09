@@ -970,15 +970,10 @@ class ToolkitManager(object):
             if os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE"):
                 log.debug("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE set, bundle auto-purge disabled.")
             else:
-                self._report_progress(progress_callback, self._STARTING_TOOLKIT_RATE, "Cleaning up app cache...")
-                bundle_list = bundle_cache_purger.get_unused_bundles(purge_timeout)
+                self._report_progress(progress_callback, self._PURGING_UNUSED_BUNDLES, "Cleaning up app cache...")
+                bundle_list = bundle_cache_purger.get_unused_bundles(self.TOOLKIT_BUNDLE_CACHE_AUTO_DELETE_TIMEOUT)
                 for bundle in bundle_list:
                     bundle_cache_purger.purge_bundle(bundle)
-                    log.debug(
-                        "Removing all items in bundle cache '%s' which havent't been used in more than %d days (%s)" % (
-                            (bundle.path, purge_timeout, bundle.last_usage_date)
-                        )
-                    )
         else:
             bundle_cache_purger.initial_populate()
 
