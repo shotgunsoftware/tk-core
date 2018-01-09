@@ -70,7 +70,7 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
 
             if random.randint(0, 1):
                 start_time = time.time()
-                purger.get_bundle_count()
+                purger.bundle_count
                 # Check that execution is near instant
                 self.assertLess(
                     time.time() - start_time,
@@ -163,7 +163,7 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
 
         database = BundleCacheUsageDatabase()
 
-        self.assertEquals(0, database.get_bundle_count())
+        self.assertEquals(0, database.bundle_count)
         self.assertFalse(self._purger.initial_populate_performed)
 
         if use_mock:
@@ -182,7 +182,7 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
             # Disable override
             os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = ""
 
-        self.assertEquals(self.FAKE_TEST_BUNDLE_COUNT, self._purger.get_bundle_count())
+        self.assertEquals(self.FAKE_TEST_BUNDLE_COUNT, self._purger.bundle_count)
         self.assertTrue(self._purger.initial_populate_performed)
 
         bundle_list = self._purger.get_unused_bundles()
@@ -380,13 +380,13 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
 
         # Assert the test setup itself
         self.assertTrue(os.path.exists(self._test_bundle_path))
-        self.assertEquals(0, self._purger.get_bundle_count())
+        self.assertEquals(0, self._purger.bundle_count)
 
         with patch("time.time", return_value=self._bundle_last_usage_time):
             # Relying on the PipelineConfig initializing worker thread
             BundleCacheUsageLogger.log_usage(test_bundle_path)
             time.sleep(self.WAIT_TIME_SHORT) # logging is async, we need to wait to endure operation is done
-            self.assertEquals(1, self._purger.get_bundle_count())
+            self.assertEquals(1, self._purger.bundle_count)
 
         # Get list and purge old bundles
         bundle_list = self._purger.get_unused_bundles()
@@ -394,7 +394,7 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
         self._purger.purge_bundle(bundle_list[0])
 
         # Now verify that neither files or database entry exist
-        self.assertEquals(0, self._purger.get_bundle_count())
+        self.assertEquals(0, self._purger.bundle_count)
         self.assertFalse(os.path.exists(test_bundle_path))
 
         # Finally, that the parent folder still exists
@@ -437,7 +437,7 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
         # Relying on the PipelineConfig initializing worker thread
         BundleCacheUsageLogger.log_usage(test_bundle_path)
         time.sleep(self.WAIT_TIME_SHORT) # logging is async, we need to wait to endure operation is done
-        self.assertEquals(1, self._purger.get_bundle_count())
+        self.assertEquals(1, self._purger.bundle_count)
 
         # Purge the bundle
         database = BundleCacheUsageDatabase()
@@ -452,7 +452,7 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
         self._purger.purge_bundle(fake_bundle_entry)
 
         # Now verify that the bundle root folder and database entry still exist
-        self.assertEquals(1, self._purger.get_bundle_count())
+        self.assertEquals(1, self._purger.bundle_count)
         self.assertTrue(os.path.exists(test_bundle_path))
         self.assertTrue(os.path.exists(dest_path))
         self.assertTrue(os.path.islink(dest_path))

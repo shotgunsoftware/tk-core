@@ -71,20 +71,20 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
         #  Test that special marker doesn't exists after DB creation.
         self.assertFalse(self.db.initial_populate_performed)
-        self.assertIsNone(self.db.get_bundle(self.db._marker_name))
+        self.assertIsNone(self.db.get_bundle(self.db._marker_path))
 
         # Set the marker
         self.db.initial_populate_performed = True
         self.assertTrue(self.db.initial_populate_performed)
-        self.assertIsNotNone(self.db.get_bundle(self.db._marker_name))
+        self.assertIsNotNone(self.db.get_bundle(self.db._marker_path))
 
         # Check that row count is not affected
-        self.assertEquals(self.db.get_bundle_count(), 0)
+        self.assertEquals(self.db.bundle_count, 0)
 
         # Clear the marker
         self.db.initial_populate_performed = False
         self.assertFalse(self.db.initial_populate_performed)
-        self.assertIsNone(self.db.get_bundle(self.db._marker_name))
+        self.assertIsNone(self.db.get_bundle(self.db._marker_path))
 
     def test_add_unused_bundle(self):
         """
@@ -92,7 +92,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         """
 
         # Pre Checks
-        self.assertEquals(self.db.get_bundle_count(), 0)
+        self.assertEquals(self.db.bundle_count, 0)
         self.assertIsNone(self.db.get_bundle(self._test_bundle_path))
 
         # Add unused bundle
@@ -100,7 +100,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         with patch("time.time", return_value=now):
             self.db.add_unused_bundle(self._test_bundle_path)
 
-        self.assertEquals(1, self.db.get_bundle_count())
+        self.assertEquals(1, self.db.bundle_count)
         bundle = self.db.get_bundle(self._test_bundle_path)
         self.assertIsNotNone(bundle)
         self.assertEquals(0, bundle.usage_count)
@@ -119,7 +119,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         with patch("time.time", return_value=now):
             self.db.log_usage(self._test_bundle_path)
 
-        self.assertEquals(1, self.db.get_bundle_count())
+        self.assertEquals(1, self.db.bundle_count)
         bundle = self.db.get_bundle(self._test_bundle_path)
         self.assertIsNotNone(bundle)
         self.assertEquals(1, bundle.usage_count)
@@ -143,7 +143,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.db.log_usage(None)
 
         # Low level test for record count
-        self.assertEquals(self.db.get_bundle_count(), 0, "Was not expecting a new entry from None")
+        self.assertEquals(self.db.bundle_count, 0, "Was not expecting a new entry from None")
 
     def test_db_log_usage_for_new_entry(self):
         """
@@ -151,7 +151,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         """
 
         # Low level test for record count
-        self.assertEquals(self.db.get_bundle_count(), 0)
+        self.assertEquals(self.db.bundle_count, 0)
         # Test before logging anything
         self.assertIsNone(self.db.get_bundle(self._test_bundle_path))
 
@@ -159,7 +159,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.db.log_usage(self._test_bundle_path)
 
         # Low level test for record count
-        self.assertEquals(self.db.get_bundle_count(), 1)
+        self.assertEquals(self.db.bundle_count, 1)
 
         # Test after logging usage
         bundle = self.db.get_bundle(self._test_bundle_path)
@@ -179,7 +179,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         # We expect a single record still
         self.assertEquals(
             1,
-            self.db.get_bundle_count(),
+            self.db.bundle_count,
             "Was expecting a single row since we've logged the same entry."
         )
 
@@ -208,7 +208,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
         # Low level test for record count, we're logging the same bundle name twice
         # We expect a single record still
-        self.assertEquals(self.db.get_bundle_count(), 4)
+        self.assertEquals(self.db.bundle_count, 4)
 
     def test_get_unused_bundles(self):
         """
@@ -247,14 +247,14 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
         # Verify initial DB properties
         self.assertIsNone(self.db.get_bundle(self._test_bundle_path))
-        self.assertEquals(0, self.db.get_bundle_count())
+        self.assertEquals(0, self.db.bundle_count)
 
         # Log some usage / add bundle
         self.db.log_usage(self._test_bundle_path)
         bundle = self.db.get_bundle(self._test_bundle_path)
         self.assertIsNotNone(bundle)
         self.assertEquals(1, bundle.usage_count)
-        self.assertEquals(1, self.db.get_bundle_count())
+        self.assertEquals(1, self.db.bundle_count)
 
         # Try deleting a non-existing entry
         non_existing_bundle = BundleCacheUsageDatabaseEntry(
@@ -266,7 +266,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
             )
         )
         self.db.delete_entry(non_existing_bundle)
-        self.assertEquals(self.db.get_bundle_count(), 1)
+        self.assertEquals(self.db.bundle_count, 1)
 
         # Create a 'fake' bundle entry, delete it,
         # and verify final DB properties
@@ -280,7 +280,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         )
         self.db.delete_entry(existing_bundle)
         self.assertIsNone(self.db.get_bundle(self._test_bundle_path))
-        self.assertEquals(self.db.get_bundle_count(), 0)
+        self.assertEquals(self.db.bundle_count, 0)
 
     def test_methods_with_non_existing_entry(self):
         """
@@ -295,14 +295,14 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         now = self.db._get_timestamp()
         bundle = self.db.get_bundle(bundle_path)
         self.assertIsNone(bundle)
-        self.assertEquals(0, self.db.get_bundle_count())
+        self.assertEquals(0, self.db.bundle_count)
 
         # Log some usage / add bundle
         self.db.log_usage(bundle_path)
         bundle = self.db.get_bundle(bundle_path)
         self.assertIsNotNone(bundle)
         self.assertEquals(1, bundle.usage_count)
-        self.assertEquals(1, self.db.get_bundle_count())
+        self.assertEquals(1, self.db.bundle_count)
         self.assertLessEqual(now, bundle.last_usage_time)
         self.assertLessEqual(now, bundle.creation_time)
 
@@ -310,7 +310,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.db.log_usage(non_existing_bundle_name)
         bundle = self.db.get_bundle(non_existing_bundle_name)
         self.assertIsNone(bundle)
-        self.assertEquals(1, self.db.get_bundle_count())
+        self.assertEquals(1, self.db.bundle_count)
 
     def test_date_format(self):
 
@@ -350,7 +350,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         environment variable.
         """
 
-        self.assertEquals(0, self.db.get_bundle_count())
+        self.assertEquals(0, self.db.bundle_count)
 
         # Make sure override is disabled
         os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = ""
@@ -379,7 +379,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         environment variable with bad value.
         """
 
-        self.assertEquals(0, self.db.get_bundle_count())
+        self.assertEquals(0, self.db.bundle_count)
 
         # Make sure override is disabled
         os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = ""

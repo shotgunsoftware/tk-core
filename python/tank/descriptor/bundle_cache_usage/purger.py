@@ -196,11 +196,16 @@ class BundleCacheUsagePurger(object):
     @property
     def bundle_cache_root(self):
         """
-        Returns the path to the specified bundle cache root folder.
-
-        :return: A str path, typically to the global bundle cache folder.
+        Returns the path to the typical global bundle cache root folder.
         """
         return self._database.bundle_cache_root
+
+    @property
+    def bundle_count(self):
+        """
+        Returns an integer of the number of currently tracked bundles in the database
+        """
+        return self._database.bundle_count
 
     @LogManager.log_timing
     def initial_populate(self):
@@ -219,17 +224,9 @@ class BundleCacheUsagePurger(object):
     @property
     def initial_populate_performed(self):
         """
-        :return: bool True if the initial database population was performed else False
+        Returns a boolean true if the initial database population was performed else False
         """
         return self._database.initial_populate_performed
-
-    def get_bundle_count(self):
-        """
-        Returns the number of currently tracked bundles in the database
-
-        :return: An int count
-        """
-        return self._database.get_bundle_count()
 
     def get_unused_bundles(self, since_days=60):
         """

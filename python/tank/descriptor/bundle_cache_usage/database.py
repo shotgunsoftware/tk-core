@@ -8,11 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Methods relating to the Path cache, a central repository where metadata about
-all Tank items in the file system are kept.
-
-"""
 
 import os
 import time
@@ -57,8 +52,8 @@ class BundleCacheUsageDatabaseEntry(object):
     @property
     def creation_date_formatted(self):
         """
-        Returns the entry date when initially added to the database
-        :return: an str human readable formatted datetime such as: Tuesday, 21. November 2017 14:30:22
+        Returns the entry date when added to the database in a human readable
+        formatted datetime string such as: Tuesday, 21. November 2017 14:30:22
         """
         return BundleCacheUsageDatabaseEntry._format_date_from_timestamp(
             self.creation_time
@@ -67,16 +62,15 @@ class BundleCacheUsageDatabaseEntry(object):
     @property
     def creation_time(self):
         """
-        Returns the entry time when initially added to the database
-        :return: an int unix timestamp
+        Returns the entry time when initially added to the database in an integer Unix timestamp
         """
         return self._creation_time
 
     @property
     def last_usage_date_formatted(self):
         """
-        Returns the entry last accessed date
-        :return: an str human readable formatted datetime such as: Tuesday, 21. November 2017 14:30:22
+        Returns the entry last accessed date in a human readable
+        formatted datetime string such as: Tuesday, 21. November 2017 14:30:22
         """
         return BundleCacheUsageDatabaseEntry._format_date_from_timestamp(
             self.last_usage_time
@@ -85,28 +79,28 @@ class BundleCacheUsageDatabaseEntry(object):
     @property
     def last_usage_time(self):
         """
-        Returns the entry last accessed time
-        :return: an int unix timestamp
+        Returns the entry last accessed time in an integer Unix timestamp
         """
         return self._last_usage_time
 
     @property
     def path(self):
         """
-        Returns the entry identifier
-        :return: a str truncated path
+        Returns the entry identifier with truncated path
         """
         return self._path
 
     @property
     def usage_count(self):
         """
-        Returns the entry usage count
-        :return: a int
+        Returns an integer of the entry usage count
         """
         return self._usage_count
 
     def __str__(self):
+        """
+        Returns a conveniently in the form: `path, last usage Unix, last usage date (formatted)`
+        """
         return "%s, %d (%s)" % (self.path, self.last_usage_time, self.last_usage_date_formatted)
 
 
@@ -139,17 +133,17 @@ class BundleCacheUsageDatabase(object):
 
         if bundle_cache_root is None:
             raise BundleCacheUsageInvalidBundleCacheRootError(
-                "The 'bundle_cache_root' parameter is None."
+                "The 'bundle_cache_root' is None."
             )
 
         if not os.path.exists(bundle_cache_root):
             raise BundleCacheUsageInvalidBundleCacheRootError(
-                "The specified 'bundle_cache_root' parameter folder does not exists: %s" % (bundle_cache_root)
+                "The 'bundle_cache_root' folder does not exists: %s" % (bundle_cache_root)
             )
 
         if not os.path.isdir(bundle_cache_root):
             raise BundleCacheUsageInvalidBundleCacheRootError(
-                "The specified 'bundle_cache_root' parameter is not a directory: %s" % (bundle_cache_root)
+                "The 'bundle_cache_root' is not a directory: %s" % (bundle_cache_root)
             )
 
         self._bundle_cache_root = bundle_cache_root
@@ -289,11 +283,9 @@ class BundleCacheUsageDatabase(object):
     @property
     def _marker_path(self):
         """
-        Helper property returning the full marker name which includes base path
+        Helper property returning a bundle-like full path marker name which includes the base path
 
         .. note:: the marker is used to specify that the initial bundle search was performed.
-
-        :return: A str bundle-like path
         """
         return os.path.join(self.bundle_cache_root, self.INITIAL_DB_POPULATE_DONE_MARKER)
 
@@ -338,11 +330,25 @@ class BundleCacheUsageDatabase(object):
     @property
     def bundle_cache_root(self):
         """
-        Returns the path the database was created in.
-
-        :return: A str path, typically the bundle cache folder.
+        Returns the path of the typical global bundle cache root folder.
         """
         return self._bundle_cache_root
+
+    @property
+    def bundle_count(self):
+        """
+        Returns an integer of the number of currently tracked bundles in the database
+        """
+        result = self._execute(
+            """
+            SELECT COUNT(*)
+            FROM bundles
+            WHERE path!=?
+            """
+            , (self.INITIAL_DB_POPULATE_DONE_MARKER,)
+        )
+
+        return result.fetchone()[0] if result else 0
 
     def delete_entry(self, bundle):
         """
@@ -374,23 +380,6 @@ class BundleCacheUsageDatabase(object):
                 return bundle
 
         return None
-
-    def get_bundle_count(self):
-        """
-        Returns the number of bundles being tracked in the database.
-
-        :return: an int count
-        """
-        result = self._execute(
-            """
-            SELECT COUNT(*)
-            FROM bundles
-            WHERE path!=?
-            """
-            , (self.INITIAL_DB_POPULATE_DONE_MARKER,)
-        )
-
-        return result.fetchone()[0] if result else 0
 
     def get_unused_bundles(self, since_timestamps):
         """
@@ -429,9 +418,8 @@ class BundleCacheUsageDatabase(object):
     @property
     def path(self):
         """
-        Returns the full path & filename to the database
+        Returns a string of the full path & filename to the database
         NOTE: The filename is not cleared on closing the database.
-        :return: A string of the path & filename to the database file.
         """
         return self._bundle_cache_usage_db_filename
 
