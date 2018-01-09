@@ -126,6 +126,20 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.assertEquals(now, bundle.creation_time)
         self.assertEquals(now, bundle.last_usage_time)
 
+        # Log some more usage
+        later = now + 1000
+        with patch("time.time", return_value=later):
+            self.db.log_usage(self._test_bundle_path)
+            self.db.log_usage(self._test_bundle_path)
+            self.db.log_usage(self._test_bundle_path)
+
+        self.assertEquals(1, self.db.bundle_count)
+        bundle = self.db.get_bundle(self._test_bundle_path)
+        self.assertIsNotNone(bundle)
+        self.assertEquals(4, bundle.usage_count)
+        self.assertEquals(now, bundle.creation_time)
+        self.assertEquals(later, bundle.last_usage_time)
+
     def test_property_path(self):
         """
         Tests that the 'path' property returns the expected value even after database close

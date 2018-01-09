@@ -252,32 +252,35 @@ class BundleCacheUsageDatabase(object):
         truncated_path = self._truncate_path(bundle_path)
         if truncated_path:
             now_unix_timestamp = self._get_timestamp()
-            entry = self._find_entry(truncated_path)
-            if entry:
-                # Update
-                self._execute(
-                    """
-                    UPDATE bundles
-                    SET last_usage = ?,
-                    usage_count = ?
-                    WHERE path = ?
-                    """,
-                    (now_unix_timestamp, entry.usage_count + 1, entry.path)
+            #
+            # UPSERT *not* INSERT or REPLACE:
+            #
+            # Reference:
+            # https://stackoverflow.com/a/4330694/710183
+            # https://en.wikipedia.org/wiki/Merge_(SQL)
+            #
+            self._execute(
+                """
+                INSERT OR REPLACE INTO bundles (
+                    path,
+                    creation,
+                    last_usage,
+                    usage_count
                 )
-            else:
-                # Insert
-                self._execute(
-                    """
-                    INSERT INTO bundles(
-                        path,
-                        creation,
-                        last_usage,
-                        usage_count
-                    ) 
-                    VALUES(?,?,?,?)
-                    """,
-                    (truncated_path, now_unix_timestamp, now_unix_timestamp, initial_usage_count)
+                VALUES(
+                    ?,
+                    COALESCE((SELECT creation FROM bundles WHERE path=?), ?),
+                    ?,
+                    COALESCE((SELECT usage_count FROM bundles WHERE path=?)+1, ?)
                 )
+                """,
+                (
+                    truncated_path,                      # Set 'path'
+                    truncated_path, now_unix_timestamp,  # Get OR set 'creation'
+                    now_unix_timestamp,                  # Set 'last_usage'
+                    truncated_path, initial_usage_count  # Update OR set 'usage_count'
+                )
+            )
 
     @property
     def _marker_path(self):
