@@ -1,0 +1,554 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tank.util.shotgun_entity &mdash; tk-core v0.18.121 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.121 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../../../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../../../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../bootstrap.html">Deploy and management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+
+    <a href='genindex.html'>Alphabetic Index</a>
+
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.121.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>tank.util.shotgun_entity</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tank.util.shotgun_entity</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2013 Shotgun Software Inc.</span>
+<span class="c1"># </span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1"># </span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utilities relating to shotgun entities </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
+
+<span class="c1"># A dictionary for Shotgun entities which do not store their name</span>
+<span class="c1"># in the standard &quot;code&quot; field.</span>
+<span class="n">SG_ENTITY_SPECIAL_NAME_FIELDS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Project&quot;</span><span class="p">:</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Task&quot;</span><span class="p">:</span> <span class="s2">&quot;content&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;HumanUser&quot;</span><span class="p">:</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Note&quot;</span><span class="p">:</span> <span class="s2">&quot;subject&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Department&quot;</span><span class="p">:</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Delivery&quot;</span><span class="p">:</span> <span class="s2">&quot;title&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="get_sg_entity_name_field"><a class="viewcode-back" href="../../../utils.html#sgtk.util.get_sg_entity_name_field">[docs]</a><span class="k">def</span> <span class="nf">get_sg_entity_name_field</span><span class="p">(</span><span class="n">entity_type</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the Shotgun name field to use for the specified entity type.</span>
+
+<span class="sd">    :param entity_type: The entity type to get the name field for.</span>
+<span class="sd">    :returns: The name field for the specified entity type.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Deal with some known special cases and assume &quot;code&quot; for anything else.</span>
+    <span class="k">return</span> <span class="n">SG_ENTITY_SPECIAL_NAME_FIELDS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="s2">&quot;code&quot;</span><span class="p">)</span></div>
+
+<span class="k">def</span> <span class="nf">sg_entity_to_string</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">sg_entity_type</span><span class="p">,</span> <span class="n">sg_id</span><span class="p">,</span> <span class="n">sg_field_name</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates a string value given a shotgun value.</span>
+<span class="sd">    This logic is in a hook but it typically does conversions such as:</span>
+<span class="sd">    </span>
+<span class="sd">    * &quot;foo&quot; ==&gt; &quot;foo&quot;</span>
+<span class="sd">    * {&quot;type&quot;:&quot;Shot&quot;, &quot;id&quot;:123, &quot;name&quot;:&quot;foo&quot;} ==&gt; &quot;foo&quot;</span>
+<span class="sd">    * 123 ==&gt; &quot;123&quot;</span>
+<span class="sd">    * [{&quot;type&quot;:&quot;Shot&quot;, &quot;id&quot;:1, &quot;name&quot;:&quot;foo&quot;}, {&quot;type&quot;:&quot;Shot&quot;, &quot;id&quot;:2, &quot;name&quot;:&quot;bar&quot;}] ==&gt; &quot;foo_bar&quot;</span>
+<span class="sd">    </span>
+<span class="sd">    This method may also raise exceptions in the case the string value is not valid.</span>
+<span class="sd">    </span>
+<span class="sd">    :param tk: Sgtk api instance</span>
+<span class="sd">    :param sg_entity_type: the shotgun entity type e.g. &#39;Shot&#39;</span>
+<span class="sd">    :param sg_id: The shotgun id for the record, e.g 1234</span>
+<span class="sd">    :param sg_field_name: The field to generate value for, e.g. &#39;sg_sequence&#39;</span>
+<span class="sd">    :param data: The shotgun entity data chunk that should be converted to a string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># call out to core hook</span>
+    <span class="k">return</span> <span class="n">tk</span><span class="o">.</span><span class="n">execute_core_hook</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">PROCESS_FOLDER_NAME_HOOK_NAME</span><span class="p">,</span> 
+                                <span class="n">entity_type</span><span class="o">=</span><span class="n">sg_entity_type</span><span class="p">,</span> 
+                                <span class="n">entity_id</span><span class="o">=</span><span class="n">sg_id</span><span class="p">,</span>
+                                <span class="n">field_name</span><span class="o">=</span><span class="n">sg_field_name</span><span class="p">,</span>
+                                <span class="n">value</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">EntityExpression</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a name expression for a shotgun entity.</span>
+<span class="sd">    A name expression converts a pattern and a set of shotgun data into a string:</span>
+<span class="sd">      </span>
+<span class="sd">    Expression                 Shotgun Entity Data                          String Result</span>
+<span class="sd">    ----------------------------------------------------------------------------------------</span>
+<span class="sd">    * &quot;code&quot;                 + {&quot;code&quot;: &quot;foo_bar&quot;}                      ==&gt; &quot;foo_bar&quot;</span>
+<span class="sd">    * &quot;{code}_{asset_type}&quot;  + {&quot;code&quot;: &quot;foo_bar&quot;, &quot;asset_type&quot;: &quot;car&quot;} ==&gt; &quot;foo_bar_car&quot; </span>
+<span class="sd">    </span>
+<span class="sd">    Optional fields are [bracketed]:</span>
+<span class="sd">    </span>
+<span class="sd">    * &quot;{code}[_{asset_type}]&quot; + {&quot;code&quot;: &quot;foo_bar&quot;, &quot;asset_type&quot;: &quot;car&quot;} ==&gt; &quot;foo_bar_car&quot;</span>
+<span class="sd">    * &quot;{code}[_{asset_type}]&quot; + {&quot;code&quot;: &quot;foo_bar&quot;, &quot;asset_type&quot;: None} ==&gt; &quot;foo_bar&quot;</span>
+<span class="sd">    </span>
+<span class="sd">    It it is always connected to a specific shotgun entity type and </span>
+<span class="sd">    the fields need to be shotgun fields that exists for that entity type.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">field_name_expr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructor.</span>
+<span class="sd">        </span>
+<span class="sd">        :param entity_type: the shotgun entity type this is connected to</span>
+<span class="sd">        :param field_name_expr: string representing the expression</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tk</span> <span class="o">=</span> <span class="n">tk</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_entity_type</span> <span class="o">=</span> <span class="n">entity_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_field_name_expr</span> <span class="o">=</span> <span class="n">field_name_expr</span>
+        
+        <span class="c1"># now validate</span>
+        <span class="k">if</span> <span class="s2">&quot;{&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">field_name_expr</span><span class="p">:</span>
+            <span class="c1"># simple form - surround with brackets to turn into a expression</span>
+            <span class="n">field_name_expr</span> <span class="o">=</span> <span class="s2">&quot;{</span><span class="si">%s</span><span class="s2">}&quot;</span> <span class="o">%</span> <span class="n">field_name_expr</span>
+        
+        <span class="c1"># now get all permutations for expressions with optional fields</span>
+        <span class="n">expr_variations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_expression_variations</span><span class="p">(</span><span class="n">field_name_expr</span><span class="p">)</span>
+
+        <span class="c1"># We want them most inclusive(longest) version first</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sorted_exprs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">expr_variations</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="c1"># now extract and store a bunch of data for each variation.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_variations</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">expr_variations</span><span class="p">:</span>
+            
+            <span class="k">try</span><span class="p">:</span>            
+                <span class="c1"># find all field names [&quot;xx&quot;, &quot;yy&quot;, &quot;zz.xx&quot;] from &quot;{xx}_{yy}_{zz.xx}&quot;</span>
+                <span class="n">fields</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;{([^}^{]*)}&#39;</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Could not parse the configuration field &#39;</span><span class="si">%s</span><span class="s2">&#39; - Error: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">field_name_expr</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span> <span class="p">)</span>
+
+            <span class="c1"># now look for any field which contains a dot - these are all deep links.</span>
+            <span class="c1"># for example: sg_sequence.Sequence.code</span>
+            <span class="c1"># extract the actual link field from each one and put in entity_links set</span>
+            <span class="c1"># (in the above case, that would be sg_sequence)</span>
+            <span class="n">entity_links</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">in</span> <span class="n">field</span><span class="p">:</span>
+                    <span class="n">entity_links</span><span class="o">.</span><span class="n">add</span><span class="p">(</span> <span class="n">field</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="p">)</span>
+                
+            <span class="c1"># add this to our variations dict</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_variations</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;entity_links&quot;</span><span class="p">:</span> <span class="n">entity_links</span><span class="p">,</span> <span class="s2">&quot;fields&quot;</span><span class="p">:</span> <span class="n">fields</span><span class="p">}</span>
+                
+    
+    <span class="k">def</span> <span class="nf">_get_expression_variations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns all possible optional variations for an expression.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;{manne}&quot;               ==&gt; [&#39;{manne}&#39;]</span>
+<span class="sd">        &quot;{manne}_{ludde}&quot;       ==&gt; [&#39;{manne}_{ludde}&#39;]</span>
+<span class="sd">        &quot;{manne}[_{ludde}]&quot;     ==&gt; [&#39;{manne}&#39;, &#39;{manne}_{ludde}&#39;]</span>
+<span class="sd">        &quot;{manne}_[{foo}_{bar}]&quot; ==&gt; [&#39;{manne}_&#39;, &#39;{manne}_{foo}_{bar}&#39;]</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># split definition by optional sections</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;(\[[^]]*\])&quot;</span><span class="p">,</span> <span class="n">definition</span><span class="p">)</span>
+        <span class="c1"># seed with empty string</span>
+        <span class="n">definitions</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
+            <span class="n">temp_definitions</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="c1"># regex return some blank strings, skip them</span>
+            <span class="k">if</span> <span class="n">token</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">token</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">):</span>
+                <span class="c1"># check that optional contains a key</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;{*[a-zA-Z_ 0-9]+}&quot;</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span> 
+                    <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Optional sections must include a key definition.&quot;</span><span class="p">)</span>
+                <span class="c1"># Add definitions skipping this optional value</span>
+                <span class="n">temp_definitions</span> <span class="o">=</span> <span class="n">definitions</span><span class="p">[:]</span>
+                <span class="c1"># strip brackets from token</span>
+                <span class="n">token</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;[\[\]]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">token</span><span class="p">)</span>
+            <span class="c1"># check non-optional contains no dangleing brackets</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;[\[\]]&quot;</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span> 
+                <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Square brackets are not allowed outside of optional section definitions.&quot;</span><span class="p">)</span>
+            <span class="c1"># make defintions with token appended</span>
+            <span class="k">for</span> <span class="n">definition</span> <span class="ow">in</span> <span class="n">definitions</span><span class="p">:</span>
+                <span class="n">temp_definitions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">definition</span> <span class="o">+</span> <span class="n">token</span><span class="p">)</span>
+            <span class="n">definitions</span> <span class="o">=</span> <span class="n">temp_definitions</span>
+        <span class="k">return</span> <span class="n">definitions</span>
+    
+    
+    <span class="k">def</span> <span class="nf">get_shotgun_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the shotgun fields that are needed in order to </span>
+<span class="sd">        build this name expression. Returns all fields, including optional.</span>
+<span class="sd">        </span>
+<span class="sd">        :returns: set of shotgun field names</span>
+<span class="sd">        &quot;&quot;&quot;</span>        
+        <span class="c1"># use the longest exprssion - this contains the most fields</span>
+        <span class="n">longest_expr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sorted_exprs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_variations</span><span class="p">[</span><span class="n">longest_expr</span><span class="p">][</span><span class="s2">&quot;fields&quot;</span><span class="p">])</span>
+    
+    <span class="k">def</span> <span class="nf">get_shotgun_link_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a list of all entity links that are used in the name expression, </span>
+<span class="sd">        including optional ones.</span>
+<span class="sd">        For example, if a name expression for a Shot is {code}_{sg_sequence.Sequence.code},</span>
+<span class="sd">        the link fields for this expression is sg_sequence. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">longest_expr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sorted_exprs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_variations</span><span class="p">[</span><span class="n">longest_expr</span><span class="p">][</span><span class="s2">&quot;entity_links&quot;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">generate_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates a name given some fields.</span>
+<span class="sd">        </span>
+<span class="sd">        Assumes the name will be used as a folder name and validates</span>
+<span class="sd">        that the evaluated expression is suitable for disk use.</span>
+<span class="sd">        </span>
+<span class="sd">        :param values: dictionary of values to use </span>
+<span class="sd">        :returns: fully resolved name string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+                
+        <span class="c1"># first make sure that each field is valid</span>
+        <span class="k">for</span> <span class="n">field_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_shotgun_fields</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">field_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+                <span class="c1"># required value was not provided!</span>
+                <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Folder Configuration Error: &quot;</span>
+                                <span class="s2">&quot;A Shotgun field &#39;</span><span class="si">%s</span><span class="s2">&#39; is being requested as part of the expression &quot;</span>
+                                <span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39; when creating folders connected to entities of type </span><span class="si">%s</span><span class="s2">, &quot;</span>
+                                <span class="s2">&quot;however no such field exists in Shotgun. Please review your &quot;</span>
+                                <span class="s2">&quot;configuration!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">field_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_field_name_expr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entity_type</span><span class="p">))</span>
+            
+        <span class="c1"># ok all fields are there. But some values may be none. Try to resolve our expression against</span>
+        <span class="c1"># the values, starting with the longest expression first.</span>
+        <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sorted_exprs</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_name</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="c1"># name generation worked! - do not try alternative (shorter) expressions</span>
+                <span class="k">break</span>
+        
+        <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c1"># completely failed to generate a name because of missing fields.</span>
+            
+            <span class="c1"># try to make a nice descriptive name if possible</span>
+            <span class="k">if</span> <span class="s2">&quot;code&quot;</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+                <span class="n">nice_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> (id </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_entity_type</span><span class="p">,</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">],</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">nice_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_entity_type</span><span class="p">,</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
+            
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Folder Configuration Error. Could not create folders for </span><span class="si">%s</span><span class="s2">! &quot;</span>
+                            <span class="s2">&quot;The expression </span><span class="si">%s</span><span class="s2"> refers to one or more values that are blank &quot;</span>
+                            <span class="s2">&quot;in Shotgun and a folder can therefore &quot;</span>
+                            <span class="s2">&quot;not be created.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nice_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_field_name_expr</span><span class="p">))</span>
+        
+        <span class="k">return</span> <span class="n">val</span> 
+
+    
+    <span class="k">def</span> <span class="nf">_generate_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates a name given some fields.</span>
+<span class="sd">        </span>
+<span class="sd">        Assumes the name will be used as a folder name and validates</span>
+<span class="sd">        that the evaluated expression is suitable for disk use.</span>
+<span class="sd">        </span>
+<span class="sd">        :param values: dictionary of values to use </span>
+<span class="sd">        :returns: fully resolved name string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variations</span><span class="p">[</span><span class="n">expression</span><span class="p">][</span><span class="s2">&quot;fields&quot;</span><span class="p">]</span>
+        
+        <span class="c1"># convert shotgun values to string values</span>
+        <span class="n">str_data</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="c1"># get the shotgun id from the shotgun entity dict</span>
+        <span class="n">sg_id</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># first make sure that each field is valid</span>
+        <span class="k">for</span> <span class="n">field_name</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+            <span class="c1"># get value from shotgun data dict</span>
+            <span class="n">raw_val</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">raw_val</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="c1"># cannot resolve this!</span>
+                <span class="k">return</span> <span class="bp">None</span>
+                
+            <span class="c1"># now cast the value to a string</span>
+            <span class="n">str_data</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">sg_entity_to_string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entity_type</span><span class="p">,</span> <span class="n">sg_id</span><span class="p">,</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">raw_val</span><span class="p">)</span>
+            
+        
+        <span class="c1"># change format from {xxx} to %(xxx)s for value substitution.</span>
+        <span class="n">adjusted_expr</span> <span class="o">=</span> <span class="n">expression</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">,</span> <span class="s2">&quot;%(&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;}&quot;</span><span class="p">,</span> <span class="s2">&quot;)s&quot;</span><span class="p">)</span>
+
+        <span class="c1"># just to be sure, make sure to catch any exceptions here</span>
+        <span class="c1"># and produce a more sensible error message.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">adjusted_expr</span> <span class="o">%</span> <span class="p">(</span><span class="n">str_data</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Could not populate values for the expression &#39;</span><span class="si">%s</span><span class="s2">&#39; - please &quot;</span>
+                            <span class="s2">&quot;contact support! Error message: </span><span class="si">%s</span><span class="s2">. &quot;</span>
+                            <span class="s2">&quot;Data: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">error</span><span class="p">,</span> <span class="n">str_data</span><span class="p">))</span>
+            
+        <span class="c1"># now validate the entire value!</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_name</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+            <span class="c1"># not valid!!!</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;The format string &#39;</span><span class="si">%s</span><span class="s2">&#39; used in the configuration &quot;</span>
+                   <span class="s2">&quot;does not generate a valid folder name (&#39;</span><span class="si">%s</span><span class="s2">&#39;)! Valid &quot;</span>
+                   <span class="s2">&quot;values are </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">VALID_SG_ENTITY_NAME_EXPLANATION</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>      
+            
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="k">def</span> <span class="nf">_validate_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check that the name meets basic file system naming standards.</span>
+<span class="sd">        &quot;&quot;&quot;</span>    
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entity_type</span> <span class="o">==</span> <span class="s2">&quot;Project&quot;</span><span class="p">:</span>
+            <span class="c1"># allow slashes in project names</span>
+            <span class="n">exp</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">VALID_SG_PROJECT_NAME_REGEX</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">UNICODE</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">exp</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">VALID_SG_ENTITY_NAME_REGEX</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">UNICODE</span><span class="p">)</span>    
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">exp</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># try decoding from utf-8:</span>
+            <span class="n">u_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">exp</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">u_name</span><span class="p">))</span>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'v0.18.121',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+  
+ 
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-2114792-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+</body>
+</html>

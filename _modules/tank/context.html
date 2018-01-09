@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.context &mdash; tk-core v0.18.120 documentation</title>
+  <title>tank.context &mdash; tk-core v0.18.121 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.120 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.121 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -118,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.120.<br>
+    <b>tk-core</b> v0.18.121.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1728,18 +1728,6 @@
 <span class="c1">################################################################################################</span>
 <span class="c1"># utility methods</span>
 
-<span class="k">def</span> <span class="nf">_get_entity_type_sg_name_field</span><span class="p">(</span><span class="n">entity_type</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return the Shotgun name field to use for the specified entity type.  This</span>
-<span class="sd">    is needed as not all entity types are consistent!</span>
-
-<span class="sd">    :param entity_type:     The entity type to get the name field for</span>
-<span class="sd">    :returns:               The name field for the specified entity type</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;HumanUser&quot;</span><span class="p">:</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> 
-            <span class="s2">&quot;Task&quot;</span><span class="p">:</span><span class="s2">&quot;content&quot;</span><span class="p">,</span> 
-            <span class="s2">&quot;Project&quot;</span><span class="p">:</span><span class="s2">&quot;name&quot;</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="s2">&quot;code&quot;</span><span class="p">)</span>
-
 <span class="k">def</span> <span class="nf">_get_entity_name</span><span class="p">(</span><span class="n">entity_dictionary</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Extract the entity name from the specified entity dictionary if it can</span>
@@ -1749,7 +1737,7 @@
 <span class="sd">    :returns:                   The name of the entity if found in the entity</span>
 <span class="sd">                                dictionary, otherwise None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">name_field</span> <span class="o">=</span> <span class="n">_get_entity_type_sg_name_field</span><span class="p">(</span><span class="n">entity_dictionary</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">])</span>
+    <span class="n">name_field</span> <span class="o">=</span> <span class="n">shotgun_entity</span><span class="o">.</span><span class="n">get_sg_entity_name_field</span><span class="p">(</span><span class="n">entity_dictionary</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">])</span>
     <span class="n">entity_name</span> <span class="o">=</span> <span class="n">entity_dictionary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name_field</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">entity_name</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
         <span class="c1"># Also check to see if entity contains &#39;name&#39;:</span>
@@ -1837,7 +1825,7 @@
 <span class="sd">                            </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># get the sg name field for the specified entity type:</span>
-    <span class="n">name_field</span> <span class="o">=</span> <span class="n">_get_entity_type_sg_name_field</span><span class="p">(</span><span class="n">entity_type</span><span class="p">)</span>
+    <span class="n">name_field</span> <span class="o">=</span> <span class="n">shotgun_entity</span><span class="o">.</span><span class="n">get_sg_entity_name_field</span><span class="p">(</span><span class="n">entity_type</span><span class="p">)</span>
     
     <span class="c1"># get the entity data from Shotgun</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="p">[[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">]],</span> <span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">name_field</span><span class="p">])</span>
@@ -2007,7 +1995,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017, Autodesk.
+        &copy; Copyright 2018, Autodesk.
 
     </p>
   </div> 
@@ -2028,7 +2016,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.120',
+            VERSION:'v0.18.121',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

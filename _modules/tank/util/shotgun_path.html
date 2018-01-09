@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun_path &mdash; tk-core v0.18.120 documentation</title>
+  <title>tank.util.shotgun_path &mdash; tk-core v0.18.121 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.120 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.121 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -118,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.120.<br>
+    <b>tk-core</b> v0.18.121.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -547,6 +547,8 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The path on the current os</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Please note that we&#39;re using the property setters to set the path, so they</span>
+        <span class="c1"># will be sanitized by the setter.</span>
         <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">windows</span> <span class="o">=</span> <span class="n">value</span>
         <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;linux&quot;</span><span class="p">):</span>
@@ -630,7 +632,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017, Autodesk.
+        &copy; Copyright 2018, Autodesk.
 
     </p>
   </div> 
@@ -651,7 +653,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.120',
+            VERSION:'v0.18.121',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

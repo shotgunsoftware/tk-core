@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.pipelineconfig_utils &mdash; tk-core v0.18.120 documentation</title>
+  <title>tank.pipelineconfig_utils &mdash; tk-core v0.18.121 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.120 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.121 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -118,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.120.<br>
+    <b>tk-core</b> v0.18.121.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -200,7 +200,7 @@
 
 <span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankError</span>
 
-<span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">is_localized</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
@@ -296,16 +296,21 @@
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Looks like the roots file is corrupt. Please contact &quot;</span>
                         <span class="s2">&quot;support! File: &#39;</span><span class="si">%s</span><span class="s2">&#39; Error: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">roots_yml</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
 
-    <span class="c1"># if there are more than zero storages defined, ensure one of them is the primary storage</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">constants</span><span class="o">.</span><span class="n">PRIMARY_STORAGE_NAME</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Could not find a primary storage in roots file &quot;</span>
-                        <span class="s2">&quot;for configuration </span><span class="si">%s</span><span class="s2">!&quot;</span> <span class="o">%</span> <span class="n">pipeline_config_path</span><span class="p">)</span>
+    <span class="c1"># If there are more than one storage defined, ensure one of them is the primary storage</span>
+    <span class="c1"># We need to keep this constraint as we are not able to keep roots definition</span>
+    <span class="c1"># in the order they were defined, so this is the only way we can guarantee we</span>
+    <span class="c1"># always use the same root for any template which does not have an explicit</span>
+    <span class="c1"># root setting.</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">constants</span><span class="o">.</span><span class="n">PRIMARY_STORAGE_NAME</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
+            <span class="s2">&quot;Could not find a primary storage in multi-roots file &quot;</span>
+            <span class="s2">&quot;for configuration </span><span class="si">%s</span><span class="s2">!&quot;</span> <span class="o">%</span> <span class="n">pipeline_config_path</span>
+        <span class="p">)</span>
 
-    <span class="c1"># sanitize path data by passing it through the ShotgunPath</span>
+    <span class="c1"># Sanitize path data by passing it through the ShotgunPath</span>
     <span class="n">shotgun_paths</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">storage_name</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
-        <span class="n">shotgun_paths</span><span class="p">[</span><span class="n">storage_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">from_shotgun_dict</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">storage_name</span><span class="p">])</span>
-
+    <span class="k">for</span> <span class="n">storage_name</span><span class="p">,</span> <span class="n">storage_definition</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+        <span class="n">shotgun_paths</span><span class="p">[</span><span class="n">storage_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">from_shotgun_dict</span><span class="p">(</span><span class="n">storage_definition</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">shotgun_paths</span>
 
 
@@ -605,7 +610,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017, Autodesk.
+        &copy; Copyright 2018, Autodesk.
 
     </p>
   </div> 
@@ -626,7 +631,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.120',
+            VERSION:'v0.18.121',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
