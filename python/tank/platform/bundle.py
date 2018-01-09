@@ -21,10 +21,13 @@ import uuid
 
 from .. import hook
 from ..util.metrics import EventMetric
+from ..log import LogManager
 from ..errors import TankError, TankNoDefaultValueError
 from .errors import TankContextChangeNotSupportedError
 from . import constants
 from .import_stack import ImportStack
+
+core_logger = LogManager.get_logger(__name__)
 
 class TankBundle(object):
     """
@@ -937,7 +940,7 @@ class TankBundle(object):
                     engine_name=self._get_engine_name(),
             )
 
-            if default_value: # possible not to have a default value!
+            if default_value:  # possible not to have a default value!
 
                 # expand the default value to be referenced from {self} and with the .py suffix
                 # for backwards compatibility with the old syntax where the default value could
@@ -958,6 +961,14 @@ class TankBundle(object):
 
         # resolve paths into actual file paths
         resolved_hook_paths = [self.__resolve_hook_path(settings_name, x) for x in unresolved_hook_paths]
+
+        core_logger.debug(
+            "%s: Resolved hook expression (associated with setting '%s'): '%s' -> %s" % (
+                self,
+                settings_name,
+                hook_expression,
+                resolved_hook_paths)
+        )
 
         return resolved_hook_paths
 
