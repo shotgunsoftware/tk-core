@@ -125,6 +125,12 @@ class Configuration(object):
         If the new core API can't deserialize the user, the error will be logged and passed in
         user will be used instead.
 
+        When this method is done executing,
+
+        1. If the project has a script user, that script will be the authenticated user.
+        2. If the project didn't have a script user, whoever was used to bootstrap
+           will be the authenticated user.
+
         :param user: User that was used for bootstrapping.
         :param serialized_user: Serialized version of the user.
         """

@@ -49,9 +49,10 @@ class TestConfiguration(TankTestBase):
             api_script, api_key=api_script[::-1], host="https://test.shotgunstudio.com"
         )
 
-    def test_login_based_authentication(self):
+    def test_login_to_login_authentication(self):
         """
-        Ensure the configuration will always pick the user passed in when there is no script user.
+        Ensure the configuration will always pick the user passed in when there is no script user 
+        in the project configuration.
         """
         configuration = Configuration(None, None)
 
@@ -68,7 +69,10 @@ class TestConfiguration(TankTestBase):
                 sgtk.authentication.serialize_user(current_user)
             )
 
+            # we should be using the same login...
             self.assertEqual(sgtk.get_authenticated_user().login, current_user.login)
+            # ... but we shouldn't be using the name ShotgunUser instance. It should
+            # have been serialized and deserialized.
             self.assertNotEqual(id(sgtk.get_authenticated_user()), id(current_user))
 
     def test_fail_reinstantiating(self):
@@ -94,12 +98,15 @@ class TestConfiguration(TankTestBase):
 
                 deserialize_wrapper.assert_called_once_with("invalid")
 
+                # Because we couldn't unserialize, we should just get the same login...
                 self.assertEqual(sgtk.get_authenticated_user().login, current_user.login)
+                # ... and the original ShotgunUser back.
                 self.assertEqual(id(sgtk.get_authenticated_user()), id(current_user))
 
-    def test_script_based_authentication(self):
+    def test_login_to_script_authentication(self):
         """
-        Ensure the configuration will always pick the script user when the configuration uses one.
+        Ensure the configuration will always pick the script user when project configuration has
+        one.
         """
         configuration = Configuration(None, None)
 
@@ -116,7 +123,61 @@ class TestConfiguration(TankTestBase):
                 sgtk.authentication.serialize_user(current_user)
             )
 
+            # The ShotgunUser instance from get_authenticated_user was retrieved
+            # through get_default_user, so we simply need to compare the object ids.
             self.assertEqual(id(sgtk.get_authenticated_user()), id(script_user))
+
+    def test_script_to_script_authentication(self):
+        """
+        Ensure a project configuration overrides a script user used for bootstrapping.
+        """
+        configuration = Configuration(None, None)
+
+        script_user_for_bootstrap = self._create_script_user("api_script_for_bootstrap")
+        script_user_for_project = self._create_script_user("api_script_for_project")
+
+        # Create a default user.
+        with patch(
+            "tank.authentication.ShotgunAuthenticator.get_default_user",
+            return_value=script_user_for_project
+        ):
+            configuration._set_authenticated_user(
+                script_user_for_bootstrap,
+                sgtk.authentication.serialize_user(script_user_for_bootstrap)
+            )
+
+            # The ShotgunUser instance from get_authenticated_user was retrieved
+            # through get_default_user, so we simply need to compare the object ids.
+            self.assertEqual(id(sgtk.get_authenticated_user()), id(script_user_for_project))
+
+    def test_script_to_noscript_authentication(self):
+        """
+        Ensure that bootstrapping with a script into a project without a script user in its
+        configuration will pick the bootstrap user.
+        """
+        configuration = Configuration(None, None)
+
+        user_for_bootstrap = self._create_script_user("api_script_for_bootstrap")
+        user_for_project = self._create_session_user("project_user")
+
+        # Create a default user.
+        with patch(
+            "tank.authentication.ShotgunAuthenticator.get_default_user",
+            return_value=user_for_project
+        ):
+            configuration._set_authenticated_user(
+                user_for_bootstrap,
+                sgtk.authentication.serialize_user(user_for_bootstrap)
+            )
+
+            # we should be using the same login...
+            auth_user = sgtk.get_authenticated_user()
+            self.assertIsNone(auth_user.login)
+            self.assertEqual(auth_user.login, user_for_bootstrap.login)
+            self.assertEqual(auth_user.impl.get_script(), user_for_bootstrap.impl.get_script())
+            # ... but we shouldn't be using the name ShotgunUser instance. It should
+            # have been serialized and deserialized.
+            self.assertNotEqual(id(auth_user), id(user_for_bootstrap))
 
 
 class TestInvalidInstalledConfiguration(TankTestBase):
