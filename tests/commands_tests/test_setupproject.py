@@ -66,7 +66,7 @@ class TestSetupProject(TankTestBase):
         """
         Test setting up a Project.
         """
-        new_config_root = os.path.join(self.tank_temp, "test_setup_project_%s" % "config")
+        new_config_root = os.path.join(self.tank_temp, "test_setup_project_config")
 
         def mocked_resolve_core_path(core_path):
             return {
@@ -90,3 +90,79 @@ class TestSetupProject(TankTestBase):
         new_pc = tank.pipelineconfig_factory.from_path(new_config_root)
         # Check we get back our custom primary root name
         self.assertEqual(new_pc.get_data_roots().keys(), ["setup_project_root"])
+
+
+
+class TestSetupProjectWithSpecificCore(TankTestBase):
+    """
+    Testing that core_api.yml in the config is supported.
+    """
+
+    def setUp(self):
+        """
+        Prepare unit test.
+        """
+        TankTestBase.setUp(
+            self,
+            # Use a custom primary root name
+            parameters={"primary_root_name": "setup_project_root"}
+        )
+        self.setup_fixtures("app_store_tests")
+
+        patcher = patch_app_store()
+        self._mock_store = patcher.start()
+        self.addCleanup(patcher.stop)
+        self.second_project = {
+            "type": "Project",
+            "id": 7777,
+            "code": "another_project",
+        }
+        self.add_to_sg_mock_db(self.second_project)
+        project_root = os.path.join(self.tank_temp, "test_setup_project_with_core")
+        os.makedirs(project_root)
+
+        # add a core_api.yml
+        with open(os.path.join(self.project_config, "core", "core_api.yml"), "wt") as fp:
+            fp.write("location:\n")
+            fp.write("   type: dev\n")
+            fp.write("   path: %s\n" % self.tank_source_path)
+
+        # Make sure we have a version in the app store for all bundles.
+        self._mock_store.add_engine("tk-engine", "v1.0.0")
+        self._mock_store.add_engine("tk-test", "v1.0.0")
+        self._mock_store.add_application("tk-multi-app", "v1.0.0")
+        self._mock_store.add_application("tk-multi-nodep", "v1.0.0")
+        self._mock_store.add_framework("tk-framework-test", "v1.0.0")
+        self._mock_store.add_framework("tk-framework-2nd-level-dep", "v1.0.0")
+
+    @patch("tank.pipelineconfig_utils.resolve_all_os_paths_to_core")
+    def test_setup_project(self, mocked=None):
+        """
+        Test setting up a Project.
+        """
+        new_config_root = os.path.join(self.tank_temp, "test_setup_project_core_api")
+
+        def mocked_resolve_core_path(core_path):
+            return {
+                "linux2": core_path,
+                "darwin": core_path,
+                "win32": core_path,
+            }
+
+        mocked.side_effect = mocked_resolve_core_path
+        command = self.tk.get_command("setup_project")
+        command.set_logger(logging.getLogger("/dev/null"))
+        # Test we can setup a new project and it does not fail.
+        command.execute({
+            "project_id": self.second_project["id"],
+            "project_folder_name": "test_setup_project",
+            "config_uri": self.project_config,
+            "config_path_mac": new_config_root if sys.platform == "darwin" else None,
+            "config_path_win": new_config_root if sys.platform == "win32" else None,
+            "config_path_linux": new_config_root if sys.platform.startswith("linux") else None,
+        })
+
+        new_pc = tank.pipelineconfig_factory.from_path(new_config_root)
+        # Check we get back our custom primary root name
+        self.assertEqual(new_pc.get_data_roots().keys(), ["setup_project_root"])
+        # todo: assert version of core.
