@@ -19,7 +19,7 @@ from mock import patch
 
 from .test_base import TestBundleCacheUsageBase
 from sgtk.descriptor.bundle_cache_usage.database import BundleCacheUsageDatabaseEntry, BundleCacheUsageDatabase
-from sgtk.descriptor.bundle_cache_usage.errors import BundleCacheUsageInvalidBundleCacheRootError
+from sgtk.descriptor.bundle_cache_usage.errors import BundleCacheTrackingInvalidBundleCacheRootError
 
 
 class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):

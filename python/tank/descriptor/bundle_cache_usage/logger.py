@@ -12,7 +12,7 @@ import threading
 import Queue
 
 from ...import LogManager
-from .errors import BundleCacheUsageTimeoutError
+from .errors import BundleCacheTrackingTimeoutError
 from .database import BundleCacheUsageDatabase as BundleCacheUsageDatabase
 
 
@@ -249,7 +249,7 @@ class BundleCacheUsageLogger(threading.Thread):
             # As join() always returns None, you must call isAlive() after
             # join() to decide whether a timeout happened
             if self.is_alive():
-                raise BundleCacheUsageTimeoutError("Timeout waiting for worker thread to terminated.")
+                raise BundleCacheTrackingTimeoutError("Timeout waiting for worker thread to terminated.")
 
             log.debug(
                 "Worker thread terminated cleanly (pending task count = %d) ..."  % (self.pending_count)

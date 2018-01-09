@@ -15,27 +15,27 @@ All custom exceptions relative to the bundle cache usage functionality.
 from ...errors import TankError
 
 
-class BundleCacheUsageError(TankError):
+class BundleCacheTrackingError(TankError):
     """
-    Exception that indicates a general error relating to the bundle cache usage functionality.
+    Exception that indicates a general error relating to the bundle cache usage tracking functionality.
     """
 
 
-class BundleCacheUsageFileDeletionError(BundleCacheUsageError):
+class BundleCacheTrackingFileDeletionError(BundleCacheTrackingError):
     """
     Exception that indicates an error deleting a file or bundle in the context
     of the bundle cache usage functionality.
     """
 
 
-class BundleCacheUsageTimeoutError(BundleCacheUsageError):
+class BundleCacheTrackingTimeoutError(BundleCacheTrackingError):
     """
     Exception that indicates that an operation timeout in the context
     of the bundle cache usage functionality.
     """
 
 
-class BundleCacheUsageInvalidBundleCacheRootError(BundleCacheUsageError):
+class BundleCacheTrackingInvalidBundleCacheRootError(BundleCacheTrackingError):
     """
     Exception that indicates that the specified bundle cache root folder is invalid.
     """

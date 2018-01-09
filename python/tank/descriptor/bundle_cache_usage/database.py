@@ -17,7 +17,7 @@ import datetime
 from ...import LogManager
 from ...util.local_file_storage import LocalFileStorageManager
 
-from .errors import BundleCacheUsageInvalidBundleCacheRootError
+from .errors import BundleCacheTrackingInvalidBundleCacheRootError
 
 
 log = LogManager.get_logger(__name__)

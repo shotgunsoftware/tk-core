@@ -18,8 +18,8 @@ from mock import patch
 
 from sgtk.descriptor.bundle_cache_usage.logger import BundleCacheUsageLogger
 from sgtk.descriptor.bundle_cache_usage.errors import (
-    BundleCacheUsageTimeoutError,
-    BundleCacheUsageInvalidBundleCacheRootError
+    BundleCacheTrackingTimeoutError,
+    BundleCacheTrackingInvalidBundleCacheRootError
 )
 
 from .test_base import TestBundleCacheUsageBase
@@ -162,7 +162,7 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         # Queue the long task.
         self._logger._queue_task(time.sleep, LONG_TASK_SLEEP_TIME)
 
-        with self.assertRaises(BundleCacheUsageTimeoutError):
+        with self.assertRaises(BundleCacheTrackingTimeoutError):
             self._logger.stop(LONG_TASK_SLEEP_TIME / 2)
 
     def test_queue_task(self):
@@ -206,7 +206,7 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         # Forcing a shorter timeout
         # The timeout below is way shorter than 1000 * 0.01s = 10 seconds
         start_time = time.time()
-        with self.assertRaises(BundleCacheUsageTimeoutError):
+        with self.assertRaises(BundleCacheTrackingTimeoutError):
             self._logger.stop(TIMEOUT)
         elapsed_time = time.time() - start_time
 
@@ -220,7 +220,7 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         # finish waiting, we know that those tasks will take longer than 2 seconds
         try:
             self._logger.delete_instance()
-        except BundleCacheUsageTimeoutError:
+        except BundleCacheTrackingTimeoutError:
             pass
 
     def test_queue_log_usage(self):
@@ -242,7 +242,7 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         queuing_time = time.time() - start_time
         try:
             self._logger.stop(self.WAIT_TIME_MEGA_LONG)
-        except BundleCacheUsageTimeoutError:
+        except BundleCacheTrackingTimeoutError:
             self._logger.stop(self.WAIT_TIME_MEGA_LONG)
 
         completing_all_tasks_time = time.time() - start_time

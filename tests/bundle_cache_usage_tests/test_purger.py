@@ -25,9 +25,9 @@ from sgtk.descriptor.bundle_cache_usage.database import BundleCacheUsageDatabase
 from sgtk.descriptor.bundle_cache_usage.logger import BundleCacheUsageLogger
 from sgtk.descriptor.bundle_cache_usage.purger import BundleCacheUsagePurger
 from sgtk.descriptor.bundle_cache_usage.errors import (
-    BundleCacheUsageError,
-    BundleCacheUsageFileDeletionError,
-    BundleCacheUsageInvalidBundleCacheRootError
+    BundleCacheTrackingError,
+    BundleCacheTrackingFileDeletionError,
+    BundleCacheTrackingInvalidBundleCacheRootError
 )
 
 
@@ -125,7 +125,7 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
     def test_get_filelist_with_non_existing_path(self):
         """ Tests the `_get_filelist` method against a non-existing file path. """
 
-        with self.assertRaises(BundleCacheUsageError):
+        with self.assertRaises(BundleCacheTrackingError):
             self._purger._get_filelist("bogus_file_path")
 
     def test_get_unused_bundles(self):
@@ -276,7 +276,7 @@ class TestBundleCacheUsagePurgerParanoidDelete(TestBundleCacheUsageBase):
         filelist = self._purger._get_filelist(bundle_path)
 
         # Now test that an exception is thrown
-        with self.assertRaises(BundleCacheUsageFileDeletionError):
+        with self.assertRaises(BundleCacheTrackingFileDeletionError):
             self._purger._paranoid_delete(filelist)
 
     @unittest.skipIf(sys.platform.startswith("win"), "Skipped on Windows")
@@ -337,7 +337,7 @@ class TestBundleCacheUsagePurgerParanoidDelete(TestBundleCacheUsageBase):
 
         os.remove(manually_deleted_file)
 
-        with self.assertRaises(BundleCacheUsageFileDeletionError):
+        with self.assertRaises(BundleCacheTrackingFileDeletionError):
             self._purger._paranoid_delete(filelist)
 
     def test_paranoid_delete_with_extra_file(self):
@@ -357,7 +357,7 @@ class TestBundleCacheUsagePurgerParanoidDelete(TestBundleCacheUsageBase):
                                   "v0.8.3", "some_unexpected_extra_file.txt")
         Utils.write_bogus_data(extra_file)
 
-        with self.assertRaises(BundleCacheUsageFileDeletionError):
+        with self.assertRaises(BundleCacheTrackingFileDeletionError):
             self._purger._paranoid_delete(filelist)
 
 
