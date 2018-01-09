@@ -19,7 +19,7 @@ from .database import BundleCacheUsageDatabase as BundleCacheUsageDatabase
 log = LogManager.get_logger(__name__)
 
 
-class BundleCacheUsageLogger(threading.Thread):
+class BundleCacheUsageTracker(threading.Thread):
 
     """
     Update bundle cache usage in a simple single table database.
@@ -54,13 +54,13 @@ class BundleCacheUsageLogger(threading.Thread):
         if not cls.__singleton_instance:
             with cls.__singleton_lock:
                 if not cls.__singleton_instance:
-                    cls.__singleton_instance = super(BundleCacheUsageLogger, cls).__new__(cls, *args, **kwargs)
+                    cls.__singleton_instance = super(BundleCacheUsageTracker, cls).__new__(cls, *args, **kwargs)
                     cls.__singleton_instance.__initialized = False
 
         return cls.__singleton_instance
 
     def __init__(self):
-        super(BundleCacheUsageLogger, self).__init__()
+        super(BundleCacheUsageTracker, self).__init__()
         if (self.__initialized):
             return
         self.__initialized = True
@@ -100,7 +100,7 @@ class BundleCacheUsageLogger(threading.Thread):
         self._errors.put((exception, message))
         self._errors.task_done()
 
-    def __log_usage(self, bundle_path):
+    def __track_usage(self, bundle_path):
         """
         Update database's last usage date and usage count for the specified entry.
 
@@ -206,7 +206,7 @@ class BundleCacheUsageLogger(threading.Thread):
             return self._completed_count
 
     @classmethod
-    def log_usage(cls, bundle_path):
+    def track_usage(cls, bundle_path):
         """
         Queue a bundle cache usage database update.
 
@@ -214,7 +214,7 @@ class BundleCacheUsageLogger(threading.Thread):
         """
         with cls.__singleton_lock:
             if cls.__singleton_instance:
-                cls.__singleton_instance._queue_task(cls.__singleton_instance.__log_usage, bundle_path)
+                cls.__singleton_instance._queue_task(cls.__singleton_instance.__track_usage, bundle_path)
 
     @property
     def pending_count(self):
