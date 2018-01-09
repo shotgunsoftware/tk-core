@@ -381,12 +381,12 @@ class BundleCacheUsageDatabase(object):
 
         return None
 
-    def get_unused_bundles(self, since_timestamps):
+    def get_unused_bundles(self, since_timestamp):
         """
         Returns a list of entries that have a last access date older than
         the specified `since_timestamps` parameter.
 
-        :param since_timestamps: An int unix timestamp
+        :param since_timestamp: An int unix timestamp
         :return: A list of :class:`~BundleCacheUsageDatabaseEntry`
         """
         result = self._execute(
@@ -395,7 +395,7 @@ class BundleCacheUsageDatabase(object):
             FROM bundles
             WHERE last_usage <= ? AND path!=?
             """,
-            (since_timestamps, self.INITIAL_DB_POPULATE_DONE_MARKER)
+            (since_timestamp, self.INITIAL_DB_POPULATE_DONE_MARKER)
         )
 
         entry_list = []
