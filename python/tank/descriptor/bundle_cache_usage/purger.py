@@ -96,22 +96,6 @@ class BundleCacheUsagePurger(object):
 
         return bundle_path_list
 
-    def _find_bundles(self):
-        """
-        Search the bundle cache for bundle descriptors and add them
-        as unused entries to the database.
-
-        Reference: Walk up to a certain level
-        https://stackoverflow.com/questions/42720627/python-os-walk-to-certain-level
-
-        :return: a list of bundle path
-        """
-
-        app_store_bundle_list = self._find_app_store_bundles()
-        # TODO: Process other bundle_cache sub folders
-
-        return app_store_bundle_list
-
     def _get_filelist(self, bundle_path):
         """
         Returns a list of files existing under the specified bundle path.
