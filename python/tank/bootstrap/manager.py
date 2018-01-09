@@ -1025,10 +1025,7 @@ class ToolkitManager(object):
             )
 
             # purge bundles that haven't been used in past N days
-            self._process_bundle_cache_purge(
-                progress_callback,
-                self.TOOLKIT_BUNDLE_CACHE_AUTO_DELETE_TIMEOUT
-            )
+            self._process_bundle_cache_purge(progress_callback)
 
         else:
             log.debug("Configuration has local bundle cache, skipping bundle caching.")
