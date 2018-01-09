@@ -78,15 +78,16 @@ class Configuration(object):
         path = self._path.current_os
         core_path = get_core_python_path_for_config(path)
 
-        # Get the user before the core swapping.
+        # Get the user before the core swapping and serialize it.
         from ..authentication import serialize_user
+        serialized_user = serialize_user(sg_user)
 
         # swap the core out
         CoreImportHandler.swap_core(core_path)
 
         log.debug("Core swapped, authenticated user will be set.")
 
-        self._set_authenticated_user(sg_user, serialize_user(sg_user))
+        self._set_authenticated_user(sg_user, serialized_user)
 
         # perform a local import here to make sure we are getting
         # the newly swapped in core code
@@ -135,7 +136,7 @@ class Configuration(object):
         # It's possible we're bootstrapping into a core that doesn't support the authentication
         # module, so test for the existence of the set_authenticated_user.
         if hasattr(api, "set_authenticated_user"):
-            log.debug("Project core supports the authentication module.")
+            log.debug("The project's core supports the authentication module.")
 
             # Use backwards compatible imports.
             from tank_vendor.shotgun_authentication import ShotgunAuthenticator
@@ -176,7 +177,10 @@ class Configuration(object):
                 try:
                     authenticated_user = deserialize_user(serialized_user)
                 except Exception:
-                    log.exception("Couldn't deserialize the user object with the new API.")
+                    log.exception(
+                        "Couldn't deserialize the user object with the new core API. "
+                        "Boootstrap user object will be used."
+                    )
 
             api.set_authenticated_user(authenticated_user)
         else:
