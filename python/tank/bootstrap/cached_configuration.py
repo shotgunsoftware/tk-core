@@ -88,6 +88,75 @@ class CachedConfiguration(Configuration):
             self._descriptor
         )
 
+    def verify_required_shotgun_fields(self):
+        """
+        Checks so that all shotgun fields required by the configuration
+        are present and valid.
+
+        Depending on the configuration, different checks are carried out.
+
+        For configurations using the template and schema system,
+        (e.g. has a roots.yml config file set),
+        checks are carried out to ensure Project.tank_name and
+        local storages are correctly set up.
+
+        This will download the config into the bundle cache if not already
+        done.
+
+        :raises: :class:`TankBootstrapError` if checks fail.
+        """
+        if self._project_id is None:
+            # site configuration. Nothing to check
+            return
+
+        # make sure the config is locally available.
+        self._descriptor.ensure_local()
+
+        log.debug(
+            "Verifying that all necessary shotgun data is "
+            "available in order for config %s to run..." % self
+        )
+
+        roots_data = None
+        roots_path = os.path.join(self._descriptor.get_path(), "core", constants.STORAGE_ROOTS_FILE)
+        if os.path.exists(roots_path):
+            with open(roots_path, "rt") as fh:
+                try:
+                    roots_data = yaml.load(fh)
+                except Exception:
+                    pass
+
+        if isinstance(roots_data, dict) and len(roots_data) > 0:
+            log.debug("Detected roots.yml with roots %s" % roots_data.keys())
+
+            log.debug("Ensuring that current project has a tank_name field...")
+            proj_data = self._sg_connection.find_one(
+                "Project",
+                [["id", "is", self._project_id]],
+                ["tank_name"]
+            )
+            if proj_data["tank_name"] is None:
+                raise TankBootstrapError(
+                    "The configuration requires you to specify a value "
+                    "for the Project.tank_name field in Shotgun."
+                )
+
+            # get all storages to ensure all roots are
+            log.debug("Ensuring that all required local storages exist in Shotgun.")
+            shotgun_storages = self._sg_connection.find("LocalStorage", [], ["code"])
+            shotgun_storage_names = [storage["code"] for storage in shotgun_storages]
+
+            # check that are required storages are defined in Shotgun
+            required_storage_names = roots_data.keys()
+            for required_storage_name in required_storage_names:
+                if required_storage_name not in shotgun_storage_names:
+
+                        storage_str = "storage" if len(required_storage_names) == 1 else "storages"
+                        raise TankBootstrapError(
+                            "The configuration requires the following local %s "
+                            "to be defined in Shotgun: %s" % (storage_str, ", ".join(required_storage_names))
+                        )
+
     def status(self):
         """
         Compares the actual configuration installed on disk against the
@@ -192,7 +261,6 @@ class CachedConfiguration(Configuration):
                 "original configuration."
             )
             return
-
 
         # copy the configuration into place
         try:

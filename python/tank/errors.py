@@ -19,6 +19,12 @@ class TankError(Exception):
     """
 
 
+class TankInitError(TankError):
+    """
+    Exception indicating initialization failure.
+    """
+
+
 class TankUnreadableFileError(TankError):
     """
     Exception that indicates that a required file can't be read from disk.
