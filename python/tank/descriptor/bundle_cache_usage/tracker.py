@@ -109,7 +109,7 @@ class BundleCacheUsageTracker(threading.Thread):
         :param bundle_path: A str of a bundle path
         """
         database = BundleCacheUsageDatabase()
-        database.log_usage(bundle_path)
+        database.track_usage(bundle_path)
 
     def __consume_task(self):
         """

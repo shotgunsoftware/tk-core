@@ -22,7 +22,7 @@ from mock import patch
 from .test_base import TestBundleCacheUsageBase, Utils
 
 from sgtk.descriptor.bundle_cache_usage.database import BundleCacheUsageDatabase, BundleCacheUsageDatabaseEntry
-from sgtk.descriptor.bundle_cache_usage.logger import BundleCacheUsageLogger
+from sgtk.descriptor.bundle_cache_usage.tracker import BundleCacheUsageTracker
 from sgtk.descriptor.bundle_cache_usage.purger import BundleCacheUsagePurger
 from sgtk.descriptor.bundle_cache_usage.errors import (
     BundleCacheTrackingError,
@@ -44,7 +44,7 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
     def tearDown(self):
         super(TestBundleCacheUsagePurger, self).tearDown()
 
-    def helper_stress_test(self, purger, logger, database, bundle_list, iteration_count=100):
+    def helper_stress_test(self, purger, tracker, database, bundle_list, iteration_count=100):
         """
         On each loop, operations are randomly determined.
 
@@ -60,12 +60,12 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
             if random.randint(0, 1):
                 bundle_path = bundle_list[random.randint(0, bundle_count - 1)]
                 start_time = time.time()
-                logger.log_usage(bundle_path)
+                tracker.track_usage(bundle_path)
                 # Check that execution is near instant
                 self.assertLess(
                     time.time() - start_time,
                     self.WAIT_TIME_INSTANT,
-                    "The 'log_usage' method took unexpectedly long time to execute"
+                    "The 'track_usage' method took unexpectedly long time to execute"
                 )
 
             if random.randint(0, 1):
@@ -107,12 +107,12 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
 
         count = 20
         while count > 0:
-            logger = BundleCacheUsageLogger()
-            logger.start()
+            tracker = BundleCacheUsageTracker()
+            tracker.start()
             purger = BundleCacheUsagePurger()
             database = BundleCacheUsageDatabase()
-            self.helper_stress_test(purger, logger, database, test_bundle_list)
-            BundleCacheUsageLogger.delete_instance()
+            self.helper_stress_test(purger, tracker, database, test_bundle_list)
+            BundleCacheUsageTracker.delete_instance()
             count -= 1
 
     def test_get_filelist(self):
@@ -138,10 +138,10 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
 
         # Log some usage some time ago
         with patch("time.time", return_value=self._bundle_last_usage_time):
-            database.log_usage(bundle_path_old)
+            database.track_usage(bundle_path_old)
 
         # Should be logged as the REAL now
-        database.log_usage(bundle_path_new)
+        database.track_usage(bundle_path_new)
 
         # First we check that we can get both entries specifying zero-days
         bundle_list = self._purger.get_unused_bundles(0)
@@ -384,7 +384,7 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
 
         with patch("time.time", return_value=self._bundle_last_usage_time):
             # Relying on the PipelineConfig initializing worker thread
-            BundleCacheUsageLogger.log_usage(test_bundle_path)
+            BundleCacheUsageTracker.track_usage(test_bundle_path)
             time.sleep(self.WAIT_TIME_SHORT) # logging is async, we need to wait to endure operation is done
             self.assertEquals(1, self._purger.bundle_count)
 
@@ -435,7 +435,7 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
         self.assertTrue(os.path.islink(dest_path))
 
         # Relying on the PipelineConfig initializing worker thread
-        BundleCacheUsageLogger.log_usage(test_bundle_path)
+        BundleCacheUsageTracker.track_usage(test_bundle_path)
         time.sleep(self.WAIT_TIME_SHORT) # logging is async, we need to wait to endure operation is done
         self.assertEquals(1, self._purger.bundle_count)
 

@@ -107,7 +107,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.assertEquals(now, bundle.creation_time)
         self.assertEquals(now, bundle.last_usage_time)
 
-    def test_db_log_usage_basic(self):
+    def test_db_track_usage_basic(self):
         """
         Tests the logging basic usage is exception free
 
@@ -117,7 +117,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         # Log some usage
         now = int(time.time())
         with patch("time.time", return_value=now):
-            self.db.log_usage(self._test_bundle_path)
+            self.db.track_usage(self._test_bundle_path)
 
         self.assertEquals(1, self.db.bundle_count)
         bundle = self.db.get_bundle(self._test_bundle_path)
@@ -129,9 +129,9 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         # Log some more usage
         later = now + 1000
         with patch("time.time", return_value=later):
-            self.db.log_usage(self._test_bundle_path)
-            self.db.log_usage(self._test_bundle_path)
-            self.db.log_usage(self._test_bundle_path)
+            self.db.track_usage(self._test_bundle_path)
+            self.db.track_usage(self._test_bundle_path)
+            self.db.track_usage(self._test_bundle_path)
 
         self.assertEquals(1, self.db.bundle_count)
         bundle = self.db.get_bundle(self._test_bundle_path)
@@ -148,18 +148,18 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         # Test after initial DB connect
         self.assertEquals(self.db.path, self.expected_db_path)
 
-    def test_db_log_usage_for_None_entry(self):
+    def test_db_track_usage_for_None_entry(self):
         """
-        Tests that log_usage method can handle a None parameter
+        Tests that track_usage method can handle a None parameter
         """
 
         # Log some usage
-        self.db.log_usage(None)
+        self.db.track_usage(None)
 
         # Low level test for record count
         self.assertEquals(self.db.bundle_count, 0, "Was not expecting a new entry from None")
 
-    def test_db_log_usage_for_new_entry(self):
+    def test_db_track_usage_for_new_entry(self):
         """
         Tests the basic of logging an entry not already existing in the database
         """
@@ -170,7 +170,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.assertIsNone(self.db.get_bundle(self._test_bundle_path))
 
         # Log some usage
-        self.db.log_usage(self._test_bundle_path)
+        self.db.track_usage(self._test_bundle_path)
 
         # Low level test for record count
         self.assertEquals(self.db.bundle_count, 1)
@@ -180,14 +180,14 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.assertIsNotNone(bundle)
         self.assertEquals(1, bundle.usage_count)
 
-    def test_db_log_usage_for_existing_entry(self):
+    def test_db_track_usage_for_existing_entry(self):
         """
         Tests logging an existing entry
         """
         # Log some initial usage
-        self.db.log_usage(self._test_bundle_path)
-        self.db.log_usage(self._test_bundle_path)
-        self.db.log_usage(self._test_bundle_path)
+        self.db.track_usage(self._test_bundle_path)
+        self.db.track_usage(self._test_bundle_path)
+        self.db.track_usage(self._test_bundle_path)
 
         # Low level test for record count, we're logging the same bundle name twice
         # We expect a single record still
@@ -211,14 +211,14 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         Tests logging entries which might containt special characters
         """
 
-        self.db.log_usage(os.path.join(self.app_store_root, "tk_super_duper", "my-version", "test.txt"))
-        self.db.log_usage(os.path.join(self.app_store_root, "tk_électrique", "élève", "eôusterish"))
-        self.db.log_usage(os.path.join(self.app_store_root, "tk_?_question", "marsk", "test.txt"))
-        self.db.log_usage(os.path.join(self.app_store_root, "tk.duper", "my-version", "test.txt"))
+        self.db.track_usage(os.path.join(self.app_store_root, "tk_super_duper", "my-version", "test.txt"))
+        self.db.track_usage(os.path.join(self.app_store_root, "tk_électrique", "élève", "eôusterish"))
+        self.db.track_usage(os.path.join(self.app_store_root, "tk_?_question", "marsk", "test.txt"))
+        self.db.track_usage(os.path.join(self.app_store_root, "tk.duper", "my-version", "test.txt"))
 
         # Plus 2 more NOT in the bundle cache
-        self.db.log_usage("Shotgun/some-packahe/2.22.2")
-        self.db.log_usage("Shotgun/some-packahe/2.11.1")
+        self.db.track_usage("Shotgun/some-packahe/2.22.2")
+        self.db.track_usage("Shotgun/some-packahe/2.11.1")
 
         # Low level test for record count, we're logging the same bundle name twice
         # We expect a single record still
@@ -238,10 +238,10 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
         # Use the bundle later on, still some time ago
         with patch("time.time", return_value=self._bundle_last_usage_time):
-            self.db.log_usage(bundle_path_old)
+            self.db.track_usage(bundle_path_old)
 
         # Log new bundle as now
-        self.db.log_usage(bundle_path_new)
+        self.db.track_usage(bundle_path_new)
 
         # Get old bundle list
         bundle_list = self.db.get_unused_bundles(self._bundle_last_usage_time)
@@ -264,7 +264,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.assertEquals(0, self.db.bundle_count)
 
         # Log some usage / add bundle
-        self.db.log_usage(self._test_bundle_path)
+        self.db.track_usage(self._test_bundle_path)
         bundle = self.db.get_bundle(self._test_bundle_path)
         self.assertIsNotNone(bundle)
         self.assertEquals(1, bundle.usage_count)
@@ -312,7 +312,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.assertEquals(0, self.db.bundle_count)
 
         # Log some usage / add bundle
-        self.db.log_usage(bundle_path)
+        self.db.track_usage(bundle_path)
         bundle = self.db.get_bundle(bundle_path)
         self.assertIsNotNone(bundle)
         self.assertEquals(1, bundle.usage_count)
@@ -321,7 +321,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.assertLessEqual(now, bundle.creation_time)
 
         non_existing_bundle_name = "foOOOo-bar!"
-        self.db.log_usage(non_existing_bundle_name)
+        self.db.track_usage(non_existing_bundle_name)
         bundle = self.db.get_bundle(non_existing_bundle_name)
         self.assertIsNone(bundle)
         self.assertEquals(1, self.db.bundle_count)
@@ -334,7 +334,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
         # Log usage some other time (more recent)
         with patch("time.time", return_value=self._bundle_last_usage_time):
-            self.db.log_usage(self._test_bundle_path)
+            self.db.track_usage(self._test_bundle_path)
 
         # Get old bundle list
         bundle = self.db.get_bundle(self._test_bundle_path)
@@ -351,7 +351,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         Tests that tracked path are truncated & relative to the bundle cache root
         e.g.: we can combine both and test (afterward) that path actually exists.
         """
-        self.db.log_usage(self._test_bundle_path)
+        self.db.track_usage(self._test_bundle_path)
         bundle = self.db.get_bundle(self._test_bundle_path)
 
         expected_truncated_path = bundle.path.replace(self.bundle_cache_root, "")
@@ -373,7 +373,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         later = now + 1234
         with patch("time.time", return_value=now):
             # Log some usage
-            self.db.log_usage(self._test_bundle_path)
+            self.db.track_usage(self._test_bundle_path)
 
             bundle = self.db.get_bundle(self._test_bundle_path)
             self.assertIsNotNone(bundle)
@@ -382,7 +382,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
             # Still with the mock active, let's make use of env. var. override
             os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = str(later)
 
-            self.db.log_usage(self._test_bundle_path)
+            self.db.track_usage(self._test_bundle_path)
             bundle = self.db.get_bundle(self._test_bundle_path)
             self.assertIsNotNone(bundle)
             self.assertEquals(later, bundle.last_usage_time)
@@ -401,7 +401,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         now = int(time.time())
         with patch("time.time", return_value=now):
             # Log some usage
-            self.db.log_usage(self._test_bundle_path)
+            self.db.track_usage(self._test_bundle_path)
 
             bundle = self.db.get_bundle(self._test_bundle_path)
             self.assertIsNotNone(bundle)
@@ -413,7 +413,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
 
             # Since the value cannot be converted, we expect an exception
             with self.assertRaises(ValueError):
-                self.db.log_usage(self._test_bundle_path)
+                self.db.track_usage(self._test_bundle_path)
 
 
 

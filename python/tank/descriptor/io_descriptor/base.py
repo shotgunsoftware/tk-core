@@ -19,7 +19,7 @@ from ... import LogManager
 from ...util import filesystem
 from ...util.version import is_version_newer
 from ..errors import TankDescriptorError, TankMissingManifestError
-from ..bundle_cache_usage.logger import BundleCacheUsageLogger
+from ..bundle_cache_usage.tracker import BundleCacheUsageTracker
 
 from tank_vendor import yaml
 
@@ -665,7 +665,7 @@ class IODescriptorBase(object):
                     # Minimum checks here, additional checks and
                     # path manipulation will be done on the
                     # service worker thread.
-                    BundleCacheUsageLogger.log_usage(path)
+                    BundleCacheUsageTracker.track_usage(path)
 
                 return path
 

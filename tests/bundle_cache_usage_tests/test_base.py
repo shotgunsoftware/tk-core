@@ -19,7 +19,7 @@ import random
 import shutil
 
 from sgtk.descriptor.bundle_cache_usage.database import BundleCacheUsageDatabase
-from sgtk.descriptor.bundle_cache_usage.logger import BundleCacheUsageLogger
+from sgtk.descriptor.bundle_cache_usage.tracker import BundleCacheUsageTracker
 
 
 class Utils(object):
@@ -149,7 +149,7 @@ class TestBundleCacheUsageBase(TankTestBase):
         os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = \
             self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE
 
-        BundleCacheUsageLogger.delete_instance()
+        BundleCacheUsageTracker.delete_instance()
         self.delete_db()
         super(TestBundleCacheUsageBase, self).tearDown()
 
@@ -306,7 +306,7 @@ class TestBundleCacheUsageBase(TankTestBase):
 
     def delete_db(self):
         if self.db_exists:
-            BundleCacheUsageLogger.delete_instance(self.WAIT_TIME_MEGA_LONG)
+            BundleCacheUsageTracker.delete_instance(self.WAIT_TIME_MEGA_LONG)
             os.remove(self.db_path)
 
     @property

@@ -16,7 +16,7 @@ import os
 import time
 from mock import patch
 
-from sgtk.descriptor.bundle_cache_usage.logger import BundleCacheUsageLogger
+from sgtk.descriptor.bundle_cache_usage.tracker import BundleCacheUsageTracker
 from sgtk.descriptor.bundle_cache_usage.errors import (
     BundleCacheTrackingTimeoutError,
     BundleCacheTrackingInvalidBundleCacheRootError
@@ -25,16 +25,16 @@ from sgtk.descriptor.bundle_cache_usage.errors import (
 from .test_base import TestBundleCacheUsageBase
 
 
-class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
+class TestBundleCacheUsageTracker(TestBundleCacheUsageBase):
     """
-    Tests the 'BundleCacheUsageLogger' class
+    Tests the 'BundleCacheUsageTracker' class
     """
 
     def setUp(self):
-        super(TestBundleCacheUsageLogger, self).setUp()
-        BundleCacheUsageLogger.delete_instance()
-        self._logger = BundleCacheUsageLogger()
-        self._logger.start()
+        super(TestBundleCacheUsageTracker, self).setUp()
+        BundleCacheUsageTracker.delete_instance()
+        self._tracker = BundleCacheUsageTracker()
+        self._tracker.start()
 
     def test_create_delete_instance(self):
         """
@@ -44,8 +44,8 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
 
         for count in range(0, self.DEFAULT_LOOP_COUNT):
             start_time = time.time()
-            BundleCacheUsageLogger()
-            BundleCacheUsageLogger.delete_instance()
+            BundleCacheUsageTracker()
+            BundleCacheUsageTracker.delete_instance()
             elapsed_time = time.time() - start_time
             # Should pretty much be instant
             self.assertLess(elapsed_time,
@@ -60,13 +60,13 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         for count in range(0, self.DEFAULT_LOOP_COUNT):
             start_time = time.time()
 
-            BundleCacheUsageLogger()
-            BundleCacheUsageLogger.delete_instance()
-            BundleCacheUsageLogger.delete_instance()
-            BundleCacheUsageLogger.delete_instance()
-            BundleCacheUsageLogger()
-            BundleCacheUsageLogger.delete_instance()
-            BundleCacheUsageLogger.delete_instance()
+            BundleCacheUsageTracker()
+            BundleCacheUsageTracker.delete_instance()
+            BundleCacheUsageTracker.delete_instance()
+            BundleCacheUsageTracker.delete_instance()
+            BundleCacheUsageTracker()
+            BundleCacheUsageTracker.delete_instance()
+            BundleCacheUsageTracker.delete_instance()
             elapsed_time = time.time() - start_time
             # Should pretty much be instant
             self.assertLess(elapsed_time, self.WAIT_TIME_INSTANT, "Lock up detected")
@@ -81,10 +81,10 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         """
         for count in range(0, self.DEFAULT_LOOP_COUNT):
             start_time = time.time()
-            logger = BundleCacheUsageLogger()
-            logger.start()
-            BundleCacheUsageLogger.delete_instance()
-            logger = None
+            tracker = BundleCacheUsageTracker()
+            tracker.start()
+            BundleCacheUsageTracker.delete_instance()
+            tracker = None
             elapsed_time = time.time() - start_time
             # Should pretty much be instant
             self.assertLess(elapsed_time, self.WAIT_TIME_INSTANT, "Lock up detected")
@@ -96,14 +96,14 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
 
         # Need override setUp() and start the test with
         # instance and db file deleted.
-        BundleCacheUsageLogger.delete_instance()
+        BundleCacheUsageTracker.delete_instance()
         self.delete_db()
 
         for count in range(0, self.DEFAULT_LOOP_COUNT/4):
             self.assertFalse(os.path.exists(self.expected_db_path))
-            logger = BundleCacheUsageLogger()
-            logger.start()
-            logger.log_usage("bogus")
+            tracker = BundleCacheUsageTracker()
+            tracker.start()
+            tracker.track_usage("bogus")
 
             # Wait for either timeout or database created
             start_time = time.time()
@@ -119,7 +119,7 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
                 time.sleep(0.01)  # allow worker processing
 
             # Reset & delete for next iteration
-            logger.delete_instance()
+            tracker.delete_instance()
             os.remove(self.expected_db_path)
 
     def test_stress_start_stop_with_operations(self):
@@ -134,18 +134,18 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         OPERATION_COUNT = 3
         for count in range(0, self.DEFAULT_LOOP_COUNT):
             start_time = time.time()
-            logger = BundleCacheUsageLogger()
-            logger.start()
+            tracker = BundleCacheUsageTracker()
+            tracker.start()
             for _ in range(0, OPERATION_COUNT):
-                logger.log_usage(self._test_bundle_path)
-            BundleCacheUsageLogger.delete_instance()
+                tracker.track_usage(self._test_bundle_path)
+            BundleCacheUsageTracker.delete_instance()
             elapsed_time = time.time() - start_time
             self.assertEquals(
-                logger.completed_count, OPERATION_COUNT,
+                tracker.completed_count, OPERATION_COUNT,
                 "Was expecting all tasks to be completed after `stop()`"
             )
             self.assertEquals(
-                logger.pending_count, 0,
+                tracker.pending_count, 0,
                 "Was not expecting pending tasks after `stop()`."
             )
             # Should be quick, only a few db operation for each loop iteration
@@ -160,10 +160,10 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
 
         LONG_TASK_SLEEP_TIME = 4.0
         # Queue the long task.
-        self._logger._queue_task(time.sleep, LONG_TASK_SLEEP_TIME)
+        self._tracker._queue_task(time.sleep, LONG_TASK_SLEEP_TIME)
 
         with self.assertRaises(BundleCacheTrackingTimeoutError):
-            self._logger.stop(LONG_TASK_SLEEP_TIME / 2)
+            self._tracker.stop(LONG_TASK_SLEEP_TIME / 2)
 
     def test_queue_task(self):
         """
@@ -172,21 +172,21 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         method times out.
         """
         for count in range(0, self.DEFAULT_LOOP_COUNT):
-            self._logger._queue_task(time.sleep, 0.01)
+            self._tracker._queue_task(time.sleep, 0.01)
 
         self.assertGreater(
-            self._logger.pending_count,
+            self._tracker.pending_count,
             0,
             "Was expecting some incomplete tasks."
         )
-        self._logger.stop(self.WAIT_TIME_MEGA_LONG)
+        self._tracker.stop(self.WAIT_TIME_MEGA_LONG)
         self.assertEquals(
-            self._logger.completed_count,
+            self._tracker.completed_count,
             self.DEFAULT_LOOP_COUNT,
             "Was expecting all tasks to be completed after `stop()`"
         )
         self.assertEquals(
-            self._logger.pending_count,
+            self._tracker.pending_count,
             0,
             "Was not expecting pending tasks after `stop()`."
         )
@@ -199,33 +199,33 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
         TIMEOUT = 2.0
 
         for count in range(0, self.DEFAULT_LOOP_COUNT):
-            self._logger._queue_task(time.sleep, 0.01)
+            self._tracker._queue_task(time.sleep, 0.01)
 
-        self.assertGreater(self._logger.pending_count, 0, "Was expecting some incomplete tasks.")
+        self.assertGreater(self._tracker.pending_count, 0, "Was expecting some incomplete tasks.")
 
         # Forcing a shorter timeout
         # The timeout below is way shorter than 1000 * 0.01s = 10 seconds
         start_time = time.time()
         with self.assertRaises(BundleCacheTrackingTimeoutError):
-            self._logger.stop(TIMEOUT)
+            self._tracker.stop(TIMEOUT)
         elapsed_time = time.time() - start_time
 
         # Verify that the timeout is approx. TIMEOUT seconds
         self.assertIsWithinPct(elapsed_time, TIMEOUT, 5)
 
         # Verify that we do have pending tasks
-        self.assertGreater(self._logger.pending_count, 0,
+        self.assertGreater(self._tracker.pending_count, 0,
                            "We're expecting a worker timeout, there should be incompleted tasks.")
 
         # finish waiting, we know that those tasks will take longer than 2 seconds
         try:
-            self._logger.delete_instance()
+            self._tracker.delete_instance()
         except BundleCacheTrackingTimeoutError:
             pass
 
-    def test_queue_log_usage(self):
+    def test_queue_track_usage(self):
         """
-        Tests performances of tracking a large number of descriptor through usage of the logger class.
+        Tests performances of tracking a large number of descriptor through usage of the tracker class.
         Since actual database accesses are done asynchronously logging usage on the main thread should
         be rather quick, completion of all of the database commits should be substantially longer.
 
@@ -237,17 +237,17 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
 
         start_time = time.time()
         for count in range(0, self.DEFAULT_LOOP_COUNT):
-            self._logger.log_usage(self._test_bundle_path)
+            self._tracker.track_usage(self._test_bundle_path)
 
         queuing_time = time.time() - start_time
         try:
-            self._logger.stop(self.WAIT_TIME_MEGA_LONG)
+            self._tracker.stop(self.WAIT_TIME_MEGA_LONG)
         except BundleCacheTrackingTimeoutError:
-            self._logger.stop(self.WAIT_TIME_MEGA_LONG)
+            self._tracker.stop(self.WAIT_TIME_MEGA_LONG)
 
         completing_all_tasks_time = time.time() - start_time
         self.assertEquals(
-            self._logger.pending_count,
+            self._tracker.pending_count,
             0,
             "Was not expecting pending tasks after `stop`."
         )
@@ -279,7 +279,7 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
     def test_indirect_error_reporting_from_worker_thread(self):
         """
         Indirectly exercise the error/exception reporting from worker
-        thread through usage of the 'log_usage' method through worker thread.
+        thread through usage of the 'track_usage' method through worker thread.
 
         Reference:
             http://cpython-test-docs.readthedocs.io/en/latest/library/unittest.mock.html
@@ -287,33 +287,33 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
 
         with patch("logging.Logger.error") as mocked_log_error:
             # Queue non-problematic tasks
-            self._logger._queue_task(self.helper_divide_a_by_b, 10, 1)
+            self._tracker._queue_task(self.helper_divide_a_by_b, 10, 1)
             time.sleep(self.WORKER_PROCESSING_TIME) # allow worker processing
-            self._logger.log_usage(self._test_bundle_path)
+            self._tracker.track_usage(self._test_bundle_path)
             time.sleep(self.WORKER_PROCESSING_TIME)  # allow worker processing
             self.assertEquals(0, mocked_log_error.call_count)
 
             # Queue a task that will generate an exception
-            self._logger._queue_task(self.helper_divide_a_by_b, 10, 0)
+            self._tracker._queue_task(self.helper_divide_a_by_b, 10, 0)
             time.sleep(self.WORKER_PROCESSING_TIME)  # allow worker processing
-            self._logger.log_usage(self._test_bundle_path)
+            self._tracker.track_usage(self._test_bundle_path)
             time.sleep(self.WORKER_PROCESSING_TIME)  # allow worker processing
             self.assertEquals(1, mocked_log_error.call_count)
 
             # Again, but now with several errors
             mocked_log_error.reset_mock()
-            self._logger._queue_task(self.helper_divide_a_by_b, 10, 0)
-            self._logger._queue_task(self.helper_divide_a_by_b, 10, 0)
-            self._logger._queue_task(self.helper_divide_a_by_b, 10, 0)
+            self._tracker._queue_task(self.helper_divide_a_by_b, 10, 0)
+            self._tracker._queue_task(self.helper_divide_a_by_b, 10, 0)
+            self._tracker._queue_task(self.helper_divide_a_by_b, 10, 0)
             time.sleep(self.WORKER_PROCESSING_TIME)  # allow worker processing
-            self._logger.log_usage(self._test_bundle_path)
+            self._tracker.track_usage(self._test_bundle_path)
             time.sleep(self.WORKER_PROCESSING_TIME)  # allow worker processing
             self.assertEquals(3, mocked_log_error.call_count)
 
     def test_indirect_database_error_reporting_from_worker_thread(self):
         """
         Indirectly tests the database error/exception reporting from worker
-        thread through usage of the 'log_usage' method.
+        thread through usage of the 'track_usage' method.
         """
         # For this test, we have to override what's being done in setUp()
         # and start with a non-existing db file and no existing instance.
@@ -327,20 +327,20 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
                 # Mocking 'BundleCacheUsageDatabase._create_main_table'
                 # prevents creation of the main table and cause pretty
                 # much all writes to fail.
-                logger = BundleCacheUsageLogger()
-                logger.start()
+                tracker = BundleCacheUsageTracker()
+                tracker.start()
                 time.sleep(self.WORKER_PROCESSING_TIME)  # allow worker processing
                 self.assertEquals(0, mocked_create_main_table.call_count)
 
                 # With database NOT having a main table
                 # let's try logging some usage.
-                logger.log_usage(self._test_bundle_path)
+                tracker.track_usage(self._test_bundle_path)
                 time.sleep(self.WORKER_PROCESSING_TIME)  # allow worker processing
                 self.assertEquals(1, mocked_create_main_table.call_count)
 
-                # Now, the next call to 'log_usage' should trigger
+                # Now, the next call to 'track_usage' should trigger
                 # splitting out the errors
-                logger.log_usage(self._test_bundle_path)
+                tracker.track_usage(self._test_bundle_path)
                 self.assertEquals(1, mocked_log_error.call_count)
                 self.assertEquals(
                     "Unexpected error consuming task : no such table: bundles",
@@ -350,15 +350,15 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
     def test_indirect_time_override_error_reporting_from_worker_thread(self):
         """
         Indirectly tests the database error/exception reporting from worker
-        thread through usage of the 'log_usage' method through worker thread.
+        thread through usage of the 'track_usage' method through worker thread.
         """
 
         with patch("logging.Logger.error") as mocked_log_error:
             # Mocking 'BundleCacheUsageDatabase._create_main_table'
             # prevents creation of the main table and cause pretty
             # much all writes to fail.
-            logger = BundleCacheUsageLogger()
-            logger.start()
+            tracker = BundleCacheUsageTracker()
+            tracker.start()
 
             BAD_TIME_STRING = "asgjdhasgjhdasd"
 
@@ -367,12 +367,12 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
 
             # With database NOT having a main table
             # let's try logging some usage.
-            logger.log_usage(self._test_bundle_path)
+            tracker.track_usage(self._test_bundle_path)
             time.sleep(self.WORKER_PROCESSING_TIME)  # allow worker processing
 
-            # Now, the next call to 'log_usage' should trigger
+            # Now, the next call to 'track_usage' should trigger
             # splitting out the errors
-            logger.log_usage(self._test_bundle_path)
+            tracker.track_usage(self._test_bundle_path)
             self.assertEquals(1, mocked_log_error.call_count)
             self.assertEquals(
                 "Unexpected error consuming task : invalid literal for int() with base 10: '%s'" % BAD_TIME_STRING,
@@ -381,8 +381,8 @@ class TestBundleCacheUsageLogger(TestBundleCacheUsageBase):
 
     def test_singleton(self):
         """ Tests that multiple instantiations return the same object."""
-        db1 = BundleCacheUsageLogger()
-        db2 = BundleCacheUsageLogger()
-        db3 = BundleCacheUsageLogger()
+        db1 = BundleCacheUsageTracker()
+        db2 = BundleCacheUsageTracker()
+        db3 = BundleCacheUsageTracker()
         self.assertTrue(db1 == db2 == db3)
 

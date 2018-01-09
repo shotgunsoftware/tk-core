@@ -241,7 +241,7 @@ class BundleCacheUsageDatabase(object):
 
         return int(time.time())
 
-    def _log_usage(self, bundle_path, initial_usage_count):
+    def _track_usage(self, bundle_path, initial_usage_count):
         """
         Track usage of an entry specified by the `bundle_path` parameter.
         The method creates new entries if the specified entry cannot be found..
@@ -252,13 +252,6 @@ class BundleCacheUsageDatabase(object):
         truncated_path = self._truncate_path(bundle_path)
         if truncated_path:
             now_unix_timestamp = self._get_timestamp()
-            #
-            # UPSERT *not* INSERT or REPLACE:
-            #
-            # Reference:
-            # https://stackoverflow.com/a/4330694/710183
-            # https://en.wikipedia.org/wiki/Merge_(SQL)
-            #
             self._execute(
                 """
                 INSERT OR REPLACE INTO bundles (
@@ -327,7 +320,7 @@ class BundleCacheUsageDatabase(object):
 
         :param bundle_path: a str path inside of the bundle cache
         """
-        self._log_usage(bundle_path, 0)
+        self._track_usage(bundle_path, 0)
 
     @property
     def bundle_cache_root(self):
@@ -402,14 +395,14 @@ class BundleCacheUsageDatabase(object):
 
         return [BundleCacheUsageDatabaseEntry(r) for r in result.fetchall()]
 
-    def log_usage(self, bundle_path):
+    def track_usage(self, bundle_path):
         """
         Update the last access date and increase the access count of the
         specified database entry if it exists in the database already
         otherwise a new entry is created with a usage count of 1.
         :param bundle_path: a str path inside of the bundle cache
         """
-        self._log_usage(bundle_path, 1)
+        self._track_usage(bundle_path, 1)
 
     @property
     def path(self):
@@ -435,7 +428,7 @@ class BundleCacheUsageDatabase(object):
         """
         if performed:
             # Add marker
-            self.log_usage(self._marker_path)
+            self.track_usage(self._marker_path)
         else:
             # Remove marker
             # NOTE: No need to use full path and then truncate

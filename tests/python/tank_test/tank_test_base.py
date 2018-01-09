@@ -33,7 +33,7 @@ import tank
 from tank import path_cache, pipelineconfig_factory
 from tank_vendor import yaml
 from tank.util.user_settings import UserSettings
-from tank.descriptor.bundle_cache_usage.logger import BundleCacheUsageLogger
+from tank.descriptor.bundle_cache_usage.tracker import BundleCacheUsageTracker
 
 TANK_TEMP = None
 
@@ -439,7 +439,7 @@ class TankTestBase(unittest.TestCase):
 
             # Must terminate the bundle cache usage logger
             # being started in PipelineConfig
-            BundleCacheUsageLogger.delete_instance(120)
+            BundleCacheUsageTracker.delete_instance(120)
 
             # get rid of init cache
             if os.path.exists(pipelineconfig_factory._get_cache_location()):

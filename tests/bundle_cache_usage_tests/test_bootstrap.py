@@ -18,7 +18,7 @@ from mock import patch, MagicMock
 
 import sgtk
 from sgtk.bootstrap.manager import ToolkitManager
-from sgtk.descriptor.bundle_cache_usage.logger import BundleCacheUsageLogger
+from sgtk.descriptor.bundle_cache_usage.tracker import BundleCacheUsageTracker
 from sgtk.descriptor.bundle_cache_usage.purger import BundleCacheUsagePurger
 from sgtk.pipelineconfig import PipelineConfiguration
 from sgtk.util import LocalFileStorageManager
@@ -257,9 +257,9 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
         )
 
         #
-        # IMPORTANT: This assumes that logger init was done in 'PipelineConfig' class
+        # IMPORTANT: This assumes that tracker init was done in 'PipelineConfig' class
         #
-        BundleCacheUsageLogger.log_usage(self._test_bundle_path)
+        BundleCacheUsageTracker.track_usage(self._test_bundle_path)
         time.sleep(self.WAIT_TIME_INSTANT) # allow worker some processing time
 
         # Verify that we receive all bundle minus the one we just logged some usage for
@@ -307,7 +307,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
         )
 
         # ... and files ...
-        # Since we've log_usage of the tk-shell/v0.5.6 bundle
+        # Since we've track_usage of the tk-shell/v0.5.6 bundle
         # we expect files to exists still, including, parent folder
         # and app_store folder.
         remaining_files = [
