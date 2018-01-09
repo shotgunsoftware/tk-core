@@ -173,7 +173,8 @@ class SessionUser(ShotgunUserImpl):
             the session token will be looked for in the users file.
         :param http_proxy: HTTP proxy to use with this host. Defaults to None.
         :param password: Password for the user. Defaults to None.
-        :param session_metadata: Data structure needed when SSO is used. This is an obscure blob of data. Defaults to None.
+        :param session_metadata: Data structure needed when SSO is used. This is an obscure blob of data. Defaults to
+            None.
 
         :raises IncompleteCredentials: If there is not enough values
             provided to initialize the user, this exception will be thrown.
@@ -345,7 +346,8 @@ class SessionUser(ShotgunUserImpl):
             host=payload.get("host"),
             login=payload.get("login"),
             session_token=payload.get("session_token"),
-            http_proxy=payload.get("http_proxy")
+            http_proxy=payload.get("http_proxy"),
+            session_metadata=payload.get("session_metadata")
         )
 
     def to_dict(self):
