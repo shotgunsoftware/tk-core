@@ -247,7 +247,6 @@ class BundleCacheUsageDatabase(object):
         The method creates new entries if the specified entry cannot be found..
 
         :param bundle_path: a str entry identifier
-        :param timestamp: An int unix timestamp
         :param initial_usage_count: an int initial entry usage count value
         """
         truncated_path = self._truncate_path(bundle_path)
