@@ -64,13 +64,8 @@ class BundleCacheUsageTracker(threading.Thread):
         if (self.__initialized):
             return
         self.__initialized = True
-        self._terminate_requested = threading.Event()
-        self._queued_signal = threading.Event()
         self._tasks = Queue.Queue()
         self._errors = Queue.Queue()
-        self._member_lock = threading.Condition()
-        self._completed_count = 0
-        self._pending_count = 0
 
     @ classmethod
     def delete_instance(cls, timeout=DEFAULT_STOP_TIMEOUT):
@@ -111,46 +106,27 @@ class BundleCacheUsageTracker(threading.Thread):
         database = BundleCacheUsageDatabase()
         database.track_usage(bundle_path)
 
-    def __consume_task(self):
-        """
-        Execute a queued task.
-
-        .. note:: Invoked exclusively from the worker thread.
-        """
-        try:
-            method, args, kwargs = self._tasks.get()
-            if method:
-                method(*args, **kwargs)
-        except Exception as e:
-            self.__log_error(e, "Unexpected error consuming task")
-
-        with self._member_lock:
-            if self._pending_count > 0:
-                self._pending_count -= 1
-            self._completed_count += 1
-
     def run(self):
         """
         Implementation of threading.Thread.run()
         """
 
         try:
-            while not self._terminate_requested.is_set() or self.pending_count > 0:
+            while True:
 
-                # Pace the run loop by waiting and consuming as they are queued
-                self._queued_signal.wait()
+                # Wait (block) until something is added to the queue
+                method, args, kwargs = self._tasks.get()
+                if method == "QUIT":
+                    break
 
-                # Note: the 'pending_count' property DOES wraps lock on _pending_count member
-                while self.pending_count > 0:
-                    self.__consume_task()
+                if method:
+                    try:
+                        method(*args, **kwargs)
 
-                # When all tasks have been processed we need to reset Queue signal
-                # so this loop is not consuming all CPU.
-                #
-                # Clearing the signal will cause the `self._queued_signal.wait()` statement
-                # above to sleep the thread until it is signaled again by queueing a new task
-                # or requesting end of thread.
-                self._queued_signal.clear()
+                    except Exception as e:
+                        self.__log_error(e, "Unexpected error consuming task")
+                    finally:
+                        self._tasks.task_done()
 
         except Exception as e:
             self.__log_error(e, "Unexpected exception in the worker run() method")
@@ -177,33 +153,13 @@ class BundleCacheUsageTracker(threading.Thread):
         :param kwargs: named arguments to pass to the method
         """
         self._check_for_queued_errors()
-
-        with self._member_lock:
-            self._pending_count += 1
-
         self._tasks.put((method, args, kwargs))
-        self._tasks.task_done()
-        self._queued_signal.set()
 
     #
     # Public methods & properties
     # Can run from either threading contextes
     #
     ###########################################################################
-
-    @property
-    def completed_count(self):
-        """
-        Returns how many tasks have been completed by the worker thread.
-
-        .. note:: Indicative only, with the worker thread running,
-        by the time the next instruction is executed the value might
-        be already different.
-
-        :return: an integer of the completed task count
-        """
-        with self._member_lock:
-            return self._completed_count
 
     @classmethod
     def track_usage(cls, bundle_path):
@@ -227,8 +183,7 @@ class BundleCacheUsageTracker(threading.Thread):
 
         :return: an integer of the currently still queued tasks count
         """
-        with self._member_lock:
-            return self._pending_count
+        return self._tasks.qsize()
 
     def stop(self, timeout=DEFAULT_STOP_TIMEOUT):
         """
@@ -239,21 +194,15 @@ class BundleCacheUsageTracker(threading.Thread):
         :param timeout: A float timeout in seconds
         """
         if self.is_alive():
-            log.debug(
-                "Requesting worker termination (pending task count = %d) ..."  % (self.pending_count)
-            )
-            # Order is important below: signal thread termination FIRST!
-            self._terminate_requested.set()
-            self._queued_signal.set()
+            log.debug("Requesting worker termination ..." )
+            self._tasks.put("QUIT")
             self.join(timeout=timeout)
             # As join() always returns None, you must call isAlive() after
             # join() to decide whether a timeout happened
             if self.is_alive():
                 raise BundleCacheTrackingTimeoutError("Timeout waiting for worker thread to terminated.")
 
-            log.debug(
-                "Worker thread terminated cleanly (pending task count = %d) ..."  % (self.pending_count)
-            )
+            log.debug("Worker thread terminated cleanly.")
 
 
 

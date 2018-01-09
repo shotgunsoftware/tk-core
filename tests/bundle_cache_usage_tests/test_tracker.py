@@ -141,10 +141,6 @@ class TestBundleCacheUsageTracker(TestBundleCacheUsageBase):
             BundleCacheUsageTracker.delete_instance()
             elapsed_time = time.time() - start_time
             self.assertEquals(
-                tracker.completed_count, OPERATION_COUNT,
-                "Was expecting all tasks to be completed after `stop()`"
-            )
-            self.assertEquals(
                 tracker.pending_count, 0,
                 "Was not expecting pending tasks after `stop()`."
             )
@@ -164,32 +160,6 @@ class TestBundleCacheUsageTracker(TestBundleCacheUsageBase):
 
         with self.assertRaises(BundleCacheTrackingTimeoutError):
             self._tracker.stop(LONG_TASK_SLEEP_TIME / 2)
-
-    def test_queue_task(self):
-        """
-        Tests submitting a bulk of simple & very short wait tasks and verify
-        that all tasks have been executed and completed before the ending 'stop'
-        method times out.
-        """
-        for count in range(0, self.DEFAULT_LOOP_COUNT):
-            self._tracker._queue_task(time.sleep, 0.01)
-
-        self.assertGreater(
-            self._tracker.pending_count,
-            0,
-            "Was expecting some incomplete tasks."
-        )
-        self._tracker.stop(self.WAIT_TIME_MEGA_LONG)
-        self.assertEquals(
-            self._tracker.completed_count,
-            self.DEFAULT_LOOP_COUNT,
-            "Was expecting all tasks to be completed after `stop()`"
-        )
-        self.assertEquals(
-            self._tracker.pending_count,
-            0,
-            "Was not expecting pending tasks after `stop()`."
-        )
 
     def test_queue_task_timing_out(self):
         """
