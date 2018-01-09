@@ -17,6 +17,7 @@ import shutil
 import logging
 import tempfile
 import mock
+import inspect
 
 from tank_test.tank_test_base import *
 import tank
@@ -310,6 +311,29 @@ class TestExecuteHook(TestApplication):
         instance_2 = app.create_hook_instance(hook_expression)
         self.assertNotEquals(instance_1, instance_2)
 
+        # ensure if no base_class arg supplied we have Hook as the base class
+        base_classes = inspect.getmro(instance_2.__class__)
+        self.assertEquals(base_classes[-2], tank.Hook)
+        self.assertEquals(base_classes[-1], object)
+
+        # class to inject as a custom base class
+        class Foobar(tank.Hook):
+            pass
+
+        # this hook has to be new style hook using `sgtk.get_hook_baseclass`
+        test_hook_expression = "{config}/more_hooks/config_test_hook.py"
+
+        # create an instance with an in injected base class
+        instance_3 = app.create_hook_instance(test_hook_expression, base_class=Foobar)
+
+        # get the resolution order of the base classes
+        base_classes = inspect.getmro(instance_3.__class__)
+
+        # ensure the last 3 classes in the order are Foobar, Hook, object
+        self.assertEquals(base_classes[-3], Foobar)
+        self.assertEquals(base_classes[-2], tank.Hook)
+        self.assertEquals(base_classes[-1], object)
+
     def test_parent(self):
         """
         Tests hook.parent for applications
@@ -548,5 +572,49 @@ class TestProperties(TestApplication):
         self.assertEqual(app.display_name, "Test App")
         self.assertEqual(app.version, "Undefined")
         self.assertEqual(app.documentation_url, expected_doc_url)
-        
 
+
+class TestBundleDataCache(TestApplication):
+    """
+    Test bundle data cache paths
+    """
+
+    def test_data_path(self):
+        """
+        Test project/site data paths.
+        """
+        app = self.engine.apps["test_app"]
+        project_data_cache_path = app.cache_location
+        # We should have the project id in the path
+        self.assertTrue(
+            "%sp%d" % (os.path.sep, app.context.project["id"]) in project_data_cache_path
+        )
+        site_data_cache_path = app.site_cache_location
+        # We should not have the project id in the path
+        self.assertFalse(
+            "%sp%d" % (os.path.sep, app.context.project["id"]) in site_data_cache_path
+        )
+        # The path should end with "/site/<bundle name>"
+        self.assertTrue(
+            site_data_cache_path.endswith("%ssite%s%s" % (
+                os.path.sep, os.path.sep, app.name,
+            ))
+        )
+        # Test frameworks
+        for name, fw in app.frameworks.iteritems():
+            fw_data_cache_path = fw.cache_location
+            # We should have the project id in the path
+            self.assertTrue(
+                "%sp%d" % (os.path.sep, app.context.project["id"]) in fw_data_cache_path
+            )
+            fw_data_cache_path = fw.site_cache_location
+            # We should not have the project id in the path
+            self.assertFalse(
+                "%sp%d" % (os.path.sep, app.context.project["id"]) in fw_data_cache_path
+            )
+            # The path should end with "/site/<bundle name>"
+            self.assertTrue(
+                fw_data_cache_path.endswith("%ssite%s%s" % (
+                    os.path.sep, os.path.sep, name,
+                ))
+            )

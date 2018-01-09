@@ -11,10 +11,14 @@
 from __future__ import with_statement
 from mock import patch
 import os
+import base64
 
 from tank_test.tank_test_base import *
 
-from tank.authentication import ShotgunAuthenticator, IncompleteCredentials, DefaultsManager, user_impl
+from tank.authentication import ShotgunAuthenticator, IncompleteCredentials, DefaultsManager, user_impl, user
+
+# Create a set of valid cookies, for SSO-related tests.
+valid_session_metadata = base64.b64encode('shotgun_sso_session_userid_u00=userid')
 
 
 class TestDefaultManager(DefaultsManager):
@@ -45,13 +49,38 @@ class ShotgunAuthenticatorTests(TankTestBase):
             ShotgunAuthenticator(TestDefaultManager()).create_session_user("login")
 
         # Passing a password should generate a session token
-        user = ShotgunAuthenticator(TestDefaultManager()).create_session_user(
+        session_user = ShotgunAuthenticator(TestDefaultManager()).create_session_user(
             "login", password="password", host="https://host.shotgunstudio.com"
         )
+        self.assertIsInstance(session_user, user.ShotgunUser)
+        self.assertNotIsInstance(session_user, user.ShotgunSamlUser)
         self.assertEquals(generate_session_token_mock.call_count, 1)
-        self.assertEquals(user.impl.get_session_token(), "session_token")
+        self.assertEquals(session_user.impl.get_session_token(), "session_token")
 
-        connection = user.create_sg_connection()
+        connection = session_user.create_sg_connection()
+        self.assertEqual(connection.config.session_token, "session_token")
+
+        # Passing invalid session_metadata will result in a regular ShotgunUser
+        session_user = ShotgunAuthenticator(TestDefaultManager())._create_session_user(
+            "login", password="password", host="https://host.shotgunstudio.com", session_metadata="invalid session_metadata"
+        )
+        self.assertIsInstance(session_user, user.ShotgunUser)
+        self.assertNotIsInstance(session_user, user.ShotgunSamlUser)
+        self.assertEquals(generate_session_token_mock.call_count, 2)
+        self.assertEquals(session_user.impl.get_session_token(), "session_token")
+
+        connection = session_user.create_sg_connection()
+        self.assertEqual(connection.config.session_token, "session_token")
+
+        # Passing valid session_metadata will result in a ShotgunSamlUser
+        session_user = ShotgunAuthenticator(TestDefaultManager())._create_session_user(
+            "login", password="password", host="https://host.shotgunstudio.com", session_metadata=valid_session_metadata
+        )
+        self.assertIsInstance(session_user, user.ShotgunSamlUser)
+        self.assertEquals(generate_session_token_mock.call_count, 3)
+        self.assertEquals(session_user.impl.get_session_token(), "session_token")
+
+        connection = session_user.create_sg_connection()
         self.assertEqual(connection.config.session_token, "session_token")
 
     @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
@@ -89,12 +118,13 @@ class ShotgunAuthenticatorTests(TankTestBase):
         :param generate_session_token_mock: Mocked so we can skip communicating
                                             with the Shotgun server.
         """
-        generate_session_token_mock.return_value = "session_token"\
+        generate_session_token_mock.return_value = "session_token"
 
         class TestWithUserDefaultManager(TestDefaultManager):
 
             def get_host(self):
                 return "https://unique_host.shotgunstudio.com"
+
             def get_user_credentials(self):
                 return self.user
 
@@ -135,7 +165,24 @@ class ShotgunAuthenticatorTests(TankTestBase):
         self.assertIsInstance(ShotgunAuthenticator(dm).get_default_user().impl, user_impl.ScriptUser)
 
         dm.user = {"login": "login", "session_token": "session_token"}
-        self.assertIsInstance(ShotgunAuthenticator(dm).get_default_user().impl, user_impl.SessionUser)
+        default_user = ShotgunAuthenticator(dm).get_default_user()
+        self.assertIsInstance(default_user, user.ShotgunUser)
+        self.assertNotIsInstance(default_user, user.ShotgunSamlUser)
+        self.assertIsInstance(default_user.impl, user_impl.SessionUser)
 
         dm.user = {"login": "login", "password": "password"}
-        self.assertIsInstance(ShotgunAuthenticator(dm).get_default_user().impl, user_impl.SessionUser)
+        default_user = ShotgunAuthenticator(dm).get_default_user()
+        self.assertIsInstance(default_user, user.ShotgunUser)
+        self.assertNotIsInstance(default_user, user.ShotgunSamlUser)
+        self.assertIsInstance(default_user.impl, user_impl.SessionUser)
+
+        dm.user = {"login": "login", "password": "password", "session_metadata": "invalid session_metadata"}
+        default_user = ShotgunAuthenticator(dm).get_default_user()
+        self.assertIsInstance(default_user, user.ShotgunUser)
+        self.assertNotIsInstance(default_user, user.ShotgunSamlUser)
+        self.assertIsInstance(default_user.impl, user_impl.SessionUser)
+
+        dm.user = {"login": "login", "password": "password", "session_metadata": valid_session_metadata}
+        default_user = ShotgunAuthenticator(dm).get_default_user()
+        self.assertIsInstance(default_user, user.ShotgunSamlUser)
+        self.assertIsInstance(default_user.impl, user_impl.SessionUser)

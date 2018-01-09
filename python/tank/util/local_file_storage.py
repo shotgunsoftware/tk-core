@@ -304,7 +304,7 @@ class LocalFileStorageManager(object):
             # new paths are on the form
             # project 123, config 33:       root/mysite/p123c33
             # project 123 with plugin id:   root/mysite/p123.review.rv
-            # site project:                 root/mysite/p0
+            # site project:                 root/mysite/site
 
             pc_suffix = ""
             if pipeline_config_id and not plugin_id:
@@ -316,7 +316,8 @@ class LocalFileStorageManager(object):
             elif plugin_id and pipeline_config_id:
                 pc_suffix = "c%d.%s" % (pipeline_config_id, filesystem.create_valid_filename(plugin_id))
             else:
-                # this is a possible, however not recommended state
+                # No pipeline config id nor plugin id which is possible for caching
+                # at the site level.
                 pc_suffix = ""
 
             if project_id is None:

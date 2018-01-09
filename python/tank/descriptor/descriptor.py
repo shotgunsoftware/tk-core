@@ -25,7 +25,8 @@ def create_descriptor(
         bundle_cache_root_override=None,
         fallback_roots=None,
         resolve_latest=False,
-        constraint_pattern=None):
+        constraint_pattern=None,
+        local_fallback_when_disconnected=True):
     """
     Factory method. Use this when creating descriptor objects.
 
@@ -59,8 +60,15 @@ def create_descriptor(
                                 - ``v0.1.2``, ``v0.12.3.2``, ``v0.1.3beta`` - a specific version
                                 - ``v0.12.x`` - get the highest v0.12 version
                                 - ``v1.x.x`` - get the highest v1 version
+    :param local_fallback_when_disconnected: If resolve_latest is set to True, specify the behaviour
+                            in the case when no connection to a remote descriptor can be established,
+                            for example because and internet connection isn't available. If True, the
+                            descriptor factory will attempt to fall back on any existing locally cached
+                            bundles and return the latest one available. If False, a
+                            :class:`TankDescriptorError` is raised instead.
 
     :returns: :class:`Descriptor` object
+    :raises: :class:`TankDescriptorError`
     """
     from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
     from .descriptor_cached_config import CachedConfigDescriptor
@@ -92,7 +100,8 @@ def create_descriptor(
         bundle_cache_root_override,
         fallback_roots,
         resolve_latest,
-        constraint_pattern
+        constraint_pattern,
+        local_fallback_when_disconnected
     )
 
     # now create a high level descriptor and bind that with the low level descriptor
@@ -297,7 +306,7 @@ class Descriptor(object):
     def support_url(self):
         """
         A url that points at a support web page associated with this item.
-        If not url has been defined, None is returned.
+        If not url has been defined, ``None`` is returned.
         """
         meta = self._get_manifest()
         support_url = meta.get("support_url")
@@ -343,8 +352,15 @@ class Descriptor(object):
 
     def get_path(self):
         """
-        Returns the path to the folder where this item either currently resides
-        or would reside in case it existed locally.
+        Returns the path to a location where this item is cached.
+
+        When locating the item, any bundle cache fallback paths
+        will first be searched in the order they have been defined,
+        and lastly the main bundle cached will be checked.
+
+        If the item is not locally cached, ``None`` is returned.
+
+        :returns: Path string or ``None`` if not cached.
         """
         return self._io_descriptor.get_path()
 
@@ -353,7 +369,7 @@ class Descriptor(object):
         """
         Information about the changelog for this item.
 
-        :returns: A tuple (changelog_summary, changelog_url). Values may be None
+        :returns: A tuple (changelog_summary, changelog_url). Values may be ``None``
                   to indicate that no changelog exists.
         """
         return self._io_descriptor.get_changelog()
@@ -423,7 +439,7 @@ class Descriptor(object):
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
 
-        :returns: Instance derived from :class:`Descriptor` or None if no cached version
+        :returns: Instance derived from :class:`Descriptor` or ``None`` if no cached version
                   is available.
         """
         io_desc = self._io_descriptor.get_latest_cached_version(constraint_pattern)

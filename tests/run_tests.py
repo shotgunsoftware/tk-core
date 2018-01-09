@@ -163,17 +163,18 @@ def _finalize_coverage(cov):
         print("Note: Full html coverage report can be found in the coverage_html_report folder.")
 
 
-def _initialize_logging(log_to_console):
+def _initialize_logging():
     """
     Sets up a log file for the unit tests and optionally logs everything to the console.
-
-    :param log_to_console: If True, all Toolkit logging will go to the console.
     """
     import tank
     tank.LogManager().initialize_base_file_handler("run_tests")
 
     if options.log_to_console:
         tank.LogManager().initialize_custom_handler()
+
+    if options.debug:
+        tank.LogManager().global_debug = True
 
 
 def _run_tests(test_root, test_names):
@@ -213,9 +214,12 @@ def _parse_command_line():
                       action="store",
                       dest="test_root",
                       help="Specify a folder where to look for tests.")
+    parser.add_option("--debug", "-d",
+                      action="store_true",
+                      help="Enable debug logging.")
     parser.add_option("--log-to-console", "-l",
                       action="store_true",
-                      help="run tests and redirect logging output to the console.")
+                      help="Run tests and redirect logging output to the console.")
 
     (options, args) = parser.parse_args()
 
@@ -260,7 +264,7 @@ if __name__ == "__main__":
         if options.coverage:
             cov = _initialize_coverage(options.test_root)
 
-        _initialize_logging(options.log_to_console)
+        _initialize_logging()
 
         # If we have a custom test root, add its python folder, if it exists, so the user doesn't need
         # to set it up themselves.

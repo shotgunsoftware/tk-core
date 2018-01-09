@@ -332,6 +332,13 @@ class ConfigurationWriter(object):
             "install_location.yml"
         )
 
+        if os.path.exists(sg_code_location):
+            # warn if this file already exists
+            log.warning(
+                "The file 'core/install_location.yml' exists in the configuration "
+                "but will be overwritten with an auto generated file."
+            )
+
         with self._open_auto_created_yml(sg_code_location) as fh:
 
             fh.write("# This file reflects the paths in the pipeline\n")
@@ -500,6 +507,13 @@ class ConfigurationWriter(object):
             constants.PIPELINECONFIG_FILE
         )
 
+        if os.path.exists(pipeline_config_path):
+            # warn if this file already exists
+            log.warning(
+                "The file 'core/%s' exists in the configuration "
+                "but will be overwritten with an auto generated file." % constants.PIPELINECONFIG_FILE
+            )
+
         with self._open_auto_created_yml(pipeline_config_path) as fh:
             yaml.safe_dump(pipeline_config_content, fh)
             fh.write("\n")
@@ -545,6 +559,13 @@ class ConfigurationWriter(object):
             "core",
             constants.STORAGE_ROOTS_FILE
         )
+
+        if os.path.exists(roots_file):
+            # warn if this file already exists
+            log.warning(
+                "The file 'core/%s' exists in the configuration "
+                "but will be overwritten with an auto generated file." % constants.STORAGE_ROOTS_FILE
+            )
 
         with self._open_auto_created_yml(roots_file) as fh:
             yaml.safe_dump(roots_data, fh)

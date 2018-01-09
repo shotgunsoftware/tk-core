@@ -15,9 +15,11 @@ from .. import LogManager
 
 log = LogManager.get_logger(__name__)
 
+SYSTEM_FILE_ITEMS = set(["__MACOSX", ".DS_Store"])
+
 
 @filesystem.with_cleared_umask
-def unzip_file(src_zip_file, target_folder):
+def unzip_file(src_zip_file, target_folder, auto_detect_bundle=False):
     """
     Unzips the given file into the given folder.
 
@@ -31,18 +33,54 @@ def unzip_file(src_zip_file, target_folder):
 
     :param src_zip_file: Path to zip file to uncompress
     :param target_folder: Folder to extract into
+    :param auto_detect_bundle: Hints that the attachment contains a toolkit bundle
+        (config, app, engine, framework) and that this should be attempted to be
+        detected and unpacked intelligently. For example, if the zip file contains
+        the bundle in a subfolder, this should be correctly unfolded.
     """
     log.debug("Unpacking %s into %s" % (src_zip_file, target_folder))
     zip_obj = zipfile.ZipFile(src_zip_file, "r")
 
+    extraction_done = False
+
+    if auto_detect_bundle:
+        # enable additional flexibility in order to auto detect a bundle structure
+        # within the zip. Support the following alternative formats:
+        # - files are extracted according to the structure in the zip (default case)
+        # - if the zip contains a single folder with all content inside,
+        #   assume the bundle is contained inside this structure. This is
+        #   a common scenario if a user has created a zip by right clicking on it
+        #   and selected 'create archive' or 'send to zip'.
+
+        # compute number of unique root folders
+        # note: zip module uses forward slash on all operating systems
+        root_items = set([item.split("/")[0] for item in zip_obj.namelist() if "/" in item])
+        # remove certain system items
+        root_items -= SYSTEM_FILE_ITEMS
+
+        if len(root_items) == 1:
+            root_to_omit = root_items.pop()
+
+            log.debug(
+                "Zip file contains a single folder '%s' and auto_detect_bundle flag is set. "
+                "Will extract content out of the folder." % root_to_omit
+            )
+
+            for x in zip_obj.namelist():
+                if x.startswith(root_to_omit):
+                    _process_item(zip_obj, x, target_folder, root_to_omit)
+
+            extraction_done = True
+
     # loosely based on:
     # http://forums.devshed.com/python-programming-11/unzipping-a-zip-file-having-folders-and-subfolders-534487.html
-
+    #
     # make sure we are using consistent permissions
-    # get list of filenames contained in archinve
-    for x in zip_obj.namelist():
-        # process them one by one
-        _process_item(zip_obj, x, target_folder)
+    # get list of file names contained in archive
+    if not extraction_done:
+        for x in zip_obj.namelist():
+            # process them one by one
+            _process_item(zip_obj, x, target_folder)
 
 @filesystem.with_cleared_umask
 def zip_file(source_folder, target_zip_file):
@@ -63,7 +101,7 @@ def zip_file(source_folder, target_zip_file):
     log.debug("Zip complete. Size: %s" % os.path.getsize(target_zip_file))
 
 
-def _process_item(zip_obj, item_path, target_path):
+def _process_item(zip_obj, item_path, target_path, root_to_omit=None):
     """
     Helper method used by unzip_file()
 
@@ -71,9 +109,10 @@ def _process_item(zip_obj, item_path, target_path):
     http://hg.python.org/cpython/file/538f4e774c18/Lib/zipfile.py
 
     :param zip_obj: Zipfile object to extract from
-    :param item_path: zip file object to unpack
-    :param target_path: path to unpack into
-    :returns: full path to unpacked file
+    :param item_path: XZip file object to unpack
+    :param target_path: Path to unpack into
+    :param root_to_omit:
+    :returns: Full path to the unpacked file or folder
     """
     # build the destination pathname, replacing
     # forward slashes to platform specific separators.
@@ -82,11 +121,22 @@ def _process_item(zip_obj, item_path, target_path):
         and len(os.path.splitdrive(target_path)[1]) > 1):
         target_path = target_path[:-1]
 
+    # see if we need to omit a root_folder
+    # e.g.
+    # target_path = '/tmp', item_path = 'test/foo/bar.png', root_to_omit='test'
+    # ==>
+    # /tmp/foo/bar.png
+    #
+    if root_to_omit and item_path.startswith(root_to_omit):
+        processed_item_path = item_path[len(root_to_omit) + 1:]
+    else:
+        processed_item_path = item_path
+
     # don't include leading "/" from file name if present
     if item_path[0] == '/':
-        target_path = os.path.join(target_path, item_path[1:])
+        target_path = os.path.join(target_path, processed_item_path[1:])
     else:
-        target_path = os.path.join(target_path, item_path)
+        target_path = os.path.join(target_path, processed_item_path)
 
     target_path = os.path.normpath(target_path)
 

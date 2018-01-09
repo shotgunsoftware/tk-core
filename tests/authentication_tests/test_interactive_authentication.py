@@ -16,10 +16,19 @@ from __future__ import with_statement, print_function
 
 import sys
 
-from tank_test.tank_test_base import setUpModule, TankTestBase, skip_if_pyside_missing, interactive
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import TankTestBase, skip_if_pyside_missing, interactive
 from mock import patch
-from tank.authentication import user_impl, console_authentication, interactive_authentication, invoker
+from tank.authentication import (
+    console_authentication,
+    ConsoleLoginWithSSONotSupportedError,
+    interactive_authentication,
+    invoker,
+    user_impl,
+)
+
 import tank
+
 
 class InteractiveTests(TankTestBase):
     """
@@ -108,14 +117,14 @@ class InteractiveTests(TankTestBase):
         """
         self._test_login(console=False)
 
-    @patch("tank.authentication.interactive_authentication._get_qt_state")
+    @patch("tank.authentication.interactive_authentication._get_ui_state")
     @interactive
-    def test_login_console(self, _get_qt_state_mock):
+    def test_login_console(self, _get_ui_state_mock):
         """
         Pops the ui and lets the user authenticate.
         :param cache_session_data_mock: Mock for the tank.util.session_cache.cache_session_data
         """
-        _get_qt_state_mock.return_value = None, None, None
+        _get_ui_state_mock.return_value = False
         self._test_login(console=True)
 
     def _print_message(self, text, test_console):
@@ -142,7 +151,7 @@ class InteractiveTests(TankTestBase):
             "re-enter your password.", test_console
         )
         # Get the basic user credentials.
-        host, login, session_token = interactive_authentication.authenticate(
+        host, login, session_token, session_metadata = interactive_authentication.authenticate(
             "https://enter_your_host_name_here.shotgunstudio.com",
             "enter_your_username_here",
             "",
@@ -160,13 +169,19 @@ class InteractiveTests(TankTestBase):
 
     @interactive
     def test_session_renewal_ui(self):
+        """
+        Interactively test session renewal.
+        """
         self._test_session_renewal(test_console=False)
 
-    @patch("tank.authentication.interactive_authentication._get_qt_state")
+    @patch("tank.authentication.interactive_authentication._get_ui_state")
     @interactive
-    def test_session_renewal_console(self,_get_qt_state_mock):
+    def test_session_renewal_console(self, _get_ui_state_mock):
+        """
+        Interactively test for session renewal with the GUI.
+        """
         # Doing this forces the prompting code to use the console.
-        _get_qt_state_mock.return_value = None, None, None
+        _get_ui_state_mock.return_value = False
         self._test_session_renewal(test_console=True)
 
     def test_invoker_rethrows_exception(self):
@@ -178,15 +193,15 @@ class InteractiveTests(TankTestBase):
         From the background thread, we will create an invoker and use it to invoke the thrower
         method in the main thread. This thrower method will throw a FromMainThreadException.
         If everything works as planned, the exception will be caught by the invoker and rethrown
-        in the background thread. The background thread will then raise an exception and when the 
+        in the background thread. The background thread will then raise an exception and when the
         main thread calls wait it will assert that the exception that was thrown was coming
         from the thrower function.
         """
-
         class FromMainThreadException(Exception):
             """
             Exception that will be thrown from the main thead.
             """
+
             pass
 
         from PySide import QtCore, QtGui
@@ -278,6 +293,23 @@ class InteractiveTests(TankTestBase):
             handler._get_2fa_code(),
             "2fa code"
         )
+
+    @patch(
+        "__builtin__.raw_input",
+        side_effect=["  https://test-sso.shotgunstudio.com "]
+    )
+    @patch(
+        "tank.authentication.console_authentication.is_sso_enabled_on_site",
+        return_value=True
+    )
+    def test_sso_enabled_site(self, *mocks):
+        """
+        Ensure that an exception is thrown should we attempt console authentication
+        on an SSO-enabled site.
+        """
+        handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
+        with self.assertRaises(ConsoleLoginWithSSONotSupportedError):
+            handler._get_user_credentials(None, None)
 
     @skip_if_pyside_missing
     def test_ui_auth_with_whitespace(self):

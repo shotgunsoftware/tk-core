@@ -68,6 +68,10 @@ class TestIODescriptors(TankTestBase):
             True
         )
         self.assertEqual(
+            sgtk.descriptor.is_descriptor_version_missing({"type": "shotgun", "id": 123}),
+            True
+        )
+        self.assertEqual(
             sgtk.descriptor.is_descriptor_version_missing({"type": "git", "path": "foo"}),
             True
         )

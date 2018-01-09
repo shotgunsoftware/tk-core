@@ -616,11 +616,18 @@ class PipelineConfiguration(object):
         
         :returns: str to local path on disk
         """
-        if len(self.get_data_roots()) == 0:
+        data_roots = self.get_data_roots()
+        roots_count = len(data_roots)
+        if roots_count == 0:
             raise TankError("Your current pipeline configuration does not have any project data "
                             "storages defined and therefore does not have a primary project data root!")
-         
-        return self.get_data_roots().get(constants.PRIMARY_STORAGE_NAME)
+        elif roots_count == 1:
+            # If we have a single root, it is the primary root.
+            return data_roots[data_roots.keys()[0]]
+        else:
+            # If we have multiple roots, it is required that one of them is named
+            # "primary".
+            return data_roots.get(constants.PRIMARY_STORAGE_NAME)
 
     ########################################################################################
     # installation payload (core/apps/engines) disk locations
