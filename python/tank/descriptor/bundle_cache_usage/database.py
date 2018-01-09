@@ -397,13 +397,7 @@ class BundleCacheUsageDatabase(object):
             (since_timestamp, self.INITIAL_DB_POPULATE_DONE_MARKER)
         )
 
-        entry_list = []
-        if result:
-            db_records = result.fetchall()
-            for db_record in db_records:
-                entry_list.append(BundleCacheUsageDatabaseEntry(db_record))
-
-        return entry_list
+        return [BundleCacheUsageDatabaseEntry(r) for r in result.fetchall()]
 
     def log_usage(self, bundle_path):
         """
