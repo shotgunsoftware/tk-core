@@ -32,8 +32,6 @@ class TestContext(TankTestBase):
 
         if multi_root:
             self.setup_multi_root_fixtures()
-        else:
-            self.setup_fixtures()
 
         self.keys = {"Sequence": StringKey("Sequence"),
                      "Shot": StringKey("Shot"),
@@ -512,6 +510,7 @@ class TestFromEntity(TestContext):
         Note that additional field is specified in a
         context_additional_entities hook.
         """
+        self.setup_fixtures()
         get_current_user.return_value = self.current_user
         
         # add additional field value to task
