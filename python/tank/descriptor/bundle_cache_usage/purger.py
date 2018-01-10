@@ -33,6 +33,14 @@ class BundleCacheUsagePurger(object):
         super(BundleCacheUsagePurger, self).__init__()
         self._database = BundleCacheUsageDatabase()
 
+
+    @property
+    def _bundle_count(self):
+        """
+        Returns an integer of the number of currently tracked bundles in the database
+        """
+        return self._database.bundle_count
+
     @classmethod
     def _find_app_store_path(cls, base_folder):
         """
@@ -113,14 +121,6 @@ class BundleCacheUsagePurger(object):
         Returns the path to the typical global bundle cache root folder.
         """
         return self._database.bundle_cache_root
-
-    @property
-    def bundle_count(self):
-        """
-        Returns an integer of the number of currently tracked bundles in the database
-        """
-        return self._database.bundle_count
-
     @LogManager.log_timing
     def initial_populate(self):
         """

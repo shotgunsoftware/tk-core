@@ -212,7 +212,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
         )
         self.assertEquals(
             TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT,
-            bundle_cache_usage_purger.bundle_count,
+            bundle_cache_usage_purger._bundle_count,
             "Was expecting database to be initially populated with all fake test bundles"
         )
 
@@ -252,7 +252,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
         )
         self.assertEquals(
             TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT,
-            bundle_cache_usage_purger.bundle_count,
+            bundle_cache_usage_purger._bundle_count,
             "Was expecting database to be initially populated with all fake test bundles"
         )
 
@@ -302,7 +302,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
 
         # Check the database ...
         self.assertEquals(
-            1, bundle_cache_usage_purger.bundle_count,
+            1, bundle_cache_usage_purger._bundle_count,
             "Was expecting database to have just 1 bundle left"
         )
 
@@ -355,7 +355,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
         # Check the database ...
         self.assertEquals(
             TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT,
-            bundle_cache_usage_purger.bundle_count,
+            bundle_cache_usage_purger._bundle_count,
             "Was expecting database to report all bundles"
         )
 
