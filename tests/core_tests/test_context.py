@@ -27,11 +27,8 @@ from tank.authentication import ShotgunAuthenticator
 
 
 class TestContext(TankTestBase):
-    def setUp(self, multi_root=False):
+    def setUp(self):
         super(TestContext, self).setUp()
-
-        if multi_root:
-            self.setup_multi_root_fixtures()
 
         self.keys = {"Sequence": StringKey("Sequence"),
                      "Shot": StringKey("Shot"),
@@ -74,17 +71,6 @@ class TestContext(TankTestBase):
         self.add_production_path(self.step_path, self.step)
         self.other_user_path = os.path.join(self.step_path, "user_login")
         self.add_production_path(self.other_user_path, self.other_user)
-
-        if multi_root:
-            # adding shot path with alternate root
-            seq_path = os.path.join(self.alt_root_1, "sequence/Seq")
-            self.add_production_path(seq_path, self.seq)
-            self.alt_1_shot_path = os.path.join(seq_path, "shot_code")
-            self.add_production_path(self.alt_1_shot_path, self.shot)
-            self.alt_1_step_path = os.path.join(self.alt_1_shot_path, "step_short_name")
-            self.add_production_path(self.alt_1_step_path, self.step)
-            self.alt_1_other_user_path = os.path.join(self.alt_1_step_path, "user_login")
-            self.add_production_path(self.alt_1_other_user_path, self.other_user)
 
         # adding a path with step as the root (step/sequence/shot)
         alt_2_step_path = "step_short_name"
@@ -1163,7 +1149,19 @@ class TestSerialize(TestContext):
 class TestMultiRoot(TestContext):
 
     def setUp(self):
-        super(TestMultiRoot, self).setUp(multi_root=True)
+        super(TestMultiRoot, self).setUp()
+
+        self.setup_multi_root_fixtures()
+
+        # adding shot path with alternate root
+        seq_path = os.path.join(self.alt_root_1, "sequence/Seq")
+        self.add_production_path(seq_path, self.seq)
+        self.alt_1_shot_path = os.path.join(seq_path, "shot_code")
+        self.add_production_path(self.alt_1_shot_path, self.shot)
+        self.alt_1_step_path = os.path.join(self.alt_1_shot_path, "step_short_name")
+        self.add_production_path(self.alt_1_step_path, self.step)
+        self.alt_1_other_user_path = os.path.join(self.alt_1_step_path, "user_login")
+        self.add_production_path(self.alt_1_other_user_path, self.other_user)
 
     def test_non_primary_entity_paths(self):
         """
