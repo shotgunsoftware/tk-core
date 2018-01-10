@@ -11,7 +11,7 @@
 import threading
 import Queue
 
-from ...import LogManager
+from ... import LogManager
 from .errors import BundleCacheTrackingTimeoutError
 from .database import BundleCacheUsageDatabase as BundleCacheUsageDatabase
 

@@ -10,8 +10,8 @@
 
 import os
 
-from ...import LogManager
-from database import BundleCacheUsageDatabase
+from ... import LogManager
+from .database import BundleCacheUsageDatabase
 from errors import BundleCacheTrackingError
 from errors import BundleCacheTrackingFileDeletionError
 
