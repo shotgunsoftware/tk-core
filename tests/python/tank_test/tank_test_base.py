@@ -22,6 +22,7 @@ import pprint
 import threading
 import tempfile
 import contextlib
+import atexit
 
 from tank_vendor.shotgun_api3.lib import mockgun
 
@@ -121,16 +122,18 @@ def temp_env_var(**kwargs):
                 del os.environ[k]
 
 
-import atexit
-
-
-class Timer(object):
+class UnitTestTimer(object):
+    """
+    Tracks the time spent in various functions.
+    """
 
     def __init__(self):
         self._timers = {}
 
-    def clock_it(self, name):
-
+    def clock_func(self, name):
+        """
+        Creates a decorator with the given name that will track the time spent inside a function.
+        """
         def decorator(func):
             def wrapper(*args, **kwargs):
                 before = time.time()
@@ -143,30 +146,25 @@ class Timer(object):
 
         return decorator
 
-    @contextlib.contextmanager
-    def clock_scope(self, name):
-        before = time.time()
-        try:
-            yield
-        finally:
-            elapsed = time.time() - before
-            self._timers[name] = self._timers.get(name, 0) + elapsed
+    def print_stats(self):
+        """
+        Prints the time statistics.
+        """
+        print()
+        print("Test run stats")
+        print("==============")
+        for name, value in self._timers.items():
+            print("{0} : {1}".format(name, value))
 
-    def show_stats(self):
-        import pprint
-        pprint.pprint(self._timers)
         print(
-            sum(
-                v for k, v in self._timers.items() if k.startswith("TankTestBase")
-            )
+            "Time spent inside TankTestBase: %s" % sum(self._timers.values())
         )
 
-timer = Timer()
+timer = UnitTestTimer()
+atexit.register(timer.print_stats)
 
-atexit.register(timer.show_stats)
 
-
-@timer.clock_it("setUpModule")
+@timer.clock_func("setUpModule")
 def setUpModule():
     """
     Creates studio level directories in temporary location for tests.
@@ -230,7 +228,7 @@ class TankTestBase(unittest.TestCase):
 
         self._tear_down_called = False
 
-    @timer.clock_it("TankTestBase.setUp")
+    @timer.clock_func("TankTestBase.setUp")
     def setUp(self, parameters=None):
         """
         Sets up a Shotgun Mockgun instance with a project and a basic project scaffold on
@@ -460,7 +458,7 @@ class TankTestBase(unittest.TestCase):
         """
         self.assertTrue(self._tear_down_called)
 
-    @timer.clock_it("TankTestBase.tearDown")
+    @timer.clock_func("TankTestBase.tearDown")
     def tearDown(self):
         """
         Cleans up after tests.
@@ -493,7 +491,7 @@ class TankTestBase(unittest.TestCase):
             else:
                 del os.environ[self.SHOTGUN_HOME]
 
-    @timer.clock_it("TankTestBase.setup_fixtures")
+    @timer.clock_func("TankTestBase.setup_fixtures")
     def setup_fixtures(self, name='config', parameters=None):
         """
         Helper method which sets up a standard toolkit configuration
@@ -552,76 +550,73 @@ class TankTestBase(unittest.TestCase):
             # no skip_template_reload flag set to true. So go ahead and reload
             self.tk.reload_templates()
 
-    @timer.clock_it("TankTestBase.setup_multi_root_fixtures")
+    @timer.clock_func("TankTestBase.setup_multi_root_fixtures")
     def setup_multi_root_fixtures(self):
         """
         Helper method which sets up a standard multi-root set of fixtures
         """
-        with timer.clock_scope("pre-setup"):
-            # The primary storage needs to be named "primary" in multi-root mode.
-            if self.primary_root_name != "primary":
-                self.primary_root_name = "primary"
-                self.primary_storage = {"type": "LocalStorage",
-                                        "id": 8888,
-                                        "code": self.primary_root_name,
-                                        "windows_path": self.tank_temp,
-                                        "linux_path": self.tank_temp,
-                                        "mac_path": self.tank_temp}
+        # The primary storage needs to be named "primary" in multi-root mode.
+        if self.primary_root_name != "primary":
+            self.primary_root_name = "primary"
+            self.primary_storage = {"type": "LocalStorage",
+                                    "id": 8888,
+                                    "code": self.primary_root_name,
+                                    "windows_path": self.tank_temp,
+                                    "linux_path": self.tank_temp,
+                                    "mac_path": self.tank_temp}
 
-                self.add_to_sg_mock_db(self.primary_storage)
+            self.add_to_sg_mock_db(self.primary_storage)
 
         self.setup_fixtures(parameters={"core": "core.override/multi_root_core",
                                         "skip_template_reload": True})
 
-        with timer.clock_scope("post-setup"):
-            # Add multiple project roots
-            project_name = os.path.basename(self.project_root)
-            self.alt_root_1 = os.path.join(self.tank_temp, "alternate_1", project_name)
-            self.alt_root_2 = os.path.join(self.tank_temp, "alternate_2", project_name)
+        # Add multiple project roots
+        project_name = os.path.basename(self.project_root)
+        self.alt_root_1 = os.path.join(self.tank_temp, "alternate_1", project_name)
+        self.alt_root_2 = os.path.join(self.tank_temp, "alternate_2", project_name)
 
-            # add local storages to represent the alternate root points
-            self.alt_storage_1 = {"type": "LocalStorage",
-                                  "id": 7778,
-                                  "code": "alternate_1",
-                                  "windows_path": os.path.join(self.tank_temp, "alternate_1"),
-                                  "linux_path": os.path.join(self.tank_temp, "alternate_1"),
-                                  "mac_path": os.path.join(self.tank_temp, "alternate_1")}
-            self.add_to_sg_mock_db(self.alt_storage_1)
+        # add local storages to represent the alternate root points
+        self.alt_storage_1 = {"type": "LocalStorage",
+                              "id": 7778,
+                              "code": "alternate_1",
+                              "windows_path": os.path.join(self.tank_temp, "alternate_1"),
+                              "linux_path": os.path.join(self.tank_temp, "alternate_1"),
+                              "mac_path": os.path.join(self.tank_temp, "alternate_1")}
+        self.add_to_sg_mock_db(self.alt_storage_1)
 
-            self.alt_storage_2 = {"type": "LocalStorage",
-                                  "id": 7779,
-                                  "code": "alternate_2",
-                                  "windows_path": os.path.join(self.tank_temp, "alternate_2"),
-                                  "linux_path": os.path.join(self.tank_temp, "alternate_2"),
-                                  "mac_path": os.path.join(self.tank_temp, "alternate_2")}
-            self.add_to_sg_mock_db(self.alt_storage_2)
+        self.alt_storage_2 = {"type": "LocalStorage",
+                              "id": 7779,
+                              "code": "alternate_2",
+                              "windows_path": os.path.join(self.tank_temp, "alternate_2"),
+                              "linux_path": os.path.join(self.tank_temp, "alternate_2"),
+                              "mac_path": os.path.join(self.tank_temp, "alternate_2")}
+        self.add_to_sg_mock_db(self.alt_storage_2)
 
-            # Write roots file
-            roots = {"primary": {}, "alternate_1": {}, "alternate_2": {}}
-            for os_name in ["windows_path", "linux_path", "mac_path"]:
-                # TODO make os specific roots
-                roots["primary"][os_name]     = os.path.dirname(self.project_root)
-                roots["alternate_1"][os_name] = os.path.dirname(self.alt_root_1)
-                roots["alternate_2"][os_name] = os.path.dirname(self.alt_root_2)
-            roots_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")
-            roots_file = open(roots_path, "w")
-            roots_file.write(yaml.dump(roots))
-            roots_file.close()
+        # Write roots file
+        roots = {"primary": {}, "alternate_1": {}, "alternate_2": {}}
+        for os_name in ["windows_path", "linux_path", "mac_path"]:
+            # TODO make os specific roots
+            roots["primary"][os_name]     = os.path.dirname(self.project_root)
+            roots["alternate_1"][os_name] = os.path.dirname(self.alt_root_1)
+            roots["alternate_2"][os_name] = os.path.dirname(self.alt_root_2)
+        roots_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")
+        roots_file = open(roots_path, "w")
+        roots_file.write(yaml.dump(roots))
+        roots_file.close()
 
-            # need to reload the pipeline config object that to respect the
-            # new roots definition file we just created
-            self.reload_pipeline_config()
+        # need to reload the pipeline config object that to respect the
+        # new roots definition file we just created
+        self.reload_pipeline_config()
 
-            # force reload templates
-            self.tk.reload_templates()
+        # force reload templates
+        self.tk.reload_templates()
 
-            # add project root folders
-            # primary path was already added in base setUp
-            self.add_production_path(self.alt_root_1, self.project)
-            self.add_production_path(self.alt_root_2, self.project)
+        # add project root folders
+        # primary path was already added in base setUp
+        self.add_production_path(self.alt_root_1, self.project)
+        self.add_production_path(self.alt_root_2, self.project)
 
-        with timer.clock_scope("create_fs_structure"):
-            self.tk.create_filesystem_structure("Project", self.project["id"])
+        self.tk.create_filesystem_structure("Project", self.project["id"])
 
     def add_production_path(self, path, entity=None):
         """
