@@ -19,7 +19,6 @@ log = LogManager.get_logger(__name__)
 
 
 class BundleCacheUsagePurger(object):
-
     """
     Bundle cache usage utility class for discovering existing bundle packages and deleting unused ones.
 
@@ -27,6 +26,9 @@ class BundleCacheUsagePurger(object):
     """
 
     def __init__(self):
+        """
+        Initialize a  :class:`~sgtk.descriptor.bundle_cache_usage.purger.BundleCacheUsagePurger` instance
+        """
         super(BundleCacheUsagePurger, self).__init__()
         self._database = BundleCacheUsageDatabase()
 

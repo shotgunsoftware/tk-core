@@ -45,14 +45,13 @@ class BundleCacheUsageTracker(threading.Thread):
     __singleton_instance = None
 
     def __new__(cls, *args, **kwargs):
-        #
-        # Based on tornado.ioloop.IOLoop.instance() approach.
-        #
-        # See:
-        #   https://github.com/facebook/tornado
-        #   https://gist.github.com/werediver/4396488
-        #   https://en.wikipedia.org/wiki/Double-checked_locking
-        #
+        """
+        Create a singleton instance of the
+        :class:`~sgtk.descriptor.bundle_cache_usage.tracker.BundleCacheUsageTracker` class.
+
+        .. note:: For robustness, we use the double-locking mechanism.
+                See https://en.wikipedia.org/wiki/Double-checked_locking
+        """
         if not cls.__singleton_instance:
             with cls.__singleton_lock:
                 if not cls.__singleton_instance:
