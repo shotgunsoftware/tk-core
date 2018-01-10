@@ -152,7 +152,6 @@ class IODescriptorGit(IODescriptorDownloadable):
                     # and solves an issue with UNC paths on windows.
                     full_command = "git -C \"%s\" %s" % (target_path, command)
                 else:
-                    os.chdir(target_path)
                     full_command = "git %s" % command
 
                 log.debug("Executing '%s'" % full_command)
