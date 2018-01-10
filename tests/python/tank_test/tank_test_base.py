@@ -506,12 +506,14 @@ class TankTestSimple(TankTestCore):
         self.assertTrue(self._tear_down_called)
 
 
-class TankTestBase(unittest.TestCase):
+class TankTestBase(TankTestCore):
     """
     Test base class which manages fixtures for tank related tests.
     """
 
     SHOTGUN_HOME = "SHOTGUN_HOME"
+
+    do_io = True
 
     def __init__(self, *args, **kws):
 
@@ -654,29 +656,31 @@ class TankTestBase(unittest.TestCase):
 
         self.pipeline_config_root = os.path.join(self.tank_temp, "pipeline_configuration")
 
-        # move away previous data
-        # self._move_project_data()
+        if self.do_io:
+            # move away previous data
+            self._move_project_data()
 
-        # create new structure
-        # os.makedirs(self.project_root)
-        # os.makedirs(self.pipeline_config_root)
+            # create new structure
+            os.makedirs(self.project_root)
+            os.makedirs(self.pipeline_config_root)
 
-        # # copy tank util scripts
-        # shutil.copy(
-        #     os.path.join(self.tank_source_path, "setup", "root_binaries", "tank"),
-        #     os.path.join(self.pipeline_config_root, "tank")
-        # )
-        # shutil.copy(
-        #     os.path.join(self.tank_source_path, "setup", "root_binaries", "tank.bat"),
-        #     os.path.join(self.pipeline_config_root, "tank.bat")
-        # )
+            # # copy tank util scripts
+            shutil.copy(
+                os.path.join(self.tank_source_path, "setup", "root_binaries", "tank"),
+                os.path.join(self.pipeline_config_root, "tank")
+            )
+            shutil.copy(
+                os.path.join(self.tank_source_path, "setup", "root_binaries", "tank.bat"),
+                os.path.join(self.pipeline_config_root, "tank.bat")
+            )
 
         # project level config directories
         self.project_config = os.path.join(self.pipeline_config_root, "config")
 
         # create project cache directory
         project_cache_dir = os.path.join(self.pipeline_config_root, "cache")
-        # os.mkdir(project_cache_dir)
+        if self.do_io:
+            os.mkdir(project_cache_dir)
 
         # define entity for pipeline configuration
         self.sg_pc_entity = {"type": "PipelineConfiguration",
@@ -694,33 +698,39 @@ class TankTestBase(unittest.TestCase):
                                                              self.sg_pc_entity["id"],
                                                              self.project["id"],
                                                              self.sg_pc_entity["code"]))
-        # self.create_file(pc_yml, pc_yml_data)
+        if self.do_io:
+            self.create_file(pc_yml, pc_yml_data)
 
         loc_yml = os.path.join(self.pipeline_config_root, "config", "core", "install_location.yml")
         loc_yml_data = "Windows: '%s'\nDarwin: '%s'\nLinux: '%s'" % (
             self.pipeline_config_root, self.pipeline_config_root, self.pipeline_config_root
         )
-        # self.create_file(loc_yml, loc_yml_data)
+        if self.do_io:
+            self.create_file(loc_yml, loc_yml_data)
 
         # inject this file which toolkit is probing for to determine
         # if an installation has been localized.
         localize_token_file = os.path.join(self.pipeline_config_root, "install", "core", "_core_upgrader.py")
-        # self.create_file(localize_token_file, "foo bar")
+        if self.do_io:
+            self.create_file(localize_token_file, "foo bar")
 
         roots = {self.primary_root_name: {}}
         for os_name in ["windows_path", "linux_path", "mac_path"]:
             # TODO make os specific roots
             roots[self.primary_root_name][os_name] = self.tank_temp
-        roots_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")
-        # roots_file = open(roots_path, "w")
-        # roots_file.write(yaml.dump(roots))
-        # roots_file.close()
+
+        if self.do_io:
+            roots_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")
+            roots_file = open(roots_path, "w")
+            roots_file.write(yaml.dump(roots))
+            roots_file.close()
 
         # clear bundle in-memory cache
         sgtk.descriptor.io_descriptor.factory.g_cached_instances = {}
 
-        # self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
-        # self.tk = tank.Tank(self.pipeline_configuration)
+        if self.do_io:
+            self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
+            self.tk = tank.Tank(self.pipeline_configuration)
 
         # set up mockgun and make sure shotgun connection calls route via mockgun
         self.mockgun = mockgun.Shotgun("http://unit_test_mock_sg", "mock_user", "mock_key")
@@ -733,7 +743,8 @@ class TankTestBase(unittest.TestCase):
         self._mock_return_value("tank.util.shotgun.create_sg_connection", self.mockgun)
 
         # add project to mock sg and path cache db
-        # self.add_production_path(self.project_root, self.project)
+        if self.do_io:
+            self.add_production_path(self.project_root, self.project)
 
         # add pipeline configuration
         self.add_to_sg_mock_db(self.sg_pc_entity)
@@ -755,7 +766,7 @@ class TankTestBase(unittest.TestCase):
         """
         Ensures tear down has been called. Called during cleanup, which is executed after tear down.
         """
-        # self.assertTrue(self._tear_down_called)
+        self.assertTrue(self._tear_down_called)
 
     @timer.clock_func("TankTestBase.tearDown")
     def tearDown(self):
@@ -767,11 +778,12 @@ class TankTestBase(unittest.TestCase):
             sgtk.set_authenticated_user(self._authenticated_user)
 
             # get rid of path cache from local ~/.shotgun storage
-            # pc = path_cache.PathCache(self.tk)
-            # path_cache_file = pc._get_path_cache_location()
-            # pc.close()
-            # if os.path.exists(path_cache_file):
-            #     os.remove(path_cache_file)
+            if self.do_io:
+                pc = path_cache.PathCache(self.tk)
+                path_cache_file = pc._get_path_cache_location()
+                pc.close()
+                if os.path.exists(path_cache_file):
+                    os.remove(path_cache_file)
 
             # clear global shotgun accessor
             tank.util.shotgun.connection._g_sg_cached_connections = threading.local()

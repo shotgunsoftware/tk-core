@@ -20,7 +20,7 @@ from shutil import copytree
 
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import temp_env_var
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import TankTestSimple
 
 
 # Copied from Python 2.7's source code.
@@ -37,7 +37,7 @@ def ignore_patterns(*patterns):
     return _ignore_patterns
 
 
-class TestBackups(TankTestBase):
+class TestBackups(TankTestSimple):
     def setUp(self):
         super(TestBackups, self).setUp()
 
@@ -61,7 +61,7 @@ class TestBackups(TankTestBase):
         )
         with temp_env_var(SGTK_REPO_ROOT=self._core_repo_path):
             config = resolver.resolve_configuration(
-                {"type": "dev", "name": "backup_tests", "path": self._temp_test_path}, self.tk.shotgun
+                {"type": "dev", "name": "backup_tests", "path": self._temp_test_path}, self.mockgun
             )
             self.assertIsInstance(config, sgtk.bootstrap.resolver.CachedConfiguration)
             config_root_path = config.path.current_os
@@ -90,7 +90,7 @@ class TestBackups(TankTestBase):
         )
         with temp_env_var(SGTK_REPO_ROOT=self._core_repo_path):
             config = resolver.resolve_configuration(
-                {"type": "dev", "name": "backup_tests_with_fail", "path": self._temp_test_path}, self.tk.shotgun
+                {"type": "dev", "name": "backup_tests_with_fail", "path": self._temp_test_path}, self.mockgun
             )
             self.assertIsInstance(config, sgtk.bootstrap.resolver.CachedConfiguration)
             config_root_path = config.path.current_os
@@ -143,7 +143,7 @@ class TestBackups(TankTestBase):
         )
         with temp_env_var(SGTK_REPO_ROOT=self._core_repo_path):
             config = resolver.resolve_configuration(
-                {"type": "dev", "name": "backup_tests_read_only", "path": self._temp_test_path}, self.tk.shotgun
+                {"type": "dev", "name": "backup_tests_read_only", "path": self._temp_test_path}, self.mockgun
             )
             self.assertIsInstance(config, sgtk.bootstrap.resolver.CachedConfiguration)
             config_root_path = config.path.current_os
