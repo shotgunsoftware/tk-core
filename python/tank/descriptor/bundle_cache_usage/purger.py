@@ -33,6 +33,12 @@ class BundleCacheUsagePurger(object):
         super(BundleCacheUsagePurger, self).__init__()
         self._database = BundleCacheUsageDatabase()
 
+    @property
+    def _bundle_cache_root(self):
+        """
+        Returns the path to the typical global bundle cache root folder.
+        """
+        return self._database.bundle_cache_root
 
     @property
     def _bundle_count(self):
@@ -90,7 +96,7 @@ class BundleCacheUsagePurger(object):
         MAX_DEPTH_WALK = 2
 
         bundle_path_list = []
-        bundle_cache_root = self.bundle_cache_root
+        bundle_cache_root = self._bundle_cache_root
 
         # Process the local app store first
         bundle_cache_app_store = BundleCacheUsagePurger._find_app_store_path(bundle_cache_root)
@@ -115,12 +121,6 @@ class BundleCacheUsagePurger(object):
     #
     ###################################################################################################################
 
-    @property
-    def bundle_cache_root(self):
-        """
-        Returns the path to the typical global bundle cache root folder.
-        """
-        return self._database.bundle_cache_root
     @LogManager.log_timing
     def initial_populate(self):
         """
@@ -152,7 +152,7 @@ class BundleCacheUsagePurger(object):
         """
         log.debug(
             "Generating list of items in '%s' that haven't been accessed for %d or more days." % (
-                self.bundle_cache_root,
+                self._bundle_cache_root,
                 since_days
             )
         )
