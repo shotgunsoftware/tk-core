@@ -15,9 +15,9 @@ import sgtk
 from sgtk.util.yaml_cache import YamlCache
 from sgtk import TankError
 from tank_vendor import yaml
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestSimple, setUpModule
 
-class TestYamlCache(TankTestBase):
+class TestYamlCache(TankTestSimple):
     """
     Tests to ensure that the YamlCache behaves correctly
     """
@@ -26,7 +26,7 @@ class TestYamlCache(TankTestBase):
         """
         Construction
         """
-        TankTestBase.__init__(self, *args, **kwargs)
+        TankTestSimple.__init__(self, *args, **kwargs)
 
         # data root for all test data:
         self._data_root = os.path.join(self.fixtures_root, "misc", "yaml_cache")
