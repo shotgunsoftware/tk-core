@@ -178,6 +178,9 @@ class BundleCacheUsageTracker(threading.Thread):
         with cls.__singleton_lock:
             if cls.__singleton_instance:
                 cls.__singleton_instance._queue_task(cls.__singleton_instance.__track_usage, bundle_path)
+            else:
+                log.warn("Bundle cache usage tracker instance not created, "\
+                         "tracking of the '%s' bundle was not recorded." % (bundle_path))
 
     def stop(self, timeout=DEFAULT_STOP_TIMEOUT):
         """
