@@ -62,30 +62,6 @@ class BundleCacheUsagePurger(object):
 
         return None
 
-    @classmethod
-    def _find_descriptors(cls, base_folder, max_walk_depth):
-        """
-        Search the specified folder for bundle descriptors.
-
-        .. note:: To prevent returning plugins or deeper files, the search is limited to
-        a certain depth.
-
-        :param base_folder: a str path to start the search from
-        :param max_walk_depth: an int maximum path depth to search into
-        :return: a list of bundle path
-        """
-        path_list = []
-        base_folder_len = len(base_folder)
-        for (dirpath, dirnames, filenames) in os.walk(base_folder):
-            shopped_base_path = dirpath[base_folder_len + 1:]
-            level_down_count = shopped_base_path.count(os.sep)
-            if level_down_count <= max_walk_depth:
-                for filename in filenames:
-                    if filename.endswith('info.yml'):
-                        path_list.append(dirpath)
-
-        return path_list
-
     def _find_app_store_bundles(self):
         """
          Search for bundle descriptors in the `app_store` folder.
@@ -107,7 +83,15 @@ class BundleCacheUsagePurger(object):
                     os.path.isdir(bundle_cache_app_store):
 
                 log.debug("Found local app store path: %s" % (bundle_cache_app_store))
-                bundle_path_list += BundleCacheUsagePurger._find_descriptors(bundle_cache_app_store, MAX_DEPTH_WALK)
+
+                base_folder_len = len(bundle_cache_app_store)
+                for (dirpath, dirnames, filenames) in os.walk(bundle_cache_app_store):
+                    shopped_base_path = dirpath[base_folder_len + 1:]
+                    level_down_count = shopped_base_path.count(os.sep)
+                    if level_down_count <= MAX_DEPTH_WALK:
+                        for filename in filenames:
+                            if filename.endswith('info.yml'):
+                                bundle_path_list.append(dirpath)
         else:
             log.debug("Could not find the local app store path from: %s" % (bundle_cache_root))
 
