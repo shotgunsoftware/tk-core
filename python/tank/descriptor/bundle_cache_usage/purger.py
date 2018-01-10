@@ -11,6 +11,7 @@
 import os
 
 from ... import LogManager
+from ...util.filesystem import safe_delete_folder
 from .database import BundleCacheUsageDatabase
 from errors import BundleCacheTrackingError
 from errors import BundleCacheTrackingFileDeletionError
@@ -98,79 +99,6 @@ class BundleCacheUsagePurger(object):
 
         return bundle_path_list
 
-    def _get_filelist(self, bundle_path):
-        """
-        Returns a list of files existing under the specified bundle path.
-        :param bundle_path: a valid path to a bundle cache bundle
-        :return: a list of path
-        """
-        # Restore bundle full path which was truncated and set relative to 'bundle_cache_root'
-        full_bundle_path = os.path.join(self.bundle_cache_root, bundle_path)
-        if not os.path.exists(full_bundle_path):
-            raise BundleCacheTrackingError("The specified path does not exists: %s" % (full_bundle_path))
-
-        file_list = []
-        for (dirpath, dirnames, filenames) in os.walk(full_bundle_path):
-            file_list.append(dirpath)
-            for filename in filenames:
-                fullpath = os.path.join(dirpath, filename)
-                file_list.append(fullpath)
-
-        return file_list
-
-    def _paranoid_delete(self, filelist):
-        """
-        Delete files and folder under the specified filelist in a paranoid mode where
-        everything is carrefully checked before deleteion. That means no 'rmtree'-like
-        operation, no walking and deleting items directly.
-
-        On anything unexpected the process stops with a custom exception.
-
-        We cannot delete file right away. The list being in reverse order, we might be
-        trying to delete a file that exists in a symlinked folder. Therefore, we'll first
-        scan the entire list for a link, symlink or such in the list. If found, we'll
-        abort the deletion process before actually deleting anything.
-
-        :param filelist: A list file and folders to be deleted
-        """
-
-        # First, check whether there is a symlink in the list
-        for f in filelist:
-            if os.path.islink(f):
-                # CAVEAT: Always False if symbolic links are not supported by the Python runtime.
-                #         How do we know whether it is supported???
-                raise BundleCacheTrackingFileDeletionError(f, "Found a symlink")
-
-        # We have a crude list, now we need to sort it out in reverse
-        # order so we can later on delete files, and then parent folder
-        # in a logical order.
-        rlist = list(reversed(filelist))
-        # No symlinks, Houston we're clear for deletion
-        for f in rlist:
-            if not os.path.exists(f):
-                raise BundleCacheTrackingFileDeletionError(
-                    "Attempting to delete non existing file or folder: %s" % (f)
-                )
-
-            if os.path.isfile(f):
-                os.remove(f)
-
-            elif os.path.isdir(f):
-                # Because we're deleting items that should be reverse prdered
-                # when we're about to delete a folder, it should be empty already.
-                # let's check it out!
-                try:
-                    os.rmdir(f)
-                except OSError as e:
-                    raise BundleCacheTrackingFileDeletionError(
-                        "Attempted to delete a non-empty folder: %s (%s)" % (f, e)
-                    )
-
-            else:
-                raise BundleCacheTrackingFileDeletionError(
-                    "Not a link, not a file, not a directory ??? : %s" % (f)
-                )
-
     ###################################################################################################################
     #
     # PUBLIC API - methods & properties
@@ -248,14 +176,23 @@ class BundleCacheUsagePurger(object):
                 )
             )
 
-            filelist = self._get_filelist(bundle.path)
-            self._paranoid_delete(filelist)
+            if not os.path.exists(bundle.path):
+                raise BundleCacheTrackingError("The specified path does not exists: %s" % (bundle.path))
+
+            if not os.path.isdir(bundle.path):
+                raise BundleCacheTrackingError("The specified path is not a diectorys: %s" % (bundle.path))
+
+            if not bundle.path.startsWith(self._bundle_cache_root):
+                raise BundleCacheTrackingError("The specified directory is not under global bundle cache: %s" % (bundle.path))
+
+            safe_delete_folder(bundle.path)
             # No exception, everything was deleted
 
             # Try deleting parent dir if now empty
             parent_dir = os.path.abspath(
                 os.path.join(self.bundle_cache_root, bundle.path, os.pardir)
             )
+            # Not using 'safe_delete_folder' for the safety of deleting the wrong folder.
             if not os.listdir(parent_dir):
                 os.rmdir(parent_dir)
 
