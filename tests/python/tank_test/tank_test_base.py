@@ -60,7 +60,7 @@ def _is_git_missing():
     """
     git_missing = True
     try:
-        output = sgtk.util.process.subprocess_check_output(["git", "--version"])
+        sgtk.util.process.subprocess_check_output(["git", "--version"])
         git_missing = False
     except Exception:
         # no git!
@@ -83,7 +83,7 @@ def _is_pyside_missing():
     :returns: True is PySide is available, False otherwise.
     """
     try:
-        import PySide
+        import PySide # noqa
         return False
     except ImportError:
         return True
@@ -121,6 +121,39 @@ def temp_env_var(**kwargs):
                 del os.environ[k]
 
 
+import atexit
+
+
+class Timer(object):
+
+    def __init__(self):
+        self._timers = {}
+
+    def clock_it(self, name):
+
+        def decorator(func):
+            def wrapper(*args, **kwargs):
+                before = time.time()
+                try:
+                    return func(*args, **kwargs)
+                finally:
+                    elapsed = time.time() - before
+                    self._timers[name] = self._timers.get(name, 0) + elapsed
+            return wrapper
+
+        return decorator
+
+    def show_stats(self):
+        import pprint
+        pprint.pprint(self._timers)
+        print(sum(self._timers.values()))
+
+timer = Timer()
+
+atexit.register(timer.show_stats)
+
+
+@timer.clock_it("setUpModule")
 def setUpModule():
     """
     Creates studio level directories in temporary location for tests.
@@ -177,13 +210,14 @@ class TankTestBase(unittest.TestCase):
         self.project_config = None
 
         # path to the tk-core repo root point
-        self.tank_source_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", ".."))
+        self.tank_source_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
         # where to go for test data
         self.fixtures_root = os.environ["TK_TEST_FIXTURES"]
 
         self._tear_down_called = False
 
+    @timer.clock_it("TankTestBase.setUp")
     def setUp(self, parameters=None):
         """
         Sets up a Shotgun Mockgun instance with a project and a basic project scaffold on
@@ -249,7 +283,6 @@ class TankTestBase(unittest.TestCase):
                 "schema.pickle"
             )
 
-
         if "mockgun_schema_entity_path" in parameters:
             mockgun_schema_entity_path = parameters["mockgun_schema_entity_path"]
 
@@ -296,7 +329,7 @@ class TankTestBase(unittest.TestCase):
             "archived": False,
         }
 
-        self.project_root = os.path.join(self.tank_temp, self.project["tank_name"].replace("/", os.path.sep) )
+        self.project_root = os.path.join(self.tank_temp, self.project["tank_name"].replace("/", os.path.sep))
 
         self.pipeline_config_root = os.path.join(self.tank_temp, "pipeline_configuration")
 
@@ -333,8 +366,6 @@ class TankTestBase(unittest.TestCase):
                              "mac_path": self.pipeline_config_root,
                              "linux_path": self.pipeline_config_root}
 
-
-
         # add files needed by the pipeline config
         pc_yml = os.path.join(self.pipeline_config_root, "config", "core", "pipeline_configuration.yml")
         pc_yml_data = ("{ project_name: %s, use_shotgun_path_cache: true, pc_id: %d, "
@@ -345,7 +376,9 @@ class TankTestBase(unittest.TestCase):
         self.create_file(pc_yml, pc_yml_data)
 
         loc_yml = os.path.join(self.pipeline_config_root, "config", "core", "install_location.yml")
-        loc_yml_data = "Windows: '%s'\nDarwin: '%s'\nLinux: '%s'" % (self.pipeline_config_root, self.pipeline_config_root, self.pipeline_config_root)
+        loc_yml_data = "Windows: '%s'\nDarwin: '%s'\nLinux: '%s'" % (
+            self.pipeline_config_root, self.pipeline_config_root, self.pipeline_config_root
+        )
         self.create_file(loc_yml, loc_yml_data)
 
         # inject this file which toolkit is probing for to determine
@@ -353,9 +386,9 @@ class TankTestBase(unittest.TestCase):
         localize_token_file = os.path.join(self.pipeline_config_root, "install", "core", "_core_upgrader.py")
         self.create_file(localize_token_file, "foo bar")
 
-        roots = { self.primary_root_name: {}}
+        roots = {self.primary_root_name: {}}
         for os_name in ["windows_path", "linux_path", "mac_path"]:
-            #TODO make os specific roots
+            # TODO make os specific roots
             roots[self.primary_root_name][os_name] = self.tank_temp
         roots_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")
         roots_file = open(roots_path, "w")
@@ -390,7 +423,7 @@ class TankTestBase(unittest.TestCase):
                                 "code": self.primary_root_name,
                                 "windows_path": self.tank_temp,
                                 "linux_path": self.tank_temp,
-                                "mac_path": self.tank_temp }
+                                "mac_path": self.tank_temp}
 
         self.add_to_sg_mock_db(self.primary_storage)
 
@@ -414,6 +447,7 @@ class TankTestBase(unittest.TestCase):
         """
         self.assertTrue(self._tear_down_called)
 
+    @timer.clock_it("TankTestBase.tearDown")
     def tearDown(self):
         """
         Cleans up after tests.
@@ -432,7 +466,6 @@ class TankTestBase(unittest.TestCase):
             # clear global shotgun accessor
             tank.util.shotgun.connection._g_sg_cached_connections = threading.local()
 
-
             # get rid of init cache
             if os.path.exists(pipelineconfig_factory._get_cache_location()):
                 os.remove(pipelineconfig_factory._get_cache_location())
@@ -447,6 +480,7 @@ class TankTestBase(unittest.TestCase):
             else:
                 del os.environ[self.SHOTGUN_HOME]
 
+    @timer.clock_it("TankTestBase.setup_fixtures")
     def setup_fixtures(self, name='config', parameters=None):
         """
         Helper method which sets up a standard toolkit configuration
@@ -505,6 +539,7 @@ class TankTestBase(unittest.TestCase):
             # no skip_template_reload flag set to true. So go ahead and reload
             self.tk.reload_templates()
 
+    @timer.clock_it("TankTestBase.setup_multi_root_fixtures")
     def setup_multi_root_fixtures(self):
         """
         Helper method which sets up a standard multi-root set of fixtures
@@ -517,12 +552,12 @@ class TankTestBase(unittest.TestCase):
                                     "code": self.primary_root_name,
                                     "windows_path": self.tank_temp,
                                     "linux_path": self.tank_temp,
-                                    "mac_path": self.tank_temp }
+                                    "mac_path": self.tank_temp}
 
             self.add_to_sg_mock_db(self.primary_storage)
 
-        self.setup_fixtures(parameters = {"core": "core.override/multi_root_core",
-                                          "skip_template_reload": True})
+        self.setup_fixtures(parameters={"core": "core.override/multi_root_core",
+                                        "skip_template_reload": True})
 
         # Add multiple project roots
         project_name = os.path.basename(self.project_root)
@@ -535,7 +570,7 @@ class TankTestBase(unittest.TestCase):
                               "code": "alternate_1",
                               "windows_path": os.path.join(self.tank_temp, "alternate_1"),
                               "linux_path": os.path.join(self.tank_temp, "alternate_1"),
-                              "mac_path": os.path.join(self.tank_temp, "alternate_1") }
+                              "mac_path": os.path.join(self.tank_temp, "alternate_1")}
         self.add_to_sg_mock_db(self.alt_storage_1)
 
         self.alt_storage_2 = {"type": "LocalStorage",
@@ -543,13 +578,13 @@ class TankTestBase(unittest.TestCase):
                               "code": "alternate_2",
                               "windows_path": os.path.join(self.tank_temp, "alternate_2"),
                               "linux_path": os.path.join(self.tank_temp, "alternate_2"),
-                              "mac_path": os.path.join(self.tank_temp, "alternate_2") }
+                              "mac_path": os.path.join(self.tank_temp, "alternate_2")}
         self.add_to_sg_mock_db(self.alt_storage_2)
 
         # Write roots file
         roots = {"primary": {}, "alternate_1": {}, "alternate_2": {}}
         for os_name in ["windows_path", "linux_path", "mac_path"]:
-            #TODO make os specific roots
+            # TODO make os specific roots
             roots["primary"][os_name]     = os.path.dirname(self.project_root)
             roots["alternate_1"][os_name] = os.path.dirname(self.alt_root_1)
             roots["alternate_2"][os_name] = os.path.dirname(self.alt_root_2)
@@ -606,12 +641,12 @@ class TankTestBase(unittest.TestCase):
 
         path_cache = tank.path_cache.PathCache(self.tk)
 
-        data = [ {"entity": {"id": entity["id"],
-                             "type": entity["type"],
-                             "name": entity["name"]},
-                  "metadata": [],
-                  "path": path,
-                  "primary": True } ]
+        data = [{"entity": {"id": entity["id"],
+                            "type": entity["type"],
+                            "name": entity["name"]},
+                 "metadata": [],
+                 "path": path,
+                 "primary": True}]
         path_cache.add_mappings(data, None, [])
 
         # On windows path cache has persisted, interfering with teardowns, so get rid of it.
@@ -633,7 +668,7 @@ class TankTestBase(unittest.TestCase):
 
         path_cache = tank.path_cache.PathCache(self.tk)
         c = path_cache._connection.cursor()
-        for x in list(c.execute("select * from path_cache" )):
+        for x in list(c.execute("select * from path_cache")):
             print(x)
         c.close()
         path_cache.close()
@@ -665,7 +700,7 @@ class TankTestBase(unittest.TestCase):
                 # special case: EventLogEntry.meta is not an entity link dict
                 if isinstance(entity[x], dict) and x != "meta":
                     # make a std sg link dict with name, id, type
-                    link_dict = {"type": entity[x]["type"], "id": entity[x]["id"] }
+                    link_dict = {"type": entity[x]["type"], "id": entity[x]["id"]}
 
                     # most basic case is that there already is a name field,
                     # in that case we are done
@@ -707,11 +742,11 @@ class TankTestBase(unittest.TestCase):
         open_file.write(data)
         open_file.close()
 
-    def check_error_message(self, Error, message, func, *args, **kws):
+    def check_error_message(self, error_type, message, func, *args, **kws):
         """
         Check that the correct exception is raised with the correct message.
 
-        :param Error: The exception that is expected.
+        :param error_type: The exception that is expected.
         :param message: The expected message on the exception.
         :param func: The function to call.
         :param args: Arguments to be passed to the function.
@@ -720,11 +755,11 @@ class TankTestBase(unittest.TestCase):
         :rasies: Exception if correct exception is not raised, or the message on the exception
                  does not match that specified.
         """
-        self.assertRaises(Error, func, *args, **kws)
+        self.assertRaises(error_type, func, *args, **kws)
 
         try:
             func(*args, **kws)
-        except Error as e:
+        except error_type as e:
             self.assertEquals(message, str(e))
 
     def _move_project_data(self):
@@ -754,7 +789,7 @@ class TankTestBase(unittest.TestCase):
             dstname = os.path.join(dst, name)
 
             if os.path.isdir(srcname):
-                files.extend( self._copy_folder(srcname, dstname) )
+                files.extend(self._copy_folder(srcname, dstname))
             else:
                 shutil.copy(srcname, dstname)
                 files.append(srcname)
@@ -809,12 +844,12 @@ def _move_data(path):
             if os.path.exists(db_path):
                 print('Removing db %s' % db_path)
                 # Importing pdb allows the deletion of the sqlite db sometimes...
-                import pdb
+                import pdb # noqa
                 # try multiple times, waiting longer in between
                 for count in range(5):
                     try:
                         os.remove(db_path)
                         break
                     except WindowsError:
-                        time.sleep(count*2)
+                        time.sleep(count * 2)
             os.rename(path, backup_path)
