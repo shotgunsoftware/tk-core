@@ -22,7 +22,7 @@ import tempfile
 
 import mock
 
-from tank_test.tank_test_base import TankTestBase, setUpModule
+from tank_test.tank_test_base import TankTestSimple, setUpModule
 from tank_test.mock_appstore import MockStore, TankMockStoreDescriptor, patch_app_store
 
 import sgtk
@@ -36,7 +36,7 @@ from distutils.version import LooseVersion
 
 
 
-class TestMockStore(TankTestBase):
+class TestMockStore(TankTestSimple):
     """
     Tests the mocker to see if it behaves as expected.
     """

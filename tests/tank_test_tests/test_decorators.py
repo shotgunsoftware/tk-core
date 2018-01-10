@@ -12,10 +12,10 @@ from __future__ import with_statement
 import uuid
 import os
 
-from tank_test.tank_test_base import TankTestBase, setUpModule, temp_env_var
+from tank_test.tank_test_base import TankTestSimple, setUpModule, temp_env_var
 
 
-class TestDecorators(TankTestBase):
+class TestDecorators(TankTestSimple):
     """
     Basic environment tests
     """

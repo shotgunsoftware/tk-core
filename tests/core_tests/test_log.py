@@ -14,10 +14,10 @@ import copy
 import sgtk
 
 from tank_test.tank_test_base import setUpModule # noqa
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import TankTestSimple
 
 
-class TestLogManager(TankTestBase):
+class TestLogManager(TankTestSimple):
     """Tests the LogManager interface."""
     def test_global_debug_environment(self):
         """
