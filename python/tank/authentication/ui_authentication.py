@@ -18,11 +18,22 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-from .errors import AuthenticationCancelled
+from .errors import AuthenticationCancelled, ShotgunAuthenticationError
 from . import invoker
 from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
+
+
+# When importing qt_abstraction, a lot of code is executed to detects which
+# version of Qt is being used. Running business logic at import time is not
+# something usually done by the Toolkit. The worry is that the import may fail
+# in the context of a DCC, but occur too early for the Toolkit logging to be
+# fully in place to record it.
+try:
+    from .login_dialog import LoginDialog
+except Exception:
+    LoginDialog = None
 
 
 class UiAuthenticationHandler(object):
@@ -52,16 +63,18 @@ class UiAuthenticationHandler(object):
         :param http_proxy: Proxy server to use when validating credentials. Can be None.
         :returns: A tuple of (hostname, login, session_token)
         """
-        # deferred import because the login dialog contains QT references.
-        from . import login_dialog
 
         if self._is_session_renewal:
             logger.debug("Requesting password in a dialog.")
         else:
             logger.debug("Requesting username and password in a dialog.")
 
+        if LoginDialog is None:
+            logger.error("Unexpected state. LoginDialog should be available.")
+            raise ShotgunAuthenticationError("Could not instantiated login dialog.")
+
         def _process_ui():
-            dlg = login_dialog.LoginDialog(
+            dlg = LoginDialog(
                 is_session_renewal=self._is_session_renewal,
                 hostname=hostname,
                 login=login,
