@@ -124,8 +124,8 @@ class BundleCacheUsageTracker(threading.Thread):
 
                     if consecutive_error_count >= self.MAX_CONSECUTIVE_ERROR_COUNT:
                         # Too many consecutive errors, we bail out of the worker loop
-                        self.__log_error(e, "Too many error in tracker worker thread, exiting thread, "\
-                                "further tracking will be disabled.")
+                        self.__log_error(e, "Too many errors in tracker worker thread, exiting thread. "\
+                                "Further tracking will be disabled until next restart.")
                         break
 
         except Exception as e:
