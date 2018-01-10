@@ -141,7 +141,7 @@ class TestBundleCacheUsageTracker(TestBundleCacheUsageBase):
             BundleCacheUsageTracker.delete_instance()
             elapsed_time = time.time() - start_time
             self.assertEquals(
-                tracker.pending_count, 0,
+                tracker._tasks.qsize(), 0,
                 "Was not expecting pending tasks after `stop()`."
             )
             # Should be quick, only a few db operation for each loop iteration
@@ -171,7 +171,7 @@ class TestBundleCacheUsageTracker(TestBundleCacheUsageBase):
         for count in range(0, self.DEFAULT_LOOP_COUNT):
             self._tracker._queue_task(time.sleep, 0.01)
 
-        self.assertGreater(self._tracker.pending_count, 0, "Was expecting some incomplete tasks.")
+        self.assertGreater(self._tracker._tasks.qsize(), 0, "Was expecting some incomplete tasks.")
 
         # Forcing a shorter timeout
         # The timeout below is way shorter than 1000 * 0.01s = 10 seconds
@@ -184,7 +184,7 @@ class TestBundleCacheUsageTracker(TestBundleCacheUsageBase):
         self.assertIsWithinPct(elapsed_time, TIMEOUT, 5)
 
         # Verify that we do have pending tasks
-        self.assertGreater(self._tracker.pending_count, 0,
+        self.assertGreater(self._tracker._tasks.qsize(), 0,
                            "We're expecting a worker timeout, there should be incompleted tasks.")
 
         # finish waiting, we know that those tasks will take longer than 2 seconds
@@ -197,13 +197,10 @@ class TestBundleCacheUsageTracker(TestBundleCacheUsageBase):
         """
         Tests performances of tracking a large number of descriptor through usage of the tracker class.
         Since actual database accesses are done asynchronously logging usage on the main thread should
-        be rather quick, completion of all of the database commits should be substantially longer.
-
-        There should be at the very least a 10:1 ratio
-        Development system was showing approximately à 36:0
+        be rather quick but completion of all of the database commits should be substantially longer.
         """
 
-        MINIMAL_EXPECTED_RATIO = 20
+        MINIMAL_EXPECTED_RATIO = 100
 
         start_time = time.time()
         for count in range(0, self.DEFAULT_LOOP_COUNT):
@@ -212,14 +209,14 @@ class TestBundleCacheUsageTracker(TestBundleCacheUsageBase):
         queuing_time = time.time() - start_time
 
         # Waiting for all db operations to be completed.
-        while self._tracker.pending_count:
+        while self._tracker._tasks.qsize():
             time.sleep(0.25)
 
         self._tracker.stop()
 
         completing_all_tasks_time = time.time() - start_time
         self.assertEquals(
-            self._tracker.pending_count,
+            self._tracker._tasks.qsize(),
             0,
             "Was not expecting pending tasks after `stop`."
         )

@@ -179,19 +179,6 @@ class BundleCacheUsageTracker(threading.Thread):
             if cls.__singleton_instance:
                 cls.__singleton_instance._queue_task(cls.__singleton_instance.__track_usage, bundle_path)
 
-    @property
-    def pending_count(self):
-        """
-        Returns how many tasks are in the queue, still pending.
-
-        .. note:: Indicative only, with the worker thread running,
-        by the time the next instruction is executed the value might
-        be already different.
-
-        :return: an integer of the currently still queued tasks count
-        """
-        return self._tasks.qsize()
-
     def stop(self, timeout=DEFAULT_STOP_TIMEOUT):
         """
         Request worker thread termination and then wait for thread to finish.
