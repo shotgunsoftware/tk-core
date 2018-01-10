@@ -13,7 +13,7 @@ from __future__ import with_statement
 import os
 from mock import patch
 
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import TankTestSimple
 from tank_test.tank_test_base import setUpModule # noqa
 
 from tank.authentication import session_cache
@@ -21,7 +21,7 @@ from tank.util import LocalFileStorageManager
 from tank_vendor import yaml
 
 
-class SessionCacheTests(TankTestBase):
+class SessionCacheTests(TankTestSimple):
 
     def test_current_host(self):
         """

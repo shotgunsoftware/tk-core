@@ -17,7 +17,7 @@ from __future__ import with_statement, print_function
 import sys
 
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import TankTestBase, skip_if_pyside_missing, interactive
+from tank_test.tank_test_base import TankTestSimple, skip_if_pyside_missing, interactive
 from mock import patch
 from tank.authentication import (
     console_authentication,
@@ -30,7 +30,8 @@ from tank.authentication import (
 import tank
 
 
-class InteractiveTests(TankTestBase):
+@skip_if_pyside_missing
+class InteractiveTests(TankTestSimple):
     """
     Tests ui and console based authentication.
     """
@@ -331,6 +332,3 @@ class InteractiveTests(TankTestBase):
             ld.ui.password.setFocus()
             # Text should be cleaned of spaces now.
             self.assertEqual(widget.text(), "text")
-
-# Class decorators don't exist on Python2.5
-InteractiveTests = skip_if_pyside_missing(InteractiveTests)

@@ -15,7 +15,7 @@ Tests settings retrieval through the DefaultsManager
 from __future__ import with_statement
 from mock import patch, Mock, PropertyMock
 
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import TankTestSimple
 from tank_test.tank_test_base import setUpModule # noqa
 
 from tank.authentication import CoreDefaultsManager
@@ -24,7 +24,7 @@ from tank.util.user_settings import UserSettings
 import sgtk
 
 
-class DefaultsManagerTest(TankTestBase):
+class DefaultsManagerTest(TankTestSimple):
     """
     Tests the defaults manager.
     """
@@ -45,7 +45,7 @@ class DefaultsManagerTest(TankTestBase):
         """
         Sets up the next test's environment.
         """
-        TankTestBase.setUp(self)
+        TankTestSimple.setUp(self)
         UserSettings.clear_singleton()
 
     @patch(

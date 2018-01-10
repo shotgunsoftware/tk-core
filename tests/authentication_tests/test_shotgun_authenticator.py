@@ -13,7 +13,8 @@ from mock import patch
 import os
 import base64
 
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestSimple
+from tank_test.tank_test_base import setUpModule # noqa
 
 from tank.authentication import ShotgunAuthenticator, IncompleteCredentials, DefaultsManager, user_impl, user
 
@@ -26,7 +27,7 @@ class TestDefaultManager(DefaultsManager):
         return "https://some_site.shotgunstudio.com"
 
 
-class ShotgunAuthenticatorTests(TankTestBase):
+class ShotgunAuthenticatorTests(TankTestSimple):
 
     @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     @patch("tank.authentication.session_cache.generate_session_token")
@@ -62,7 +63,8 @@ class ShotgunAuthenticatorTests(TankTestBase):
 
         # Passing invalid session_metadata will result in a regular ShotgunUser
         session_user = ShotgunAuthenticator(TestDefaultManager())._create_session_user(
-            "login", password="password", host="https://host.shotgunstudio.com", session_metadata="invalid session_metadata"
+            "login", password="password", host="https://host.shotgunstudio.com",
+            session_metadata="invalid session_metadata"
         )
         self.assertIsInstance(session_user, user.ShotgunUser)
         self.assertNotIsInstance(session_user, user.ShotgunSamlUser)
