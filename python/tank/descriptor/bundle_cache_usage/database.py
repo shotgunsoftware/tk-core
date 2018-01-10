@@ -132,17 +132,17 @@ class BundleCacheUsageDatabase(object):
         )
 
         if bundle_cache_root is None:
-            raise BundleCacheUsageInvalidBundleCacheRootError(
+            raise BundleCacheTrackingInvalidBundleCacheRootError(
                 "The 'bundle_cache_root' is None."
             )
 
         if not os.path.exists(bundle_cache_root):
-            raise BundleCacheUsageInvalidBundleCacheRootError(
+            raise BundleCacheTrackingInvalidBundleCacheRootError(
                 "The 'bundle_cache_root' folder does not exists: %s" % (bundle_cache_root)
             )
 
         if not os.path.isdir(bundle_cache_root):
-            raise BundleCacheUsageInvalidBundleCacheRootError(
+            raise BundleCacheTrackingInvalidBundleCacheRootError(
                 "The 'bundle_cache_root' is not a directory: %s" % (bundle_cache_root)
             )
 
