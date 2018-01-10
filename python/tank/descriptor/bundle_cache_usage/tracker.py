@@ -34,6 +34,8 @@ class BundleCacheUsageTracker(threading.Thread):
 
     DEFAULT_STOP_TIMEOUT = 10 # in seconds
 
+    MAX_CONSECUTIVE_ERROR_COUNT = 5 # consecutive error count before bailing out of worker loop
+
     KEY_BUNDLE_COUNT = "bundle_count"
     KEY_LAST_USAGE_DATE = "last_usage_date"
     KEY_USAGE_COUNT = "usage_count"
@@ -55,17 +57,10 @@ class BundleCacheUsageTracker(threading.Thread):
             with cls.__singleton_lock:
                 if not cls.__singleton_instance:
                     cls.__singleton_instance = super(BundleCacheUsageTracker, cls).__new__(cls, *args, **kwargs)
-                    cls.__singleton_instance.__initialized = False
+                    cls.__singleton_instance._tasks = Queue.Queue()
+                    cls.__singleton_instance._errors = Queue.Queue()
 
         return cls.__singleton_instance
-
-    def __init__(self):
-        super(BundleCacheUsageTracker, self).__init__()
-        if (self.__initialized):
-            return
-        self.__initialized = True
-        self._tasks = Queue.Queue()
-        self._errors = Queue.Queue()
 
     @ classmethod
     def delete_instance(cls, timeout=DEFAULT_STOP_TIMEOUT):
@@ -110,10 +105,9 @@ class BundleCacheUsageTracker(threading.Thread):
         """
         Implementation of threading.Thread.run()
         """
-
+        consecutive_error_count = 0
         try:
             while True:
-
                 # Wait (block) until something is added to the queue
                 method, args, kwargs = self._tasks.get()
                 if method == "QUIT":
@@ -122,11 +116,18 @@ class BundleCacheUsageTracker(threading.Thread):
                 if method:
                     try:
                         method(*args, **kwargs)
-
+                        consecutive_error_count = 0
                     except Exception as e:
                         self.__log_error(e, "Unexpected error consuming task")
+                        consecutive_error_count += 1
                     finally:
                         self._tasks.task_done()
+
+                    if consecutive_error_count >= self.MAX_CONSECUTIVE_ERROR_COUNT:
+                        # Too many consecutive errors, we bail out of the worker loop
+                        self.__log_error(e, "Too many error in tracker worker thread, exiting thread, "\
+                                "further tracking will be disabled.")
+                        break
 
         except Exception as e:
             self.__log_error(e, "Unexpected exception in the worker run() method")
@@ -138,6 +139,12 @@ class BundleCacheUsageTracker(threading.Thread):
     ###########################################################################
 
     def _check_for_queued_errors(self):
+        """
+        Checks errors queued from the worker thread and log them to logger from the main thread.
+
+        .. note:: Called from main thread
+
+        """
         while not self._errors.empty():
             exception, message = self._errors.get()
             log.error("%s : %s" % (message, exception))
@@ -195,7 +202,7 @@ class BundleCacheUsageTracker(threading.Thread):
         """
         if self.is_alive():
             log.debug("Requesting worker termination ..." )
-            self._tasks.put("QUIT")
+            self._queue_task("QUIT", "User requested thread terminaison")
             self.join(timeout=timeout)
             # As join() always returns None, you must call isAlive() after
             # join() to decide whether a timeout happened

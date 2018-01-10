@@ -210,10 +210,12 @@ class TestBundleCacheUsageTracker(TestBundleCacheUsageBase):
             self._tracker.track_usage(self._test_bundle_path)
 
         queuing_time = time.time() - start_time
-        try:
-            self._tracker.stop(self.WAIT_TIME_MEGA_LONG)
-        except BundleCacheTrackingTimeoutError:
-            self._tracker.stop(self.WAIT_TIME_MEGA_LONG)
+
+        # Waiting for all db operations to be completed.
+        while self._tracker.pending_count:
+            time.sleep(0.25)
+
+        self._tracker.stop()
 
         completing_all_tasks_time = time.time() - start_time
         self.assertEquals(
