@@ -26,11 +26,14 @@ from tank_vendor import yaml
 from tank.authentication import ShotgunAuthenticator
 
 
-class  TestContext(TankTestBase):
-    def setUp(self):
+class TestContext(TankTestBase):
+    def setUp(self, multi_root=False):
         super(TestContext, self).setUp()
-        self.setup_multi_root_fixtures()
 
+        if multi_root:
+            self.setup_multi_root_fixtures()
+        else:
+            self.setup_fixtures()
 
         self.keys = {"Sequence": StringKey("Sequence"),
                      "Shot": StringKey("Shot"),
@@ -39,13 +42,13 @@ class  TestContext(TankTestBase):
 
         # set up test data with single sequence, shot, step and human user
         self.seq = {"type": "Sequence", "code": "seq_name", "id": 3}
-        
+
         self.shot = {"type": "Shot",
-                    "code": "shot_name",
-                    "id": 2,
-                    "extra_field": "extravalue", # used to test query from template
-                    "sg_sequence": self.seq,
-                    "project": self.project}
+                     "code": "shot_name",
+                     "id": 2,
+                     "extra_field": "extravalue", # used to test query from template
+                     "sg_sequence": self.seq,
+                     "project": self.project}
 
         self.step = {"type":"Step", "name": "step_name", "id": 4}
 
@@ -62,7 +65,7 @@ class  TestContext(TankTestBase):
         # One human user matching the current login
         self.current_login = tank.util.login.get_login_name()
         self.current_user = {"type":"HumanUser", "name":"user_name", "id":2, "login": self.current_login}
-        
+
         self.seq_path = os.path.join(self.project_root, "sequence/Seq")
         self.add_production_path(self.seq_path, self.seq)
         self.shot_path = os.path.join(self.seq_path, "shot_code")
@@ -74,15 +77,16 @@ class  TestContext(TankTestBase):
         self.other_user_path = os.path.join(self.step_path, "user_login")
         self.add_production_path(self.other_user_path, self.other_user)
 
-        # adding shot path with alternate root 
-        seq_path = os.path.join(self.alt_root_1, "sequence/Seq")
-        self.add_production_path(seq_path, self.seq)
-        self.alt_1_shot_path = os.path.join(seq_path, "shot_code")
-        self.add_production_path(self.alt_1_shot_path, self.shot)
-        self.alt_1_step_path = os.path.join(self.alt_1_shot_path, "step_short_name")
-        self.add_production_path(self.alt_1_step_path, self.step)
-        self.alt_1_other_user_path = os.path.join(self.alt_1_step_path, "user_login")
-        self.add_production_path(self.alt_1_other_user_path, self.other_user)
+        if multi_root:
+            # adding shot path with alternate root
+            seq_path = os.path.join(self.alt_root_1, "sequence/Seq")
+            self.add_production_path(seq_path, self.seq)
+            self.alt_1_shot_path = os.path.join(seq_path, "shot_code")
+            self.add_production_path(self.alt_1_shot_path, self.shot)
+            self.alt_1_step_path = os.path.join(self.alt_1_shot_path, "step_short_name")
+            self.add_production_path(self.alt_1_step_path, self.step)
+            self.alt_1_other_user_path = os.path.join(self.alt_1_step_path, "user_login")
+            self.add_production_path(self.alt_1_other_user_path, self.other_user)
 
         # adding a path with step as the root (step/sequence/shot)
         alt_2_step_path = "step_short_name"
@@ -251,24 +255,6 @@ class TestFromPath(TestContext):
         self.assertIsNone(result.task)
         self.assertIsNone(result.step)
         self.assertIsNone(result.project)
-
-
-    @patch("tank.util.login.get_current_user")
-    def test_non_primary_path(self, get_current_user):
-        """Check that path which is not child of primary root create context."""
-        get_current_user.return_value = self.current_user
-        
-        result = self.tk.context_from_path(self.alt_1_shot_path)
-        # check context's attributes
-        self.assertEquals(self.shot["id"], result.entity["id"])
-        self.assertEquals(self.shot["type"], result.entity["type"])
-        self.assertEquals(self.project["id"], result.project["id"])
-        self.assertEquals(self.project["type"], result.project["type"])
-        self.assertEquals(self.current_user["id"], result.user["id"])
-        self.assertEquals(self.current_user["type"], result.user["type"])
-
-        self.assertIsNone(result.step)
-        self.assertIsNone(result.task)
 
     def test_user_path(self):
         """Check other_user is set when contained in the path."""
@@ -1058,20 +1044,6 @@ class TestAsTemplateFields(TestContext):
         expected = os.path.basename(self.seq_path)
         self.assertEquals(expected, result.get("Sequence"))
 
-    def test_non_primary_entity_paths(self):
-        """
-        Test case that entities have paths in path cache which have roots other than the primary
-        project root.
-        """
-        # Template using alt root
-        template_def =  "/sequence/{Sequence}/{Shot}/{Step}/work"
-        template = TemplatePath(template_def, self.keys, self.alt_root_1)
-        expected_step_name = "step_short_name"
-        expected_shot_name = "shot_code"
-        result = self.ctx.as_template_fields(template)
-        self.assertEquals(expected_step_name, result['Step'])
-        self.assertEquals(expected_shot_name, result['Shot'])
-
     def test_user_ctx(self):
         """Check other_user is set when contained in the path."""
         
@@ -1187,3 +1159,48 @@ class TestSerialize(TestContext):
         """
         with self.assertRaises(TankContextDeserializationError):
             tank.Context.deserialize("ajkadshadsjkhadsjkasd")
+
+
+class TestMultiRoot(TestContext):
+
+    def setUp(self):
+        super(TestMultiRoot, self).setUp(multi_root=True)
+
+    def test_non_primary_entity_paths(self):
+        """
+        Test case that entities have paths in path cache which have roots other than the primary
+        project root.
+        """
+        # Template using alt root
+        template_def = "/sequence/{Sequence}/{Shot}/{Step}/work"
+        template = TemplatePath(template_def, self.keys, self.alt_root_1)
+        expected_step_name = "step_short_name"
+        expected_shot_name = "shot_code"
+
+        kws = {}
+        kws["tk"] = self.tk
+        kws["project"] = self.project
+        kws["entity"]  = self.shot
+        kws["step"]    = self.step
+        ctx = context.Context(**kws)
+
+        result = ctx.as_template_fields(template)
+        self.assertEquals(expected_step_name, result['Step'])
+        self.assertEquals(expected_shot_name, result['Shot'])
+
+    @patch("tank.util.login.get_current_user")
+    def test_non_primary_path(self, get_current_user):
+        """Check that path which is not child of primary root create context."""
+        get_current_user.return_value = self.current_user
+
+        result = self.tk.context_from_path(self.alt_1_shot_path)
+        # check context's attributes
+        self.assertEquals(self.shot["id"], result.entity["id"])
+        self.assertEquals(self.shot["type"], result.entity["type"])
+        self.assertEquals(self.project["id"], result.project["id"])
+        self.assertEquals(self.project["type"], result.project["type"])
+        self.assertEquals(self.current_user["id"], result.user["id"])
+        self.assertEquals(self.current_user["type"], result.user["type"])
+
+        self.assertIsNone(result.step)
+        self.assertIsNone(result.task)
