@@ -18,6 +18,7 @@ import datetime
 import random
 import shutil
 
+from tank.util.filesystem import safe_delete_folder
 from sgtk.descriptor.bundle_cache_usage.database import BundleCacheUsageDatabase
 from sgtk.descriptor.bundle_cache_usage.tracker import BundleCacheUsageTracker
 
@@ -77,21 +78,6 @@ class Utils(object):
 
         with open(path, 'w') as f:
             f.write(data_to_write)
-
-    @classmethod
-    def safe_delete(cls, path):
-        if path and os.path.exists(path):
-            if os.path.isdir(path):
-                try:
-                    shutil.rmtree(path)
-                except Exception as e:
-                    pass
-
-            elif os.path.isfile(path):
-                # os.path.
-                pass
-            else:
-                pass
 
 
 class TestBundleCacheUsageBase(TankTestBase):
