@@ -148,7 +148,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         # Test after initial DB connect
         self.assertEquals(self.db.path, self.expected_db_path)
 
-    def test_db_track_usage_for_None_entry(self):
+    def test_track_usage_for_None_entry(self):
         """
         Tests that track_usage method can handle a None parameter
         """
@@ -159,7 +159,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         # Low level test for record count
         self.assertEquals(self.db.bundle_count, 0, "Was not expecting a new entry from None")
 
-    def test_db_track_usage_for_new_entry(self):
+    def test_track_usage_for_new_entry(self):
         """
         Tests the basic of logging an entry not already existing in the database
         """
@@ -180,7 +180,7 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         self.assertIsNotNone(bundle)
         self.assertEquals(1, bundle.usage_count)
 
-    def test_db_track_usage_for_existing_entry(self):
+    def test_track_usage_for_existing_entry(self):
         """
         Tests logging an existing entry
         """
@@ -205,6 +205,23 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
             bundle.usage_count,
             "Was expecting a usage count of 3 since we've logged usage 3 times for same entry"
         )
+
+    def test_track_usage_outside_bundle_cache(self):
+        """
+        Test tracking usage of a bundle outside of the bundle cache
+        """
+
+        # Test initial state
+        self.assertEquals(0, self.db.bundle_count)
+
+        # Try logging some usage with a bundle outside bundle cache
+        self.db.track_usage(self._dev_bundle_path)
+        self.assertEquals(0, self.db.bundle_count)
+
+        # Log some usage with valid a bundle
+        self.db.track_usage(self._test_bundle_path)
+        self.assertEquals(1, self.db.bundle_count)
+
 
     def test_logging_entry_with_special_characters(self):
         """
