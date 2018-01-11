@@ -154,7 +154,7 @@ class BundleCacheUsagePurger(object):
             log.debug(
                 "Removing bundle '%s' from disk, last accessed on %s" % (
                     (
-                        os.path.join(self.bundle_cache_root, bundle.path),
+                        os.path.join(self._bundle_cache_root, bundle.path),
                         bundle.last_usage_date_formatted
                     )
                 )
