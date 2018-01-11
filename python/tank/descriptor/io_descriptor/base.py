@@ -77,6 +77,11 @@ class IODescriptorBase(object):
         self._fallback_roots = fallback_roots
 
     def set_use_non_default_bundle_cache_root(self, use_non_default_bundle_cache_root):
+        """
+        Specifies that the descriptor was initialized with a non default bundle cache root folder.
+        This is used later on to determine whether or not to track a descriptor.
+        :param use_non_default_bundle_cache_root: bool True if non default bundle cache root
+        """
         self._use_non_default_bundle_cache_root = use_non_default_bundle_cache_root
 
     def __str__(self):
