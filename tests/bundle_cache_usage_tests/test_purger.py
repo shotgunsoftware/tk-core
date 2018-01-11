@@ -371,29 +371,6 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
         )
 
     @unittest.skipIf(sys.platform.startswith("win"), "Skipped on Windows")
-    def test_purge_bundle_with_linked_bundle_inside_app_store(self):
-        """
-        Tests purging a bundle path which links to a bundle under the app_store folder.
-        """
-
-        test_bundle_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3")
-
-        # Setup paths for link creation
-        parent_path = os.path.abspath(os.path.join(test_bundle_path, os.pardir))
-        source_path = os.path.join(test_bundle_path)
-        dest_path = os.path.join(parent_path, "v0.8.4")
-
-        self._helper_purge_bundle(
-            test_bundle_path,
-            expect_test_bundle_path_deleted=True,
-            expect_parent_folder_deleted=True,
-            expect_source_deleted=False,
-            source_path=source_path,
-            dest_path=dest_path,
-            use_hardlink=False
-        )
-
-    @unittest.skipIf(sys.platform.startswith("win"), "Skipped on Windows")
     def test_purge_bundle_with_linked_bundle_outside_of_app_store(self):
         """
         Tests purging a bundle path which is a links to a bundle outside of the app_store/bundle cache folder.
