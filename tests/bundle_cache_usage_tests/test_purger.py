@@ -41,9 +41,6 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
         self._purger = BundleCacheUsagePurger()
         self.assertEquals(self.bundle_cache_root, self._purger._bundle_cache_root)
 
-    def tearDown(self):
-        super(TestBundleCacheUsagePurger, self).tearDown()
-
     def helper_stress_test(self, purger, tracker, database, bundle_list, iteration_count=100):
         """
         On each loop, operations are randomly determined.
@@ -221,88 +218,210 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
         super(TestBundleCacheUsagePurgerPurgeBundle, self).setUp()
         self._purger = BundleCacheUsagePurger()
 
-    def test_simple_bundle_purge(self):
-        """
-        Tests purging a normal, nothing special, app store bundle.
-        .. NOTE: Relying on the PipelineConfig initializing worker thread
-        """
-        test_bundle_path = self._test_bundle_path
+    def tearDown(self):
+        extra_bundle = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.4")
+        if os.path.exists(extra_bundle):
+            os.remove(extra_bundle)
 
-        # Assert the test setup itself
-        self.assertTrue(os.path.exists(self._test_bundle_path))
+        super(TestBundleCacheUsagePurgerPurgeBundle, self).tearDown()
+
+    def _helper_purge_bundle(self, test_bundle_path,
+                             expect_test_bundle_path_deleted, expect_parent_folder_deleted,
+                             expect_bundle_tracked=True,
+                             expect_source_deleted=False,
+                             source_path=None, dest_path=None, use_hardlink=False):
+        """
+        Helper method for the test_purge_bundle_* methods.
+
+        .. NOTE: Relying on the PipelineConfig initializing worker thread
+
+        :param test_bundle_path: a str of a test bundle path
+        :param expect_test_bundle_path_deleted: a bool for testing that
+        the bundle is expected to be deleted.
+        :param expect_parent_folder_deleted: a boot that indicates that
+        the bundle parent folder is expected to be deleted.
+        :param source_path: a str source path to create a link/symlink
+        :param dest_path: a str dest path to create a link/symlink
+        :param use_hardlink: a boolean of whether to use hardlink
+        """
+        if source_path and dest_path:
+
+            self.assertTrue(os.path.exists(source_path))
+
+            # Create link
+            if use_hardlink:
+                os.link(source_path, dest_path)
+            else:
+                os.symlink(source_path, dest_path)
+
+            self.assertTrue(os.path.exists(dest_path))
+            self.assertTrue(os.path.islink(dest_path))
+
+        self.assertTrue(os.path.exists(test_bundle_path))
         self.assertEquals(0, self._purger._bundle_count)
 
+        # Add a database entry some time ago
         with patch("time.time", return_value=self._bundle_last_usage_time):
             # Relying on the PipelineConfig initializing worker thread
             BundleCacheUsageTracker.track_usage(test_bundle_path)
             time.sleep(self.WAIT_TIME_SHORT) # logging is async, we need to wait to endure operation is done
-            self.assertEquals(1, self._purger._bundle_count)
+            if expect_bundle_tracked:
+                self.assertEquals(1, self._purger._bundle_count)
+            else:
+                self.assertEquals(0, self._purger._bundle_count)
 
-        # Get list and purge old bundles
-        bundle_list = self._purger.get_unused_bundles()
-        self.assertEquals(1, len(bundle_list))
-        self._purger.purge_bundle(bundle_list[0])
+        if expect_bundle_tracked:
+            # Get list and purge old bundles
+            bundle_list = self._purger.get_unused_bundles()
+            self.assertEquals(1, len(bundle_list))
+            self._purger.purge_bundle(bundle_list[0])
 
-        # Now verify that neither files or database entry exist
-        self.assertEquals(0, self._purger._bundle_count)
-        self.assertFalse(os.path.exists(test_bundle_path))
+        if source_path:
+            self.assertEquals(expect_source_deleted, not os.path.exists(source_path))
 
-        # Finally, that the parent folder still exists
-        test_path_parent = os.path.abspath(os.path.join(test_bundle_path, os.pardir))
-        self.assertTrue(os.path.exists(test_path_parent))
+        if expect_test_bundle_path_deleted:
+            # Now verify that neither files or database entry exist
+            self.assertEquals(0, self._purger._bundle_count)
+            self.assertFalse(os.path.exists(test_bundle_path))
+
+            # Finally, that the parent folder still exists
+            test_path_parent = os.path.abspath(os.path.join(test_bundle_path, os.pardir))
+
+            if expect_parent_folder_deleted:
+                self.assertFalse(
+                    os.path.exists(test_path_parent),
+                    "Was expecting that the specified bundle parent folder would be deleted."
+                )
+            else:
+                self.assertTrue(
+                    os.path.exists(test_path_parent),
+                    "Was expecting the specified bundle parent folder to exist still."
+                )
+        else:
+            if expect_bundle_tracked:
+                self.assertEquals(1, self._purger._bundle_count)
+            else:
+                self.assertEquals(0, self._purger._bundle_count)
+
+            self.assertTrue(os.path.exists(test_bundle_path))
+
+    def test_purge_bundle_simple(self):
+        """
+        Tests purging a normal, nothing special, app store bundle.
+        """
+
+        # The 'tk-maya' test bundle has only 1 version.
+        # We expect the 'tk-maya' folder to be deleted.
+        self._helper_purge_bundle(
+            os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3"),
+            expect_test_bundle_path_deleted=True,
+            expect_parent_folder_deleted=True
+        )
+
+    def test_purge_bundle_dual(self):
+        """
+        Tests purging a normal, nothing special, app store bundle.
+        """
+
+        # The `self._test_bundle_path` is "tk-shell" version v0.5.6.
+        # The test setup includes 2 test versions of the `tk-shell` bundle.
+        # We are expecting that the parent folder should still exist after.
+        self._helper_purge_bundle(
+            self._test_bundle_path,
+            expect_test_bundle_path_deleted=True,
+            expect_parent_folder_deleted=False
+        )
 
     @unittest.skipIf(sys.platform.startswith("win"), "Skipped on Windows")
-    def test_purge_bundle_with_link_file(self):
+    def test_purge_bundle_with_linked_file_inside_app_store(self):
         """
         Tests purging a bundle which magically grown an extra file.
         The purging process should abort and the database entry should NOT be deleted.
         """
 
-        link_dir = False
-        use_hardlink = False
+        test_bundle_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3")
+
+        # Setup paths for link creation
+        source_file = os.path.join(self.bundle_cache_root, "app_store", "tk-3dsmaxplus", "v0.4.1", "info.yml")
+        dest_path = os.path.join(test_bundle_path, "plugins", "basic", "link_to_some_file.txt")
+
+        self._helper_purge_bundle(
+            test_bundle_path,
+            expect_test_bundle_path_deleted=True,
+            expect_parent_folder_deleted=True,
+            expect_source_deleted=False,
+            source_path=source_file,
+            dest_path=dest_path,
+            use_hardlink=False
+        )
+
+    @unittest.skipIf(sys.platform.startswith("win"), "Skipped on Windows")
+    def test_purge_bundle_with_link_file_outside_app_store(self):
+        """
+        Tests purging a bundle which magically grown an extra file.
+        The purging process should abort and the database entry should NOT be deleted.
+        """
 
         test_bundle_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3")
 
         # Setup paths for link creation
-        base_path = os.path.join(test_bundle_path, "plugins", "basic")
+        source_file = os.path.join(self._dev_bundle_path, "plugins", "basic", "some_file.txt")
+        dest_path = os.path.join(test_bundle_path, "plugins", "basic", "link_to_file_outside_app_store.txt")
 
-        if link_dir:
-            source_file = os.path.join(base_path)
-            dest_path = os.path.join(base_path, "extended")
-        else:
-            source_file = os.path.join(base_path, "some_file.txt")
-            dest_path = os.path.join(base_path, "link_to_some_file.txt")
-
-        # Create link
-        if use_hardlink:
-            os.link(source_file, dest_path)
-        else:
-            os.symlink(source_file, dest_path)
-
-        # Assert the test setup itself
-        self.assertTrue(os.path.exists(test_bundle_path))
-        self.assertTrue(os.path.exists(dest_path))
-        self.assertTrue(os.path.islink(dest_path))
-
-        # Relying on the PipelineConfig initializing worker thread
-        BundleCacheUsageTracker.track_usage(test_bundle_path)
-        time.sleep(self.WAIT_TIME_SHORT) # logging is async, we need to wait to endure operation is done
-        self.assertEquals(1, self._purger._bundle_count)
-
-        # Purge the bundle
-        database = BundleCacheUsageDatabase()
-        fake_bundle_entry = BundleCacheUsageDatabaseEntry(
-            (
-                database._truncate_path(test_bundle_path),
-                1513635533,
-                1513635533 + 1000,
-                1
-            )
+        self._helper_purge_bundle(
+            test_bundle_path,
+            expect_test_bundle_path_deleted=True,
+            expect_parent_folder_deleted=True,
+            expect_source_deleted=False,
+            source_path=source_file,
+            dest_path=dest_path,
+            use_hardlink=False
         )
-        self._purger.purge_bundle(fake_bundle_entry)
 
-        # Now verify that the bundle root folder and database entry still exist
-        self.assertEquals(1, self._purger._bundle_count)
-        self.assertTrue(os.path.exists(test_bundle_path))
-        self.assertTrue(os.path.exists(dest_path))
-        self.assertTrue(os.path.islink(dest_path))
+    @unittest.skipIf(sys.platform.startswith("win"), "Skipped on Windows")
+    def test_purge_bundle_with_linked_bundle_inside_app_store(self):
+        """
+        Tests purging a bundle path which links to a bundle under the app_store folder.
+        """
+
+        test_bundle_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3")
+
+        # Setup paths for link creation
+        parent_path = os.path.abspath(os.path.join(test_bundle_path, os.pardir))
+        source_path = os.path.join(test_bundle_path)
+        dest_path = os.path.join(parent_path, "v0.8.4")
+
+        self._helper_purge_bundle(
+            test_bundle_path,
+            expect_test_bundle_path_deleted=True,
+            expect_parent_folder_deleted=True,
+            expect_source_deleted=False,
+            source_path=source_path,
+            dest_path=dest_path,
+            use_hardlink=False
+        )
+
+    @unittest.skipIf(sys.platform.startswith("win"), "Skipped on Windows")
+    def test_purge_bundle_with_linked_bundle_outside_of_app_store(self):
+        """
+        Tests purging a bundle path which is a links to a bundle outside of the app_store/bundle cache folder.
+        The bundle should not be tracked at all.
+        """
+
+        some_bundle_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3")
+
+        # Setup paths for link creation
+        parent_path = os.path.abspath(os.path.join(some_bundle_path, os.pardir))
+        source_path = os.path.join(some_bundle_path)
+        dest_path = os.path.join(self._dev_bundle_path, "dev")
+
+        self._helper_purge_bundle(
+            dest_path,
+            expect_test_bundle_path_deleted=False,
+            expect_bundle_tracked=False,
+            expect_parent_folder_deleted=False,
+            expect_source_deleted=False,
+            source_path=source_path,
+            dest_path=dest_path,
+            use_hardlink=False
+        )

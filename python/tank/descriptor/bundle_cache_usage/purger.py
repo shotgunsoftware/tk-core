@@ -160,28 +160,31 @@ class BundleCacheUsagePurger(object):
                 )
             )
 
-            if not os.path.exists(bundle.path):
+            bundle_full_path = os.path.join(self._bundle_cache_root, bundle.path)
+            if not os.path.exists(bundle_full_path):
                 raise BundleCacheTrackingError("The specified path does not exists: %s" % (bundle.path))
 
-            if not os.path.isdir(bundle.path):
-                raise BundleCacheTrackingError("The specified path is not a diectorys: %s" % (bundle.path))
+            if not os.path.isdir(bundle_full_path):
+                raise BundleCacheTrackingError("The specified path is not a directory: %s" % (bundle.path))
 
-            if not bundle.path.startsWith(self._bundle_cache_root):
-                raise BundleCacheTrackingError("The specified directory is not under global bundle cache: %s" % (bundle.path))
+            safe_delete_folder(bundle_full_path)
+            # safe_delete_folder is not returning anything
+            # we have to rely on checking folder exists again
+            if not os.path.exists(bundle_full_path):
+                # The folder was deleted, now try deleting parent dir if empty
+                parent_dir = os.path.abspath(
+                    os.path.join(bundle_full_path, os.pardir)
+                )
+                if not os.listdir(parent_dir):
+                    # Not using 'safe_delete_folder' for the safety of deleting the wrong folder.
+                    log.debug("Removing empty folder '%s' from disk" % (parent_dir))
+                    os.rmdir(parent_dir)
 
-            safe_delete_folder(bundle.path)
-            # No exception, everything was deleted
-
-            # Try deleting parent dir if now empty
-            parent_dir = os.path.abspath(
-                os.path.join(self.bundle_cache_root, bundle.path, os.pardir)
-            )
-            # Not using 'safe_delete_folder' for the safety of deleting the wrong folder.
-            if not os.listdir(parent_dir):
-                os.rmdir(parent_dir)
-
-            #  Finally, delete the database entry
-            self._database.delete_entry(bundle)
+                #  Finally, delete the database entry
+                self._database.delete_entry(bundle)
+            else:
+                # folder was not deleted by the 'safe_delete_folder' method
+                raise BundleCacheTrackingFileDeletionError("bundle was not deleted")
 
         except Exception as e:
             log.error("Error deleting the following bundle:%s exception:%s" % (bundle.path, e))

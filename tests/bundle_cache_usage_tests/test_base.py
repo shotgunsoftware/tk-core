@@ -128,6 +128,8 @@ class TestBundleCacheUsageBase(TankTestBase):
             self._bundle_last_usage_time
         ).strftime(self._expected_date_format)
 
+        self._dev_bundle_path = self.create_dev_test_bundle(self.bundle_cache_root)
+
     def tearDown(self):
         os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE"] = \
             self._saved_SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE
@@ -137,6 +139,9 @@ class TestBundleCacheUsageBase(TankTestBase):
 
         BundleCacheUsageTracker.delete_instance()
         self.delete_db()
+
+        safe_delete_folder(self._dev_bundle_path)
+
         super(TestBundleCacheUsageBase, self).tearDown()
 
     def assertIsWithinPct(self, test_value, expected_value, tolerance):
@@ -243,6 +248,33 @@ class TestBundleCacheUsageBase(TankTestBase):
 
         for item in test_bundle_cache_structure:
             Utils.write_bogus_data(item)
+
+    @classmethod
+    def create_dev_test_bundle(cls, bundle_cache_root):
+        """
+        Creates a test tk-maya dev bundle outside of the app store / bundle cache
+
+        :param bundle_cache_root: A string path of the used bundle cache root folder
+        :return: A str dev bundle path
+        """
+
+        bundle_cache_parent_dir = os.path.abspath(os.path.join(bundle_cache_root, os.pardir))
+        tk_maya_dev_bundle_path = os.path.join(bundle_cache_parent_dir, "dev", "tk-maya")
+        os.makedirs(tk_maya_dev_bundle_path)
+
+        test_bundle_cache_structure = [
+            os.path.join(tk_maya_dev_bundle_path, "info.yml"),
+            os.path.join(tk_maya_dev_bundle_path, "some_file.txt"),
+            os.path.join(tk_maya_dev_bundle_path, "another_file.txt"),
+            os.path.join(tk_maya_dev_bundle_path, "plugins", "basic", "info.yml"),
+            os.path.join(tk_maya_dev_bundle_path, "plugins", "basic", "some_file.txt"),
+            os.path.join(tk_maya_dev_bundle_path, "plugins", "basic", "another_file.txt")
+        ]
+
+        for item in test_bundle_cache_structure:
+            Utils.write_bogus_data(item)
+
+        return tk_maya_dev_bundle_path
 
     @classmethod
     def _get_test_bundles(self, bundle_cache_root):
