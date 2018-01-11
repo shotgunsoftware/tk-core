@@ -12,7 +12,7 @@ import threading
 import Queue
 
 from ... import LogManager
-from .errors import BundleCacheTrackingTimeoutError
+from .errors import BundleCacheTrackingError, BundleCacheTrackingTimeoutError
 from .database import BundleCacheUsageDatabase as BundleCacheUsageDatabase
 
 
@@ -27,7 +27,7 @@ def init_bundle_cache_usage_tracker():
     """
     try:
         BundleCacheUsageTracker().start()
-        log.debug("Starting bundle cache usage logger.")
+        log.debug("Starting bundle cache usage tracker service.")
 
     except OSError as e:
         log.error(e)
@@ -137,8 +137,12 @@ class BundleCacheUsageTracker(threading.Thread):
 
                     if consecutive_error_count >= self.MAX_CONSECUTIVE_ERROR_COUNT:
                         # Too many consecutive errors, we bail out of the worker loop
-                        self.__log_error(e, "Too many errors in tracker worker thread, exiting thread. "\
-                                "Further tracking will be disabled until next restart.")
+                        self.__log_error(
+                            BundleCacheTrackingError(
+                                "Too many errors in tracker worker thread, "
+                                "exiting thread, further tracking will be disabled until next restart."
+                            )
+                        )
                         break
 
         except Exception as e:
@@ -191,7 +195,7 @@ class BundleCacheUsageTracker(threading.Thread):
             if cls.__singleton_instance:
                 cls.__singleton_instance._queue_task(cls.__singleton_instance.__track_usage, bundle_path)
             else:
-                log.warn("Bundle cache usage tracker instance not created, "\
+                log.warn("Bundle cache usage tracker instance not created, "
                          "tracking of the '%s' bundle was not recorded." % (bundle_path))
 
     def stop(self, timeout=DEFAULT_STOP_TIMEOUT):
@@ -203,7 +207,7 @@ class BundleCacheUsageTracker(threading.Thread):
         :param timeout: A float timeout in seconds
         """
         if self.is_alive():
-            log.debug("Requesting worker termination ..." )
+            log.debug("Requesting worker termination ...")
             self._queue_task("QUIT", "User requested thread terminaison")
             self.join(timeout=timeout)
             # As join() always returns None, you must call isAlive() after
