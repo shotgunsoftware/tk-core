@@ -272,10 +272,12 @@ class IODescriptorDownloadable(IODescriptorBase):
     
     def is_purgeable(self):
         """
-        Typycally returns true when used with default bundle cache location.
+        Returns true when the bundle resides in the default bundle cache location.
+        As a consequence, when downloadable bundle types reside in the default
+        bundle cache location, they will be targeted by the automatic bundle
+        cache cleanup system (the :class:`~BundleCacheUsagePurger` class) and deleted
+        from disk automatically if they haven't been accessed for a certain number of days.
 
-        An AppStore type descriptor is typically purgeable as long as the
-        bundle cache root location is the default one thus we're checking
-        the 'self._use_non_default_bundle_cache_root' value.
+        :returns: boolean to indicate if descriptor can be automatically cleaned up or not.
         """
         return not self._use_non_default_bundle_cache_root

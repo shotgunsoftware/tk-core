@@ -58,6 +58,9 @@ def create_io_descriptor(
                                 - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
                                 - v0.12.x - get the highest v0.12 version
                                 - v1.x.x - get the highest v1 version
+    :param use_non_default_bundle_cache: If True, tracking of bundle will be disabled as well as
+                           deletion on bootstrapping process.
+
     :returns: Descriptor object
     """
     from .base import IODescriptorBase

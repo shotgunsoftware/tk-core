@@ -581,11 +581,12 @@ class IODescriptorBase(object):
 
     def is_purgeable(self):
         """
-        Returns whether or not the descriptor content can deleted by bundle cache manager code.
+        Returns whether or not the descriptor content will be automatically cleaned up by the
+        bundle cache cleanup manager :class:`~BundleCacheUsagePurger` class if it has been unused
+        for a certain number of days. By default, all bundle types will return False,
+        and sub-classes might override this as required.
 
-        This base class defaults the behavior to False, but sub-classes might override this as required.
-
-        :returns: False (for base class), the description content cannot be deleted.
+        :returns: False (for base class), the content will ignored by the bundle cache cleanup manager.
         """
         return False
 
@@ -653,23 +654,13 @@ class IODescriptorBase(object):
         """
 
         all_locations = self._get_cache_paths()
-        # last entry is always the active bundle cache
-        active_bundle_cache = all_locations[-1]
 
         for path in all_locations:
             # we determine local existence based on the existence of the
             # bundle's directory on disk.
             if self._exists_local(path):
-
-                # NOTE.1: The purgeability is linked to usage of non default bundle cache
-                # NOTE.2: The condition below is almost never true when using zeroconfig
-                #         as the loop exits most of the time from the first entry of
-                #         the 'all_locations' array
-                #
-                if path == active_bundle_cache and self.is_purgeable():
-                    # Minimum checks here, additional checks and
-                    # path manipulation will be done on the
-                    # service worker thread.
+                # last entry is always the active bundle cache
+                if path == all_locations[-1] and self.is_purgeable():
                     BundleCacheUsageTracker.track_usage(path)
 
                 return path
