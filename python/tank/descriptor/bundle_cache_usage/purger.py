@@ -111,14 +111,18 @@ class BundleCacheUsagePurger(object):
         Performs the initial-one-time search for bundles in the bundle cache and populate
         the database as unused entries.
         """
-        log.debug("Searching for existing bundles ...")
-        found_bundle_path_list = self._find_app_store_bundles()
-        for bundle_path in found_bundle_path_list:
-            log.debug("Adding bundle '%s' to database" % (bundle_path))
-            self._database.add_unused_bundle(bundle_path)
+        try:
+            log.debug("Searching for existing bundles ...")
+            found_bundle_path_list = self._find_app_store_bundles()
+            for bundle_path in found_bundle_path_list:
+                log.debug("Adding bundle '%s' to database" % (bundle_path))
+                self._database.add_unused_bundle(bundle_path)
 
-        log.debug("populating done, found %d entries" % (len(found_bundle_path_list)))
-        self._database.initial_populate_performed = True
+            log.debug("populating done, found %d entries" % (len(found_bundle_path_list)))
+            self._database.initial_populate_performed = True
+
+        except Exception as e:
+            log.error("Unexpected error searching for existing bundles: %s" % (e))
 
     @property
     def initial_populate_performed(self):
