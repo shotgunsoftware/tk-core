@@ -17,10 +17,7 @@ import time
 from mock import patch
 
 from sgtk.descriptor.bundle_cache_usage.tracker import BundleCacheUsageTracker
-from sgtk.descriptor.bundle_cache_usage.errors import (
-    BundleCacheTrackingTimeoutError,
-    BundleCacheTrackingInvalidBundleCacheRootError
-)
+from sgtk.descriptor.bundle_cache_usage.errors import BundleCacheTrackingTimeoutError
 
 from .test_base import TestBundleCacheUsageBase
 
@@ -99,7 +96,7 @@ class TestBundleCacheUsageTracker(TestBundleCacheUsageBase):
         BundleCacheUsageTracker.delete_instance()
         self.delete_db()
 
-        for count in range(0, self.DEFAULT_LOOP_COUNT/4):
+        for count in range(0, self.DEFAULT_LOOP_COUNT / 4):
             self.assertFalse(os.path.exists(self.expected_db_path))
             tracker = BundleCacheUsageTracker()
             tracker.start()
@@ -112,7 +109,7 @@ class TestBundleCacheUsageTracker(TestBundleCacheUsageBase):
                     break
 
                 elapsed_time = time.time() - start_time
-                if  elapsed_time > self.WAIT_TIME_SHORT:
+                if elapsed_time > self.WAIT_TIME_SHORT:
                     # Should pretty quick
                     self.fail("Timeout waiting for database creation.")
 

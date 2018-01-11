@@ -16,7 +16,6 @@ import os
 import time
 import datetime
 import random
-import shutil
 
 from tank.util.filesystem import safe_delete_folder
 from sgtk.descriptor.bundle_cache_usage.database import BundleCacheUsageDatabase

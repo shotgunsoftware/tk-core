@@ -24,7 +24,6 @@ from . import constants
 from .platform.environment import InstalledEnvironment, WritableEnvironment
 from .util import shotgun, yaml_cache
 from .util import ShotgunPath
-from .util.local_file_storage import LocalFileStorageManager
 from . import hook
 from . import pipelineconfig_utils
 from . import template_includes

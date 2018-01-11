@@ -14,12 +14,10 @@ from tank_test.tank_test_base import setUpModule
 
 import os
 import time
-import datetime
 from mock import patch
 
 from .test_base import TestBundleCacheUsageBase
 from sgtk.descriptor.bundle_cache_usage.database import BundleCacheUsageDatabaseEntry, BundleCacheUsageDatabase
-from sgtk.descriptor.bundle_cache_usage.errors import BundleCacheTrackingInvalidBundleCacheRootError
 
 
 class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
@@ -221,7 +219,6 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         # Log some usage with valid a bundle
         self.db.track_usage(self._test_bundle_path)
         self.assertEquals(1, self.db.bundle_count)
-
 
     def test_logging_entry_with_special_characters(self):
         """

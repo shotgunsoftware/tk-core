@@ -19,16 +19,12 @@ import sys
 import unittest2 as unittest
 from mock import patch
 
-from .test_base import TestBundleCacheUsageBase, Utils
+from .test_base import TestBundleCacheUsageBase
 
 from sgtk.descriptor.bundle_cache_usage.database import BundleCacheUsageDatabase, BundleCacheUsageDatabaseEntry
 from sgtk.descriptor.bundle_cache_usage.tracker import BundleCacheUsageTracker
 from sgtk.descriptor.bundle_cache_usage.purger import BundleCacheUsagePurger
-from sgtk.descriptor.bundle_cache_usage.errors import (
-    BundleCacheTrackingError,
-    BundleCacheTrackingFileDeletionError,
-    BundleCacheTrackingInvalidBundleCacheRootError
-)
+from sgtk.descriptor.bundle_cache_usage.errors import BundleCacheTrackingError
 
 
 class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
@@ -407,7 +403,6 @@ class TestBundleCacheUsagePurgerPurgeBundle(TestBundleCacheUsageBase):
         some_bundle_path = os.path.join(self.bundle_cache_root, "app_store", "tk-maya", "v0.8.3")
 
         # Setup paths for link creation
-        parent_path = os.path.abspath(os.path.join(some_bundle_path, os.pardir))
         source_path = os.path.join(some_bundle_path)
         dest_path = os.path.join(self._dev_bundle_path, "dev")
 
