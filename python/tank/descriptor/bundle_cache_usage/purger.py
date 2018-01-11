@@ -50,14 +50,14 @@ class BundleCacheUsagePurger(object):
     @classmethod
     def _find_app_store_path(cls, base_folder):
         """
-        Searches for the 'app_store' folder starting from teh specified folder
+        Searches for the 'app_store' folder starting from the specified folder
         and return its path.
 
         :param base_folder: A str path to start the search from
         :return: A str path or None
         """
         for (dirpath, dirnames, filenames) in os.walk(base_folder):
-            if dirpath.endswith('app_store'):
+            if dirpath.endswith("app_store"):
                 return dirpath
 
         return None
