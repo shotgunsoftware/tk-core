@@ -12,7 +12,7 @@ from __future__ import with_statement
 import os
 import sgtk
 
-from tank_test.tank_test_base import TankTestBase, SealedMock
+from tank_test.tank_test_base import TankTestSimple, TankTestBase, SealedMock
 from tank_test.tank_test_base import setUpModule # noqa
 from tank.errors import TankError
 from tank.descriptor import (
@@ -26,40 +26,7 @@ from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
 from tank_vendor import yaml
 
 
-class TestConfigDescriptor(TankTestBase):
-
-    def test_legacy_configs(self):
-        """
-        Ensures pipeline configurations created through legacy means have an
-        InstalledConfigDescriptor.
-        """
-        self.assertIsInstance(self.tk.configuration_descriptor, InstalledConfigDescriptor)
-
-    def test_cant_copy_installed_config(self):
-        """
-        Ensures installed pipeline configurations can't be copied.
-        """
-        with self.assertRaisesRegexp(
-            TankDescriptorError,
-            "cannot be copied"
-        ):
-            self.tk.configuration_descriptor.copy("/a/b/c")
-
-    def test_mutability(self):
-        """
-        Ensures the pipeline configuration is mutable.
-        """
-        self.assertEqual(self.tk.configuration_descriptor.is_immutable(), False)
-
-    def test_installed_config_associated_core_descriptor(self):
-        """
-        Ensures the core descriptor for an installed configuration points inside the pipeline
-        configuration.
-        """
-        self.assertDictEqual(
-            self.tk.configuration_descriptor.associated_core_descriptor,
-            {"path": os.path.join(self.pipeline_config_root, "install", "core"), "type": "path"}
-        )
+class TestCachedConfigDescriptor(TankTestSimple):
 
     def test_cached_config_associated_core_descriptor(self):
         """
@@ -113,6 +80,42 @@ class TestConfigDescriptor(TankTestBase):
         self.assertEqual(
             desc.version_constraints["min_core"],
             "v0.18.18"
+        )
+
+
+class TestConfigDescriptor(TankTestBase):
+
+    def test_legacy_configs(self):
+        """
+        Ensures pipeline configurations created through legacy means have an
+        InstalledConfigDescriptor.
+        """
+        self.assertIsInstance(self.tk.configuration_descriptor, InstalledConfigDescriptor)
+
+    def test_cant_copy_installed_config(self):
+        """
+        Ensures installed pipeline configurations can't be copied.
+        """
+        with self.assertRaisesRegexp(
+            TankDescriptorError,
+            "cannot be copied"
+        ):
+            self.tk.configuration_descriptor.copy("/a/b/c")
+
+    def test_mutability(self):
+        """
+        Ensures the pipeline configuration is mutable.
+        """
+        self.assertEqual(self.tk.configuration_descriptor.is_immutable(), False)
+
+    def test_installed_config_associated_core_descriptor(self):
+        """
+        Ensures the core descriptor for an installed configuration points inside the pipeline
+        configuration.
+        """
+        self.assertDictEqual(
+            self.tk.configuration_descriptor.associated_core_descriptor,
+            {"path": os.path.join(self.pipeline_config_root, "install", "core"), "type": "path"}
         )
 
     def test_installed_config_manifest(self):
