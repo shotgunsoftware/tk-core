@@ -207,7 +207,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
         # since an instance already exists.
         bundle_cache_usage_purger = BundleCacheUsagePurger()
         self.assertTrue(
-            bundle_cache_usage_purger.initial_populate_performed,
+            bundle_cache_usage_purger._database.initialized,
             "Was expecting database initial population done."
         )
         self.assertEquals(
@@ -231,7 +231,7 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
         - Call `_bootstrap_sgtk` 
         - Expect almost everything to be deleted beside (tk-shell/v0.5.6)
         - Check database as only 1 bundle left.
-        - Check that all bundles besire tk-shell/v0.5.6 are deleted.
+        - Check that all bundles beside tk-shell/v0.5.6 are deleted.
         """
 
         # Trigger initial bundle creation in database some time ago
@@ -240,6 +240,9 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
             # Make an initial call to setup the database (in the past)
             self._toolkit_mgr._bootstrap_sgtk("test_engine", None)
 
+        # Allow some worker processing time
+        time.sleep(self.WAIT_TIME_SHORT)
+
         # Assert database state
         self.assertTrue(os.path.exists(self._expected_db_path))
 
@@ -247,8 +250,8 @@ class TestBundleCacheUsageBootstraptPurge(TestBundleCacheUsageBase):
         # state and content.
         bundle_cache_usage_purger = BundleCacheUsagePurger()
         self.assertTrue(
-            bundle_cache_usage_purger.initial_populate_performed,
-            "Was expecting database initial population done."
+            bundle_cache_usage_purger._database.initialized,
+            "Was expecting database to be initialized."
         )
         self.assertEquals(
             TestBundleCacheUsageBase.FAKE_TEST_BUNDLE_COUNT,

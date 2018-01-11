@@ -964,18 +964,17 @@ class ToolkitManager(object):
 
         :param progress_callback: Callback function that reports back on the toolkit bootstrap progress.
         """
-
         bundle_cache_purger = BundleCacheUsagePurger()
-        if bundle_cache_purger.initial_populate_performed:
-            if os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE"):
-                log.debug("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE set, bundle auto-purge disabled.")
-            else:
-                self._report_progress(progress_callback, self._PURGING_UNUSED_BUNDLES, "Cleaning up app cache...")
-                bundle_list = bundle_cache_purger.get_unused_bundles(self.TOOLKIT_BUNDLE_CACHE_AUTO_DELETE_TIMEOUT)
-                for bundle in bundle_list:
-                    bundle_cache_purger.purge_bundle(bundle)
+
+        bundle_cache_purger.ensure_database_initialized()
+
+        if os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE"):
+            log.debug("SHOTGUN_BUNDLE_CACHE_USAGE_NO_DELETE set, bundle auto-purge disabled.")
         else:
-            bundle_cache_purger.initial_populate()
+            self._report_progress(progress_callback, self._PURGING_UNUSED_BUNDLES, "Cleaning up app cache...")
+            bundle_list = bundle_cache_purger.get_unused_bundles(self.TOOLKIT_BUNDLE_CACHE_AUTO_DELETE_TIMEOUT)
+            for bundle in bundle_list:
+                bundle_cache_purger.purge_bundle(bundle)
 
     def _bootstrap_sgtk(self, engine_name, entity, progress_callback=None):
         """

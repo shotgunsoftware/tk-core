@@ -23,7 +23,7 @@ class BundleCacheUsagePurger(object):
     """
     Bundle cache usage utility class for discovering existing bundle packages and deleting unused ones.
 
-    .. note:: All execution of this code is occuring in the main foreground thread.
+    .. note:: All execution of this code is occurring in the main foreground thread.
     """
 
     def __init__(self):
@@ -105,31 +105,30 @@ class BundleCacheUsagePurger(object):
     #
     ###################################################################################################################
 
-    @LogManager.log_timing
-    def initial_populate(self):
+    def ensure_database_initialized(self):
         """
-        Performs the initial-one-time search for bundles in the bundle cache and populate
-        the database as unused entries.
-        """
-        try:
-            log.debug("Searching for existing bundles ...")
-            found_bundle_path_list = self._find_app_store_bundles()
-            for bundle_path in found_bundle_path_list:
-                log.debug("Adding bundle '%s' to database" % (bundle_path))
-                self._database.add_unused_bundle(bundle_path)
+        Check that the bundle cache usage tracking database was previously initialized and perform a search
+        for bundles otherwise it just returns.
 
-            log.debug("populating done, found %d entries" % (len(found_bundle_path_list)))
-            self._database.initial_populate_performed = True
+        .. note:: Typically called early in the bootstrapping process.
 
-        except Exception as e:
-            log.error("Unexpected error searching for existing bundles: %s" % (e))
+        """
+        if not self._database.initialized:
+            # Performs a search for bundles in the bundle cache and populate
+            # the database as unused entries. Lastly a special marker is added
+            # to the database recording that this process was performed.
+            try:
+                log.debug("Searching for existing bundles ...")
+                found_bundle_path_list = self._find_app_store_bundles()
+                for bundle_path in found_bundle_path_list:
+                    log.debug("Adding bundle '%s' to database" % (bundle_path))
+                    self._database.add_unused_bundle(bundle_path)
 
-    @property
-    def initial_populate_performed(self):
-        """
-        Returns a boolean true if the initial database population was performed else False
-        """
-        return self._database.initial_populate_performed
+                log.debug("populating done, found %d entries" % (len(found_bundle_path_list)))
+                self._database.initialized = True
+
+            except Exception as e:
+                log.error("Unexpected error searching for existing bundles: %s" % (e))
 
     def get_unused_bundles(self, since_days=60):
         """
@@ -145,12 +144,12 @@ class BundleCacheUsagePurger(object):
             )
         )
 
-        oldest_timestamp = self._database._get_timestamp() - (since_days * 24 * 3600)
-        return self._database.get_unused_bundles(oldest_timestamp)
+        bundle_expired_timestamp = self._database._get_timestamp() - (since_days * 24 * 3600)
+        return self._database.get_unused_bundles(bundle_expired_timestamp)
 
     def purge_bundle(self, bundle):
         """
-        Delete both files and database entry relating to the specified bundle.
+        Delete both entire folder and database entry relating to the specified bundle.
 
         :param bundle: a :class:`~BundleCacheUsageDatabaseEntry` instance
         """

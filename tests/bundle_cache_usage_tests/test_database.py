@@ -70,21 +70,21 @@ class TestBundleCacheUsageWriterBasicOperations(TestBundleCacheUsageBase):
         """ Test special marker usage """
 
         #  Test that special marker doesn't exists after DB creation.
-        self.assertFalse(self.db.initial_populate_performed)
-        self.assertIsNone(self.db.get_bundle(self.db._marker_path))
+        self.assertFalse(self.db.initialized)
+        self.assertIsNone(self.db.get_bundle(self.db._initialized_marker_path))
 
         # Set the marker
-        self.db.initial_populate_performed = True
-        self.assertTrue(self.db.initial_populate_performed)
-        self.assertIsNotNone(self.db.get_bundle(self.db._marker_path))
+        self.db.initialized = True
+        self.assertTrue(self.db.initialized)
+        self.assertIsNotNone(self.db.get_bundle(self.db._initialized_marker_path))
 
         # Check that row count is not affected
         self.assertEquals(self.db.bundle_count, 0)
 
         # Clear the marker
-        self.db.initial_populate_performed = False
-        self.assertFalse(self.db.initial_populate_performed)
-        self.assertIsNone(self.db.get_bundle(self.db._marker_path))
+        self.db.initialized = False
+        self.assertFalse(self.db.initialized)
+        self.assertIsNone(self.db.get_bundle(self.db._initialized_marker_path))
 
     def test_add_unused_bundle(self):
         """

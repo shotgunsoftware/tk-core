@@ -139,20 +139,19 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
         self.assertIsNotNone(bundle_list)
         self.assertEquals(len(bundle_list), 1)
 
-    def helper_test_initial_populate_performed(self, use_mock):
+    def helper_test_ensure_database_initialized(self, use_mock):
         """
-        Test the 'initial_populate_performed' property and possible side effect of
-        relevant added code.
+        Test database intialization through the Purger class.
         """
 
         database = BundleCacheUsageDatabase()
 
         self.assertEquals(0, database.bundle_count)
-        self.assertFalse(self._purger.initial_populate_performed)
+        self.assertFalse(self._purger._database.initialized)
 
         if use_mock:
             with patch("time.time", return_value=self._bundle_creation_time):
-                self._purger.initial_populate()
+                self._purger.ensure_database_initialized()
                 # We need to wait because the above call queues requests to a
                 # worker thread. The requests are executed asynchronously.
                 # If we we're to leave the patch code block soon, the mock
@@ -161,32 +160,29 @@ class TestBundleCacheUsagePurger(TestBundleCacheUsageBase):
                 time.sleep(0.5)
         else:
             os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = str(self._bundle_creation_time)
-            self._purger.initial_populate()
+            self._purger.ensure_database_initialized()
 
             # Disable override
             os.environ["SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE"] = ""
 
         self.assertEquals(self.FAKE_TEST_BUNDLE_COUNT, self._purger._bundle_count)
-        self.assertTrue(self._purger.initial_populate_performed)
+        self.assertTrue(self._purger._database.initialized)
 
         bundle_list = self._purger.get_unused_bundles()
         self.assertEquals(self.FAKE_TEST_BUNDLE_COUNT, len(bundle_list))
 
-    def test_initial_populate_performed(self):
+    def test_ensure_database_initialized(self):
         """
-        Test the 'initial_populate_performed' property and possible side effect of
-        relevant added code.
+        Test database initialization through the Purger class.
         """
-        self.helper_test_initial_populate_performed(use_mock=True)
+        self.helper_test_ensure_database_initialized(use_mock=True)
 
-    def test_initial_populate_performed_with_override(self):
+    def test_ensure_database_initialized_with_override(self):
         """
-        Test the 'initial_populate_performed' property and possible side effect of
-        relevant added code using the dedicated
-        'SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE' env. variable to override
-        logged elements.
+        Test database initialization with the use the override
+        'SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE' environment variable
         """
-        self.helper_test_initial_populate_performed(use_mock=False)
+        self.helper_test_ensure_database_initialized(use_mock=False)
 
 
 class TestBundleCacheUsagePurgerFindBundles(TestBundleCacheUsageBase):
