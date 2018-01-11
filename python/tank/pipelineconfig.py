@@ -31,7 +31,7 @@ from . import template_includes
 from . import LogManager
 
 from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
-from .descriptor.bundle_cache_usage.tracker import BundleCacheUsageTracker
+from .descriptor import init_bundle_cache_usage_tracker
 
 log = LogManager.get_logger(__name__)
 
@@ -67,16 +67,7 @@ class PipelineConfiguration(object):
 
         # Initialize the BundleCacheUsage worker service for use by the
         # `IODescriptorBase.get_path` method.
-        try:
-            # TODO: I was told that someone might be using `PipelineConfig` on it's own.
-            #       Now, with the added code just below the class now requires that the
-            #       bundle cache be present as the 'BundleCacheUsageTracker' will throw an
-            #       OSError exception if the `bundle_cache` folder cannot be found.
-            BundleCacheUsageTracker().start()
-            log.debug("Starting bundle cache usage logger.")
-
-        except OSError as e:
-            log.error(e)
+        init_bundle_cache_usage_tracker()
 
         # validate that the current code version matches or is compatible with
         # the code that is locally stored in this config!!!!

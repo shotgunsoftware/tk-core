@@ -19,8 +19,21 @@ from .database import BundleCacheUsageDatabase as BundleCacheUsageDatabase
 log = LogManager.get_logger(__name__)
 
 
-class BundleCacheUsageTracker(threading.Thread):
+def init_bundle_cache_usage_tracker():
+    """
+    Initialize the bundle cache usage tracker instance and worker thread.
 
+    .. note:: The :class:`~BundleCacheUsageDatabaseEntry` is implemented as a singleton
+    """
+    try:
+        BundleCacheUsageTracker().start()
+        log.debug("Starting bundle cache usage logger.")
+
+    except OSError as e:
+        log.error(e)
+
+
+class BundleCacheUsageTracker(threading.Thread):
     """
     Update bundle cache usage in a simple single table database.
     To minimize performance impact, usage is logged using a
