@@ -137,6 +137,10 @@ class UnitTestTimer(object):
             self.total_time += elapsed
             self.nb_invokes += 1
 
+        @property
+        def average(self):
+            return float(self.total_time) / self.nb_invokes
+
     def __init__(self):
         self._timers = {}
 
@@ -164,10 +168,10 @@ class UnitTestTimer(object):
         print("Test run stats")
         print("==============")
         for name, stat in sorted(self._timers.items(), key=lambda x: -x[1].total_time):
-            print("{0} : {1} ({2} hits)".format(name, stat.total_time, stat.nb_invokes))
+            print("{0} : {1} ({2} hits, {3:.3f} avg)".format(name, stat.total_time, stat.nb_invokes, stat.average))
 
         print(
-            "Time wasted preparing tests: %s" % sum(x.total_time for x in self._timers.values())
+            "Time spent in setUp/tearDown: %s" % sum(x.total_time for x in self._timers.values())
         )
 
 timer = UnitTestTimer()
