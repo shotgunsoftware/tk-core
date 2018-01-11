@@ -9,14 +9,14 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import copy
+import os
 import sys
 import time
-
 
 import unittest2
 import tank
 from tank import TankError
-from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
+from tank_test.tank_test_base import TankTestBase, TankTestSimple, setUpModule # noqa
 from tank.template import Template, TemplatePath, TemplateString
 from tank.template import make_template_paths, make_template_strings
 from tank.templatekey import (TemplateKey, StringKey, IntegerKey, SequenceKey, TimestampKey)
@@ -254,11 +254,18 @@ class TestSplitPath(unittest2.TestCase):
         self.assertEquals(expected, result)
 
 
-class TestMakeTemplatePaths(TankTestBase):
+class TestMakeTemplatePaths(TankTestSimple):
     def setUp(self):
         super(TestMakeTemplatePaths, self).setUp()
         self.keys = {"Shot": StringKey("Shot")}
-        self.multi_os_data_roots = self.pipeline_configuration.get_all_platform_data_roots()
+        #self.multi_os_data_roots = self.pipeline_configuration.get_all_platform_data_roots()
+        self.multi_os_data_roots = {
+            "unit_tests": {
+                "win32": os.path.join(self.tank_temp, "project_code"),
+                "linux2": os.path.join(self.tank_temp, "project_code"),
+                "darwin": os.path.join(self.tank_temp, "project_code")
+            }
+        }
 
     def test_simple(self):
         data = {"template_name": "something/{Shot}"}
@@ -332,7 +339,7 @@ class TestMakeTemplatePaths(TankTestBase):
         self.assertEquals(modified_roots["alternate_1"][sys.platform], alt_templatte.root_path)
 
 
-class TestMakeTemplateStrings(TankTestBase):
+class TestMakeTemplateStrings(TankTestSimple):
     def setUp(self):
         super(TestMakeTemplateStrings, self).setUp()
         self.keys = {"Shot": StringKey("Shot")}

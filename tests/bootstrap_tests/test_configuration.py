@@ -88,7 +88,7 @@ class TestInvalidInstalledConfiguration(TankTestBase):
         # note: this is using the classic config that is part of the
         #       std test fixtures.
         config = self._resolver.resolve_shotgun_configuration(
-            self.tk.pipeline_configuration.get_shotgun_id(),
+            self.sg_pc_entity["id"],
             "sgtk:descriptor:not?a=descriptor",
             self.mockgun,
             "john.smith"
