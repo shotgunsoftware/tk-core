@@ -122,6 +122,12 @@ def do_localize(log, sg_connection, target_config_path, suppress_prompts):
         core_descriptor.ensure_local()
         source_core_path = core_descriptor.get_path()
         source_core_version = core_descriptor.get_version()
+
+        log.info(
+            "Core descriptor %s, specified in core/core_api.yml, "
+            "will be installed." % (core_descriptor.get_uri())
+        )
+
     else:
         # fall back to using the core that exists in the source config
         source_core_path = os.path.join(
@@ -134,11 +140,11 @@ def do_localize(log, sg_connection, target_config_path, suppress_prompts):
         source_core_version = \
             target_pipeline_config.get_associated_core_version()
 
-    log.info(
-        "This will copy the Core API in %s \n"
-        "into the Pipeline configuration %s." %
-        (source_core_path, target_config_path)
-    )
+        log.info(
+            "This will copy the Core API in %s \n"
+            "into the Pipeline configuration %s." %
+            (source_core_path, target_config_path)
+        )
 
     log.info("")
     if not suppress_prompts:

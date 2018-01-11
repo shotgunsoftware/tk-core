@@ -105,7 +105,7 @@ class TestSetupProjectWithSpecificCore(TankTestBase):
         TankTestBase.setUp(
             self,
             # Use a custom primary root name
-            parameters={"primary_root_name": "setup_project_root"}
+            parameters={"primary_root_name": "test_setup_project_with_core"}
         )
         self.setup_fixtures("app_store_tests")
 
@@ -114,7 +114,7 @@ class TestSetupProjectWithSpecificCore(TankTestBase):
         self.addCleanup(patcher.stop)
         self.second_project = {
             "type": "Project",
-            "id": 7777,
+            "id": 6666,
             "code": "another_project",
         }
         self.add_to_sg_mock_db(self.second_project)
@@ -135,8 +135,23 @@ class TestSetupProjectWithSpecificCore(TankTestBase):
         self._mock_store.add_framework("tk-framework-test", "v1.0.0")
         self._mock_store.add_framework("tk-framework-2nd-level-dep", "v1.0.0")
 
+        # the std fixtures do not have a full core installation so ensure
+        # that we mock one that localize can pick up
+        self._fake_core_install = os.path.join(self.tank_temp, "fake_core_install")
+        os.makedirs(os.path.join(self._fake_core_install, "install"))
+        os.makedirs(os.path.join(self._fake_core_install, "install", "core"))
+        os.makedirs(os.path.join(self._fake_core_install, "install", "core", "bad_path"))
+        os.makedirs(os.path.join(self._fake_core_install, "config"))
+        cfg_core = os.path.join(self._fake_core_install, "config", "core")
+        os.makedirs(cfg_core)
+        self.create_file(os.path.join(cfg_core, "shotgun.yml"), "{host: http://unit_test_mock_sg}")
+        self.create_file(os.path.join(cfg_core, "interpreter_Darwin.cfg"), "")
+        self.create_file(os.path.join(cfg_core, "interpreter_Linux.cfg"), "")
+        self.create_file(os.path.join(cfg_core, "interpreter_Windows.cfg"), "")
+
+    @patch("tank.pipelineconfig.PipelineConfiguration.get_install_location")
     @patch("tank.pipelineconfig_utils.resolve_all_os_paths_to_core")
-    def test_setup_project(self, mocked=None):
+    def test_setup_project(self, resolve_all_os_paths_to_core_mock, get_install_location_mock):
         """
         Test setting up a Project.
         """
@@ -149,13 +164,20 @@ class TestSetupProjectWithSpecificCore(TankTestBase):
                 "win32": core_path,
             }
 
-        mocked.side_effect = mocked_resolve_core_path
+        resolve_all_os_paths_to_core_mock.side_effect = mocked_resolve_core_path
+
+        def mocked_get_install_location():
+            return self._fake_core_install
+
+        get_install_location_mock.side_effect = mocked_get_install_location
+
         command = self.tk.get_command("setup_project")
         command.set_logger(logging.getLogger("/dev/null"))
+
         # Test we can setup a new project and it does not fail.
         command.execute({
             "project_id": self.second_project["id"],
-            "project_folder_name": "test_setup_project",
+            "project_folder_name": "test_setup_project_with_core",
             "config_uri": self.project_config,
             "config_path_mac": new_config_root if sys.platform == "darwin" else None,
             "config_path_win": new_config_root if sys.platform == "win32" else None,
@@ -163,6 +185,11 @@ class TestSetupProjectWithSpecificCore(TankTestBase):
         })
 
         new_pc = tank.pipelineconfig_factory.from_path(new_config_root)
+
         # Check we get back our custom primary root name
-        self.assertEqual(new_pc.get_data_roots().keys(), ["setup_project_root"])
-        # todo: assert version of core.
+        self.assertEqual(new_pc.get_data_roots().keys(), ["test_setup_project_with_core"])
+
+        # the 'fake' core that we mocked earlier has a 'bad_path' folder
+        self.assertFalse(os.path.exists(os.path.join(new_config_root, "install", "core", "bad_path")))
+        # instead we expect a full installl
+        self.assertTrue(os.path.exists(os.path.join(new_config_root, "install", "core", "python", "tank", "errors.py")))
