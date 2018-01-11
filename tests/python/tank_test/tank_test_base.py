@@ -713,10 +713,10 @@ class TankTestBase(TankTestCore):
         if self.do_io:
             self.create_file(localize_token_file, "foo bar")
 
-        self._roots = {self.primary_root_name: {}}
+        roots = {self.primary_root_name: {}}
         for os_name in ["windows_path", "linux_path", "mac_path"]:
             # TODO make os specific roots
-            self._roots[self.primary_root_name][os_name] = self.tank_temp
+            roots[self.primary_root_name][os_name] = self.tank_temp
 
         if self.do_io:
             roots_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")
