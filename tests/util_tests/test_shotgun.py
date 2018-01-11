@@ -21,7 +21,7 @@ from mock import patch, call
 
 import tank
 from tank import context, errors
-from tank_test.tank_test_base import TankTestBase, setUpModule
+from tank_test.tank_test_base import TankTestBase, TankTestSimple, setUpModule
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
 from tank.authentication.user import ShotgunUser
@@ -39,10 +39,7 @@ class TestShotgunFindPublish(TankTestBase):
         then queried to see what paths the code attempted to create.
         """
         super(TestShotgunFindPublish, self).setUp()
-        
-        #self.setup_fixtures()
-        self.setup_multi_root_fixtures()
-        
+
         project_name = os.path.basename(self.project_root)
         # older publish to test we get the latest
         self.pub_1 = {"type": "PublishedFile",
@@ -74,16 +71,8 @@ class TestShotgunFindPublish(TankTestBase):
                     "path_cache": "%s/foo/seq_%%03d.ext" % project_name,
                     "created_at": datetime.datetime(2012, 10, 13, 12, 2),
                     "path_cache_storage": self.primary_storage}
-
-        self.pub_5 = {"type": "PublishedFile",
-                    "id": 5,
-                    "code": "other storage",
-                    "path_cache": "%s/foo/bar" % project_name,
-                    "created_at": datetime.datetime(2012, 10, 12, 12, 1),
-                    "path_cache_storage": self.alt_storage_1}
-
         # Add these to mocked shotgun
-        self.add_to_sg_mock_db([self.pub_1, self.pub_2, self.pub_3, self.pub_4, self.pub_5])
+        self.add_to_sg_mock_db([self.pub_1, self.pub_2, self.pub_3, self.pub_4])
 
     def test_find(self):        
         paths = [os.path.join(self.project_root, "foo", "bar")]
@@ -136,19 +125,6 @@ class TestShotgunFindPublish(TankTestBase):
         sg_data = d.get(paths[0])
         self.assertEqual(sg_data["id"], self.pub_4["id"])
 
-    def test_multi_root(self):        
-        paths = [os.path.join(self.alt_root_1, "foo", "bar")]
-        d = tank.util.find_publish(self.tk, paths)
-        self.assertEqual(len(d), 1)
-        self.assertEqual(d.keys(), paths)
-        
-        # make sure we got the latest matching publish
-        sg_data = d.get(paths[0])        
-        self.assertEqual(sg_data["id"], self.pub_5["id"])
-        
-        # make sure we are only getting the ID back.
-        self.assertEqual(sg_data.keys(), ["type", "id"])
-        
     def test_ignore_missing(self):  
         """
         If a storage is not registered in shotgun, the path is ignored
@@ -217,16 +193,46 @@ class TestShotgunFindPublish(TankTestBase):
             ),
         )
 
-class TestShotgunDownloadUrl(TankTestBase):
+
+class TestMultiRoot(TankTestBase):
+
+    def test_multi_root(self):
+
+        self.setup_multi_root_fixtures()
+
+        project_name = os.path.basename(self.project_root)
+
+        self.pub_5 = {"type": "PublishedFile",
+                      "id": 5,
+                      "code": "other storage",
+                      "path_cache": "%s/foo/bar" % project_name,
+                      "created_at": datetime.datetime(2012, 10, 12, 12, 1),
+                      "path_cache_storage": self.alt_storage_1}
+
+        # Add these to mocked shotgun
+        self.add_to_sg_mock_db([self.pub_5])
+
+        paths = [os.path.join(self.alt_root_1, "foo", "bar")]
+        d = tank.util.find_publish(self.tk, paths)
+        self.assertEqual(len(d), 1)
+        self.assertEqual(d.keys(), paths)
+
+        # make sure we got the latest matching publish
+        sg_data = d.get(paths[0])
+        self.assertEqual(sg_data["id"], self.pub_5["id"])
+
+        # make sure we are only getting the ID back.
+        self.assertEqual(sg_data.keys(), ["type", "id"])
+
+
+class TestShotgunDownloadUrl(TankTestSimple):
 
     def setUp(self):
         super(TestShotgunDownloadUrl, self).setUp()
 
-        self.setup_fixtures()
-
         # Identify the source file to "download"
         self.download_source = os.path.join(
-            self.pipeline_config_root, "config", "hooks", "toolkitty.png"
+            self.fixtures_root, "config", "hooks", "toolkitty.png"
         )
 
         # Construct a URL from the source file name
@@ -236,7 +242,7 @@ class TestShotgunDownloadUrl(TankTestBase):
 
         # Temporary destination to "download" source file to.
         self.download_destination = os.path.join(
-            self.pipeline_config_root, "config", "foo",
+            self.tank_temp, self.id(), "config", "foo",
             "test_shotgun_download_url.png"
         )
         os.makedirs(os.path.dirname(self.download_destination))
@@ -295,7 +301,7 @@ class TestShotgunDownloadUrl(TankTestBase):
         self.assertEqual(self.download_destination, full_path)
 
 
-class TestShotgunUtils(TankTestBase):
+class TestShotgunUtils(unittest.TestCase):
     """
     Test various Shotgun utilities and helpers
     """
