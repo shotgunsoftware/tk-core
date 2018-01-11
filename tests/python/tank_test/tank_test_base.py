@@ -127,6 +127,16 @@ class UnitTestTimer(object):
     Tracks the time spent in various functions.
     """
 
+    class Stat(object):
+
+        def __init__(self):
+            self.total_time = 0
+            self.nb_invokes = 0
+
+        def add_time(self, elapsed):
+            self.total_time += elapsed
+            self.nb_invokes += 1
+
     def __init__(self):
         self._timers = {}
 
@@ -141,7 +151,7 @@ class UnitTestTimer(object):
                     return func(*args, **kwargs)
                 finally:
                     elapsed = time.time() - before
-                    self._timers[name] = self._timers.get(name, 0) + elapsed
+                    self._timers.setdefault(name, UnitTestTimer.Stat()).add_time(elapsed)
             return wrapper
 
         return decorator
@@ -153,11 +163,11 @@ class UnitTestTimer(object):
         print()
         print("Test run stats")
         print("==============")
-        for name, value in self._timers.items():
-            print("{0} : {1}".format(name, value))
+        for name, stat in sorted(self._timers.items(), key=lambda x: -x[1].total_time):
+            print("{0} : {1} ({2} hits)".format(name, stat.total_time, stat.nb_invokes))
 
         print(
-            "Time spent inside TankTestBase: %s" % sum(self._timers.values())
+            "Time wasted preparing tests: %s" % sum(x.total_time for x in self._timers.values())
         )
 
 timer = UnitTestTimer()
@@ -827,6 +837,15 @@ class TankTestBase(TankTestCore):
                                                             and don't want to load templates into the tk
                                                             instance just yet.
         """
+        # setup_multi_root_fixtures invokes setup_fixtures, which inflates our timing statistics.
+        # So we'll have the actual implementation of setup_fixtures in a private method
+        # which will be invoked by both setup_fixtures and setup_multi_root_fixtures.
+        self._setup_fixtures(name, parameters)
+
+    def _setup_fixtures(self, name="config", parameters=None):
+        """
+        See doc for setup fixtures.
+        """
 
         parameters = parameters or {}
 
@@ -877,7 +896,7 @@ class TankTestBase(TankTestCore):
 
             self.add_to_sg_mock_db(self.primary_storage)
 
-        self.setup_fixtures(parameters={"core": "core.override/multi_root_core",
+        self._setup_fixtures(parameters={"core": "core.override/multi_root_core",
                                         "skip_template_reload": True})
 
         # Add multiple project roots
