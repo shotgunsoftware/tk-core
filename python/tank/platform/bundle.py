@@ -18,6 +18,7 @@ import re
 import sys
 import imp
 import uuid
+import datetime
 
 from .. import hook
 from ..util.metrics import EventMetric
@@ -26,6 +27,7 @@ from ..errors import TankError, TankNoDefaultValueError
 from .errors import TankContextChangeNotSupportedError
 from . import constants
 from .import_stack import ImportStack
+from ..util import filesystem
 
 core_logger = LogManager.get_logger(__name__)
 
@@ -740,6 +742,61 @@ class TankBundle(object):
             self.__tk.execute_core_hook("ensure_folder_exists", path=path, bundle_obj=self)
         except Exception as e:
             raise TankError("Error creating folder %s: %s" % (path, e))
+
+    def remove_old_cached_data(self, grace_period=7):
+        """
+        Remove data old files cached by this bundle.
+
+        A file is considered old if it was not modified in the last number of days
+        specified by the `grace_period` value.
+
+        If a negative grace_period is given all cached data is removed.
+        Resulting empty directories are removed as the clean up is done.
+
+        :param int grace_period: The number of days files without any modification
+                                 should be kept around before being deleted.
+        """
+        now = datetime.datetime.now()
+        grace_period_delta = datetime.timedelta(days=grace_period)
+        for cache_location in [self.site_cache_location, self.cache_location]:
+            # Go bottom up in the hierarchy and delete old files
+            for folder, dirs, files in os.walk(cache_location, topdown=False):
+                for name in files:
+                    file_path = os.path.join(folder, name)
+                    try:
+                        file_stats = os.stat(file_path)
+                        # Convert the timestamp to a datetime
+                        last_modif_time = datetime.datetime.fromtimestamp(int(file_stats.st_mtime))
+                        # Is it old enough to be removed?
+                        if now - last_modif_time > grace_period_delta:
+                            filesystem.safe_delete_file(file_path)
+                    except Exception as e:
+                        # Log the error for debug purpose
+                        self.logger.debug(
+                            "Warning: couldn't check %s for removal: %s" % (
+                            file_path, e
+                            ),
+                            exc_info=True,
+                        )
+                        # And ignore it
+                        pass
+
+                for name in dirs:
+                    # Try to remove empty directories
+                    dir_path = os.path.join(folder, name)
+                    try:
+                        if not os.listdir(dir_path):
+                            filesystem.safe_delete_folder(dir_path)
+                    except Exception as e:
+                        # Log the error for debug purpose
+                        self.logger.debug(
+                            "Warning: couldn't check %s for removal: %s" % (
+                                dir_path, e
+                            ),
+                            exc_info=True,
+                        )
+                        # And ignore it
+                        pass
 
     def get_metrics_properties(self):
         """

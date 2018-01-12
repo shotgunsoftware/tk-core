@@ -618,3 +618,17 @@ class TestBundleDataCache(TestApplication):
                     os.path.sep, os.path.sep, name,
                 ))
             )
+
+    def test_cleaning_cached_data(self):
+        app = self.engine.apps["test_app"]
+        # Create dummy cached data
+        cache_folder = app.site_cache_location
+        os.mkdir(os.path.join(cache_folder, "test"))
+        self.create_file(os.path.join(cache_folder, "foo.txt"))
+        self.create_file(os.path.join(cache_folder, "blah.txt"))
+        self.create_file(os.path.join(cache_folder, "test", "foo.txt"))
+        self.create_file(os.path.join(cache_folder, "test", "blah.txt"))
+        app.remove_old_cached_data(-1)
+        # Test frameworks
+        for name, fw in app.frameworks.iteritems():
+            fw.remove_old_cached_data(-1)
