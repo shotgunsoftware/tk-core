@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Console based authentication. This module implements UX and prompting for a 
+Console based authentication. This module implements UX and prompting for a
 workflow where the user gets prompted via stdin/stdout.
 
 --------------------------------------------------------------------------------
@@ -18,14 +18,14 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
-
 from __future__ import print_function
 
 from . import session_cache
 from .. import LogManager
-from .errors import AuthenticationError, AuthenticationCancelled
+from .errors import AuthenticationError, AuthenticationCancelled, ConsoleLoginWithSSONotSupportedError
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
 from ..util.shotgun.connection import sanitize_url
+from .shotgun_shared import is_sso_enabled_on_site
 
 from getpass import getpass
 
@@ -47,7 +47,7 @@ class ConsoleAuthenticationHandlerBase(object):
         :param hostname: Host to renew a token for.
         :param login: User to renew a token for.
         :param http_proxy: Proxy to use for the request. Can be None.
-        :returns: The (hostname, login, session token) tuple.
+        :returns: The (hostname, login, session_token, session_metadata) tuple.
         :raises AuthenticationCancelled: If the user aborts the login process, this exception
                                          is raised.
 
@@ -67,7 +67,7 @@ class ConsoleAuthenticationHandlerBase(object):
                     # Try to generate a session token and return the user info.
                     return hostname, login, session_cache.generate_session_token(
                         hostname, login, password, http_proxy
-                    )
+                    ), None
                 except MissingTwoFactorAuthenticationFault:
                     # session_token was None, we need 2fa.
                     code = self._get_2fa_code()
@@ -75,7 +75,7 @@ class ConsoleAuthenticationHandlerBase(object):
                     # the code is invalid or already used, it will be caught by the except clause beneath.
                     return hostname, login, session_cache.generate_session_token(
                         hostname, login, password, http_proxy, auth_token=code
-                    )
+                    ), None
             except AuthenticationError:
                 # If any combination of credentials are invalid (user + invalid pass or
                 # user + valid pass + invalid 2da code) we'll end up here.
@@ -162,6 +162,10 @@ class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
         :returns: The (hostname, login, plain text password) tuple.
         """
         print("%s, your current session has expired." % login)
+
+        if is_sso_enabled_on_site(hostname):
+            raise ConsoleLoginWithSSONotSupportedError(hostname)
+
         print("Please enter your password to renew your session for %s" % hostname)
         return hostname, login, self._get_password()
 
@@ -188,10 +192,16 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
         :returns: A tuple of (login, password) strings.
         """
         if self._fixed_host:
+            if is_sso_enabled_on_site(hostname):
+                raise ConsoleLoginWithSSONotSupportedError(hostname)
             print("Please enter your login credentials for %s" % hostname)
+
         else:
             print("Please enter your login credentials.")
             hostname = self._get_keyboard_input("Host", hostname)
+            if is_sso_enabled_on_site(hostname):
+                raise ConsoleLoginWithSSONotSupportedError(hostname)
+
         login = self._get_keyboard_input("Login", login)
         password = self._get_password()
         return sanitize_url(hostname), login, password

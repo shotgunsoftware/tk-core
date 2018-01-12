@@ -134,6 +134,17 @@ class TestApi(TankTestBase):
         )
         self.assertEqual(d.get_uri(), "sgtk:descriptor:app_store?name=tk-testbundlefactory&version=v0.2.3")
 
+        # test opting out of the local fallback
+        with self.assertRaisesRegexp(tank.descriptor.TankDescriptorError, "Could not get latest version of"):
+            sgtk.descriptor.create_descriptor(
+                self.tk.shotgun,
+                sgtk.descriptor.Descriptor.CONFIG,
+                {"type": "app_store", "name": "tk-testbundlefactory"},
+                resolve_latest=True,
+                local_fallback_when_disconnected=False
+            )
+
+
     def test_alt_cache_root(self):
         """
         Testing descriptor constructor in alternative cache location

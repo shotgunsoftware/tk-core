@@ -17,6 +17,7 @@ import shutil
 import logging
 import tempfile
 import mock
+import inspect
 
 from tank_test.tank_test_base import *
 import tank
@@ -309,6 +310,29 @@ class TestExecuteHook(TestApplication):
         self.assertEquals(instance_1.second_method(another_dummy_param=True), True)
         instance_2 = app.create_hook_instance(hook_expression)
         self.assertNotEquals(instance_1, instance_2)
+
+        # ensure if no base_class arg supplied we have Hook as the base class
+        base_classes = inspect.getmro(instance_2.__class__)
+        self.assertEquals(base_classes[-2], tank.Hook)
+        self.assertEquals(base_classes[-1], object)
+
+        # class to inject as a custom base class
+        class Foobar(tank.Hook):
+            pass
+
+        # this hook has to be new style hook using `sgtk.get_hook_baseclass`
+        test_hook_expression = "{config}/more_hooks/config_test_hook.py"
+
+        # create an instance with an in injected base class
+        instance_3 = app.create_hook_instance(test_hook_expression, base_class=Foobar)
+
+        # get the resolution order of the base classes
+        base_classes = inspect.getmro(instance_3.__class__)
+
+        # ensure the last 3 classes in the order are Foobar, Hook, object
+        self.assertEquals(base_classes[-3], Foobar)
+        self.assertEquals(base_classes[-2], tank.Hook)
+        self.assertEquals(base_classes[-1], object)
 
     def test_parent(self):
         """

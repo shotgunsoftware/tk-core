@@ -609,16 +609,28 @@ class SetupProjectWizard(object):
         # and finally carry out the setup
         run_project_setup(self._log, self._sg, self._params)
 
-        # check if we should run the localization afterwards
-        # note - when running via the wizard, toolkit script credentials are stripped
-        # out as the core is copied across as part of a localization if the site we are configuring
-        # supports the authentication module, ie, Shotgun 6.0.2 and greater.
-        #
-        # this is primarily targeting the Shotgun desktop, meaning that even if the 
-        # shotgun desktop's site configuration contains script credentials, these are
-        # not propagated into newly created toolkit projects.
-        #
-        if core_settings["localize"]:
-            core_localize.do_localize(self._log, 
-                                      self._params.get_configuration_location(sys.platform), 
-                                      suppress_prompts=True)
+        # ---- check if we should run the localization afterwards
+
+        # note - when running via the wizard, toolkit script credentials are
+        # stripped out as the core is copied across as part of a localization if
+        # the site we are configuring supports the authentication module, ie,
+        # Shotgun 6.0.2 and greater.
+
+        # this is primarily targeting the Shotgun desktop, meaning that even if
+        # the shotgun desktop's site configuration contains script credentials,
+        # these are not propagated into newly created toolkit projects.
+
+        config_path = self._params.get_configuration_location(sys.platform)
+
+        # if the new project's config has a core descriptor, then we should
+        # localize it to use that version of core. alternatively, if the current
+        # core being used is localized (as returned via `get_core_settings`),
+        # then localize the new core with it.
+        if (pipelineconfig_utils.has_core_descriptor(config_path) or
+            core_settings["localize"]):
+            core_localize.do_localize(
+                self._log,
+                self._sg,
+                config_path,
+                suppress_prompts=True
+            )

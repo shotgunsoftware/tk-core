@@ -460,14 +460,26 @@ class ConfigurationResolver(object):
             )
 
         else:
+
             # If we have neither a uri, nor a path, raise exception
             # to indicate that config is not valid.
-            if is_classic_config:
+            if plugin_ids is None and (sg_descriptor_uri or sg_uploaded_config):
+                # there is an uploaded config or descriptor specified but
+                # plugin_ids has not been set. This is a common thing
+                # to forget so it's important to provide a clear error message
+                msg = ("Pipeline Configuration %s does not have a "
+                       "plugin_ids pattern specified." % shotgun_pc_data["id"])
+
+            elif is_classic_config:
+                # plugin_ids is None and no descriptor/uploaded config field set.
+                # assume this is a classic config
                 msg = ("Pipeline Configuration %s does not have "
                        "a path field specified." % shotgun_pc_data["id"])
+
             else:
+                # plugin ids is set but nothing else.
                 msg = ("Pipeline Configuration %s does not have "
-                       "a path, uri or upload field specified." % shotgun_pc_data["id"])
+                       "a descriptor uri or uploaded config specified." % shotgun_pc_data["id"])
 
             raise TankBootstrapInvalidPipelineConfigurationError(msg)
 

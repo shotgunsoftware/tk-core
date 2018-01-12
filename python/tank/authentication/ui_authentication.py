@@ -17,13 +17,23 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
-import logging
 
-from .errors import AuthenticationCancelled
+from .errors import AuthenticationCancelled, ShotgunAuthenticationError
 from . import invoker
 from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
+
+
+# When importing qt_abstraction, a lot of code is executed to detects which
+# version of Qt is being used. Running business logic at import time is not
+# something usually done by the Toolkit. The worry is that the import may fail
+# in the context of a DCC, but occur too early for the Toolkit logging to be
+# fully in place to record it.
+try:
+    from .login_dialog import LoginDialog
+except Exception:
+    LoginDialog = None
 
 
 class UiAuthenticationHandler(object):
@@ -32,14 +42,17 @@ class UiAuthenticationHandler(object):
     directly and be used through the authenticate and renew_session methods.
     """
 
-    def __init__(self, is_session_renewal, fixed_host=False):
+    def __init__(self, is_session_renewal, fixed_host=False, session_metadata=None):
         """
         Creates the UiAuthenticationHandler object.
         :param is_session_renewal: Boolean indicating if we are renewing a session. True if we are, False otherwise.
+        :param fixed_host: Indicate if the user can select a different host for connecting to.
+        :param session_metadata: Data required when SSO is used. This is an obscure blob of data.
         """
         self._is_session_renewal = is_session_renewal
         self._gui_launcher = invoker.create()
         self._fixed_host = fixed_host
+        self._session_metadata = session_metadata
 
     def authenticate(self, hostname, login, http_proxy):
         """
@@ -50,22 +63,24 @@ class UiAuthenticationHandler(object):
         :param http_proxy: Proxy server to use when validating credentials. Can be None.
         :returns: A tuple of (hostname, login, session_token)
         """
-        
-        # deferred import because the login dialog contains QT references.
-        from . import login_dialog
 
         if self._is_session_renewal:
             logger.debug("Requesting password in a dialog.")
         else:
             logger.debug("Requesting username and password in a dialog.")
 
+        if LoginDialog is None:
+            logger.error("Unexpected state. LoginDialog should be available.")
+            raise ShotgunAuthenticationError("Could not instantiated login dialog.")
+
         def _process_ui():
-            dlg = login_dialog.LoginDialog(
+            dlg = LoginDialog(
                 is_session_renewal=self._is_session_renewal,
                 hostname=hostname,
                 login=login,
                 http_proxy=http_proxy,
-                fixed_host=self._fixed_host
+                fixed_host=self._fixed_host,
+                session_metadata=self._session_metadata
             )
             return dlg.result()
 

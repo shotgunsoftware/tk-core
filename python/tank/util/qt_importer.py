@@ -59,6 +59,20 @@ class QtImporter(object):
         return self._modules["QtGui"] if self._modules else None
 
     @property
+    def QtWebKit(self):
+        """
+        :returns: QtWebKit module, if available.
+        """
+        return self._modules["QtWebKit"] if self._modules else None
+
+    @property
+    def QtNetwork(self):
+        """
+        :returns: QtNetwork module, if available.
+        """
+        return self._modules["QtNetwork"] if self._modules else None
+
+    @property
     def binding(self):
         """
         :returns: The PySide* or PyQt* root module.
@@ -107,6 +121,21 @@ class QtImporter(object):
     def qt_version_tuple(self):
         return self._qt_version_tuple
 
+    def _import_module_by_name(self, parent_module_name, module_name):
+        """
+        Import a module by its string name.
+
+        :returns: The module loaded, or None if it could not be loaded.
+        """
+        module = None
+        try:
+            module = __import__(parent_module_name, globals(), locals(), [module_name])
+            module = getattr(module, module_name)
+        except Exception as e:
+            logger.debug("Unable to import module '%s': %s", module_name, e)
+            pass
+        return module
+
     def _import_pyside(self):
         """
         Imports PySide.
@@ -114,6 +143,9 @@ class QtImporter(object):
         :returns: The (binding name, binding version, modules) tuple.
         """
         from PySide import QtCore, QtGui
+
+        QtNetwork = self._import_module_by_name("PySide", "QtNetwork")
+        QtWebKit = self._import_module_by_name("PySide", "QtWebKit")
 
         import PySide
         # Some old versions of PySide don't include version information
@@ -130,7 +162,9 @@ class QtImporter(object):
         # PySide stick a \n at the end of the __name__ for some reason. Strip it!
         return PySide.__name__.strip(), PySide.__version__, PySide, {
             "QtCore": QtCore,
-            "QtGui": QtGui
+            "QtGui": QtGui,
+            "QtNetwork": QtNetwork,
+            "QtWebKit": QtWebKit,
         }, self._to_version_tuple(QtCore.qVersion())
 
     def _import_pyside2(self):
@@ -197,9 +231,14 @@ class QtImporter(object):
         from .pyside2_patcher import PySide2Patcher
 
         QtCore, QtGui = PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
+        QtNetwork = self._import_module_by_name("PySide2", "QtNetwork")
+        QtWebKit = self._import_module_by_name("PySide2.QtWebKitWidgets", "QtWebKit")
+
         return "PySide2", PySide2.__version__, PySide2, {
             "QtCore": QtCore,
-            "QtGui": QtGui
+            "QtGui": QtGui,
+            "QtNetwork": QtNetwork,
+            "QtWebKit": QtWebKit,
         }, self._to_version_tuple(QtCore.qVersion())
 
     def _import_pyqt4(self):
@@ -215,6 +254,9 @@ class QtImporter(object):
         QtCore.Slot = QtCore.pyqtSlot
         QtCore.Property = QtCore.pyqtProperty
 
+        QtNetwork = self._import_module_by_name("PyQt4", "QtNetwork")
+        QtWebKit = self._import_module_by_name("PyQt4", "QtWebKit")
+
         # Note: Do not remove this. It was briefly introduced so that engines
         # could introspec the wrapper for all sorts of things, but we've moving
         # away from modifying the modules themselves, so keep this is for now and
@@ -224,7 +266,9 @@ class QtImporter(object):
 
         return "PyQt4", PyQt4.__version__, PyQt4, {
             "QtCore": QtCore,
-            "QtGui": QtGui
+            "QtGui": QtGui,
+            "QtNetwork": QtNetwork,
+            "QtWebKit": QtWebKit,
         }, self._to_version_tuple(QtCore.QT_VERSION_STR)
 
     def _to_version_tuple(self, version_str):
@@ -262,7 +306,7 @@ class QtImporter(object):
                 pass
         elif interface_version_requested == self.QT5:
             try:
-                pyside2 =  self._import_pyside2()
+                pyside2 = self._import_pyside2()
                 logger.debug("Imported PySide2.")
                 return pyside2
             except ImportError:

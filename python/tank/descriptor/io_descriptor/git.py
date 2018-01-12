@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
+import sys
 import uuid
 import shutil
 import tempfile
@@ -115,7 +116,10 @@ class IODescriptorGit(IODescriptorDownloadable):
         # Note that we use os.system here to allow for git to pop up (in a terminal
         # if necessary) authentication prompting. This DOES NOT seem to be possible
         # with subprocess.
+        log.debug("Executing command '%s' using os.system()" % cmd)
+        log.debug("Note: in a terminal environment, this may prompt for authentication")
         status = os.system(cmd)
+        log.debug("Command returned exit code %s" % status)
         if status != 0:
             raise TankGitError(
                 "Error executing git operation. The git command '%s' "
@@ -124,16 +128,33 @@ class IODescriptorGit(IODescriptorDownloadable):
         log.debug("Git clone into '%s' successful." % target_path)
 
         # clone worked ok! Now execute git commands on this repo
-        cwd = os.getcwd()
+
         output = None
+
+        # note: for windows, we use git -C to point git to the right current
+        # working directory. This requires git 1.9+. This is to ensure that
+        # the solution handles UNC paths, which do not support os.getcwd() operations.
+        #
+        # for other platforms, we omit -C to ensure compatibility with older versions
+        # of git. Centos 7 still ships with 1.8.
+
+        cwd = os.getcwd()
         try:
-            log.debug("Setting cwd to '%s'" % target_path)
-            os.chdir(target_path)
+            if sys.platform != "win32":
+                log.debug("Setting cwd to '%s'" % target_path)
+                os.chdir(target_path)
+
             for command in commands:
 
-                full_command = "git %s" % command
-                log.debug("Executing '%s'" % full_command)
+                if sys.platform == "win32":
+                    # we use git -C to specify the working directory where to execute the command
+                    # this option was added in as part of git 1.9
+                    # and solves an issue with UNC paths on windows.
+                    full_command = "git -C \"%s\" %s" % (target_path, command)
+                else:
+                    full_command = "git %s" % command
 
+                log.debug("Executing '%s'" % full_command)
                 try:
                     output = subprocess_check_output(
                         full_command,
@@ -148,10 +169,10 @@ class IODescriptorGit(IODescriptorDownloadable):
                         "Error executing git operation '%s': %s (Return code %s)" % (full_command, e.output, e.returncode)
                     )
                 log.debug("Execution successful. stderr/stdout: '%s'" % output)
-
         finally:
-            log.debug("Restoring cwd (to '%s')" % cwd)
-            os.chdir(cwd)
+            if sys.platform != "win32":
+                log.debug("Restoring cwd (to '%s')" % cwd)
+                os.chdir(cwd)
 
         # return the last returned stdout/stderr
         return output
