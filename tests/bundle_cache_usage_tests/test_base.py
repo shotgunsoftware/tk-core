@@ -138,9 +138,7 @@ class TestBundleCacheUsageBase(TankTestBase):
 
         BundleCacheUsageTracker.delete_instance()
         self.delete_db()
-
         safe_delete_folder(self._dev_bundle_path)
-
         super(TestBundleCacheUsageBase, self).tearDown()
 
     def assertIsWithinPct(self, test_value, expected_value, tolerance):
@@ -324,7 +322,19 @@ class TestBundleCacheUsageBase(TankTestBase):
     def delete_db(self):
         if self.db_exists:
             BundleCacheUsageTracker.delete_instance(self.WAIT_TIME_MEGA_LONG)
-            os.remove(self.db_path)
+            retry_count = 5
+            while retry_count:
+                try:
+                    os.remove(self.db_path)
+                    break
+                except Exception as e:
+                    retry_count-=1
+                    if retry_count > 0:
+                        print("Error trying to delete the bundle cache usage tracking database, retrying...")
+                    else:
+                        print("Unexpected error trying to delete the bundle cache usage tracking database.\n"
+                              "The file was probably not closed properly:\n%s" % (e))
+                    time.sleep(1.0)
 
     @property
     def db(self):

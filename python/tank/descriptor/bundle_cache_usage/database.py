@@ -163,25 +163,34 @@ class BundleCacheUsageDatabase(object):
         :param sql_params: An optional tuple with required SQL statement parameters
         :return:
         """
-        with sqlite3.connect(self.path) as connection:
 
-            # this is to handle unicode properly - make sure that sqlite returns
-            # str objects for TEXT fields rather than unicode. Note that any unicode
-            # objects that are passed into the database will be automatically
-            # converted to UTF-8 strs, so this text_factory guarantees that any character
-            # representation will work for any language, as long as data is either input
-            # as UTF-8 (byte string) or unicode. And in the latter case, the returned data
-            # will always be unicode.
-            connection.text_factory = str
+        try:
+            with sqlite3.connect(self.path) as connection:
+                # this is to handle unicode properly - make sure that sqlite returns
+                # str objects for TEXT fields rather than unicode. Note that any unicode
+                # objects that are passed into the database will be automatically
+                # converted to UTF-8 strs, so this text_factory guarantees that any character
+                # representation will work for any language, as long as data is either input
+                # as UTF-8 (byte string) or unicode. And in the latter case, the returned data
+                # will always be unicode.
+                connection.text_factory = str
 
-            cursor = connection.cursor()
-            if cursor:
-                if sql_params:
-                    return cursor.execute(sql_statement, sql_params)
-                else:
-                    return cursor.execute(sql_statement)
+                cursor = connection.cursor()
+                if cursor:
+                    if sql_params:
+                        return cursor.execute(sql_statement, sql_params)
+                    else:
+                        return cursor.execute(sql_statement)
 
-                connection.commit()
+                    connection.commit()
+        except Exception as e:
+            # Allows the 'connection' context block to exit and properly close the database
+            # and release file handle. Without this block, we would jump out of the context
+            # preventing closing of the file leading, later on, to file lock issue on Windows.
+            #
+            # See: https://docs.python.org/2/library/sqlite3.html#using-the-connection-as-a-context-manager
+            #
+            raise e
 
     def _create_main_table(self):
         """
