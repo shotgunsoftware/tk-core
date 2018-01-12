@@ -78,7 +78,7 @@ class TestBundleCacheUsageTracker(TestBundleCacheUsageBase):
         BundleCacheUsageTracker.delete_instance()
         self.delete_db()
 
-        for count in range(0, self.DEFAULT_LOOP_COUNT / 4):
+        for count in range(0, self.DEFAULT_LOOP_COUNT / 2):
             self.assertFalse(os.path.exists(self.expected_db_path))
             tracker = BundleCacheUsageTracker()
             tracker.start()
