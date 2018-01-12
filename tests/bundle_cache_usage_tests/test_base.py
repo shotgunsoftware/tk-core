@@ -328,7 +328,7 @@ class TestBundleCacheUsageBase(TankTestBase):
                     os.remove(self.db_path)
                     break
                 except Exception as e:
-                    retry_count-=1
+                    retry_count -= 1
                     if retry_count > 0:
                         print("Error trying to delete the bundle cache usage tracking database, retrying...")
                     else:
