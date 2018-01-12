@@ -68,24 +68,6 @@ class TestBundleCacheUsageTracker(TestBundleCacheUsageBase):
             # Should pretty much be instant
             self.assertLess(elapsed_time, self.WAIT_TIME_INSTANT, "Lock up detected")
 
-    def test_stress_simple_start_stop(self):
-        """
-        Simple stress-Test for possible lock-ups while starting and stopping the
-        worker thread.
-
-        The test measures elaped time for each individual iteration and expect
-        a near-instantaneous execution.
-        """
-        for count in range(0, self.DEFAULT_LOOP_COUNT):
-            start_time = time.time()
-            tracker = BundleCacheUsageTracker()
-            tracker.start()
-            BundleCacheUsageTracker.delete_instance()
-            tracker = None
-            elapsed_time = time.time() - start_time
-            # Should pretty much be instant
-            self.assertLess(elapsed_time, self.WAIT_TIME_INSTANT, "Lock up detected")
-
     def test_stress_wait_worker_created_db(self):
         """
         Stress-Testing that a connection is ready after `start` is called.
