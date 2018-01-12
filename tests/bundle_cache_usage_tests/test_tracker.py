@@ -305,7 +305,7 @@ class TestBundleCacheUsageTracker(TestBundleCacheUsageBase):
                 self.assertEquals(1, mocked_create_main_table.call_count)
 
                 # Now, the next call to 'track_usage' should trigger
-                # splitting out the errors
+                # spitting out the errors
                 tracker.track_usage(self._test_bundle_path)
                 self.assertEquals(1, mocked_log_error.call_count)
                 self.assertEquals(
