@@ -179,7 +179,7 @@ class TestBundleCacheUsageTracker(TestBundleCacheUsageBase):
         be rather quick but completion of all of the database commits should be substantially longer.
         """
 
-        MINIMAL_EXPECTED_RATIO = 100
+        MINIMAL_EXPECTED_RATIO = 20
 
         start_time = time.time()
         for count in range(0, self.DEFAULT_LOOP_COUNT):
