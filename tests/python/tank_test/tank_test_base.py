@@ -24,6 +24,8 @@ import tempfile
 import contextlib
 import atexit
 
+from collections import defaultdict
+
 from tank_vendor.shotgun_api3.lib import mockgun
 
 import unittest2 as unittest
@@ -128,21 +130,29 @@ class UnitTestTimer(object):
     """
 
     class Stat(object):
-
+        """
+        Tracks how much time was spent in a method as well as the number of times it was invoked.
+        """
         def __init__(self):
             self.total_time = 0
             self.nb_invokes = 0
 
-        def add_time(self, elapsed):
+        def add_entry(self, elapsed):
+            """
+            Adds one more entry to the stats.
+            """
             self.total_time += elapsed
             self.nb_invokes += 1
 
         @property
         def average(self):
+            """
+            Returns how much time on average is spent in the tracked method.
+            """
             return float(self.total_time) / self.nb_invokes
 
     def __init__(self):
-        self._timers = {}
+        self._timers = defaultdict(self.Stat)
 
     def clock_func(self, name):
         """
@@ -155,7 +165,7 @@ class UnitTestTimer(object):
                     return func(*args, **kwargs)
                 finally:
                     elapsed = time.time() - before
-                    self._timers.setdefault(name, UnitTestTimer.Stat()).add_time(elapsed)
+                    self._timers[name].add_entry(elapsed)
             return wrapper
 
         return decorator
