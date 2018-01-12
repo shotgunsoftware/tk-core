@@ -113,7 +113,7 @@ class TestBundleCacheUsageBase(TankTestBase):
             os.environ.get("SHOTGUN_BUNDLE_CACHE_USAGE_TIMESTAMP_OVERRIDE", "")
 
         self._now = time.time()
-        self._expected_date_format = "%A, %d. %B %Y %H:%M%:%S"
+        self._expected_date_format = "%A %d %B %Y %H:%M:%S"
 
         # Bundle date when added to the database
         self._bundle_creation_time = int(self._now) - (90 * 24 * 3600)

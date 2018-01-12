@@ -45,15 +45,15 @@ class BundleCacheUsageDatabaseEntry(object):
         Class local date formatting method.
 
         :param time: An int unix timestamp
-        :return: an str human readable formatted datetime such as: Tuesday, 21. November 2017 14:30:22
+        :return: an str human readable formatted datetime such as: Tuesday 21 November 2017 14:30:22
         """
-        return datetime.datetime.fromtimestamp(time).strftime("%A, %d. %B %Y %H:%M%:%S")
+        return datetime.datetime.fromtimestamp(time).strftime("%A %d %B %Y %H:%M:%S")
 
     @property
     def creation_date_formatted(self):
         """
         Returns the entry date when added to the database in a human readable
-        formatted datetime string such as: Tuesday, 21. November 2017 14:30:22
+        formatted datetime string such as: Tuesday 21 November 2017 14:30:22
         """
         return BundleCacheUsageDatabaseEntry._format_date_from_timestamp(
             self.creation_time
@@ -70,7 +70,7 @@ class BundleCacheUsageDatabaseEntry(object):
     def last_usage_date_formatted(self):
         """
         Returns the entry last accessed date in a human readable
-        formatted datetime string such as: Tuesday, 21. November 2017 14:30:22
+        formatted datetime string such as: Tuesday 21 November 2017 14:30:22
         """
         return BundleCacheUsageDatabaseEntry._format_date_from_timestamp(
             self.last_usage_time
