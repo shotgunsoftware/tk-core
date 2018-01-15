@@ -23,6 +23,7 @@ import threading
 import tempfile
 import contextlib
 import atexit
+from functools import wraps
 
 from collections import defaultdict
 
@@ -126,7 +127,7 @@ def temp_env_var(**kwargs):
 
 class UnitTestTimer(object):
     """
-    Tracks the time spent in various functions.
+    Tracks the time spent in various methods.
     """
 
     class Stat(object):
@@ -159,6 +160,7 @@ class UnitTestTimer(object):
         Creates a decorator with the given name that will track the time spent inside a function.
         """
         def decorator(func):
+            @wraps(func)
             def wrapper(*args, **kwargs):
                 before = time.time()
                 try:
@@ -181,7 +183,7 @@ class UnitTestTimer(object):
             print("{0} : {1} ({2} hits, {3:.3f} avg)".format(name, stat.total_time, stat.nb_invokes, stat.average))
 
         print(
-            "Time spent in setUp/tearDown: %s" % sum(x.total_time for x in self._timers.values())
+            "Time spent in tracked methods: %s" % sum(x.total_time for x in self._timers.values())
         )
 
 timer = UnitTestTimer()
