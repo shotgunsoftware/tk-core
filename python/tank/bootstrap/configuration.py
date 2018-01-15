@@ -34,6 +34,18 @@ class Configuration(object):
         self._path = path
         self._descriptor = descriptor
 
+    def verify_required_shotgun_fields(self):
+        """
+        Checks so that all shotgun fields required by the configuration
+        are present and valid.
+
+        Depending on the configuration, different checks are carried out.
+
+        :raises: :class:`TankBootstrapError` if checks fail.
+        """
+        # default implementation does not carry out any checks.
+        pass
+
     def status(self):
         """
         Compares the actual configuration installed on disk against the

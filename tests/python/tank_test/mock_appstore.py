@@ -320,6 +320,17 @@ class TankMockStoreDescriptor(IODescriptorBase):
         """
         return True
 
+    def clone_cache(self, cache_root):
+        """
+        The descriptor system maintains an internal cache where it downloads
+        the payload that is associated with the descriptor. Toolkit supports
+        complex cache setups, where you can specify a series of path where toolkit
+        should go and look for cached items.
+
+        :param cache_root: Root point of the cache location to copy to.
+        :returns: True if the cache was copied, false if not
+        """
+        return True
 
 class _Patcher(object):
     """

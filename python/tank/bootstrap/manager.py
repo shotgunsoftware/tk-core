@@ -627,7 +627,7 @@ class ToolkitManager(object):
         else:
             log.debug("Configuration has local bundle cache, skipping bundle caching.")
 
-        self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine ready.")
+        self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Preparations complete.")
 
         return path, config.descriptor
 
@@ -915,6 +915,9 @@ class ToolkitManager(object):
         """
 
         config = self._get_configuration(entity, progress_callback)
+
+        # verify that this configuration works with Shotgun
+        config.verify_required_shotgun_fields()
 
         # see what we have locally
         status = config.status()
