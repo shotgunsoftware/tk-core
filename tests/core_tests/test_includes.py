@@ -13,7 +13,8 @@ import os
 import sys
 
 import tank
-from tank_test.tank_test_base import TankTestSimple, setUpModule, temp_env_var
+from tank_test.tank_test_base import TankTestSimple, temp_env_var
+from tank_test.tank_test_base import setUpModule # noqa
 from tank.template_includes import _get_includes as get_template_includes
 from tank.platform.environment_includes import _resolve_includes as get_environment_includes
 from mock import patch

@@ -22,7 +22,6 @@ from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
 
 
-
 class TestVersionCompare(TankTestSimple):
     
     def setUp(self):

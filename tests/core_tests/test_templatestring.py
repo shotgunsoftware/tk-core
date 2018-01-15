@@ -20,6 +20,7 @@ from tank.errors import TankError
 from tank.template import TemplateString
 from tank.templatekey import (StringKey, IntegerKey)
 
+
 class TestTemplateString(TankTestSimple):
     """Base class for TemplateString tests."""
     def setUp(self):

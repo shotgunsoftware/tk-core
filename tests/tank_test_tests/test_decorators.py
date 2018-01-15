@@ -12,7 +12,8 @@ from __future__ import with_statement
 import uuid
 import os
 
-from tank_test.tank_test_base import TankTestSimple, setUpModule, temp_env_var
+from tank_test.tank_test_base import TankTestSimple, temp_env_var
+from tank_test.tank_test_base import setUpModule # noqa
 
 
 class TestDecorators(TankTestSimple):

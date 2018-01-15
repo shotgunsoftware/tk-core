@@ -258,7 +258,6 @@ class TestMakeTemplatePaths(TankTestSimple):
     def setUp(self):
         super(TestMakeTemplatePaths, self).setUp()
         self.keys = {"Shot": StringKey("Shot")}
-        #self.multi_os_data_roots = self.pipeline_configuration.get_all_platform_data_roots()
         self.multi_os_data_roots = {
             "unit_tests": {
                 "win32": os.path.join(self.tank_temp, "project_code"),

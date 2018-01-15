@@ -19,7 +19,8 @@ import copy
 import sys
 import datetime
 from mock import patch
-from tank_test.tank_test_base import TankTestSimple, setUpModule # noqa
+from tank_test.tank_test_base import TankTestSimple
+from tank_test.tank_test_base import setUpModule # noqa
 from tank.templatekey import StringKey, IntegerKey, SequenceKey, TimestampKey, make_keys
 
 
@@ -986,6 +987,7 @@ class TestMakeKeys(TankTestSimple):
         key = keys.get("real_key_name")
         self.assertIsInstance(key, StringKey)
         self.assertEquals("alias_name", key.name)
+
 
 class TestEyeKey(TankTestSimple):
     """

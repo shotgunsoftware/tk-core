@@ -31,7 +31,6 @@ from tank.platform.environment import InstalledEnvironment
 from distutils.version import LooseVersion
 
 
-
 class TestAppStoreLabels(TankTestSimple):
     """
     Tests the app store io descriptor

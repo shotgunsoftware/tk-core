@@ -21,7 +21,8 @@ from mock import patch, call
 
 import tank
 from tank import context, errors
-from tank_test.tank_test_base import TankTestBase, TankTestSimple, setUpModule
+from tank_test.tank_test_base import TankTestBase, TankTestSimple
+from tank_test.tank_test_base import setUpModule # noqa
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
 from tank.authentication.user import ShotgunUser
