@@ -914,7 +914,12 @@ def _move_data(path):
 
 
 class TankTestSimple(TankTestBase):
-
+    """
+    Base class for running tests that need a scaffold similar to `TankTestBase` without
+    the pipeline configuration that is usually created. This gives a big speed boost
+    to many tests who don't even read what is on disk and therefore couldn't
+    care less about the scaffold.
+    """
     def setUp(self, parameters=None):
         parameters = parameters or {}
         parameters["do_io"] = False
