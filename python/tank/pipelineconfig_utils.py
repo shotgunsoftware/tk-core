@@ -17,6 +17,8 @@ from __future__ import with_statement
 
 import os
 
+from tank_vendor import yaml
+
 from . import constants
 from . import LogManager
 
@@ -27,6 +29,18 @@ from .util.shotgun import get_deferred_sg_connection
 from .errors import TankError
 
 logger = LogManager.get_logger(__name__)
+
+
+def has_core_descriptor(pipeline_config_path):
+    """
+    Returns ``True`` if the pipeline configuration contains a core descriptor
+    file.
+
+    :param pipeline_config_path: path to a pipeline configuration root folder
+    :return: ``True`` if the core descriptor file exists, ``False`` otherwise
+    """
+    # probe by looking for the existence of a core api descriptor file
+    return os.path.exists(_get_core_descriptor_file(pipeline_config_path))
 
 
 def is_localized(pipeline_config_path):
@@ -142,6 +156,73 @@ def get_roots_metadata(pipeline_config_path):
 
 ####################################################################################################################
 # Core API resolve utils
+
+def get_core_descriptor(pipeline_config_path, shotgun_connection, bundle_cache_fallback_paths=None):
+    """
+    Returns a descriptor object for the uri/dict defined in the config's
+    ``core_api.yml`` file (if it exists).
+
+    If the config does not define a core descriptor file, then ``None`` will be
+    returned.
+
+    :param str pipeline_config_path: The path to the pipeline configuration
+    :param shotgun_connection: An open connection to shotgun
+    :param bundle_cache_fallback_paths: bundle cache search path
+
+    :return: A core descriptor object
+    """
+
+    # avoid circular dependencies
+    from .descriptor import (
+        Descriptor,
+        create_descriptor,
+        is_descriptor_version_missing
+    )
+
+    descriptor_file_path = _get_core_descriptor_file(pipeline_config_path)
+
+    if not os.path.exists(descriptor_file_path):
+        return None
+
+    # the core_api.yml contains info about the core:
+    #
+    # location:
+    #    name: tk-core
+    #    type: app_store
+    #    version: v0.16.34
+
+    logger.debug("Found core descriptor file '%s'" % descriptor_file_path)
+
+    # read the file first
+    fh = open(descriptor_file_path, "rt")
+    try:
+        data = yaml.load(fh)
+        core_descriptor_dict = data["location"]
+    except Exception as e:
+        raise TankError(
+            "Cannot read invalid core descriptor file '%s': %s" %
+            (descriptor_file_path, e)
+        )
+    finally:
+        fh.close()
+
+    # we have a core descriptor specification. Get a descriptor object for it
+    logger.debug(
+        "Config has a specific core defined in core/core_api.yml: %s" %
+        core_descriptor_dict,
+    )
+
+    # when core is specified, check if it defines a specific version or not
+    use_latest = is_descriptor_version_missing(core_descriptor_dict)
+
+    return create_descriptor(
+        shotgun_connection,
+        Descriptor.CORE,
+        core_descriptor_dict,
+        fallback_roots=bundle_cache_fallback_paths or [],
+        resolve_latest=use_latest
+    )
+
 
 def get_path_to_current_core():
     """
@@ -425,3 +506,17 @@ def _get_version_from_manifest(info_yml_path):
     return data
 
 
+def _get_core_descriptor_file(pipeline_config_path):
+    """
+    Helper method. Returns the path to the config's core_api.yml file.
+    (May not exist)
+
+    :param pipeline_config_path: path to the pipeline configuration on disk
+    :return: A string path to the core_api.yml file within the config.
+    """
+    return os.path.join(
+        pipeline_config_path,
+        "config",
+        "core",
+        constants.CONFIG_CORE_DESCRIPTOR_FILE
+    )

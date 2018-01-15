@@ -51,7 +51,9 @@ SHOTGUN_SSO_RENEWAL_INTERVAL = 5000
 
 def get_logger():
     """
-    Return the logger for this module.
+    Obtain the logger for this module.
+
+    :returns: The logger instance for this module.
     """
     return logging.getLogger(__name__)
 
@@ -59,6 +61,11 @@ def get_logger():
 def set_logger_parent(logger_parent):
     """
     Set the logger parent to this module's logger.
+
+    Some client code may want to re-parent this module's logger in order to
+    influence the output.
+
+    :param logger_parent: New logger parent.
     """
     logger = get_logger()
     logger.parent = logger_parent
@@ -109,16 +116,18 @@ class Saml2SsoMissingQtWebKit(Saml2SsoMissingQtModuleError):
 class Saml2Sso(object):
     """Performs Shotgun SSO login and pre-emptive renewal."""
 
-    def __init__(self, window_title="SSO", qt_modules={}):
+    def __init__(self, window_title="SSO", qt_modules=None):
         """
         Create a SSO login dialog, using a Web-browser like environment.
 
         :param window_title: Title to use for the window.
-        :param qt_modules: a dictionnary of required Qt modules.
-                           For Qt4/PySide, we require modules QtCore, QtGui, QtNetwork and QtWebKit
+        :param qt_modules:   a dictionnary of required Qt modules.
+                             For Qt4/PySide, we require modules QtCore, QtGui, QtNetwork and QtWebKit
 
         :returns: The Saml2Sso oject.
         """
+        qt_modules = qt_modules or {}
+
         self._logger = get_logger()
         self._logger.debug("Constructing SSO dialog: %s" % window_title)
 
@@ -149,7 +158,7 @@ class Saml2Sso(object):
 
         self._view = QtWebKit.QWebView(self._dialog)
         self._view.page().networkAccessManager().finished.connect(self.on_http_response_finished)
-        self._view.page().networkAccessManager().authenticationRequired.connect(self._on_authentication_required)
+        self._view.page().networkAccessManager().authenticationRequired.connect(self.on_authentication_required)
         self._view.loadFinished.connect(self.on_load_finished)
 
         # Purposely disable the 'Reload' contextual menu, as it should not be
@@ -243,21 +252,27 @@ class Saml2Sso(object):
 
     def __del__(self):
         """Destructor."""
+        # We want to track destruction of the dialog in the logs.
         self._logger.debug("Destroying SSO dialog")
 
     @property
     def _session(self):
         """
-        String RO property.
+        Getter for the current session.
 
         Returns the current session, if any. The session provides information
         on the current context (host, user ID, etc.)
+
+        :returns: The current session.
         """
         return self._sessions_stack[-1] if len(self._sessions_stack) > 0 else None
 
     def start_new_session(self, session_data):
         """
         Create a new session, based on the data provided.
+
+        :param session_data: Initial session data to use.
+                             A dictionary with a 'event', 'host' and 'cookies' entries.
         """
         self._logger.debug("Starting a new session")
         self._sessions_stack.append(AuthenticationSessionData(session_data))
@@ -371,71 +386,6 @@ class Saml2Sso(object):
         self._sso_countdown_timer.start()
         self._session_renewal_active = True
 
-    def on_http_response_finished(self, reply):
-        """
-        This callbaback is triggered after every page load in the QWebView.
-        """
-        error = reply.error()
-        url = reply.url().toString().encode("utf-8")
-        session = AuthenticationSessionData() if self._session is None else self._session
-        QtNetwork = self._QtNetwork  # noqa
-
-        if (
-            error is not QtNetwork.QNetworkReply.NetworkError.NoError and
-            error is not QtNetwork.QNetworkReply.NetworkError.OperationCanceledError
-        ):
-            if error is QtNetwork.QNetworkReply.NetworkError.HostNotFoundError:
-                session.error = HTTP_CANT_CONNECT_TO_SHOTGUN
-            elif error is QtNetwork.QNetworkReply.NetworkError.ContentNotFoundError:
-                if url.startswith(session.host + URL_SAML_RENEW_PATH):
-                    # This is likely because the subdomain is not valid.
-                    # e.g. https://foobar.shotgunstudio.com
-                    # Here the domain (shotgunstudio.com) is valid, but not
-                    # foobar.
-                    session.error = HTTP_CANT_CONNECT_TO_SHOTGUN
-                else:
-                    # We silently ignore content not found otherwise.
-                    pass
-            elif error is QtNetwork.QNetworkReply.NetworkError.UnknownContentError:
-                # This means that the site does not support SSO or that
-                # it is not enabled.
-                session.error = HTTP_AUTHENTICATE_SSO_NOT_UPPORTED
-            elif error is QtNetwork.QNetworkReply.NetworkError.ContentOperationNotPermittedError:
-                # This means that the SSO login worked, but that the user does
-                # have access to the site.
-                session.error = HTTP_CANT_AUTHENTICATE_SSO_NO_ACCESS
-            elif error is QtNetwork.QNetworkReply.NetworkError.AuthenticationRequiredError:
-                # This means that the user entered incorrect credentials.
-                if url.startswith(session.host):
-                    session.error = HTTP_AUTHENTICATE_REQUIRED
-                else:
-                    # If we are not on our site, we are on the Identity Provider (IdP) portal site.
-                    # We let it deal with the error.
-                    # Reset the error to None to disregard the error.
-                    session.error = None
-            else:
-                session.error = reply.attribute(QtNetwork.QNetworkRequest.HttpReasonPhraseAttribute)
-        elif url.startswith(session.host + URL_LOGIN_PATH):
-            # If we are being redirected to the login page, then SSO is not
-            # enabled on that site.
-            session.error = HTTP_AUTHENTICATE_SSO_NOT_UPPORTED
-
-        if session.error:
-            # If there are any errors, we exit by force-closing the dialog.
-            self._logger.error("Closing SSO dialog on Error (%s - %s) from loading page: %s" % (error, session.error, url))
-            self._dialog.reject()
-
-    def _on_authentication_required(self, reply, authenticator):
-        """
-        Called when authentication is required to get to a web page.
-
-        This method is required to support NTLM/Kerberos on a Windows machine,
-        of if there is a SSO Desktop integration plugin.
-        """
-        # Setting the user to an empty string tells the QAuthenticator to
-        # negociate the authentication with the user's credentials.
-        authenticator.setUser('')
-
     def is_handling_event(self):
         """
         Called to know if an event is currently being handled.
@@ -445,6 +395,8 @@ class Saml2Sso(object):
     def handle_event(self, event_data):
         """
         Called to start the handling of an event.
+
+        :param event_data: A dictionary with a 'event', 'host' and 'cookies' entries.
         """
         if not self.is_handling_event():
             self._event_data = event_data
@@ -460,6 +412,8 @@ class Saml2Sso(object):
     def resolve_event(self, end_session=False):
         """
         Called to return the results of the event.
+
+        :param end_session: Boolean, indicating if the session should be ended.
         """
         if self.is_handling_event():
             if end_session:
@@ -469,7 +423,11 @@ class Saml2Sso(object):
             self._logger.warn("Called resolve_event when no event is being handled.")
 
     def get_session_data(self):
-        """Returns the relevant session data for the toolkit."""
+        """
+        Get a mimimal subset of session data, for the Shotgun Toolkit.
+
+        :returns: A tuple of the hostname, user_id, session_id and cookies.
+        """
         return (
             self._session.host,
             self._session.user_id,
@@ -478,7 +436,11 @@ class Saml2Sso(object):
         )
 
     def get_session_error(self):
-        """Returns the the error string of the last failed operation."""
+        """
+        Get the session error string.
+
+        :returns: The error string of the last failed operation.
+        """
         res = None
         if self._session and len(self._session.error) > 0:
             res = self._session.error
@@ -542,6 +504,8 @@ class Saml2Sso(object):
         the dialog. If the process is taking too long, we have a timer
         (_sso_renew_watchdog_timer) which will trigger and attempt to cleanup
         the process.
+
+        :param succeeded: indicate the status of the load process.
         """
         url = self._view.page().mainFrame().url().toString().encode("utf-8")
         if (
@@ -558,9 +522,79 @@ class Saml2Sso(object):
             self._logger.error("Loading of page \"%s\" generated an error." % url)
             # @FIXME: Figure out proper way of handling error.
 
+    def on_http_response_finished(self, reply):
+        """
+        This callbaback is triggered after every page load in the QWebView.
+
+        :param reply: The Qt reply HTTP response object.
+        """
+        error = reply.error()
+        url = reply.url().toString().encode("utf-8")
+        session = AuthenticationSessionData() if self._session is None else self._session
+        QtNetwork = self._QtNetwork  # noqa
+
+        if (
+            error is not QtNetwork.QNetworkReply.NetworkError.NoError and
+            error is not QtNetwork.QNetworkReply.NetworkError.OperationCanceledError
+        ):
+            if error is QtNetwork.QNetworkReply.NetworkError.HostNotFoundError:
+                session.error = HTTP_CANT_CONNECT_TO_SHOTGUN
+            elif error is QtNetwork.QNetworkReply.NetworkError.ContentNotFoundError:
+                if url.startswith(session.host + URL_SAML_RENEW_PATH):
+                    # This is likely because the subdomain is not valid.
+                    # e.g. https://foobar.shotgunstudio.com
+                    # Here the domain (shotgunstudio.com) is valid, but not
+                    # foobar.
+                    session.error = HTTP_CANT_CONNECT_TO_SHOTGUN
+                else:
+                    # We silently ignore content not found otherwise.
+                    pass
+            elif error is QtNetwork.QNetworkReply.NetworkError.UnknownContentError:
+                # This means that the site does not support SSO or that
+                # it is not enabled.
+                session.error = HTTP_AUTHENTICATE_SSO_NOT_UPPORTED
+            elif error is QtNetwork.QNetworkReply.NetworkError.ContentOperationNotPermittedError:
+                # This means that the SSO login worked, but that the user does
+                # have access to the site.
+                session.error = HTTP_CANT_AUTHENTICATE_SSO_NO_ACCESS
+            elif error is QtNetwork.QNetworkReply.NetworkError.AuthenticationRequiredError:
+                # This means that the user entered incorrect credentials.
+                if url.startswith(session.host):
+                    session.error = HTTP_AUTHENTICATE_REQUIRED
+                else:
+                    # If we are not on our site, we are on the Identity Provider (IdP) portal site.
+                    # We let it deal with the error.
+                    # Reset the error to None to disregard the error.
+                    session.error = None
+            else:
+                session.error = reply.attribute(QtNetwork.QNetworkRequest.HttpReasonPhraseAttribute)
+        elif url.startswith(session.host + URL_LOGIN_PATH):
+            # If we are being redirected to the login page, then SSO is not
+            # enabled on that site.
+            session.error = HTTP_AUTHENTICATE_SSO_NOT_UPPORTED
+
+        if session.error:
+            # If there are any errors, we exit by force-closing the dialog.
+            self._logger.error("Closing SSO dialog on Error (%s - %s) from loading page: %s" % (error, session.error, url))
+            self._dialog.reject()
+
+    def on_authentication_required(self, reply, authenticator):
+        """
+        Called when authentication is required to get to a web page.
+
+        This method is required to support NTLM/Kerberos on a Windows machine,
+        of if there is a SSO Desktop integration plugin.
+
+        :param reply: Qt reply object. Not used.
+        :param authenticator: Qt authenticator object.
+        """
+        # Setting the user to an empty string tells the QAuthenticator to
+        # negociate the authentication with the user's credentials.
+        authenticator.setUser('')
+
     ############################################################################
     #
-    # Mu events handlers
+    # Events handlers
     #
     ############################################################################
 
@@ -570,6 +604,8 @@ class Saml2Sso(object):
 
         The user will be presented with the appropriate web pages from their
         IdP in order to log on to Shotgun.
+
+        :returns: 1 if successful, 0 otherwise.
         """
         self._logger.debug("SSO login attempt")
         QtCore = self._QtCore  # noqa
@@ -609,6 +645,8 @@ class Saml2Sso(object):
     def on_sso_login_cancel(self, event):
         """
         Called to cancel an ongoing login attempt.
+
+        :param event: RV event. Not used.
         """
         self._logger.debug("Cancel SSO login attempt")
 
@@ -623,6 +661,9 @@ class Saml2Sso(object):
         Called whenever the dialog is dismissed.
 
         This can be the result of a callback, a timeout or user interaction.
+
+        :param result: Qt result following the closing of the dialog.
+                       QtGui.QDialog.Accepted or QtGui.QDialog.Rejected
         """
         self._logger.debug("SSO dialog closed")
         QtGui = self._QtGui  # noqa
@@ -656,6 +697,7 @@ class Saml2Sso(object):
         This will be in the case of the automatic (and successful)
         authentication at the startup of the application.
 
+        :param event: Json encoded document describing the RV event.
         """
         self._logger.debug("SSO automatic renewal enabled")
 
@@ -745,7 +787,7 @@ def _get_cookie_from_prefix(encoded_cookies, cookie_prefix):
     Returns a cookie value based on a prefix to which we will append the user id.
 
     :param encoded_cookies: An encoded string representing the cookie jar.
-    :param cookie_prefix: The prefix of the cookie name.
+    :param cookie_prefix:   The prefix of the cookie name.
 
     :returns: A string of the cookie value, or None.
     """
@@ -766,7 +808,9 @@ def is_sso_enabled_on_site(url):
     silently ignored. At the moment this method is only used to make the
     GUI show/hide some of the input fields.
 
-    :returns: a boolean indicating if SSO has been enabled or not.
+    :param url: Url of the site to query.
+
+    :returns:   A boolean indicating if SSO has been enabled or not.
     """
     try:
         # Temporary shotgun instance, used only for the purpose of checking
@@ -793,7 +837,7 @@ def has_sso_info_in_cookies(encoded_cookies):
 
     :param encoded_cookies: An encoded string representing the cookie jar.
 
-    :returns: True or False
+    :returns: True if there are SSO-related infos in the cookies.
     """
     cookies = _decode_cookies(encoded_cookies)
     return _get_shotgun_user_id(cookies) is not None
