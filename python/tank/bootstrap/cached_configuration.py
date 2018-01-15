@@ -262,7 +262,6 @@ class CachedConfiguration(Configuration):
             )
             return
 
-
         # copy the configuration into place
         try:
 
