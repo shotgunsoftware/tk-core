@@ -651,7 +651,7 @@ class TestBundleDataCache(TestApplication):
             # Change the modification time for a file and clean it up
             dummy_file = os.path.join(cache_folder, dummy_files.pop())
             one_day_in_seconds = datetime.timedelta(days=1).total_seconds()
-            day_before_timestamp = time.time() - one_day_in_seconds -1
+            day_before_timestamp = time.time() - one_day_in_seconds
             os.utime(
                 dummy_file,
                 (day_before_timestamp, day_before_timestamp)

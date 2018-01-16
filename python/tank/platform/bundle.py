@@ -800,7 +800,7 @@ class TankBundle(object):
                         # Log the error for debug purpose
                         self.logger.debug(
                             "Warning: couldn't check %s for removal: %s" % (
-                            file_path, e
+                                file_path, e
                             ),
                             exc_info=True,
                         )
