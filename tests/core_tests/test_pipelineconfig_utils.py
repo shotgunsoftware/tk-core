@@ -15,6 +15,7 @@ import sys
 from mock import patch
 
 import sgtk
+import tank
 
 from tank import pipelineconfig_utils
 from tank import (
@@ -27,6 +28,35 @@ from tank.util import ShotgunPath
 
 from tank_test.tank_test_base import TankTestBase, temp_env_var
 from tank_test.tank_test_base import setUpModule # noqa
+
+
+class TestGetConfigInstallLocationPathSlashes(TankTestBase):
+    """
+    Tests the case where a Windows config location uses double slashes.
+    """
+
+    @patch("tank.pipelineconfig_utils._get_install_locations")
+    def test_config_path_cleanup(self, get_install_locations_mock):
+        """
+        Check that any glitches in the path are correctly cleaned up.
+        """
+        # only run this test on windows
+        if sys.platform == "win32":
+
+            # This path has multiple issues we've encountered in the wild
+            # It without any escaping sequence, it reads as
+            # "   C:/configs\\site//project   "
+            # 1. it has whitespace at the begging and end.
+            # 2. Uses double slashes instead of single backslash
+            # 3. Uses slash instead of backslash
+            # 4. Uses double backslashes as a folder separator.
+            get_install_locations_mock.return_value = sgtk.util.ShotgunPath("   C:/configs\\\\site//project   ", None, None)
+
+            self.assertEqual(
+                # We don't need to pass an actual path since _get_install_location is mocked.
+                tank.pipelineconfig_utils.get_config_install_location(None),
+                "C:\\configs\\site\\project"
+            )
 
 
 class TestPipelineConfigUtils(TankTestBase):

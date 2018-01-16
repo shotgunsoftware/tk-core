@@ -72,13 +72,15 @@ class SetupProjectAction(Action):
                                                    "default": None,
                                                    "type": "str" }
 
-        self.parameters["config_uri"] = { "description": ("The configuration to use when setting up this project. "
-                                                          "This can be a path on disk to a directory containing a "
-                                                          "config, a path to a git bare repo (e.g. a git repo path "
-                                                          "which ends with .git) or 'tk-config-default' "
-                                                          "to fetch the default config from the toolkit app store."),
-                                          "default": "tk-config-default",
-                                          "type": "str" }
+        self.parameters["config_uri"] = {
+            "description": "The configuration to use when setting up this "
+                "project. This can be a path on disk to a directory containing "
+                "a config, a path to a git bare repo (e.g. a git repo path "
+                "which ends with .git) or '%s' to fetch the default config "
+                "from the toolkit app store." % (constants.DEFAULT_CFG,),
+            "default": constants.DEFAULT_CFG,
+            "type": "str"
+        }
 
         # note how the current platform's default value is None in order to make that required
         self.parameters["config_path_mac"] = { "description": ("The path on disk where the configuration should be "
@@ -157,16 +159,22 @@ class SetupProjectAction(Action):
         
         # and finally carry out the setup
         run_project_setup(log, sg, params)
-        
-        # check if we should run the localization afterwards
-        # if we are running a localized pc, the root path of the core
-        # api is the same as the root path for the associated pc
-        if pipelineconfig_utils.is_localized(curr_core_path):
-            log.info("Localizing Core...")
-            core_localize.do_localize(log, 
-                                      params.get_configuration_location(sys.platform), 
-                                      suppress_prompts=True)
 
+        config_path = params.get_configuration_location(sys.platform)
+
+        # if the new project's config has a core descriptor, then we should
+        # localize it to use that version of core. alternatively, if the current
+        # core being used is localized, then localize the new config with it.
+        if (pipelineconfig_utils.has_core_descriptor(config_path) or
+            pipelineconfig_utils.is_localized(curr_core_path)):
+
+            log.info("Localizing Core...")
+            core_localize.do_localize(
+                log,
+                self.tk.shotgun,
+                config_path,
+                suppress_prompts=True
+            )
 
     def run_interactive(self, log, args):
         """
@@ -237,16 +245,23 @@ class SetupProjectAction(Action):
         
         # and finally carry out the setup
         run_project_setup(log, sg, params)
-        
-        # check if we should run the localization afterwards
-        # if we are running a localized pc, the root path of the core
-        # api is the same as the root path for the associated pc
-        if pipelineconfig_utils.is_localized(curr_core_path):
+
+        config_path = params.get_configuration_location(sys.platform)
+
+        # if the new project's config has a core descriptor, then we should
+        # localize it to use that version of core. alternatively, if the current
+        # core being used is localized, then localize the new core with it.
+        if (pipelineconfig_utils.has_core_descriptor(config_path) or
+            pipelineconfig_utils.is_localized(curr_core_path)):
+
             log.info("Localizing Core...")
-            core_localize.do_localize(log, 
-                                      params.get_configuration_location(sys.platform), 
-                                      suppress_prompts=True)
-        
+            core_localize.do_localize(
+                log,
+                self.tk.shotgun,
+                config_path,
+                suppress_prompts=True
+            )
+
         # display readme etc.
         readme_content = params.get_configuration_readme()
         if len(readme_content) > 0:
@@ -587,8 +602,15 @@ class SetupProjectAction(Action):
                 
         location = {"darwin": None, "linux2": None, "win32": None}
         
-        # get the path to the primary storage  
-        primary_local_path = params.get_storage_path(constants.PRIMARY_STORAGE_NAME, sys.platform)        
+        # Get the path to the storage we want to use when calculating the default
+        # location for the installed config.
+        # Multi-root configurations require a storage named "primary" so we base
+        # our default on that. If only a single storage is available, we just use it.
+        storage_names = params.get_required_storages()
+        primary_storage_name = constants.PRIMARY_STORAGE_NAME
+        if len(storage_names) == 1:
+            primary_storage_name = storage_names[0]
+        primary_local_path = params.get_storage_path(primary_storage_name, sys.platform)
         
         curr_core_path = pipelineconfig_utils.get_path_to_current_core()
         core_locations = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
@@ -617,14 +639,14 @@ class SetupProjectAction(Action):
             # /studio/project      <--- project data location
             # /studio/project/tank <--- toolkit configuation location
 
-            if params.get_project_path(constants.PRIMARY_STORAGE_NAME, "darwin"):
-                location["darwin"] = "%s/tank" % params.get_project_path(constants.PRIMARY_STORAGE_NAME, "darwin") 
+            if params.get_project_path(primary_storage_name, "darwin"):
+                location["darwin"] = "%s/tank" % params.get_project_path(primary_storage_name, "darwin")
                                                      
-            if params.get_project_path(constants.PRIMARY_STORAGE_NAME, "linux2"):
-                location["linux2"] = "%s/tank" % params.get_project_path(constants.PRIMARY_STORAGE_NAME, "linux2") 
+            if params.get_project_path(primary_storage_name, "linux2"):
+                location["linux2"] = "%s/tank" % params.get_project_path(primary_storage_name, "linux2")
 
-            if params.get_project_path(constants.PRIMARY_STORAGE_NAME, "win32"):
-                location["win32"] = "%s\\tank" % params.get_project_path(constants.PRIMARY_STORAGE_NAME, "win32") 
+            if params.get_project_path(primary_storage_name, "win32"):
+                location["win32"] = "%s\\tank" % params.get_project_path(primary_storage_name, "win32")
 
         else:
             # Core v0.12+ style setup - this is what is our default recommended setup
@@ -668,8 +690,6 @@ class SetupProjectAction(Action):
                 location["win32"] = "\\".join(chunks)
 
         return location
-
-
 
     def _ask_location(self, log, default, os_nice_name):
         """
@@ -722,6 +742,10 @@ class SetupProjectAction(Action):
         log.info("  - on Linux:   '%s'" % params.get_associated_core_path("linux2"))
         log.info("  - on Windows: '%s'" % params.get_associated_core_path("win32"))            
         log.info("")
+        log.info("NOTE: If the installed configuration contains a ")
+        log.info("      core_api.yml file, the version of core specified in ")
+        log.info("      that file will be localized after project setup is ")
+        log.info("      complete.")
         log.info("")
 
 

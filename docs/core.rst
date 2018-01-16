@@ -15,44 +15,43 @@ that contains lower level components and APIs. These include
 
 For apps and engines, see the :ref:`sgtk_platform_docs` documentation.
 
+Launching and initializing
+--------------------------
 
-The Toolkit Core API
----------------------------------------------------------
+Toolkit can be launched and started up in two fundamentally different ways:
 
-Each instance of the :class:`sgtk.Sgtk` class is associated with a specific set of configuration settings.
-This association is automatically resolved as the API instance is created and can be
-specified in several ways:
+- All configurations can be started up via the :class:`~sgtk.bootstrap.ToolkitManager` bootstrap API. This
+  API abstracts the entire process of initialization and provides a consistent set of methods for all
+  projects and configurations. This is the recommended way to launch toolkit and gain access to a running
+  Toolkit :class:`~sgtk.platform.Engine` instance (which in turn contains a :class:`sgtk.Sgtk` instance.
 
-- As a path pointing directly at the desired pipeline configuration
-- As a Shotgun entity for which the associated (primary) pipeline configuration is resolved via Shotgun
-- As a path to a project folder on disk from which the associated (primary) pipeline configuration is computed.
+- Configurations which have been installed into a specific location via the ``tank setup_project`` command
+  or via Shotgun Desktop's setup wizard can be initialized in additional ways. Such setups are referred to
+  as 'classic' toolkit setups. For most scenarios, we recommend using the :class:`~sgtk.bootstrap.ToolkitManager`
+  for access.
 
-Factory methods
-===============================
+Factory methods for classic configurations
+==========================================
 
-The following factory methods are used to create a Toolkit API instance:
+For classic configurations, where the configuration resides in a specific location on disk, you can use
+the following factory methods to create a :class:`sgtk.Sgtk` instance:
 
 .. autofunction:: sgtk_from_path
 .. autofunction:: sgtk_from_entity
 
-.. note:: If you are using the :class:`~sgtk.bootstrap.ToolkitManager`, initialization of :class:`sgtk.Sgtk`
-          happens behind the scenes. While it is still possible to access a setup managed by the
-          :class:`~sgtk.bootstrap.ToolkitManager` via the same methods that you would use to access a
-          traditionally set up project, is is usually much easier to let the bootstrap process
-          handle the initialization.
+.. note::
+    You can also use the methods above in conjunction with projects handled
+    by the :class:`~sgtk.bootstrap.ToolkitManager`, but since the location
+    of the configuration of such projects isn't explicit and known beforehand,
+    the factory methods are less useful in this context.
 
-Authentication
-===============================
 
-Certain API operations require Shotgun data and hence require a way for the API
-to establish a connection to Shotgun. The easiest way to handle this is by
-making sure that each API instance has an associated authenticated user:
 
-.. autofunction:: set_authenticated_user
-.. autofunction:: get_authenticated_user
+The Toolkit Core API
+--------------------
 
 Sgtk
-========================================
+====
 
 .. autoclass:: Sgtk
     :members:
@@ -66,11 +65,25 @@ Sgtk
 
 
 Context
-=========================================
+=======
 
 .. autoclass:: Context
     :members:
     :exclude-members: tank
+
+Authentication
+==============
+
+Certain API operations require Shotgun data and hence require a way for the API
+to establish a connection to Shotgun. The easiest way to handle this is by
+making sure that each API instance has an associated authenticated user:
+
+.. autofunction:: set_authenticated_user
+.. autofunction:: get_authenticated_user
+
+.. note::
+    The :class:`Context` serializes the authentication state, so if you are passing a context
+    from one process or application to the next, you don't need to utilize the methods above.
 
 Pipeline Configuration Utilities
 ================================

@@ -373,6 +373,8 @@ class ShotgunPath(object):
         """
         The path on the current os
         """
+        # Please note that we're using the property setters to set the path, so they
+        # will be sanitized by the setter.
         if sys.platform == "win32":
             self.windows = value
         elif sys.platform.startswith("linux"):

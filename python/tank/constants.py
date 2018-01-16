@@ -39,6 +39,9 @@ PIPELINE_CONFIG_DEV_DESCRIPTOR_TOKEN = "{PIPELINE_CONFIG}"
 # the name of the file that holds the templates.yml config
 CONTENT_TEMPLATES_FILE = "templates.yml"
 
+# config file with information about which core to use
+CONFIG_CORE_DESCRIPTOR_FILE = "core_api.yml"
+
 # the name of the primary pipeline configuration
 PRIMARY_PIPELINE_CONFIG_NAME = "Primary"
 

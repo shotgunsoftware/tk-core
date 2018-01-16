@@ -19,7 +19,7 @@ import copy
 import sys
 import datetime
 from mock import patch
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 from tank.templatekey import StringKey, IntegerKey, SequenceKey, TimestampKey, make_keys
 
 

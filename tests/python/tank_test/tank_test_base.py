@@ -203,6 +203,7 @@ class TankTestBase(unittest.TestCase):
                            - 'mockgun_schema_entity_path': '/path/to/file' - Pass a specific entity schema to use with
                                                            mockgun. If not specified, the tk-core fixture schema
                                                            will be used.
+                           - 'primary_root_name': 'name' - Set the primary root name, default to 'unit_tests'.
 
 
         """
@@ -269,6 +270,9 @@ class TankTestBase(unittest.TestCase):
                 "schema_entity.pickle"
             )
 
+        # The name to use for our primary storage
+        self.primary_root_name = parameters.get("primary_root_name", "unit_tests")
+
         # set up mockgun to use our schema
         mockgun.Shotgun.set_schema_paths(mockgun_schema_path, mockgun_schema_entity_path)
 
@@ -284,10 +288,13 @@ class TankTestBase(unittest.TestCase):
         )
 
         # define entity for test project
-        self.project = {"type": "Project",
-                        "id": 1,
-                        "tank_name": project_tank_name,
-                        "name": "project_name"}
+        self.project = {
+            "type": "Project",
+            "id": 1,
+            "tank_name": project_tank_name,
+            "name": "project_name",
+            "archived": False,
+        }
 
         self.project_root = os.path.join(self.tank_temp, self.project["tank_name"].replace("/", os.path.sep) )
 
@@ -346,10 +353,10 @@ class TankTestBase(unittest.TestCase):
         localize_token_file = os.path.join(self.pipeline_config_root, "install", "core", "_core_upgrader.py")
         self.create_file(localize_token_file, "foo bar")
 
-        roots = {"primary": {}}
+        roots = { self.primary_root_name: {}}
         for os_name in ["windows_path", "linux_path", "mac_path"]:
             #TODO make os specific roots
-            roots["primary"][os_name] = self.tank_temp
+            roots[self.primary_root_name][os_name] = self.tank_temp
         roots_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")
         roots_file = open(roots_path, "w")
         roots_file.write(yaml.dump(roots))
@@ -380,7 +387,7 @@ class TankTestBase(unittest.TestCase):
         # add local storage
         self.primary_storage = {"type": "LocalStorage",
                                 "id": 7777,
-                                "code": "primary",
+                                "code": self.primary_root_name,
                                 "windows_path": self.tank_temp,
                                 "linux_path": self.tank_temp,
                                 "mac_path": self.tank_temp }
@@ -483,7 +490,6 @@ class TankTestBase(unittest.TestCase):
         # copy core over to target
         core_target = os.path.join(self.project_config, "core")
         self._copy_folder(core_source, core_target)
-
         # now copy the rest of the config fixtures
         for config_folder in ["env", "hooks", "bundles"]:
             config_source = os.path.join(config_root, config_folder)
@@ -503,6 +509,18 @@ class TankTestBase(unittest.TestCase):
         """
         Helper method which sets up a standard multi-root set of fixtures
         """
+        # The primary storage needs to be named "primary" in multi-root mode.
+        if self.primary_root_name != "primary":
+            self.primary_root_name = "primary"
+            self.primary_storage = {"type": "LocalStorage",
+                                    "id": 8888,
+                                    "code": self.primary_root_name,
+                                    "windows_path": self.tank_temp,
+                                    "linux_path": self.tank_temp,
+                                    "mac_path": self.tank_temp }
+
+            self.add_to_sg_mock_db(self.primary_storage)
+
         self.setup_fixtures(parameters = {"core": "core.override/multi_root_core",
                                           "skip_template_reload": True})
 

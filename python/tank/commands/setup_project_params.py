@@ -814,10 +814,15 @@ class TemplateConfiguration(object):
         self._config_uri = config_uri
         self._roots_data = self._read_roots_file()
 
-        # if there are more than zero storages defined, ensure one of them is the primary storage
-        if len(self._roots_data) > 0 and constants.PRIMARY_STORAGE_NAME not in self._roots_data:
-            raise TankError("Looks like your configuration does not have a primary storage. "
-                            "This is required. Please contact support for more info.")
+        # If there is more than one storage defined, ensure one of them is named
+        # "primary". We need to enforce this restriction to ensure we will always
+        # pick the same storage as our primary storage.
+        if len(self._roots_data) > 1 and constants.PRIMARY_STORAGE_NAME not in self._roots_data:
+            raise TankError(
+                "Looks like your configuration does not have a primary storage. "
+                "This is required for multi-root configurations. Please contact "
+                "support for more info."
+            )
 
         # see if there is a readme file
         self._readme_content = []
@@ -879,7 +884,8 @@ class TemplateConfiguration(object):
             self._sg,
             Descriptor.CONFIG,
             {"type": "git_branch", "path": git_uri, "branch": "master"},
-            resolve_latest=True
+            resolve_latest=True,
+            local_fallback_when_disconnected=False,
         )
 
     def _read_roots_file(self):
@@ -936,7 +942,7 @@ class TemplateConfiguration(object):
         # unzip into temp location
         self._log.debug("Unzipping configuration and inspecting it...")
         zip_unpack_tmp = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
-        unzip_file(zip_path, zip_unpack_tmp)
+        unzip_file(zip_path, zip_unpack_tmp, auto_detect_bundle=True)
         template_items = os.listdir(zip_unpack_tmp)
         for item in ["core", "env", "hooks"]:
             if item not in template_items:
@@ -1002,7 +1008,8 @@ class TemplateConfiguration(object):
                 self._sg,
                 Descriptor.CONFIG,
                 {"type": "app_store", "name": config_uri},
-                resolve_latest=True
+                resolve_latest=True,
+                local_fallback_when_disconnected=False
             )
             descriptor.ensure_local()
 

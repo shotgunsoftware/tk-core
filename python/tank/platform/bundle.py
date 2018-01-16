@@ -21,10 +21,13 @@ import uuid
 
 from .. import hook
 from ..util.metrics import EventMetric
+from ..log import LogManager
 from ..errors import TankError, TankNoDefaultValueError
 from .errors import TankContextChangeNotSupportedError
 from . import constants
 from .import_stack import ImportStack
+
+core_logger = LogManager.get_logger(__name__)
 
 class TankBundle(object):
     """
@@ -535,7 +538,7 @@ class TankBundle(object):
         """
         return self.tank.templates.get(template_name)
                         
-    def execute_hook(self, key, **kwargs):
+    def execute_hook(self, key, base_class=None, **kwargs):
         """
         Execute a hook that is part of the environment configuration for the current bundle.
 
@@ -551,15 +554,28 @@ class TankBundle(object):
         on the currently configured setting and then execute the execute() method for 
         that hook.
 
+        An optional ``base_class`` can be provided to override the default :class:`~sgtk.Hook`
+        base class. This is useful for bundles that want to define and document a strict
+        interface for hooks. The classes defined in the hook have to derived from this classes.
+
         .. note:: For more information about hooks, see :class:`~sgtk.Hook`
         
         :param key: The name of the hook setting you want to execute.
+        :param base_class: A python class to use as the base class for the created
+            hook. This will override the default hook base class, ``Hook``.
+        :returns: The return value from the hook
         """
         hook_name = self.get_setting(key)
         resolved_hook_paths = self.__resolve_hook_expression(key, hook_name)
-        return hook.execute_hook_method(resolved_hook_paths, self, None, **kwargs)
+        return hook.execute_hook_method(
+            resolved_hook_paths,
+            self,
+            None,
+            base_class=base_class,
+            **kwargs
+        )
         
-    def execute_hook_method(self, key, method_name, **kwargs):
+    def execute_hook_method(self, key, method_name, base_class=None, **kwargs):
         """
         Execute a specific method in a hook that is part of the 
         environment configuration for the current bundle.
@@ -587,16 +603,29 @@ class TankBundle(object):
         parameters without breaking backwards compatibility, for example
         ``execute_hook_method("validator", "pre_check", name=curr_scene, version=curr_ver).``
 
+        An optional ``base_class`` can be provided to override the default :class:`~sgtk.Hook`
+        base class. This is useful for bundles that want to define and document a strict
+        interface for hooks. The classes defined in the hook have to derived from this classes.
+
         .. note:: For more information about hooks, see :class:`~sgtk.Hook`
 
         :param key: The name of the hook setting you want to execute.
         :param method_name: Name of the method to execute
+        :param base_class: A python class to use as the base class for the created
+            hook. This will override the default hook base class, ``Hook``.
+        :returns: The return value from the hook
         """
         hook_name = self.get_setting(key)
         resolved_hook_paths = self.__resolve_hook_expression(key, hook_name)
-        return hook.execute_hook_method(resolved_hook_paths, self, method_name, **kwargs)
+        return hook.execute_hook_method(
+            resolved_hook_paths,
+            self,
+            method_name,
+            base_class=base_class,
+            **kwargs
+        )
 
-    def execute_hook_expression(self, hook_expression, method_name, **kwargs):
+    def execute_hook_expression(self, hook_expression, method_name, base_class=None, **kwargs):
         """
         Execute an arbitrary hook via an expression. While the methods execute_hook
         and execute_hook_method allows you to execute a particular hook setting as
@@ -610,13 +639,25 @@ class TankBundle(object):
         In that case, you cannot use execute_hook, but instead will have to retrieve
         the value specifically and then run it.
 
+        An optional ``base_class`` can be provided to override the default :class:`~sgtk.Hook`
+        base class. This is useful for bundles that want to define and document a strict
+        interface for hooks. The classes defined in the hook have to derived from this classes.
+
         .. note:: For more information about hooks, see :class:`~sgtk.Hook`
 
         :param hook_expression: Path to hook to execute. See above for syntax details.
         :param method_name: Method inside the hook to execute.
+        :param base_class: A python class to use as the base class for the created
+            hook. This will override the default hook base class, ``Hook``.
+        :returns: The return value from the hook
         """
         resolved_hook_paths = self.__resolve_hook_expression(None, hook_expression)
-        return hook.execute_hook_method(resolved_hook_paths, self, method_name, **kwargs)
+        return hook.execute_hook_method(
+            resolved_hook_paths,
+            self,
+            method_name,
+            base_class=base_class,
+            **kwargs)
 
     def execute_hook_by_name(self, hook_name, **kwargs):
         """
@@ -642,7 +683,7 @@ class TankBundle(object):
         hook_path = os.path.join(hook_folder, "%s.py" % hook_name)
         return hook.execute_hook(hook_path, self, **kwargs)
 
-    def create_hook_instance(self, hook_expression):
+    def create_hook_instance(self, hook_expression, base_class=None):
         """
         Returns the instance of a hook object given an expression.
 
@@ -663,11 +704,22 @@ class TankBundle(object):
 
         .. note:: For more information about hook syntax, see :class:`~sgtk.Hook`
 
+        An optional ``base_class`` can be provided to override the default :class:`~sgtk.Hook`
+        base class. This is useful for bundles that create hook instances at
+        execution time and wish to provide default implementation without the need
+        to configure the base hook. The supplied class must inherit from Hook.
+
         :param hook_expression: Path to hook to execute. See above for syntax details.
+        :param base_class: A python class to use as the base class for the created
+            hook. This will override the default hook base class, ``Hook``.
         :returns: :class:`Hook` instance.
         """
         resolved_hook_paths = self.__resolve_hook_expression(None, hook_expression)
-        return hook.create_hook_instance(resolved_hook_paths, self)
+        return hook.create_hook_instance(
+            resolved_hook_paths,
+            self,
+            base_class=base_class
+        )
 
     def ensure_folder_exists(self, path):
         """
@@ -926,7 +978,7 @@ class TankBundle(object):
                     engine_name=self._get_engine_name(),
             )
 
-            if default_value: # possible not to have a default value!
+            if default_value:  # possible not to have a default value!
 
                 # expand the default value to be referenced from {self} and with the .py suffix
                 # for backwards compatibility with the old syntax where the default value could
@@ -947,6 +999,14 @@ class TankBundle(object):
 
         # resolve paths into actual file paths
         resolved_hook_paths = [self.__resolve_hook_path(settings_name, x) for x in unresolved_hook_paths]
+
+        core_logger.debug(
+            "%s: Resolved hook expression (associated with setting '%s'): '%s' -> %s" % (
+                self,
+                settings_name,
+                hook_expression,
+                resolved_hook_paths)
+        )
 
         return resolved_hook_paths
 

@@ -17,7 +17,7 @@ import tank
 from tank import TankError
 
 from tank.template import TemplatePath
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 from tank.templatekey import (TemplateKey, StringKey, IntegerKey, 
                                 SequenceKey)
 
@@ -26,8 +26,9 @@ class TestTemplatePath(TankTestBase):
     Base class for tests of TemplatePath. Do not add tests to this class directly.
     """
     def setUp(self):
-        super(TestTemplatePath, self).setUp()
-
+        super(TestTemplatePath, self).setUp(
+            parameters={"primary_root_name": "primary_with_a_different_name"}
+        )
         # Make various types of keys(fields)
         self.keys = {"Sequence": StringKey("Sequence"),
                      "Shot": StringKey("Shot", default="s1", choices=["s1","s2","shot_1"]),
@@ -48,7 +49,7 @@ class TestTemplatePath(TankTestBase):
         
         # new style template object which supports all recognized platforms
         # get all OS roots for primary storage
-        all_roots = self.pipeline_configuration.get_all_platform_data_roots()["primary"]
+        all_roots = self.pipeline_configuration.get_all_platform_data_roots()[self.primary_root_name]
         
         self.template_path = TemplatePath(self.definition, 
                                           self.keys, 
@@ -323,17 +324,17 @@ class TestApplyFields(TestTemplatePath):
                    "snapshot": 2}        
         
         result = self.template_path.apply_fields(fields, "win32")
-        root = self.pipeline_configuration.get_all_platform_data_roots()["primary"]["win32"]
+        root = self.pipeline_configuration.get_all_platform_data_roots()[self.primary_root_name]["win32"]
         expected = "%s\\%s" % (root, relative_path.replace(os.sep, "\\"))
         self.assertEquals(expected, result)
 
         result = self.template_path.apply_fields(fields, "linux2")
-        root = self.pipeline_configuration.get_all_platform_data_roots()["primary"]["linux2"]
+        root = self.pipeline_configuration.get_all_platform_data_roots()[self.primary_root_name]["linux2"]
         expected = "%s/%s" % (root, relative_path.replace(os.sep, "/"))
         self.assertEquals(expected, result)
 
         result = self.template_path.apply_fields(fields, "darwin")
-        root = self.pipeline_configuration.get_all_platform_data_roots()["primary"]["darwin"]
+        root = self.pipeline_configuration.get_all_platform_data_roots()[self.primary_root_name]["darwin"]
         expected = "%s/%s" % (root, relative_path.replace(os.sep, "/"))
         self.assertEquals(expected, result)
 

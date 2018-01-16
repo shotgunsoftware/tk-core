@@ -39,7 +39,7 @@ PIPELINE_CONFIGURATION_ENTITY = "PipelineConfiguration"
 PRIMARY_PIPELINE_CONFIG_NAME = "Primary"
 
 # The name of the default config
-DEFAULT_CFG = "tk-config-default"
+DEFAULT_CFG = "tk-config-default2"
 
 # the name of the shell engine
 SHELL_ENGINE = "tk-shell"

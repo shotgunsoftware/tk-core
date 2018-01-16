@@ -159,7 +159,11 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
                                     ["code", "project", "linux_path", "windows_path", "mac_path"])
     source_folder = source_pc.get(curr_os)
     
-    target_folder = {"linux2":target_linux, "win32":target_win, "darwin":target_mac }[sys.platform] 
+    target_folder = {
+        "linux2": target_linux,
+        "win32": target_win,
+        "darwin": target_mac
+    }[sys.platform]
     
     log.debug("Cloning %s -> %s" % (source_folder, target_folder))
     
@@ -175,7 +179,8 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
         os.mkdir(os.path.join(target_folder, "cache"), 0o777)
         filesystem.copy_folder(
             os.path.join(source_folder, "config"),
-            os.path.join(target_folder, "config")
+            os.path.join(target_folder, "config"),
+            skip_list=[]
         )
         filesystem.copy_folder(
             os.path.join(source_folder, "install"),
