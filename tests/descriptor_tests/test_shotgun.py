@@ -12,10 +12,10 @@ import os
 
 import sgtk
 from mock import patch
-from tank_test.tank_test_base import TankTestSimple, setUpModule # noqa
+from tank_test.tank_test_base import ShotgunTestBase, setUpModule # noqa
 
 
-class TestShotgunIODescriptor(TankTestSimple):
+class TestShotgunIODescriptor(ShotgunTestBase):
     """
     Testing the Shotgun IO descriptor
     """
@@ -24,7 +24,7 @@ class TestShotgunIODescriptor(TankTestSimple):
         """
         Sets up the next test's environment.
         """
-        TankTestSimple.setUp(self)
+        ShotgunTestBase.setUp(self)
 
         self.bundle_cache = os.path.join(self.project_root, "bundle_cache")
 

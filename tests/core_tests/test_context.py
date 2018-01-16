@@ -38,12 +38,14 @@ class TestContext(TankTestBase):
         # set up test data with single sequence, shot, step and human user
         self.seq = {"type": "Sequence", "code": "seq_name", "id": 3}
 
-        self.shot = {"type": "Shot",
-                     "code": "shot_name",
-                     "id": 2,
-                     "extra_field": "extravalue", # used to test query from template
-                     "sg_sequence": self.seq,
-                     "project": self.project}
+        self.shot = {
+            "type": "Shot",
+            "code": "shot_name",
+            "id": 2,
+            "extra_field": "extravalue", # used to test query from template
+            "sg_sequence": self.seq,
+            "project": self.project
+        }
 
         self.step = {"type":"Step", "name": "step_name", "id": 4}
 
@@ -1174,12 +1176,12 @@ class TestMultiRoot(TestContext):
         expected_step_name = "step_short_name"
         expected_shot_name = "shot_code"
 
-        kws = {}
-        kws["tk"] = self.tk
-        kws["project"] = self.project
-        kws["entity"]  = self.shot
-        kws["step"]    = self.step
-        ctx = context.Context(**kws)
+        ctx = context.Context(
+            tk=self.tk,
+            project=self.project,
+            entity=self.shot,
+            step=self.step,
+        )
 
         result = ctx.as_template_fields(template)
         self.assertEquals(expected_step_name, result['Step'])

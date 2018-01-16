@@ -150,14 +150,16 @@ class UnitTestTimer(object):
             """
             Returns how much time on average is spent in the tracked method.
             """
-            return float(self.total_time) / self.nb_invokes
+            return float(self.total_time) / self.nb_invokes if self.nb_invokes else 0
 
     def __init__(self):
         self._timers = defaultdict(self.Stat)
 
     def clock_func(self, name):
         """
-        Creates a decorator with the given name that will track the time spent inside a function.
+        Used as a decorator, this method will track how much time is spent inside the method.
+
+        :param name: Name of the scope being timed.
         """
         def decorator(func):
             @wraps(func)
@@ -179,7 +181,7 @@ class UnitTestTimer(object):
         print()
         print("Test run stats")
         print("==============")
-        for name, stat in sorted(self._timers.items(), key=lambda x: -x[1].total_time):
+        for name, stat in sorted(self._timers.items(), key=lambda x: x[1].total_time, reverse=True):
             print("{0} : {1} ({2} hits, {3:.3f} avg)".format(name, stat.total_time, stat.nb_invokes, stat.average))
 
         print(
@@ -913,7 +915,7 @@ def _move_data(path):
             os.rename(path, backup_path)
 
 
-class TankTestSimple(TankTestBase):
+class ShotgunTestBase(TankTestBase):
     """
     Base class for running tests that need a scaffold similar to `TankTestBase` without
     the pipeline configuration that is usually created. This gives a big speed boost
@@ -923,4 +925,4 @@ class TankTestSimple(TankTestBase):
     def setUp(self, parameters=None):
         parameters = parameters or {}
         parameters["do_io"] = False
-        super(TankTestSimple, self).setUp(parameters)
+        super(ShotgunTestBase, self).setUp(parameters)

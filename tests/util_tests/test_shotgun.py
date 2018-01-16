@@ -21,7 +21,7 @@ from mock import patch, call
 
 import tank
 from tank import context, errors
-from tank_test.tank_test_base import TankTestBase, TankTestSimple
+from tank_test.tank_test_base import TankTestBase, ShotgunTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
@@ -226,7 +226,7 @@ class TestMultiRoot(TankTestBase):
         self.assertEqual(sg_data.keys(), ["type", "id"])
 
 
-class TestShotgunDownloadUrl(TankTestSimple):
+class TestShotgunDownloadUrl(ShotgunTestBase):
 
     def setUp(self):
         super(TestShotgunDownloadUrl, self).setUp()

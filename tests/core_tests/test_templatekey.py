@@ -19,12 +19,12 @@ import copy
 import sys
 import datetime
 from mock import patch
-from tank_test.tank_test_base import TankTestSimple
+from tank_test.tank_test_base import ShotgunTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 from tank.templatekey import StringKey, IntegerKey, SequenceKey, TimestampKey, make_keys
 
 
-class TestTemplateKey(TankTestSimple):
+class TestTemplateKey(ShotgunTestBase):
     """
     Tests functionality common to all key classes.
     """
@@ -39,7 +39,7 @@ class TestTemplateKey(TankTestSimple):
         self.assertEquals(sk.default, "%03d")
 
 
-class TestStringKey(TankTestSimple):
+class TestStringKey(ShotgunTestBase):
     def setUp(self):
         super(TestStringKey, self).setUp()
         self.str_field = StringKey("field_name")
@@ -372,7 +372,7 @@ class TestStringKey(TankTestSimple):
             self.assertRaises(TankError, template_field.str_from_value, short[0])
 
 
-class TestIntegerKey(TankTestSimple):
+class TestIntegerKey(ShotgunTestBase):
     def setUp(self):
         super(TestIntegerKey, self).setUp()
         self.int_field = IntegerKey("field_name")
@@ -648,7 +648,7 @@ class TestIntegerKey(TankTestSimple):
         self._test_strict_matching('0')
 
 
-class TestSequenceKey(TankTestSimple):
+class TestSequenceKey(ShotgunTestBase):
     def setUp(self):
         super(TestSequenceKey, self).setUp()
         self.seq_field = SequenceKey("field_name")
@@ -872,7 +872,7 @@ class TestSequenceKey(TankTestSimple):
         self.assertEquals(list(frame_specs), seq_frame.choices)
 
 
-class TestMakeKeys(TankTestSimple):
+class TestMakeKeys(ShotgunTestBase):
     def test_no_data(self):
         data = {}
         result = make_keys(data)
@@ -989,7 +989,7 @@ class TestMakeKeys(TankTestSimple):
         self.assertEquals("alias_name", key.name)
 
 
-class TestEyeKey(TankTestSimple):
+class TestEyeKey(ShotgunTestBase):
     """
     Tests that key representing eye can be setup.
     """
@@ -1013,7 +1013,7 @@ class TestEyeKey(TankTestSimple):
         self.assertTrue(self.eye_key.validate("r"))
 
 
-class TestTimestampKey(TankTestSimple):
+class TestTimestampKey(ShotgunTestBase):
     """
     Test timestamp key type.
     """

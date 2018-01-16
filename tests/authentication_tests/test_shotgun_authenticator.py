@@ -13,7 +13,7 @@ from mock import patch
 import os
 import base64
 
-from tank_test.tank_test_base import TankTestSimple
+from tank_test.tank_test_base import ShotgunTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 
 from tank.authentication import ShotgunAuthenticator, IncompleteCredentials, DefaultsManager, user_impl, user
@@ -27,7 +27,7 @@ class TestDefaultManager(DefaultsManager):
         return "https://some_site.shotgunstudio.com"
 
 
-class ShotgunAuthenticatorTests(TankTestSimple):
+class ShotgunAuthenticatorTests(ShotgunTestBase):
 
     @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     @patch("tank.authentication.session_cache.generate_session_token")

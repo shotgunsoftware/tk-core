@@ -19,7 +19,7 @@ import json
 
 from mock import patch
 
-from tank_test.tank_test_base import TankTestSimple, setUpModule # noqa
+from tank_test.tank_test_base import ShotgunTestBase, setUpModule # noqa
 
 import sgtk
 from sgtk.descriptor import Descriptor
@@ -31,7 +31,7 @@ from tank.platform.environment import InstalledEnvironment
 from distutils.version import LooseVersion
 
 
-class TestAppStoreLabels(TankTestSimple):
+class TestAppStoreLabels(ShotgunTestBase):
     """
     Tests the app store io descriptor
     """
@@ -242,7 +242,7 @@ class TestAppStoreLabels(TankTestSimple):
         )
 
 
-class TestAppStoreConnectivity(TankTestSimple):
+class TestAppStoreConnectivity(ShotgunTestBase):
     """
     Tests the app store io descriptor
     """

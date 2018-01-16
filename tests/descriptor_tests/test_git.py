@@ -13,10 +13,10 @@ import os
 import sgtk
 from sgtk.descriptor import Descriptor
 from tank_test.tank_test_base import setUpModule # noqa
-from tank_test.tank_test_base import TankTestSimple, skip_if_git_missing
+from tank_test.tank_test_base import ShotgunTestBase, skip_if_git_missing
 
 
-class TestGitIODescriptor(TankTestSimple):
+class TestGitIODescriptor(ShotgunTestBase):
     """
     Testing the Shotgun deploy main API methods
     """
@@ -25,7 +25,7 @@ class TestGitIODescriptor(TankTestSimple):
         """
         Sets up the next test's environment.
         """
-        TankTestSimple.setUp(self)
+        ShotgunTestBase.setUp(self)
 
         # bare repo cloned from our official default config
         # multiple branches and tags

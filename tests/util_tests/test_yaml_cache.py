@@ -15,11 +15,11 @@ import sgtk
 from sgtk.util.yaml_cache import YamlCache
 from sgtk import TankError
 from tank_vendor import yaml
-from tank_test.tank_test_base import TankTestSimple
+from tank_test.tank_test_base import ShotgunTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 
 
-class TestYamlCache(TankTestSimple):
+class TestYamlCache(ShotgunTestBase):
     """
     Tests to ensure that the YamlCache behaves correctly
     """
@@ -28,7 +28,7 @@ class TestYamlCache(TankTestSimple):
         """
         Construction
         """
-        TankTestSimple.__init__(self, *args, **kwargs)
+        ShotgunTestBase.__init__(self, *args, **kwargs)
 
         # data root for all test data:
         self._data_root = os.path.join(self.fixtures_root, "misc", "yaml_cache")

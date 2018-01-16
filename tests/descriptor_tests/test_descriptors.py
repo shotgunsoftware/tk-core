@@ -12,7 +12,7 @@ from __future__ import with_statement
 import os
 import sgtk
 
-from tank_test.tank_test_base import TankTestSimple, TankTestBase, SealedMock
+from tank_test.tank_test_base import ShotgunTestBase, TankTestBase, SealedMock
 from tank_test.tank_test_base import setUpModule # noqa
 from tank.errors import TankError
 from tank.descriptor import (
@@ -26,7 +26,7 @@ from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
 from tank_vendor import yaml
 
 
-class TestCachedConfigDescriptor(TankTestSimple):
+class TestCachedConfigDescriptor(ShotgunTestBase):
 
     def test_cached_config_associated_core_descriptor(self):
         """

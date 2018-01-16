@@ -13,7 +13,7 @@ import os
 import sys
 
 import tank
-from tank_test.tank_test_base import TankTestSimple, temp_env_var
+from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
 from tank_test.tank_test_base import setUpModule # noqa
 from tank.template_includes import _get_includes as get_template_includes
 from tank.platform.environment_includes import _resolve_includes as get_environment_includes
@@ -25,7 +25,7 @@ class TestIncludes(object):
     Allows to nest the Imp class so that the unit test runner doesn't try to run it.
     """
 
-    class Imp(TankTestSimple):
+    class Imp(ShotgunTestBase):
         """
         Tests includes. _resolve_includes needs to be reimplemented by the derived class
 

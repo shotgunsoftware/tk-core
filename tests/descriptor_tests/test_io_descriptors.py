@@ -12,13 +12,13 @@ from __future__ import with_statement
 import os
 
 
-from tank_test.tank_test_base import TankTestSimple, temp_env_var
+from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
 from tank_test.tank_test_base import setUpModule # noqa
 
 import sgtk
 
 
-class TestIODescriptors(TankTestSimple):
+class TestIODescriptors(ShotgunTestBase):
     """
     Testing the Shotgun deploy main API methods
     """

@@ -17,11 +17,11 @@ import tank
 from tank import TankError
 
 from tank.template import TemplatePath
-from tank_test.tank_test_base import TankTestSimple, setUpModule # noqa
+from tank_test.tank_test_base import ShotgunTestBase, setUpModule # noqa
 from tank.templatekey import (StringKey, IntegerKey, SequenceKey)
 
 
-class TestTemplatePath(TankTestSimple):
+class TestTemplatePath(ShotgunTestBase):
     """
     Base class for tests of TemplatePath. Do not add tests to this class directly.
     """

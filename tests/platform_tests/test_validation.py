@@ -1,14 +1,14 @@
 import os
 
 from tank.templatekey import StringKey
-from tank_test.tank_test_base import TankTestSimple, TankTestBase
+from tank_test.tank_test_base import ShotgunTestBase, TankTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 from tank.platform.validation import *
 
 import tank
 
 
-class TestValidateSchema(TankTestSimple):
+class TestValidateSchema(ShotgunTestBase):
     def setUp(self):
         super(TestValidateSchema, self).setUp()
         

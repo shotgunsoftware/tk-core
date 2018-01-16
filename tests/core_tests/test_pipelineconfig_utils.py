@@ -26,11 +26,11 @@ from tank import (
 )
 from tank.util import ShotgunPath
 
-from tank_test.tank_test_base import TankTestSimple, temp_env_var
+from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
 from tank_test.tank_test_base import setUpModule # noqa
 
 
-class TestGetConfigInstallLocationPathSlashes(TankTestSimple):
+class TestGetConfigInstallLocationPathSlashes(ShotgunTestBase):
     """
     Tests the case where a Windows config location uses double slashes.
     """
@@ -59,7 +59,7 @@ class TestGetConfigInstallLocationPathSlashes(TankTestSimple):
             )
 
 
-class TestPipelineConfigUtils(TankTestSimple):
+class TestPipelineConfigUtils(ShotgunTestBase):
     """
     Tests pipeline configuration utilities.
     """

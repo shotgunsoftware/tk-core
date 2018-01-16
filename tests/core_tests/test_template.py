@@ -16,7 +16,7 @@ import time
 import unittest2
 import tank
 from tank import TankError
-from tank_test.tank_test_base import TankTestBase, TankTestSimple, setUpModule # noqa
+from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule # noqa
 from tank.template import Template, TemplatePath, TemplateString
 from tank.template import make_template_paths, make_template_strings
 from tank.templatekey import (TemplateKey, StringKey, IntegerKey, SequenceKey, TimestampKey)
@@ -254,7 +254,7 @@ class TestSplitPath(unittest2.TestCase):
         self.assertEquals(expected, result)
 
 
-class TestMakeTemplatePaths(TankTestSimple):
+class TestMakeTemplatePaths(ShotgunTestBase):
     def setUp(self):
         super(TestMakeTemplatePaths, self).setUp()
         self.keys = {"Shot": StringKey("Shot")}
@@ -338,7 +338,7 @@ class TestMakeTemplatePaths(TankTestSimple):
         self.assertEquals(modified_roots["alternate_1"][sys.platform], alt_templatte.root_path)
 
 
-class TestMakeTemplateStrings(TankTestSimple):
+class TestMakeTemplateStrings(ShotgunTestBase):
     def setUp(self):
         super(TestMakeTemplateStrings, self).setUp()
         self.keys = {"Shot": StringKey("Shot")}

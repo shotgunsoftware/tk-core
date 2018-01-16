@@ -11,7 +11,7 @@
 from __future__ import with_statement
 from mock import patch
 
-from tank_test.tank_test_base import TankTestSimple
+from tank_test.tank_test_base import ShotgunTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 
 
@@ -19,7 +19,7 @@ from tank_vendor.shotgun_api3 import AuthenticationFault
 from tank.authentication import user_impl, ShotgunAuthenticationError
 
 
-class ShotgunWrapperTests(TankTestSimple):
+class ShotgunWrapperTests(ShotgunTestBase):
     """
     Tests the user_impl module.
     """

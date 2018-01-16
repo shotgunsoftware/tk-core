@@ -20,7 +20,7 @@ from shutil import copytree
 
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import temp_env_var
-from tank_test.tank_test_base import TankTestSimple
+from tank_test.tank_test_base import ShotgunTestBase
 
 
 # Copied from Python 2.7's source code.
@@ -37,7 +37,7 @@ def ignore_patterns(*patterns):
     return _ignore_patterns
 
 
-class TestBackups(TankTestSimple):
+class TestBackups(ShotgunTestBase):
     def setUp(self):
         super(TestBackups, self).setUp()
 

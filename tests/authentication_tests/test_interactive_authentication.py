@@ -17,7 +17,7 @@ from __future__ import with_statement, print_function
 import sys
 
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import TankTestSimple, skip_if_pyside_missing, interactive
+from tank_test.tank_test_base import ShotgunTestBase, skip_if_pyside_missing, interactive
 from mock import patch
 from tank.authentication import (
     console_authentication,
@@ -31,7 +31,7 @@ import tank
 
 
 @skip_if_pyside_missing
-class InteractiveTests(TankTestSimple):
+class InteractiveTests(ShotgunTestBase):
     """
     Tests ui and console based authentication.
     """

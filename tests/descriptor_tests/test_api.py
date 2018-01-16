@@ -14,11 +14,11 @@ import uuid
 import sgtk
 import tank
 
-from tank_test.tank_test_base import TankTestSimple
+from tank_test.tank_test_base import ShotgunTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 
 
-class TestApi(TankTestSimple):
+class TestApi(ShotgunTestBase):
     """
     Testing the Shotgun deploy main API methods
     """

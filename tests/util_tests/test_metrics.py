@@ -25,7 +25,7 @@ from tank.util.constants import TANK_LOG_METRICS_HOOK_NAME
 
 import tank
 from tank_test.tank_test_base import setUpModule # noqa
-from tank_test.tank_test_base import TankTestBase, TankTestSimple
+from tank_test.tank_test_base import TankTestBase, ShotgunTestBase
 from tank.authentication import ShotgunAuthenticator
 
 import os
@@ -37,7 +37,7 @@ import time
 import unittest2
 
 
-class TestEventMetric(TankTestSimple):
+class TestEventMetric(ShotgunTestBase):
     """Cases testing tank.util.metrics.EventMetric class"""
 
     def test_data_property(self):
@@ -793,7 +793,7 @@ class TestMetricsQueueSingleton(unittest2.TestCase):
         self.assertTrue(obj1 == obj2 == obj3)
 
 
-class TestMetricsDeprecatedFunctions(TankTestSimple):
+class TestMetricsDeprecatedFunctions(ShotgunTestBase):
     """ Cases testing tank.util.metrics of deprecated functions
 
         Test that the `log_metric`, `log_user_activity_metric` and
@@ -869,7 +869,7 @@ class TestMetricsDeprecatedFunctions(TankTestSimple):
                                                      "`log_user_activity_metric` method.")
 
 
-class TestMetricsFunctions(TankTestSimple):
+class TestMetricsFunctions(ShotgunTestBase):
     """Cases testing tank.util.metrics functions"""
 
     def test_log_event_metric_with_bad_metrics(self):
