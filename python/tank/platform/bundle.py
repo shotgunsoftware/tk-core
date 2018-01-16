@@ -743,21 +743,45 @@ class TankBundle(object):
         except Exception as e:
             raise TankError("Error creating folder %s: %s" % (path, e))
 
-    def remove_old_cached_data(self, grace_period=7):
+    def get_metrics_properties(self):
+        """
+        Should be re-implemented in deriving classes and return a dictionary with
+        the properties needed to log a metric event for this bundle.
+
+        :raises: NotImplementedError
+        """
+        raise NotImplementedError
+
+    ##########################################################################################
+    # internal helpers
+
+    def _remove_old_cached_data(self, grace_period=7):
         """
         Remove data old files cached by this bundle.
 
         A file is considered old if it was not modified in the last number of days
         specified by the `grace_period` value.
 
-        If a negative grace_period is given all cached data is removed.
-        Resulting empty directories are removed as the clean up is done.
+        The `grace_period` value must be at least 1 (one day).
+
+        It is the responsability of the bundle implementation to ensure that
+        modification times for the files which should be kept are recent.
+        Typically, when re-using a cached file, the bundle should use
+        `os.utime(cached_file_path, None)` to update the modification time to the
+        current time.
 
         :param int grace_period: The number of days files without any modification
                                  should be kept around before being deleted.
+        :raises: ValueError if the grace_period is smaller than 1.
         """
+        if grace_period < 1:
+            raise ValueError(
+                "Invalid grace period value %d, it must be a least 1" % grace_period
+            )
+        self.logger.debug("Starting old data cleanup...")
         now = datetime.datetime.now()
         grace_period_delta = datetime.timedelta(days=grace_period)
+        # Clean up the site cache and the project cache locations.
         for cache_location in [self.site_cache_location, self.cache_location]:
             # Go bottom up in the hierarchy and delete old files
             for folder, dirs, files in os.walk(cache_location, topdown=False):
@@ -766,7 +790,9 @@ class TankBundle(object):
                     try:
                         file_stats = os.stat(file_path)
                         # Convert the timestamp to a datetime
-                        last_modif_time = datetime.datetime.fromtimestamp(int(file_stats.st_mtime))
+                        last_modif_time = datetime.datetime.fromtimestamp(
+                            int(file_stats.st_mtime)
+                        )
                         # Is it old enough to be removed?
                         if now - last_modif_time > grace_period_delta:
                             filesystem.safe_delete_file(file_path)
@@ -797,18 +823,9 @@ class TankBundle(object):
                         )
                         # And ignore it
                         pass
-
-    def get_metrics_properties(self):
-        """
-        Should be re-implemented in deriving classes and return a dictionary with
-        the properties needed to log a metric event for this bundle.
-
-        :raises: NotImplementedError
-        """
-        raise NotImplementedError
-
-    ##########################################################################################
-    # internal helpers
+        self.logger.debug(
+            "Old data cleanup completed in %s" % (datetime.datetime.now() - now)
+        )
 
     def _set_context(self, new_context):
         """
