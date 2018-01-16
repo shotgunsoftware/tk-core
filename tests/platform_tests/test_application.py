@@ -656,7 +656,6 @@ class TestBundleDataCache(TestApplication):
             one_day_in_seconds = (
                 one_day_delta.microseconds + (one_day_delta.seconds + one_day_delta.days * 24 * 3600) * 10**6
             ) / 10**6
-            one_day_in_seconds = datetime.timedelta(days=1).total_seconds()
             day_before_timestamp = time.time() - one_day_in_seconds
             os.utime(
                 dummy_file,
