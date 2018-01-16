@@ -14,12 +14,11 @@ import uuid
 import sgtk
 import tank
 
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import ShotgunTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 
-import tank
 
-class TestApi(TankTestBase):
+class TestApi(ShotgunTestBase):
     """
     Testing the Shotgun deploy main API methods
     """
@@ -39,7 +38,7 @@ class TestApi(TankTestBase):
         Basic test of descriptor construction
         """
         d = sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
+            self.mockgun,
             sgtk.descriptor.Descriptor.CONFIG,
             {"type": "app_store", "version": "v0.1.6", "name": "tk-testbundlefactory"}
         )
@@ -56,19 +55,19 @@ class TestApi(TankTestBase):
         self.assertEqual(app_root_path, d.get_path())
 
         d1 = sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
+            self.mockgun,
             sgtk.descriptor.Descriptor.CONFIG,
             "sgtk:descriptor:git?path=https%3A//github.com/shotgunsoftware/tk-core.git&version=v0.1.2"
         )
 
         d2 = sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
+            self.mockgun,
             sgtk.descriptor.Descriptor.CONFIG,
             "sgtk:descriptor:git?path=https://github.com/shotgunsoftware/tk-core.git&version=v0.1.2"
         )
 
         d3 = sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
+            self.mockgun,
             sgtk.descriptor.Descriptor.CONFIG,
             {"type": "git", "version": "v0.1.2", "path": "https://github.com/shotgunsoftware/tk-core.git"}
         )
@@ -85,7 +84,7 @@ class TestApi(TankTestBase):
         self.assertRaises(
             sgtk.descriptor.TankDescriptorError,
             sgtk.descriptor.create_descriptor,
-            self.tk.shotgun,
+            self.mockgun,
             sgtk.descriptor.Descriptor.CONFIG,
             {"type": "app_store", "name": "tk-testbundlefactory"}
         )
@@ -100,7 +99,7 @@ class TestApi(TankTestBase):
         )
         self._touch_info_yaml(app_root_path)
         d = sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
+            self.mockgun,
             sgtk.descriptor.Descriptor.CONFIG,
             {"type": "app_store", "name": "tk-testbundlefactory"},
             resolve_latest=True
@@ -117,7 +116,7 @@ class TestApi(TankTestBase):
         )
         self._touch_info_yaml(app_root_path)
         d = sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
+            self.mockgun,
             sgtk.descriptor.Descriptor.CONFIG,
             {"type": "app_store", "name": "tk-testbundlefactory"},
             resolve_latest=True
@@ -127,7 +126,7 @@ class TestApi(TankTestBase):
         # we can do a direct lookup even when the version flag is set
         # but it will result in a latest version translation
         d = sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
+            self.mockgun,
             sgtk.descriptor.Descriptor.CONFIG,
             {"type": "app_store", "version": "v9999.1.6", "name": "tk-testbundlefactory"},
             resolve_latest=True
@@ -137,19 +136,18 @@ class TestApi(TankTestBase):
         # test opting out of the local fallback
         with self.assertRaisesRegexp(tank.descriptor.TankDescriptorError, "Could not get latest version of"):
             sgtk.descriptor.create_descriptor(
-                self.tk.shotgun,
+                self.mockgun,
                 sgtk.descriptor.Descriptor.CONFIG,
                 {"type": "app_store", "name": "tk-testbundlefactory"},
                 resolve_latest=True,
                 local_fallback_when_disconnected=False
             )
 
-
     def test_alt_cache_root(self):
         """
         Testing descriptor constructor in alternative cache location
         """
-        sg = self.tk.shotgun
+        sg = self.mockgun
 
         # make a unique bundleroot
         bundle_root = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)

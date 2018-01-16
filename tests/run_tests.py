@@ -80,7 +80,7 @@ class TankTestRunner(object):
 
     def run_tests(self, test_names):
         self.setup_suite(test_names)
-        return unittest.TextTestRunner(verbosity=2).run(self.suite)
+        return unittest.TextTestRunner(stream=sys.stdout, verbosity=2).run(self.suite)
 
     def _massage_test_names(self, test_names):
         """

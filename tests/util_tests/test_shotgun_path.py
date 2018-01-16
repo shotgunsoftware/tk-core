@@ -13,12 +13,12 @@ from __future__ import with_statement
 import sys
 
 from tank_test.tank_test_base import setUpModule # noqa
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import ShotgunTestBase
 
 from tank.util import ShotgunPath
 
 
-class TestShotgunPath(TankTestBase):
+class TestShotgunPath(ShotgunTestBase):
     """
     tests the ShotgunPath class
     """

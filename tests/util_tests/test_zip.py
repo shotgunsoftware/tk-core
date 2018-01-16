@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
+from tank_test.tank_test_base import ShotgunTestBase, setUpModule  # noqa
 import tank
 
 
@@ -33,7 +33,7 @@ def get_file_list(folder, prefix):
     return items
 
 
-class TestUnzipping(TankTestBase):
+class TestUnzipping(ShotgunTestBase):
     """
     Tests the tank.util.zip.unzip_file() method
     """

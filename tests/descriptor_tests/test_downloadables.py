@@ -19,7 +19,7 @@ import uuid
 import shutil
 import zipfile
 
-from tank_test.tank_test_base import TankTestBase, skip_if_git_missing, temp_env_var
+from tank_test.tank_test_base import ShotgunTestBase, skip_if_git_missing, temp_env_var
 from tank_test.tank_test_base import setUpModule # noqa
 
 import sgtk
@@ -37,7 +37,7 @@ def _raise_exception(placeholder_a="default_a", placeholder_b="default_b"):
     raise OSError("An unknown OSError occurred")
 
 
-class TestDownloadableIODescriptors(TankTestBase):
+class TestDownloadableIODescriptors(ShotgunTestBase):
     """
     Tests the ability of the descriptor to download to a path on disk.
     """
@@ -160,7 +160,7 @@ class TestDownloadableIODescriptors(TankTestBase):
         Helper method around create_descriptor.
         """
         return sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
+            self.mockgun,
             desc_type,
             location,
             resolve_latest=resolve_latest
