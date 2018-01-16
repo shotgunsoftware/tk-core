@@ -350,7 +350,7 @@ class LoginDialog(QtGui.QDialog):
         :param widget: Text editing widget to disable.
         :param toolkit_text: Tooltip text that explains why the widget is disabled.
         """
-        widget.setReadOnly(True)
+        widget.lineEdit().setReadOnly(True)
         widget.setEnabled(False)
         widget.setToolTip(tooltip_text)
 

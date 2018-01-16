@@ -14,6 +14,8 @@ Unit tests for interactive authentication.
 
 from __future__ import with_statement, print_function
 
+import contextlib
+
 import sys
 
 from tank_test.tank_test_base import setUpModule  # noqa
@@ -53,8 +55,8 @@ class InteractiveTests(ShotgunTestBase):
         # Import locally since login_dialog has a dependency on Qt and it might be missing
         from tank.authentication import login_dialog
         ld = login_dialog.LoginDialog(is_session_renewal=True)
-        self.assertTrue(ld.ui.site.isReadOnly())
-        self.assertTrue(ld.ui.login.isReadOnly())
+        self.assertTrue(ld.ui.site.lineEdit().isReadOnly())
+        self.assertTrue(ld.ui.login.lineEdit().isReadOnly())
 
     def _prepare_window(self, ld):
         """
@@ -75,24 +77,25 @@ class InteractiveTests(ShotgunTestBase):
         """
         # Import locally since login_dialog has a dependency on Qt and it might be missing
         from tank.authentication import login_dialog
-        ld = login_dialog.LoginDialog(is_session_renewal=False)
-        self.assertEqual(ld.ui.site.text(), "")
-        ld.close()
 
-        ld = login_dialog.LoginDialog(is_session_renewal=False, login="login")
-        self.assertEqual(ld.ui.site.text(), "")
-        ld.close()
+        with contextlib.closing(login_dialog.LoginDialog(is_session_renewal=False)) as ld:
+            self.assertEqual(ld.ui.site.currentText(), "")
 
-        ld = login_dialog.LoginDialog(is_session_renewal=False, hostname="host")
-        self._prepare_window(ld)
-        # window needs to be activated to get focus.
-        self.assertTrue(ld.ui.login.hasFocus())
-        ld.close()
+        with contextlib.closing(login_dialog.LoginDialog(is_session_renewal=False, login="login")) as ld:
+            self.assertEqual(ld.ui.site.currentText(), "")
 
-        ld = login_dialog.LoginDialog(is_session_renewal=False, hostname="host", login="login")
-        self._prepare_window(ld)
-        self.assertTrue(ld.ui.password.hasFocus())
-        ld.close()
+        # Makes sure the focus is set to the password even tough we've only specified the hostname
+        # because the current os user name is the default.
+        with contextlib.closing(login_dialog.LoginDialog(is_session_renewal=False, hostname="host")) as ld:
+            self._prepare_window(ld)
+            # window needs to be activated to get focus.
+            self.assertTrue(ld.ui.password.hasFocus())
+
+        with contextlib.closing(
+            login_dialog.LoginDialog(is_session_renewal=False, hostname="host", login="login")
+        ) as ld:
+            self._prepare_window(ld)
+            self.assertTrue(ld.ui.password.hasFocus())
 
     def _test_login(self, console):
         self._print_message(
@@ -319,6 +322,8 @@ class InteractiveTests(ShotgunTestBase):
         """
         # Import locally since login_dialog has a dependency on Qt and it might be missing
         from tank.authentication.login_dialog import LoginDialog
+        from PySide import QtGui
+
         ld = LoginDialog(is_session_renewal=False)
         self._prepare_window(ld)
         # For each widget in the ui, make sure that the text is properly cleaned
@@ -326,9 +331,15 @@ class InteractiveTests(ShotgunTestBase):
         for widget in [ld.ui._2fa_code, ld.ui.backup_code, ld.ui.site, ld.ui.login]:
             # Give the focus, so that editingFinished can be triggered.
             widget.setFocus()
-            widget.setText(" text ")
+            if isinstance(widget, QtGui.QLineEdit):
+                widget.setText(" text ")
+            else:
+                widget.lineEdit().setText(" text ")
             # Give the focus to another widget, which should trigger the editingFinished
             # signal and the dialog will clear the extra spaces in it.
             ld.ui.password.setFocus()
-            # Text should be cleaned of spaces now.
-            self.assertEqual(widget.text(), "text")
+            if isinstance(widget, QtGui.QLineEdit):
+                # Text should be cleaned of spaces now.
+                self.assertEqual(widget.text(), "text")
+            else:
+                self.assertEqual(widget.currentText(), "text")
