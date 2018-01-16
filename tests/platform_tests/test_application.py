@@ -650,6 +650,12 @@ class TestBundleDataCache(TestApplication):
                 self.assertTrue(os.path.exists(os.path.join(cache_folder, dummy_file)))
             # Change the modification time for a file and clean it up
             dummy_file = os.path.join(cache_folder, dummy_files.pop())
+            one_day_delta = datetime.timedelta(days=1)
+            # Datetime total_seconds was introduced in Python 2.7, so compute the
+            # value ourself
+            one_day_in_seconds = (
+                one_day_delta.microseconds + (one_day_delta.seconds + one_day_delta.days * 24 * 3600) * 10**6
+                ) / 10**6
             one_day_in_seconds = datetime.timedelta(days=1).total_seconds()
             day_before_timestamp = time.time() - one_day_in_seconds
             os.utime(
