@@ -50,7 +50,7 @@ class ShotgunAuthenticatorTests(TankTestBase):
             ShotgunAuthenticator(CustomDefaultManager()).create_session_user("login")
 
         # Passing a password should generate a session token
-        user = ShotgunAuthenticator(CustomDefaultManager()).create_session_user(
+        session_user = ShotgunAuthenticator(CustomDefaultManager()).create_session_user(
             "login", password="password", host="https://host.shotgunstudio.com"
         )
         self.assertIsInstance(session_user, user.ShotgunUser)
@@ -62,8 +62,9 @@ class ShotgunAuthenticatorTests(TankTestBase):
         self.assertEqual(connection.config.session_token, "session_token")
 
         # Passing invalid session_metadata will result in a regular ShotgunUser
-        session_user = ShotgunAuthenticator(TestDefaultManager())._create_session_user(
-            "login", password="password", host="https://host.shotgunstudio.com", session_metadata="invalid session_metadata"
+        session_user = ShotgunAuthenticator(CustomDefaultManager())._create_session_user(
+            "login", password="password", host="https://host.shotgunstudio.com",
+            session_metadata="invalid session_metadata"
         )
         self.assertIsInstance(session_user, user.ShotgunUser)
         self.assertNotIsInstance(session_user, user.ShotgunSamlUser)
@@ -74,8 +75,9 @@ class ShotgunAuthenticatorTests(TankTestBase):
         self.assertEqual(connection.config.session_token, "session_token")
 
         # Passing valid session_metadata will result in a ShotgunSamlUser
-        session_user = ShotgunAuthenticator(TestDefaultManager())._create_session_user(
-            "login", password="password", host="https://host.shotgunstudio.com", session_metadata=valid_session_metadata
+        session_user = ShotgunAuthenticator(CustomDefaultManager())._create_session_user(
+            "login", password="password", host="https://host.shotgunstudio.com",
+            session_metadata=valid_session_metadata
         )
         self.assertIsInstance(session_user, user.ShotgunSamlUser)
         self.assertEquals(generate_session_token_mock.call_count, 3)
@@ -120,7 +122,6 @@ class ShotgunAuthenticatorTests(TankTestBase):
                                             with the Shotgun server.
         """
         generate_session_token_mock.return_value = "session_token"
-
 
         class TestWithUserDefaultManager(CustomDefaultManager):
             def get_host(self):
