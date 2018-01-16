@@ -16,8 +16,9 @@ from mock import patch
 
 import tank
 from tank import errors
+
+from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
 from tank_test.tank_test_base import setUpModule # noqa
-from tank_test.tank_test_base import TankTestBase, temp_env_var
 from tank.authentication.user import ShotgunUser
 from tank.authentication.user_impl import SessionUser
 from tank.descriptor import Descriptor
@@ -26,7 +27,7 @@ from tank.util.shotgun.connection import sanitize_url
 
 
 @patch("tank.util.shotgun.connection.__get_api_core_config_location", return_value="unknown_path_location")
-class TestGetSgConfigData(TankTestBase):
+class TestGetSgConfigData(ShotgunTestBase):
 
     def test_all_fields_present(self, get_api_core_config_location_mock):
         """

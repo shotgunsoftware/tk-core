@@ -14,13 +14,14 @@ Tests of class TemplateString
 
 import os
 
-from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
+from tank_test.tank_test_base import ShotgunTestBase, setUpModule # noqa
 
 from tank.errors import TankError
 from tank.template import TemplateString
 from tank.templatekey import (StringKey, IntegerKey)
 
-class TestTemplateString(TankTestBase):
+
+class TestTemplateString(ShotgunTestBase):
     """Base class for TemplateString tests."""
     def setUp(self):
         super(TestTemplateString, self).setUp()

@@ -17,13 +17,12 @@ import tank
 from tank import context
 from tank import TankError
 from tank_test.tank_test_base import setUpModule # noqa
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import ShotgunTestBase
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
 
 
-
-class TestVersionCompare(TankTestBase):
+class TestVersionCompare(ShotgunTestBase):
     
     def setUp(self):
         super(TestVersionCompare, self).setUp()
