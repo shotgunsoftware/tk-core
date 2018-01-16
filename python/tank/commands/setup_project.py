@@ -171,7 +171,7 @@ class SetupProjectAction(Action):
             log.info("Localizing Core...")
             core_localize.do_localize(
                 log,
-                sg,
+                self.tk.shotgun,
                 config_path,
                 suppress_prompts=True
             )
@@ -257,7 +257,7 @@ class SetupProjectAction(Action):
             log.info("Localizing Core...")
             core_localize.do_localize(
                 log,
-                sg,
+                self.tk.shotgun,
                 config_path,
                 suppress_prompts=True
             )

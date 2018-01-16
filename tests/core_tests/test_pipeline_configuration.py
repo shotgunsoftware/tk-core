@@ -18,7 +18,7 @@ from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import TankTestBase, temp_env_var
 
 import tank
-from tank.commands.setup_project import SetupProjectAction
+from tank.commands import get_command
 from tank.bootstrap.configuration_writer import ConfigurationWriter
 from tank.descriptor import Descriptor, create_descriptor
 from tank_vendor import yaml
@@ -253,8 +253,9 @@ class TestConfigLocations(TankTestBase):
                 "win32": core_root if sys.platform == "win32" else None,
                 "darwin": core_root if sys.platform == "darwin" else None
             }):
-                SetupProjectAction().run_noninteractive(
-                    logging.getLogger("test"),
+                command = get_command("setup_project", self.tk)
+                command.set_logger(logging.getLogger("test"))
+                command.execute(
                     dict(
                         config_uri=os.path.join(self.fixtures_root, "config"),
                         project_id=self._project["id"],
