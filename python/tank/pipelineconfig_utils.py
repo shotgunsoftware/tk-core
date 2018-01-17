@@ -31,6 +31,21 @@ from .errors import TankError
 logger = LogManager.get_logger(__name__)
 
 
+def get_local_bundle_cache_path(pipeline_config_path):
+    """
+    Returns the path to the bundle cache folder within the config. This folder
+    may or may not exist.
+    :param pipeline_config_path:
+    :return:
+    """
+
+    # build the full path to where a bundle cache would exist within the
+    # configuration.
+    return os.path.join(
+        pipeline_config_path,
+        constants.BUNDLE_CACHE_FOLDER_NAME
+    )
+
 def has_core_descriptor(pipeline_config_path):
     """
     Returns ``True`` if the pipeline configuration contains a core descriptor
@@ -42,6 +57,17 @@ def has_core_descriptor(pipeline_config_path):
     # probe by looking for the existence of a core api descriptor file
     return os.path.exists(_get_core_descriptor_file(pipeline_config_path))
 
+def has_local_bundle_cache(pipeline_config_path):
+    """
+    Returns ``True`` if the pipeline configuration contains a local bundle
+    cache folder.
+
+    :param pipeline_config_path: path to a pipeline configuraiton root folder
+    :return: ``True`` if the configuration has a local bundle cache, ``False``
+        otherwise.
+    """
+
+    return os.path.exists(get_local_bundle_cache_path(pipeline_config_path))
 
 def is_localized(pipeline_config_path):
     """

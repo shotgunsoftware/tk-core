@@ -892,7 +892,7 @@ class TestResolvedConfiguration(TankTestBase):
             config,
             sgtk.bootstrap.resolver.InstalledConfiguration
         )
-        self.assertEqual(config.has_local_bundle_cache, True)
+        self.assertEqual(config.requires_dynamic_bundle_caching, False)
 
     def test_resolve_baked_configuration(self):
         """
@@ -910,7 +910,7 @@ class TestResolvedConfiguration(TankTestBase):
             config,
             sgtk.bootstrap.resolver.BakedConfiguration
         )
-        self.assertEqual(config.has_local_bundle_cache, True)
+        self.assertEqual(config.requires_dynamic_bundle_caching, False)
 
     def test_resolve_cached_configuration(self):
         """
@@ -928,7 +928,7 @@ class TestResolvedConfiguration(TankTestBase):
             config,
             sgtk.bootstrap.resolver.CachedConfiguration
         )
-        self.assertEqual(config.has_local_bundle_cache, False)
+        self.assertEqual(config.requires_dynamic_bundle_caching, True)
 
 
 class TestResolvedLatestConfiguration(TankTestBase):

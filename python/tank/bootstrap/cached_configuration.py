@@ -16,6 +16,11 @@ from . import constants
 
 from .errors import TankBootstrapError
 
+from ..pipelineconfig_utils import (
+    has_local_bundle_cache,
+    get_local_bundle_cache_path
+)
+
 from ..util import filesystem
 
 from tank_vendor import yaml
@@ -277,6 +282,13 @@ class CachedConfiguration(Configuration):
                 # Old-style config, so copy the contents inside it.
                 self._descriptor.copy(os.path.join(self._path.current_os, "config"))
 
+            # if the config has a local bundle cache folder, append it to the
+            # list of fallback paths
+            if has_local_bundle_cache(self.path):
+                self._bundle_cache_fallback_paths.append(
+                    get_local_bundle_cache_path(self._path)
+                )
+
             # write out config files
             self._config_writer.write_install_location_file()
             self._config_writer.write_config_info_file(self._descriptor)
@@ -399,13 +411,14 @@ class CachedConfiguration(Configuration):
             )
 
     @property
-    def has_local_bundle_cache(self):
+    def requires_dynamic_bundle_caching(self):
         """
-        If True, indicates that pipeline configuration has a local bundle cache. If False, it
-        depends on the global bundle cache.
+        If True, indicates that pipeline configuration relies on dynamic caching
+        of bundles to operate. If False, the configuration has its own bundle
+        cache.
         """
         # CachedConfiguration always depend on the global bundle cache.
-        return False
+        return True
 
     def _cleanup_backup_folders(self, config_backup_folder_path, core_backup_folder_path):
         """

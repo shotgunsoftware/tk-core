@@ -9,6 +9,9 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import inspect
+import os
+
+from . import constants
 
 from .import_handler import CoreImportHandler
 
