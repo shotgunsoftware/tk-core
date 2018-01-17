@@ -12,6 +12,8 @@ from __future__ import with_statement
 import os
 import sgtk
 
+import unittest2
+
 from tank_test.tank_test_base import ShotgunTestBase, TankTestBase, SealedMock
 
 from tank_test.tank_test_base import setUpModule # noqa
@@ -29,34 +31,6 @@ from tank_vendor import yaml
 
 
 class TestCachedConfigDescriptor(ShotgunTestBase):
-
-    def test_core_descriptor(self):
-        """
-        Ensures the core descriptor for an installed configuration is created correctly and cached
-        """
-        desc = self.tk.configuration_descriptor.resolve_core_descriptor()
-
-        # Ensure the descriptor is set and the core is pointing at the right location.
-        self.assertIsNotNone(desc)
-        self.assertEqual(
-            os.path.join(self.pipeline_config_root, "install", "core"),
-            desc.get_path()
-        )
-
-        # Ensure the descriptor is cached.
-        desc_2 = self.tk.configuration_descriptor.resolve_core_descriptor()
-        self.assertEqual(id(desc), id(desc_2))
-
-        # Ensure that if a configuration has no associated core then resolve_core_descriptor returns
-        # nothing as well.
-        class MissingCoreConfigDescriptor(ConfigDescriptor):
-            @property
-            def associated_core_descriptor(self):
-                return None
-
-        desc = MissingCoreConfigDescriptor(None, None, None, None)
-        self.assertIsNone(desc.resolve_core_descriptor())
-        self.assertEqual(desc.get_associated_core_feature_info("missing", "value"), "value")
 
     def test_core_descriptor_features(self):
         """
@@ -151,6 +125,34 @@ class TestCachedConfigDescriptor(ShotgunTestBase):
 
 
 class TestConfigDescriptor(TankTestBase):
+
+    def test_core_descriptor(self):
+        """
+        Ensures the core descriptor for an installed configuration is created correctly and cached
+        """
+        desc = self.tk.configuration_descriptor.resolve_core_descriptor()
+
+        # Ensure the descriptor is set and the core is pointing at the right location.
+        self.assertIsNotNone(desc)
+        self.assertEqual(
+            os.path.join(self.pipeline_config_root, "install", "core"),
+            desc.get_path()
+        )
+
+        # Ensure the descriptor is cached.
+        desc_2 = self.tk.configuration_descriptor.resolve_core_descriptor()
+        self.assertEqual(id(desc), id(desc_2))
+
+        # Ensure that if a configuration has no associated core then resolve_core_descriptor returns
+        # nothing as well.
+        class MissingCoreConfigDescriptor(ConfigDescriptor):
+            @property
+            def associated_core_descriptor(self):
+                return None
+
+        desc = MissingCoreConfigDescriptor(None, None, None, None)
+        self.assertIsNone(desc.resolve_core_descriptor())
+        self.assertEqual(desc.get_associated_core_feature_info("missing", "value"), "value")
 
     def test_legacy_configs(self):
         """
@@ -535,7 +537,7 @@ class TestDescriptorSupport(TankTestBase):
                                 "v1.x.2")
 
 
-class TestConstraintValidation(TankTestBase):
+class TestConstraintValidation(unittest2.TestCase):
     """
     Tests for console utilities.
     """
