@@ -14,13 +14,13 @@ import os
 from mock import MagicMock, patch
 
 from tank_test.tank_test_base import setUpModule # noqa
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import ShotgunTestBase, TankTestBase
 
 from sgtk.bootstrap.configuration import Configuration
 import sgtk
 
 
-class TestConfiguration(TankTestBase):
+class TestConfiguration(ShotgunTestBase):
 
     def setUp(self):
         """
@@ -88,9 +88,9 @@ class TestInvalidInstalledConfiguration(TankTestBase):
         # note: this is using the classic config that is part of the
         #       std test fixtures.
         config = self._resolver.resolve_shotgun_configuration(
-            self.tk.pipeline_configuration.get_shotgun_id(),
+            self.sg_pc_entity["id"],
             "sgtk:descriptor:not?a=descriptor",
-            self.tk.shotgun,
+            self.mockgun,
             "john.smith"
         )
         self.assertIsInstance(
@@ -110,7 +110,6 @@ class TestInvalidInstalledConfiguration(TankTestBase):
         os.remove(
             os.path.join(self.pipeline_config_root, "config", "core", "install_location.yml")
         )
-
 
         with self.assertRaisesRegexp(
                 sgtk.bootstrap.TankBootstrapError,

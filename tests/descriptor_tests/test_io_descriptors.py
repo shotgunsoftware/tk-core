@@ -11,13 +11,13 @@
 from __future__ import with_statement
 import os
 
-from tank_test.tank_test_base import TankTestBase, temp_env_var
+from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
 from tank_test.tank_test_base import setUpModule # noqa
 
 import sgtk
 
 
-class TestIODescriptors(TankTestBase):
+class TestIODescriptors(ShotgunTestBase):
     """
     Testing the Shotgun deploy main API methods
     """
@@ -83,8 +83,8 @@ class TestIODescriptors(TankTestBase):
         """
         Tests the find_latest_cached_version method
         """
-        sg = self.tk.shotgun
-        root = os.path.join(self.project_root, "cache_root")
+        sg = self.mockgun
+        root = os.path.join(self.project_root, "latest_cached_root")
 
         d = sgtk.descriptor.create_descriptor(
             sg,
@@ -151,7 +151,7 @@ class TestIODescriptors(TankTestBase):
         Tests locations of caches when using fallback paths and
         the bundle cache path environment variable.
         """
-        sg = self.tk.shotgun
+        sg = self.mockgun
 
         root_a = os.path.join(self.project_root, "cache_root_a")
         root_b = os.path.join(self.project_root, "cache_root_b")
@@ -205,7 +205,7 @@ class TestIODescriptors(TankTestBase):
         """
         Tests the download receipt logic
         """
-        sg = self.tk.shotgun
+        sg = self.mockgun
         root = os.path.join(self.project_root, "cache_root")
 
         d = sgtk.descriptor.create_descriptor(

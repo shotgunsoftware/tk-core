@@ -17,10 +17,10 @@ from mock import patch, Mock
 from sgtk.bootstrap import ToolkitManager
 
 from tank_test.tank_test_base import setUpModule # noqa
-from tank_test.tank_test_base import TankTestBase, temp_env_var
+from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
 
 
-class TestErrorHandling(TankTestBase):
+class TestErrorHandling(ShotgunTestBase):
 
     def test_get_pipeline_configurations_by_id(self):
         """
@@ -37,7 +37,7 @@ class TestErrorHandling(TankTestBase):
                 mgr.get_pipeline_configurations(None)
 
 
-class TestFunctionality(TankTestBase):
+class TestFunctionality(ShotgunTestBase):
 
     @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
     def test_pipeline_config_id_env_var(self, _):
@@ -135,7 +135,6 @@ class TestFunctionality(TankTestBase):
         self.assertEqual(
             set(mgr._get_bundle_cache_fallback_paths()), set(["/a/b/c", "/d/e/f"])
         )
-
 
     @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
     def test_serialization(self, _):

@@ -19,7 +19,7 @@ import json
 
 from mock import patch
 
-from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
+from tank_test.tank_test_base import ShotgunTestBase, setUpModule # noqa
 
 import sgtk
 from sgtk.descriptor import Descriptor
@@ -31,8 +31,7 @@ from tank.platform.environment import InstalledEnvironment
 from distutils.version import LooseVersion
 
 
-
-class TestAppStoreLabels(TankTestBase):
+class TestAppStoreLabels(ShotgunTestBase):
     """
     Tests the app store io descriptor
     """
@@ -243,21 +242,12 @@ class TestAppStoreLabels(TankTestBase):
         )
 
 
-class TestAppStoreConnectivity(TankTestBase):
+class TestAppStoreConnectivity(ShotgunTestBase):
     """
     Tests the app store io descriptor
     """
-
-    def setUp(self):
-        super(TestAppStoreConnectivity, self).setUp()
-        self.setup_fixtures()
-
-    def tearDown(self):
-        # important to call base class so it can clean up memory
-        super(TestAppStoreConnectivity, self).tearDown()
-
     def _create_test_descriptor(self):
-        sg = self.tk.shotgun
+        sg = self.mockgun
         root = os.path.join(self.project_root, "cache_root")
 
         return sgtk.descriptor.create_descriptor(
