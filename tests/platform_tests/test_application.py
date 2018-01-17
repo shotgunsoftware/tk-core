@@ -18,6 +18,8 @@ import logging
 import tempfile
 import mock
 import inspect
+import datetime
+import time
 
 from tank_test.tank_test_base import *
 import tank
@@ -618,3 +620,62 @@ class TestBundleDataCache(TestApplication):
                     os.path.sep, os.path.sep, name,
                 ))
             )
+
+    def test_cleaning_cached_data(self):
+        """
+        Test cleaning up cached data.
+        """
+        bundles = [self.engine.apps["test_app"]]
+        for name, fw in self.engine.apps["test_app"].frameworks.iteritems():
+            bundles.append(fw)
+        # Loop over bundles and test old data clean up
+        for bundle in bundles:
+            # Create dummy cached data
+            cache_folder = bundle.site_cache_location
+            os.mkdir(os.path.join(cache_folder, "test"))
+            dummy_files = [
+                "foo.txt",
+                "blah.text",
+                os.path.join("test", "foo.txt"),
+                os.path.join("test", "blah.txt"),
+            ]
+            for dummy_file in dummy_files:
+                self.create_file(os.path.join(cache_folder, dummy_file))
+            # Test we can't use bad values
+            with self.assertRaisesRegexp(ValueError, "Invalid grace period value"):
+                bundle._remove_old_cached_data(-1)
+            # One day grace period clean up shouldn't delete anything
+            bundle._remove_old_cached_data(1)
+            for dummy_file in dummy_files:
+                self.assertTrue(os.path.exists(os.path.join(cache_folder, dummy_file)))
+            # Change the modification time for a file and clean it up
+            dummy_file = os.path.join(cache_folder, dummy_files.pop())
+            one_day_delta = datetime.timedelta(days=1)
+            # Datetime total_seconds was introduced in Python 2.7, so compute the
+            # value ourself
+            one_day_in_seconds = (
+                one_day_delta.microseconds + (one_day_delta.seconds + one_day_delta.days * 24 * 3600) * 10**6
+            ) / 10**6
+            day_before_timestamp = time.time() - one_day_in_seconds
+            os.utime(
+                dummy_file,
+                (day_before_timestamp, day_before_timestamp)
+            )
+            bundle._remove_old_cached_data(1)
+            # It should be gone, but all the others kept
+            self.assertFalse(os.path.exists(dummy_file))
+            for dummy_file in dummy_files:
+                self.assertTrue(os.path.exists(os.path.join(cache_folder, dummy_file)))
+            # Test that cleaning up all files work
+            for dummy_file in dummy_files:
+                os.utime(
+                    os.path.join(cache_folder, dummy_file),
+                    (day_before_timestamp, day_before_timestamp)
+                )
+            bundle._remove_old_cached_data(1)
+            for dummy_file in dummy_files:
+                self.assertFalse(os.path.exists(os.path.join(cache_folder, dummy_file)))
+            # The test folder should be gone as well
+            self.assertFalse(os.path.exists(os.path.join(cache_folder, "test")))
+            # But the cache folder should still be there
+            self.assertTrue(os.path.exists(cache_folder))

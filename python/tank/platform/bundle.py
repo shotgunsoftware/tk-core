@@ -18,6 +18,7 @@ import re
 import sys
 import imp
 import uuid
+import datetime
 
 from .. import hook
 from ..util.metrics import EventMetric
@@ -26,6 +27,7 @@ from ..errors import TankError, TankNoDefaultValueError
 from .errors import TankContextChangeNotSupportedError
 from . import constants
 from .import_stack import ImportStack
+from ..util import filesystem
 
 core_logger = LogManager.get_logger(__name__)
 
@@ -752,6 +754,78 @@ class TankBundle(object):
 
     ##########################################################################################
     # internal helpers
+
+    def _remove_old_cached_data(self, grace_period=7):
+        """
+        Remove data old files cached by this bundle.
+
+        A file is considered old if it was not modified in the last number of days
+        specified by the `grace_period` value.
+
+        The `grace_period` value must be at least 1 (one day).
+
+        It is the responsability of the bundle implementation to ensure that
+        modification times for the files which should be kept are recent.
+        Typically, when re-using a cached file, the bundle should use
+        `os.utime(cached_file_path, None)` to update the modification time to the
+        current time.
+
+        :param int grace_period: The number of days files without any modification
+                                 should be kept around before being deleted.
+        :raises: ValueError if the grace_period is smaller than 1.
+        """
+        if grace_period < 1:
+            raise ValueError(
+                "Invalid grace period value %d, it must be a least 1" % grace_period
+            )
+        self.logger.debug("Starting old data cleanup...")
+        now = datetime.datetime.now()
+        grace_period_delta = datetime.timedelta(days=grace_period)
+        # Clean up the site cache and the project cache locations.
+        for cache_location in [self.site_cache_location, self.cache_location]:
+            # Go bottom up in the hierarchy and delete old files
+            for folder, dirs, files in os.walk(cache_location, topdown=False):
+                for name in files:
+                    file_path = os.path.join(folder, name)
+                    try:
+                        file_stats = os.stat(file_path)
+                        # Convert the timestamp to a datetime
+                        last_modif_time = datetime.datetime.fromtimestamp(
+                            int(file_stats.st_mtime)
+                        )
+                        # Is it old enough to be removed?
+                        if now - last_modif_time > grace_period_delta:
+                            filesystem.safe_delete_file(file_path)
+                    except Exception as e:
+                        # Log the error for debug purpose
+                        self.logger.debug(
+                            "Warning: couldn't check %s for removal: %s" % (
+                                file_path, e
+                            ),
+                            exc_info=True,
+                        )
+                        # And ignore it
+                        pass
+
+                for name in dirs:
+                    # Try to remove empty directories
+                    dir_path = os.path.join(folder, name)
+                    try:
+                        if not os.listdir(dir_path):
+                            filesystem.safe_delete_folder(dir_path)
+                    except Exception as e:
+                        # Log the error for debug purpose
+                        self.logger.debug(
+                            "Warning: couldn't check %s for removal: %s" % (
+                                dir_path, e
+                            ),
+                            exc_info=True,
+                        )
+                        # And ignore it
+                        pass
+        self.logger.debug(
+            "Old data cleanup completed in %s" % (datetime.datetime.now() - now)
+        )
 
     def _set_context(self, new_context):
         """
