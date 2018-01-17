@@ -35,8 +35,8 @@ def get_local_bundle_cache_path(pipeline_config_path):
     """
     Returns the path to the bundle cache folder within the config. This folder
     may or may not exist.
-    :param pipeline_config_path:
-    :return:
+    :param pipeline_config_path: path to a pipeline configuration root folder
+    :return: The path to the local bundle cache folder within the config
     """
 
     # build the full path to where a bundle cache would exist within the
@@ -45,6 +45,7 @@ def get_local_bundle_cache_path(pipeline_config_path):
         pipeline_config_path,
         constants.BUNDLE_CACHE_FOLDER_NAME
     )
+
 
 def has_core_descriptor(pipeline_config_path):
     """
@@ -57,6 +58,7 @@ def has_core_descriptor(pipeline_config_path):
     # probe by looking for the existence of a core api descriptor file
     return os.path.exists(_get_core_descriptor_file(pipeline_config_path))
 
+
 def has_local_bundle_cache(pipeline_config_path):
     """
     Returns ``True`` if the pipeline configuration contains a local bundle
@@ -68,6 +70,7 @@ def has_local_bundle_cache(pipeline_config_path):
     """
 
     return os.path.exists(get_local_bundle_cache_path(pipeline_config_path))
+
 
 def is_localized(pipeline_config_path):
     """
