@@ -284,9 +284,9 @@ class CachedConfiguration(Configuration):
 
             # if the config has a local bundle cache folder, append it to the
             # list of fallback paths
-            if has_local_bundle_cache(self.path):
+            if has_local_bundle_cache(self._path.current_os):
                 self._bundle_cache_fallback_paths.append(
-                    get_local_bundle_cache_path(self._path)
+                    get_local_bundle_cache_path(self._path.current_os)
                 )
 
             # write out config files
