@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.api &mdash; tk-core v0.18.121 documentation</title>
+  <title>tank.api &mdash; tk-core v0.18.124 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.121 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.124 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -118,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.121.<br>
+    <b>tk-core</b> v0.18.124.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -214,7 +214,8 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_path</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Instances of this class should be created via the factory methods</span>
-<span class="sd">        :meth:`sgtk_from_path` and :meth:`sgtk_from_entity`.</span>
+<span class="sd">        :meth:`sgtk_from_path` and :meth:`sgtk_from_entity` or implicitly via the</span>
+<span class="sd">        :class:`~sgtk.bootstrap.ToolkitManager`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># special stuff to make sure we maintain backwards compatibility in the constructor</span>
         <span class="c1"># if the &#39;project_path&#39; parameter contains a pipeline config object,</span>
@@ -972,8 +973,77 @@
 
 <div class="viewcode-block" id="sgtk_from_path"><a class="viewcode-back" href="../../core.html#sgtk.sgtk_from_path">[docs]</a><span class="k">def</span> <span class="nf">sgtk_from_path</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Creates a Toolkit Core API instance based on a path inside a project</span>
-<span class="sd">    or path pointing directly at a pipeline configuration.</span>
+<span class="sd">    Creates a Toolkit Core API instance based on a path to a configuration</span>
+<span class="sd">    or a path to any file inside a project root location.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        This method was designed to initialize toolkit in workflows where the location of configuration</span>
+<span class="sd">        is pre-determined, typically via the ``tank setup_project`` command (or via Shotgun Desktop&#39;s</span>
+<span class="sd">        project setup wizard). These setups are sometimes referred to as &#39;classic&#39; configurations.</span>
+
+<span class="sd">        Modern toolkit workflows handle the configuration management automatically, driven by the</span>
+<span class="sd">        configuration information in Shotgun and via the :class:`~sgtk.bootstrap.ToolkitManager` API.</span>
+<span class="sd">        For these workflows, there is typically no need to utilize the ``sgtk_from_path`` command.</span>
+<span class="sd">        Instead, launch your toolkit engine directly using the :class:`~sgtk.bootstrap.ToolkitManager`</span>
+<span class="sd">        methods.</span>
+
+<span class="sd">    This factory method will do the following:</span>
+
+<span class="sd">    - If the given path is determined to be pointing at a pipeline configuration,</span>
+<span class="sd">      checks will be made to determine that the currently imported ``sgtk`` module is</span>
+<span class="sd">      associated with the configuration. There are two ways this can be valid:</span>
+
+<span class="sd">        - Either the configuration is localized, meaning that has it&#39;s</span>
+<span class="sd">          own ``sgtk`` core module. In that case, it is validated that the ``sgtk``</span>
+<span class="sd">          module currently running is exactly that core API belonging to the configuration.</span>
+
+<span class="sd">        - ...or the configuration is sharing an ``sgtk`` core with other configurations.</span>
+<span class="sd">          in this case, is is validated that the currently imported ``sgtk`` module</span>
+<span class="sd">          is that shared core that the configuration requires.</span>
+
+<span class="sd">    - If the given path is to a file (e.g. a maya file for example), the method will</span>
+<span class="sd">      do the following:</span>
+
+<span class="sd">       - Retrieve all projects from Shotgun, including project their `Project.tank_name`</span>
+<span class="sd">         project root folder fields, and associated pipeline configurations.</span>
+
+<span class="sd">       - Walk up the path hierarchy of the given path until one of the project roots are</span>
+<span class="sd">         matching the path.</span>
+
+<span class="sd">       - Get a list of matching pipeline configurations for that project.</span>
+
+<span class="sd">       - Ensure that the currently imported ``sgtk`` module is a valid configuration for</span>
+<span class="sd">         the matching configurations. If more than one configuration is matching, the</span>
+<span class="sd">         primary will take precendence.</span>
+
+<span class="sd">    This method can be used if you have a toolkit project installed in a particular location and</span>
+<span class="sd">    want to write a script that initializes it. For example, if a Toolkit configuration</span>
+<span class="sd">    is set up in ``/mnt/projects/hidden_forest/tk_config``, you could initialize it like this::</span>
+
+<span class="sd">        # add the core of the project to the pythonpath</span>
+<span class="sd">        import sys</span>
+<span class="sd">        sys.path.append(&quot;/mnt/projects/hidden_forest/tk_config/install/core/python&quot;)</span>
+
+<span class="sd">        # now import the API</span>
+<span class="sd">        import sgtk</span>
+
+<span class="sd">        # import the configuration</span>
+<span class="sd">        tk = sgtk.sgtk_from_path(&quot;/mnt/projects/hidden_forest/tk_config/install/core/python&quot;)</span>
+
+<span class="sd">    If you have a shared core for all your projects, you could pass a file path to this</span>
+<span class="sd">    method and toolkit would automatically figure out which configuration would be suitable::</span>
+
+<span class="sd">        # add the shared core to the pythonpath</span>
+<span class="sd">        import sys</span>
+<span class="sd">        sys.path.append(&quot;/mnt/toolkit/shared_core&quot;)</span>
+
+<span class="sd">        # now import the API</span>
+<span class="sd">        import sgtk</span>
+
+<span class="sd">        # request that the API produced a tk instance suitable for a given file</span>
+<span class="sd">        tk = sgtk.sgtk_from_path(&quot;/mnt/projects/hidden_forest/shots/aa/aa_001/lighting/foreground.v002.ma&quot;)</span>
+
 
 <span class="sd">    :param path: Path to pipeline configuration or to a folder associated with a project.</span>
 <span class="sd">    :returns: :class:`Sgtk` instance</span>
@@ -983,8 +1053,13 @@
 <div class="viewcode-block" id="sgtk_from_entity"><a class="viewcode-back" href="../../core.html#sgtk.sgtk_from_entity">[docs]</a><span class="k">def</span> <span class="nf">sgtk_from_entity</span><span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a Toolkit Core API instance given an entity in Shotgun.</span>
-<span class="sd">    The given object will be looked up in Shotgun and an</span>
-<span class="sd">    associated pipeline configuration will be determined and loaded.</span>
+
+<span class="sd">    The given object will be looked up in Shotgun, its associated pipeline configurations</span>
+<span class="sd">    will be determined, and compared against the currently imported ``sgtk`` module.</span>
+
+<span class="sd">    The logic is identical to the one outlined in :meth:`sgtk_from_path`, but for</span>
+<span class="sd">    a Shotgun entity rather than a path. For more details, see the documentation for</span>
+<span class="sd">    that method.</span>
 
 <span class="sd">    :param entity_type: Shotgun entity type, e.g. ``Shot``</span>
 <span class="sd">    :param entity_id: Shotgun entity id</span>
@@ -1078,7 +1153,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.121',
+            VERSION:'v0.18.124',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

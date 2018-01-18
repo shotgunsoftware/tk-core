@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.hook &mdash; tk-core v0.18.121 documentation</title>
+  <title>tank.hook &mdash; tk-core v0.18.124 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.121 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.124 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -118,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.121.<br>
+    <b>tk-core</b> v0.18.124.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -737,7 +737,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">execute_hook_method</span><span class="p">([</span><span class="n">hook_path</span><span class="p">],</span> <span class="n">parent</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">execute_hook_method</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+<span class="k">def</span> <span class="nf">execute_hook_method</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    New style hook execution, with method arguments and support for inheritance.</span>
 
@@ -760,14 +761,22 @@
 
 <span class="sd">        4. HookC class is instantiated and method method_name is executed.</span>
 
+<span class="sd">    An optional `base_class` can be provided to override the default ``Hook``</span>
+<span class="sd">    base class. This is useful for bundles that wish to execute a hook method</span>
+<span class="sd">    while providing a default implementation without the need to configure a</span>
+<span class="sd">    base hook.</span>
+
 <span class="sd">    :param hook_paths: List of full paths to hooks, in inheritance order.</span>
 <span class="sd">    :param parent: Parent object. This will be accessible inside</span>
 <span class="sd">                   the hook as self.parent, and is typically an</span>
 <span class="sd">                   app, engine or core object.</span>
 <span class="sd">    :param method_name: method to execute. If None, the default method will be executed.</span>
+<span class="sd">    :param base_class: A python class to use as the base class for the hook</span>
+<span class="sd">        class. This will override the default hook base class, ``Hook``. The</span>
+<span class="sd">        class should derive from ``Hook``.</span>
 <span class="sd">    :returns: Whatever the hook returns.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">hook</span> <span class="o">=</span> <span class="n">create_hook_instance</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+    <span class="n">hook</span> <span class="o">=</span> <span class="n">create_hook_instance</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="n">base_class</span><span class="p">)</span>
 
     <span class="c1"># get the method</span>
     <span class="n">method_name</span> <span class="o">=</span> <span class="n">method_name</span> <span class="ow">or</span> <span class="n">Hook</span><span class="o">.</span><span class="n">DEFAULT_HOOK_METHOD</span>
@@ -785,19 +794,20 @@
     <span class="k">return</span> <span class="n">ret_val</span>
 
 
-<span class="k">def</span> <span class="nf">create_hook_instance</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">create_hook_instance</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    New style hook execution, with method arguments and support for inheritance.</span>
 
 <span class="sd">    This method takes a list of hook paths and will load each of the classes</span>
 <span class="sd">    in, while maintaining the correct state of the class returned via</span>
 <span class="sd">    get_hook_baseclass(). Once all classes have been successfully loaded,</span>
-<span class="sd">    the last class in the list is instantiated and returned.</span>
+<span class="sd">    an instance of the last class in the list is returned.</span>
 
 <span class="sd">        Example: [&quot;/tmp/a.py&quot;, &quot;/tmp/b.py&quot;, &quot;/tmp/c.py&quot;]</span>
 
 <span class="sd">        1. The code in a.py is loaded in. get_hook_baseclass() will return Hook</span>
-<span class="sd">           at this point. class HookA is returned from our plugin loader.</span>
+<span class="sd">           at this point (or a custom base class, if supplied, that derives from</span>
+<span class="sd">           Hook). class HookA is returned from our plugin loader.</span>
 
 <span class="sd">        2. /tmp/b.py is loaded in. get_hook_baseclass() now returns HookA, so</span>
 <span class="sd">           if the hook code in B utilises get_hook_baseclass, this will will</span>
@@ -805,17 +815,32 @@
 
 <span class="sd">        3. /tmp/c.py is finally loaded in, get_hook_baseclass() now returns HookB.</span>
 
-<span class="sd">        4. HookC class is instantiated and method method_name is executed.</span>
+<span class="sd">        4. An instance of the HookC class is returned.</span>
+
+<span class="sd">    An optional `base_class` can be provided to override the default ``Hook``</span>
+<span class="sd">    base class. This is useful for bundles that create hook instances at</span>
+<span class="sd">    execution time and wish to provide default implementation without the need</span>
+<span class="sd">    to configure the base hook.</span>
 
 <span class="sd">    :param hook_paths: List of full paths to hooks, in inheritance order.</span>
-<span class="sd">    :param parent: Parent object. This will be accessible inside</span>
-<span class="sd">                   the hook as self.parent, and is typically an</span>
-<span class="sd">                   app, engine or core object.</span>
+<span class="sd">    :param base_class: A python class to use as the base class for the created</span>
+<span class="sd">        hook. This will override the default hook base class, ``Hook``.</span>
 <span class="sd">    :returns: Instance of the hook.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">base_class</span><span class="p">:</span>
+        <span class="c1"># ensure the supplied base class is a subclass of Hook</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">base_class</span><span class="p">,</span> <span class="n">Hook</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
+                <span class="s2">&quot;Invalid custom hook base class. The supplied class &#39;</span><span class="si">%s</span><span class="s2">&#39; does &quot;</span>
+                <span class="s2">&quot;not inherit from Hook.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">Hook</span><span class="p">,)</span>
+            <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">base_class</span> <span class="o">=</span> <span class="n">Hook</span>
+
     <span class="c1"># keep track of the current base class - this is used when loading hooks to dynamically</span>
     <span class="c1"># inherit from the correct base.</span>
-    <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">Hook</span>
+    <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">base_class</span>
 
     <span class="k">for</span> <span class="n">hook_path</span> <span class="ow">in</span> <span class="n">hook_paths</span><span class="p">:</span>
 
@@ -855,12 +880,10 @@
         <span class="c1"># keep track of the current base class:</span>
         <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">found_hook_class</span>
 
-    <span class="c1"># all class construction done. _current_hook_baseclass contains</span>
-    <span class="c1"># the last class we iterated over. This is the one we want to</span>
-    <span class="c1"># instantiate.</span>
-
-    <span class="c1"># instantiate the class</span>
+    <span class="c1"># all class construction done. _current_hook_baseclass contains the last</span>
+    <span class="c1"># class we iterated over. An instance of this is what we want to return</span>
     <span class="k">return</span> <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
 
 <span class="k">def</span> <span class="nf">get_hook_baseclass</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -900,7 +923,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.121',
+            VERSION:'v0.18.124',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

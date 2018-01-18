@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.121 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.124 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.121 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.124 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -189,7 +189,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.121.<br>
+    <b>tk-core</b> v0.18.124.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1686,7 +1686,7 @@ be overridden in the deriving class and forced to return True.</p>
 
 <dl class="method">
 <dt id="sgtk.platform.Engine.create_hook_instance">
-<code class="descname">create_hook_instance</code><span class="sig-paren">(</span><em>hook_expression</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Engine.create_hook_instance" title="Permalink to this definition">¶</a></dt>
+<code class="descname">create_hook_instance</code><span class="sig-paren">(</span><em>hook_expression</em>, <em>base_class=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Engine.create_hook_instance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the instance of a hook object given an expression.</p>
 <p>This is useful for complex workflows where it is beneficial to
 maintain a handle to a hook instance. Normally, hooks are stateless
@@ -1706,13 +1706,23 @@ the value and then pass the settings value to this method.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">For more information about hook syntax, see <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a></p>
 </div>
+<p>An optional <code class="docutils literal"><span class="pre">base_class</span></code> can be provided to override the default <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a>
+base class. This is useful for bundles that create hook instances at
+execution time and wish to provide default implementation without the need
+to configure the base hook. The supplied class must inherit from Hook.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>hook_expression</strong> &#8211; Path to hook to execute. See above for syntax details.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>hook_expression</strong> &#8211; Path to hook to execute. See above for syntax details.</li>
+<li><strong>base_class</strong> &#8211; A python class to use as the base class for the created
+hook. This will override the default hook base class, <code class="docutils literal"><span class="pre">Hook</span></code>.</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code> instance.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code> instance.</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1798,7 +1808,7 @@ over the methods provided in <code class="docutils literal"><span class="pre">sg
 
 <dl class="method">
 <dt id="sgtk.platform.Engine.execute_hook">
-<code class="descname">execute_hook</code><span class="sig-paren">(</span><em>key</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Engine.execute_hook" title="Permalink to this definition">¶</a></dt>
+<code class="descname">execute_hook</code><span class="sig-paren">(</span><em>key</em>, <em>base_class=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Engine.execute_hook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute a hook that is part of the environment configuration for the current bundle.</p>
 <p>Convenience method that calls <a class="reference internal" href="#sgtk.platform.Engine.execute_hook_method" title="sgtk.platform.Engine.execute_hook_method"><code class="xref py py-meth docutils literal"><span class="pre">execute_hook_method()</span></code></a> with the
 method_name parameter set to &#8220;execute&#8221;.</p>
@@ -1812,6 +1822,9 @@ instead.</p>
 the accompanying arguments, and toolkit will find the correct hook file based
 on the currently configured setting and then execute the execute() method for 
 that hook.</p>
+<p>An optional <code class="docutils literal"><span class="pre">base_class</span></code> can be provided to override the default <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a>
+base class. This is useful for bundles that want to define and document a strict
+interface for hooks. The classes defined in the hook have to derived from this classes.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">For more information about hooks, see <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a></p>
@@ -1820,7 +1833,15 @@ that hook.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key</strong> &#8211; The name of the hook setting you want to execute.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>key</strong> &#8211; The name of the hook setting you want to execute.</li>
+<li><strong>base_class</strong> &#8211; A python class to use as the base class for the created
+hook. This will override the default hook base class, <code class="docutils literal"><span class="pre">Hook</span></code>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The return value from the hook</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1858,7 +1879,7 @@ user defined pre-publish validation hooks.</p>
 
 <dl class="method">
 <dt id="sgtk.platform.Engine.execute_hook_expression">
-<code class="descname">execute_hook_expression</code><span class="sig-paren">(</span><em>hook_expression</em>, <em>method_name</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Engine.execute_hook_expression" title="Permalink to this definition">¶</a></dt>
+<code class="descname">execute_hook_expression</code><span class="sig-paren">(</span><em>hook_expression</em>, <em>method_name</em>, <em>base_class=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Engine.execute_hook_expression" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute an arbitrary hook via an expression. While the methods execute_hook
 and execute_hook_method allows you to execute a particular hook setting as
 specified in the app configuration manifest, this methods allows you to 
@@ -1869,6 +1890,9 @@ want to expose a hook as a configuration setting just yet. It is also useful
 if you have app settings that are nested deep inside of lists or dictionaries.
 In that case, you cannot use execute_hook, but instead will have to retrieve
 the value specifically and then run it.</p>
+<p>An optional <code class="docutils literal"><span class="pre">base_class</span></code> can be provided to override the default <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a>
+base class. This is useful for bundles that want to define and document a strict
+interface for hooks. The classes defined in the hook have to derived from this classes.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">For more information about hooks, see <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a></p>
@@ -1877,10 +1901,15 @@ the value specifically and then run it.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>hook_expression</strong> &#8211; Path to hook to execute. See above for syntax details.</li>
 <li><strong>method_name</strong> &#8211; Method inside the hook to execute.</li>
+<li><strong>base_class</strong> &#8211; A python class to use as the base class for the created
+hook. This will override the default hook base class, <code class="docutils literal"><span class="pre">Hook</span></code>.</li>
 </ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The return value from the hook</p>
 </td>
 </tr>
 </tbody>
@@ -1889,7 +1918,7 @@ the value specifically and then run it.</p>
 
 <dl class="method">
 <dt id="sgtk.platform.Engine.execute_hook_method">
-<code class="descname">execute_hook_method</code><span class="sig-paren">(</span><em>key</em>, <em>method_name</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Engine.execute_hook_method" title="Permalink to this definition">¶</a></dt>
+<code class="descname">execute_hook_method</code><span class="sig-paren">(</span><em>key</em>, <em>method_name</em>, <em>base_class=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Engine.execute_hook_method" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute a specific method in a hook that is part of the 
 environment configuration for the current bundle.</p>
 <p>You simply pass the name of the hook setting that you want to execute, the 
@@ -1910,6 +1939,9 @@ by looking at the configuration settings and resolve a path based on this.</p>
 <p>Arguments should always be passed in by name. This is to make it easy to add new
 parameters without breaking backwards compatibility, for example
 <code class="docutils literal"><span class="pre">execute_hook_method(&quot;validator&quot;,</span> <span class="pre">&quot;pre_check&quot;,</span> <span class="pre">name=curr_scene,</span> <span class="pre">version=curr_ver).</span></code></p>
+<p>An optional <code class="docutils literal"><span class="pre">base_class</span></code> can be provided to override the default <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a>
+base class. This is useful for bundles that want to define and document a strict
+interface for hooks. The classes defined in the hook have to derived from this classes.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">For more information about hooks, see <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a></p>
@@ -1918,10 +1950,15 @@ parameters without breaking backwards compatibility, for example
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>key</strong> &#8211; The name of the hook setting you want to execute.</li>
 <li><strong>method_name</strong> &#8211; Name of the method to execute</li>
+<li><strong>base_class</strong> &#8211; A python class to use as the base class for the created
+hook. This will override the default hook base class, <code class="docutils literal"><span class="pre">Hook</span></code>.</li>
 </ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The return value from the hook</p>
 </td>
 </tr>
 </tbody>
@@ -2573,7 +2610,7 @@ be overridden in the deriving class and forced to return True.</p>
 
 <dl class="method">
 <dt id="sgtk.platform.Application.create_hook_instance">
-<code class="descname">create_hook_instance</code><span class="sig-paren">(</span><em>hook_expression</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Application.create_hook_instance" title="Permalink to this definition">¶</a></dt>
+<code class="descname">create_hook_instance</code><span class="sig-paren">(</span><em>hook_expression</em>, <em>base_class=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Application.create_hook_instance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the instance of a hook object given an expression.</p>
 <p>This is useful for complex workflows where it is beneficial to
 maintain a handle to a hook instance. Normally, hooks are stateless
@@ -2593,13 +2630,23 @@ the value and then pass the settings value to this method.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">For more information about hook syntax, see <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a></p>
 </div>
+<p>An optional <code class="docutils literal"><span class="pre">base_class</span></code> can be provided to override the default <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a>
+base class. This is useful for bundles that create hook instances at
+execution time and wish to provide default implementation without the need
+to configure the base hook. The supplied class must inherit from Hook.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>hook_expression</strong> &#8211; Path to hook to execute. See above for syntax details.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>hook_expression</strong> &#8211; Path to hook to execute. See above for syntax details.</li>
+<li><strong>base_class</strong> &#8211; A python class to use as the base class for the created
+hook. This will override the default hook base class, <code class="docutils literal"><span class="pre">Hook</span></code>.</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code> instance.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code> instance.</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -2685,7 +2732,7 @@ over the methods provided in <code class="docutils literal"><span class="pre">sg
 
 <dl class="method">
 <dt id="sgtk.platform.Application.execute_hook">
-<code class="descname">execute_hook</code><span class="sig-paren">(</span><em>key</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Application.execute_hook" title="Permalink to this definition">¶</a></dt>
+<code class="descname">execute_hook</code><span class="sig-paren">(</span><em>key</em>, <em>base_class=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Application.execute_hook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute a hook that is part of the environment configuration for the current bundle.</p>
 <p>Convenience method that calls <a class="reference internal" href="#sgtk.platform.Application.execute_hook_method" title="sgtk.platform.Application.execute_hook_method"><code class="xref py py-meth docutils literal"><span class="pre">execute_hook_method()</span></code></a> with the
 method_name parameter set to &#8220;execute&#8221;.</p>
@@ -2699,6 +2746,9 @@ instead.</p>
 the accompanying arguments, and toolkit will find the correct hook file based
 on the currently configured setting and then execute the execute() method for 
 that hook.</p>
+<p>An optional <code class="docutils literal"><span class="pre">base_class</span></code> can be provided to override the default <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a>
+base class. This is useful for bundles that want to define and document a strict
+interface for hooks. The classes defined in the hook have to derived from this classes.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">For more information about hooks, see <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a></p>
@@ -2707,7 +2757,15 @@ that hook.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key</strong> &#8211; The name of the hook setting you want to execute.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>key</strong> &#8211; The name of the hook setting you want to execute.</li>
+<li><strong>base_class</strong> &#8211; A python class to use as the base class for the created
+hook. This will override the default hook base class, <code class="docutils literal"><span class="pre">Hook</span></code>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The return value from the hook</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -2745,7 +2803,7 @@ user defined pre-publish validation hooks.</p>
 
 <dl class="method">
 <dt id="sgtk.platform.Application.execute_hook_expression">
-<code class="descname">execute_hook_expression</code><span class="sig-paren">(</span><em>hook_expression</em>, <em>method_name</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Application.execute_hook_expression" title="Permalink to this definition">¶</a></dt>
+<code class="descname">execute_hook_expression</code><span class="sig-paren">(</span><em>hook_expression</em>, <em>method_name</em>, <em>base_class=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Application.execute_hook_expression" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute an arbitrary hook via an expression. While the methods execute_hook
 and execute_hook_method allows you to execute a particular hook setting as
 specified in the app configuration manifest, this methods allows you to 
@@ -2756,6 +2814,9 @@ want to expose a hook as a configuration setting just yet. It is also useful
 if you have app settings that are nested deep inside of lists or dictionaries.
 In that case, you cannot use execute_hook, but instead will have to retrieve
 the value specifically and then run it.</p>
+<p>An optional <code class="docutils literal"><span class="pre">base_class</span></code> can be provided to override the default <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a>
+base class. This is useful for bundles that want to define and document a strict
+interface for hooks. The classes defined in the hook have to derived from this classes.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">For more information about hooks, see <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a></p>
@@ -2764,10 +2825,15 @@ the value specifically and then run it.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>hook_expression</strong> &#8211; Path to hook to execute. See above for syntax details.</li>
 <li><strong>method_name</strong> &#8211; Method inside the hook to execute.</li>
+<li><strong>base_class</strong> &#8211; A python class to use as the base class for the created
+hook. This will override the default hook base class, <code class="docutils literal"><span class="pre">Hook</span></code>.</li>
 </ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The return value from the hook</p>
 </td>
 </tr>
 </tbody>
@@ -2776,7 +2842,7 @@ the value specifically and then run it.</p>
 
 <dl class="method">
 <dt id="sgtk.platform.Application.execute_hook_method">
-<code class="descname">execute_hook_method</code><span class="sig-paren">(</span><em>key</em>, <em>method_name</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Application.execute_hook_method" title="Permalink to this definition">¶</a></dt>
+<code class="descname">execute_hook_method</code><span class="sig-paren">(</span><em>key</em>, <em>method_name</em>, <em>base_class=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Application.execute_hook_method" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute a specific method in a hook that is part of the 
 environment configuration for the current bundle.</p>
 <p>You simply pass the name of the hook setting that you want to execute, the 
@@ -2797,6 +2863,9 @@ by looking at the configuration settings and resolve a path based on this.</p>
 <p>Arguments should always be passed in by name. This is to make it easy to add new
 parameters without breaking backwards compatibility, for example
 <code class="docutils literal"><span class="pre">execute_hook_method(&quot;validator&quot;,</span> <span class="pre">&quot;pre_check&quot;,</span> <span class="pre">name=curr_scene,</span> <span class="pre">version=curr_ver).</span></code></p>
+<p>An optional <code class="docutils literal"><span class="pre">base_class</span></code> can be provided to override the default <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a>
+base class. This is useful for bundles that want to define and document a strict
+interface for hooks. The classes defined in the hook have to derived from this classes.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">For more information about hooks, see <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a></p>
@@ -2805,10 +2874,15 @@ parameters without breaking backwards compatibility, for example
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>key</strong> &#8211; The name of the hook setting you want to execute.</li>
 <li><strong>method_name</strong> &#8211; Name of the method to execute</li>
+<li><strong>base_class</strong> &#8211; A python class to use as the base class for the created
+hook. This will override the default hook base class, <code class="docutils literal"><span class="pre">Hook</span></code>.</li>
 </ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The return value from the hook</p>
 </td>
 </tr>
 </tbody>
@@ -3409,7 +3483,7 @@ be overridden in the deriving class and forced to return True.</p>
 
 <dl class="method">
 <dt id="sgtk.platform.Framework.create_hook_instance">
-<code class="descname">create_hook_instance</code><span class="sig-paren">(</span><em>hook_expression</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Framework.create_hook_instance" title="Permalink to this definition">¶</a></dt>
+<code class="descname">create_hook_instance</code><span class="sig-paren">(</span><em>hook_expression</em>, <em>base_class=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Framework.create_hook_instance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the instance of a hook object given an expression.</p>
 <p>This is useful for complex workflows where it is beneficial to
 maintain a handle to a hook instance. Normally, hooks are stateless
@@ -3429,13 +3503,23 @@ the value and then pass the settings value to this method.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">For more information about hook syntax, see <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a></p>
 </div>
+<p>An optional <code class="docutils literal"><span class="pre">base_class</span></code> can be provided to override the default <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a>
+base class. This is useful for bundles that create hook instances at
+execution time and wish to provide default implementation without the need
+to configure the base hook. The supplied class must inherit from Hook.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>hook_expression</strong> &#8211; Path to hook to execute. See above for syntax details.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>hook_expression</strong> &#8211; Path to hook to execute. See above for syntax details.</li>
+<li><strong>base_class</strong> &#8211; A python class to use as the base class for the created
+hook. This will override the default hook base class, <code class="docutils literal"><span class="pre">Hook</span></code>.</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code> instance.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code> instance.</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -3521,7 +3605,7 @@ over the methods provided in <code class="docutils literal"><span class="pre">sg
 
 <dl class="method">
 <dt id="sgtk.platform.Framework.execute_hook">
-<code class="descname">execute_hook</code><span class="sig-paren">(</span><em>key</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Framework.execute_hook" title="Permalink to this definition">¶</a></dt>
+<code class="descname">execute_hook</code><span class="sig-paren">(</span><em>key</em>, <em>base_class=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Framework.execute_hook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute a hook that is part of the environment configuration for the current bundle.</p>
 <p>Convenience method that calls <a class="reference internal" href="#sgtk.platform.Framework.execute_hook_method" title="sgtk.platform.Framework.execute_hook_method"><code class="xref py py-meth docutils literal"><span class="pre">execute_hook_method()</span></code></a> with the
 method_name parameter set to &#8220;execute&#8221;.</p>
@@ -3535,6 +3619,9 @@ instead.</p>
 the accompanying arguments, and toolkit will find the correct hook file based
 on the currently configured setting and then execute the execute() method for 
 that hook.</p>
+<p>An optional <code class="docutils literal"><span class="pre">base_class</span></code> can be provided to override the default <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a>
+base class. This is useful for bundles that want to define and document a strict
+interface for hooks. The classes defined in the hook have to derived from this classes.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">For more information about hooks, see <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a></p>
@@ -3543,7 +3630,15 @@ that hook.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key</strong> &#8211; The name of the hook setting you want to execute.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>key</strong> &#8211; The name of the hook setting you want to execute.</li>
+<li><strong>base_class</strong> &#8211; A python class to use as the base class for the created
+hook. This will override the default hook base class, <code class="docutils literal"><span class="pre">Hook</span></code>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The return value from the hook</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -3581,7 +3676,7 @@ user defined pre-publish validation hooks.</p>
 
 <dl class="method">
 <dt id="sgtk.platform.Framework.execute_hook_expression">
-<code class="descname">execute_hook_expression</code><span class="sig-paren">(</span><em>hook_expression</em>, <em>method_name</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Framework.execute_hook_expression" title="Permalink to this definition">¶</a></dt>
+<code class="descname">execute_hook_expression</code><span class="sig-paren">(</span><em>hook_expression</em>, <em>method_name</em>, <em>base_class=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Framework.execute_hook_expression" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute an arbitrary hook via an expression. While the methods execute_hook
 and execute_hook_method allows you to execute a particular hook setting as
 specified in the app configuration manifest, this methods allows you to 
@@ -3592,6 +3687,9 @@ want to expose a hook as a configuration setting just yet. It is also useful
 if you have app settings that are nested deep inside of lists or dictionaries.
 In that case, you cannot use execute_hook, but instead will have to retrieve
 the value specifically and then run it.</p>
+<p>An optional <code class="docutils literal"><span class="pre">base_class</span></code> can be provided to override the default <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a>
+base class. This is useful for bundles that want to define and document a strict
+interface for hooks. The classes defined in the hook have to derived from this classes.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">For more information about hooks, see <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a></p>
@@ -3600,10 +3698,15 @@ the value specifically and then run it.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>hook_expression</strong> &#8211; Path to hook to execute. See above for syntax details.</li>
 <li><strong>method_name</strong> &#8211; Method inside the hook to execute.</li>
+<li><strong>base_class</strong> &#8211; A python class to use as the base class for the created
+hook. This will override the default hook base class, <code class="docutils literal"><span class="pre">Hook</span></code>.</li>
 </ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The return value from the hook</p>
 </td>
 </tr>
 </tbody>
@@ -3612,7 +3715,7 @@ the value specifically and then run it.</p>
 
 <dl class="method">
 <dt id="sgtk.platform.Framework.execute_hook_method">
-<code class="descname">execute_hook_method</code><span class="sig-paren">(</span><em>key</em>, <em>method_name</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Framework.execute_hook_method" title="Permalink to this definition">¶</a></dt>
+<code class="descname">execute_hook_method</code><span class="sig-paren">(</span><em>key</em>, <em>method_name</em>, <em>base_class=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Framework.execute_hook_method" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute a specific method in a hook that is part of the 
 environment configuration for the current bundle.</p>
 <p>You simply pass the name of the hook setting that you want to execute, the 
@@ -3633,6 +3736,9 @@ by looking at the configuration settings and resolve a path based on this.</p>
 <p>Arguments should always be passed in by name. This is to make it easy to add new
 parameters without breaking backwards compatibility, for example
 <code class="docutils literal"><span class="pre">execute_hook_method(&quot;validator&quot;,</span> <span class="pre">&quot;pre_check&quot;,</span> <span class="pre">name=curr_scene,</span> <span class="pre">version=curr_ver).</span></code></p>
+<p>An optional <code class="docutils literal"><span class="pre">base_class</span></code> can be provided to override the default <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a>
+base class. This is useful for bundles that want to define and document a strict
+interface for hooks. The classes defined in the hook have to derived from this classes.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">For more information about hooks, see <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a></p>
@@ -3641,10 +3747,15 @@ parameters without breaking backwards compatibility, for example
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>key</strong> &#8211; The name of the hook setting you want to execute.</li>
 <li><strong>method_name</strong> &#8211; Name of the method to execute</li>
+<li><strong>base_class</strong> &#8211; A python class to use as the base class for the created
+hook. This will override the default hook base class, <code class="docutils literal"><span class="pre">Hook</span></code>.</li>
 </ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The return value from the hook</p>
 </td>
 </tr>
 </tbody>
@@ -5827,7 +5938,7 @@ that need to be passed down to the DCC.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.121',
+            VERSION:'v0.18.124',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

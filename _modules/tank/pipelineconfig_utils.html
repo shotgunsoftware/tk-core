@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.pipelineconfig_utils &mdash; tk-core v0.18.121 documentation</title>
+  <title>tank.pipelineconfig_utils &mdash; tk-core v0.18.124 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.121 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.124 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -118,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.121.<br>
+    <b>tk-core</b> v0.18.124.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -191,6 +191,8 @@
 
 <span class="kn">import</span> <span class="nn">os</span>
 
+<span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">yaml</span>
+
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">LogManager</span>
 
@@ -201,6 +203,18 @@
 <span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankError</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">has_core_descriptor</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns ``True`` if the pipeline configuration contains a core descriptor</span>
+<span class="sd">    file.</span>
+
+<span class="sd">    :param pipeline_config_path: path to a pipeline configuration root folder</span>
+<span class="sd">    :return: ``True`` if the core descriptor file exists, ``False`` otherwise</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># probe by looking for the existence of a core api descriptor file</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">_get_core_descriptor_file</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">))</span>
 
 
 <span class="k">def</span> <span class="nf">is_localized</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
@@ -316,6 +330,73 @@
 
 <span class="c1">####################################################################################################################</span>
 <span class="c1"># Core API resolve utils</span>
+
+<span class="k">def</span> <span class="nf">get_core_descriptor</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">,</span> <span class="n">shotgun_connection</span><span class="p">,</span> <span class="n">bundle_cache_fallback_paths</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a descriptor object for the uri/dict defined in the config&#39;s</span>
+<span class="sd">    ``core_api.yml`` file (if it exists).</span>
+
+<span class="sd">    If the config does not define a core descriptor file, then ``None`` will be</span>
+<span class="sd">    returned.</span>
+
+<span class="sd">    :param str pipeline_config_path: The path to the pipeline configuration</span>
+<span class="sd">    :param shotgun_connection: An open connection to shotgun</span>
+<span class="sd">    :param bundle_cache_fallback_paths: bundle cache search path</span>
+
+<span class="sd">    :return: A core descriptor object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># avoid circular dependencies</span>
+    <span class="kn">from</span> <span class="nn">.descriptor</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">Descriptor</span><span class="p">,</span>
+        <span class="n">create_descriptor</span><span class="p">,</span>
+        <span class="n">is_descriptor_version_missing</span>
+    <span class="p">)</span>
+
+    <span class="n">descriptor_file_path</span> <span class="o">=</span> <span class="n">_get_core_descriptor_file</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">descriptor_file_path</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="c1"># the core_api.yml contains info about the core:</span>
+    <span class="c1">#</span>
+    <span class="c1"># location:</span>
+    <span class="c1">#    name: tk-core</span>
+    <span class="c1">#    type: app_store</span>
+    <span class="c1">#    version: v0.16.34</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Found core descriptor file &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">descriptor_file_path</span><span class="p">)</span>
+
+    <span class="c1"># read the file first</span>
+    <span class="n">fh</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">descriptor_file_path</span><span class="p">,</span> <span class="s2">&quot;rt&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+        <span class="n">core_descriptor_dict</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
+            <span class="s2">&quot;Cannot read invalid core descriptor file &#39;</span><span class="si">%s</span><span class="s2">&#39;: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+            <span class="p">(</span><span class="n">descriptor_file_path</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c1"># we have a core descriptor specification. Get a descriptor object for it</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+        <span class="s2">&quot;Config has a specific core defined in core/core_api.yml: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+        <span class="n">core_descriptor_dict</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># when core is specified, check if it defines a specific version or not</span>
+    <span class="n">use_latest</span> <span class="o">=</span> <span class="n">is_descriptor_version_missing</span><span class="p">(</span><span class="n">core_descriptor_dict</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">create_descriptor</span><span class="p">(</span>
+        <span class="n">shotgun_connection</span><span class="p">,</span>
+        <span class="n">Descriptor</span><span class="o">.</span><span class="n">CORE</span><span class="p">,</span>
+        <span class="n">core_descriptor_dict</span><span class="p">,</span>
+        <span class="n">fallback_roots</span><span class="o">=</span><span class="n">bundle_cache_fallback_paths</span> <span class="ow">or</span> <span class="p">[],</span>
+        <span class="n">resolve_latest</span><span class="o">=</span><span class="n">use_latest</span>
+    <span class="p">)</span>
+
 
 <span class="k">def</span> <span class="nf">get_path_to_current_core</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -599,6 +680,20 @@
     <span class="k">return</span> <span class="n">data</span>
 
 
+<span class="k">def</span> <span class="nf">_get_core_descriptor_file</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper method. Returns the path to the config&#39;s core_api.yml file.</span>
+<span class="sd">    (May not exist)</span>
+
+<span class="sd">    :param pipeline_config_path: path to the pipeline configuration on disk</span>
+<span class="sd">    :return: A string path to the core_api.yml file within the config.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">pipeline_config_path</span><span class="p">,</span>
+        <span class="s2">&quot;config&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;core&quot;</span><span class="p">,</span>
+        <span class="n">constants</span><span class="o">.</span><span class="n">CONFIG_CORE_DESCRIPTOR_FILE</span>
+    <span class="p">)</span>
 </pre></div>
 
            </div>
@@ -631,7 +726,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.121',
+            VERSION:'v0.18.124',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

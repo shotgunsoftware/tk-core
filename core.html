@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Foundation &mdash; tk-core v0.18.121 documentation</title>
+  <title>Foundation &mdash; tk-core v0.18.124 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.121 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.124 documentation" href="index.html"/>
         <link rel="next" title="Apps, Engines and Frameworks" href="platform.html"/>
         <link rel="prev" title="Deploy and management" href="bootstrap.html"/> 
 
@@ -92,11 +92,14 @@
                 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="bootstrap.html">Deploy and management</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Foundation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#launching-and-initializing">Launching and initializing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#factory-methods-for-classic-configurations">Factory methods for classic configurations</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#the-toolkit-core-api">The Toolkit Core API</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#factory-methods">Factory methods</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#authentication">Authentication</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk">Sgtk</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#context">Context</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#authentication">Authentication</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pipeline-configuration-utilities">Pipeline Configuration Utilities</a></li>
 </ul>
 </li>
@@ -152,7 +155,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.121.<br>
+    <b>tk-core</b> v0.18.124.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -215,24 +218,98 @@ that contains lower level components and APIs. These include</p>
 <li>The <a class="reference internal" href="#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> Main API class</li>
 </ul>
 <p>For apps and engines, see the <a class="reference internal" href="platform.html#sgtk-platform-docs"><span class="std std-ref">Apps, Engines and Frameworks</span></a> documentation.</p>
-<div class="section" id="the-toolkit-core-api">
-<h2>The Toolkit Core API<a class="headerlink" href="#the-toolkit-core-api" title="Permalink to this headline">¶</a></h2>
-<p>Each instance of the <a class="reference internal" href="#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">sgtk.Sgtk</span></code></a> class is associated with a specific set of configuration settings.
-This association is automatically resolved as the API instance is created and can be
-specified in several ways:</p>
+<div class="section" id="launching-and-initializing">
+<h2>Launching and initializing<a class="headerlink" href="#launching-and-initializing" title="Permalink to this headline">¶</a></h2>
+<p>Toolkit can be launched and started up in two fundamentally different ways:</p>
 <ul class="simple">
-<li>As a path pointing directly at the desired pipeline configuration</li>
-<li>As a Shotgun entity for which the associated (primary) pipeline configuration is resolved via Shotgun</li>
-<li>As a path to a project folder on disk from which the associated (primary) pipeline configuration is computed.</li>
+<li>All configurations can be started up via the <a class="reference internal" href="bootstrap.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a> bootstrap API. This
+API abstracts the entire process of initialization and provides a consistent set of methods for all
+projects and configurations. This is the recommended way to launch toolkit and gain access to a running
+Toolkit <a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal"><span class="pre">Engine</span></code></a> instance (which in turn contains a <a class="reference internal" href="#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">sgtk.Sgtk</span></code></a> instance.</li>
+<li>Configurations which have been installed into a specific location via the <code class="docutils literal"><span class="pre">tank</span> <span class="pre">setup_project</span></code> command
+or via Shotgun Desktop&#8217;s setup wizard can be initialized in additional ways. Such setups are referred to
+as &#8216;classic&#8217; toolkit setups. For most scenarios, we recommend using the <a class="reference internal" href="bootstrap.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a>
+for access.</li>
 </ul>
-<div class="section" id="factory-methods">
-<h3>Factory methods<a class="headerlink" href="#factory-methods" title="Permalink to this headline">¶</a></h3>
-<p>The following factory methods are used to create a Toolkit API instance:</p>
+<div class="section" id="factory-methods-for-classic-configurations">
+<h3>Factory methods for classic configurations<a class="headerlink" href="#factory-methods-for-classic-configurations" title="Permalink to this headline">¶</a></h3>
+<p>For classic configurations, where the configuration resides in a specific location on disk, you can use
+the following factory methods to create a <a class="reference internal" href="#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">sgtk.Sgtk</span></code></a> instance:</p>
 <dl class="function">
 <dt id="sgtk.sgtk_from_path">
 <code class="descclassname">sgtk.</code><code class="descname">sgtk_from_path</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#sgtk_from_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.sgtk_from_path" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a Toolkit Core API instance based on a path inside a project
-or path pointing directly at a pipeline configuration.</p>
+<dd><p>Creates a Toolkit Core API instance based on a path to a configuration
+or a path to any file inside a project root location.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>This method was designed to initialize toolkit in workflows where the location of configuration
+is pre-determined, typically via the <code class="docutils literal"><span class="pre">tank</span> <span class="pre">setup_project</span></code> command (or via Shotgun Desktop&#8217;s
+project setup wizard). These setups are sometimes referred to as &#8216;classic&#8217; configurations.</p>
+<p class="last">Modern toolkit workflows handle the configuration management automatically, driven by the
+configuration information in Shotgun and via the <a class="reference internal" href="bootstrap.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a> API.
+For these workflows, there is typically no need to utilize the <code class="docutils literal"><span class="pre">sgtk_from_path</span></code> command.
+Instead, launch your toolkit engine directly using the <a class="reference internal" href="bootstrap.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a>
+methods.</p>
+</div>
+<p>This factory method will do the following:</p>
+<ul>
+<li><p class="first">If the given path is determined to be pointing at a pipeline configuration,
+checks will be made to determine that the currently imported <code class="docutils literal"><span class="pre">sgtk</span></code> module is
+associated with the configuration. There are two ways this can be valid:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Either the configuration is localized, meaning that has it&#8217;s
+own <code class="docutils literal"><span class="pre">sgtk</span></code> core module. In that case, it is validated that the <code class="docutils literal"><span class="pre">sgtk</span></code>
+module currently running is exactly that core API belonging to the configuration.</li>
+<li>...or the configuration is sharing an <code class="docutils literal"><span class="pre">sgtk</span></code> core with other configurations.
+in this case, is is validated that the currently imported <code class="docutils literal"><span class="pre">sgtk</span></code> module
+is that shared core that the configuration requires.</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">If the given path is to a file (e.g. a maya file for example), the method will
+do the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Retrieve all projects from Shotgun, including project their <cite>Project.tank_name</cite>
+project root folder fields, and associated pipeline configurations.</li>
+<li>Walk up the path hierarchy of the given path until one of the project roots are
+matching the path.</li>
+<li>Get a list of matching pipeline configurations for that project.</li>
+<li>Ensure that the currently imported <code class="docutils literal"><span class="pre">sgtk</span></code> module is a valid configuration for
+the matching configurations. If more than one configuration is matching, the
+primary will take precendence.</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<p>This method can be used if you have a toolkit project installed in a particular location and
+want to write a script that initializes it. For example, if a Toolkit configuration
+is set up in <code class="docutils literal"><span class="pre">/mnt/projects/hidden_forest/tk_config</span></code>, you could initialize it like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># add the core of the project to the pythonpath</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;/mnt/projects/hidden_forest/tk_config/install/core/python&quot;</span><span class="p">)</span>
+
+<span class="c1"># now import the API</span>
+<span class="kn">import</span> <span class="nn">sgtk</span>
+
+<span class="c1"># import the configuration</span>
+<span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/mnt/projects/hidden_forest/tk_config/install/core/python&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you have a shared core for all your projects, you could pass a file path to this
+method and toolkit would automatically figure out which configuration would be suitable:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># add the shared core to the pythonpath</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;/mnt/toolkit/shared_core&quot;</span><span class="p">)</span>
+
+<span class="c1"># now import the API</span>
+<span class="kn">import</span> <span class="nn">sgtk</span>
+
+<span class="c1"># request that the API produced a tk instance suitable for a given file</span>
+<span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/mnt/projects/hidden_forest/shots/aa/aa_001/lighting/foreground.v002.ma&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -248,9 +325,12 @@ or path pointing directly at a pipeline configuration.</p>
 <dl class="function">
 <dt id="sgtk.sgtk_from_entity">
 <code class="descclassname">sgtk.</code><code class="descname">sgtk_from_entity</code><span class="sig-paren">(</span><em>entity_type</em>, <em>entity_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#sgtk_from_entity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.sgtk_from_entity" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a Toolkit Core API instance given an entity in Shotgun.
-The given object will be looked up in Shotgun and an
-associated pipeline configuration will be determined and loaded.</p>
+<dd><p>Creates a Toolkit Core API instance given an entity in Shotgun.</p>
+<p>The given object will be looked up in Shotgun, its associated pipeline configurations
+will be determined, and compared against the currently imported <code class="docutils literal"><span class="pre">sgtk</span></code> module.</p>
+<p>The logic is identical to the one outlined in <a class="reference internal" href="#sgtk.sgtk_from_path" title="sgtk.sgtk_from_path"><code class="xref py py-meth docutils literal"><span class="pre">sgtk_from_path()</span></code></a>, but for
+a Shotgun entity rather than a path. For more details, see the documentation for
+that method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -270,56 +350,15 @@ associated pipeline configuration will be determined and loaded.</p>
 
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">If you are using the <a class="reference internal" href="bootstrap.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a>, initialization of <a class="reference internal" href="#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">sgtk.Sgtk</span></code></a>
-happens behind the scenes. While it is still possible to access a setup managed by the
-<a class="reference internal" href="bootstrap.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a> via the same methods that you would use to access a
-traditionally set up project, is is usually much easier to let the bootstrap process
-handle the initialization.</p>
+<p class="last">You can also use the methods above in conjunction with projects handled
+by the <a class="reference internal" href="bootstrap.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a>, but since the location
+of the configuration of such projects isn&#8217;t explicit and known beforehand,
+the factory methods are less useful in this context.</p>
 </div>
 </div>
-<div class="section" id="authentication">
-<h3>Authentication<a class="headerlink" href="#authentication" title="Permalink to this headline">¶</a></h3>
-<p>Certain API operations require Shotgun data and hence require a way for the API
-to establish a connection to Shotgun. The easiest way to handle this is by
-making sure that each API instance has an associated authenticated user:</p>
-<dl class="function">
-<dt id="sgtk.set_authenticated_user">
-<code class="descclassname">sgtk.</code><code class="descname">set_authenticated_user</code><span class="sig-paren">(</span><em>user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#set_authenticated_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.set_authenticated_user" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the currently authenticated Shotgun user for the current toolkit session.</p>
-<p>You instruct the Toolkit API which user the current session is associated with by executing
-this command. Conversely, you can use <a class="reference internal" href="#sgtk.get_authenticated_user" title="sgtk.get_authenticated_user"><code class="xref py py-meth docutils literal"><span class="pre">get_authenticated_user()</span></code></a> to retrieve the current user.
-The user object above is created by the <code class="docutils literal"><span class="pre">sgtk.authentication</span></code> part of the API and wraps around the Shotgun
-API to provide a continuous and configurable experience around user based Shotgun connections.</p>
-<p>Normally, Toolkit handles this transparently as part of setting up the <cite>sgtk</cite> instance and there is no need
-to call this method. However, if you are running a custom tool which has particular requirements
-around authentication, you can provide your own logic if desirable.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>user</strong> &#8211; A <a class="reference internal" href="authentication.html#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> derived object. Can
-be None to clear the authenticated user.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="sgtk.get_authenticated_user">
-<code class="descclassname">sgtk.</code><code class="descname">get_authenticated_user</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#get_authenticated_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.get_authenticated_user" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the Shotgun user associated with Toolkit.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <a class="reference internal" href="authentication.html#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> derived object if set,
-None otherwise.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 </div>
+<div class="section" id="the-toolkit-core-api">
+<h2>The Toolkit Core API<a class="headerlink" href="#the-toolkit-core-api" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="sgtk">
 <h3>Sgtk<a class="headerlink" href="#sgtk" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
@@ -330,7 +369,8 @@ configuration and contain access methods for a number of low level
 Toolkit services such as filesystem creation, hooks, context
 manipulation and the Toolkit template system.</p>
 <p>Instances of this class should be created via the factory methods
-<a class="reference internal" href="#sgtk.sgtk_from_path" title="sgtk.sgtk_from_path"><code class="xref py py-meth docutils literal"><span class="pre">sgtk_from_path()</span></code></a> and <a class="reference internal" href="#sgtk.sgtk_from_entity" title="sgtk.sgtk_from_entity"><code class="xref py py-meth docutils literal"><span class="pre">sgtk_from_entity()</span></code></a>.</p>
+<a class="reference internal" href="#sgtk.sgtk_from_path" title="sgtk.sgtk_from_path"><code class="xref py py-meth docutils literal"><span class="pre">sgtk_from_path()</span></code></a> and <a class="reference internal" href="#sgtk.sgtk_from_entity" title="sgtk.sgtk_from_entity"><code class="xref py py-meth docutils literal"><span class="pre">sgtk_from_entity()</span></code></a> or implicitly via the
+<a class="reference internal" href="bootstrap.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a>.</p>
 <dl class="attribute">
 <dt id="sgtk.Sgtk.configuration_descriptor">
 <code class="descname">configuration_descriptor</code><a class="headerlink" href="#sgtk.Sgtk.configuration_descriptor" title="Permalink to this definition">¶</a></dt>
@@ -1347,6 +1387,54 @@ user will be updated with these credentials.</p>
 
 </dd></dl>
 
+</div>
+<div class="section" id="authentication">
+<h3>Authentication<a class="headerlink" href="#authentication" title="Permalink to this headline">¶</a></h3>
+<p>Certain API operations require Shotgun data and hence require a way for the API
+to establish a connection to Shotgun. The easiest way to handle this is by
+making sure that each API instance has an associated authenticated user:</p>
+<dl class="function">
+<dt id="sgtk.set_authenticated_user">
+<code class="descclassname">sgtk.</code><code class="descname">set_authenticated_user</code><span class="sig-paren">(</span><em>user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#set_authenticated_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.set_authenticated_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the currently authenticated Shotgun user for the current toolkit session.</p>
+<p>You instruct the Toolkit API which user the current session is associated with by executing
+this command. Conversely, you can use <a class="reference internal" href="#sgtk.get_authenticated_user" title="sgtk.get_authenticated_user"><code class="xref py py-meth docutils literal"><span class="pre">get_authenticated_user()</span></code></a> to retrieve the current user.
+The user object above is created by the <code class="docutils literal"><span class="pre">sgtk.authentication</span></code> part of the API and wraps around the Shotgun
+API to provide a continuous and configurable experience around user based Shotgun connections.</p>
+<p>Normally, Toolkit handles this transparently as part of setting up the <cite>sgtk</cite> instance and there is no need
+to call this method. However, if you are running a custom tool which has particular requirements
+around authentication, you can provide your own logic if desirable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>user</strong> &#8211; A <a class="reference internal" href="authentication.html#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> derived object. Can
+be None to clear the authenticated user.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.get_authenticated_user">
+<code class="descclassname">sgtk.</code><code class="descname">get_authenticated_user</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#get_authenticated_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.get_authenticated_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the Shotgun user associated with Toolkit.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <a class="reference internal" href="authentication.html#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> derived object if set,
+None otherwise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <a class="reference internal" href="#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> serializes the authentication state, so if you are passing a context
+from one process or application to the next, you don&#8217;t need to utilize the methods above.</p>
+</div>
 </div>
 <div class="section" id="pipeline-configuration-utilities">
 <h3>Pipeline Configuration Utilities<a class="headerlink" href="#pipeline-configuration-utilities" title="Permalink to this headline">¶</a></h3>
@@ -2974,7 +3062,7 @@ does not exist.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.121',
+            VERSION:'v0.18.124',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

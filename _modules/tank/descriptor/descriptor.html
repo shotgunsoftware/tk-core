@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.121 documentation</title>
+  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.124 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.121 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.124 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -118,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.121.<br>
+    <b>tk-core</b> v0.18.124.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -199,7 +199,8 @@
         <span class="n">bundle_cache_root_override</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
         <span class="n">fallback_roots</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
         <span class="n">resolve_latest</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-        <span class="n">constraint_pattern</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">constraint_pattern</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">local_fallback_when_disconnected</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Factory method. Use this when creating descriptor objects.</span>
 
@@ -233,8 +234,15 @@
 <span class="sd">                                - ``v0.1.2``, ``v0.12.3.2``, ``v0.1.3beta`` - a specific version</span>
 <span class="sd">                                - ``v0.12.x`` - get the highest v0.12 version</span>
 <span class="sd">                                - ``v1.x.x`` - get the highest v1 version</span>
+<span class="sd">    :param local_fallback_when_disconnected: If resolve_latest is set to True, specify the behaviour</span>
+<span class="sd">                            in the case when no connection to a remote descriptor can be established,</span>
+<span class="sd">                            for example because and internet connection isn&#39;t available. If True, the</span>
+<span class="sd">                            descriptor factory will attempt to fall back on any existing locally cached</span>
+<span class="sd">                            bundles and return the latest one available. If False, a</span>
+<span class="sd">                            :class:`TankDescriptorError` is raised instead.</span>
 
 <span class="sd">    :returns: :class:`Descriptor` object</span>
+<span class="sd">    :raises: :class:`TankDescriptorError`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">.descriptor_bundle</span> <span class="kn">import</span> <span class="n">AppDescriptor</span><span class="p">,</span> <span class="n">EngineDescriptor</span><span class="p">,</span> <span class="n">FrameworkDescriptor</span>
     <span class="kn">from</span> <span class="nn">.descriptor_cached_config</span> <span class="kn">import</span> <span class="n">CachedConfigDescriptor</span>
@@ -266,7 +274,8 @@
         <span class="n">bundle_cache_root_override</span><span class="p">,</span>
         <span class="n">fallback_roots</span><span class="p">,</span>
         <span class="n">resolve_latest</span><span class="p">,</span>
-        <span class="n">constraint_pattern</span>
+        <span class="n">constraint_pattern</span><span class="p">,</span>
+        <span class="n">local_fallback_when_disconnected</span>
     <span class="p">)</span>
 
     <span class="c1"># now create a high level descriptor and bind that with the low level descriptor</span>
@@ -689,7 +698,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.121',
+            VERSION:'v0.18.124',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.io_descriptor.factory &mdash; tk-core v0.18.121 documentation</title>
+  <title>tank.descriptor.io_descriptor.factory &mdash; tk-core v0.18.124 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.121 documentation" href="../../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.124 documentation" href="../../../../index.html"/>
         <link rel="up" title="Module code" href="../../../index.html"/> 
 
   
@@ -118,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.121.<br>
+    <b>tk-core</b> v0.18.124.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -197,7 +197,8 @@
         <span class="n">bundle_cache_root</span><span class="p">,</span>
         <span class="n">fallback_roots</span><span class="p">,</span>
         <span class="n">resolve_latest</span><span class="p">,</span>
-        <span class="n">constraint_pattern</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">constraint_pattern</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">local_fallback_when_disconnected</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Factory method. Use this method to construct all DescriptorIO instances.</span>
 
@@ -231,7 +232,15 @@
 <span class="sd">                                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version</span>
 <span class="sd">                                - v0.12.x - get the highest v0.12 version</span>
 <span class="sd">                                - v1.x.x - get the highest v1 version</span>
+<span class="sd">    :param local_fallback_when_disconnected: If resolve_latest is set to True, specify the behaviour</span>
+<span class="sd">                            in the case when no connection to a remote descriptor can be established,</span>
+<span class="sd">                            for example because and internet connection isn&#39;t available. If True, the</span>
+<span class="sd">                            descriptor factory will attempt to fall back on any existing locally cached</span>
+<span class="sd">                            bundles and return the latest one available. If False, a</span>
+<span class="sd">                            :class:`TankDescriptorError` is raised instead.</span>
+
 <span class="sd">    :returns: Descriptor object</span>
+<span class="sd">    :raises: :class:`TankDescriptorError`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">IODescriptorBase</span>
     <span class="kn">from</span> <span class="nn">.appstore</span> <span class="kn">import</span> <span class="n">IODescriptorAppStore</span>
@@ -292,16 +301,34 @@
         <span class="k">if</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">has_remote_access</span><span class="p">():</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Remote connection is available - attempting to get latest version from remote...&quot;</span><span class="p">)</span>
             <span class="n">descriptor</span> <span class="o">=</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get_latest_version</span><span class="p">(</span><span class="n">constraint_pattern</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Resolved latest to be </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">descriptor</span><span class="p">)</span>
+
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Remote connection is not available - falling back on getting latest version from cache...&quot;</span><span class="p">)</span>
-            <span class="n">latest_cached_descriptor</span> <span class="o">=</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get_latest_cached_version</span><span class="p">(</span><span class="n">constraint_pattern</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">latest_cached_descriptor</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span><span class="s2">&quot;No cached versions of </span><span class="si">%r</span><span class="s2"> cached locally on disk.&quot;</span> <span class="o">%</span> <span class="n">descriptor</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">local_fallback_when_disconnected</span><span class="p">:</span>
+                <span class="c1"># get latest from bundle cache</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;Remote connection is not available - will try to get &quot;</span>
+                    <span class="s2">&quot;the latest locally cached version of </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="n">descriptor</span>
+                <span class="p">)</span>
+                <span class="n">latest_cached_descriptor</span> <span class="o">=</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get_latest_cached_version</span><span class="p">(</span><span class="n">constraint_pattern</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">latest_cached_descriptor</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No locally cached versions of </span><span class="si">%r</span><span class="s2"> available.&quot;</span> <span class="o">%</span> <span class="n">descriptor</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span>
+                        <span class="s2">&quot;Could not get latest version of </span><span class="si">%s</span><span class="s2">. &quot;</span>
+                        <span class="s2">&quot;For more details, see the log.&quot;</span> <span class="o">%</span> <span class="n">descriptor</span>
+                    <span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Latest locally cached descriptor is </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">latest_cached_descriptor</span><span class="p">)</span>
+                <span class="n">descriptor</span> <span class="o">=</span> <span class="n">latest_cached_descriptor</span>
 
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Latest cached descriptor is </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">latest_cached_descriptor</span><span class="p">)</span>
-            <span class="n">descriptor</span> <span class="o">=</span> <span class="n">latest_cached_descriptor</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># do not attempt to get the latest locally cached version</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Remote connection not available to determine latest version.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span>
+                    <span class="s2">&quot;Could not get latest version of </span><span class="si">%s</span><span class="s2">. &quot;</span>
+                    <span class="s2">&quot;For more details, see the log.&quot;</span> <span class="o">%</span> <span class="n">descriptor</span>
+                <span class="p">)</span>
 
-        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Resolved latest to be </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">descriptor</span><span class="p">)</span>
+
 
     <span class="k">return</span> <span class="n">descriptor</span>
 
@@ -411,7 +438,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'v0.18.121',
+            VERSION:'v0.18.124',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

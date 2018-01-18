@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Authentication &mdash; tk-core v0.18.121 documentation</title>
+  <title>Authentication &mdash; tk-core v0.18.124 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.121 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.124 documentation" href="index.html"/>
         <link rel="prev" title="Descriptor API" href="descriptor.html"/> 
 
   
@@ -129,7 +129,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.121.<br>
+    <b>tk-core</b> v0.18.124.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -347,7 +347,7 @@ an AuthenticationCancelled is thrown.</td>
 <dl class="method">
 <dt id="sgtk.authentication.ShotgunAuthenticator.create_session_user">
 <code class="descname">create_session_user</code><span class="sig-paren">(</span><em>login</em>, <em>session_token=None</em>, <em>password=None</em>, <em>host=None</em>, <em>http_proxy=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/shotgun_authenticator.html#ShotgunAuthenticator.create_session_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticator.create_session_user" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create an AuthenticatedUser given a set of human user credentials.
+<dd><p>Create a <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> given a set of human user credentials.
 Either a password or session token must be supplied. If a password is supplied,
 a session token will be generated for security reasons.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -820,6 +820,7 @@ derived instance.</p>
 <em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">AuthenticationCancelled</code><a class="reference internal" href="_modules/tank/authentication/errors.html#AuthenticationCancelled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.AuthenticationCancelled" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.authentication.errors.ShotgunAuthenticationError</span></code></p>
 <p>Thrown when the user cancels authentication or session renewal.</p>
+<p>Constructor.</p>
 </dd></dl>
 
 </div>
@@ -864,7 +865,7 @@ derived instance.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.121',
+            VERSION:'v0.18.124',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

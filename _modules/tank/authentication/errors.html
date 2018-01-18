@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.authentication.errors &mdash; tk-core v0.18.121 documentation</title>
+  <title>tank.authentication.errors &mdash; tk-core v0.18.124 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.121 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.124 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -118,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.121.<br>
+    <b>tk-core</b> v0.18.124.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -221,9 +221,33 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ShotgunAuthenticationError</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Authentication was cancelled by the user.&quot;</span>
         <span class="p">)</span></div>
+
+
+<span class="k">class</span> <span class="nc">AuthenticationSSOError</span><span class="p">(</span><span class="n">ShotgunAuthenticationError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for all SSO-related exceptions coming out from this module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+<span class="k">class</span> <span class="nc">ConsoleLoginWithSSONotSupportedError</span><span class="p">(</span><span class="n">AuthenticationSSOError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Thrown when attempting to use Username/Password pair to login onto</span>
+<span class="sd">    a SSO-enabled site.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param str url: Url of the site where login was attempted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ShotgunAuthenticationError</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Authentication using username/password is not allowed on the console for </span><span class="si">%s</span><span class="s2">, an SSO-enabled site.&quot;</span> <span class="o">%</span> <span class="n">url</span>
+        <span class="p">)</span>
 </pre></div>
 
            </div>
@@ -256,7 +280,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.121',
+            VERSION:'v0.18.124',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptor API &mdash; tk-core v0.18.121 documentation</title>
+  <title>Descriptor API &mdash; tk-core v0.18.124 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.121 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.124 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -140,7 +140,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.121.<br>
+    <b>tk-core</b> v0.18.124.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -526,7 +526,7 @@ for the code in the <code class="docutils literal"><span class="pre">CACHE_ROOT/
 <h3>Factory Methods<a class="headerlink" href="#factory-methods" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="sgtk.descriptor.create_descriptor">
-<code class="descclassname">sgtk.descriptor.</code><code class="descname">create_descriptor</code><span class="sig-paren">(</span><em>sg_connection</em>, <em>descriptor_type</em>, <em>dict_or_uri</em>, <em>bundle_cache_root_override=None</em>, <em>fallback_roots=None</em>, <em>resolve_latest=False</em>, <em>constraint_pattern=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor.html#create_descriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.create_descriptor" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">sgtk.descriptor.</code><code class="descname">create_descriptor</code><span class="sig-paren">(</span><em>sg_connection</em>, <em>descriptor_type</em>, <em>dict_or_uri</em>, <em>bundle_cache_root_override=None</em>, <em>fallback_roots=None</em>, <em>resolve_latest=False</em>, <em>constraint_pattern=None</em>, <em>local_fallback_when_disconnected=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor.html#create_descriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.create_descriptor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Factory method. Use this when creating descriptor objects.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -566,10 +566,19 @@ This is a string that can be on the following form:</p>
 </ul>
 </div></blockquote>
 </li>
+<li><strong>local_fallback_when_disconnected</strong> &#8211; If resolve_latest is set to True, specify the behaviour
+in the case when no connection to a remote descriptor can be established,
+for example because and internet connection isn&#8217;t available. If True, the
+descriptor factory will attempt to fall back on any existing locally cached
+bundles and return the latest one available. If False, a
+<a class="reference internal" href="#sgtk.descriptor.TankDescriptorError" title="sgtk.descriptor.TankDescriptorError"><code class="xref py py-class docutils literal"><span class="pre">TankDescriptorError</span></code></a> is raised instead.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> object</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> object</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.descriptor.TankDescriptorError" title="sgtk.descriptor.TankDescriptorError"><code class="xref py py-class docutils literal"><span class="pre">TankDescriptorError</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -3097,7 +3106,7 @@ If not url has been defined, <code class="docutils literal"><span class="pre">No
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.121',
+            VERSION:'v0.18.124',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
