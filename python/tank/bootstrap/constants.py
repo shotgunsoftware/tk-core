@@ -73,5 +73,8 @@ PIPELINE_CONFIG_ID_ENV_VAR = "SHOTGUN_PIPELINE_CONFIGURATION_ID"
 # environment variable that is used to indicate which bundle caches to be used.
 BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR = "SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS"
 
+# the name of the folder within the config where bundles are cached.
+BUNDLE_CACHE_FOLDER_NAME = "bundle_cache"
+
 # the shotgun engine always has this name
 SHOTGUN_ENGINE_NAME = "tk-shotgun"

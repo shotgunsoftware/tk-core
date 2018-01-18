@@ -16,11 +16,6 @@ from . import constants
 
 from .errors import TankBootstrapError
 
-from ..pipelineconfig_utils import (
-    has_local_bundle_cache,
-    get_local_bundle_cache_path
-)
-
 from ..util import filesystem
 
 from tank_vendor import yaml
@@ -283,11 +278,23 @@ class CachedConfiguration(Configuration):
                 self._descriptor.copy(os.path.join(self._path.current_os, "config"))
 
             # if the config has a local bundle cache folder, append it to the
-            # list of fallback paths
-            if has_local_bundle_cache(self._path.current_os):
-                self._bundle_cache_fallback_paths.append(
-                    get_local_bundle_cache_path(self._path.current_os)
+            # list of fallback paths. this allows bundles to be included with
+            # the config, making it self contained and not requiring additional
+            # bundle downloads
+            local_bundle_cache_path = os.path.join(
+                self._descriptor.get_config_folder(),
+                constants.BUNDLE_CACHE_FOLDER_NAME
+            )
+            if os.path.exists(local_bundle_cache_path):
+                log.debug(
+                    "Local bundle cache found in config. "
+                    "Adding local bundle cache as fallback path: %s" %
+                    (local_bundle_cache_path,)
                 )
+                self._bundle_cache_fallback_paths.append(
+                    local_bundle_cache_path)
+            else:
+                log.debug("No local bundle cache found in config.")
 
             # write out config files
             self._config_writer.write_install_location_file()

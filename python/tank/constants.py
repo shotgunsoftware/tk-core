@@ -83,6 +83,3 @@ SUPPORT_EMAIL = "support@shotgunsoftware.com"
 
 # environment variable to hold external pipeline config data
 ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA = "SGTK_EXT_CONFIG_DATA"
-
-# the name of the folder within the config where bundles are cached.
-BUNDLE_CACHE_FOLDER_NAME = "bundle_cache"
