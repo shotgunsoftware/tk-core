@@ -1,5 +1,5 @@
 # this is a comment at the top of the file
-include: ./empty_config.yml
+include: ./includes/empty_config.yml
 
 engines:
   # this is a comment after the engines section

@@ -1,5 +1,8 @@
 *.py[co]
 
+# ignore pytest caches
+.cache
+
 # Ignore vim temporary and swap files
 *~
 [._]*.s[a-w][a-z]

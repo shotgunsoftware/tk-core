@@ -98,62 +98,6 @@ def get_metadata(pipeline_config_path):
     return data
 
 
-def get_roots_metadata(pipeline_config_path):
-    """
-    Loads and validates the roots metadata file.
-    
-    The roots.yml file is a reflection of the local storages setup in Shotgun
-    at project setup time and may contain anomalies in the path layout structure.
-    
-    The roots data will be prepended to paths and used for comparison so it is 
-    critical that the paths are on a correct normalized form once they have been 
-    loaded into the system.
-    
-    :param pipeline_config_path: Path to the root of a pipeline configuration,
-                                 (excluding the "config" folder).  
-    
-    :returns: A dictionary structure with an entry for each storage defined. Each
-              storage will have three keys mac_path, windows_path and linux_path, 
-              for example
-              { "primary"  : <ShotgunPath>,
-                "textures" : <ShotgunPath>
-              }
-    """
-    # now read in the roots.yml file
-    # this will contain something like
-    # {'primary': {'mac_path': '/studio', 'windows_path': None, 'linux_path': '/studio'}}
-    roots_yml = os.path.join(
-        pipeline_config_path,
-        "config",
-        "core",
-        constants.STORAGE_ROOTS_FILE
-    )
-
-    try:
-        # if file is empty, initialize with empty dict...
-        data = yaml_cache.g_yaml_cache.get(roots_yml, deepcopy_data=False) or {}
-    except Exception as e:
-        raise TankError("Looks like the roots file is corrupt. Please contact "
-                        "support! File: '%s' Error: %s" % (roots_yml, e))
-
-    # If there are more than one storage defined, ensure one of them is the primary storage
-    # We need to keep this constraint as we are not able to keep roots definition
-    # in the order they were defined, so this is the only way we can guarantee we
-    # always use the same root for any template which does not have an explicit
-    # root setting.
-    if len(data) > 1 and constants.PRIMARY_STORAGE_NAME not in data:
-        raise TankError(
-            "Could not find a primary storage in multi-roots file "
-            "for configuration %s!" % pipeline_config_path
-        )
-
-    # Sanitize path data by passing it through the ShotgunPath
-    shotgun_paths = {}
-    for storage_name, storage_definition in data.iteritems():
-        shotgun_paths[storage_name] = ShotgunPath.from_shotgun_dict(storage_definition)
-    return shotgun_paths
-
-
 ####################################################################################################################
 # Core API resolve utils
 
