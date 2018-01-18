@@ -32,10 +32,18 @@ class InstalledConfigDescriptor(ConfigDescriptor):
     environment files, a copy of core and all the bundles required by that pipeline configuration.
     It supports localized as well as shared core and as such, the interpreter files can be found
     inside the configuration folder or alongside the shared core.
+
+    :param sg_connection: Connection to the Shotgun site.
+    :type sg_connection: :class:`shotgun_api3.Shotgun`
+    :param str bundle_cache_root: Path to the global bundle cache.
+    :param list(str) fallback_roots: List of fallback locations on disk where bundles can be found.
+    :param io_descriptor: Associated IO descriptor.
     """
 
-    def __init__(self, io_descriptor):
-        super(InstalledConfigDescriptor, self).__init__(io_descriptor)
+    def __init__(self, sg_connection, bundle_cache_root, fallback_roots, io_descriptor):
+        super(InstalledConfigDescriptor, self).__init__(
+            sg_connection, bundle_cache_root, fallback_roots, io_descriptor
+        )
         self._io_descriptor.set_is_copiable(False)
 
     @property
@@ -94,9 +102,13 @@ class InstalledConfigDescriptor(ConfigDescriptor):
         except TankMissingManifestError:
             return {}
 
-    def _get_config_folder(self):
+    def get_config_folder(self):
         """
         Returns the path to the ``config`` folder inside the pipeline configuration.
+
+        For example, for a configuration at ``\\server\mount\shotgun\project\pipeline``,
+        the ``config`` folder would be at
+        ``\\server\mount\shotgun\project\pipeline\config``.
 
         :returns: Path to the ``config`` folder.
         """
@@ -150,7 +162,8 @@ class InstalledConfigDescriptor(ConfigDescriptor):
             # this file will contain the path to the API which is meant to be used with this PC.
             install_path = None
             with open(studio_linkback_file, "rt") as fh:
-                data = fh.read().strip() # remove any whitespace, keep text
+                # remove any whitespace, keep text
+                data = fh.read().strip()
 
             # expand any env vars that are used in the files. For example, you could have
             # an env variable $STUDIO_TANK_PATH=/sgtk/software/shotgun/studio and your

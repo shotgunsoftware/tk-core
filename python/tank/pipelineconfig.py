@@ -90,7 +90,7 @@ class PipelineConfiguration(object):
                                                                               our_associated_api_version, 
                                                                               self.get_install_location()))            
 
-        self._roots = pipelineconfig_utils.get_roots_metadata(self._pc_root)
+        self._roots = self._get_roots_metadata()
 
         # get the project tank disk name (Project.tank_name),
         # stored in the pipeline config metadata file.
@@ -244,7 +244,63 @@ class PipelineConfiguration(object):
 
     ########################################################################################
     # handling pipeline config metadata
-    
+
+    def _get_roots_metadata_location(self):
+        """
+        Returns the location to the roots metadata.
+        """
+        return os.path.join(
+            self._pc_root, "config", "core", constants.STORAGE_ROOTS_FILE
+        )
+
+    def _get_roots_metadata(self):
+        """
+        Loads and validates the roots metadata file.
+
+        The roots.yml file is a reflection of the local storages setup in Shotgun
+        at project setup time and may contain anomalies in the path layout structure.
+
+        The roots data will be prepended to paths and used for comparison so it is
+        critical that the paths are on a correct normalized form once they have been
+        loaded into the system.
+
+        :returns: A dictionary structure with an entry for each storage defined. Each
+                  storage will have three keys mac_path, windows_path and linux_path,
+                  for example
+                  { "primary"  : <ShotgunPath>,
+                    "textures" : <ShotgunPath>
+                  }
+        """
+        # now read in the roots.yml file
+        # this will contain something like
+        # {'primary': {'mac_path': '/studio', 'windows_path': None, 'linux_path': '/studio'}}
+        roots_yml = self._get_roots_metadata_location()
+
+        try:
+            # if file is empty, initialize with empty dict...
+            data = yaml_cache.g_yaml_cache.get(roots_yml, deepcopy_data=False) or {}
+        except Exception as e:
+            raise TankError("Looks like the roots file is corrupt. Please contact "
+                            "support! File: '%s' Error: %s" % (roots_yml, e))
+
+        # If there are more than one storage defined, ensure one of them is the primary storage
+        # We need to keep this constraint as we are not able to keep roots definition
+        # in the order they were defined, so this is the only way we can guarantee we
+        # always use the same root for any template which does not have an explicit
+        # root setting.
+        if len(data) > 1 and constants.PRIMARY_STORAGE_NAME not in data:
+            raise TankError(
+                "Could not find a primary storage in multi-roots file "
+                "for configuration %s!" % roots_yml
+            )
+
+        # Sanitize path data by passing it through the ShotgunPath
+        shotgun_paths = {}
+        for storage_name, storage_definition in data.iteritems():
+            shotgun_paths[storage_name] = ShotgunPath.from_shotgun_dict(storage_definition)
+
+        return shotgun_paths
+
     def _get_metadata(self):
         """
         Loads the pipeline config metadata (the pipeline_configuration.yml) file from disk.
@@ -254,11 +310,7 @@ class PipelineConfiguration(object):
         """
     
         # now read in the pipeline_configuration.yml file
-        cfg_yml = os.path.join(
-            self.get_config_location(),
-            "core",
-            constants.PIPELINECONFIG_FILE
-        )
+        cfg_yml = self._get_pipeline_config_file_location()
     
         if not os.path.exists(cfg_yml):
             raise TankError("Configuration metadata file '%s' missing! "
@@ -290,11 +342,7 @@ class PipelineConfiguration(object):
         curr_settings.update(updates)
         
         # write the record to disk
-        pipe_config_sg_id_path = os.path.join(
-            self.get_config_location(),
-            "core",
-            constants.PIPELINECONFIG_FILE
-        )
+        pipe_config_sg_id_path = self._get_pipeline_config_file_location()
         
         old_umask = os.umask(0)
         try:
@@ -327,12 +375,27 @@ class PipelineConfiguration(object):
         self._pc_id = curr_settings.get("pc_id")
         self._pc_name = curr_settings.get("pc_name")
 
+    def _get_pipeline_config_file_location(self):
+        """
+        Returns the location of the pipeline_configuration.yml file.
+        """
+        return os.path.join(
+            self._pc_root, "config", "core",
+            constants.PIPELINECONFIG_FILE
+        )
+
+    def _get_yaml_cache_location(self):
+        """
+        Returns the location of the yaml cache for this configuration.
+        """
+        return os.path.join(self._pc_root, "yaml_cache.pickle")
+
     def _populate_yaml_cache(self):
         """
         Loads pickled yaml_cache items if they are found and merges them into
         the global YamlCache.
         """
-        cache_file = os.path.join(self._pc_root, "yaml_cache.pickle")
+        cache_file = self._get_yaml_cache_location()
         if not os.path.exists(cache_file):
             return
 
@@ -372,7 +435,7 @@ class PipelineConfiguration(object):
         """
         Returns the path to this config for all operating systems,
         as defined in the install_locations file.
-        
+
         :returns: ShotgunPath
         """
         return pipelineconfig_utils.resolve_all_os_paths_to_config(self._pc_root)
@@ -869,34 +932,38 @@ class PipelineConfiguration(object):
     def get_core_hooks_location(self):
         """
         Returns the path to the core hooks location
-        
+
         :returns: path string
         """
-        return os.path.join(self._pc_root, "config", "core", "hooks")
+        return os.path.join(
+            os.path.join(self.get_config_location(), "core"), "hooks"
+        )
 
     def get_schema_config_location(self):
         """
         Returns the location of the folder schema
-        
+
         :returns: path string
         """
-        return os.path.join(self._pc_root, "config", "core", "schema")
+        return os.path.join(
+            os.path.join(self.get_config_location(), "core"), "schema"
+        )
 
     def get_config_location(self):
         """
-        Returns the config folder for the project
-        
+        Returns the config folder location for the project
+
         :returns: path string
         """
-        return os.path.join(self._pc_root, "config")
+        return self._descriptor.get_config_folder()
 
     def get_hooks_location(self):
         """
         Returns the hooks folder for the project
-        
+
         :returns: path string
         """
-        return os.path.join(self._pc_root, "config", "hooks")
+        return os.path.join(self.get_config_location(), "hooks")
 
     def get_shotgun_menu_cache_location(self):
         """
@@ -914,9 +981,8 @@ class PipelineConfiguration(object):
         """
         Returns a list with all the environments in this configuration.
         """
-        env_root = os.path.join(self._pc_root, "config", "env")
         env_names = []
-        for f in glob.glob(os.path.join(env_root, "*.yml")):
+        for f in glob.glob(self.get_environment_path("*")):
             file_name = os.path.basename(f)
             (name, _) = os.path.splitext(file_name)
             env_names.append(name)
@@ -947,18 +1013,22 @@ class PipelineConfiguration(object):
         :param env_name:    The name of the environment.
         :returns:           String path to the environment yaml file.
         """
-        return os.path.join(self._pc_root, "config", "env", "%s.yml" % env_name)
+        return os.path.join(self.get_config_location(), "env", "%s.yml" % env_name)
+
+    def _get_templates_config_location(self):
+        """
+        Returns the path to the configuration's template file.
+        """
+        return os.path.join(
+            os.path.join(self.get_config_location(), "core"),
+            constants.CONTENT_TEMPLATES_FILE,
+        )
     
     def get_templates_config(self):
         """
         Returns the templates configuration as an object
         """
-        templates_file = os.path.join(
-            self._pc_root,
-            "config",
-            "core",
-            constants.CONTENT_TEMPLATES_FILE,
-        )
+        templates_file = self._get_templates_config_location()
 
         try:
             data = yaml_cache.g_yaml_cache.get(templates_file, deepcopy_data=False) or {}
