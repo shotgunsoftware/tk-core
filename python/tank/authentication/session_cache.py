@@ -34,7 +34,9 @@ from ..util import LocalFileStorageManager
 logger = LogManager.get_logger(__name__)
 
 _CURRENT_HOST = "current_host"
+_RECENT_HOSTS = "recent_hosts"
 _CURRENT_USER = "current_user"
+_RECENT_USERS = "recent_users"
 _USERS = "users"
 _LOGIN = "login"
 _SESSION_METADATA = "session_metadata"
@@ -178,7 +180,7 @@ def _try_load_yaml_file(file_path):
             logger.debug(line.rstrip())
         # Create an empty document
         return {}
-    except:
+    except Exception:
         logger.exception("Unexpected error while opening %s" % file_path)
         return {}
     finally:
@@ -196,9 +198,9 @@ def _try_load_site_authentication_file(file_path):
     The users file has the following format:
         current_user: "login1"
         users:
-           {name: "login1", session_token: "session_token"}
-           {name: "login2", session_token: "session_token"}
-           {name: "login3", session_token: "session_token"}
+           {login: "login1", session_token: "session_token"}
+           {login: "login2", session_token: "session_token"}
+           {login: "login3", session_token: "session_token"}
 
     :returns: site authentication style dictionary
     """
@@ -206,6 +208,14 @@ def _try_load_site_authentication_file(file_path):
     # Make sure any mandatory entry is present.
     content.setdefault(_USERS, [])
     content.setdefault(_CURRENT_USER, None)
+    content.setdefault(_RECENT_USERS, [])
+
+    for user in content[_USERS]:
+        user[_LOGIN] = user[_LOGIN].strip()
+
+    if content[_CURRENT_USER]:
+        content[_CURRENT_USER] = content[_CURRENT_USER].strip()
+
     return content
 
 
@@ -220,6 +230,7 @@ def _try_load_global_authentication_file(file_path):
     content = _try_load_yaml_file(file_path)
     # Make sure any mandatody entry is present.
     content.setdefault(_CURRENT_HOST, None)
+    content.setdefault(_RECENT_HOSTS, [])
     return content
 
 
@@ -297,7 +308,7 @@ def delete_session_data(host, login):
         # Write back the file.
         _write_yaml_file(info_path, users_file)
         logger.debug("Session cleared.")
-    except:
+    except Exception:
         logger.exception("Couldn't update the session cache file!")
         raise
 
@@ -319,9 +330,7 @@ def get_session_data(base_url, login):
             # Search for the user in the users dictionary.
             if _is_same_user(user, login):
                 session_data = {
-                    # There used to be a time where we didn't strip whitepsaces
-                    # before writing the file, so do it now just in case.
-                    _LOGIN: user[_LOGIN].strip(),
+                    _LOGIN: user[_LOGIN],
                     _SESSION_TOKEN: user[_SESSION_TOKEN]
                 }
                 # We want to keep session_metadata out of the session data if there
@@ -380,7 +389,8 @@ def get_current_user(host):
 
 def set_current_user(host, login):
     """
-    Saves the current user for a given host.
+    Saves the current user for a given host and updates the recent user list. Only the last 8
+    entries are kept.
 
     :param host: Host to save the current user for.
     :param login: The current user login for specified host.
@@ -392,8 +402,48 @@ def set_current_user(host, login):
     _ensure_folder_for_file(file_path)
 
     current_user_file = _try_load_site_authentication_file(file_path)
-    current_user_file[_CURRENT_USER] = login
+
+    _update_recent_list(
+        current_user_file, _CURRENT_USER, _RECENT_USERS, login
+    )
+
     _write_yaml_file(file_path, current_user_file)
+
+
+def set_current_host(host):
+    """
+    Saves the current host and updates the most recent host list. Only the last 8 entries are kept.
+
+    :param host: The new current host.
+    """
+    if host:
+        host = connection.sanitize_url(host)
+
+    file_path = _get_global_authentication_file_location()
+    _ensure_folder_for_file(file_path)
+
+    current_host_file = _try_load_global_authentication_file(file_path)
+
+    _update_recent_list(current_host_file, _CURRENT_HOST, _RECENT_HOSTS, host)
+    _write_yaml_file(file_path, current_host_file)
+
+
+def _update_recent_list(document, current_key, recent_key, value):
+    """
+    Updates document's current key with the desired value and it's recent key by inserting the value
+    at the front. Only the most recent 8 entries are kept.
+
+    For example, if a document has the current_host (current_key) and recent_hosts (recent_key) key,
+    the current_host would be set to the host (value) passed in and the host would be inserted
+    at the front of recent_key's array.
+    """
+    document[current_key] = value
+    # Make sure this user is now the most recent one.
+    if value in document[recent_key]:
+        document[recent_key].remove(value)
+    document[recent_key].insert(0, value)
+    # Only keep the 8 most recent entries
+    document[recent_key] = document[recent_key][:8]
 
 
 def get_current_host():
@@ -412,21 +462,28 @@ def get_current_host():
     return host
 
 
-def set_current_host(host):
+def get_recent_hosts():
     """
-    Saves the current host.
+    Retrieves the list of recently visited hosts.
 
-    :param host: The new current host.
+    :returns: List of recently visited hosts.
     """
-    if host:
-        host = connection.sanitize_url(host)
+    info_path = _get_global_authentication_file_location()
+    document = _try_load_global_authentication_file(info_path)
+    logger.debug("Recent hosts are: %s", document[_RECENT_HOSTS])
+    return document[_RECENT_HOSTS]
 
-    file_path = _get_global_authentication_file_location()
-    _ensure_folder_for_file(file_path)
 
-    current_host_file = _try_load_global_authentication_file(file_path)
-    current_host_file[_CURRENT_HOST] = host.strip()
-    _write_yaml_file(file_path, current_host_file)
+def get_recent_users(site):
+    """
+    Retrieves the list of recently visited hosts.
+
+    :returns: List of recently visited hosts.
+    """
+    info_path = _get_site_authentication_file_location(site)
+    document = _try_load_site_authentication_file(info_path)
+    logger.debug("Recent users are: %s", document[_RECENT_USERS])
+    return document[_RECENT_USERS]
 
 
 @LogManager.log_timing

@@ -256,6 +256,16 @@ class TankTestBase(unittest.TestCase):
 
         self._tear_down_called = False
 
+    def __str__(self):
+        """
+        Slight tweak on the baseclass' __str__ method. Instead of just displaying the class name
+        we're showing the complete path to the test function so a user can simply double click a
+        test name in the console and paste it to run it.
+        """
+        return "%s (%s)" % (
+            self._testMethodName, unittest.util.strclass(self.__class__) + "." + self._testMethodName
+        )
+
     @timer.clock_func("TankTestBase.setUp")
     def setUp(self, parameters=None):
         """
