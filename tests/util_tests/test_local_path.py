@@ -16,10 +16,10 @@ import sys
 from tank import TankError
 from tank.util import LocalFileStorageManager
 
-from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
+from tank_test.tank_test_base import ShotgunTestBase, setUpModule # noqa
 
 
-class TestLocalFileStorage(TankTestBase):
+class TestLocalFileStorage(ShotgunTestBase):
     """
     tests the ShotgunPath class
     """
@@ -328,7 +328,7 @@ class TestLocalFileStorage(TankTestBase):
         )
 
 
-class TestCustomRoot(TankTestBase):
+class TestCustomRoot(ShotgunTestBase):
     def test_custom_root(self):
         """
         Ensures that setting SHOTGUN_HOME overrides the local file storage default paths.

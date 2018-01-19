@@ -13,7 +13,8 @@ from mock import patch
 import os
 import base64
 
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import ShotgunTestBase
+from tank_test.tank_test_base import setUpModule # noqa
 
 from tank.authentication import ShotgunAuthenticator, IncompleteCredentials, DefaultsManager, user_impl, user
 
@@ -21,12 +22,12 @@ from tank.authentication import ShotgunAuthenticator, IncompleteCredentials, Def
 valid_session_metadata = base64.b64encode('shotgun_sso_session_userid_u00=userid')
 
 
-class TestDefaultManager(DefaultsManager):
+class CustomDefaultManager(DefaultsManager):
     def get_host(self):
         return "https://some_site.shotgunstudio.com"
 
 
-class ShotgunAuthenticatorTests(TankTestBase):
+class ShotgunAuthenticatorTests(ShotgunTestBase):
 
     @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     @patch("tank.authentication.session_cache.generate_session_token")
@@ -42,14 +43,14 @@ class ShotgunAuthenticatorTests(TankTestBase):
 
         # No login should throw
         with self.assertRaises(IncompleteCredentials):
-            ShotgunAuthenticator(TestDefaultManager()).create_session_user("", "session_token")
+            ShotgunAuthenticator(CustomDefaultManager()).create_session_user("", "session_token")
 
         # No password or session token should throw
         with self.assertRaises(IncompleteCredentials):
-            ShotgunAuthenticator(TestDefaultManager()).create_session_user("login")
+            ShotgunAuthenticator(CustomDefaultManager()).create_session_user("login")
 
         # Passing a password should generate a session token
-        session_user = ShotgunAuthenticator(TestDefaultManager()).create_session_user(
+        session_user = ShotgunAuthenticator(CustomDefaultManager()).create_session_user(
             "login", password="password", host="https://host.shotgunstudio.com"
         )
         self.assertIsInstance(session_user, user.ShotgunUser)
@@ -61,8 +62,9 @@ class ShotgunAuthenticatorTests(TankTestBase):
         self.assertEqual(connection.config.session_token, "session_token")
 
         # Passing invalid session_metadata will result in a regular ShotgunUser
-        session_user = ShotgunAuthenticator(TestDefaultManager())._create_session_user(
-            "login", password="password", host="https://host.shotgunstudio.com", session_metadata="invalid session_metadata"
+        session_user = ShotgunAuthenticator(CustomDefaultManager())._create_session_user(
+            "login", password="password", host="https://host.shotgunstudio.com",
+            session_metadata="invalid session_metadata"
         )
         self.assertIsInstance(session_user, user.ShotgunUser)
         self.assertNotIsInstance(session_user, user.ShotgunSamlUser)
@@ -73,8 +75,9 @@ class ShotgunAuthenticatorTests(TankTestBase):
         self.assertEqual(connection.config.session_token, "session_token")
 
         # Passing valid session_metadata will result in a ShotgunSamlUser
-        session_user = ShotgunAuthenticator(TestDefaultManager())._create_session_user(
-            "login", password="password", host="https://host.shotgunstudio.com", session_metadata=valid_session_metadata
+        session_user = ShotgunAuthenticator(CustomDefaultManager())._create_session_user(
+            "login", password="password", host="https://host.shotgunstudio.com",
+            session_metadata=valid_session_metadata
         )
         self.assertIsInstance(session_user, user.ShotgunSamlUser)
         self.assertEquals(generate_session_token_mock.call_count, 3)
@@ -90,14 +93,14 @@ class ShotgunAuthenticatorTests(TankTestBase):
         """
         # No script name should throw
         with self.assertRaises(IncompleteCredentials):
-            ShotgunAuthenticator(TestDefaultManager()).create_script_user("", "api_key")
+            ShotgunAuthenticator(CustomDefaultManager()).create_script_user("", "api_key")
 
         # No script key should throw
         with self.assertRaises(IncompleteCredentials):
-            ShotgunAuthenticator(TestDefaultManager()).create_script_user("api_script", "")
+            ShotgunAuthenticator(CustomDefaultManager()).create_script_user("api_script", "")
 
         # With valid values it should work
-        user = ShotgunAuthenticator(TestDefaultManager()).create_script_user(
+        user = ShotgunAuthenticator(CustomDefaultManager()).create_script_user(
             "api_script", "api_key", "https://host.shotgunstudio.com", None
         )
         connection = user.create_sg_connection()
@@ -120,8 +123,7 @@ class ShotgunAuthenticatorTests(TankTestBase):
         """
         generate_session_token_mock.return_value = "session_token"
 
-        class TestWithUserDefaultManager(TestDefaultManager):
-
+        class TestWithUserDefaultManager(CustomDefaultManager):
             def get_host(self):
                 return "https://unique_host.shotgunstudio.com"
 

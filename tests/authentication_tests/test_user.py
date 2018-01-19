@@ -10,8 +10,8 @@
 
 from __future__ import with_statement
 
+from tank_test.tank_test_base import ShotgunTestBase
 from tank_test.tank_test_base import setUpModule # noqa
-from tank_test.tank_test_base import TankTestBase
 
 from mock import patch
 
@@ -19,7 +19,7 @@ from tank.authentication import user, user_impl
 from tank_vendor.shotgun_api3 import AuthenticationFault
 
 
-class UserTests(TankTestBase):
+class UserTests(ShotgunTestBase):
 
     def _create_test_user(self):
         return user.ShotgunUser(user_impl.SessionUser(

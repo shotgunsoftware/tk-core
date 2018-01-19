@@ -21,7 +21,8 @@ from mock import patch, call
 
 import tank
 from tank import context, errors
-from tank_test.tank_test_base import TankTestBase, setUpModule
+from tank_test.tank_test_base import TankTestBase, ShotgunTestBase
+from tank_test.tank_test_base import setUpModule # noqa
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
 from tank.authentication.user import ShotgunUser
@@ -39,12 +40,8 @@ class TestShotgunFindPublish(TankTestBase):
         then queried to see what paths the code attempted to create.
         """
         super(TestShotgunFindPublish, self).setUp()
-        
-        #self.setup_fixtures()
-        self.setup_multi_root_fixtures()
-        
-        project_name = os.path.basename(self.project_root)
 
+        project_name = os.path.basename(self.project_root)
         # older publish to test we get the latest
         self.pub_1 = {"type": "PublishedFile",
                     "id": 1,
@@ -75,16 +72,8 @@ class TestShotgunFindPublish(TankTestBase):
                     "path_cache": "%s/foo/seq_%%03d.ext" % project_name,
                     "created_at": datetime.datetime(2012, 10, 13, 12, 2),
                     "path_cache_storage": self.primary_storage}
-
-        self.pub_5 = {"type": "PublishedFile",
-                    "id": 5,
-                    "code": "other storage",
-                    "path_cache": "%s/foo/bar" % project_name,
-                    "created_at": datetime.datetime(2012, 10, 12, 12, 1),
-                    "path_cache_storage": self.alt_storage_1}
-
         # Add these to mocked shotgun
-        self.add_to_sg_mock_db([self.pub_1, self.pub_2, self.pub_3, self.pub_4, self.pub_5])
+        self.add_to_sg_mock_db([self.pub_1, self.pub_2, self.pub_3, self.pub_4])
 
     def test_find(self):        
         paths = [os.path.join(self.project_root, "foo", "bar")]
@@ -137,19 +126,6 @@ class TestShotgunFindPublish(TankTestBase):
         sg_data = d.get(paths[0])
         self.assertEqual(sg_data["id"], self.pub_4["id"])
 
-    def test_multi_root(self):        
-        paths = [os.path.join(self.alt_root_1, "foo", "bar")]
-        d = tank.util.find_publish(self.tk, paths)
-        self.assertEqual(len(d), 1)
-        self.assertEqual(d.keys(), paths)
-        
-        # make sure we got the latest matching publish
-        sg_data = d.get(paths[0])        
-        self.assertEqual(sg_data["id"], self.pub_5["id"])
-        
-        # make sure we are only getting the ID back.
-        self.assertEqual(sg_data.keys(), ["type", "id"])
-        
     def test_ignore_missing(self):  
         """
         If a storage is not registered in shotgun, the path is ignored
@@ -218,136 +194,46 @@ class TestShotgunFindPublish(TankTestBase):
             ),
         )
 
-class TestShotgunFindPublishTankStorage(TankTestBase):
-    
-    def setUp(self):
-        """Sets up entities in mocked shotgun database and creates Mock objects
-        to pass in as callbacks to Schema.create_folders. The mock objects are
-        then queried to see what paths the code attempted to create.
-        """
-        super(TestShotgunFindPublishTankStorage, self).setUp()
-        
-        #self.setup_fixtures()
+
+class TestMultiRoot(TankTestBase):
+
+    def test_multi_root(self):
+
         self.setup_multi_root_fixtures()
 
-        self.storage_2 = {"type": "LocalStorage", "id": 43, "code": "alternate_1"}
-        
         project_name = os.path.basename(self.project_root)
-        # older publish to test we get the latest
-        self.pub_1 = {"type": "PublishedFile",
-                    "id": 1,
-                    "code": "hello",
-                    "path_cache": "%s/foo/bar" % project_name,
-                    "created_at": datetime.datetime(2012, 10, 12, 12, 1),
-                    "path_cache_storage": self.primary_storage}
-
-        # publish matching older publish
-        self.pub_2 = {"type": "PublishedFile",
-                    "id": 2,
-                    "code": "more recent",
-                    "path_cache": "%s/foo/bar" % project_name,
-                    "created_at": datetime.datetime(2012, 10, 13, 12, 1),
-                    "path_cache_storage": self.primary_storage}
-        
-        self.pub_3 = {"type": "PublishedFile",
-                    "id": 3,
-                    "code": "world",
-                    "path_cache": "%s/foo/baz" % project_name,
-                    "created_at": datetime.datetime(2012, 10, 13, 12, 2),
-                    "path_cache_storage": self.primary_storage}
-
-        # sequence publish
-        self.pub_4 = {"type": "PublishedFile",
-                    "id": 4,
-                    "code": "sequence_file",
-                    "path_cache": "%s/foo/seq_%%03d.ext" % project_name,
-                    "created_at": datetime.datetime(2012, 10, 13, 12, 2),
-                    "path_cache_storage": self.primary_storage}
 
         self.pub_5 = {"type": "PublishedFile",
-                    "id": 5,
-                    "code": "other storage",
-                    "path_cache": "%s/foo/bar" % project_name,
-                    "created_at": datetime.datetime(2012, 10, 12, 12, 1),
-                    "path_cache_storage": self.alt_storage_1}
+                      "id": 5,
+                      "code": "other storage",
+                      "path_cache": "%s/foo/bar" % project_name,
+                      "created_at": datetime.datetime(2012, 10, 12, 12, 1),
+                      "path_cache_storage": self.alt_storage_1}
 
         # Add these to mocked shotgun
-        self.add_to_sg_mock_db([self.pub_1, self.pub_2, self.pub_3, self.pub_4, self.pub_5])
+        self.add_to_sg_mock_db([self.pub_5])
 
-    def test_find(self):        
-        paths = [os.path.join(self.project_root, "foo", "bar")]
-        d = tank.util.find_publish(self.tk, paths)
-        self.assertEqual(len(d), 1)
-        self.assertEqual(d.keys(), paths)
-        # make sure we got the latest matching publish
-        sg_data = d.get(paths[0])
-        self.assertEqual(sg_data["id"], self.pub_2["id"])
-        self.assertEqual(sg_data["type"], "PublishedFile")
-        # make sure we are only getting the ID back.
-        self.assertEqual(sg_data.keys(), ["type", "id"])
-
-    def test_most_recent_path(self):
-        # check that dupes return the more recent record        
-        paths = [os.path.join(self.project_root, "foo", "bar")]
-        d = tank.util.find_publish(self.tk, paths, fields=["code"])
-        self.assertEqual(len(d), 1)
-        sg_data = d.get(paths[0])
-        self.assertEqual(sg_data["code"], "more recent")
-
-    def test_missing_paths(self):
-        paths = [os.path.join(self.project_root, "foo", "bar"),
-                 os.path.join("tmp", "foo")]
-        d = tank.util.find_publish(self.tk, paths)
-        self.assertEqual(len(d), 1)
-        self.assertEqual(d.keys(), [ paths[0] ])
-
-    def test_sequence_path(self):
-        # make sequence template matching sequence publish
-        keys = {"seq": SequenceKey("seq", format_spec="03")}
-        template = TemplatePath("foo/seq_{seq}.ext", keys, self.project_root)
-        self.tk.templates["sequence_test"] = template
-        paths = [os.path.join(self.project_root, "foo", "seq_002.ext")]
-        d = tank.util.find_publish(self.tk, paths)
-        self.assertEqual(len(d), 1)
-        self.assertEqual(d.keys(), [ paths[0] ])
-        sg_data = d.get(paths[0])
-        self.assertEqual(sg_data["id"], self.pub_4["id"])
-
-    def test_abstracted_sequence_path(self):
-        # make sequence template matching sequence publish
-        keys = {"seq": SequenceKey("seq", format_spec="03")}
-        template = TemplatePath("foo/seq_{seq}.ext", keys, self.project_root)
-        self.tk.templates["sequence_test"] = template
-        paths = [os.path.join(self.project_root, "foo", "seq_%03d.ext")]
-        d = tank.util.find_publish(self.tk, paths)
-        self.assertEqual(len(d), 1)
-        self.assertEqual(d.keys(), [ paths[0] ])
-        sg_data = d.get(paths[0])
-        self.assertEqual(sg_data["id"], self.pub_4["id"])
-
-    def test_multi_root(self):        
         paths = [os.path.join(self.alt_root_1, "foo", "bar")]
         d = tank.util.find_publish(self.tk, paths)
         self.assertEqual(len(d), 1)
         self.assertEqual(d.keys(), paths)
+
         # make sure we got the latest matching publish
         sg_data = d.get(paths[0])
-        
         self.assertEqual(sg_data["id"], self.pub_5["id"])
-        
+
         # make sure we are only getting the ID back.
         self.assertEqual(sg_data.keys(), ["type", "id"])
 
-class TestShotgunDownloadUrl(TankTestBase):
+
+class TestShotgunDownloadUrl(ShotgunTestBase):
 
     def setUp(self):
         super(TestShotgunDownloadUrl, self).setUp()
 
-        self.setup_fixtures()
-
         # Identify the source file to "download"
         self.download_source = os.path.join(
-            self.pipeline_config_root, "config", "hooks", "toolkitty.png"
+            self.fixtures_root, "config", "hooks", "toolkitty.png"
         )
 
         # Construct a URL from the source file name
@@ -357,7 +243,7 @@ class TestShotgunDownloadUrl(TankTestBase):
 
         # Temporary destination to "download" source file to.
         self.download_destination = os.path.join(
-            self.pipeline_config_root, "config", "foo",
+            self.tank_temp, self.id(), "config", "foo",
             "test_shotgun_download_url.png"
         )
         os.makedirs(os.path.dirname(self.download_destination))
@@ -416,7 +302,7 @@ class TestShotgunDownloadUrl(TankTestBase):
         self.assertEqual(self.download_destination, full_path)
 
 
-class TestShotgunUtils(TankTestBase):
+class TestShotgunUtils(unittest.TestCase):
     """
     Test various Shotgun utilities and helpers
     """

@@ -126,7 +126,7 @@ class TestUserRestriction(TestResolverBase):
         configs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
             current_login="john.smith",
-            sg_connection=self.tk.shotgun
+            sg_connection=self.mockgun
         )
 
         self.assertEqual(len(configs), 1)
@@ -135,7 +135,7 @@ class TestUserRestriction(TestResolverBase):
         configs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
             current_login="john.doe",
-            sg_connection=self.tk.shotgun
+            sg_connection=self.mockgun
         )
 
         self.assertEqual(len(configs), 1)
@@ -145,7 +145,7 @@ class TestUserRestriction(TestResolverBase):
         configs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
             current_login="Batman",
-            sg_connection=self.tk.shotgun
+            sg_connection=self.mockgun
         )
 
         self.assertListEqual(configs, [])
@@ -161,7 +161,7 @@ class TestUserRestriction(TestResolverBase):
         configs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
             current_login="Batman",
-            sg_connection=self.tk.shotgun
+            sg_connection=self.mockgun
         )
 
         # Ensure what we only found the shared configuration because Batman doesn't own any sandboxes.
@@ -171,7 +171,7 @@ class TestUserRestriction(TestResolverBase):
         configs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
             current_login="john.smith",
-            sg_connection=self.tk.shotgun
+            sg_connection=self.mockgun
         )
 
         # Ensure we got back the right pipeline configurations for John Smith, who has access
@@ -257,7 +257,7 @@ class TestPluginMatching(TestResolverBase):
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
+            sg_connection=self.mockgun,
             current_login="john.smith"
         )
 
@@ -278,7 +278,7 @@ class TestPluginMatching(TestResolverBase):
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
+            sg_connection=self.mockgun,
             current_login="john.smith"
         )
 
@@ -306,7 +306,7 @@ class TestFallbackHandling(TestResolverBase):
         """
         Tests the direct config resolve, which doesn't talk to Shotgun
         """
-        config = self.resolver.resolve_configuration(self.config_1, self.tk.shotgun)
+        config = self.resolver.resolve_configuration(self.config_1, self.mockgun)
         self.assertEqual(config._descriptor.get_dict(), self.config_1)
 
         # make sure we didn't talk to shotgun
@@ -319,7 +319,7 @@ class TestFallbackHandling(TestResolverBase):
         """
         # test latest version of config by omitting version number
         config_latest = {"type": "app_store", "name": "tk-config-test"}
-        config = self.resolver.resolve_configuration(config_latest, self.tk.shotgun)
+        config = self.resolver.resolve_configuration(config_latest, self.mockgun)
         # this should find the latest version
         self.assertEqual(config._descriptor.get_dict(), self.config_2)
 
@@ -412,7 +412,7 @@ class TestResolverPriority(TestResolverBase):
             config = self.resolver.resolve_shotgun_configuration(
                 pipeline_config_identifier=None,
                 fallback_config_descriptor=self.config_1,
-                sg_connection=self.tk.shotgun,
+                sg_connection=self.mockgun,
                 current_login="john.smith"
             )
         self.assertEqual(config._path.current_os, expected_path)
@@ -528,7 +528,7 @@ class TestResolverPriority(TestResolverBase):
         config = self.resolver.resolve_shotgun_configuration(
             None,
             fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
+            sg_connection=self.mockgun,
             current_login="john.smith"
         )
 
@@ -612,7 +612,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
+            sg_connection=self.mockgun,
             current_login="john.smith"
         )
 
@@ -640,7 +640,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
+            sg_connection=self.mockgun,
             current_login="john.smith"
         )
 
@@ -670,7 +670,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
+            sg_connection=self.mockgun,
             current_login="john.smith"
         )
 
@@ -840,7 +840,7 @@ class TestResolverSiteConfig(TestResolverBase):
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
+            sg_connection=self.mockgun,
             current_login="john.smith"
         )
 
@@ -855,7 +855,7 @@ class TestResolverSiteConfig(TestResolverBase):
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
+            sg_connection=self.mockgun,
             current_login="john.smith"
         )
 
@@ -885,14 +885,14 @@ class TestResolvedConfiguration(TankTestBase):
         config = self._resolver.resolve_shotgun_configuration(
             self.tk.pipeline_configuration.get_shotgun_id(),
             "sgtk:descriptor:not?a=descriptor",
-            self.tk.shotgun,
+            self.mockgun,
             "john.smith"
         )
         self.assertIsInstance(
             config,
             sgtk.bootstrap.resolver.InstalledConfiguration
         )
-        self.assertEqual(config.has_local_bundle_cache, True)
+        self.assertEqual(config.requires_dynamic_bundle_caching, False)
 
     def test_resolve_baked_configuration(self):
         """
@@ -903,14 +903,14 @@ class TestResolvedConfiguration(TankTestBase):
         )
 
         config = self._resolver.resolve_configuration(
-            {"type": "baked", "name": "unit_tests", "version": "v0.4.2"}, self.tk.shotgun
+            {"type": "baked", "name": "unit_tests", "version": "v0.4.2"}, self.mockgun
         )
 
         self.assertIsInstance(
             config,
             sgtk.bootstrap.resolver.BakedConfiguration
         )
-        self.assertEqual(config.has_local_bundle_cache, True)
+        self.assertEqual(config.requires_dynamic_bundle_caching, False)
 
     def test_resolve_cached_configuration(self):
         """
@@ -921,14 +921,14 @@ class TestResolvedConfiguration(TankTestBase):
         )
 
         config = self._resolver.resolve_configuration(
-            {"type": "app_store", "name": "unit_tests", "version": "v0.4.2"}, self.tk.shotgun
+            {"type": "app_store", "name": "unit_tests", "version": "v0.4.2"}, self.mockgun
         )
 
         self.assertIsInstance(
             config,
             sgtk.bootstrap.resolver.CachedConfiguration
         )
-        self.assertEqual(config.has_local_bundle_cache, False)
+        self.assertEqual(config.requires_dynamic_bundle_caching, True)
 
 
 class TestResolvedLatestConfiguration(TankTestBase):
@@ -956,7 +956,7 @@ class TestResolvedLatestConfiguration(TankTestBase):
 
         config = self._resolver.resolve_configuration(
             {"type": "app_store", "name": "latest_test"},
-            self.tk.shotgun
+            self.mockgun
         )
 
         self.assertEquals(
@@ -970,7 +970,7 @@ class TestResolvedLatestConfiguration(TankTestBase):
 
         config = self._resolver.resolve_configuration(
             {"type": "app_store", "name": "latest_test"},
-            self.tk.shotgun
+            self.mockgun
         )
 
         self.assertEquals(
@@ -981,7 +981,7 @@ class TestResolvedLatestConfiguration(TankTestBase):
         # make sure direct lookup also works
         config = self._resolver.resolve_configuration(
             {"type": "app_store", "name": "latest_test", "version": "v0.1.0"},
-            self.tk.shotgun
+            self.mockgun
         )
 
         self.assertEquals(
@@ -991,7 +991,7 @@ class TestResolvedLatestConfiguration(TankTestBase):
 
         config = self._resolver.resolve_configuration(
             {"type": "app_store", "name": "latest_test", "version": "v0.1.1"},
-            self.tk.shotgun
+            self.mockgun
         )
 
         self.assertEquals(
@@ -1014,7 +1014,7 @@ class TestResolveWithFilter(TestResolverBase):
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=pc_id,
             fallback_config_descriptor=self.config_1,
-            sg_connection=self.tk.shotgun,
+            sg_connection=self.mockgun,
             current_login="john.smith"
         )
 
@@ -1029,7 +1029,7 @@ class TestResolveWithFilter(TestResolverBase):
             self.resolver.resolve_shotgun_configuration(
                 pipeline_config_identifier=42,
                 fallback_config_descriptor=self.config_1,
-                sg_connection=self.tk.shotgun,
+                sg_connection=self.mockgun,
                 current_login="john.smith"
             )
 
@@ -1069,7 +1069,7 @@ class TestResolveWithFilter(TestResolverBase):
         pcs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
             current_login="john.smith",
-            sg_connection=self.tk.shotgun
+            sg_connection=self.mockgun
         )
         self.assertEqual(len(pcs), 3)
         for pc in pcs:
@@ -1079,7 +1079,7 @@ class TestResolveWithFilter(TestResolverBase):
         pcs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name="Primary",
             current_login="john.smith",
-            sg_connection=self.tk.shotgun
+            sg_connection=self.mockgun
         )
         self.assertEqual(len(pcs), 1)
         self.assertEqual(pcs[0]["code"], "Primary")
@@ -1088,7 +1088,7 @@ class TestResolveWithFilter(TestResolverBase):
         pcs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name="Site sandbox",
             current_login="john.doe",
-            sg_connection=self.tk.shotgun
+            sg_connection=self.mockgun
         )
 
         self.assertEqual(len(pcs), 1)
@@ -1100,7 +1100,7 @@ class TestResolveWithFilter(TestResolverBase):
         pcs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name="Site sandbox",
             current_login="john.smith",
-            sg_connection=self.tk.shotgun
+            sg_connection=self.mockgun
         )
 
         self.assertEqual(len(pcs), 1)
@@ -1141,7 +1141,7 @@ class TestErrorHandling(TestResolverBase):
             self.resolver.resolve_shotgun_configuration(
                 pipeline_config_identifier=pc_id,
                 fallback_config_descriptor=self.config_1,
-                sg_connection=self.tk.shotgun,
+                sg_connection=self.mockgun,
                 current_login="john.smith"
             )
 
@@ -1162,7 +1162,7 @@ class TestErrorHandling(TestResolverBase):
             self.resolver.find_matching_pipeline_configurations(
                 pipeline_config_name=None,
                 current_login="john.smith",
-                sg_connection=self.tk.shotgun
+                sg_connection=self.mockgun
             )
 
     def test_configuration_not_found_on_disk(self):

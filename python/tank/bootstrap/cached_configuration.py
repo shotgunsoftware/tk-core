@@ -10,6 +10,7 @@
 
 import os
 import traceback
+import pprint
 
 from . import constants
 
@@ -87,6 +88,75 @@ class CachedConfiguration(Configuration):
             self._plugin_id,
             self._descriptor
         )
+
+    def verify_required_shotgun_fields(self):
+        """
+        Checks so that all shotgun fields required by the configuration
+        are present and valid.
+
+        Depending on the configuration, different checks are carried out.
+
+        For configurations using the template and schema system,
+        (e.g. has a roots.yml config file set),
+        checks are carried out to ensure Project.tank_name and
+        local storages are correctly set up.
+
+        This will download the config into the bundle cache if not already
+        done.
+
+        :raises: :class:`TankBootstrapError` if checks fail.
+        """
+        if self._project_id is None:
+            # site configuration. Nothing to check
+            return
+
+        # make sure the config is locally available.
+        self._descriptor.ensure_local()
+
+        log.debug(
+            "Verifying that all necessary shotgun data is "
+            "available in order for config %s to run..." % self
+        )
+
+        roots_data = None
+        roots_path = os.path.join(self._descriptor.get_path(), "core", constants.STORAGE_ROOTS_FILE)
+        if os.path.exists(roots_path):
+            with open(roots_path, "rt") as fh:
+                try:
+                    roots_data = yaml.load(fh)
+                except Exception:
+                    pass
+
+        if isinstance(roots_data, dict) and len(roots_data) > 0:
+            log.debug("Detected roots.yml with roots %s" % roots_data.keys())
+
+            log.debug("Ensuring that current project has a tank_name field...")
+            proj_data = self._sg_connection.find_one(
+                "Project",
+                [["id", "is", self._project_id]],
+                ["tank_name"]
+            )
+            if proj_data["tank_name"] is None:
+                raise TankBootstrapError(
+                    "The configuration requires you to specify a value "
+                    "for the Project.tank_name field in Shotgun."
+                )
+
+            # get all storages to ensure all roots are
+            log.debug("Ensuring that all required local storages exist in Shotgun.")
+            shotgun_storages = self._sg_connection.find("LocalStorage", [], ["code"])
+            shotgun_storage_names = [storage["code"] for storage in shotgun_storages]
+
+            # check that are required storages are defined in Shotgun
+            required_storage_names = roots_data.keys()
+            for required_storage_name in required_storage_names:
+                if required_storage_name not in shotgun_storage_names:
+
+                        storage_str = "storage" if len(required_storage_names) == 1 else "storages"
+                        raise TankBootstrapError(
+                            "The configuration requires the following local %s "
+                            "to be defined in Shotgun: %s" % (storage_str, ", ".join(required_storage_names))
+                        )
 
     def status(self):
         """
@@ -178,9 +248,6 @@ class CachedConfiguration(Configuration):
 
         self._config_writer.start_transaction()
 
-        # make sure a scaffold is in place
-        self._config_writer.ensure_project_scaffold()
-
         # stow away any previous versions of core and config folders
         try:
             # Move to backup needs to undo changes when failing because we need to put the configuration
@@ -193,27 +260,41 @@ class CachedConfiguration(Configuration):
             )
             return
 
-
+        self._config_writer.ensure_project_scaffold()
         # copy the configuration into place
         try:
 
             # make sure the config is locally available.
             self._descriptor.ensure_local()
 
-            # compatibility checks:
-            # if it's a shotgun descriptor type using id, ensure
-            # that the core we are switching *to* is more recent than 18.120
-            descriptor_dict = self._descriptor.get_dict()
-            if descriptor_dict["type"] == "shotgun" and "id" in descriptor_dict:
-                if self._descriptor.associated_core_version_less_than("v0.18.120"):
-                    raise TankBootstrapError(
-                        "Configurations uploaded to Shotgun must use core API "
-                        "version v0.18.120 or later. Please check the "
-                        "core/core_api.yml file in your configuration."
-                    )
+            # Log information about the core being setup with this config.
+            self._log_core_information()
 
-            # copy the descriptor payload across into the target install location
-            self._descriptor.copy(os.path.join(self._path.current_os, "config"))
+            # compatibility checks
+            self._verify_descriptor_compatible()
+            # v1 of the lean_config allows to run the config from the bundle cache.
+            if self._descriptor.get_associated_core_feature_info("bootstrap.lean_config.version", 0) < 1:
+                # Old-style config, so copy the contents inside it.
+                self._descriptor.copy(os.path.join(self._path.current_os, "config"))
+
+            # if the config has a local bundle cache folder, append it to the
+            # list of fallback paths. this allows bundles to be included with
+            # the config, making it self contained and not requiring additional
+            # bundle downloads
+            local_bundle_cache_path = os.path.join(
+                self._descriptor.get_config_folder(),
+                constants.BUNDLE_CACHE_FOLDER_NAME
+            )
+            if os.path.exists(local_bundle_cache_path):
+                log.debug(
+                    "Local bundle cache found in config. "
+                    "Adding local bundle cache as fallback path: %s" %
+                    (local_bundle_cache_path,)
+                )
+                self._bundle_cache_fallback_paths.append(
+                    local_bundle_cache_path)
+            else:
+                log.debug("No local bundle cache found in config.")
 
             # write out config files
             self._config_writer.write_install_location_file()
@@ -294,14 +375,57 @@ class CachedConfiguration(Configuration):
 
         self._config_writer.end_transaction()
 
-    @property
-    def has_local_bundle_cache(self):
+    def _verify_descriptor_compatible(self):
         """
-        If True, indicates that pipeline configuration has a local bundle cache. If False, it
-        depends on the global bundle cache.
+        Ensures the config we're booting into understands the newer Shotgun descriptor.
+        """
+        # if it's a shotgun descriptor type using id, ensure
+        # that the core we are switching *to* is more recent than 18.120
+        descriptor_dict = self._descriptor.get_dict()
+        if descriptor_dict["type"] == "shotgun" and "id" in descriptor_dict:
+            if self._descriptor.associated_core_version_less_than("v0.18.120"):
+                raise TankBootstrapError(
+                    "Configurations uploaded to Shotgun must use core API "
+                    "version v0.18.120 or later. Please check the "
+                    "core/core_api.yml file in your configuration."
+                )
+
+    def _log_core_information(self):
+        """
+        Logs features from core we're about to bootstrap into. This is useful for QA.
+        """
+        try:
+            if not self._descriptor.associated_core_descriptor:
+                log.debug(
+                    "The core associated with '%s' is not specified. The most recent "
+                    "core from the Toolkit app store will be download.", self._descriptor
+                )
+            else:
+                features = self._descriptor.resolve_core_descriptor().get_features_info()
+                log.debug(
+                    "The core '%s' associated with '%s' has the following feature information:",
+                    self._descriptor.resolve_core_descriptor(), self._descriptor
+                )
+                if features:
+                    log.debug(pprint.pformat(features))
+                else:
+                    log.debug("This version of core can't report features.")
+        except Exception as ex:
+            # Do not let an error in here trip the bootstrap, but do report.
+            log.warning(
+                "The core '%s' associated with '%s' couldn't report its features: %s.",
+                self._descriptor.resolve_core_descriptor(), self._descriptor, ex
+            )
+
+    @property
+    def requires_dynamic_bundle_caching(self):
+        """
+        If True, indicates that pipeline configuration relies on dynamic caching
+        of bundles to operate. If False, the configuration has its own bundle
+        cache.
         """
         # CachedConfiguration always depend on the global bundle cache.
-        return False
+        return True
 
     def _cleanup_backup_folders(self, config_backup_folder_path, core_backup_folder_path):
         """

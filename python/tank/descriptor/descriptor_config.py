@@ -17,7 +17,7 @@ from tank_vendor import yaml
 from ..errors import TankFileDoesNotExistError
 from . import constants
 from .errors import TankInvalidInterpreterLocationError
-from .descriptor import Descriptor
+from .descriptor import Descriptor, create_descriptor
 from .. import LogManager
 from ..util import ShotgunPath
 from ..util.version import is_version_older
@@ -30,6 +30,13 @@ class ConfigDescriptor(Descriptor):
     """
     Descriptor that describes a Toolkit Configuration
     """
+
+    def __init__(self, sg_connection, bundle_cache_root, fallback_roots, io_descriptor):
+        super(ConfigDescriptor, self).__init__(io_descriptor)
+        self._cached_core_descriptor = None
+        self._sg_connection = sg_connection
+        self._bundle_cache_root = bundle_cache_root
+        self._fallback_roots = fallback_roots
 
     @property
     def associated_core_descriptor(self):
@@ -51,6 +58,47 @@ class ConfigDescriptor(Descriptor):
         :returns: Path value stored in the interpreter file.
         """
         raise NotImplementedError("ConfigDescriptor.python_interpreter is not implemented.")
+
+    def resolve_core_descriptor(self):
+        """
+        Resolves the :class:`CoreDescriptor` from :attr:`ConfigDescriptor.associated_core_descriptor`.
+
+        :returns: The core descriptor if :attr:`ConfigDescriptor.associated_core_descriptor` is set,
+            ``None`` otherwise.
+        """
+        if not self.associated_core_descriptor:
+            return None
+
+        if not self._cached_core_descriptor:
+            self._cached_core_descriptor = create_descriptor(
+                self._sg_connection,
+                Descriptor.CORE,
+                self.associated_core_descriptor,
+                self._bundle_cache_root,
+                self._fallback_roots,
+                resolve_latest=False
+            )
+
+        return self._cached_core_descriptor
+
+    def get_associated_core_feature_info(self, feature_name, default_value=None):
+        """
+        Retrieves information for a given feature in the manifest of the core.
+
+        The ``default_value`` will be returned in the following cases:
+            - a feature is missing from the manifest
+            - the manifest is empty
+            - the manifest is missing
+            - there is no core associated with this configuration.
+
+        :param str feature_name: Name of the feature to retrieve from the manifest.
+        :param object default_value: Value to return if the feature is missing.
+
+        :returns: The value for the feature if present, ``default_value`` otherwise.
+        """
+        if self.resolve_core_descriptor():
+            return self.resolve_core_descriptor().get_feature_info(feature_name, default_value)
+        return default_value
 
     @property
     def version_constraints(self):
@@ -85,7 +133,7 @@ class ConfigDescriptor(Descriptor):
         readme_content = []
 
         readme_file = os.path.join(
-            self._get_config_folder(),
+            self.get_config_folder(),
             constants.CONFIG_README_FILE
         )
         if os.path.exists(readme_file):
@@ -122,8 +170,7 @@ class ConfigDescriptor(Descriptor):
 
         return result
 
-
-    def _get_config_folder(self):
+    def get_config_folder(self):
         """
         Returns the folder in which the configuration files are located.
 
@@ -131,7 +178,7 @@ class ConfigDescriptor(Descriptor):
 
         :returns: Path to the configuration files folder.
         """
-        raise NotImplementedError("ConfigDescriptor._get_config_folder is not implemented.")
+        raise NotImplementedError("ConfigDescriptor.get_config_folder is not implemented.")
 
     def _get_current_platform_interpreter_file_name(self, install_root):
         """
@@ -188,7 +235,7 @@ class ConfigDescriptor(Descriptor):
         """
         # get the roots definition
         root_file_path = os.path.join(
-            self._get_config_folder(),
+            self.get_config_folder(),
             "core",
             constants.STORAGE_ROOTS_FILE)
 

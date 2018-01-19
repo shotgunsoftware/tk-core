@@ -14,10 +14,12 @@ Unit tests for interactive authentication.
 
 from __future__ import with_statement, print_function
 
+import contextlib
+
 import sys
 
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import TankTestBase, skip_if_pyside_missing, interactive
+from tank_test.tank_test_base import ShotgunTestBase, skip_if_pyside_missing, interactive
 from mock import patch
 from tank.authentication import (
     console_authentication,
@@ -30,7 +32,8 @@ from tank.authentication import (
 import tank
 
 
-class InteractiveTests(TankTestBase):
+@skip_if_pyside_missing
+class InteractiveTests(ShotgunTestBase):
     """
     Tests ui and console based authentication.
     """
@@ -45,15 +48,18 @@ class InteractiveTests(TankTestBase):
             self._app = QtGui.QApplication(sys.argv)
         super(InteractiveTests, self).setUp()
 
+    def tearDown(self):
+        super(InteractiveTests, self).tearDown()
+        from PySide import QtGui
+        QtGui.QApplication.processEvents()
+
     def test_site_and_user_disabled_on_session_renewal(self):
         """
         Make sure that the site and user fields are disabled when doing session renewal
         """
-        # Import locally since login_dialog has a dependency on Qt and it might be missing
-        from tank.authentication import login_dialog
-        ld = login_dialog.LoginDialog(is_session_renewal=True)
-        self.assertTrue(ld.ui.site.isReadOnly())
-        self.assertTrue(ld.ui.login.isReadOnly())
+        with self._login_dialog(is_session_renewal=True) as ld:
+            self.assertTrue(ld.ui.site.lineEdit().isReadOnly())
+            self.assertTrue(ld.ui.login.lineEdit().isReadOnly())
 
     def _prepare_window(self, ld):
         """
@@ -67,31 +73,35 @@ class InteractiveTests(TankTestBase):
 
         QApplication.processEvents()
 
+    @contextlib.contextmanager
+    def _login_dialog(self, is_session_renewal, login=None, hostname=None):
+        # Import locally since login_dialog has a dependency on Qt and it might be missing
+        from tank.authentication import login_dialog
+        with contextlib.closing(login_dialog.LoginDialog(is_session_renewal=is_session_renewal)) as ld:
+            # SSO module and threading causes issues with unit tests, so disable it.
+            ld._saml2_sso = None
+            self._prepare_window(ld)
+            yield ld
+
     @skip_if_pyside_missing
     def test_focus(self):
         """
         Make sure that the site and user fields are disabled when doing session renewal
         """
-        # Import locally since login_dialog has a dependency on Qt and it might be missing
-        from tank.authentication import login_dialog
-        ld = login_dialog.LoginDialog(is_session_renewal=False)
-        self.assertEqual(ld.ui.site.text(), "")
-        ld.close()
+        with self._login_dialog(is_session_renewal=False) as ld:
+            self.assertEqual(ld.ui.site.currentText(), "")
 
-        ld = login_dialog.LoginDialog(is_session_renewal=False, login="login")
-        self.assertEqual(ld.ui.site.text(), "")
-        ld.close()
+        with self._login_dialog(is_session_renewal=False, login="login") as ld:
+            self.assertEqual(ld.ui.site.currentText(), "")
 
-        ld = login_dialog.LoginDialog(is_session_renewal=False, hostname="host")
-        self._prepare_window(ld)
-        # window needs to be activated to get focus.
-        self.assertTrue(ld.ui.login.hasFocus())
-        ld.close()
+        # Makes sure the focus is set to the password even tough we've only specified the hostname
+        # because the current os user name is the default.
+        with self._login_dialog(is_session_renewal=False, hostname="host") as ld:
+            # window needs to be activated to get focus.
+            self.assertTrue(ld.ui.password.hasFocus())
 
-        ld = login_dialog.LoginDialog(is_session_renewal=False, hostname="host", login="login")
-        self._prepare_window(ld)
-        self.assertTrue(ld.ui.password.hasFocus())
-        ld.close()
+        with self._login_dialog(is_session_renewal=False, hostname="host", login="login") as ld:
+            self.assertTrue(ld.ui.password.hasFocus())
 
     def _test_login(self, console):
         self._print_message(
@@ -317,20 +327,23 @@ class InteractiveTests(TankTestBase):
         Makes sure that the ui strips out whitespaces.
         """
         # Import locally since login_dialog has a dependency on Qt and it might be missing
-        from tank.authentication.login_dialog import LoginDialog
-        ld = LoginDialog(is_session_renewal=False)
-        self._prepare_window(ld)
-        # For each widget in the ui, make sure that the text is properly cleaned
-        # up when widget loses focus.
-        for widget in [ld.ui._2fa_code, ld.ui.backup_code, ld.ui.site, ld.ui.login]:
-            # Give the focus, so that editingFinished can be triggered.
-            widget.setFocus()
-            widget.setText(" text ")
-            # Give the focus to another widget, which should trigger the editingFinished
-            # signal and the dialog will clear the extra spaces in it.
-            ld.ui.password.setFocus()
-            # Text should be cleaned of spaces now.
-            self.assertEqual(widget.text(), "text")
+        from PySide import QtGui
 
-# Class decorators don't exist on Python2.5
-InteractiveTests = skip_if_pyside_missing(InteractiveTests)
+        with self._login_dialog(is_session_renewal=False) as ld:
+            # For each widget in the ui, make sure that the text is properly cleaned
+            # up when widget loses focus.
+            for widget in [ld.ui._2fa_code, ld.ui.backup_code, ld.ui.site, ld.ui.login]:
+                # Give the focus, so that editingFinished can be triggered.
+                widget.setFocus()
+                if isinstance(widget, QtGui.QLineEdit):
+                    widget.setText(" text ")
+                else:
+                    widget.lineEdit().setText(" text ")
+                # Give the focus to another widget, which should trigger the editingFinished
+                # signal and the dialog will clear the extra spaces in it.
+                ld.ui.password.setFocus()
+                if isinstance(widget, QtGui.QLineEdit):
+                    # Text should be cleaned of spaces now.
+                    self.assertEqual(widget.text(), "text")
+                else:
+                    self.assertEqual(widget.currentText(), "text")

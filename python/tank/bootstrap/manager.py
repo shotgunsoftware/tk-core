@@ -618,16 +618,16 @@ class ToolkitManager(object):
         except TankError as e:
             raise TankBootstrapError("Unexpected error while caching configuration: %s" % str(e))
 
-        if not config.has_local_bundle_cache:
+        if config.requires_dynamic_bundle_caching:
             # make sure we have all the apps locally downloaded
             # this check is quick, so always perform the check, except for installed config, which are
             # self contained, even when the config is up to date - someone may have deleted their
             # bundle cache
-            self._cache_apps(pc, engine_name, self.progress_callback)
+            self._cache_bundles(pc, engine_name, self.progress_callback)
         else:
             log.debug("Configuration has local bundle cache, skipping bundle caching.")
 
-        self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine ready.")
+        self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Preparations complete.")
 
         return path, config.descriptor
 
@@ -916,6 +916,9 @@ class ToolkitManager(object):
 
         config = self._get_configuration(entity, progress_callback)
 
+        # verify that this configuration works with Shotgun
+        config.verify_required_shotgun_fields()
+
         # see what we have locally
         status = config.status()
 
@@ -972,12 +975,12 @@ class ToolkitManager(object):
         self._report_progress(progress_callback, self._STARTING_TOOLKIT_RATE, "Starting up Toolkit...")
         tk = config.get_tk_instance(self._sg_user)
 
-        if not config.has_local_bundle_cache:
+        if config.requires_dynamic_bundle_caching:
             # make sure we have all the apps locally downloaded
             # this check is quick, so always perform the check, except for installed config, which are
             # self contained, even when the config is up to date - someone may have deleted their
             # bundle cache
-            self._cache_apps(
+            self._cache_bundles(
                 tk.pipeline_configuration,
                 engine_name,
                 progress_callback
@@ -1118,9 +1121,9 @@ class ToolkitManager(object):
             # Call the old style progress callback with signature (message, current_index, maximum_index).
             progress_callback(message, None, None)
 
-    def _cache_apps(self, pipeline_configuration, config_engine_name, progress_callback):
+    def _cache_bundles(self, pipeline_configuration, config_engine_name, progress_callback):
         """
-        Caches all apps associated with the given toolkit instance.
+        Caches all bundles associated with the given toolkit instance.
 
         :param pipeline_configuration: :class:`stgk.PipelineConfiguration` to process configuration for
         :param pc: Pipeline configuration instance.

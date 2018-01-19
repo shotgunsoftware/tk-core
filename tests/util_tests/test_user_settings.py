@@ -11,9 +11,8 @@
 from __future__ import with_statement
 
 import os
-import uuid
 
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import ShotgunTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 
 from mock import patch
@@ -23,7 +22,7 @@ from tank.util.user_settings import UserSettings
 from sgtk import TankError
 
 
-class UserSettingsTests(TankTestBase):
+class UserSettingsTests(ShotgunTestBase):
     """
     Tests functionality around toolkit.ini
     """
@@ -35,35 +34,6 @@ class UserSettingsTests(TankTestBase):
         super(UserSettingsTests, self).setUp()
         UserSettings.clear_singleton()
         self.addCleanup(UserSettings.clear_singleton)
-
-    def _mock_ini_file(self, login_section={}, custom_section={}):
-        """
-        Creates an ini file in a unique location with te user settings.
-
-        :param login_section: Dictionary of settings that will be stored in the [Login] section.
-        :param custom_section: Dictionary of settings that will be stored in the [Custom] section.
-        """
-        # Create a unique folder for this test.
-        folder = os.path.join(self.tank_temp, str(uuid.uuid4()))
-        os.makedirs(folder)
-
-        # Manually write the file as this is the format we're expecting the UserSettings
-        # to parse.
-
-        ini_file_location = os.path.join(folder, "toolkit.ini")
-        with open(ini_file_location, "w") as f:
-            f.writelines(["[Login]\n"])
-            for key, value in login_section.iteritems():
-                f.writelines(["%s=%s\n" % (key, value)])
-
-            f.writelines(["[Custom]\n"])
-            for key, value in custom_section.iteritems():
-                f.writelines(["%s=%s\n" % (key, value)])
-
-        # The setUp phase cleared the singleton. So set the preferences environment variable and
-        # instantiate the singleton, which will read the env var and open that location.
-        with patch.dict(os.environ, {"SGTK_PREFERENCES_LOCATION": ini_file_location}):
-            UserSettings()
 
     def test_empty_file(self):
         """
@@ -79,7 +49,7 @@ class UserSettingsTests(TankTestBase):
         """
         Tests a complete yaml file.
         """
-        self._mock_ini_file({
+        self.write_toolkit_ini_file({
             "default_site": "site",
             "default_login": "login",
             "http_proxy": "http_proxy",
@@ -96,7 +66,7 @@ class UserSettingsTests(TankTestBase):
         """
         Tests a yaml file with the settings present but empty.
         """
-        self._mock_ini_file({
+        self.write_toolkit_ini_file({
             "default_site": "",
             "default_login": "",
             "http_proxy": "",
@@ -114,8 +84,8 @@ class UserSettingsTests(TankTestBase):
         Tests that we can read settings in any section of the file.
         """
 
-        self._mock_ini_file(
-            custom_section={
+        self.write_toolkit_ini_file(
+            Custom={
                 "custom_key": "custom_value"
             }
         )
@@ -129,8 +99,8 @@ class UserSettingsTests(TankTestBase):
         """
         Tests that we can read a setting into a boolean.
         """
-        self._mock_ini_file(
-            custom_section={
+        self.write_toolkit_ini_file(
+            Custom={
                 "valid": "ON",
                 "invalid": "L"
             }
@@ -145,13 +115,37 @@ class UserSettingsTests(TankTestBase):
         ):
             UserSettings().get_boolean_setting("Custom", "invalid")
 
+    def test_settings_enumeration(self):
+        """
+        Tests that we can enumerate settings from a section.
+        """
+        self.write_toolkit_ini_file(
+            {
+                "this": "is",
+                "my": "boomstick"
+            },
+            Custom={}
+        )
+
+        self.assertEqual(
+            UserSettings().get_section_settings("missing section"), None
+        )
+
+        self.assertEqual(
+            UserSettings().get_section_settings("Custom"), []
+        )
+
+        self.assertEqual(
+            UserSettings().get_section_settings("Login"), ["this", "my"]
+        )
+
     def test_integer_setting(self):
         """
         Tests that we can read a setting into an integer
         """
 
-        self._mock_ini_file(
-            custom_section={
+        self.write_toolkit_ini_file(
+            Custom={
                 "valid": "1",
                 "also_valid": "-1",
                 "invalid": "L"
@@ -174,7 +168,7 @@ class UserSettingsTests(TankTestBase):
         """
         Tests that setting an environment variable will be resolved.
         """
-        self._mock_ini_file({
+        self.write_toolkit_ini_file({
             # Config parser represent empty settings as empty strings
             "default_site": "https://${SGTK_TEST_SHOTGUN_SITE}.shotgunstudio.com"
         })

@@ -16,11 +16,12 @@ import stat
 import sys
 from mock import patch
 import sgtk
+from sgtk.pipelineconfig_utils import get_metadata
 from shutil import copytree
 
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import temp_env_var
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import ShotgunTestBase
 
 
 # Copied from Python 2.7's source code.
@@ -37,7 +38,7 @@ def ignore_patterns(*patterns):
     return _ignore_patterns
 
 
-class TestBackups(TankTestBase):
+class TestBackups(ShotgunTestBase):
     def setUp(self):
         super(TestBackups, self).setUp()
 
@@ -61,7 +62,7 @@ class TestBackups(TankTestBase):
         )
         with temp_env_var(SGTK_REPO_ROOT=self._core_repo_path):
             config = resolver.resolve_configuration(
-                {"type": "dev", "name": "backup_tests", "path": self._temp_test_path}, self.tk.shotgun
+                {"type": "dev", "name": "backup_tests", "path": self._temp_test_path}, self.mockgun
             )
             self.assertIsInstance(config, sgtk.bootstrap.resolver.CachedConfiguration)
             config_root_path = config.path.current_os
@@ -90,7 +91,7 @@ class TestBackups(TankTestBase):
         )
         with temp_env_var(SGTK_REPO_ROOT=self._core_repo_path):
             config = resolver.resolve_configuration(
-                {"type": "dev", "name": "backup_tests_with_fail", "path": self._temp_test_path}, self.tk.shotgun
+                {"type": "dev", "name": "backup_tests_with_fail", "path": self._temp_test_path}, self.mockgun
             )
             self.assertIsInstance(config, sgtk.bootstrap.resolver.CachedConfiguration)
             config_root_path = config.path.current_os
@@ -143,7 +144,7 @@ class TestBackups(TankTestBase):
         )
         with temp_env_var(SGTK_REPO_ROOT=self._core_repo_path):
             config = resolver.resolve_configuration(
-                {"type": "dev", "name": "backup_tests_read_only", "path": self._temp_test_path}, self.tk.shotgun
+                {"type": "dev", "name": "backup_tests_read_only", "path": self._temp_test_path}, self.mockgun
             )
             self.assertIsInstance(config, sgtk.bootstrap.resolver.CachedConfiguration)
             config_root_path = config.path.current_os
@@ -188,3 +189,47 @@ class TestBackups(TankTestBase):
             parent_folder = os.path.join(config_install_backup_path, os.pardir)
             sgtk.util.filesystem.safe_delete_folder(parent_folder)
             self.assertFalse(os.path.exists(parent_folder))
+
+    def test_local_bundle_cache(self):
+        """
+        Ensures the local bundle cache path is included in the pipeline config
+        yml file during updates.
+        """
+        resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
+            plugin_id="backup_tests"
+        )
+        with temp_env_var(SGTK_REPO_ROOT=self._core_repo_path):
+
+            config = resolver.resolve_configuration(
+                {
+                    "type": "dev",
+                    "name": "backup_tests",
+                    "path": self._temp_test_path
+                },
+                self.mockgun
+            )
+            self.assertIsInstance(
+                config,
+                sgtk.bootstrap.resolver.CachedConfiguration
+            )
+
+            config_root_path = config.path.current_os
+
+            # Update the configuration
+            config.update_configuration()
+
+            # make sure the local bundle cache path was written to the pipeline
+            # config file
+            config_metadata = get_metadata(config_root_path)
+
+            local_bundle_cache_path = os.path.join(
+                config.descriptor.get_path(),
+                "bundle_cache"
+            )
+
+            # make sure the local bundle cache path is part of the written
+            # config metadata file
+            self.assertTrue(
+                local_bundle_cache_path in
+                config_metadata["bundle_cache_fallback_roots"]
+            )

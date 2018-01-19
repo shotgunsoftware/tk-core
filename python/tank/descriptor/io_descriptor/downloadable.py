@@ -240,7 +240,7 @@ class IODescriptorDownloadable(IODescriptorBase):
         # core. We will have to assume that it has been unzipped correctly.
         if not os.path.isdir(metadata_folder):
             log.debug(
-                "Pre-core-0.18.120 download found at '%s'. Assuming it is complete.", metadata_folder
+                "Pre-core-0.18.120 download found at '%s'. Assuming it is complete.", path
             )
             return True
 

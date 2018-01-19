@@ -12,11 +12,15 @@ from __future__ import with_statement
 import os
 import sgtk
 
-from tank_test.tank_test_base import TankTestBase, SealedMock
+import unittest2
+
+from tank_test.tank_test_base import ShotgunTestBase, TankTestBase, SealedMock
+
 from tank_test.tank_test_base import setUpModule # noqa
 from tank.errors import TankError
 from tank.descriptor import (
-    CheckVersionConstraintsError, TankDescriptorError, create_descriptor, Descriptor
+    CheckVersionConstraintsError, TankDescriptorError, create_descriptor, Descriptor,
+    TankMissingManifestError, ConfigDescriptor, CoreDescriptor
 )
 from tank.descriptor.descriptor_installed_config import InstalledConfigDescriptor
 
@@ -26,39 +30,43 @@ from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
 from tank_vendor import yaml
 
 
-class TestConfigDescriptor(TankTestBase):
+class TestCachedConfigDescriptor(ShotgunTestBase):
 
-    def test_legacy_configs(self):
+    def test_core_descriptor_features(self):
         """
-        Ensures pipeline configurations created through legacy means have an
-        InstalledConfigDescriptor.
+        Ensures feature discovery works whether the core is specified or not.
         """
-        self.assertIsInstance(self.tk.configuration_descriptor, InstalledConfigDescriptor)
+        class CoreConfigDescriptorWithoutFeatures(ConfigDescriptor):
+            def resolve_core_descriptor(self):
+                io_desc = Mock()
+                io_desc.get_manifest.return_value = dict()
+                return CoreDescriptor(io_desc)
 
-    def test_cant_copy_installed_config(self):
-        """
-        Ensures installed pipeline configurations can't be copied.
-        """
-        with self.assertRaisesRegexp(
-            TankDescriptorError,
-            "cannot be copied"
-        ):
-            self.tk.configuration_descriptor.copy("/a/b/c")
+        desc = CoreConfigDescriptorWithoutFeatures(None, None, None, None)
+        self.assertIsNone(
+            desc.get_associated_core_feature_info("missing")
+        )
+        self.assertEqual(
+            desc.get_associated_core_feature_info("missing", "value"),
+            "value"
+        )
 
-    def test_mutability(self):
-        """
-        Ensures the pipeline configuration is mutable.
-        """
-        self.assertEqual(self.tk.configuration_descriptor.is_immutable(), False)
+        class CoreConfigDescriptorWithFeatures(ConfigDescriptor):
+            def resolve_core_descriptor(self):
+                io_desc = Mock()
+                io_desc.get_manifest.return_value = dict(features=dict(two="2"))
+                return CoreDescriptor(io_desc)
 
-    def test_installed_config_associated_core_descriptor(self):
-        """
-        Ensures the core descriptor for an installed configuration points inside the pipeline
-        configuration.
-        """
-        self.assertDictEqual(
-            self.tk.configuration_descriptor.associated_core_descriptor,
-            {"path": os.path.join(self.pipeline_config_root, "install", "core"), "type": "path"}
+        desc = CoreConfigDescriptorWithFeatures(None, None, None, None)
+
+        self.assertEqual(
+            desc.get_associated_core_feature_info("two"),
+            "2"
+        )
+
+        self.assertEqual(
+            desc.get_associated_core_feature_info("foo", "bar"),
+            "bar"
         )
 
     def test_cached_config_associated_core_descriptor(self):
@@ -113,6 +121,70 @@ class TestConfigDescriptor(TankTestBase):
         self.assertEqual(
             desc.version_constraints["min_core"],
             "v0.18.18"
+        )
+
+
+class TestConfigDescriptor(TankTestBase):
+
+    def test_core_descriptor(self):
+        """
+        Ensures the core descriptor for an installed configuration is created correctly and cached
+        """
+        desc = self.tk.configuration_descriptor.resolve_core_descriptor()
+
+        # Ensure the descriptor is set and the core is pointing at the right location.
+        self.assertIsNotNone(desc)
+        self.assertEqual(
+            os.path.join(self.pipeline_config_root, "install", "core"),
+            desc.get_path()
+        )
+
+        # Ensure the descriptor is cached.
+        desc_2 = self.tk.configuration_descriptor.resolve_core_descriptor()
+        self.assertEqual(id(desc), id(desc_2))
+
+        # Ensure that if a configuration has no associated core then resolve_core_descriptor returns
+        # nothing as well.
+        class MissingCoreConfigDescriptor(ConfigDescriptor):
+            @property
+            def associated_core_descriptor(self):
+                return None
+
+        desc = MissingCoreConfigDescriptor(None, None, None, None)
+        self.assertIsNone(desc.resolve_core_descriptor())
+        self.assertEqual(desc.get_associated_core_feature_info("missing", "value"), "value")
+
+    def test_legacy_configs(self):
+        """
+        Ensures pipeline configurations created through legacy means have an
+        InstalledConfigDescriptor.
+        """
+        self.assertIsInstance(self.tk.configuration_descriptor, InstalledConfigDescriptor)
+
+    def test_cant_copy_installed_config(self):
+        """
+        Ensures installed pipeline configurations can't be copied.
+        """
+        with self.assertRaisesRegexp(
+            TankDescriptorError,
+            "cannot be copied"
+        ):
+            self.tk.configuration_descriptor.copy("/a/b/c")
+
+    def test_mutability(self):
+        """
+        Ensures the pipeline configuration is mutable.
+        """
+        self.assertEqual(self.tk.configuration_descriptor.is_immutable(), False)
+
+    def test_installed_config_associated_core_descriptor(self):
+        """
+        Ensures the core descriptor for an installed configuration points inside the pipeline
+        configuration.
+        """
+        self.assertDictEqual(
+            self.tk.configuration_descriptor.associated_core_descriptor,
+            {"path": os.path.join(self.pipeline_config_root, "install", "core"), "type": "path"}
         )
 
     def test_installed_config_manifest(self):
@@ -465,7 +537,7 @@ class TestDescriptorSupport(TankTestBase):
                                 "v1.x.2")
 
 
-class TestConstraintValidation(TankTestBase):
+class TestConstraintValidation(unittest2.TestCase):
     """
     Tests for console utilities.
     """
@@ -719,3 +791,92 @@ class TestConstraintValidation(TankTestBase):
         self.assertRegexpMatches(
             ctx.exception.reasons[2], "Requires at least Shotgun Desktop v3.3.4 but no version was specified"
         )
+
+
+class TestFeaturesApi(unittest2.TestCase):
+
+    def test_missing_manifest(self):
+        """
+        Ensures a missing manifest is handled properly.
+        """
+        io_desc = Mock()
+        io_desc.get_manifest.side_effect = TankMissingManifestError()
+        desc = sgtk.descriptor.CoreDescriptor(io_desc)
+
+        self.assertEqual(desc.get_feature_info("missing", "value"), "value")
+        self.assertIsNone(desc.get_feature_info("missing"))
+        self.assertEqual(desc.get_features_info(), {})
+
+    def test_missing_features_section(self):
+        """
+        Ensures a missing features section is handled properly.
+        """
+        io_desc = Mock()
+        io_desc.get_manifest.return_value = {}
+        desc = sgtk.descriptor.CoreDescriptor(io_desc)
+
+        self.assertEqual(desc.get_feature_info("missing", "value"), "value")
+        self.assertIsNone(desc.get_feature_info("missing"))
+        self.assertEqual(desc.get_features_info(), {})
+
+    def test_missing_feature(self):
+        """
+        Ensures a missing feature is handled properly.
+        """
+        io_desc = Mock()
+        io_desc.get_manifest.return_value = dict(features={})
+        desc = sgtk.descriptor.CoreDescriptor(io_desc)
+
+        self.assertEqual(desc.get_feature_info("missing", "value"), "value")
+        self.assertIsNone(desc.get_feature_info("missing"))
+        self.assertEqual(desc.get_features_info(), {})
+
+    def test_available_feature(self):
+        """
+        Ensures an available feature is handled properly.
+        """
+        features = dict(two="2", foo="bar", zero=0)
+        io_desc = Mock()
+        io_desc.get_manifest.return_value = dict(features=features)
+        desc = sgtk.descriptor.CoreDescriptor(io_desc)
+
+        self.assertEqual(desc.get_feature_info("two", 3), "2")
+        self.assertEqual(desc.get_feature_info("two"), "2")
+
+        # Make sure that values that are falsy are still returned.
+        self.assertEqual(desc.get_feature_info("zero", 42), 0)
+        self.assertEqual(desc.get_feature_info("zero"), 0)
+
+        self.assertEqual(desc.get_feature_info("missing", "value"), "value")
+        self.assertIsNone(desc.get_feature_info("missing"))
+        self.assertEqual(desc.get_features_info(), features)
+
+    def test_core_features(self):
+        """
+        Checks that core features are reported properly. This prevents us from
+        removing something by mistake in info.yml, which would be quite
+        catastrophic.
+        """
+        # Create a an IoDescriptor-like object returning the core's info.yml.
+        with open(
+            os.path.join(
+                os.path.dirname(__file__),
+                "..", "..", "info.yml"
+            )
+        ) as fh:
+            info = yaml.safe_load(fh)
+
+        io_desc = Mock()
+        io_desc.get_manifest.return_value = info
+        desc = sgtk.descriptor.CoreDescriptor(io_desc)
+
+        features = {
+            "bootstrap.lean_config.version": 1
+        }
+
+        # Make sure every feature is at the expected version.
+        for feature, value in features.iteritems():
+            self.assertEqual(desc.get_feature_info(feature), value)
+
+        # Make sure there weren't new features introduced.
+        self.assertEqual(desc.get_features_info(), features)

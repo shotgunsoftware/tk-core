@@ -13,7 +13,7 @@ from __future__ import with_statement
 import os
 from mock import patch
 
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import ShotgunTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 
 from tank.authentication import session_cache
@@ -21,7 +21,94 @@ from tank.util import LocalFileStorageManager
 from tank_vendor import yaml
 
 
-class SessionCacheTests(TankTestBase):
+class SessionCacheTests(ShotgunTestBase):
+
+    def setUp(self):
+        super(SessionCacheTests, self).setUp()
+        # Wipe the global session file that has been edited by previous tests.
+        session_cache._write_yaml_file(
+            session_cache._get_global_authentication_file_location(),
+            {}
+        )
+
+    def _clear_site_yml(self, site):
+        session_cache._write_yaml_file(
+            session_cache._get_site_authentication_file_location(site),
+            {}
+        )
+
+    def test_recent_hosts(self):
+        """
+        Makes sure the recent hosts list is keep up to date.
+        """
+        HOST_A = "https://host-a.shotgunstudio.com"
+        HOST_B = "https://host-b.shotgunstudio.com"
+
+        # Make sure the recent hosts is initially empty.
+        self.assertEqual(session_cache.get_recent_hosts(), [])
+
+        # Set HOST_A as the current host.
+        session_cache.set_current_host(HOST_A)
+        self.assertEqual(session_cache.get_recent_hosts(), [HOST_A])
+        self.assertEqual(session_cache.get_current_host(), HOST_A)
+
+        # Then set HOST_B as the new current host.
+        session_cache.set_current_host(HOST_B)
+        self.assertEqual(session_cache.get_recent_hosts(), [HOST_B, HOST_A])
+        self.assertEqual(session_cache.get_current_host(), HOST_B)
+
+        # Now set back HOST_A as the current host. It should now be the most recent.
+        session_cache.set_current_host(HOST_A)
+        self.assertEqual(session_cache.get_recent_hosts(), [HOST_A, HOST_B])
+        self.assertEqual(session_cache.get_current_host(), HOST_A)
+
+        # Update the cache 10 times.
+        n_hosts = ["https://host-%d.shotgunstudio.com" % i for i in range(10)]
+        for host in n_hosts:
+            session_cache.set_current_host(host)
+
+        # We should now have hosts 9 down to 2 in the most recent list.
+        most_recents = ["https://host-%d.shotgunstudio.com" % i for i in range(9, 1, -1)]
+
+        self.assertEqual(session_cache.get_recent_hosts(), most_recents)
+
+    def test_recent_users(self):
+        """
+        Makes sure the recent hosts list is keep up to date.
+        """
+        HOST = "https://host.shotgunstudio.com"
+        LOGIN_A = "login_a"
+        LOGIN_B = "login_b"
+
+        self._clear_site_yml(HOST)
+
+        # Make sure the recent hosts is initially empty.
+        self.assertEqual(session_cache.get_recent_users(HOST), [])
+
+        # Set HOST_A as the current host.
+        session_cache.set_current_user(HOST, LOGIN_A)
+        self.assertEqual(session_cache.get_recent_users(HOST), [LOGIN_A])
+        self.assertEqual(session_cache.get_current_user(HOST), LOGIN_A)
+
+        # Then set HOST_B as the new current host.
+        session_cache.set_current_user(HOST, LOGIN_B)
+        self.assertEqual(session_cache.get_recent_users(HOST), [LOGIN_B, LOGIN_A])
+        self.assertEqual(session_cache.get_current_user(HOST), LOGIN_B)
+
+        # Now set back HOST_A as the current host. It should now be the most recent.
+        session_cache.set_current_user(HOST, LOGIN_A)
+        self.assertEqual(session_cache.get_recent_users(HOST), [LOGIN_A, LOGIN_B])
+        self.assertEqual(session_cache.get_current_user(HOST), LOGIN_A)
+
+        # Update the cache 10 times.
+        n_users = ["login-%d" % i for i in range(10)]
+        for user in n_users:
+            session_cache.set_current_user(HOST, user)
+
+        # We should now have users 9 down to 2 in the most recent list.
+        most_recents = ["login-%d" % i for i in range(9, 1, -1)]
+
+        self.assertEqual(session_cache.get_recent_users(HOST), most_recents)
 
     def test_current_host(self):
         """
@@ -63,7 +150,10 @@ class SessionCacheTests(TankTestBase):
         ) as fh:
             # Let's read the file directly to see if the data was cleaned up.
             data = yaml.load(fh)
-            self.assertEqual(data, {"current_host": "https://host.cleaned.up.on.write"})
+            self.assertEqual(
+                data["current_host"],
+                "https://host.cleaned.up.on.write"
+            )
 
     def test_current_user(self):
         """

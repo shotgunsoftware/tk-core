@@ -1,11 +1,11 @@
-# Copyright (c) 2013 Shotgun Software Inc.
-# 
+# Copyright (c) 2017 Shotgun Software Inc.
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import print_function
@@ -17,11 +17,11 @@ import tank
 from tank import TankError
 
 from tank.template import TemplatePath
-from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
-from tank.templatekey import (TemplateKey, StringKey, IntegerKey, 
-                                SequenceKey)
+from tank_test.tank_test_base import ShotgunTestBase, setUpModule # noqa
+from tank.templatekey import (StringKey, IntegerKey, SequenceKey)
 
-class TestTemplatePath(TankTestBase):
+
+class TestTemplatePath(ShotgunTestBase):
     """
     Base class for tests of TemplatePath. Do not add tests to this class directly.
     """
@@ -46,10 +46,18 @@ class TestTemplatePath(TankTestBase):
         
         # legacy style template object which only knows about the currently running operating system
         self.template_path_current_os_only = TemplatePath(self.definition, self.keys, self.project_root)
-        
+
+        project_root = os.path.join(self.tank_temp, "project_code")
+        self._project_roots = {self.primary_root_name: {}}
+        # Create the roots.yml like structure. Double down on the key names so it can be used in all scenarios
+        # where we require the roots.
+        for os_name in ["windows_path", "linux_path", "mac_path", "win32", "linux2", "darwin"]:
+            self._project_roots[self.primary_root_name][os_name] = project_root
+        self._primary_project_root = project_root
+
         # new style template object which supports all recognized platforms
         # get all OS roots for primary storage
-        all_roots = self.pipeline_configuration.get_all_platform_data_roots()[self.primary_root_name]
+        all_roots = self._project_roots[self.primary_root_name]
         
         self.template_path = TemplatePath(self.definition, 
                                           self.keys, 
@@ -100,7 +108,7 @@ class TestValidate(TestTemplatePath):
         Test that validating the project root against the project root template ('/') works
         correctly
         """
-        root = self.pipeline_configuration.get_primary_data_root()
+        root = self._primary_project_root
         self.assertTrue(self.project_root_template.validate(root))
 
     def test_valid_path(self):
@@ -304,7 +312,7 @@ class TestApplyFields(TestTemplatePath):
         """
         Test that applying fields to the project root template ('/') returns the project root
         """
-        root = self.pipeline_configuration.get_primary_data_root()
+        root = self._primary_project_root
         result = self.project_root_template.apply_fields({})
         self.assertEquals(root, result)
 
@@ -324,17 +332,17 @@ class TestApplyFields(TestTemplatePath):
                    "snapshot": 2}        
         
         result = self.template_path.apply_fields(fields, "win32")
-        root = self.pipeline_configuration.get_all_platform_data_roots()[self.primary_root_name]["win32"]
+        root = self._project_roots[self.primary_root_name]["win32"]
         expected = "%s\\%s" % (root, relative_path.replace(os.sep, "\\"))
         self.assertEquals(expected, result)
 
         result = self.template_path.apply_fields(fields, "linux2")
-        root = self.pipeline_configuration.get_all_platform_data_roots()[self.primary_root_name]["linux2"]
+        root = self._project_roots[self.primary_root_name]["linux2"]
         expected = "%s/%s" % (root, relative_path.replace(os.sep, "/"))
         self.assertEquals(expected, result)
 
         result = self.template_path.apply_fields(fields, "darwin")
-        root = self.pipeline_configuration.get_all_platform_data_roots()[self.primary_root_name]["darwin"]
+        root = self._project_roots[self.primary_root_name]["darwin"]
         expected = "%s/%s" % (root, relative_path.replace(os.sep, "/"))
         self.assertEquals(expected, result)
 
@@ -642,7 +650,7 @@ class TestGetFields(TestTemplatePath):
         Test that the getting fields from a project root template ('/') returns an empty fields
         dictionary and doesn't error
         """
-        root = self.pipeline_configuration.get_primary_data_root()
+        root = self._primary_project_root
         result = self.project_root_template.get_fields(root)
         self.assertEquals({}, result)
 

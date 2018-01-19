@@ -1,26 +1,28 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import copy
-import sys
 import os
+import sys
 import time
 
+import unittest2
 import tank
 from tank import TankError
-from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
+from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule # noqa
 from tank.template import Template, TemplatePath, TemplateString
-from tank.template import make_template_paths, make_template_strings, read_templates
+from tank.template import make_template_paths, make_template_strings
 from tank.templatekey import (TemplateKey, StringKey, IntegerKey, SequenceKey, TimestampKey)
 
-class TestTemplate(TankTestBase):
+
+class TestTemplate(unittest2.TestCase):
     """Base class for tests of Template.
     Do no add tests to this class directly."""
     def setUp(self):
@@ -41,7 +43,6 @@ class TestTemplate(TankTestBase):
         # Make a template
         self.definition = "shots/{Sequence}/{Shot}/{Step}/work/{Shot}.{branch}.v{version}.{snapshot}.{day_month_year}.ma"
         self.template = Template(self.definition, self.keys)
-
 
 
 class TestInit(TestTemplate):
@@ -93,6 +94,7 @@ class TestInit(TestTemplate):
         definition = "/something{Shot}]"
         self.assertRaises(TankError, Template, definition, self.keys)
 
+
 class TestRepr(TestTemplate):
 
     def test_template(self):
@@ -113,7 +115,6 @@ class TestRepr(TestTemplate):
         expected = "<Sgtk Template %s>" % self.definition
         self.assertEquals(expected, template.__repr__())
 
-        
 
 class TestKeys(TestTemplate):
     def test_keys_type(self):
@@ -140,6 +141,7 @@ class TestKeys(TestTemplate):
         # modify it
         client_copy["new_key"] = "new value"
         self.assertNotEqual(self.template.keys, client_copy)
+
 
 class TestMissingKeys(TestTemplate):
 
@@ -243,7 +245,7 @@ class TestMissingKeys(TestTemplate):
         self.assertEquals(["Shot"], result)
 
 
-class TestSplitPath(TankTestBase):
+class TestSplitPath(unittest2.TestCase):
     def test_mixed_sep(self):
         "tests that split works with mixed seperators"
         input_path = "hoken/poken\moken//doken"
@@ -251,37 +253,18 @@ class TestSplitPath(TankTestBase):
         result = tank.template.split_path(input_path)
         self.assertEquals(expected, result)
 
-class TestReadTemplates(TankTestBase):
-    def setUp(self):
-        super(TestReadTemplates, self).setUp()
-        self.setup_fixtures()
-        roots = {"primary": self.project_root}
-        self.templates = read_templates(self.pipeline_configuration)
 
-    def test_read_simple(self):
-        """
-        Test no error occur during read and that some known
-        template is created correctly.
-        """
-        maya_publish_name = self.templates["maya_publish_name"]
-        self.assertIsInstance(maya_publish_name, TemplateString)
-        for key_name in ["name", "version"]:
-            self.assertIn(key_name, maya_publish_name.keys)
-
-    def test_aliased_key(self):
-        # this template has the key name_alpha aliased as name
-        houdini_asset_publish = self.templates["houdini_asset_publish"]
-        self.assertIsInstance(houdini_asset_publish, TemplatePath)
-        for key_name in ["sg_asset_type", "Asset", "Step", "name", "version"]:
-            self.assertIn(key_name, houdini_asset_publish.keys)
-
-
-class TestMakeTemplatePaths(TankTestBase):
+class TestMakeTemplatePaths(ShotgunTestBase):
     def setUp(self):
         super(TestMakeTemplatePaths, self).setUp()
         self.keys = {"Shot": StringKey("Shot")}
-        self.multi_os_data_roots = self.pipeline_configuration.get_all_platform_data_roots()
-
+        self.multi_os_data_roots = {
+            "unit_tests": {
+                "win32": os.path.join(self.tank_temp, "project_code"),
+                "linux2": os.path.join(self.tank_temp, "project_code"),
+                "darwin": os.path.join(self.tank_temp, "project_code")
+            }
+        }
 
     def test_simple(self):
         data = {"template_name": "something/{Shot}"}
@@ -355,7 +338,7 @@ class TestMakeTemplatePaths(TankTestBase):
         self.assertEquals(modified_roots["alternate_1"][sys.platform], alt_templatte.root_path)
 
 
-class TestMakeTemplateStrings(TankTestBase):
+class TestMakeTemplateStrings(ShotgunTestBase):
     def setUp(self):
         super(TestMakeTemplateStrings, self).setUp()
         self.keys = {"Shot": StringKey("Shot")}
@@ -420,3 +403,20 @@ class TestReadTemplates(TankTestBase):
     def test_exclusions(self):
         key = self.tk.templates["asset_work_area"].keys["Asset"]
         self.assertEquals(["Seq", "Shot"], key.exclusions)
+
+    def test_read_simple(self):
+        """
+        Test no error occur during read and that some known
+        template is created correctly.
+        """
+        maya_publish_name = self.tk.templates["maya_publish_name"]
+        self.assertIsInstance(maya_publish_name, TemplateString)
+        for key_name in ["name", "version"]:
+            self.assertIn(key_name, maya_publish_name.keys)
+
+    def test_aliased_key(self):
+        # this template has the key name_alpha aliased as name
+        houdini_asset_publish = self.tk.templates["houdini_asset_publish"]
+        self.assertIsInstance(houdini_asset_publish, TemplatePath)
+        for key_name in ["sg_asset_type", "Asset", "Step", "name", "version"]:
+            self.assertIn(key_name, houdini_asset_publish.keys)

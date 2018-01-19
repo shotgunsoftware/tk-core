@@ -1,10 +1,14 @@
 import os
 
 from tank.templatekey import StringKey
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import ShotgunTestBase, TankTestBase
+from tank_test.tank_test_base import setUpModule # noqa
 from tank.platform.validation import *
 
-class TestValidateSchema(TankTestBase):
+import tank
+
+
+class TestValidateSchema(ShotgunTestBase):
     def setUp(self):
         super(TestValidateSchema, self).setUp()
         
@@ -137,6 +141,7 @@ class TestValidateSchema(TankTestBase):
 
         expected_msg = "Invalid 'allows_empty' bool in schema '%s' for '%s'!" % (key, self.app_name)
         self.check_error_message(TankError, expected_msg, validate_schema, self.app_name, schema)
+
 
 class TestValidateSettings(TankTestBase):
     def setUp(self):
