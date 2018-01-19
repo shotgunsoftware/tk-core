@@ -97,6 +97,19 @@ class UserSettings(Singleton):
         """
         return self.get_setting(self._LOGIN, "default_login")
 
+    def get_section_settings(self, section):
+        """
+        Retrieves the name of the settings in a given section.
+
+        :param str section: Name of the section of the settings to retrieve.
+
+        :returns: A list of setting's name. If the section is missing, returns
+            ``None``.
+        """
+        if not self._user_config.has_section(section):
+            return None
+        return self._user_config.options(section)
+
     def get_setting(self, section, name):
         """
         Provides access to any setting, including ones in user defined sections.
