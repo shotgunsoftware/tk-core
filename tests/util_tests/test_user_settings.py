@@ -128,7 +128,7 @@ class UserSettingsTests(ShotgunTestBase):
         )
 
         self.assertEqual(
-            UserSettings().get_section_settings("missing section"), []
+            UserSettings().get_section_settings("missing section"), None
         )
 
         self.assertEqual(
