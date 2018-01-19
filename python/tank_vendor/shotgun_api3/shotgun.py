@@ -3368,7 +3368,7 @@ class Shotgun(object):
                 raise MissingTwoFactorAuthenticationFault(sg_response.get("message", "Unknown 2FA Authentication Error"))
             elif sg_response.get("error_code") == ERR_SSO:
                 raise UserCredentialsNotAllowedForSSOAuthenticationFault(
-                    sg_response.get("message", "Authentication using username/password is not allowed for an SSO-enabled Shotgun site")
+                    sg_response.get("message", "Authentication using username/password is not supported for an SSO-enabled Shotgun site")
                 )
             else:
                 # raise general Fault
