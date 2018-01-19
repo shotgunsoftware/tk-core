@@ -277,6 +277,25 @@ class CachedConfiguration(Configuration):
                 # Old-style config, so copy the contents inside it.
                 self._descriptor.copy(os.path.join(self._path.current_os, "config"))
 
+            # if the config has a local bundle cache folder, append it to the
+            # list of fallback paths. this allows bundles to be included with
+            # the config, making it self contained and not requiring additional
+            # bundle downloads
+            local_bundle_cache_path = os.path.join(
+                self._descriptor.get_config_folder(),
+                constants.BUNDLE_CACHE_FOLDER_NAME
+            )
+            if os.path.exists(local_bundle_cache_path):
+                log.debug(
+                    "Local bundle cache found in config. "
+                    "Adding local bundle cache as fallback path: %s" %
+                    (local_bundle_cache_path,)
+                )
+                self._bundle_cache_fallback_paths.append(
+                    local_bundle_cache_path)
+            else:
+                log.debug("No local bundle cache found in config.")
+
             # write out config files
             self._config_writer.write_install_location_file()
             self._config_writer.write_config_info_file(self._descriptor)
@@ -399,13 +418,14 @@ class CachedConfiguration(Configuration):
             )
 
     @property
-    def has_local_bundle_cache(self):
+    def requires_dynamic_bundle_caching(self):
         """
-        If True, indicates that pipeline configuration has a local bundle cache. If False, it
-        depends on the global bundle cache.
+        If True, indicates that pipeline configuration relies on dynamic caching
+        of bundles to operate. If False, the configuration has its own bundle
+        cache.
         """
         # CachedConfiguration always depend on the global bundle cache.
-        return False
+        return True
 
     def _cleanup_backup_folders(self, config_backup_folder_path, core_backup_folder_path):
         """
