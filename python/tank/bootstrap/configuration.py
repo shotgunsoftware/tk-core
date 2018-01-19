@@ -79,15 +79,31 @@ class Configuration(object):
         core_path = get_core_python_path_for_config(path)
 
         # Get the user before the core swapping and serialize it.
-        from ..authentication import serialize_user
+        from ..authentication import serialize_user, ShotgunSamlUser
         serialized_user = serialize_user(sg_user)
+
+        # Stop claims renewal before swapping core.
+        if isinstance(sg_user, ShotgunSamlUser) and sg_user.is_claims_renewal_active():
+            uses_claims_renewal = True
+            log.debug("Stopping claims renewal before swapping core.")
+            sg_user.stop_claims_renewal()
+        else:
+            uses_claims_renewal = False
 
         # swap the core out
         CoreImportHandler.swap_core(core_path)
 
         log.debug("Core swapped, authenticated user will be set.")
 
-        self._set_authenticated_user(sg_user, serialized_user)
+        sg_user = self._set_authenticated_user(sg_user, serialized_user)
+
+        # If we're swapping into a core that supports authentication, restart claims renewal. Note
+        # that here we're not testing that the API supports claims renewal as to not complexify this
+        # code any further. We're assuming it does support claims renewal. If it doesn't that's a
+        # user configuration error and they need to upgrade their project.
+        if sg_user and uses_claims_renewal:
+            log.debug("Restarting claims renewal.")
+            sg_user.start_claims_renewal()
 
         # perform a local import here to make sure we are getting
         # the newly swapped in core code
@@ -133,6 +149,8 @@ class Configuration(object):
 
         :param user: User that was used for bootstrapping.
         :param serialized_user: Serialized version of the user.
+
+        :returns: If authentication is supported, a :class:`ShotgunUser` will be returned.
         """
         # It's possible we're bootstrapping into a core that doesn't support the authentication
         # module, so try to import.
@@ -142,7 +160,7 @@ class Configuration(object):
             from ..util import CoreDefaultsManager
         except ImportError:
             log.debug("Using pre-0.16 core, no authenticated user will be set.")
-            return
+            return None
 
         log.debug("The project's core supports the authentication module.")
 
@@ -190,3 +208,5 @@ class Configuration(object):
         # the newly swapped in core code
         from .. import api
         api.set_authenticated_user(authenticated_user)
+
+        return authenticated_user

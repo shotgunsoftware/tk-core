@@ -151,6 +151,10 @@ class ShotgunSamlUser(ShotgunUser):
         ...
         if user.is_claims_renewal_active():
             user.stop_claims_renewal()
+
+    If the claims renewal is to be canceled by invoking :meth:`ShotgunSamlUser.stop_claims_renewal`,
+    it is important that this is being done from the main thread in order to
+    avoid race conditions.
     """
 
     def __init__(self, impl):
@@ -159,6 +163,7 @@ class ShotgunSamlUser(ShotgunUser):
         """
         super(ShotgunSamlUser, self).__init__(impl)
         self._timer = None
+        self._claims_renewal_cancelled = False
 
     def get_claims_expiration(self):
         """
@@ -173,8 +178,16 @@ class ShotgunSamlUser(ShotgunUser):
         Handles automatic renewal of the SAML2 claims for the user.
 
         :param preemtive_renewal_threshold: How far into the claims duration we will attempt renewal.
-                                             Defaults to 90%, usually 3 minutes 45 seconds (90% of 5 mins).
+                                             Defaults to 90%, usually 4 minutes 30 seconds (90% of 5 mins).
         """
+        # The documentation states that this flag will be set when calling stop_claims_renewal.
+        # To avoid race-conditions, this method needs to be invoked from the main thread. When
+        # that happens, this method's code will be executed only after the control has returned to
+        # Qt's event loop. This means that calling stop at any time is guaranteed that whenever
+        # this method is called it WILL exit.
+        if self._claims_renewal_cancelled:
+            return
+
         logger.debug("Attempting automatic claims renewal")
         try:
             previous_expiration = self.get_claims_expiration()
@@ -204,6 +217,7 @@ class ShotgunSamlUser(ShotgunUser):
         """
         Start claims renewal mechanism.
         """
+        self._claims_renewal_cancelled = False
         if self._timer is None or not self.is_claims_renewal_active():
             self._do_automatic_claims_renewal(preemtive_renewal_threshold)
         else:
@@ -213,6 +227,7 @@ class ShotgunSamlUser(ShotgunUser):
         """
         Stops claims renewal mechanism.
         """
+        self._claims_renewal_cancelled = True
         if self._timer:
             self._timer.cancel()
         else:
