@@ -173,7 +173,7 @@ class ShotgunSamlUser(ShotgunUser):
         Handles automatic renewal of the SAML2 claims for the user.
 
         :param preemtive_renewal_threshold: How far into the claims duration we will attempt renewal.
-                                             Defaults to 90%, usually 3 minutes 45 seconds (90% of 5 mins).
+                                             Defaults to 90%, usually 4 minutes 30 seconds (90% of 5 mins).
         """
         logger.debug("Attempting automatic claims renewal")
         try:
