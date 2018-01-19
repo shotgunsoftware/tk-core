@@ -23,6 +23,7 @@ import threading
 import tempfile
 import contextlib
 import atexit
+import uuid
 from functools import wraps
 
 from collections import defaultdict
@@ -831,6 +832,41 @@ class TankTestBase(unittest.TestCase):
             func(*args, **kws)
         except error_type as e:
             self.assertEquals(message, str(e))
+
+    def write_toolkit_ini_file(self, login_section={}, **kwargs):
+        """
+        Creates an ini file in a unique location with te user settings.
+
+        :param login_section: Dictionary of settings that will be stored in the [Login] section.
+        :param **kwargs: Dictionary where the key is a section name and the value is a dictionary
+            of the settings for that section.
+
+        :returns: Path to the Toolkit ini file.
+        """
+        # Create a unique folder for this test.
+        folder = os.path.join(self.tank_temp, str(uuid.uuid4()))
+        os.makedirs(folder)
+
+        # Manually write the file as this is the format we're expecting the UserSettings
+        # to parse.
+
+        ini_file_location = os.path.join(folder, "toolkit.ini")
+        with open(ini_file_location, "w") as f:
+            f.writelines(["[Login]\n"])
+            for key, value in login_section.iteritems():
+                f.writelines(["%s=%s\n" % (key, value)])
+
+            for section in kwargs:
+                f.writelines(["[%s]\n" % section])
+                for key, value in kwargs[section].iteritems():
+                    f.writelines(["%s=%s\n" % (key, value)])
+
+        # The setUp phase cleared the singleton. So set the preferences environment variable and
+        # instantiate the singleton, which will read the env var and open that location.
+        with mock.patch.dict(os.environ, {"SGTK_PREFERENCES_LOCATION": ini_file_location}):
+            UserSettings()
+
+        return ini_file_location
 
     def _move_project_data(self):
         """
