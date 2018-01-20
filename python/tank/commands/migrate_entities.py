@@ -1129,7 +1129,10 @@ class PublishedFileEntityMigrator(EntityMigrator):
             return {"id":pft_id, "type":"PublishedFileType"}
         elif src_data_type == "url" and src_value.get("link_type") == "local":
             # need to handle local storages to attempt to replace 'Tank' with 'primary':
-            ls_name = src_value.get("local_storage", {}).get("name")
+            local_storage = src_value.get("local_storage")
+            if local_storage is None:
+                local_storage = {}
+            ls_name = local_storage.get("name")
             if ls_name == "Tank":
                 # track that something uses 'Tank' local storage
                 self._entity_uses_tank_ls = True
