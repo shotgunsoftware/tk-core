@@ -86,6 +86,9 @@ class Configuration(object):
 
         :param sg_user: Authenticated Shotgun user to associate
                         the tk instance with.
+
+        :returns: A tuple of (:class:`Sgtk` and :class:`ShotgunUser`) representing
+            the new current user and the Toolkit instance.
         """
         path = self._path.current_os
         core_path = get_core_python_path_for_config(path)
@@ -141,7 +144,7 @@ class Configuration(object):
         log.debug("Bootstrapped into tk instance %r (%r)" % (tk, tk.pipeline_configuration))
         log.debug("Core API code located here: %s" % inspect.getfile(tk.__class__))
 
-        return tk
+        return tk, sg_user
 
     def _set_authenticated_user(self, user, serialized_user):
         """
