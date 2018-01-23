@@ -479,21 +479,21 @@ class Engine(TankBundle):
 
     def get_metrics_properties(self):
         """
-        Return a dictionary with properties to use when emitting a metric event for
+        Returns a dictionary with properties to use when emitting a metric event for
         this engine.
 
-        The dictionary contains informations about this engine: its name and version,
+        The dictionary contains information about this engine: its name and version,
         and informations about the application hosting the engine: its name and
-        version. 
+        version::
         
-        E.g.::
-        {
-            'Host App': 'Maya',
-            'Host App Version': '2017',
-            'Engine': 'tk-maya',
-            'Engine Version': 'v0.4.1',
-        }
+            {
+                'Host App': 'Maya',
+                'Host App Version': '2017',
+                'Engine': 'tk-maya',
+                'Engine Version': 'v0.4.1',
+            }
 
+        :returns: A dictionary with metrics properties as per above.
         """
         # Always create a new dictionary so the caller can safely modify it.
         return {
@@ -667,9 +667,9 @@ class Engine(TankBundle):
         
         A dictionary with at least a "name" and a "version" key should be returned
         by derived implementations, with respectively the host application name 
-        and its release string as values, e.g. { "name": "Maya", "version": "2017.3"}.
+        and its release string as values, e.g. ``{ "name": "Maya", "version": "2017.3"}``.
         
-        :returns: A {"name": "unknown", "version" : "unknown"} dictionary.
+        :returns: A ``{"name": "unknown", "version" : "unknown"}`` dictionary.
         """
         return {
             "name": "unknown",
