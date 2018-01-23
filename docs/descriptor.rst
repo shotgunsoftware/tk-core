@@ -1,6 +1,6 @@
 .. currentmodule:: sgtk.descriptor
 
-Descriptor API
+Descriptors
 ########################################
 
 Descriptors are used to describe a location of code or configuration.

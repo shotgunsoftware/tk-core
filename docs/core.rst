@@ -15,37 +15,6 @@ that contains lower level components and APIs. These include
 
 For apps and engines, see the :ref:`sgtk_platform_docs` documentation.
 
-Launching and initializing
---------------------------
-
-Toolkit can be launched and started up in two fundamentally different ways:
-
-- All configurations can be started up via the :class:`~sgtk.bootstrap.ToolkitManager` bootstrap API. This
-  API abstracts the entire process of initialization and provides a consistent set of methods for all
-  projects and configurations. This is the recommended way to launch toolkit and gain access to a running
-  Toolkit :class:`~sgtk.platform.Engine` instance (which in turn contains a :class:`sgtk.Sgtk` instance.
-
-- Configurations which have been installed into a specific location via the ``tank setup_project`` command
-  or via Shotgun Desktop's setup wizard can be initialized in additional ways. Such setups are referred to
-  as 'classic' toolkit setups. For most scenarios, we recommend using the :class:`~sgtk.bootstrap.ToolkitManager`
-  for access.
-
-Factory methods for classic configurations
-==========================================
-
-For classic configurations, where the configuration resides in a specific location on disk, you can use
-the following factory methods to create a :class:`sgtk.Sgtk` instance:
-
-.. autofunction:: sgtk_from_path
-.. autofunction:: sgtk_from_entity
-
-.. note::
-    You can also use the methods above in conjunction with projects handled
-    by the :class:`~sgtk.bootstrap.ToolkitManager`, but since the location
-    of the configuration of such projects isn't explicit and known beforehand,
-    the factory methods are less useful in this context.
-
-
 
 The Toolkit Core API
 --------------------

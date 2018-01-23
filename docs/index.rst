@@ -40,8 +40,7 @@ API Reference table of contents
 .. toctree::
     :maxdepth: 2
 
-
-    bootstrap
+    initializing
     core
     platform
     utils
