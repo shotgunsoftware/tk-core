@@ -15,6 +15,10 @@ that contains lower level components and APIs. These include
 
 For apps and engines, see the :ref:`sgtk_platform_docs` documentation.
 
+.. note:: The Toolkit Foundation APIs require that you run them from within
+    an initialized toolkit environment. For more information on how to
+    set this up, see :ref:`init_and_startup`.
+
 
 The Toolkit Core API
 --------------------

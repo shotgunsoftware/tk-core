@@ -9,6 +9,10 @@ This part of the API documentation covers all the classes and methods used when 
 If you are interested in developing your own apps, engines or frameworks, the base classes needed to be derived
 from are outlined below. The documentation also covers how to initialize and shut down the Toolkit engine platform.
 
+.. note:: In order to use the functionality of ``sgtk.platform``, you need to run it
+    from an initialized toolkit environment. For more information on how to
+    set this up, see :ref:`init_and_startup`.
+
 
 Managing Engines and Apps
 ---------------------------------------------------

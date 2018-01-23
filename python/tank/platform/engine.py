@@ -2670,7 +2670,7 @@ def start_engine(engine_name, tk, context):
 
     .. note:: This is for advanced workflows. For standard use
         cases, use :meth:`~sgtk.bootstrap.ToolkitManager.bootstrap_engine`.
-
+        For more information, see :ref:`init_and_startup`.
 
     :param engine_name: Name of the engine to launch, e.g. tk-maya
     :param tk: :class:`~sgtk.Sgtk` instance to associate the engine with

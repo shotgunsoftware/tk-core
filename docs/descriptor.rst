@@ -3,9 +3,16 @@
 Descriptors
 ########################################
 
-Descriptors are used to describe a location of code or configuration.
-They are used extensively by Toolkit and allow a user to configure and drive
-Toolkit in a flexible fashion. Descriptors usually point at a remote location
+Descriptors are abstractions used to describe a remote piece of code or configuration.
+They handle caching of remote resources locally, making it easy to write workflows
+around installation and deployment.
+
+.. note:: The Toolkit descriptor API does not require an installed or
+    bootstrapped instance of the Toolkit Core platform. You can use it
+    simply by importing ``sgtk`` and calling its methods.
+
+Descriptors are used extensively by Toolkit and allow a user to configure and drive
+Toolkit in a flexible fashion. Descriptors typically point at a remote location
 and makes it easy to handle code transport from that location into a local cache.
 Descriptors form the backbone for Shotgun deployment and installation. The following
 example shows basic usage::

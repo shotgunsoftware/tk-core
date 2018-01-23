@@ -1,14 +1,28 @@
-.. currentmodule:: sgtk.bootstrap
+.. _init_and_startup:
 
 Initialization and startup
 ########################################
 
-This section outlines the various ways to set up, configure and initialize a Toolkit Setup.
-There are two fundamental approaches to running Toolkit: A traditional project based setup
-and a :class:`ToolkitManager` API that allows for more flexible manipulation of
-configurations and installations.
+This section outlines how Toolkit starts up and initializes.
 
-Traditional project setup
+
+
+
+Introduction
+----------------------------------
+
+
+
+
+The toolkit Core Platform API consists of several
+
+
+
+
+
+
+
+Accessing an existing installation
 ----------------------------------------
 
 The traditional Toolkit 'pipeline approach' means that you pick an existing Shotgun
@@ -22,8 +36,37 @@ Once the installation has completed, you can access functionality via the ``tank
 for that project or run :meth:`sgtk.sgtk_from_entity()` or :meth:`sgtk.sgtk_from_path()`
 in order to create an API session.
 
+Factory methods for classic configurations
+==========================================
+
+.. currentmodule:: sgtk
+
+For classic configurations, where the configuration resides in a specific location on disk, you can use
+the following factory methods to create a :class:`sgtk.Sgtk` instance:
+
+.. autofunction:: sgtk_from_path
+.. autofunction:: sgtk_from_entity
+
+.. note::
+    You can also use the methods above in conjunction with projects handled
+    by the :class:`~sgtk.bootstrap.ToolkitManager`, but since the location
+    of the configuration of such projects isn't explicit and known beforehand,
+    the factory methods are less useful in this context.
+
+
+
+
+
 Bootstrapping Toolkit
 ----------------------------------------
+
+.. currentmodule:: sgtk.bootstrap
+
+the various ways to set up, configure and initialize a Toolkit Setup.
+There are two fundamental approaches to running Toolkit: A traditional project based setup
+and a :class:`ToolkitManager` API that allows for more flexible manipulation of
+configurations and installations.
+
 
 An alternative to the traditional project based setup was introduced in Core v0.18 - the
 :class:`ToolkitManager` class allows for more flexible manipulation of toolkit setups
@@ -84,6 +127,8 @@ Exception Classes
     :inherited-members:
     :members:
 
+
+
 Installing the sgtk module using pip
 ----------------------------------------
 
@@ -109,43 +154,6 @@ If you want to add an sgtk core to a ``requirements.txt`` file, use the followin
              number will currently download the latest commit from the master branch and
              associate it with the highest available version number tag. Such downloads are
              likely to contain changes which have not yet been full tested.
-
-
-
-Launching and initializing
---------------------------
-
-Toolkit can be launched and started up in two fundamentally different ways:
-
-- All configurations can be started up via the :class:`~sgtk.bootstrap.ToolkitManager` bootstrap API. This
-  API abstracts the entire process of initialization and provides a consistent set of methods for all
-  projects and configurations. This is the recommended way to launch toolkit and gain access to a running
-  Toolkit :class:`~sgtk.platform.Engine` instance (which in turn contains a :class:`sgtk.Sgtk` instance.
-
-- Configurations which have been installed into a specific location via the ``tank setup_project`` command
-  or via Shotgun Desktop's setup wizard can be initialized in additional ways. Such setups are referred to
-  as 'classic' toolkit setups. For most scenarios, we recommend using the :class:`~sgtk.bootstrap.ToolkitManager`
-  for access.
-
-Factory methods for classic configurations
-==========================================
-
-.. currentmodule:: sgtk
-
-For classic configurations, where the configuration resides in a specific location on disk, you can use
-the following factory methods to create a :class:`sgtk.Sgtk` instance:
-
-.. autofunction:: sgtk_from_path
-.. autofunction:: sgtk_from_entity
-
-.. note::
-    You can also use the methods above in conjunction with projects handled
-    by the :class:`~sgtk.bootstrap.ToolkitManager`, but since the location
-    of the configuration of such projects isn't explicit and known beforehand,
-    the factory methods are less useful in this context.
-
-
-
 
 
 
@@ -217,77 +225,106 @@ The following lines of python code demonstrate how to launch Maya using the core
 Engine Implementation
 ===================================================
 
-To plug into the core API software launch interface, a Toolkit engine must implement a subclass of
-:class:`SoftwareLauncher` in a ``startup.py`` file at the engine root level, analogous to the
+If you are writing a Toolkit software integration (an Engine), you should include logic for
+how the software is being launched and how Toolkit should initialize after launch. This is
+done by providing a subclass of :class:`SoftwareLauncher`. This class should be
+located in a ``startup.py`` file at the engine root level, analogous to the
 ``engine.py`` file.
 
-Scripts required by the engine to prepare the launch environment
-or initialize the engine once the DCC has started up typically reside under a sibiling ``startup``
-directory:
+In addition to this, we recommend a convention where the startup scripts that launch toolkit
+once the software is running are located in a ``startup`` folder.
 
 .. image:: ./resources/tk_engine_root_directory_structure.png
 
-Since the launch logic for the engine is invoked while the engine is not actually running, the
-:class:`~SoftwareLauncher` base class provides functionality similar to the :class:`~Engine` base
-class. Two SoftwareLauncher methods that *must* be implemented by an engine are :meth:`~SoftwareLauncher.scan_software`
-and :meth:`~SoftwareLauncher.prepare_launch`.
+Two methods should be implemented in the ``startup.py`` file:
 
-The :meth:`~SoftwareLauncher.scan_software` method is responsible for discovering the executable paths for the related DCC
-installed on the local filesystem and returns a list of :class:`SoftwareVersion` instances representing
-the executables found.
+- The :meth:`SoftwareLauncher.scan_software` method is responsible for discovering the executable
+  paths for the related software installed on the local filesystem and returns a list of
+  :class:`SoftwareVersion` instances representing the executables found.
 
-The :meth:`~SoftwareLauncher.prepare_launch` method establishes the environment to launch the DCC in, confirms the correct
-executable path to launch, and supplies command line arguments required for launch. This method returns a
-:class:`LaunchInformation` instance that contains all information required to successfully launch the
-DCC and startup the engine integration.
+- The :meth:`SoftwareLauncher.prepare_launch` method will be called before launch. It should return a
+  :class:`LaunchInformation` instance that contains all information required to successfully launch the
+  DCC and startup the engine integration.
 
-:meth:`~SoftwareLauncher.prepare_launch` method must assure the paths to ``sgtk`` and any
-startup files are specified in the ``PYTHONPATH`` environment variable. For example, the Maya engine
-contains a ``userSetup.py`` file located in a ``startup`` folder inside the engine. the
-:meth:`~SoftwareLauncher.prepare_launch` adds this path to the ``PYTHONPATH``, thereby ensuring that
-once maya has been launched, execution continues in this file.
+A basic ``startup.py`` file for the Maya engine would contain the following:
 
-
-To recap, a skeleton ``startup.py`` file for the Maya engine contains the following::
+.. code-block:: python
 
     from sgtk.platform import SoftwareLauncher, SoftwareVersion, LaunchInformation
 
     class MayaLauncher(SoftwareLauncher):
 
         def scan_software(self):
-            # Construct a list of SoftwareVersion instances representing executable versions of the DCC
-            # installed on the local filesystem.
+            # Construct a list of SoftwareVersion instances
+            # representing executable versions of the software
+            # installed on the local filesystem. This can include
+            # variations, icons, version numbers etc.
             software_versions = []
             ...
             return software_versions
 
         def prepare_launch(self, exec_path, args, file_to_open=None):
-            # Construct an environment to launch the DCC in, confirm the correct executable path to
-            # launch, and provide required command line args. Return this information as a
+            # Construct an environment to launch the DCC in,
+            # confirm the correct executable path to
+            # launch, and provide required command line args.
+            # Return this information as a
             # LaunchInformation instance.
             correct_executable_path = ""
             command_line_args = ""
             launch_environment = {}
-            ...
-            launch_information = LaunchInformation(correct_executable_path, command_line_args, launch_environment)
+
+            # once the software has launched, execute
+            # startup script startup/userSetup.py
+            launch_environment["PYTHONPATH"] = os.path.join(self.disk_location, "startup")
+
+            # make sure to include some standard fields describing the current context and site
+            std_env = self.get_standard_plugin_environment()
+            launch_environment.update(std_env)
+
+            launch_information = LaunchInformation(
+                correct_executable_path,
+                command_line_args,
+                launch_environment
+            )
             return launch_information
 
 
+After software launch
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Note how the ``prepare_launch()`` method in the example above modifies
+the ``PYTHONPATH``. Later on as Maya is launching, it will look for a
+``userSetup.py`` file in the ``startup`` folder. This file can then launch
+the actual toolkit integration, typically using the :class:`sgtk.bootstrap.ToolkitManager`
+interfaces.
 
-
-.. note:: How to initialize and runs code at startup will vary from DCC to DCC.
+.. note:: How to initialize and run code at startup will vary from DCC to DCC.
     The supported toolkit engines for Maya, Nuke, and Houdini are good reference implementations.
 
-.. note:: When setting an environment variable containing the current context value, be sure to use a
-    serialized version of the context to encode login information in the shell.
+Also note how the example code above calls :meth:`~SoftwareLauncher.get_standard_plugin_environment`.
+This will include a set of default environment variables which can be picked up by the startup script
+and initialize Toolkit with the correct site, context etc.
+
+Settings and configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can access any engine settings defined in the environment using the
+:meth:`SoftwareLauncher.get_setting` method. This means that you can create
+a configurable launcher setup, following the exact same patterns that are used
+for engine settings.
+
+.. note:: If you need to pass a setting into your startup script, read it in using the
+    :meth:`~SoftwareLauncher.get_setting` during :meth:`~SoftwareLauncher.prepare_launch` and
+    pass it as an environment variable into your startup script.
+
+
+
+
 
 
 
 Software Launch APIs
 ============================
-
-
 
 This section contains the techincal documentation for the core classes and methods described in the
 :ref:`Launching Software` section above.

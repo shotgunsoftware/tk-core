@@ -31,7 +31,7 @@ log = LogManager.get_logger(__name__)
 
 class Sgtk(object):
     """
-    The Toolkit Core API class. Instances of this class are associated with a particular
+    The Toolkit Core API. Instances of this class are associated with a particular
     configuration and contain access methods for a number of low level
     Toolkit services such as filesystem creation, hooks, context
     manipulation and the Toolkit template system.
@@ -39,9 +39,10 @@ class Sgtk(object):
 
     def __init__(self, project_path):
         """
-        Instances of this class should be created via the factory methods
-        :meth:`sgtk_from_path` and :meth:`sgtk_from_entity` or implicitly via the
-        :class:`~sgtk.bootstrap.ToolkitManager`.
+        .. note:: Do not create this instance directly - Instead, instances of
+            this class should be created using the methods :meth:`sgtk_from_path`,
+            :meth:`sgtk_from_entity` or via the :class:`sgtk.bootstrap.ToolkitManager`.
+            For more information, see :ref:`init_and_startup`.
         """
         # special stuff to make sure we maintain backwards compatibility in the constructor
         # if the 'project_path' parameter contains a pipeline config object,
