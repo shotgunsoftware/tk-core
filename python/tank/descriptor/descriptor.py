@@ -34,6 +34,10 @@ def create_descriptor(
     """
     Factory method. Use this when creating descriptor objects.
 
+    .. note:: Descriptors inherit their threading characteristics from
+        the shotgun connection that they carry internally. They are reentrant
+        and should not be passed between threads.
+
     :param sg_connection: Shotgun connection to associated site
     :param descriptor_type: Either ``Descriptor.APP``, ``CORE``, ``CONFIG``, ``INSTALLED_CONFIG``,
         ``ENGINE`` or ``FRAMEWORK``
