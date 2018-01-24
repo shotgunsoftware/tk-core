@@ -330,8 +330,8 @@ with paths to the configuration on disk.
 .. note:: This is the workflow that was exclusively used by all toolkit versions prior to
     core v0.18, when the bootstrap API was introduced. It will continue to be supported,
     however it is less flexible than the more automatic workflows and can be especially
-    challenging when you have a setup which doesn't have a centralized storage. **We
-    recommend using :ref:`automatic configurations <automatically_managed_pcs>` whenever possible.**
+    challenging when you have a setup which doesn't have a centralized storage. We
+    recommend using :ref:`automatic configurations<automatically_managed_pcs>` whenever possible.
 
 Starting a Toolkit engine from a manual project
 ===============================================
