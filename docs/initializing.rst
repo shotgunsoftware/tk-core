@@ -119,7 +119,7 @@ configuration has been defined in Shotgun.
 When creating pipeline configuration entities in Shotgun, there are two fundamentally
 different ways to do this:
 
-- You **manually create a Shotgun Pipeline Configuration entity** for your project.
+- You **create a Shotgun Pipeline Configuration entity** for your project.
   This is then detected by the Bootstrap API which will automatically manage your local
   configuration on disk, ensuring that you have all the right dependencies needed to
   run the configuration. This is by default a decentralized where each user manages its
@@ -269,18 +269,19 @@ allowing a user to choose which config to use). A ``dev`` descriptor is used to 
 
 .. note:: For ``git`` based workflows, all users need to have git installed.
 
+.. note:: For more information about descriptors, see the :ref:`API Reference<descriptor>`.
 
 Plugins and plugin ids
 ===============================================
 
-In each of the examples shown above in this document, there is a **Plugin Ids** field set to ``basic.*``:
+In each of the examples shown above, there is a **Plugin Ids** field set to ``basic.*``:
 
 .. image:: ./resources/initializing/pipeline_config.png
     :width: 700px
     :align: center
 
 This field is used to specify the *scope* where the configuration should be used. Each Toolkit plugin and
-each script using the :ref:`bootstrap_api` specifies a :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`.
+script using the :ref:`bootstrap_api` specifies a :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`.
 All default Toolkit engines and integrations are using a ``basic`` prefix, e.g. the Maya engine has got
 a plugin id of ``basic.maya``, Nuke is ``basic.nuke`` etc.
 
@@ -296,48 +297,6 @@ The above configuration will only be used when the Maya and Nuke plugins bootstr
 
 .. note:: If you don't specify a plugin id for your Pipeline Configuration, it will be ignored
     by the boostrap. We recommend using ``basic.*`` as a default.
-
-.. _environment_variables:
-
-
-Bundle cache management
-===============================================
-
-
-
-
-Environment Variables
-===============================================
-
-A number of different environment variables exist to help control the behavior of the Toolkit Startup:
-
-=================================== ===========================================================================
-Environment Variable Name           Description
-=================================== ===========================================================================
-SHOTGUN_HOME                        Lorem ipsum foo bar baz
-                                    bla bla
-
-
-SHOTGUN_BUNDLE_CACHE_PATH           Lorem ipsum foo bar baz
-
-
-SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS asdsadasdsad asdasd
-
-
-TK_BOOTSTRAP_CONFIG_OVERRIDE        asdasd
-
-SHOTGUN_DISABLE_APPSTORE_ACCESS     asdasd
-
-=================================== ===========================================================================
-
-
-
-
-
-
-
-
-
 
 
 
@@ -371,9 +330,10 @@ with paths to the configuration on disk.
 .. note:: This is the workflow that was exclusively used by all toolkit versions prior to
     core v0.18, when the bootstrap API was introduced. It will continue to be supported,
     however it is less flexible than the more automatic workflows and can be especially
-    challenging when you have a setup which doesn't have a centralized storage.
+    challenging when you have a setup which doesn't have a centralized storage. **We
+    recommend using :ref:`automatic configurations <automatically_managed_pcs>` whenever possible.**
 
-Starting a Toolkit Engine
+Starting a Toolkit engine from a manual project
 ===============================================
 
 In this case, when a known location exists for your core API, you are not required to use the
@@ -434,17 +394,10 @@ Bootstrap API
 
 .. currentmodule:: sgtk.bootstrap
 
-the various ways to set up, configure and initialize a Toolkit Setup.
-There are two fundamental approaches to running Toolkit: A traditional project based setup
-and a :class:`ToolkitManager` API that allows for more flexible manipulation of
-configurations and installations.
-
-
-An alternative to the traditional project based setup was introduced in Core v0.18 - the
-:class:`ToolkitManager` class allows for more flexible manipulation of toolkit setups
+The :class:`ToolkitManager` class allows for run-time handling of Toolkit configurations
 and removes the traditional step of a project setup. Instead, you can launch an engine
-straight directly based on a Toolkit configuration. The manager encapsulates the deploy
-and configuration management process and makes it easy to create a running instance of
+directly based on a configuration :ref:`Descriptor Uri<descriptor>`. The manager encapsulates
+the configuration setup process and makes it easy to create a running instance of
 Toolkit. It allows for several advanced use cases:
 
 - Bootstrapping via the Toolkit manager does not require anything to be
@@ -452,12 +405,6 @@ Toolkit. It allows for several advanced use cases:
 
 - A setup can be pre-bundled with for example an application plugin, allowing
   Toolkit to act as a distribution platform.
-
-- The application bundles that are required can be stored anywhere on the local machine or the
-  network via the use of the ``SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS`` environment variable.
-
-- The Toolkit manager makes it easy to track remote resources (via the ``sgtk.descriptor``
-  framework).
 
 The following example code can for example run inside maya in order
 to launch Toolkit's default config for a given Shotgun Asset:
@@ -470,20 +417,49 @@ to launch Toolkit's default config for a given Shotgun Asset:
     mgr = sgtk.bootstrap.ToolkitManager()
 
     # Set the base configuration to the default config
-    # note that the version token is not specified
-    # The bootstrap will always try to use the latest version
-    mgr.base_configuration = "sgtk:descriptor:app_store?name=tk-config-default"
+    # Note that the version token is not specified, meaning that
+    # the latest version will be looked up and used
+    mgr.base_configuration = "sgtk:descriptor:app_store?name=tk-config-basic"
 
     # now start up the maya engine for a given Shotgun object
     e = mgr.bootstrap_engine("tk-maya", entity={"type": "Asset", "id": 1234})
 
-Note that the example is primitive and for example purposes only as it will take time to execute
-and blocks execution during this period.
-
-In this example, there is no need to construct any :class:`sgtk.Sgtk` instance or run a ``tank``
-command - the :class:`ToolkitManager` instead becomes the entry point into the system. It will
-handle the setup and initialization of the configuration behind the scenes
+In this rudimentary example, there is no need to construct any :class:`sgtk.Sgtk`
+instance or run a ``tank`` command - the :class:`ToolkitManager` instead becomes the entry
+point into the system. It will handle the setup and initialization of the configuration behind the scenes
 and start up a Toolkit session once all the required pieces have been initialized and set up.
+
+
+.. _environment_variables:
+
+Environment Variables
+===============================================
+
+A number of different environment variables exist to help control the behavior of the Toolkit Startup:
+
+=================================== ===========================================================================
+Environment Variable Name           Description
+=================================== ===========================================================================
+SHOTGUN_HOME                        Overrides the location where Toolkit stores data.
+                                    This includes bootstrap data as well as bundle cache,
+                                    cached thumbnails and other temp files.
+
+SHOTGUN_BUNDLE_CACHE_PATH           Overrides the path to the main bundle cache, e.g. the location where
+                                    the :ref:`Descriptor Uri<descriptor>` will download bundles.
+
+SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS Colon separated list of paths to look for bundle cache locations. This is
+                                    for example useful if you maintain a centralized bundle cache location
+                                    that you want the bootstrap API to pick up bundles from.
+
+TK_BOOTSTRAP_CONFIG_OVERRIDE        Low level bypass to set the configuration desciptor URI that the bootstrap
+                                    API should load up. Useful in complex workflow development scenarios.
+
+SHOTGUN_DISABLE_APPSTORE_ACCESS     Setting this to ``1`` will disable any Shotgun Appstore access. No attempts
+                                    to connect will be carried out. This option can be useful in cases where
+                                    complex proxy setups is preventing Toolkit to correctly operate.
+
+=================================== ===========================================================================
+
 
 ToolkitManager
 ========================================
@@ -507,7 +483,7 @@ Factory methods
 
 .. currentmodule:: sgtk
 
-For classic configurations, where the configuration resides in a specific location on disk, you can use
+For setups where the configuration resides in a specific location on disk, you can use
 the following factory methods to create a :class:`sgtk.Sgtk` instance:
 
 .. autofunction:: sgtk_from_path
@@ -518,8 +494,6 @@ the following factory methods to create a :class:`sgtk.Sgtk` instance:
     by the :class:`~sgtk.bootstrap.ToolkitManager`, but since the location
     of the configuration of such projects isn't explicit and known beforehand,
     the factory methods are less useful in this context.
-
-
 
 
 Installing the sgtk module using pip
