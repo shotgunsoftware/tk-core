@@ -355,6 +355,9 @@ location and no automated update checks will ever take place. The manual mode us
 It will look for the code in a `manual` folder in the bundle cache, so with the example above, Toolkit would look
 for the code in the ``CACHE_ROOT/manual/tk-nuke-publish/v0.5.0`` folder.
 
+.. warning:: Manual descriptors are part of an older toolkit workflow methodology and while they are supported,
+    we do not recommend using them.
+
 
 API reference
 ----------------------------------------

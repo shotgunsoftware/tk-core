@@ -807,7 +807,7 @@ def sgtk_from_path(path):
 
         This method was designed to initialize toolkit in workflows where the location of configuration
         is pre-determined, typically via the ``tank setup_project`` command (or via Shotgun Desktop's
-        project setup wizard). These setups are sometimes referred to as 'classic' configurations.
+        project setup wizard).
 
         Modern toolkit workflows handle the configuration management automatically, driven by the
         configuration information in Shotgun and via the :class:`~sgtk.bootstrap.ToolkitManager` API.
@@ -856,7 +856,7 @@ def sgtk_from_path(path):
         import sgtk
 
         # import the configuration
-        tk = sgtk.sgtk_from_path("/mnt/projects/hidden_forest/tk_config/install/core/python")
+        tk = sgtk.sgtk_from_path("/mnt/projects/hidden_forest/tk_config")
 
     If you have a shared core for all your projects, you could pass a file path to this
     method and toolkit would automatically figure out which configuration would be suitable::

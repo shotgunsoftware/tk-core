@@ -309,10 +309,7 @@ class ToolkitManager(object):
         """
         The Plugin Id is a string that defines the scope of the bootstrap operation.
 
-        If you are bootstrapping into an entire Toolkit pipeline, e.g
-        a traditional Toolkit setup, this should be left at its default ``None`` value.
-
-        If you are writing a plugin that is intended to run side by
+        When you are writing plugins or tools that is intended to run side by
         side with other plugins in your target environment, the entry
         point will be used to define a scope and sandbox in which your
         plugin will execute.
@@ -331,6 +328,12 @@ class ToolkitManager(object):
         - A plugin containg a suite of motion capture tools for maya: ``mocap.maya``
 
         Please make sure that your Plugin Id is **unique, explicit and short**.
+
+        .. note:: The default toolkit engines are all using a ``basic`` prefix, e.g.
+            ``basic.maya``, ``basic.nuke``, ``basic.desktop``. If you are writing a plugin
+            that is intended to be used in a workflow together with other default Toolkit
+            engines, we recommend using the ``basic`` prefix, e.g. ``basic.renderfarm`` or
+            ``basic.new_integration``. This makes it easy to :ref:`Configure the setup<automatically_managed_pcs>`.
         """
         return self._plugin_id
 
