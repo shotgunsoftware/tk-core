@@ -151,10 +151,6 @@ class ShotgunSamlUser(ShotgunUser):
         ...
         if user.is_claims_renewal_active():
             user.stop_claims_renewal()
-
-    If the claims renewal is to be canceled by invoking :meth:`ShotgunSamlUser.stop_claims_renewal`,
-    it is important that this is being done from the main thread in order to
-    avoid race conditions.
     """
 
     def __init__(self, impl):
@@ -180,11 +176,6 @@ class ShotgunSamlUser(ShotgunUser):
         :param preemtive_renewal_threshold: How far into the claims duration we will attempt renewal.
                                              Defaults to 90%, usually 4 minutes 30 seconds (90% of 5 mins).
         """
-        # The documentation states that this flag will be set when calling stop_claims_renewal.
-        # To avoid race-conditions, this method needs to be invoked from the main thread. When
-        # that happens, this method's code will be executed only after the control has returned to
-        # Qt's event loop. This means that calling stop at any time is guaranteed that whenever
-        # this method is called it WILL exit.
         if self._claims_renewal_cancelled:
             return
 
