@@ -26,6 +26,7 @@ from mock import patch
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import ShotgunTestBase, TankTestBase
 
+# from sgtk.bootstrap.cached_configuration import CachedConfiguration
 from sgtk.bootstrap.configuration import Configuration
 from sgtk.authentication import ShotgunAuthenticator
 import sgtk
@@ -33,20 +34,44 @@ import sgtk
 
 class TestConfiguration(ShotgunTestBase):
 
-    def _create_session_user(self, name):
+    # def setUp(self):
+    #     super(ShotgunTestBase, self).setUp()
+
+    #     config_folder = sgtk.util.ShotgunPath.from_current_os_path(os.path.join(self.TANK_TEMP, self.id()))
+
+    #     self._configuration = CachedConfiguration(
+    #         config_folder,
+    #         self.mockgun,
+    #         sgtk.descriptor.create_descriptor(
+    #             self.mockgun,
+    #             sgtk.descriptor.Descriptor.CONFIG,
+    #             "sgtk:descriptor:path?path={0}".format(config_folder.current_os)
+    #         ),
+    #         self.project["id"],
+    #         "basic.dcc",
+    #         None,
+    #         []
+    #     )
+
+    #     # Make sure no core swapping occurs during get_tk_instance.
+    #     patcher = patch("tank.bootstrap.import_handler.CoreImportHandler.swap_core")
+    #     patcher.start()
+    #     self.addCleanup(patcher.stop)
+
+    def _create_session_user(self, name, host="https://test.shotgunstudio.com"):
         """
         Shorthand to create a session user.
         """
         return ShotgunAuthenticator().create_session_user(
-            name, session_token=name[::-1], host="https://test.shotgunstudio.com"
+            name, session_token=name[::-1], host=host
         )
 
-    def _create_script_user(self, api_script):
+    def _create_script_user(self, api_script, host="https://test.shotgunstudio.com"):
         """
         Shorthand to create a script user.
         """
         return ShotgunAuthenticator().create_script_user(
-            api_script, api_key=api_script[::-1], host="https://test.shotgunstudio.com"
+            api_script, api_key=api_script[::-1], host=host
         )
 
     def test_login_to_login_authentication(self):
@@ -54,9 +79,10 @@ class TestConfiguration(ShotgunTestBase):
         Ensure the configuration will always pick the user passed in when there is no script user 
         in the project configuration.
         """
-        configuration = Configuration(None, None)
 
         default_user = self._create_session_user("default_user")
+
+        configuration = Configuration(None, None)
 
         # Create a default user.
         with patch(
@@ -66,6 +92,7 @@ class TestConfiguration(ShotgunTestBase):
             current_user = self._create_session_user("current_user")
             configuration._set_authenticated_user(
                 current_user,
+                current_user.login,
                 sgtk.authentication.serialize_user(current_user)
             )
 
@@ -94,7 +121,7 @@ class TestConfiguration(ShotgunTestBase):
                 wraps=sgtk.authentication.user.deserialize_user
             ) as deserialize_wrapper:
                 current_user = self._create_session_user("current_user")
-                configuration._set_authenticated_user(current_user, "invalid")
+                configuration._set_authenticated_user(current_user, current_user.login, "invalid")
 
                 deserialize_wrapper.assert_called_once_with("invalid")
 
@@ -120,12 +147,33 @@ class TestConfiguration(ShotgunTestBase):
             current_user = self._create_session_user("current_user")
             configuration._set_authenticated_user(
                 current_user,
+                current_user.login,
                 sgtk.authentication.serialize_user(current_user)
             )
 
             # The ShotgunUser instance from get_authenticated_user was retrieved
             # through get_default_user, so we simply need to compare the object ids.
             self.assertEqual(id(sgtk.get_authenticated_user()), id(script_user))
+
+    def test_endpoint_url_swap(self):
+        """
+        Make sure that if the endpoint changes after the bootstrap that we're using the new endpoint.
+        """
+        configuration = Configuration(None, None)
+        bootstrap_user = self._create_session_user("default_user")
+        project_user = self._create_session_user("default_user", "https://test-2.shotgunstudio.com")
+
+        with patch(
+            "tank.authentication.ShotgunAuthenticator.get_default_user",
+            return_value=project_user
+        ):
+            configuration._set_authenticated_user(
+                bootstrap_user,
+                bootstrap_user.login,
+                sgtk.authentication.serialize_user(bootstrap_user)
+            )
+
+        self.assertEqual(sgtk.get_authenticated_user().host, "https://test-2.shotgunstudio.com")
 
     def test_script_to_script_authentication(self):
         """
@@ -143,6 +191,7 @@ class TestConfiguration(ShotgunTestBase):
         ):
             configuration._set_authenticated_user(
                 script_user_for_bootstrap,
+                script_user_for_bootstrap.login,
                 sgtk.authentication.serialize_user(script_user_for_bootstrap)
             )
 
@@ -167,6 +216,7 @@ class TestConfiguration(ShotgunTestBase):
         ):
             configuration._set_authenticated_user(
                 user_for_bootstrap,
+                user_for_bootstrap.login,
                 sgtk.authentication.serialize_user(user_for_bootstrap)
             )
 

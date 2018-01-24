@@ -110,7 +110,7 @@ class Configuration(object):
 
         log.debug("Core swapped, authenticated user will be set.")
 
-        sg_user = self._set_authenticated_user(sg_user, serialized_user)
+        sg_user = self._set_authenticated_user(sg_user, sg_user.login, serialized_user)
 
         # If we're swapping into a core that supports authentication, restart claims renewal. Note
         # that here we're not testing that the API supports claims renewal as to not complexify this
@@ -146,7 +146,7 @@ class Configuration(object):
 
         return tk, sg_user
 
-    def _set_authenticated_user(self, user, serialized_user):
+    def _set_authenticated_user(self, bootstrap_user, bootstrap_user_login, serialized_user):
         """
         Sets the authenticated user.
 
@@ -156,17 +156,14 @@ class Configuration(object):
         If the new core API can't deserialize the user, the error will be logged and passed in
         user will be used instead.
 
-        When this method is done executing,
-
-        1. If the project has a script user, that script will be the authenticated user.
-        2. If the project didn't have a script user, whoever was used to bootstrap
-           will be the authenticated user.
-
         :param user: User that was used for bootstrapping.
         :param serialized_user: Serialized version of the user.
 
         :returns: If authentication is supported, a :class:`ShotgunUser` will be returned.
         """
+        # perform a local import here to make sure we are getting
+        # the newly swapped in core code
+
         # It's possible we're bootstrapping into a core that doesn't support the authentication
         # module, so try to import.
         try:
@@ -177,51 +174,51 @@ class Configuration(object):
             log.debug("Using pre-0.16 core, no authenticated user will be set.")
             return None
 
+        from ..authentication import deserialize_user
+        from .. import api
+
         log.debug("The project's core supports the authentication module.")
 
-        # Check to see if there is a user associated with the current project.
+        # Retrieved the user associated with the current project.
         default_user = ShotgunAuthenticator(CoreDefaultsManager()).get_default_user()
 
-        # Assume we'll use the same user as was used for bootstrapping to authenticate.
-        authenticated_user = user
-        # If we have a default user...
+        # By default, we'll assume we couldn't find
+        project_user = None
+
+        # If we found a user and it is the same as the previous one, we're good to go.
         if default_user:
-            # ... and it doesn't have a login
-            if not default_user.login:
-                log.debug("Script user found for this project.")
-                # it means we're dealing with a script user and we'll use that, so override
-                # the authenticated user.
-                authenticated_user = default_user
-            else:
-                # We found a user, but we'll ignore it.
+            if default_user.login == bootstrap_user_login:
                 log.debug(
-                    "%r found for this project, "
-                    "but ignoring it in favor of bootstrap's user.", default_user
+                    "User retrieved for the project (%r) is the same as for the bootstrap.", default_user
+                )
+                project_user = default_user
+            # A user with no login is the script user.
+            elif not default_user.login:
+                log.debug("User retrieved for the project is a script user.")
+                project_user = default_user
+            else:
+                # The bootstrap user is a script user and the project's user is not a script user,
+                # so we'll keep using the script user.
+                log.debug(
+                    "User retrieved for the project is not a script, but bootstrap was. Using the "
+                    "bootsraps's user."
                 )
         else:
-            # If there is no script user, always use the user passed in instead of the one
-            # detected by the CoreDefaultsManager. This is because how core detects users has
-            # changed over time and sometimes this causes confusion and we might end up with no
-            # users returned by CoreDefaultsManager. By always using the user used to bootstrap,
-            # we ensure we will remain logged with the same credentials.
-            log.debug("No user was found using the core associated with the project.")
-
-        log.debug("%r will be used.", authenticated_user)
+            log.debug(
+                "No user associated with the project was found. Falling back on the bootstrap user."
+            )
 
         # If we're logging in with the human user, try to reinstantiate it with the new core API.
-        if authenticated_user == user:
-            from ..authentication import deserialize_user
+        if not project_user:
             try:
-                authenticated_user = deserialize_user(serialized_user)
+                project_user = deserialize_user(serialized_user)
             except Exception:
                 log.exception(
                     "Couldn't deserialize the user object with the new core API. "
                     "Boootstrap user object will be used."
                 )
+                project_user = bootstrap_user
 
-        # perform a local import here to make sure we are getting
-        # the newly swapped in core code
-        from .. import api
-        api.set_authenticated_user(authenticated_user)
-
-        return authenticated_user
+        log.debug("Authenticated user will be %r.", project_user)
+        api.set_authenticated_user(project_user)
+        return project_user
