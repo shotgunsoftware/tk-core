@@ -1,5 +1,7 @@
 .. _sgtk_platform_docs:
 
+.. _apps_engines_and_frameworks:
+
 .. currentmodule:: sgtk.platform
 
 Apps, Engines and Frameworks
@@ -35,6 +37,7 @@ interface for launching host applications are also provided.
 
 .. autofunction:: restart
 
+.. _engines:
 
 Engines
 ---------------------------------------

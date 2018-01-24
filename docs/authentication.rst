@@ -1,3 +1,5 @@
+.. _authentication:
+
 .. currentmodule:: sgtk.authentication
 
 Authentication

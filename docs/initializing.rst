@@ -3,18 +3,227 @@
 Initialization and startup
 ########################################
 
-This section outlines how Toolkit starts up and initializes.
-
-
-
+This section outlines how Toolkit starts up and initializes. There are multiple different
+ways to manage these workflows, each explained in detail below.
 
 Introduction
 ----------------------------------
 
+Toolkit is organized into an arrangement of *Pipeline Configurations*.
+Each Project in Shotgun can have one or more Pipeline Configuration entities associated.
+Each of these have an associated location on disk which contains all the pieces needed
+to execute locally.
+
+.. image:: ./resources/initializing/tk_project.png
+    :width: 500px
+    :align: center
+
+The Pipeline Configuration on disk contains the following items:
+
+- A configuration. This contains all the the details that define the configuration:
+  what version of the Core API to use, what versions of apps and engines,
+  the naming convention and templates to use.
+
+- A version of the core API as defined by the configuration.
+
+- A ``tank`` command which gives access to admin and maintenance commands to
+  make it easy to upgrade and configure the configuration. It also gives
+  access to the shell engine environment.
+
+- The bundle cache, contained inside an ``install`` folder, contains
+  downloaded apps, frameworks and engines defined by the configuration.
+  This cache is dowloaded from locations such as the Shotgun App Store,
+  git or from your Shotgun site, all handled by the :ref:`descriptor` system.
+
+With this arrangement, each pipeline configuration in Toolkit has its own
+independent API and configuration, making it easy to customize different
+projects differently and evolve the pipeline over time.
+
+The main Pipeline Configuration entity for a project is always named ``Primary``.
+In addition to this, additional pipeline configurations can
+be set up. Typically, these are used as test areas or developer sandboxes, where you
+want to run a special version of the configuration. Configurations can be associated
+with certain users to limit visibility and make it easy to run development and testing
+in parallel with production.
+
+
+.. note:: To read more about the default configurations offered with Toolkit, see
+    the `Shotgun integrations admin guide <https://support.shotgunsoftware.com/hc/en-us/articles/115000067493-Integrations-Admin-Guide>`_.
+
+
+When Toolkit starts up
+-------------------------------------------
+
+In order to understand how the Toolkit startup APIs operate,
+let's begin by taking a look at how the default Toolkit configuration
+operates at a high level:
+
+.. image:: ./resources/initializing/launch.png
+    :width: 700px
+    :align: center
+
+This design is repeated everywhere and is a pattern which can be easily extended.
+Users typically launch Toolkit by launching the Shotgun Desktop. The Shotgun Desktop - seen
+on the left hand side in the figure shown above -
+contains a *Toolkit plugin* which runs the :ref:`bootstrap_api` in order to load in a
+full Toolkit environment.
+
+The Bootstrap API will prompt the user to log in to a site. Next, it will connect to
+the site to see if any Pipeline Configuration Entities have been configured.
+If so, these are used to configure Shotgun Desktop. If not,
+the plugin logic will fall back on looking for the latest release of the ``tk-config-basic``
+configuration in the Shotgun App Store.
+
+The bootstrap API will make the necessary preparations and then launch the Toolkit :ref:`Engine <engines>`,
+which in turn will enumerate the apps defined in the configuration. Especially note
+the *Launch App* which is designed to launch other software. This app makes use of
+a standard :ref:`Launch API<launching_software>` provided by ``tk-core``. The launch app
+will use this API to detect the path to the software, launch it, and ensure that upon launch,
+the toolkit plugin associated with that software is loaded at startup so that the Toolkit
+integrations activate automatically.
+Each toolkit engine (Maya, Nuke, Houdini, etc) then contains its own Toolkit plugin which
+when activated will start the Toolkit bootstrap API and start up the appropriate
+configuration.
+
+.. note:: This pattern is very flexible and toolkit plugins can be crafted
+    in many different ways, to be auto updating or fixed, to be distributed with
+    an engine or be completely stand alone. Similarly, the :ref:`bootstrap_api`
+    is merely a mechanism that allows a user to load a pipeline configuration and
+    launch an engine and can be run in many different scenarios, not just contained
+    inside a plugin.
 
 
 
-The toolkit Core Platform API consists of several
+Shotgun Pipeline Configurations
+-------------------------------------------
+
+As we have seen above, it is the responsibility of the :ref:`bootstrap_api` to initiate
+the Toolkit session. The API handles all the complexity of different setups
+and configurations and we recommend you always use it to launch Toolkit when possible.
+
+By default, the boostrap will connect to the Shotgun site during launch to look for
+Pipeline Configurations in several different ways (documented below). As shown in
+the previous section, if no suitable Pipeline Configuration Entity exists in Shotgun,
+you can configure the bootstrap API to fall back on a default
+:class:`~sgtk.boostrap.ToolkitManager.base_configuration`. This makes it possible to
+create a workflow where a Toolkit plugin can operate even when no explicit pipeline
+configuration has been defined in Shotgun.
+
+.. note:: Toolkit is a platform executing python code locally on your machine. This
+    means that all code for apps and engines need to be downloaded locally before
+    the Toolkit session can be started. Setting up this toolkit configuration on disk
+    and ensuring that all necessary dependencies exist locally is one of the main
+    responsibilities of the :ref:`bootstrap_api`.
+
+When creating pipeline configuration entities in Shotgun, there are two fundamentally
+different ways to do this:
+
+- You **manually create a Shotgun Pipeline Configuration entity** for your project.
+  This is then detected by the Bootstrap API which will automatically manage your local
+  configuration on disk, ensuring that you have all the right dependencies needed to
+  run the configuration. This is by default a decentralized where each user manages its
+  own set of configuration data.
+
+- Via toolkit's **project setup** system, you create a centralized toolkit configuration
+  in a specific location on disk. After project setup, all management of this
+  configuration is manual and all users who want to access the pipeline confguration
+  needs to be able to access its disk location.
+
+Both workflows are documented below.
+
+
+Manual Pipeline Configuration via Project Setup
+===================================================
+
+A manual
+
+.. image:: ./resources/initializing/manual_install.png
+    :width: 700px
+    :align: center
+
+
+Shared or localized Core API
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Cloning and pushing
+~~~~~~~~~~~~~~~~~~~~~~
+
+Launching an engine
+~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+
+
+Automatically managed pipeline configurations
+==============================================
+
+The basic workflow of an automatically managed pipeline configuration is simple.
+A Pipeline Configuration entity is created in Shotgun, defining the configuration.
+You then use the :ref:`bootstrap_api` to automatically prepare a full configuration
+on disk on the fly.
+
+.. image:: ./resources/initializing/bootstrap.png
+    :width: 700px
+    :align: center
+
+The :ref:`bootstrap_api` is a lightweight API that handles the startup. It is included
+and integrated into all modern versions of toolkit engines. In its absolute simplest
+form, you simply start it up and tell it which engine to start up:
+
+.. code-block:: python
+
+    import sgtk
+
+    # Start up a Toolkit Manager
+    mgr = sgtk.bootstrap.ToolkitManager()
+
+    # now start up the maya engine for a given Shotgun object
+    e = mgr.bootstrap_engine("tk-maya", entity={"type": "Project", "id": 122})
+
+
+If the above code executes in Maya, it will do the following:
+
+- Authenticate the current site and user
+- Look for a **Primary** Shotgun Pipeline Configuration for Project with id 122
+- Retrieve the configuration descriptor stored in Shotgun
+  (e.g. ``sgtk:descriptor:app_store?name=tk-config-basic``) and use the :ref:`descriptor`
+  API to resolve it and ensure it exists in the **Global Bundle Cache** on your local machine.
+- Once it exists locally, load the configuration and analyze the app, engine and framework dependencies.
+  These too are defined using decriptors which are reslolved and downloaded locally.
+- Once all necessary dependencies exists locally, create a Toolkit Pipeline Configuration locally
+  and initialize it, create a :class:`~sgtk.Context` to represent the project and launch the Maya engine.
+- The Toolkit Maya engine will initialize, load initialize and in turn load up all apps
+  defined in the configuration.
+
+
+Setting up the Config
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+There are several ways you could set up your Shotgun Pipeline Configuration:
+
+
+
+
+Default Toolkit Design
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+The Global Bundle Cache
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Overrides
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Plugins and plugin ids
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+The toolkit basic config
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 
@@ -22,19 +231,15 @@ The toolkit Core Platform API consists of several
 
 
 
-Accessing an existing installation
+
+
+
+
+
+
+Initializing from
 ----------------------------------------
 
-The traditional Toolkit 'pipeline approach' means that you pick an existing Shotgun
-project and run a Toolkit project setup for this project. This is typically done in
-Shotgun Desktop or via the ``tank setup_project`` command. A Toolkit configuration
-is installed in a shared location on disk and a pipeline configuration in Shotgun is
-created to create an association between the installation on disk and the project in
-Shotgun.
-
-Once the installation has completed, you can access functionality via the ``tank`` command
-for that project or run :meth:`sgtk.sgtk_from_entity()` or :meth:`sgtk.sgtk_from_path()`
-in order to create an API session.
 
 Factory methods for classic configurations
 ==========================================
@@ -56,8 +261,9 @@ the following factory methods to create a :class:`sgtk.Sgtk` instance:
 
 
 
+.. _bootstrap_api:
 
-Bootstrapping Toolkit
+Bootstrap API
 ----------------------------------------
 
 .. currentmodule:: sgtk.bootstrap
@@ -88,7 +294,9 @@ Toolkit. It allows for several advanced use cases:
   framework).
 
 The following example code can for example run inside maya in order
-to launch Toolkit's default config for a given Shotgun Asset::
+to launch Toolkit's default config for a given Shotgun Asset:
+
+.. code-block:: python
 
     import sgtk
 
@@ -157,6 +365,7 @@ If you want to add an sgtk core to a ``requirements.txt`` file, use the followin
 
 
 
+.. _launching_software:
 
 Launching Software
 ---------------------------------------------------
@@ -193,7 +402,9 @@ Methods on the launcher instance can be used to determine which versions of the 
 are installed on the local filesystem and the proper environment, including command line arguments,
 required for a successful launch.
 
-The following lines of python code demonstrate how to launch Maya using the core interface::
+The following lines of python code demonstrate how to launch Maya using the core interface:
+
+.. code-block:: python
 
     import subprocess
     import sgtk
@@ -234,7 +445,7 @@ located in a ``startup.py`` file at the engine root level, analogous to the
 In addition to this, we recommend a convention where the startup scripts that launch toolkit
 once the software is running are located in a ``startup`` folder.
 
-.. image:: ./resources/tk_engine_root_directory_structure.png
+.. image:: ./resources/initializing/engine_files.png
 
 Two methods should be implemented in the ``startup.py`` file:
 

@@ -1,3 +1,5 @@
+.. _descriptor:
+
 .. currentmodule:: sgtk.descriptor
 
 Descriptors
