@@ -187,22 +187,40 @@ class Configuration(object):
 
         # If we found a user and it is the same as the previous one, we're good to go.
         if default_user:
-            if default_user.login == bootstrap_user_login:
-                log.debug(
-                    "User retrieved for the project (%r) is the same as for the bootstrap.", default_user
-                )
-                project_user = default_user
-            # A user with no login is the script user.
-            elif not default_user.login:
+            # Note that in the following code, a user with no login is a script user.
+            if not default_user.login:
+                # The project uses a script user, so we'll use that.
                 log.debug("User retrieved for the project is a script user.")
                 project_user = default_user
-            else:
+            elif not bootstrap_user_login:
+                # The project doesn't specify a script, but the bootstrap did. We'll keep using
+                # the bootstrap user. This is because configurations like tk-config-basic or
+                # tk-config-default are meant to be used with whatever credentials were used during
+                # bootstrapping when used with a CachedDescriptor.
                 # The bootstrap user is a script user and the project's user is not a script user,
                 # so we'll keep using the script user.
+
+                # Note that if the API endpoint is different in the project it means that we'll
+                # not be using the correct API endpoint with the project. This seems to be an
+                # edge-case and more likely a misconfiguration error, so we'll keep the code simple.
+                # We're logging the user being used at the end of this method, so it will be clear
+                # during support what actually happened.
                 log.debug(
                     "User retrieved for the project is not a script, but bootstrap was. Using the "
                     "bootsraps's user."
                 )
+            elif default_user.login == bootstrap_user_login:
+                # In theory now the login should be the same, but they might not be. This is because
+                # when core swapping between a more recent version of core to an older one,
+                # there might be new ways to retrieve credentials that the older core's
+                # ShotgunAuthenticator might not be aware of.
+                #
+                # Note also at this point that if the API endpoint for the project is different we'll
+                # be using the endpoint from project.
+                log.debug(
+                    "User retrieved for the project (%r) is the same as for the bootstrap.", default_user
+                )
+                project_user = default_user
         else:
             log.debug(
                 "No user associated with the project was found. Falling back on the bootstrap user."
@@ -219,6 +237,10 @@ class Configuration(object):
                 )
                 project_user = bootstrap_user
 
-        log.debug("Authenticated user will be %r.", project_user)
+        # Dump all authentication information.
+        log.debug("Authenticated host: %s.", project_user.host)
+        log.debug("Authenticated login: %s.", project_user.login)
+        log.debug("Authenticated http proxy: %s.", project_user.http_proxy)
+
         api.set_authenticated_user(project_user)
         return project_user
