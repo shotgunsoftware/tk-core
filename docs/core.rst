@@ -1,6 +1,6 @@
 .. currentmodule:: sgtk
 
-Foundation
+Core
 ########################################
 
 The Toolkit Foundation is the part of the Toolkit Core API
@@ -20,11 +20,8 @@ For apps and engines, see the :ref:`sgtk_platform_docs` documentation.
     set this up, see :ref:`init_and_startup`.
 
 
-The Toolkit Core API
---------------------
-
 Sgtk
-====
+---------------------------------
 
 .. autoclass:: Sgtk
     :members:
@@ -35,14 +32,6 @@ Sgtk
                       execute_core_hook_method,
                       get_cache_item,
                       set_cache_item
-
-
-Context
-=======
-
-.. autoclass:: Context
-    :members:
-    :exclude-members: tank
 
 Authentication
 ==============
@@ -66,8 +55,18 @@ the currently running version of the Toolkit Core.
 
 .. autofunction:: get_core_python_path_for_config
 .. autofunction:: get_sgtk_module_path
+.. autofunction:: get_python_interpreter_for_config
 
-Executing Tank commands
+
+Context
+------------------------------------
+
+.. autoclass:: Context
+    :members:
+    :exclude-members: tank
+
+
+Commands
 ---------------------------------------------------------
 
 The ``tank`` command offers a variety of system utility commands to handle for example upgrades,
@@ -113,7 +112,7 @@ get_hook_baseclass
 .. autofunction:: get_hook_baseclass
 
 
-Template system
+Templates
 -----------------------------------------
 
 The Toolkit template system is used to handle path and string token manipulations.
@@ -215,13 +214,6 @@ TimestampKey
 
 .. autoclass:: TimestampKey
     :members:
-
-
-Configuration file resolution
------------------------------------------
-Each pipeline configuration has configuration files that help Toolkit locate the Python interpreter to use.
-
-.. autofunction:: get_python_interpreter_for_config
 
 
 Exceptions

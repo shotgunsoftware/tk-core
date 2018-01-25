@@ -28,7 +28,7 @@ example shows basic usage::
     sg = user.create_sg_connection()
 
     # we are fetching v1.2.3 of the default config from the app store
-    uri = "sgtk:descriptor:app_store?name=tk-config-default&version=v1.2.3"
+    uri = "sgtk:descriptor:app_store?name=tk-config-basic&version=v1.2.3"
 
     # create object
     desc = sgtk.descriptor.create_descriptor(sg, Descriptor.CONFIG, uri)
@@ -41,6 +41,7 @@ example shows basic usage::
 
     # see what core is needed for this config
     required_core_uri = desc.associated_core_descriptor
+
 
 When descriptors serialized, they can have two different forms:
 
@@ -55,7 +56,11 @@ When descriptors serialized, they can have two different forms:
         "name": "tk-config-default"
     }
 
-When a the payload of a descriptor is downloaded, it ends up by default in the *global bundle cache*.
+
+.. note:: To convert between descriptor URI format and dictionary format, you can use
+    the methods :meth:`descriptor_dict_to_uri` and :meth:`descriptor_uri_to_dict`.
+
+When a the payload of a descriptor is downloaded, it ends up by default in the **global bundle cache**.
 
 .. note:: The global bundle cache can be found in the following locations:
 
@@ -105,7 +110,9 @@ The Shotgun App store
 
 The Shotgun app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
 tested and approved by Shotgun. App store descriptors should include a name and version token and
-are on the following form::
+are on the following form:
+
+.. code-block:: yaml
 
     {
         type: app_store,
@@ -113,10 +120,15 @@ are on the following form::
         version: v12.3.4
     }
 
+
+.. code-block:: yaml
+
     sgtk:descriptor:app_store?name=tk-core&version=v12.3.4
 
 App store may also have an optional ``label`` parameter. This indicates that the descriptor is tracking
-against a particular label in the app store and will not download updates which do not have the label assigned::
+against a particular label in the app store and will not download updates which do not have the label assigned:
+
+.. code-block:: yaml
 
     {
         type: app_store,
@@ -124,6 +136,8 @@ against a particular label in the app store and will not download updates which 
         version: v12.3.4,
         label: v2018.3
     }
+
+.. code-block:: yaml
 
     sgtk:descriptor:app_store?name=tk-core&version=v12.3.4&label=v2018.3
 
@@ -138,56 +152,134 @@ Tracking against tags in git
 
 The ``git`` descriptor type is used to track git tags and typically used when you are tracking released
 versions of something. You can use any syntax that git supports, with a path key containing the path
-to the git repository::
+to the git repository.
 
-    {type: git, path: /path/to/repo.git, version: v0.2.1}
+Git repository residing on the local file system:
+
+.. code-block:: yaml
+
+    {
+        type: git,
+        path: /path/to/repo.git,
+        version: v0.2.1
+    }
+
+.. code-block:: yaml
 
     sgtk:descriptor:git?path=/path/to/repo.git&version=v12.3.4
 
+SSH git syntax:
 
-    {type: git, path: user@remotehost:/path_to/repo.git, version: v0.1.0}
+.. code-block:: yaml
+
+    {
+        type: git,
+        path: user@remotehost:/path_to/repo.git,
+        version: v0.1.0
+    }
+
+.. code-block:: yaml
 
     sgtk:descriptor:git?path=user%40remotehost%3A/path_to/repo.git&version=v0.1.0
 
+Git protocol syntax:
 
-    {type: git, path: git://github.com/user/tk-multi-publish.git, version: v0.1.0}
+.. code-block:: yaml
+
+    {
+        type: git,
+        path: git://github.com/user/tk-multi-publish.git,
+        version: v0.1.0
+    }
+
+.. code-block:: yaml
 
     sgtk:descriptor:git?path=git%3A//github.com/user/tk-multi-publish.git&version=v0.1.0
 
+Http protocol syntax:
 
-    {type: git, path: https://github.com/user/tk-multi-publish.git, version: v0.1.0}
+.. code-block:: yaml
+
+    {
+        type: git,
+        path: https://github.com/user/tk-multi-publish.git,
+        version: v0.1.0
+    }
+
+.. code-block:: yaml
 
     sgtk:descriptor:git?path=https%3A//github.com/user/tk-multi-publish.git&version=v0.1.0
 
 
-The latest version for a descriptor is determined by retrieving the list of tags for
-the repository and comparing the version numbers in order to determine the highest one.
-For this comparison, :py:class:`~distutils.version.LooseVersion` is used and we recommend
-that version numbers follow the semantic versioning standard that can be found at http://semver.org.
+.. note:: The latest version for a descriptor is determined by retrieving the list of tags for
+    the repository and comparing the version numbers in order to determine the highest one.
+    For this comparison, :py:class:`~distutils.version.LooseVersion` is used and we recommend
+    that version numbers follow the semantic versioning standard that can be found at http://semver.org.
 
 
 Tracking against commits in a git branch
 ========================================
 
 The ``git_branch`` descriptor type is typically used during development and allows you to track
-a commit in a particular branch::
+a commit in a particular branch.
 
-    {type: git_branch, branch: master, path: /path/to/repo.git, version: 17fedd8}
+Git repository residing on the local file system:
+
+.. code-block:: yaml
+
+    {
+        type: git_branch,
+        branch: master,
+        path: /path/to/repo.git,
+        version: 17fedd8
+    }
+
+.. code-block:: yaml
 
     sgtk:descriptor:git_branch?branch=master&path=/path/to/repo.git&version=17fedd8
 
+SSH git syntax:
 
-    {type: git_branch, branch: master, path: user@remotehost:/path_to/repo.git, version: 17fedd8}
+.. code-block:: yaml
+
+    {
+        type: git_branch,
+        branch: master,
+        path: user@remotehost:/path_to/repo.git,
+        version: 17fedd8
+    }
+
+.. code-block:: yaml
 
     sgtk:descriptor:git_branch?branch=master&path=user%40remotehost%3A/path_to/repo.git&version=17fedd8
 
+Git protocol syntax:
 
-    {type: git_branch, branch: master, path: git://github.com/user/tk-multi-publish.git, version: 17fedd8}
+.. code-block:: yaml
+
+    {
+        type: git_branch,
+        branch: master,
+        path: git://github.com/user/tk-multi-publish.git,
+        version: 17fedd8
+    }
+
+.. code-block:: yaml
 
     sgtk:descriptor:git_branch?branch=master&path=git%3A//github.com/user/tk-multi-publish.git&version=17fedd8
 
+Http protocol syntax:
 
-    {type: git_branch, branch: master, path: https://github.com/user/tk-multi-publish.git, version: 17fedd8}
+.. code-block:: yaml
+
+    {
+        type: git_branch,
+        branch: master,
+        path: https://github.com/user/tk-multi-publish.git,
+        version: 17fedd8
+    }
+
+.. code-block:: yaml
 
     sgtk:descriptor:git_branch?branch=master&path=https%3A//github.com/user/tk-multi-publish.git&version=17fedd8
 
@@ -212,27 +304,57 @@ Pointing to a path on disk
 
 Pointing Toolkit to an app that resides in the local file system is often very useful for managing your own bundles
 or doing development on an app or engine before releasing onto production. To allow for these scenarios, Toolkit
-provides the ``dev`` and ``path`` descriptors. Here are some examples::
+provides the ``dev`` and ``path`` descriptors.
 
-    # locally managed bundle that is used for development
+.. note:: ``dev`` and ``path`` descriptors are using the exact same syntax. The difference between them is that
+    the ``dev`` descriptor indicates that development is happening and Toolkit will use this to enable developer
+    related functionality at runtime, such as making available options to automatically reload the code at runtime.
+    For production deploys, always use the ``path`` descriptor.
+
+Basic example with a path intended to be used on the local operating system - the typical setup for doing
+personal development:
+
+.. code-block:: yaml
+
     {
         type: dev,
         path: /path/to/app
     }
+
+.. code-block:: yaml
+
     sgtk:descriptor:dev?path=/path/to/app
 
-    # locally managed bundle that is meant to be deployed
+When using a ``path`` descriptor in production, you can include paths to multiple different operating systems:
+
+.. code-block:: yaml
+
     {
         type: path,
-        path: /path/to/app
+        windows_path: c:\path\to\app,
+        linux_path: /path/to/app,
+        mac_path: /path/to/app
     }
-    sgtk:descriptor:dev?path=/path/to/app
 
-    # using environment variables in the paths
+.. code-block:: yaml
+
+    sgtk:descriptor:path?linux_path=/path/to/app&mac_path=/path/to/app&windows_path=c%3A%5Cpath%5Cto%5Capp
+
+Environment variables can be included in paths:
+
+.. code-block:: yaml
     {
         type: dev,
         path: ${HOME}/path/to/app
     }
+
+.. code-block:: yaml
+
+    sgtk:descriptor:dev?path=%24%7BHOME%7D/path/to/app
+
+Home directory `~` syntax will be expanded:
+
+.. code-block:: yaml
 
     # exapanding the user directory
     {
@@ -240,40 +362,26 @@ provides the ``dev`` and ``path`` descriptors. Here are some examples::
         path: ~/path/to/app
     }
 
-    # use different paths on different operating systems
-    {
-        type: dev,
-        windows_path: c:\path\to\app,
-        linux_path: /path/to/app,
-        mac_path: /path/to/app
-    }
+.. code-block:: yaml
 
-.. note:: As noted in the comments above, the ``path`` and ``dev`` descriptors
-    support environment variable resolution on the form ``${MYENVVAR}`` as well
-    as user directory resolution if the path starts with `~`.
+    sgtk:descriptor:path?path=%7E/path/to/app
 
-The path and dev descriptors are very similar in terms of functionality.  The
-optional and required parameters are the same for each.  The ``dev`` descriptor
-has some additional information associated with it is used to provide more
-developer friendly workflows. An example of this is the **Reload and Restart**
-action that shows up in DCCs when using the ``dev`` descriptor.
-
-Sometimes it can be handy to organize your development sandbox relative to a pipeline configuration.
+Sometimes it can be useful to organize your development sandbox relative to a pipeline configuration.
 If all developers in the studio share a convention where they for example have a ``dev`` folder inside
 their pipeline configuration dev sandboxes, it becomes easy to exchange environment configs.
 You can achieve this by using the special token ``{PIPELINE_CONFIG}`` which will resolve into the
-local path to the pipeline configuration::
+local path to the pipeline configuration:
 
-    {"type": "dev", "path": "{PIPELINE_CONFIG}/dev/tk-nuke-myapp"}
+.. code-block:: yaml
 
-Since Sgtk does not know what version of the app is being run, it will return ``Undefined`` for
-an app referenced via a ``dev`` or ``path`` descriptor. Sometimes, especially when doing framework development,
-it can be useful to be able to specify a version number. In that case, you can specify
-a specific version number and Toolkit will associate this version number with the app::
+    {
+        type: dev,
+        path: {PIPELINE_CONFIG}/dev/tk-nuke-myapp
+    }
 
+.. code-block:: yaml
 
-    {"type": "dev", "path": "/path/to/app", "version": "v0.2.1"}
-
+    sgtk:descriptor:dev?path=%7BPIPELINE_CONFIG%7D/dev/tk-nuke-myapp
 
 
 Pointing at a file attachment in Shotgun
@@ -304,7 +412,9 @@ one implicit which uses the name in shotgun to resolve a record. With the
 id based syntax you specify the Shotgun entity type and field name you want
 to look for and the entity id to inspect. For example, if your attachment field is called
 ``PipelineConfiguration.sg_uploaded_config`` and you want to access the uploaded payload for
-the Pipeline Configuration entity with id 111, use the following descriptor::
+the Pipeline Configuration entity with id 111, use the following descriptor:
+
+.. code-block:: yaml
 
     {
         type: shotgun,
@@ -313,6 +423,8 @@ the Pipeline Configuration entity with id 111, use the following descriptor::
         field: sg_uploaded_config,           # attachment field where payload can be found
         version: 222                         # attachment id of particular attachment
     }
+
+.. code-block:: yaml
 
     sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&id=111&field=sg_config&version=222
 
@@ -324,7 +436,9 @@ attachment. It is also used to handle the underlying logic to understand what th
 latest version of an attachment is.
 
 In some workflows, typically where you follow name based naming conventions, the
-following syntax can be useful::
+following syntax can be useful:
+
+.. code-block:: yaml
 
     {
         type: shotgun,
@@ -334,6 +448,8 @@ following syntax can be useful::
         field: sg_uploaded_config,           # attachment field where payload can be found
         version: 456                         # attachment id of particular attachment
     }
+
+.. code-block:: yaml
 
     sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&name=primary&project_id=123&field=sg_config&version=456
 
@@ -347,13 +463,22 @@ Manual Descriptors
 
 Toolkit also provides a ``manual`` mode to make it easy to manage production installations of apps
 and engines without any automation. When you use the manual descriptor, it is up to you to install the code in the right
-location and no automated update checks will ever take place. The manual mode uses the following syntax::
+location and no automated update checks will ever take place. The manual mode uses the following syntax:
 
-    {"type": "manual", "name": "tk-nuke-publish", "version": "v0.5.0"}
+.. code-block:: yaml
 
+    {
+        type: manual,
+        name: tk-nuke-publish,
+        version: v0.5.0
+    }
 
-It will look for the code in a `manual` folder in the bundle cache, so with the example above, Toolkit would look
-for the code in the ``CACHE_ROOT/manual/tk-nuke-publish/v0.5.0`` folder.
+.. code-block:: yaml
+
+    sgtk:descriptor:manual?name=tk-nuke-publish&version=v0.5.0
+
+It will look for the code in a ``manual`` folder in the bundle cache, so with the example above, Toolkit would look
+for the code in the ``BUNDLE_CACHE/manual/tk-nuke-publish/v0.5.0`` folder.
 
 .. warning:: Manual descriptors are part of an older toolkit workflow methodology and while they are supported,
     we do not recommend using them.

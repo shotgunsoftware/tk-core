@@ -52,7 +52,7 @@ in parallel with production.
     the `Shotgun integrations admin guide <https://support.shotgunsoftware.com/hc/en-us/articles/115000067493-Integrations-Admin-Guide>`_.
 
 
-When Toolkit starts up
+Understanding Toolkit startup
 -------------------------------------------
 
 In order to understand how the Toolkit startup APIs operate,
@@ -93,11 +93,6 @@ configuration.
     launch an engine and can be run in many different scenarios, not just contained
     inside a plugin.
 
-
-
-Shotgun Pipeline Configurations
--------------------------------------------
-
 As we have seen above, it is the responsibility of the :ref:`bootstrap_api` to initiate
 the Toolkit session. The API handles all the complexity of different setups
 and configurations and we recommend you always use it to launch Toolkit when possible.
@@ -135,7 +130,7 @@ Both workflows are documented below.
 
 .. _automatically_managed_pcs:
 
-Automatically managed pipeline configurations
+Automatic configurations
 -----------------------------------------------
 
 In order to configure an automatically managed configuration, create an
@@ -301,7 +296,7 @@ The above configuration will only be used when the Maya and Nuke plugins bootstr
 
 
 
-Manual Pipeline Configuration via Project Setup
+Project Setup Configurations
 -------------------------------------------------
 
 A manual project is either done via the Shotgun Desktop Project Setup Wizard or through the ``tank setup_project``
