@@ -343,6 +343,7 @@ When using a ``path`` descriptor in production, you can include paths to multipl
 Environment variables can be included in paths:
 
 .. code-block:: yaml
+
     {
         type: dev,
         path: ${HOME}/path/to/app
@@ -356,7 +357,6 @@ Home directory `~` syntax will be expanded:
 
 .. code-block:: yaml
 
-    # exapanding the user directory
     {
         type: path,
         path: ~/path/to/app
