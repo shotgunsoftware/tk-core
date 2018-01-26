@@ -196,6 +196,8 @@ class ShotgunSamlUser(ShotgunUser):
                 if "SHOTGUN_SSO_RENEWAL_INTERVAL" in os.environ:
                     delta = int(os.environ["SHOTGUN_SSO_RENEWAL_INTERVAL"])
                 logger.debug("Next claims renewal attempt: %f" % delta)
+                if self._claims_renewal_cancelled:
+                    return
                 self._timer = threading.Timer(delta, self._do_automatic_claims_renewal, [preemtive_renewal_threshold])
                 self._timer.start()
             else:

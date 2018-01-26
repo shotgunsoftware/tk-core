@@ -26,37 +26,23 @@ from mock import patch
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import ShotgunTestBase, TankTestBase
 
-# from sgtk.bootstrap.cached_configuration import CachedConfiguration
+from sgtk.bootstrap.cached_configuration import CachedConfiguration
 from sgtk.bootstrap.configuration import Configuration
-from sgtk.authentication import ShotgunAuthenticator
+from sgtk.authentication import ShotgunAuthenticator, ShotgunSamlUser
+from sgtk.authentication.user_impl import SessionUser
 import sgtk
 
 
-class TestConfiguration(ShotgunTestBase):
+REPO_ROOT = os.path.normpath(
+    os.path.join(
+        os.path.dirname(__file__), # <REPO_ROOT>/tests/bootstrap_tests
+        "..",                      # <REPO_ROOT>/tests
+        ".."                       # <REPO_ROOT>
+    )
+)
 
-    # def setUp(self):
-    #     super(ShotgunTestBase, self).setUp()
 
-    #     config_folder = sgtk.util.ShotgunPath.from_current_os_path(os.path.join(self.TANK_TEMP, self.id()))
-
-    #     self._configuration = CachedConfiguration(
-    #         config_folder,
-    #         self.mockgun,
-    #         sgtk.descriptor.create_descriptor(
-    #             self.mockgun,
-    #             sgtk.descriptor.Descriptor.CONFIG,
-    #             "sgtk:descriptor:path?path={0}".format(config_folder.current_os)
-    #         ),
-    #         self.project["id"],
-    #         "basic.dcc",
-    #         None,
-    #         []
-    #     )
-
-    #     # Make sure no core swapping occurs during get_tk_instance.
-    #     patcher = patch("tank.bootstrap.import_handler.CoreImportHandler.swap_core")
-    #     patcher.start()
-    #     self.addCleanup(patcher.stop)
+class TestConfigurationBase(ShotgunTestBase):
 
     def _create_session_user(self, name, host="https://test.shotgunstudio.com"):
         """
@@ -66,6 +52,15 @@ class TestConfiguration(ShotgunTestBase):
             name, session_token=name[::-1], host=host
         )
 
+    def _create_sso_user(self, name):
+        return ShotgunSamlUser(SessionUser(
+            host="https://tank.shotgunstudio.com",
+            login=name,
+            session_token="session_token",
+            http_proxy="http_proxy",
+            session_metadata="session_metadata",
+        ))
+
     def _create_script_user(self, api_script, host="https://test.shotgunstudio.com"):
         """
         Shorthand to create a script user.
@@ -74,12 +69,14 @@ class TestConfiguration(ShotgunTestBase):
             api_script, api_key=api_script[::-1], host=host
         )
 
+
+class TestConfiguration(TestConfigurationBase):
+
     def test_login_to_login_authentication(self):
         """
-        Ensure the configuration will always pick the user passed in when there is no script user 
+        Ensure the configuration will always pick the user passed in when there is no script user
         in the project configuration.
         """
-
         default_user = self._create_session_user("default_user")
 
         configuration = Configuration(None, None)
@@ -228,6 +225,118 @@ class TestConfiguration(ShotgunTestBase):
             # ... but we shouldn't be using the name ShotgunUser instance. It should
             # have been serialized and deserialized.
             self.assertNotEqual(id(auth_user), id(user_for_bootstrap))
+
+
+class TestSSOClaims(TestConfigurationBase):
+
+    def setUp(self):
+        super(TestSSOClaims, self).setUp()
+
+        config_folder = sgtk.util.ShotgunPath.from_current_os_path(
+            os.path.join(self.tank_temp, self.id())
+        )
+
+        self._configuration = CachedConfiguration(
+            config_folder,
+            self.mockgun,
+            sgtk.descriptor.create_descriptor(
+                self.mockgun,
+                sgtk.descriptor.Descriptor.CONFIG,
+                "sgtk:descriptor:path?path={0}".format(self.fixtures_root)
+            ),
+            self.project["id"],
+            "basic.dcc",
+            None,
+            []
+        )
+
+        self._mock_return_value(
+            "tank.pipelineconfig_utils.get_core_python_path_for_config",
+            return_value=os.path.join(REPO_ROOT, "python")
+        )
+
+        # Do not waste time copying files around or core swapping. Also, deactivate
+        # thread startup and shutdown, we only want to ensure they are invoked.
+        for mocked_method in [
+            "tank.bootstrap.import_handler.CoreImportHandler.swap_core",
+            "tank.bootstrap.configuration_writer.ConfigurationWriter.install_core",
+            "tank.bootstrap.configuration_writer.ConfigurationWriter.create_tank_command",
+        ]:
+            self._mock_return_value(mocked_method, return_value=None)
+
+        self._start_claims_mock = self._mock_return_value(
+            "tank.authentication.user.ShotgunSamlUser.start_claims_renewal",
+            return_value=None
+        )
+        self._stop_claims_mock = self._mock_return_value(
+            "tank.authentication.user.ShotgunSamlUser.stop_claims_renewal",
+            return_value=None
+        )
+
+    def test_claims_renewal_inactive(self):
+        bootstrap_user = self._create_sso_user("bootstrap_user")
+        project_user = self._create_sso_user("bootstrap_user")
+
+        self._configuration.update_configuration()
+
+        # Create a default user.
+        with patch(
+            "tank.authentication.ShotgunAuthenticator.get_default_user",
+            return_value=project_user
+        ):
+            _, swapped_user = self._configuration.get_tk_instance(bootstrap_user)
+
+        self.assertIsInstance(swapped_user, ShotgunSamlUser)
+        self.assertEqual(self._start_claims_mock.called, False)
+        self.assertEqual(self._stop_claims_mock.called, False)
+
+    def test_claims_renewal_active(self):
+        """
+        Checks that claims renewal is stopped and restarted.
+        """
+        bootstrap_user = self._create_sso_user("bootstrap_user")
+        project_user = self._create_sso_user("bootstrap_user")
+
+        self._configuration.update_configuration()
+
+        bootstrap_user.is_claims_renewal_active = lambda: True
+
+        # Create a default user.
+        with patch(
+            "tank.authentication.ShotgunAuthenticator.get_default_user",
+            return_value=project_user
+        ):
+            self.assertEqual(self._start_claims_mock.called, False)
+            self.assertEqual(self._stop_claims_mock.called, False)
+            _, swapped_user = self._configuration.get_tk_instance(bootstrap_user)
+
+        self.assertIsInstance(swapped_user, ShotgunSamlUser)
+        self.assertEqual(self._start_claims_mock.called, True)
+        self.assertEqual(self._stop_claims_mock.called, True)
+
+    def test_claims_to_script(self):
+        """
+        Checks that claims renewal is stopped and restarted.
+        """
+        bootstrap_user = self._create_sso_user("bootstrap_user")
+        script_user = self._create_script_user("script_user")
+
+        self._configuration.update_configuration()
+
+        bootstrap_user.is_claims_renewal_active = lambda: True
+
+        # Create a default user.
+        with patch(
+            "tank.authentication.ShotgunAuthenticator.get_default_user",
+            return_value=script_user
+        ):
+            self.assertEqual(self._start_claims_mock.called, False)
+            self.assertEqual(self._stop_claims_mock.called, False)
+            _, swapped_user = self._configuration.get_tk_instance(bootstrap_user)
+
+        self.assertEqual(self._stop_claims_mock.called, True)
+        self.assertEqual(self._start_claims_mock.called, False)
+        self.assertIsNone(swapped_user.login)
 
 
 class TestInvalidInstalledConfiguration(TankTestBase):

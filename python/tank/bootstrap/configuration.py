@@ -13,7 +13,7 @@ import inspect
 from .import_handler import CoreImportHandler
 
 from ..log import LogManager
-from ..pipelineconfig_utils import get_core_python_path_for_config
+from .. import pipelineconfig_utils
 
 log = LogManager.get_logger(__name__)
 
@@ -91,7 +91,7 @@ class Configuration(object):
             the new current user and the Toolkit instance.
         """
         path = self._path.current_os
-        core_path = get_core_python_path_for_config(path)
+        core_path = pipelineconfig_utils.get_core_python_path_for_config(path)
 
         # Get the user before the core swapping and serialize it.
         from ..authentication import serialize_user, ShotgunSamlUser
@@ -116,7 +116,9 @@ class Configuration(object):
         # that here we're not testing that the API supports claims renewal as to not complexify this
         # code any further. We're assuming it does support claims renewal. If it doesn't that's a
         # user configuration error and they need to upgrade their project.
-        if sg_user and uses_claims_renewal:
+        # Also make sure that we have a HumanUser and not a ScriptUser by checking the login
+        # attribute.
+        if sg_user and sg_user.login and uses_claims_renewal:
             log.debug("Restarting claims renewal.")
             sg_user.start_claims_renewal()
 
