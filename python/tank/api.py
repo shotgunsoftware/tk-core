@@ -803,18 +803,6 @@ def sgtk_from_path(path):
     Creates a Toolkit Core API instance based on a path to a configuration
     or a path to any file inside a project root location.
 
-    .. note::
-
-        This method was designed to initialize toolkit in workflows where the location of configuration
-        is pre-determined, typically via the ``tank setup_project`` command (or via Shotgun Desktop's
-        project setup wizard).
-
-        Modern toolkit workflows handle the configuration management automatically, driven by the
-        configuration information in Shotgun and via the :class:`~sgtk.bootstrap.ToolkitManager` API.
-        For these workflows, there is typically no need to utilize the ``sgtk_from_path`` command.
-        Instead, launch your toolkit engine directly using the :class:`~sgtk.bootstrap.ToolkitManager`
-        methods.
-
     This factory method will do the following:
 
     - If the given path is determined to be pointing at a pipeline configuration,
