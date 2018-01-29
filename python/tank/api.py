@@ -30,6 +30,7 @@ from . import util
 
 log = LogManager.get_logger(__name__)
     
+    
 class Sgtk(object):
     """
     The Toolkit Core API class. Instances of this class are associated with a particular
