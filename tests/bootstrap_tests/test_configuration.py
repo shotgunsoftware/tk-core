@@ -8,18 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-# Copyright (c) 2017 Shotgun Software Inc.
-#
-# CONFIDENTIAL AND PROPRIETARY
-#
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
-# Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
-# not expressly granted therein are reserved by Shotgun Software Inc.
-
 from __future__ import with_statement
 
+import uuid
 import os
 from mock import patch
 
@@ -233,7 +224,7 @@ class TestSSOClaims(TestConfigurationBase):
         super(TestSSOClaims, self).setUp()
 
         config_folder = sgtk.util.ShotgunPath.from_current_os_path(
-            os.path.join(self.tank_temp, self.id())
+            os.path.join(self.tank_temp, str(uuid.uuid4()))
         )
 
         self._configuration = CachedConfiguration(
