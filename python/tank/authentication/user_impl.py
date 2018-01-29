@@ -173,7 +173,8 @@ class SessionUser(ShotgunUserImpl):
             the session token will be looked for in the users file.
         :param http_proxy: HTTP proxy to use with this host. Defaults to None.
         :param password: Password for the user. Defaults to None.
-        :param session_metadata: Data structure needed when SSO is used. This is an obscure blob of data. Defaults to None.
+        :param session_metadata: Data structure needed when SSO is used. This is an obscure blob of data. Defaults to
+            None.
 
         :raises IncompleteCredentials: If there is not enough values
             provided to initialize the user, this exception will be thrown.
@@ -341,7 +342,13 @@ class SessionUser(ShotgunUserImpl):
 
         :returns: A SessionUser instance.
         """
-        return SessionUser(**payload)
+        return SessionUser(
+            host=payload.get("host"),
+            login=payload.get("login"),
+            session_token=payload.get("session_token"),
+            http_proxy=payload.get("http_proxy"),
+            session_metadata=payload.get("session_metadata")
+        )
 
     def to_dict(self):
         """
@@ -370,7 +377,7 @@ class SessionUser(ShotgunUserImpl):
                 self.get_session_token(),
                 self.get_session_metadata()
             )
-        except:
+        except Exception:
             # Do not break execution because somehow we couldn't
             # cache the credentials. We'll simply be asking them again
             # next time.
@@ -501,7 +508,12 @@ class ScriptUser(ShotgunUserImpl):
 
         :returns: A ScriptUser instance.
         """
-        return ScriptUser(**payload)
+        return ScriptUser(
+            host=payload.get("host"),
+            api_script=payload.get("api_script"),
+            api_key=payload.get("api_key"),
+            http_proxy=payload.get("http_proxy")
+        )
 
 
 __factories = {
