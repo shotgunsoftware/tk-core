@@ -140,7 +140,8 @@ def cleanup_bundle_cache(bundle_cache_root):
             "*", # Grabs all bundles inside those descriptors
             "*", # Grabs all commits inside those bundles
             "tests" # Grabs all tests folders.
-        )
+        ),
+        os.path.join(bundle_cache_root, "tmp")
     ]
     for glob_pattern in glob_patterns:
         for folder_to_remove in glob.glob(glob_pattern):
