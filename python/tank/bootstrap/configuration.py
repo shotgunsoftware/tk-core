@@ -14,6 +14,7 @@ from .import_handler import CoreImportHandler
 
 from ..log import LogManager
 from .. import pipelineconfig_utils
+from .. import constants
 
 log = LogManager.get_logger(__name__)
 
@@ -181,26 +182,26 @@ class Configuration(object):
 
         log.debug("The project's core supports the authentication module.")
 
-        # Retrieved the user associated with the current project.
+        # Retrieve the user associated with the current project.
         default_user = ShotgunAuthenticator(CoreDefaultsManager()).get_default_user()
 
-        # By default, we'll assume we couldn't find
+        # By default, we'll assume we couldn't find a user with the authenticator.
         project_user = None
 
-        # If we found a user and it is the same as the previous one, we're good to go.
+        # If the project core's authentication code found a user...
+        # (Note that in the following code, a user with no login is a script user.)
         if default_user:
-            # Note that in the following code, a user with no login is a script user.
+            # If the project uses a script user, we'll use that.
             if not default_user.login:
-                # The project uses a script user, so we'll use that.
                 log.debug("User retrieved for the project is a script user.")
                 project_user = default_user
+            # If the project didn't use a script, but the bootstrap did, we'll keep using it.
             elif not bootstrap_user_login:
-                # The project doesn't specify a script, but the bootstrap did. We'll keep using
-                # the bootstrap user. This is because configurations like tk-config-basic or
-                # tk-config-default are meant to be used with whatever credentials were used during
-                # bootstrapping when used with a CachedDescriptor.
-                # The bootstrap user is a script user and the project's user is not a script user,
-                # so we'll keep using the script user.
+                # We'll keep using the bootstrap user. This is because configurations like tk-
+                # config-basic or tk-config-default are meant to be used with whatever credentials
+                # were used during bootstrapping when used with a CachedDescriptor. The bootstrap
+                # user is a script user and the project's user is not a script user, so we'll keep
+                # using the script user.
 
                 # Note that if the API endpoint is different in the project it means that we'll
                 # not be using the correct API endpoint with the project. This seems to be an
@@ -212,7 +213,7 @@ class Configuration(object):
                     "bootsraps's user."
                 )
             elif default_user.login == bootstrap_user_login:
-                # In theory now the login should be the same, but they might not be. This is because
+                # In theory, the login should be the same, but they might not be. This is because
                 # when core swapping between a more recent version of core to an older one,
                 # there might be new ways to retrieve credentials that the older core's
                 # ShotgunAuthenticator might not be aware of.
@@ -228,14 +229,19 @@ class Configuration(object):
                 "No user associated with the project was found. Falling back on the bootstrap user."
             )
 
-        # If we're logging in with the human user, try to reinstantiate it with the new core API.
+        # If we couldn't find a relevant user with the project's authentication module...
         if not project_user:
             try:
+                # Try to deserialize the bootstrap user.
                 project_user = deserialize_user(serialized_user)
             except Exception:
                 log.exception(
                     "Couldn't deserialize the user object with the new core API. "
-                    "Boootstrap user object will be used."
+                    "Current user will be used."
+                )
+                log.error(
+                    "Startup will continue, but you should look into what caused this issue and fix it. "
+                    "Please contact %s to troubleshoot this issue.", constants.SUPPORT_EMAIL
                 )
                 project_user = bootstrap_user
 

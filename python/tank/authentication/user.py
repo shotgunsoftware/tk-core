@@ -209,8 +209,6 @@ class ShotgunSamlUser(ShotgunUser):
                     delta = int(os.environ["SHOTGUN_SSO_RENEWAL_INTERVAL"])
                 logger.debug("Next claims renewal attempt: %f" % delta)
 
-                # Ensure thread-safe access of _claims_renewal_cancelled and _timer. See __init__
-                # for details.
                 with self._timer_lock:
                     # Let's pretend "stop_claims_rewnwal" has already been called, so
                     # "_claims_renewal_cancelled" is currently True. Thread A is the

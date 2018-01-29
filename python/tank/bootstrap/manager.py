@@ -975,7 +975,7 @@ class ToolkitManager(object):
         self._report_progress(progress_callback, self._STARTING_TOOLKIT_RATE, "Starting up Toolkit...")
         tk, user = config.get_tk_instance(self._sg_user)
 
-        # Assign the post core-swap user so the rest of the bootstrap use the new user object.
+        # Assign the post core-swap user so the rest of the bootstrap uses the new user object.
         self._sg_user = user
 
         if config.requires_dynamic_bundle_caching:
