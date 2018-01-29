@@ -265,6 +265,10 @@ class TestSSOClaims(TestConfigurationBase):
         )
 
     def test_claims_renewal_inactive(self):
+        """
+        Checks that is the claims renewal loop is not running it will not be restarted
+        after core swap.
+        """
         bootstrap_user = self._create_sso_user("bootstrap_user")
         project_user = self._create_sso_user("bootstrap_user")
 

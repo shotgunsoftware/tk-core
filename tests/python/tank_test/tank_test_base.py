@@ -498,6 +498,8 @@ class TankTestBase(unittest.TestCase):
 
         :param to_mock: Path to the method to mock
         :param return_value: Value to return from the mocked method.
+
+        :returns: The mocked method.
         """
         patcher = mock.patch(to_mock, return_value=return_value)
         mock_object = patcher.start()
