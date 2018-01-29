@@ -26,7 +26,7 @@ from . import pipelineconfig
 from . import pipelineconfig_utils
 from . import pipelineconfig_factory
 from . import LogManager
-from . import utils
+from . import util
 
 log = LogManager.get_logger(__name__)
 
