@@ -10,11 +10,10 @@
 
 import os
 import collections
-import logging
+import pprint
 import cPickle as pickle
 
-from .errors import TankError
-from . import constants
+from .errors import TankError, TankInitError
 from . import LogManager
 from .util import shotgun
 from .util import filesystem
@@ -26,22 +25,24 @@ from .util import LocalFileStorageManager
 
 log = LogManager.get_logger(__name__)
 
+
 def from_entity(entity_type, entity_id):
     """
     Factory method that constructs a pipeline configuration given a Shotgun Entity.
 
-    Note! Because this is a factory method which is part of the initialization of
-    Toolkit, at the point of execution, very little state has been established.
-    Because the pipeline configuration and project is not know at this point,
-    conventional configuration data and hooks cannot be accessed.
+    Validates that the currently loaded core API is compliant with the configuration
+    associated with the entity and attempts to construct a :class:`PipelineConfiguration`.
 
-    :param entity_type: Shotgun Entity type
-    :param entity_id: Shotgun id
-    :returns: Pipeline Configuration object
+    :param str entity_type: Shotgun Entity type
+    :param int entity_id: Shotgun id
+    :returns: Pipeline Configuration instance
+    :rtype: :class:`PipelineConfiguration`
+    :raises: :class:`TankInitError`
     """
+    log.debug("Executing sgtk.from_entity factory for %s %s" % (entity_type, entity_id))
     try:
         pc = _from_entity(entity_type, entity_id, force_reread_shotgun_cache=False)
-    except TankError:
+    except TankInitError:
         # lookup failed! This may be because there are missing items
         # in the cache. For failures, try again, but this time
         # force re-read the cache (e.g connect to shotgun)
@@ -49,111 +50,81 @@ def from_entity(entity_type, entity_id):
         # in the cache,
         pc = _from_entity(entity_type, entity_id, force_reread_shotgun_cache=True)
 
+    log.debug("sgtk.from_path resolved %s %s -> %s" % (entity_type, entity_id, pc))
     return pc
 
 
 def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
     """
     Factory method that constructs a pipeline configuration given a Shotgun Entity.
-    This method contains the implementation payload.
 
-    :param entity_type: Shotgun Entity type
-    :param entity_id: Shotgun id
-    :param force_reread_shotgun_cache: Should the cache be force re-populated?
-    :returns: Pipeline Configuration object
+    For info, see :meth:`from_entity`
+
+    :param str entity_type: Shotgun Entity type
+    :param int entity_id: Shotgun id
+    :param bool force_reread_shotgun_cache: If true,
+        fresh values will be cached from Shotgun.
+    :returns: Pipeline Configuration instance
+    :rtype: :class:`PipelineConfiguration`
+    :raises: :class:`TankInitError`
     """
-
     # first see if we can resolve a project id from this entity
     project_id = __get_project_id(entity_type, entity_id, force_reread_shotgun_cache)
 
+    log.debug(
+        "The project id associated with %s %s was determined "
+        "to be %s" % (entity_type, entity_id, project_id)
+    )
+
     # now given the project id, find the pipeline configurations
     if project_id is None:
-        raise TankError("Cannot find a valid %s with id %s in Shotgun! "
-                        "Please ensure that the object exists "
-                        "and that it has been linked up to a Toolkit "
-                        "enabled project." % (entity_type, entity_id))
+        raise TankInitError(
+            "%s %s is not associated with a project and "
+            "can therefore not be associated with a "
+            "pipeline configuration." % (entity_type, entity_id)
+        )
 
     # now find the pipeline configurations that are matching this project
     data = _get_pipeline_configs(force_reread_shotgun_cache)
     associated_sg_pipeline_configs = _get_pipeline_configs_for_project(project_id, data)
 
+    log.debug(
+        "Associated pipeline configurations are: %s" % pprint.pformat(associated_sg_pipeline_configs)
+    )
+
     if len(associated_sg_pipeline_configs) == 0:
-        raise TankError("Cannot resolve a pipeline configuration for %s %s - Toolkit is not "
-                        "enabled for that Shotgun project." % (entity_type, entity_id))
+        raise TankInitError(
+            "No pipeline configurations associated with %s %s." % (entity_type, entity_id)
+        )
 
-    # extract path data from the pipeline configuration shotgun data
-    (all_pc_data, primary_pc_data) = _get_pipeline_configuration_data(associated_sg_pipeline_configs)
-
-    # figure out if we are running a tank command / api from a local
-    # pipeline config or from a studio level install
-    config_context_path = _get_configuration_context()
-
-    if config_context_path:
-        # we are running the tank command or python core API directly from a configuration
-        #
-        # make sure that the tank command we are launching from belong to a shotgun project
-        # that the input entity type/id is associated with.
-        if config_context_path not in [x["path"] for x in all_pc_data]:
-            # the tank command / api proxy that this session was launched for is *not*
-            # associated with the given entity type and entity id!
-            raise TankError("The pipeline configuration in '%s' is is associated with a different "
-                            "project from %s %s. To see which pipeline configurations are available "
-                            "for a project, open the pipeline configurations page "
-                            "in Shotgun." % (config_context_path, entity_type, entity_id))
-
-        # ok we got a pipeline config matching the tank command from which we launched.
-        # because we found the pipeline config in the list of PCs for this project,
-        # we know that it must be valid!
-        return PipelineConfiguration(config_context_path)
-
-    else:
-        # we are running the tank command or API proxy from the studio location, e.g.
-        # a core which is located outside a pipeline configuration.
-        # in this case, find the primary pipeline config and use that.
-        if len(primary_pc_data) == 0:
-            raise TankError("The Project associated with %s %s does not have a primary Pipeline "
-                            "Configuration! This is required by Toolkit. It needs to be named '%s'. "
-                            "Please double check by opening the Pipeline configuration page in "
-                            "Shotgun for the project." % (entity_type, entity_id,
-                                                          constants.PRIMARY_PIPELINE_CONFIG_NAME))
-
-        if len(primary_pc_data) > 1:
-            # for an entity lookup, there should be no ambiguity - an entity belongs to a project
-            # and a project has got a distinct set of pipeline configs, exactly one of which
-            # is the primary. This ambiguity may arise from having pipeline configurations
-            # incorrectly re-using the same paths.
-
-            pcs_msg = ", ".join([
-                            "'%s' (Pipeline config id %s, Project id %s)" % (x["path"], x["id"], x["project_id"])
-                            for x in primary_pc_data])
-
-            raise TankError("More than one primary pipeline configuration is associated "
-                            "with the entity %s %s. This happens if more than one pipeline configuration "
-                            "is using the same path. The paths that are matching are: %s. "
-                            "For more information, please contact "
-                            "%s." % (entity_type, entity_id, pcs_msg, constants.SUPPORT_EMAIL))
-
-        # looks good, we got a primary pipeline config that exists
-        return PipelineConfiguration(primary_pc_data[0]["path"])
-
+    # perform various validations to make sure the version of the sgtk codebase running
+    # is associated with the given configuration correctly, and if successful,
+    # create a pipeline configuration
+    return _validate_and_create_pipeline_configuration(
+        associated_sg_pipeline_configs,
+        source="%s %s" % (entity_type, entity_id)
+    )
 
 
 def from_path(path):
     """
     Factory method that constructs a pipeline configuration given a path on disk.
 
-    Note! Because this is a factory method which is part of the initialization of
-    Toolkit, at the point of execution, very little state has been established.
-    Because the pipeline configuration and project is not know at this point,
-    conventional configuration data and hooks cannot be accessed.
+    The path can either be a path pointing directly at a pipeline configueration
+    on disk or a path to an asset which belongs to a toolkit project.
 
-    :param path: Path to a pipeline configuration or associated project folder
-    :returns: Pipeline Configuration object
+    Validates that the currently loaded core API is compliant with the configuration
+    associated with the entity and attempts to construct a :class:`PipelineConfiguration`.
+
+    :param str path: Path to a pipeline configuration or associated project folder
+    :returns: Pipeline Configuration instance
+    :rtype: :class:`PipelineConfiguration`
+    :raises: :class:`TankInitError`
     """
-
+    log.debug("Executing sgtk.from_path factory for '%s'" % path)
     try:
         pc = _from_path(path, force_reread_shotgun_cache=False)
-    except TankError:
+    except TankInitError:
         # lookup failed! This may be because there are missing items
         # in the cache. For failures, try again, but this time
         # force re-read the cache (e.g connect to shotgun)
@@ -161,20 +132,27 @@ def from_path(path):
         # in the cache,
         pc = _from_path(path, force_reread_shotgun_cache=True)
 
+    log.debug("sgtk.from_path resolved '%s' -> %s" % (path, pc))
     return pc
 
 
 def _from_path(path, force_reread_shotgun_cache):
     """
-    Internal method that constructs a pipeline configuration given a path on disk.
+    Internal method that validates and constructs a pipeline configuration given a path on disk.
 
-    :param path: Path to a pipeline configuration or associated project folder
-    :param force_reread_shotgun_cache: Should the cache be force re-populated?
-    :returns: Pipeline Configuration object
+    For info, see :meth:`from_path`.
+
+    :param str path: Path to a pipeline configuration or associated project folder
+    :param bool force_reread_shotgun_cache: If true,
+        fresh values will be cached from Shotgun.
+    :returns: Pipeline Configuration instance
+    :rtype: :class:`PipelineConfiguration`
+    :raises: :class:`TankInitError`
     """
-
     if not isinstance(path, basestring):
-        raise TankError("Cannot create a configuration from path '%s' - path must be a string!" % path)
+        raise ValueError(
+            "Cannot create a configuration from path '%s' - path must be a string." % path
+        )
 
     path = os.path.abspath(path)
 
@@ -188,103 +166,230 @@ def _from_path(path, force_reread_shotgun_cache):
         if os.path.exists(parent_path):
             path = parent_path
         else:
-            raise TankError("Cannot create a configuration from path '%s' - the path does "
-                            "not exist on disk!" % path)
+            raise ValueError(
+                "Cannot create a configuration from path '%s' - path does not exist on disk." % path
+            )
 
     # first see if someone is passing the path to an actual pipeline configuration
     if pipelineconfig_utils.is_pipeline_config(path):
+
+        log.debug("The path %s points at a pipeline configuration." % path)
+
         # resolve the "real" location that is stored in Shotgun and
         # cached in the file system
         pc_registered_path = pipelineconfig_utils.get_config_install_location(path)
+
+        log.debug("Resolved the official path registered in Shotgun to be %s." % pc_registered_path)
 
         if pc_registered_path is None:
             raise TankError("Error starting from the configuration located in '%s' - "
                             "it looks like this pipeline configuration and tank command "
                             "has not been configured for the current operating system." % path)
+
         return PipelineConfiguration(pc_registered_path)
 
-    # now get storage data, use cache unless force flag is set
+    # now get storage and project data from shotgun.
+    # this will use a cache unless the force flag is set
     sg_data = _get_pipeline_configs(force_reread_shotgun_cache)
 
     # now given ALL pipeline configs for ALL projects and their associated projects
     # and project root paths (in sg_data), figure out which pipeline configurations
-    # are matching the given path.
-
+    # are matching the given path. This is done by walking upwards in the path
+    # until a project root is found, and then figuring out which pipeline configurations
+    # belong to that project root.
     associated_sg_pipeline_configs = _get_pipeline_configs_for_path(path, sg_data)
 
+    log.debug(
+        "Associated pipeline configurations are: %s" % pprint.pformat(associated_sg_pipeline_configs)
+    )
+
     if len(associated_sg_pipeline_configs) == 0:
-        # no matches! The path is unknown or invalid.
-        raise TankError("The path '%s' does not seem to belong to any known Toolkit project!" % path)
+        # no matches! The path is invalid or does not belong to any project on the current sg site.
+        raise TankInitError(
+            "The path '%s' does not belong to any known Toolkit project!" % path
+        )
 
-    # extract current os path data from the pipeline configuration shotgun data
-    (all_pc_data, primary_pc_data) = _get_pipeline_configuration_data(associated_sg_pipeline_configs)
+    # perform various validations to make sure the version of the sgtk codebase running
+    # is associated with the given configuration correctly, and if successful,
+    # create a pipeline configuration
+    return _validate_and_create_pipeline_configuration(
+        associated_sg_pipeline_configs,
+        source=path
+    )
 
-    # figure out if we are running a tank command / api from a
-    # local pipeline config or from a studio level install
+
+def _validate_and_create_pipeline_configuration(associated_pipeline_configs, source):
+    """
+    Given a set of pipeline configuration, validate that the currently running code
+    is compliant and construct and return a suitable pipeline configuration instance.
+
+    This method takes into account complex new and old logic, including classic
+    setups, shared cores and bootstrap workflows.
+
+    The associated_pipeline_configs parameter contains a list of potential pipeline
+    configuration shotgun dictionaries which should be considered for resolution.
+    Each dictionary contains the following entries:
+
+        - id (pipeline configuration id)
+        - type (e.g. ``PipelineConfiguration``)
+        - code
+        - windows_path
+        - linux_path
+        - mac_path
+        - project (associated project entity link)
+        - project.Project.tank_name (associated project tank name)
+
+    This method will either return a pipeline configuration instance based on
+    one of the ``associated_pipeline_configs`` entries or raise a TankInitError
+    exception.
+
+    :param list associated_pipeline_configs: Associated Shotgun data.
+    :param str source: String describing what is being manipulated,
+        e.g. a path or 'Project 123'. Used for error messages and log feedback.
+    :returns: Pipeline config instance.
+    :rtype: :class:`PipelineConfiguration`
+    :raises: :class:`TankInitError` with detailed descriptions.
+    """
+    # extract path data from the pipeline configuration shotgun data
+    # this will return lists of dicts with keys ``id``, (local os) ``path`` and ``project_id``
+    (all_pc_data, primary_pc_data) = _get_pipeline_configuration_data(associated_pipeline_configs)
+
+    # format string with all configs, for error reporting.
+    all_configs_str = ", ".join(
+        ["'%s' (Pipeline config id %s, Project id %s)" % (
+            x["path"],
+            x["id"],
+            x["project_id"]) for x in all_pc_data
+         ]
+    )
+
+    # Introspect the TANK_CURRENT_PC env var to determine which pipeline configuration
+    # the current sgtk import belongs to.
+    #
+    # if the call returns a path, we are running a localized pipeline configuration, e.g.
+    # the pipeline configuration has its own associated core. If it returns None,
+    # we are running a shared core, e.g. a core API which is used by multiple
+    # pipeline configurations.
     config_context_path = _get_configuration_context()
 
     if config_context_path:
 
-        # we are running the tank command or python core API directly from a configuration
-        #
-        # now if this tank command is associated with the path, the registered path should be in
-        # in the pipeline configuration data coming from
-        if config_context_path not in [x["path"] for x in all_pc_data]:
+        # --- THE LOCALIZED CORE CASE ----
 
-            pcs_msg = ", ".join([
-                            "'%s' (Pipeline config id %s, Project id %s)" % (x["path"], x["id"], x["project_id"])
-                            for x in all_pc_data])
+        # This is the localized case where the imported code has a 1:1 correspondence
+        # with the pipeline configuration. Now we need to verify that the path is compatible
+        # with this configuration, or raise an exception.
 
-            raise TankError("You are trying to start Toolkit using the pipeline configuration "
-                            "located in '%s'. The path '%s' you are trying to load is not "
-                            "associated with that configuration. Instead, it is "
-                            "associated with the following pipeline configurations: %s. "
-                            "Please use the tank command or Toolkit API in any of those "
-                            "locations in order to continue. This error can occur if you "
-                            "have moved a configuration manually rather than using "
-                            "the 'tank move_configuration command'. It can also occur if you "
-                            "are trying to use a tank command associated with one Project "
-                            "to try to operate on a Shot or Asset that belongs to another "
-                            "project." % (config_context_path, path, pcs_msg))
+        # create an instance to represent our path
+        pipeline_configuration = PipelineConfiguration(config_context_path)
 
-        # okay so this pipeline config is valid!
-        return PipelineConfiguration(config_context_path)
+        # get pipeline config shotgun id
+        pc_id = pipeline_configuration.get_shotgun_id()
+
+        # find the pipeline config in our list of configs. If we cannot find it, we
+        # don't have a match beetween the code that is being run and the config
+        # we are trying to start up.
+
+        if pc_id not in [x["id"] for x in all_pc_data]:
+
+            log.debug(
+                "The currently running sgtk API code is not associated with "
+                "%s so a pipeline configuration cannot be initialized. "
+                "The configurations associated are: %s "
+                "Please use the tank command or Toolkit API associated with one "
+                "of those locations in order to continue. " % (source, all_configs_str)
+            )
+
+            log.debug(
+                "This error can occur if you have moved a classic toolkit configuration "
+                "manually rather than using the 'tank move_configuration command'. "
+                "It can also occur if you are trying to use a tank command associated "
+                "with one Project to try to operate on a Shot or Asset "
+                "that belongs to another project."
+            )
+
+            raise TankInitError(
+                "You are loading the Toolkit platform from the pipeline configuration "
+                "located in '%s', with Shotgun id %s. You are trying to initialize Toolkit "
+                "from %s, however that is not associated with the pipeline configuration. "
+                "Instead, it's associated with the following configurations: %s. " % (
+                    config_context_path, pc_id, source, all_configs_str
+                )
+            )
+
+        else:
+            # ok we got a pipeline config matching the tank command from which we launched.
+            # because we found the pipeline config in the list of PCs for this project,
+            # we know that it must be valid!
+            return pipeline_configuration
 
     else:
-        # we are running a studio level tank command.
-        # find the primary pipeline configuration in the list of matching configurations.
+
+        # --- THE SHARED CORE CASE ----
+        #
+        # When you are running the tank command or import sgtk from a shared core.
+        #
+        # we are running the tank command or API proxy from the studio location, e.g.
+        # a core which is located outside a pipeline configuration.
+        # in this case, find the primary pipeline config and use that.
+        #
+        # note: This kind of setup is not compatible with non-classic setups, where
+        #       all configurations are always localized
+        #
+
         if len(primary_pc_data) == 0:
 
-            pcs_msg = ", ".join([
-                            "'%s' (Pipeline config id %s, Project id %s)" % (x["path"], x["id"], x["project_id"])
-                            for x in all_pc_data])
+            raise TankInitError(
+                "The project associated with %s does not have a Primary pipeline "
+                "configuration! This is required by Toolkit. It needs to be named '%s'. "
+                "Please double check the Pipeline configuration page in "
+                "Shotgun for the project. The following pipeline configurations are "
+                "associated with the path: %s" % (
+                    source,
+                    constants.PRIMARY_PIPELINE_CONFIG_NAME,
+                    all_configs_str)
+            )
 
-            raise TankError("Cannot find a primary pipeline configuration for path '%s'. "
-                            "The following pipeline configurations are associated with the "
-                            "path, but none of them is marked as Primary: %s" % (path, pcs_msg))
+        elif len(primary_pc_data) > 1:
+            # for an entity lookup, there should be no ambiguity - an entity belongs to a project
+            # and a project has got a distinct set of pipeline configs, exactly one of which
+            # is the primary. This ambiguity may arise from having pipeline configurations
+            # incorrectly re-using the same paths.
 
-        if len(primary_pc_data) > 1:
+            raise TankInitError(
+                "%s is associated with more than one Primary pipeline "
+                "configuration. This can happen if there is ambiguity in your project setup, where "
+                "projects store their data in an overlapping fashion, for example if a project is "
+                "named the same as a local storage root. In this case, try creating "
+                "your API instance (or tank command) directly from the pipeline configuration rather "
+                "than via the studio level API. This will explicitly call out which project you are "
+                "intending to use in conjunction with he path. It may also be caused by several projects "
+                "pointing at the same configuration on disk. The Primary pipeline configuration paths "
+                "associated with this path are: %s." % (source, all_configs_str)
+            )
 
-            pcs_msg = ", ".join([
-                            "'%s' (Pipeline config id %s, Project id %s)" % (x["path"], x["id"], x["project_id"])
-                            for x in primary_pc_data])
+        else:
+            # looks good, we got a primary pipeline config that exists in Shotgun.
+            sg_config_data = primary_pc_data[0]
 
-            raise TankError("The path '%s' is associated with more than one Primary pipeline "
-                            "configuration. This can happen if there is ambiguity in your project setup, where "
-                            "projects store their data in an overlapping fashion, for example if a project is "
-                            "named the same as a local storage root. In this case, try creating "
-                            "your API instance (or tank command) directly from the pipeline configuration rather "
-                            "than via the studio level API. This will explicitly call out which project you are "
-                            "intending to use in conjunction with he path. It may also be caused by several projects "
-                            "pointing at the same configuration on disk. The Primary pipeline configuration paths "
-                            "associated with this path are: %s." % (path, pcs_msg))
+            # with direct access from shared cores, we don't support bootstrap workflows.
+            # For this case, you HAVE to use the 'classic' fields windows|mac|linux_path.
+            if sg_config_data["path"] is None:
+                # will not end up here unless someone tries to run shared_core on a
+                # configuration which is maintained by bootstrap.
+                raise TankInitError(
+                    "The pipeline configuration with id %s, associated with %s, "
+                    "cannot be instantiated because it does not have an absolute path "
+                    "definition in Shotgun." % (sg_config_data["id"], source)
+                )
 
-        # looks good, we got a primary pipeline config that exists
-        return PipelineConfiguration(primary_pc_data[0]["path"])
+            # all good. init and return.
+            return PipelineConfiguration(sg_config_data["path"])
 
 
 #################################################################################################################
 # utilities
+
 
 def _get_configuration_context():
     """
@@ -384,7 +489,6 @@ def _get_pipeline_configs_for_path(path, data):
         - mac_path
         - project
         - project.Project.tank_name
-
 
     Edge case notes:
 
@@ -521,9 +625,9 @@ def _get_pipeline_configs_for_project(project_id, data):
     return matching_pipeline_configs
 
 
-
 #################################################################################################################
 # methods relating to maintaining a small cache to speed up initialization
+
 
 def __get_project_id(entity_type, entity_id, force=False):
     """
@@ -590,6 +694,7 @@ def _get_pipeline_configs(force=False):
         - mac_path
         - project
         - project.Project.tank_name
+        - plugin_ids
 
     :param force: set this to true to force a cache refresh
     :returns: dictionary with keys local_storages and pipeline_configurations.
@@ -613,9 +718,13 @@ def _get_pipeline_configs(force=False):
                              [],
                              ["id", "code", "windows_path", "mac_path", "linux_path"])
 
-    # get all pipeline configurations (and their associated projects) for this site
+    # get all pipeline configurations (and their associated projects) for this site.
+    #
+    # note: to make sure we are not retrieving more and more projects
+    #       over time, only include non-archived projects.
+    #
     pipeline_configs = sg.find("PipelineConfiguration",
-                               [["project.Project.tank_name", "is_not", None]],
+                               [["project.Project.archived", "is", False]],
                                ["id",
                                 "code",
                                 "windows_path",
@@ -629,6 +738,7 @@ def _get_pipeline_configs(force=False):
     _add_to_lookup_cache(CACHE_KEY, data)
 
     return data
+
 
 def _load_lookup_cache():
     """
@@ -652,6 +762,7 @@ def _load_lookup_cache():
         )
 
     return cache_data
+
 
 @filesystem.with_cleared_umask
 def _add_to_lookup_cache(key, data):
@@ -687,7 +798,6 @@ def _add_to_lookup_cache(key, data):
         log.debug(
             "Failed to add to lookup cache %s. Error: %s" % (cache_file, e)
         )
-
 
 
 def _get_cache_location():

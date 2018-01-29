@@ -278,12 +278,13 @@ or other items to your distributed users - regardless of network or file access.
 All they need is a connection to Shotgun.
 
 A practical application of this is Toolkit's cloud based configurations;
-by uploading a zipped up Toolkit configuration to the ``PipelineConfiguration.uploaded_config``
-field (or a custom field named ``PipelineConfiguration.sg_uploaded_config`` if you have an older
-Shotgun site which does not have the field included by default). The :class:`~sgtk.bootstrap.ToolkitManager`
-boostrapping interface will automatically look for an uploaded zip file in this field,
-and if it exists, start your Toolkit session using this configuration. This allows for a workflow
-where a configuration can be distributed to remote users easily.
+Create a custom file/link field named ``PipelineConfiguration.sg_uploaded_config``
+and upload a zipped up toolkit configuration to your this field on your pipeline configuration.
+The :class:`~sgtk.bootstrap.ToolkitManager` boostrapping interface will automatically detect
+this, download the configuration locally and use this when launching.
+This allows for a powerful workflow where a configuration is simply
+uploaded to Shotgun and it gets automatically picked up by all
+users (even if they are remote).
 
 The Shotgun descriptor is the low level mechanism that is used to implement the cloud
 configurations described above. The descriptor points at a particular attachment
@@ -385,6 +386,8 @@ ConfigDescriptor
 .. autoclass:: ConfigDescriptor
     :inherited-members:
     :members:
+    :exclude-members: get_config_folder,
+        resolve_core_descriptor
 
 CoreDescriptor
 ================================================
@@ -392,6 +395,7 @@ CoreDescriptor
 .. autoclass:: CoreDescriptor
     :inherited-members:
     :members:
+    :exclude-members: get_features_info
 
 Exceptions
 ================================================

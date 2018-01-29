@@ -15,7 +15,7 @@ import os
 import sys
 
 from tank_test.tank_test_base import setUpModule # noqa
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import ShotgunTestBase
 
 import sgtk
 from sgtk.bootstrap.configuration_writer import ConfigurationWriter
@@ -24,7 +24,7 @@ from tank_vendor import yaml
 from mock import patch
 
 
-class TestConfigurationWriterBase(TankTestBase):
+class TestConfigurationWriterBase(ShotgunTestBase):
 
     def _write_mock_config(self, shotgun_yml_data=None):
         """
@@ -245,7 +245,7 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
         return ShotgunPath(*interpreters)
 
 
-class TestWritePipelineConfigFile(TankTestBase):
+class TestWritePipelineConfigFile(ShotgunTestBase):
 
     FALLBACK_PATHS = ["/bundle/cache", "/fallback/paths"]
 
@@ -455,7 +455,7 @@ class TestWritePipelineConfigFile(TankTestBase):
         )
 
 
-class TestTransaction(TankTestBase):
+class TestTransaction(ShotgunTestBase):
 
     def test_transactions(self):
         """

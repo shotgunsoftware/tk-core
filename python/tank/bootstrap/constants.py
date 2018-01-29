@@ -19,7 +19,7 @@ BUNDLE_METADATA_FILE = "info.yml"
 # if major changes happen to the way cloud based configs are handled
 # by the system, for example requiring any existing deployed cloud
 # configs to be re-deployed, this version number should be incremented.
-BOOTSTRAP_LOGIC_GENERATION = 7
+BOOTSTRAP_LOGIC_GENERATION = 8
 
 # config file with information about which core to use
 CONFIG_CORE_DESCRIPTOR_FILE = "core_api.yml"
@@ -72,6 +72,9 @@ PIPELINE_CONFIG_ID_ENV_VAR = "SHOTGUN_PIPELINE_CONFIGURATION_ID"
 
 # environment variable that is used to indicate which bundle caches to be used.
 BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR = "SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS"
+
+# the name of the folder within the config where bundles are cached.
+BUNDLE_CACHE_FOLDER_NAME = "bundle_cache"
 
 # the shotgun engine always has this name
 SHOTGUN_ENGINE_NAME = "tk-shotgun"

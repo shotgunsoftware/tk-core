@@ -150,10 +150,11 @@ class BakedConfiguration(Configuration):
         )
 
     @property
-    def has_local_bundle_cache(self):
+    def requires_dynamic_bundle_caching(self):
         """
-        If True, indicates that pipeline configuration has a local bundle cache. If False, it
-        depends on the global bundle cache.
+        If True, indicates that pipeline configuration relies on dynamic caching
+        of bundles to operate. If False, the configuration has its own bundle
+        cache.
         """
-        # Baked configurations always have a local bundle cache.
-        return True
+        # Baked configurations always have a local bundle install folder.
+        return False

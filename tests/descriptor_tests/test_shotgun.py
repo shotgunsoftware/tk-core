@@ -12,10 +12,10 @@ import os
 
 import sgtk
 from mock import patch
-from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
+from tank_test.tank_test_base import ShotgunTestBase, setUpModule # noqa
 
 
-class TestShotgunIODescriptor(TankTestBase):
+class TestShotgunIODescriptor(ShotgunTestBase):
     """
     Testing the Shotgun IO descriptor
     """
@@ -24,14 +24,14 @@ class TestShotgunIODescriptor(TankTestBase):
         """
         Sets up the next test's environment.
         """
-        TankTestBase.setUp(self)
+        ShotgunTestBase.setUp(self)
 
         self.bundle_cache = os.path.join(self.project_root, "bundle_cache")
 
     def _create_desc(self, location):
         """Helper method"""
         return sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
+            self.mockgun,
             sgtk.descriptor.Descriptor.APP,
             location
         )
@@ -131,7 +131,7 @@ class TestShotgunIODescriptor(TankTestBase):
         _call_rpc_mock.side_effect = fake_download_attachment
 
         desc = sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
+            self.mockgun,
             sgtk.descriptor.Descriptor.APP,
             {
                 "type": "shotgun",
@@ -153,7 +153,7 @@ class TestShotgunIODescriptor(TankTestBase):
         Test downloading descriptor based on name
         """
         expected_path = os.path.join(
-            self.bundle_cache, "sg", "unit_test_mock_sg", "Shot.sg_field", "p123_aaa111", "v123"
+            self.bundle_cache, "sg", "unit_test_mock_sg", "Shot.sg_field", "p123_bbb111", "v123"
         )
 
         def fake_download_attachment(*args, **kwargs):
@@ -164,14 +164,14 @@ class TestShotgunIODescriptor(TankTestBase):
         _call_rpc_mock.side_effect = fake_download_attachment
 
         desc = sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
+            self.mockgun,
             sgtk.descriptor.Descriptor.APP,
             {
                 "type": "shotgun",
                 "version": 123,
                 "entity_type": "Shot",
                 "field": "sg_field",
-                "name": "aaa111",
+                "name": "bbb111",
                 "project_id": 123
             },
             bundle_cache_root_override=self.bundle_cache
@@ -212,7 +212,7 @@ class TestShotgunIODescriptor(TankTestBase):
         find_mock.side_effect = our_find_mock
 
         desc = sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
+            self.mockgun,
             sgtk.descriptor.Descriptor.APP,
             {
                 "type": "shotgun",
@@ -259,7 +259,7 @@ class TestShotgunIODescriptor(TankTestBase):
         find_mock.side_effect = our_find_mock
 
         desc = sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
+            self.mockgun,
             sgtk.descriptor.Descriptor.APP,
             {
                 "type": "shotgun",
@@ -306,7 +306,7 @@ class TestShotgunIODescriptor(TankTestBase):
         find_mock.side_effect = our_find_mock
 
         desc = sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
+            self.mockgun,
             sgtk.descriptor.Descriptor.APP,
             {
                 "type": "shotgun",
@@ -345,7 +345,7 @@ class TestShotgunIODescriptor(TankTestBase):
         find_mock.side_effect = our_find_mock
 
         desc = sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
+            self.mockgun,
             sgtk.descriptor.Descriptor.APP,
             {
                 "type": "shotgun",
@@ -372,7 +372,7 @@ class TestShotgunIODescriptor(TankTestBase):
         find_mock.side_effect = our_find_mock
 
         desc = sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
+            self.mockgun,
             sgtk.descriptor.Descriptor.APP,
             {
                 "type": "shotgun",
@@ -401,7 +401,7 @@ class TestShotgunIODescriptor(TankTestBase):
         os.makedirs(os.path.join(root_path, "v2454"))
 
         desc = sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
+            self.mockgun,
             sgtk.descriptor.Descriptor.APP,
             {
                 "type": "shotgun",
@@ -429,7 +429,7 @@ class TestShotgunIODescriptor(TankTestBase):
         os.makedirs(os.path.join(root_path, "v2454"))
 
         desc = sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
+            self.mockgun,
             sgtk.descriptor.Descriptor.APP,
             {
                 "type": "shotgun",

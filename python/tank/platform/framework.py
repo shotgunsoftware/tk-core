@@ -121,11 +121,13 @@ class Framework(TankBundle):
 
     def get_metrics_properties(self):
         """
-        Return a dictionary with properties to use when emitting a metric event
+        Returns a dictionary with properties to use when emitting a metric event
         for this framework in the current engine.
 
         Frameworks don't have any particular properties and just return the result
-        of :meth:`Engine._get_metrics_properties`.
+        of :meth:`Engine.get_metrics_properties`.
+
+        :returns: Dictionary as per above.
         """
         # Please note that before we used to log some framework information as well
         # Now we just add the engine information.

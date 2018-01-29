@@ -123,23 +123,23 @@ class Application(TankBundle):
 
     def get_metrics_properties(self):
         """
-        Return a dictionary with properties to use when emitting a metric event
+        Returns a dictionary with properties to use when emitting a metric event
         for this application in the current engine.
 
-        The dictionary contains informations about this application, about the
+        The dictionary contains information about this application, about the
         current engine, and about the application hosting the engine. For each of
-        them a name and a version string are available.
+        them, a name and a version string are available::
 
-        E.g.::
-        {
-            'Host App': 'Maya',
-            'Host App Version': '2017',
-            'Engine': 'tk-maya',
-            'Engine Version': 'v0.4.1',
-            'App': 'tk-multi-about',
-            'App Version': '1.2.3'
-        }
+            {
+                'Host App': 'Maya',
+                'Host App Version': '2017',
+                'Engine': 'tk-maya',
+                'Engine Version': 'v0.4.1',
+                'App': 'tk-multi-about',
+                'App Version': '1.2.3'
+            }
 
+        :returns: Dictionary with info per above.
         """
         properties = self.engine.get_metrics_properties()
         properties.update({
