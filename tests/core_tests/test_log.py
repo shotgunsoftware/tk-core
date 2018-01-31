@@ -41,3 +41,13 @@ class TestLogManager(ShotgunTestBase):
         finally:
             manager.global_debug = original_debug
             os.environ = original_env
+
+    def test_log_file_property(self):
+        """
+        Tests the LogManager 'log_file' property
+        """
+        manager = sgtk.log.LogManager()
+        self.assertTrue(hasattr(manager, 'log_file'))
+        self.assertIsNotNone(manager.log_file)
+
+
