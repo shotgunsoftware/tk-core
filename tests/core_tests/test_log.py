@@ -46,7 +46,6 @@ class TestLogManager(ShotgunTestBase):
         """
         Tests the LogManager 'log_file' property
         """
-
         manager = sgtk.log.LogManager()
         self.assertTrue(hasattr(manager, 'log_file'))
         self.assertIsNotNone(manager.log_file)
