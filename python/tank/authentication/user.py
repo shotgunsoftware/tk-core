@@ -186,7 +186,7 @@ class ShotgunSamlUser(ShotgunUser):
         Handles automatic renewal of the SAML2 claims for the user.
 
         :param preemtive_renewal_threshold: How far into the claims duration we will attempt renewal.
-                                             Defaults to 90%, usually 4 minutes 30 seconds (90% of 5 mins).
+                                            Defaults to 90%, usually 4 minutes 30 seconds (90% of 5 mins).
         """
         if self._claims_renewal_cancelled:
             return
@@ -241,6 +241,11 @@ class ShotgunSamlUser(ShotgunUser):
     def start_claims_renewal(self, preemtive_renewal_threshold=0.9):
         """
         Start claims renewal mechanism.
+
+        :param preemtive_renewal_threshold: Value between 0 and 1 indicating how far into the claims
+            duration we will attempt a renewal. The claims duration is usually 5 minutes. For example,
+            a value of 0.9, which is also the default value, will indicate that the renewal should
+            happen after 4 minutes and 30 seconds.
         """
         # Ensure thread-safe access of _claims_renewal_cancelled and _timer. See __init__
         # for details.

@@ -98,7 +98,8 @@ class Configuration(object):
         from ..authentication import serialize_user, ShotgunSamlUser
         serialized_user = serialize_user(sg_user)
 
-        # Stop claims renewal before swapping core.
+        # Stop claims renewal before swapping core, but only if the claims loop
+        # is actually active.
         if isinstance(sg_user, ShotgunSamlUser) and sg_user.is_claims_renewal_active():
             uses_claims_renewal = True
             log.debug("Stopping claims renewal before swapping core.")
@@ -117,8 +118,12 @@ class Configuration(object):
         # that here we're not testing that the API supports claims renewal as to not complexify this
         # code any further. We're assuming it does support claims renewal. If it doesn't that's a
         # user configuration error and they need to upgrade their project.
+        #
         # Also make sure that we have a HumanUser and not a ScriptUser by checking the login
-        # attribute.
+        # attribute. Some exotic setup or old project might have people authenticate on startup
+        # with a user but then when actually running a project they are switching to script-based
+        # authentication, so we have to be mindful that we still are using login based
+        # authentication.
         if sg_user and sg_user.login and uses_claims_renewal:
             log.debug("Restarting claims renewal.")
             sg_user.start_claims_renewal()
@@ -160,9 +165,11 @@ class Configuration(object):
         user will be used instead.
 
         :param user: User that was used for bootstrapping.
+        :param bootstrap_user_login: Login of the user.
         :param serialized_user: Serialized version of the user.
 
-        :returns: If authentication is supported, a :class:`ShotgunUser` will be returned.
+        :returns: If authentication is supported, a :class:`ShotgunUser` will be returned. Otherwise
+            ``None``.
         """
         # perform a local import here to make sure we are getting
         # the newly swapped in core code
@@ -224,6 +231,15 @@ class Configuration(object):
                     "User retrieved for the project (%r) is the same as for the bootstrap.", default_user
                 )
                 project_user = default_user
+            else:
+                # At this point, different human users are returned by the two cores. We will log
+                # a warning.
+                log.warning(
+                    "It appears the user '%s' used for bootstrap is different than the one for the "
+                    "project '%s'. Toolkit will use the user from the bootstrap for coherence.",
+                    bootstrap_user_login, default_user.login
+                )
+                pass
         else:
             log.debug(
                 "No user associated with the project was found. Falling back on the bootstrap user."
