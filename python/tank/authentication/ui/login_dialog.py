@@ -65,6 +65,20 @@ class Ui_LoginDialog(object):
 "QLineEdit:Disabled {\n"
 "    background-color: rgb(60, 60, 60);\n"
 "    color: rgb(160, 160, 160);\n"
+"}\n"
+"\n"
+"QComboBox::drop-down:disabled {\n"
+"    border-width: 0px;\n"
+"\n"
+"}\n"
+"\n"
+"QComboBox::down-arrow:disabled {\n"
+"    image: url(noimg); border-width: 0px;\n"
+"}\n"
+"\n"
+"QComboBox::disabled {\n"
+"    background-color: rgb(60, 60, 60);\n"
+"    color: rgb(160, 160, 160);\n"
 "}")
         LoginDialog.setModal(True)
         self.verticalLayout_2 = QtGui.QVBoxLayout(LoginDialog)
