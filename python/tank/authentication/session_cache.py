@@ -206,7 +206,7 @@ def _try_load_site_authentication_file(file_path):
     """
     content = _try_load_yaml_file(file_path)
 
-    # No not attempt to filter out content that is not understood. This allows
+    # Do not attempt to filter out content that is not understood. This allows
     # the file to be backwards and forward compatible with different versions
     # of core.
 
@@ -234,7 +234,7 @@ def _try_load_global_authentication_file(file_path):
     """
     content = _try_load_yaml_file(file_path)
 
-    # No not attempt to filter out content that is not understood. This allows
+    # Do not attempt to filter out content that is not understood. This allows
     # the file to be backwards and forward compatible with different versions
     # of core.
 
