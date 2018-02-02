@@ -491,7 +491,11 @@ def _get_recent_items(document, recent_field, current_field, type_name):
     # didn't update it. This is possible because since day one the authentication.yml
     # has been treated as document with certain fields set and when the document
     # is rewritten it is rewritten as is, except for the bits that were updated.
-    if document[current_field] and document[current_field] not in items:
+    if document[current_field]:
+        # If the item was present in the list, remove it and move it to the top
+        # so it's marked as the most recent.
+        if document[current_field] in items:
+            items.remove(document[current_field])
         items.insert(0, document[current_field])
     logger.debug("Recent %s are: %s", type_name, items)
     return items

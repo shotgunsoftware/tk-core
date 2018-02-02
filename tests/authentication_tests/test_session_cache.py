@@ -97,7 +97,7 @@ class SessionCacheTests(ShotgunTestBase):
         HOST = "https://host.shotgunstudio.com"
         self._write_site_yml(
             HOST,
-            {"current_user": "current.user", "recent_users": ["older.user"]}
+            {"current_user": "current.user", "recent_users": ["older.user", "current.user"]}
         )
 
         self.assertEqual(
@@ -111,7 +111,8 @@ class SessionCacheTests(ShotgunTestBase):
         has the current_host at the front.
         """
         self._write_global_yml(
-            {"current_host": "https://current.shotgunstudio.com", "recent_hosts": ["https://older.shotgunstudio.com"]}
+            {"current_host": "https://current.shotgunstudio.com",
+             "recent_hosts": ["https://older.shotgunstudio.com", "https://current.shotgunstudio.com"]}
         )
 
         self.assertEqual(

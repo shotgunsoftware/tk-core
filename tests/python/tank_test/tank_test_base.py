@@ -476,6 +476,7 @@ class TankTestBase(unittest.TestCase):
             self.add_production_path(self.project_root, self.project)
 
         # add pipeline configuration
+        self.add_to_sg_mock_db(self.project)
         self.add_to_sg_mock_db(self.sg_pc_entity)
 
         # add local storage
@@ -497,10 +498,14 @@ class TankTestBase(unittest.TestCase):
 
         :param to_mock: Path to the method to mock
         :param return_value: Value to return from the mocked method.
+
+        :returns: The mocked method.
         """
-        patch = mock.patch(to_mock, return_value=return_value)
-        patch.start()
-        self.addCleanup(patch.stop)
+        patcher = mock.patch(to_mock, return_value=return_value)
+        mock_object = patcher.start()
+        self.addCleanup(patcher.stop)
+
+        return mock_object
 
     def _assert_teardown_called(self):
         """
