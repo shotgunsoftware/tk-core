@@ -210,11 +210,12 @@ class Configuration(object):
                 # user is a script user and the project's user is not a script user, so we'll keep
                 # using the script user.
 
-                # Note that if the API endpoint is different in the project it means that we'll
-                # not be using the correct API endpoint with the project. This seems to be an
-                # edge-case and more likely a misconfiguration error, so we'll keep the code simple.
-                # We're logging the user being used at the end of this method, so it will be clear
-                # during support what actually happened.
+                # If the host server is different in the project, for example someone might have set
+                # up a server to answer queries for the webapp and another to answer API requests,
+                # it means that we'll not be using the correct server with the project. This seems
+                # to be an edge-case and more likely a misconfiguration error, so we'll keep the
+                # code simple. We're logging the user being used at the end of this method, so it
+                # will be clear during support what actually happened.
                 log.debug(
                     "User retrieved for the project is not a script, but bootstrap was. Using the "
                     "bootsraps's user."
@@ -225,8 +226,8 @@ class Configuration(object):
                 # there might be new ways to retrieve credentials that the older core's
                 # ShotgunAuthenticator might not be aware of.
                 #
-                # Note also at this point that if the API endpoint for the project is different we'll
-                # be using the endpoint from project.
+                # This also handle the case where a local install has a server dedicated to the webapp
+                # traffic and another for API traffic.
                 log.debug(
                     "User retrieved for the project (%r) is the same as for the bootstrap.", default_user
                 )
