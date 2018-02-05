@@ -45,6 +45,7 @@ class AuthenticationSessionData(object):
         self._csrf_value = None
         self._error = None
         self._host = None
+        self._http_proxy = None
         self._product = None
         self._session_expiration = None
         self._session_id = None
@@ -168,6 +169,24 @@ class AuthenticationSessionData(object):
         :param value: The session hostname.
         """
         self._host = value
+
+    @property
+    def http_proxy(self):
+        """
+        Getter for the session http proxy.
+
+        :returns: The session http proxy.
+        """
+        return str(self._http_proxy or "")
+
+    @http_proxy.setter
+    def http_proxy(self, value):
+        """
+        Setter for the session http proxy.
+
+        :param value: The session http proxy.
+        """
+        self._http_proxy = value
 
     @property
     def product(self):
