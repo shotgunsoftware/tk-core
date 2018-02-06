@@ -538,9 +538,16 @@ def _get_pipeline_configs_for_path(path, data):
     for pc in data["pipeline_configurations"]:
 
         for s in storages:
-            # all pipeline configurations are associated
+
+            # all installed/classic pipeline configurations are associated
             # with a project which has a tank_name set
             project_name = pc["project.Project.tank_name"]
+
+            # if the project's tank_name is None, then this configuration is not
+            # a classic/installed configuration. We know it can't be associated
+            # with a path, so there's no need to process it.
+            if not project_name:
+                continue
 
             # for multi level projects, there may be slashes, e.g
             # project_name is "parent/child"
