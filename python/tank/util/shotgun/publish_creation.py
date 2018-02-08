@@ -481,13 +481,13 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
                 "The path '%s' is associated with config root '%s'." % (path, storage_name)
             )
 
-            # check if the shotgun server supports the storage and relative_path parameters
-            # which allows us to specify exactly which storage to bind a publish to rather
-            # than relying on Shotgun to compute this
+            # check if the shotgun server supports the storage and relative_path parameters which
+            # allows us to specify exactly which storage to bind a publish to rather than relying on
+            # Shotgun to compute this.
             supports_specific_storage_syntax = (
                 hasattr(tk.shotgun, "server_caps") and
                 tk.shotgun.server_caps.version and
-                tk.shotgun.server_caps.version >= (6, 3, 17)
+                tk.shotgun.server_caps.version >= (7, 0, 1)
             )
 
             if supports_specific_storage_syntax:
