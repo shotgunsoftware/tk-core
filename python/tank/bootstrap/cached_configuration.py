@@ -142,23 +142,48 @@ class CachedConfiguration(Configuration):
                     "for the Project.tank_name field in Shotgun."
                 )
 
-            # XXX:  update to use the new mapping field to validate storages
-
             # get all storages to ensure all roots are
             log.debug("Ensuring that all required local storages exist in Shotgun.")
-            shotgun_storages = self._sg_connection.find("LocalStorage", [], ["code"])
-            shotgun_storage_names = [storage["code"] for storage in shotgun_storages]
+            sg_storages = self._sg_connection.find(
+                "LocalStorage",
+                [],
+                ["code", "id"]
+            )
 
-            # check that are required storages are defined in Shotgun
-            required_storage_names = roots_data.keys()
-            for required_storage_name in required_storage_names:
-                if required_storage_name not in shotgun_storage_names:
+            # get lists of storages names and ids. we'll check against each
+            # root's shotgun_storage_id first, falling back to the name if the
+            # id mapping field is not defined.
+            sg_storage_ids = [storage["id"] for storage in sg_storages]
+            sg_storage_names = [storage["code"] for storage in sg_storages]
 
-                        storage_str = "storage" if len(required_storage_names) == 1 else "storages"
-                        raise TankBootstrapError(
-                            "The configuration requires the following local %s "
-                            "to be defined in Shotgun: %s" % (storage_str, ", ".join(required_storage_names))
-                        )
+            # keep a list of storages that could not be mapped to a SG entry
+            unmapped_storage_roots = []
+
+            # check that each storage is defined in Shotgun
+            for root_name, root_info in roots_data.iteritems():
+
+                required_id = root_info.get("shotgun_storage_id")
+                if required_id and required_id not in sg_storage_ids:
+                    unmapped_storage_roots.append(root_name)
+                    continue
+
+                # no storage id defined in the roots definition. check the name
+                if root_name not in sg_storage_names:
+                    unmapped_storage_roots.append(root_name)
+
+            # raise an exception if there are any unmapped roots
+            if unmapped_storage_roots:
+                raise TankBootstrapError(
+                    "This configuration defines one or more storage roots that "
+                    "can not be mapped to a local storage defined in Shotgun. "
+                    "Please update the roots.yml file in this configuration to "
+                    "correct this issue. "
+                    "Roots file: '%s'. "
+                    "Unmapped storage roots: %s." % (
+                        roots_path,
+                        ", ".join(unmapped_storage_roots)
+                    )
+                )
 
     def status(self):
         """
@@ -309,8 +334,6 @@ class CachedConfiguration(Configuration):
                 self._bundle_cache_fallback_paths,
                 self._descriptor
             )
-
-            # XXX: update to write new format
 
             # make sure roots file reflects current paths
             self._config_writer.update_roots_file(self._descriptor)

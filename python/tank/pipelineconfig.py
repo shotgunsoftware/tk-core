@@ -722,13 +722,13 @@ class PipelineConfiguration(object):
         """
 
         try:
-            primary_data_root = self.get_primary_data_root()
+            self.get_primary_data_root()
         except TankError:
-            # exception raised, no primary data root could be identified
+            # exception raised, no primary/default data root could be identified
             return False
-        else:
-            # no exception, a primary data root was returned. all good.
-            return True
+
+        # no exception, a primary/default data root was returned. all good.
+        return True
 
     def get_primary_data_root(self):
         """
