@@ -157,6 +157,8 @@ def run_project_setup(log, sg, setup_params):
     fh.write("# End of file.\n")
     fh.close()
 
+    # XXX update to write new roots file format
+
     # update the roots.yml file in the config to match our settings
     # reshuffle list of associated local storages to be a dict keyed by storage name
     # and with keys mac_path/windows_path/linux_path

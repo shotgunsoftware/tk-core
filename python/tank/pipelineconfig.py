@@ -271,27 +271,50 @@ class PipelineConfiguration(object):
                     "textures" : <ShotgunPath>
                   }
         """
+
         # now read in the roots.yml file
         # this will contain something like
-        # {'primary': {'mac_path': '/studio', 'windows_path': None, 'linux_path': '/studio'}}
+        # {
+        #   'work': {
+        #       'mac_path': '/studio/work',
+        #       'windows_path': None,
+        #       'linux_path': '/studio/work'
+        #       'default': True,
+        #       'local_storage_id': 123
+        #   }
+        #   'data': {
+        #       'mac_path': '/studio/data',
+        #       'windows_path': None,
+        #       'linux_path': '/studio/data'
+        #       'local_storage_id': 456
+        #   }
+        # }
         roots_yml = self._get_roots_metadata_location()
 
         try:
             # if file is empty, initialize with empty dict...
-            data = yaml_cache.g_yaml_cache.get(roots_yml, deepcopy_data=False) or {}
+            data = yaml_cache.g_yaml_cache.get(
+                roots_yml,
+                deepcopy_data=False
+            ) or {}
         except Exception as e:
-            raise TankError("Looks like the roots file is corrupt. Please contact "
-                            "support! File: '%s' Error: %s" % (roots_yml, e))
-
-        # If there are more than one storage defined, ensure one of them is the primary storage
-        # We need to keep this constraint as we are not able to keep roots definition
-        # in the order they were defined, so this is the only way we can guarantee we
-        # always use the same root for any template which does not have an explicit
-        # root setting.
-        if len(data) > 1 and constants.PRIMARY_STORAGE_NAME not in data:
             raise TankError(
-                "Could not find a primary storage in multi-roots file "
-                "for configuration %s!" % roots_yml
+                "Looks like the roots file is corrupt or missing. "
+                "Please contact support! "
+                "File: '%s'. "
+                "Error: %s" % (roots_yml, e)
+            )
+
+        # Ensure there is a primary/default storage defined. We need to keep
+        # this constraint as we are not able to keep roots definition in the
+        # order they were defined, so this is the only way we can guarantee we
+        # always use the same root for any template which does not have an
+        # explicit root setting.
+        if not self._get_primary_data_root(data):
+            raise TankError(
+                "Could not identify a primary/default storage in roots.yml "
+                "file for this configuration! "
+                "File: %s" % roots_yml
             )
 
         # Sanitize path data by passing it through the ShotgunPath
@@ -589,51 +612,71 @@ class PipelineConfiguration(object):
         
     def get_local_storage_roots(self):
         """
-        Returns local OS paths to all shotgun local storages used by toolkit. 
-        Paths are validated and guaranteed not to be None.
-        
-        :returns: dictionary of storages, for example {"primary": "/studio", "textures": "/textures"}
+        Returns local OS paths to each shotgun local storage used by toolkit.
+
+        If no local path is defined for the current OS, a ``TankError``
+        exception will be raised.
+
+        :returns: dictionary of storages
+
+        Example dictionary returned::
+
+            {
+                "work": "/studio/work",
+                "data": "/studio/data"
+            }
         """
-        proj_roots = {}
+
+        local_roots = {}
 
         for storage_name in self._roots:
+
             # get current os path
             local_root_path = self._roots[storage_name].current_os
+
             # validate it
             if local_root_path is None:
                 raise TankError(
-                    "Undefined toolkit storage! The local file storage '%s' is not defined for this "
-                    "operating system! Please contact toolkit support." % storage_name)
+                    "Undefined toolkit storage! The local file storage '%s' is "
+                    "not defined for this operating system! "
+                    "Please contact toolkit support." % (storage_name,)
+                )
             
-            proj_roots[storage_name] = local_root_path
+            local_roots[storage_name] = local_root_path
 
-        return proj_roots
+        return local_roots
     
     def get_all_platform_data_roots(self):
         """
-        Similar to get_data_roots but instead of returning the data roots for a single 
-        operating system, the data roots for all operating systems are returned.
+        Similar to ``get_data_roots``, but instead of returning the data roots
+        for the current operating system, the data roots for all operating
+        systems are returned.
         
-        The return structure is a nested dictionary structure, for example:
+        :returns: a nested dictionary mapping storage names to platform paths
 
-        {
-         "primary": {"win32":  "z:\studio\my_project", 
-                     "linux2": "/studio/my_project",
-                     "darwin": "/studio/my_project"},
-                     
-         "textures": {"win32":  "z:\studio\my_project", 
-                      "linux2": None,
-                      "darwin": "/studio/my_project"},
-        }
+        Example return dictionary::
+
+            {
+                "work": {
+                    "win32":  "z:\studio\work\my_project",
+                    "linux2": "/studio/work/my_project",
+                    "darwin": "/studio/work/my_project"
+                },
+
+                "data": {
+                    "win32":  "z:\studio\data\my_project",
+                    "linux2": None,
+                    "darwin": "/studio/data/my_project"
+                },
+            }
          
         The operating system keys are returned on sys.platform-style notation.
         If a data root has not been defined on a particular platform, None is 
         returned (see example above).
 
-        @todo - refactor to use ShotgunPath
-
         :returns: dictionary of dictionaries. See above.
         """
+
         proj_roots = {}
         for storage_name in self._roots:
             # join the project name to the storage ShotgunPath
@@ -645,13 +688,20 @@ class PipelineConfiguration(object):
     
     def get_data_roots(self):
         """
-        Returns a dictionary of all the data roots available for this PC,
-        keyed by their storage name. Only returns paths for current platform.
-        Paths are guaranteed to be not None.
+        Returns a dictionary of all the data roots available for this pipeline
+        configuration, keyed by their storage name. Only returns paths for
+        current operating system.
 
-        :returns: A dictionary keyed by storage name, for example
-                  {"primary": "/studio/my_project", "textures": "/textures/my_project"}        
+        :returns: a dictionary keyed by storage name
+
+        Example return dictionary::
+
+            {
+                "work": "/studio/work/my_project"
+                "data": "/studio/data/my_project"
+            }
         """
+
         proj_roots = {}
         for storage_name in self._roots:
             # join the project name to the storage ShotgunPath
@@ -663,34 +713,90 @@ class PipelineConfiguration(object):
 
     def has_associated_data_roots(self):
         """
-        Some configurations do not have a notion of a project storage and therefore
-        do not have any storages defined. This flag indicates whether a configuration 
-        has any associated data storages. 
+        Some configurations do not have a notion of a project storage and
+        therefore do not have any storages defined. This flag indicates whether
+        a configuration has an associated primary/default data storage defined.
         
-        :returns: true if the configuration has a primary data root defined, false if not
+        :returns: True if the configuration has a primary data root defined,
+            false if not
         """
-        return len(self.get_data_roots()) > 0
-        
+
+        try:
+            primary_data_root = self.get_primary_data_root()
+        except TankError:
+            # exception raised, no primary data root could be identified
+            return False
+        else:
+            # no exception, a primary data root was returned. all good.
+            return True
+
     def get_primary_data_root(self):
         """
-        Returns the path to the primary data root for the current platform.
-        For configurations where there is no roots defined at all, 
-        an exception will be raised.
+        Returns the path to the primary/default data root for the current
+        platform. For configurations where there is no roots defined at all or
+        the primary/default data root could not be determined, a ``TankError``
+        exception will be raised.
         
         :returns: str to local path on disk
         """
+
         data_roots = self.get_data_roots()
         roots_count = len(data_roots)
+
         if roots_count == 0:
-            raise TankError("Your current pipeline configuration does not have any project data "
-                            "storages defined and therefore does not have a primary project data root!")
-        elif roots_count == 1:
-            # If we have a single root, it is the primary root.
-            return data_roots[data_roots.keys()[0]]
+            raise TankError(
+                "Your current pipeline configuration does not have any project "
+                "data storages defined and therefore does not have a "
+                "primary/default project data root!"
+            )
+
+        # call the reusable primary/default identification logic given the roots
+        # dictionary
+        default_data_root = self._get_primary_data_root(data_roots)
+
+        # if we still don't have a default/primary data root, then we raise an
+        # exception
+        if not default_data_root:
+            raise TankError(
+                "Unable to identify the primary/default data root for your "
+                "project. No storages marked as 'default', and none named "
+                "'primary'."
+            )
+
+        return default_data_root
+
+    def _get_primary_data_root(self, roots_data):
+        """
+        Given a dictionary of roots data (typically from the roots.yml file or
+        yaml cache), determine the primary/default data root.
+
+        :return: The primary/default data root if one could be determined, None
+            otherwise.
+        """
+
+        # presumed None until proven default
+        default_root = None
+
+        if len(roots_data) == 1:
+            # If we have a single root, assume it is the primary/default root.
+            default_root = roots_data[roots_data.keys()[0]]
         else:
-            # If we have multiple roots, it is required that one of them is named
-            # "primary".
-            return data_roots.get(constants.PRIMARY_STORAGE_NAME)
+            # If we have multiple roots, look for one that is marked as
+            # 'default'. This may also run if there are no keys in the supplied
+            # roots_data, but that's fine as there will be no iteration of
+            # items and the default will remain None.
+            for root_name, root_info in roots_data.iteritems():
+                if root_info.get("default", False):
+                    default_root = root_info
+                    break
+
+        # if we're here and no default data root has been identified, fall back
+        # to looking for the one named "primary" (legacy behavior).
+        if not default_root:
+            default_root = roots_data.get(constants.PRIMARY_STORAGE_NAME)
+
+        # this might still be None.
+        return default_root
 
     ########################################################################################
     # installation payload (core/apps/engines) disk locations

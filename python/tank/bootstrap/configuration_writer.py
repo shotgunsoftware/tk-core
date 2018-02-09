@@ -541,6 +541,8 @@ class ConfigurationWriter(object):
             [],
             fields=["id", "code"] + ShotgunPath.SHOTGUN_PATH_FIELDS)
 
+        # XXX: update to use new format
+
         # organize them by name
         storage_by_name = {}
         for storage in sg_data:

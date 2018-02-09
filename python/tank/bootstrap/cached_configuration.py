@@ -142,6 +142,8 @@ class CachedConfiguration(Configuration):
                     "for the Project.tank_name field in Shotgun."
                 )
 
+            # XXX:  update to use the new mapping field to validate storages
+
             # get all storages to ensure all roots are
             log.debug("Ensuring that all required local storages exist in Shotgun.")
             shotgun_storages = self._sg_connection.find("LocalStorage", [], ["code"])
@@ -307,6 +309,8 @@ class CachedConfiguration(Configuration):
                 self._bundle_cache_fallback_paths,
                 self._descriptor
             )
+
+            # XXX: update to write new format
 
             # make sure roots file reflects current paths
             self._config_writer.update_roots_file(self._descriptor)

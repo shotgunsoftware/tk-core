@@ -159,6 +159,8 @@ def __resolve_local_file_link(tk, attachment_data):
     # for this storage, it will be ignored and a warning is logged.
     #
 
+    # XXX: update to use new storage logic?
+
     # look for override env var for our local os
     storage_name = attachment_data["local_storage"]["name"].upper()
     storage_id = attachment_data["local_storage"]["id"]
@@ -304,6 +306,8 @@ def __resolve_url_link(tk, attachment_data):
     # python returns drive letter paths incorrectly and need adjusting.
     if re.match("^/[A-Za-z]:/", resolved_path):
         resolved_path = resolved_path[1:]
+
+    # XXX: update to use new storage logic?
 
     # we now have one of the following three forms (with slashes):
     # /path/to/file.ext

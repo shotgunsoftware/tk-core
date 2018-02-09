@@ -218,6 +218,7 @@ class FolderConfiguration(object):
             # read metadata to determine root path
             metadata = self._read_metadata(project_folder)
 
+            # XXX: update to use latest logic?
             if metadata is None:
                 if os.path.basename(project_folder) == "project":
                     # This is a project folder with no project.yml file specified

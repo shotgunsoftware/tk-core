@@ -715,6 +715,7 @@ def make_template_paths(data, keys, all_per_platform_roots):
     for template_name, template_data in templates_data.items():
         definition = template_data["definition"]
         root_name = template_data.get("root_name")
+        # XXX update to use new logic?
         if not root_name:
             # If the root name is not explicitly set we use the only one we got
             # if dealing with a single root or enforce the use of the good old

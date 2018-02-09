@@ -259,3 +259,5 @@ class ConfigDescriptor(Descriptor):
         """
         roots_data = self._get_roots_data()
         return roots_data.keys()
+
+    # XXX: expose full storage dict here?

@@ -814,6 +814,7 @@ class TemplateConfiguration(object):
         self._config_uri = config_uri
         self._roots_data = self._read_roots_file()
 
+        # XXX: update to recognize the "default" key in the storage root dict
         # If there is more than one storage defined, ensure one of them is named
         # "primary". We need to enforce this restriction to ensure we will always
         # pick the same storage as our primary storage.
@@ -901,6 +902,9 @@ class TemplateConfiguration(object):
 
         :returns: A dictionary for keyed by storage
         """
+
+        # XXX update to use new roots format
+
         # get the roots definition
         root_file_path = os.path.join(self._cfg_folder, "core", constants.STORAGE_ROOTS_FILE)
         if os.path.exists(root_file_path):
@@ -1021,6 +1025,7 @@ class TemplateConfiguration(object):
     ################################################################################################
     # Public interface
 
+    # XXX update to use new interface
     def resolve_storages(self):
         """
         Validate that the roots exist in shotgun. Communicates with Shotgun.
