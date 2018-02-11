@@ -10,13 +10,18 @@
 
 import os
 
+from tank_vendor import yaml
+
+from .. import LogManager
 from ..errors import TankError
 
+from . import filesystem
 from . import ShotgunPath
 from . import shotgun
 from . import yaml_cache
 
-# TODO: add logging
+log = LogManager.get_logger(__name__)
+
 
 class StorageRoots(object):
     """
@@ -77,6 +82,12 @@ class StorageRoots(object):
             configuration.
         """
 
+        log.debug(
+            "Initializing storage roots object. "
+            "Supplied config folder: %s" %
+            (config_folder,)
+        )
+
         # ---- set some basic data for the object
 
         # the supplied roots folder, just in case
@@ -88,20 +99,32 @@ class StorageRoots(object):
             self.STORAGE_ROOTS_FILE_PATH
         )
 
+        log.debug(
+            "Storage roots file defined in the config: %s" %
+            (self._storage_roots_file,)
+        )
+
         # load the roots file and store the metadata
-        self._storage_roots_metadata = _get_storage_roots_metadata(
-            self._storage_roots_file)
+        roots_metadata = _get_storage_roots_metadata(self._storage_roots_file)
+        log.debug("Storage roots metadata: %s" % (roots_metadata,))
+
+        # store it on the object
+        self._storage_roots_metadata = roots_metadata
 
         # ---- store information about the roots for easy access
+
+        # query all local storages from SG so we can store a lookup of roots
+        # defined here to SG storages
 
         # fields required for SG local storage queries
         local_storage_fields = ["code", "id"]
         local_storage_fields.extend(ShotgunPath.SHOTGUN_PATH_FIELDS)
 
-        # query all local storages from SG so we can store a lookup of roots
-        # defined here to SG storages
+        # create the SG connection and query
+        log.debug("Querying SG local storages...")
         sg = shotgun.get_sg_connection()
         sg_storages = sg.find("LocalStorage", [], local_storage_fields)
+        log.debug("Query returned %s storages." % (len(sg_storages,)))
 
         # create lookups of storages by name and id for convenience. we'll check
         # against each root's shotgun_storage_id first, falling back to the
@@ -120,16 +143,28 @@ class StorageRoots(object):
 
         self._default_storage_name = None
 
-        # now check that each storage is defined in Shotgun
-        for root_name, root_info in self._storage_roots_metadata.iteritems():
+        log.debug("Processing required storages defined by the config...")
+
+        # iterate over each storage root required by the configuration and
+        # associate each with a SG local storage. While here, store some
+        # information for easy access when needed such as the default storage,
+        # unmapped storages, etc.
+        for root_name, root_info in roots_metadata.iteritems():
+
+            log.debug("Processing storage: %s - %s" % (root_name, root_info))
 
             # store a shotgun path for each root definition. sanitize path data
-            # by passing it through the ShotgunPath object
+            # by passing it through the ShotgunPath object. if the configuration
+            # has not been installed, these paths may be None.
             self._shotgun_paths_lookup[root_name] = \
                 ShotgunPath.from_shotgun_dict(root_info)
 
             # check to see if this root is marked as the default
             if root_info.get("default", False):
+                log.debug(
+                    "Storage root %s explicitly marked as the default." %
+                    (root_name,)
+                )
                 self._default_storage_name = root_name
 
             # see if the shotgun storage id is specified explicitly in the
@@ -137,35 +172,63 @@ class StorageRoots(object):
             root_storage_id = root_info.get("shotgun_storage_id")
             if root_storage_id and root_storage_id in sg_storages_by_id:
                 # found a match. store it in the lookup
-                self._local_storage_lookup[root_name] = \
-                    sg_storages_by_id[root_storage_id]
+                sg_storage = sg_storages_by_id[root_storage_id]
+                log.debug(
+                    "Storage root %s explicitly associated with SG local "
+                    "storage id %s (%s)" %
+                    (root_name, root_storage_id, sg_storage)
+                )
+                self._local_storage_lookup[root_name] = sg_storage
                 continue
 
             # if we're here, no storage is specified explicitly. fall back to
             # the storage name.
             if root_name in sg_storages_by_name:
                 # found a match. store it in the lookup
-                self._local_storage_lookup[root_name] = \
-                    sg_storages_by_name[root_name]
+                sg_storage = sg_storages_by_name[root_name]
+                log.debug(
+                    "Storage root %s matches SG local storage with same name "
+                    "(%s)" % (root_name, sg_storage)
+                )
+                self._local_storage_lookup[root_name] = sg_storage
                 continue
 
             # if we're here, then we could not map the storage root to a local
-            # storage in SG. keep a record of it to report below
+            # storage in SG
+            log.warning(
+                "Storage root %s could not be mapped to a SG local storage" %
+                (root_name,)
+            )
             self._unmapped_root_names.append(root_name)
 
-        # no storage root defined explicitly
+        # no default storage root defined explicitly
         if not self._default_storage_name:
 
-            # if there is only one, then that is the default
-            if len(self._storage_roots_metadata) == 1:
-                self._default_storage_name = \
-                    self._storage_roots_metadata.keys()[0]
-            else:
-                # fall back to the legacy primary storage name
-                self._default_storage_name = self._storage_roots_metadata.get(
-                    self.LEGACY_DEFAULT_STORAGE_NAME)
+            log.debug("No default storage explicitly defined...")
 
-            # NOTE: the default storage may still be None
+            # if there is only one, then that is the default
+            if len(roots_metadata) == 1:
+                sole_storage_root = roots_metadata.keys()[0]
+                log.debug(
+                    "Storage %s identified as the default root because it is "
+                    "the only root required by the configuration" %
+                    (sole_storage_root,)
+                )
+                self._default_storage_name = sole_storage_root
+            elif self.LEGACY_DEFAULT_STORAGE_NAME in roots_metadata:
+                # legacy primary storage name defined. that is the defautl
+                log.debug(
+                    "Storage %s identified as the default root because it "
+                    "matches the legacy default root name." %
+                    (self.LEGACY_DEFAULT_STORAGE_NAME,)
+                )
+                self._default_storage_name = self.LEGACY_DEFAULT_STORAGE_NAME
+            else:
+                # default storage will be None
+                log.warning(
+                    "Unable to identify a default storage root in the config's "
+                    "required storages."
+                )
 
     @property
     def as_shotgun_paths(self):
@@ -236,17 +299,35 @@ class StorageRoots(object):
         :return:
         """
 
-        # TODO:
+        # raise an error if there are any roots that can not be mapped to SG
+        # local storage entries
+        if self.unmapped:
+            raise TankError(
+                "The following storages are defined by %s but is can not be "
+                "mapped to a local storage in Shotgun: %s" % (
+                    self._storage_roots_file,
+                    ", ".join(self.unmapped)
+                )
+            )
+
         # build up a new metadata dict
-        # iterate over each storage defined and pull the paths from the SG dict
-            storage_path = ShotgunPath.from_shotgun_dict(storage_by_name[storage_name])
-            roots_data[storage_name] = storage_path.as_shotgun_dict()
+        roots_metadata = self._storage_roots_metadata
+
+        for root_name, root_info in roots_metadata.iteritems():
+
+            # get the cached SG storage dict
+            sg_local_storage = self._local_storage_lookup[root_name]
+
+            # get the local storage as a ShotgunPath object
+            storage_sg_path = ShotgunPath.from_shotgun_dict(sg_local_storage)
+
+            # update the root's metadata with the dictionary of all
+            # sys.platform-style paths
+            root_info.update(storage_sg_path.as_shotgun_dict())
 
         # write the new metadata to disk
-        with self._open_auto_created_yml(roots_file) as fh:
-            yaml.safe_dump(roots_data, fh)
-            fh.write("\n")
-            fh.write("# End of file.\n")
+        with filesystem.auto_created_yml(self._storage_roots_file) as fh:
+            yaml.safe_dump(roots_metadata, fh)
 
 
 def _get_storage_roots_metadata(storage_roots_file):
@@ -258,9 +339,14 @@ def _get_storage_roots_metadata(storage_roots_file):
     :return: The parsed metadata as a dictionary.
     """
 
+    log.debug(
+        "Reading storage roots file form disk: %s" %
+        (storage_roots_file,)
+    )
+
     try:
         # keep a handle on the raw metadata read from the roots file
-        metadata = yaml_cache.g_yaml_cache.get(
+        roots_metadata = yaml_cache.g_yaml_cache.get(
             storage_roots_file,
             deepcopy_data=False
         ) or {}  # if file is empty, initialize with empty dict
@@ -272,31 +358,6 @@ def _get_storage_roots_metadata(storage_roots_file):
             "Error: %s" % (storage_roots_file, e)
         )
 
-    return metadata
+    log.debug("Read metadata: %s" % (roots_metadata,))
 
-# TODO:
-@filesystem.with_cleared_umask
-def _open_auto_created_yml(path):
-    """
-    Open a standard auto generated yml for writing.
-
-    - any existing files will be removed
-    - the given path will be open for writing in text mode
-    - a standard header will be added
-
-    :param path: path to yml file to open for writing
-    :return: file handle. It's the respoponsibility of the caller to close this.
-    """
-    log.debug("Creating auto-generated config file %s" % path)
-    # clean out any existing file and replace it with a new one.
-    filesystem.safe_delete_file(path)
-
-    # open file for writing
-    fh = open(path, "wt")
-
-    fh.write("# This file was auto generated by the Shotgun Pipeline Toolkit.\n")
-    fh.write("# Please do not modify by hand as it may be overwritten at any point.\n")
-    fh.write("# Created %s\n" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    fh.write("# \n")
-
-    return fh
+    return roots_metadata
