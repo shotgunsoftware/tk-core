@@ -533,52 +533,22 @@ class ConfigurationWriter(object):
 
         :param config_descriptor: Config descriptor object
         """
+
         log.debug("Creating storage roots file...")
 
-        # get list of storages in Shotgun
-        sg_data = self._sg_connection.find(
-            "LocalStorage",
-            [],
-            fields=["id", "code"] + ShotgunPath.SHOTGUN_PATH_FIELDS)
-
-        # XXX: update to use new format
-
-        # organize them by name
-        storage_by_name = {}
-        for storage in sg_data:
-            storage_by_name[storage["code"]] = storage
-
-        # now write out roots data
-        roots_data = {}
-
-        for storage_name in config_descriptor.required_storages:
-
-            if storage_name not in storage_by_name:
-                raise TankBootstrapError(
-                    "A '%s' storage is defined by %s but is "
-                    "not defined in Shotgun." % (storage_name, config_descriptor)
+        # TODO: all of this in storage_roots.update?
+        if config_descriptor.storage_roots.unmapped:
+            raise TankBootstrapError(
+                "The following storages are defined by %s but is can not be "
+                "mapped to a local storage in Shotgun: %s" % (
+                    config_descriptor,
+                    ", ".join(config_descriptor.storage_roots.unmapped)
                 )
-            storage_path = ShotgunPath.from_shotgun_dict(storage_by_name[storage_name])
-            roots_data[storage_name] = storage_path.as_shotgun_dict()
-
-        roots_file = os.path.join(
-            self._path.current_os,
-            "config",
-            "core",
-            constants.STORAGE_ROOTS_FILE
-        )
-
-        if os.path.exists(roots_file):
-            # warn if this file already exists
-            log.warning(
-                "The file 'core/%s' exists in the configuration "
-                "but will be overwritten with an auto generated file." % constants.STORAGE_ROOTS_FILE
             )
 
-        with self._open_auto_created_yml(roots_file) as fh:
-            yaml.safe_dump(roots_data, fh)
-            fh.write("\n")
-            fh.write("# End of file.\n")
+        # update the storage roots file to include the local storage paths
+        # defined in SG. this overrwrites the existing storage roots file.
+        config_descriptor.storage_roots.update()
 
     def is_transaction_pending(self):
         """

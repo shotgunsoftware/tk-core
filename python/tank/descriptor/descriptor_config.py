@@ -12,13 +12,12 @@ from __future__ import with_statement
 
 import os
 
-from tank_vendor import yaml
-
 from ..errors import TankFileDoesNotExistError
 from . import constants
 from .errors import TankInvalidInterpreterLocationError
 from .descriptor import Descriptor, create_descriptor
 from .. import LogManager
+from ..util import StorageRoots
 from ..util import ShotgunPath
 from ..util.version import is_version_older
 from .io_descriptor import descriptor_uri_to_dict
@@ -37,6 +36,7 @@ class ConfigDescriptor(Descriptor):
         self._sg_connection = sg_connection
         self._bundle_cache_root = bundle_cache_root
         self._fallback_roots = fallback_roots
+        self._storage_roots = None
 
     @property
     def associated_core_descriptor(self):
@@ -226,28 +226,6 @@ class ConfigDescriptor(Descriptor):
                 "No interpreter file for the current platform found at '%s'." % interpreter_config_file
             )
 
-    def _get_roots_data(self):
-        """
-        Returns roots.yml data for this config.
-        If no root file can be loaded, {} is returned.
-
-        :returns: Roots data yaml content, usually a dictionary
-        """
-        # get the roots definition
-        root_file_path = os.path.join(
-            self.get_config_folder(),
-            "core",
-            constants.STORAGE_ROOTS_FILE)
-
-        roots_data = {}
-
-        if os.path.exists(root_file_path):
-            with open(root_file_path, "r") as root_file:
-                # if file is empty, initializae with empty dict...
-                roots_data = yaml.load(root_file) or {}
-
-        return roots_data
-
     @property
     def required_storages(self):
         """
@@ -257,7 +235,28 @@ class ConfigDescriptor(Descriptor):
 
         :returns: List of storage names as strings
         """
-        roots_data = self._get_roots_data()
-        return roots_data.keys()
 
-    # XXX: expose full storage dict here?
+        # empty list if the described config does not define storage roots
+        if not StorageRoots.defined(self.get_config_folder()):
+            return []
+
+        return self.storage_roots.names
+
+    @property
+    def storage_roots(self):
+        """
+        A ``StorageRoots`` instance for this config descriptor.
+
+        Returns None if the config does not define any storage roots.
+        """
+
+        config_folder = self.get_config_folder()
+
+        if not StorageRoots.defined(config_folder):
+            return None
+
+        # defer StorageRoots instance creation until requested
+        if not self._storage_roots:
+            self._storage_roots = StorageRoots(config_folder)
+
+        return self._storage_roots
