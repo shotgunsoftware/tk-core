@@ -526,7 +526,6 @@ def _get_pipeline_configs_for_path(path, data):
     :param data: Cache data chunk, obtained using _get_pipeline_configs()
     :returns: list of pipeline configurations matching the path, [] if no match.
     """
-
     # step 1 - extract all storages for the current os
     storages = []
     for s in data["local_storages"]:
