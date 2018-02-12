@@ -22,30 +22,22 @@ from . import yaml_cache
 log = LogManager.get_logger(__name__)
 
 
-# TODO:
-  # double check:
-    # docstring contents
-    # params
-    # return values
-    # logging
-  # write:
-    # __str__
-    # __repr__
-    # unit tests
+# TODO: add unittests for this
 
 class StorageRoots(object):
     """
-    This class provides an interface for a configuration's defined storage
-    roots as specified in config/core/roots.yml.
+    This class provides a centralized interface and processing logic for the
+    storage roots as specified in a configuration's config/core/roots.yml.
+    The roots.yml defines the local storages in Shotgun that a configuration
+    requires.
 
-    The class is instantiated by providing the configuration's root folder.
+    Instances of this class can be instantiated by providing a config folder,
+    under which roots are defined, or by providing the roots metadata itself
+    as is common when creating the initial state of a configuration's roots
+    (during setup).
+
     Methods are provided for accessing information about the configuration's
-    storages including the default storages and paths for the current operating
-    system.
-
-    The roots.yml file is a reflection of the local storages setup in Shotgun
-    at project setup time and may contain anomalies in the path layout
-    structure.
+    storages as well as writing the roots definitions to disk.
     """
 
     ############################################################################
@@ -55,7 +47,7 @@ class StorageRoots(object):
     # defined explicitly in the roots file
     LEGACY_DEFAULT_STORAGE_NAME = "primary"
 
-    # the file path where storage roots are defined in a configuration
+    # the relative path where storage roots are defined in a configuration
     STORAGE_ROOTS_FILE_PATH = os.path.join("core", "roots.yml")
 
     # sys.platform-specific path keys as expected in the root definitions
@@ -67,8 +59,11 @@ class StorageRoots(object):
     @classmethod
     def defined(cls, config_folder):
         """
-        Returns True if the configuration has a storage roots definition file.
-        False otherwise.
+        Returns ``True`` if the configuration has a storage roots definition
+        file. ``False`` otherwise.
+
+        :param config_folder: The path to a config folder
+        :rtype: bool
         """
         roots_file = os.path.join(config_folder, cls.STORAGE_ROOTS_FILE_PATH)
         return os.path.exists(roots_file)
@@ -78,12 +73,18 @@ class StorageRoots(object):
         """
         Constructs a StorageRoots object from the supplied config folder.
 
+        The supplied config folder may or may not define required storage roots,
+        but the method will return a ``StorageRoots`` instance anyway.
+
         :param config_folder: The path to a config folder
-        :returns: A StorageRoots instance
+        :returns: A ``StorageRoots`` object instance
         """
 
+        log.debug(
+            "Creating StorageRoots instance from config: %s" % (config_folder,))
         storage_roots = cls()
         storage_roots._init_from_config(config_folder)
+        log.debug("Created: %s" % (storage_roots,))
 
         return storage_roots
 
@@ -92,29 +93,67 @@ class StorageRoots(object):
         """
         Constructs a StorageRoots object from the supplied metadata.
 
+        The supplied metadata should be a dictionary where the keys represent
+        the names of storage roots and the values are dictionaries that define
+        that storage.
+
+        Example metadata dictionary::
+
+            {
+                "work": {
+                    "description": "Storage root for artist work files",
+                    "default": true,
+                    "shotgun_storage_id": 123,
+                    "linux_path": "/proj/work",
+                    "mac_path": "/proj/work",
+                    "windows_path": "\\\\proj\\work",
+                },
+                "data": {
+                    "description": "Storage root for large data sets",
+                    "default": false,
+                    "shotgun_storage_id": 456,
+                    "linux_path": "/studio/data",
+                    "mac_path": "/studio/data",
+                    "windows_path": "\\\\network\\data",
+                }
+            }
+
         :param metadata: The storage roots metadata this object wraps
-        :returns: A StorageRoots instance
+        :returns: A ``StorageRoots`` object instance
         """
 
+        log.debug(
+            "Creating StorageRoots instance from metadata: %s" % (metadata,))
         storage_roots = cls()
         storage_roots._process_metadata(metadata)
+        log.debug("Created: %s" % (storage_roots,))
 
         return storage_roots
 
     @classmethod
     def write(cls, sg_connection, config_folder, storage_roots):
         """
-        Given a StorageRoots object, write it's contents to the standard roots
-        location within the supplied config folder. The method will write the
-        corresponding local storage paths to the file as defined in Shotgun.
-        This action will overwrite the existing storage roots file for the
-        configuration.
+        Given a ``StorageRoots`` object, write it's metadata to the standard
+        roots location within the supplied config folder. The method will write
+        the corresponding local storage paths to the file as defined in Shotgun.
+        This action will overwrite any existing storage roots file defined by
+        the configuration.
+
+        :param sg_connection: An existing SG connection, used to query local
+            storage entities to ensure paths are up-to-date when the file is
+            written.
+        :param config_folder: The configuration folder under which the required
+            roots file is written.
+        :param storage_roots: A ``StorageRoots`` object instance that defines
+            the required roots.
         """
 
         (local_storage_lookup, unmapped_roots) = \
             storage_roots.get_local_storages(sg_connection)
 
         roots_file = os.path.join(config_folder, cls.STORAGE_ROOTS_FILE_PATH)
+
+        log.debug("Writing storage roots to: %s" % (roots_file,))
 
         # raise an error if there are any roots that can not be mapped to SG
         # local storage entries
@@ -150,9 +189,13 @@ class StorageRoots(object):
             # sys.platform-style paths
             root_info.update(storage_sg_path.as_shotgun_dict())
 
+        log.debug("Writing storage roots metadata: %s" % (roots_metadata,))
+
         # write the new metadata to disk
         with filesystem.auto_created_yml(roots_file) as fh:
             yaml.safe_dump(roots_metadata, fh)
+
+        log.debug("Finished writing storage roots file: %s" % (roots_file,))
 
     ############################################################################
     # special methods
@@ -161,14 +204,9 @@ class StorageRoots(object):
         """
         Initialize the storage roots object.
 
-        Instances should not be created directly. Use the from_* class methods
-        to create storage root instances.
-
-        :param config_folder: The config folder within the pipeline
-            configuration.
+        Instances should not be created directly. Use the ``from_config`` or
+        ``from_metadata`` class methods to create ``StorageRoot`` instances.
         """
-
-        # information stored on the object
 
         # the path to the config folder
         self._config_root_folder = None
@@ -188,10 +226,20 @@ class StorageRoots(object):
     def __iter__(self):
         """
         Allows iteration over each defined root name and corresponding metadata.
-        :return:
+
+        Yields root names and corresponding metadata upon iteration.
         """
         for root_name, root_info in self._storage_roots_metadata.iteritems():
             yield root_name, root_info
+
+    def __repr__(self):
+        """
+        Returns a string representation of the object.
+        """
+        return "<StorageRoots folder:'%s', roots:'%s'>" % (
+            self._storage_roots_file,
+            ",".join(self.required)
+        )
 
     ############################################################################
     # properties
@@ -217,14 +265,14 @@ class StorageRoots(object):
     @property
     def default(self):
         """
-        The name of the default storage root
+        The name (``str``) of the default storage root.
         """
         return self._default_storage_name
 
     @property
     def default_path(self):
         """
-        A ShotgunPath object for the configuration's default storage root
+        A ``ShotgunPath`` object for the configuration's default storage root.
         """
         if self._default_storage_name not in self._shotgun_paths_lookup:
             # no default storage defined
@@ -237,15 +285,15 @@ class StorageRoots(object):
         """
         The required storage roots metadata dictionary.
 
-        This is a dictionary representation of the contents of the file.
-        :return:
+        This is a dictionary representation of the contents of the file. See the
+        ``from_metadata`` method to see the structure of this dictionary.
         """
         return self._storage_roots_metadata
 
     @property
     def roots_file(self):
         """
-        The path to the storage root file represented by this object.
+        The path (``str``) to the storage root file represented by this object.
         """
         if not self._storage_roots_file:
             return None
@@ -255,7 +303,8 @@ class StorageRoots(object):
     @property
     def required(self):
         """
-        A list of all reqired storage root names by this configuration.
+        A list of all required storage root names (``str``) by this
+        configuration.
         """
         return self._storage_roots_metadata.keys()
 
@@ -420,6 +469,12 @@ class StorageRoots(object):
     # protected methods
 
     def _init_from_config(self, config_folder):
+        """
+        Initialize the internal object data with the required storage roots
+        defined under the supplied config folder.
+
+        :param config_folder: The path to a configuration
+        """
 
         log.debug(
             "Initializing storage roots object. "
@@ -454,6 +509,14 @@ class StorageRoots(object):
         self._process_metadata(roots_metadata)
 
     def _process_metadata(self, roots_metadata):
+        """
+        Processes the supplied roots metadata and populates the internal object
+        data structures. This includes storing easy access to the default root
+        and other commonly accessed information.
+
+        :param dict roots_metadata: A dictonary of metadata to use to populate
+            the object. See the ``from_metadata`` class method for more info.
+        """
 
         log.debug("Storage roots metadata: %s" % (roots_metadata,))
 
@@ -522,7 +585,6 @@ def _get_storage_roots_metadata(storage_roots_file):
     Parse the supplied storage roots file
 
     :param storage_roots_file: Path to the roots file.
-
     :return: The parsed metadata as a dictionary.
     """
 

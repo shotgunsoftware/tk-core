@@ -72,11 +72,9 @@ class PipelineConfiguration(object):
         current_api_version = pipelineconfig_utils.get_currently_running_api_version()
 
         if our_associated_api_version not in [None, "unknown", "HEAD"] and \
-                is_version_older(current_api_version,
-                                 our_associated_api_version):
+                is_version_older(current_api_version, our_associated_api_version):
             # currently running API is too old!
-            current_api_path = os.path.abspath(
-                os.path.join(os.path.dirname(__file__), ".."))
+            current_api_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
             # tell the user that their core is too old for this config
             #
@@ -85,15 +83,13 @@ class PipelineConfiguration(object):
             # and then try to do sgtk_from_path("/path/to/pipeline/config") and that config
             # is using a more recent version of the core.
 
-            raise TankError(
-                "You are running Toolkit %s located in '%s'. The configuration you are "
-                "trying to use needs core version %s or higher. To fix this, "
-                "use the tank command (or Toolkit core API) located at '%s' "
-                "which is associated with this configuration." % (
-                current_api_version,
-                current_api_path,
-                our_associated_api_version,
-                self.get_install_location()))
+            raise TankError("You are running Toolkit %s located in '%s'. The configuration you are "
+                            "trying to use needs core version %s or higher. To fix this, "
+                            "use the tank command (or Toolkit core API) located at '%s' "
+                            "which is associated with this configuration." % (current_api_version,
+                                                                              current_api_path,
+                                                                              our_associated_api_version,
+                                                                              self.get_install_location()))
 
         # keep a storage roots object interface instance in order to query roots
         # info as needed
@@ -129,11 +125,8 @@ class PipelineConfiguration(object):
         # Enable the use of env variables for project and pipeline configuration settings
         self._project_name = os.path.expandvars(self._project_name)
         self._pc_name = os.path.expandvars(self._pc_name)
-        self._project_id = int(
-            os.path.expandvars(self._project_id)) if isinstance(
-            self._project_id, str) else self._project_id
-        self._pc_id = int(os.path.expandvars(self._pc_id)) if isinstance(
-            self._pc_id, str) else self._pc_id
+        self._project_id = int(os.path.expandvars(self._project_id)) if isinstance(self._project_id, str) else self._project_id
+        self._pc_id = int(os.path.expandvars(self._pc_id)) if isinstance(self._pc_id, str) else self._pc_id
 
         self._use_shotgun_path_cache = pipeline_config_metadata.get(
             "use_shotgun_path_cache",
@@ -147,12 +140,10 @@ class PipelineConfiguration(object):
             self._bundle_cache_root_override = None
         else:
             # use cache relative to core install
-            self._bundle_cache_root_override = os.path.join(
-                self.get_install_location(), "install")
+            self._bundle_cache_root_override = os.path.join(self.get_install_location(), "install")
 
         if pipeline_config_metadata.get("bundle_cache_fallback_roots"):
-            self._bundle_cache_fallback_paths = pipeline_config_metadata.get(
-                "bundle_cache_fallback_roots")
+            self._bundle_cache_fallback_paths = pipeline_config_metadata.get("bundle_cache_fallback_roots")
         else:
             self._bundle_cache_fallback_paths = []
 
@@ -232,41 +223,29 @@ class PipelineConfiguration(object):
         #
         if constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA in os.environ:
             try:
-                external_data = pickle.loads(
-                    os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA])
+                external_data = pickle.loads(os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA])
             except Exception as e:
                 log.warning("Could not load external config data from: %s" % e)
 
             if "project_id" in external_data:
                 self._project_id = external_data["project_id"]
-                log.debug(
-                    "%s: Setting project id to %s from external config data" % (
-                    self, self._project_id))
+                log.debug("%s: Setting project id to %s from external config data" % (self, self._project_id))
 
             if "project_name" in external_data:
                 self._project_name = external_data["project_name"]
-                log.debug(
-                    "%s: Setting project name to %s from external config data" % (
-                    self, self._project_name))
+                log.debug("%s: Setting project name to %s from external config data" % (self, self._project_name))
 
             if "pipeline_config_id" in external_data:
                 self._pc_id = external_data["pipeline_config_id"]
-                log.debug(
-                    "%s: Setting pipeline config id to %s from external config data" % (
-                    self, self._pc_id))
+                log.debug("%s: Setting pipeline config id to %s from external config data" % (self, self._pc_id))
 
             if "pipeline_config_name" in external_data:
                 self._pc_name = external_data["pipeline_config_name"]
-                log.debug(
-                    "%s: Setting pipeline config name to %s from external config data" % (
-                    self, self._pc_name))
+                log.debug("%s: Setting pipeline config name to %s from external config data" % (self, self._pc_name))
 
             if "bundle_cache_paths" in external_data:
-                self._bundle_cache_fallback_paths = external_data[
-                    "bundle_cache_paths"]
-                log.debug(
-                    "%s: Setting bundle cache fallbacks to %s from external config data" % (
-                    self, self._bundle_cache_fallback_paths)
+                self._bundle_cache_fallback_paths = external_data["bundle_cache_paths"]
+                log.debug("%s: Setting bundle cache fallbacks to %s from external config data" % (self, self._bundle_cache_fallback_paths)
                 )
 
         # Populate the global yaml_cache if we find a pickled cache on disk.
@@ -274,8 +253,7 @@ class PipelineConfiguration(object):
         self._populate_yaml_cache()
 
         # run init hook
-        self.execute_core_hook_internal(
-            constants.PIPELINE_CONFIGURATION_INIT_HOOK_NAME, parent=self)
+        self.execute_core_hook_internal(constants.PIPELINE_CONFIGURATION_INIT_HOOK_NAME, parent=self)
 
     def __repr__(self):
         return "<Sgtk Configuration %s>" % self._pc_root
@@ -304,9 +282,8 @@ class PipelineConfiguration(object):
             if data is None:
                 raise Exception("File contains no data!")
         except Exception as e:
-            raise TankError(
-                "Looks like a config file is corrupt. Please contact "
-                "support! File: '%s' Error: %s" % (cfg_yml, e))
+            raise TankError("Looks like a config file is corrupt. Please contact "
+                            "support! File: '%s' Error: %s" % (cfg_yml, e))
         finally:
             fh.close()
 
@@ -349,8 +326,7 @@ class PipelineConfiguration(object):
             yaml.safe_dump(curr_settings, fh)
         except Exception as exp:
             raise TankError("Could not write to configuration file '%s'. "
-                            "Error reported: %s" % (
-                            pipe_config_sg_id_path, exp))
+                            "Error reported: %s" % (pipe_config_sg_id_path, exp))
         finally:
             fh.close()
             os.umask(old_umask)
@@ -397,8 +373,7 @@ class PipelineConfiguration(object):
         finally:
             fh.close()
 
-        log.debug(
-            "Read %s items from yaml cache %s" % (len(cache_items), cache_file))
+        log.debug("Read %s items from yaml cache %s" % (len(cache_items), cache_file))
 
     ########################################################################################
     # general access and properties
@@ -422,8 +397,7 @@ class PipelineConfiguration(object):
 
         :returns: ShotgunPath
         """
-        return pipelineconfig_utils.resolve_all_os_paths_to_config(
-            self._pc_root)
+        return pipelineconfig_utils.resolve_all_os_paths_to_config(self._pc_root)
 
     def get_name(self):
         """
@@ -470,8 +444,8 @@ class PipelineConfiguration(object):
                 return False
 
         if _is_empty(data.get("linux_path")) and \
-                _is_empty(data.get("windows_path")) and \
-                _is_empty(data.get("mac_path")):
+           _is_empty(data.get("windows_path")) and \
+           _is_empty(data.get("mac_path")):
             # all three pipeline config fields are empty.
             # This means that we are running an auto path config
             return True
@@ -803,8 +777,7 @@ class PipelineConfiguration(object):
             # platform specific resolve
             platform_key = ShotgunPath.get_shotgun_storage_key()
             if platform_key in descriptor_dict:
-                descriptor_dict[platform_key] = descriptor_dict[
-                    platform_key].replace(
+                descriptor_dict[platform_key] = descriptor_dict[platform_key].replace(
                     constants.PIPELINE_CONFIG_DEV_DESCRIPTOR_TOKEN,
                     self.get_path()
                 )
@@ -818,8 +791,7 @@ class PipelineConfiguration(object):
 
         return descriptor_dict
 
-    def _get_descriptor(self, descriptor_type, dict_or_uri, latest=False,
-                        constraint_pattern=None):
+    def _get_descriptor(self, descriptor_type, dict_or_uri, latest=False, constraint_pattern=None):
         """
         Constructs a descriptor object given a descriptor dictionary.
 
@@ -1045,8 +1017,7 @@ class PipelineConfiguration(object):
         :param env_name:    The name of the environment.
         :returns:           String path to the environment yaml file.
         """
-        return os.path.join(self.get_config_location(), "env",
-                            "%s.yml" % env_name)
+        return os.path.join(self.get_config_location(), "env", "%s.yml" % env_name)
 
     def _get_templates_config_location(self):
         """
@@ -1064,8 +1035,7 @@ class PipelineConfiguration(object):
         templates_file = self._get_templates_config_location()
 
         try:
-            data = yaml_cache.g_yaml_cache.get(templates_file,
-                                               deepcopy_data=False) or {}
+            data = yaml_cache.g_yaml_cache.get(templates_file, deepcopy_data=False) or {}
             data = template_includes.process_includes(templates_file, data)
         except TankUnreadableFileError:
             data = dict()
@@ -1097,8 +1067,7 @@ class PipelineConfiguration(object):
             # no custom hook detected in the pipeline configuration
             # fall back on the hooks that come with the currently running version
             # of the core API.
-            hooks_path = os.path.abspath(
-                os.path.join(os.path.dirname(__file__), "..", "..", "hooks"))
+            hooks_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "hooks"))
             hook_path = os.path.join(hooks_path, file_name)
 
         try:
@@ -1107,14 +1076,12 @@ class PipelineConfiguration(object):
             # log the full callstack to make sure that whatever the
             # calling code is doing, this error is logged to help
             # with troubleshooting and support
-            log.exception(
-                "Exception raised while executing hook '%s'" % hook_path)
+            log.exception("Exception raised while executing hook '%s'" % hook_path)
             raise
 
         return return_value
 
-    def execute_core_hook_method_internal(self, hook_name, method_name, parent,
-                                          **kwargs):
+    def execute_core_hook_method_internal(self, hook_name, method_name, parent, **kwargs):
         """
         Executes a new style core hook, passing it any keyword arguments supplied.
 
@@ -1146,14 +1113,12 @@ class PipelineConfiguration(object):
             hook_paths.append(hook_path)
 
         try:
-            return_value = hook.execute_hook_method(hook_paths, parent,
-                                                    method_name, **kwargs)
+            return_value = hook.execute_hook_method(hook_paths, parent, method_name, **kwargs)
         except:
             # log the full callstack to make sure that whatever the
             # calling code is doing, this error is logged to help
             # with troubleshooting and support
-            log.exception(
-                "Exception raised while executing hook '%s'" % hook_paths[-1])
+            log.exception("Exception raised while executing hook '%s'" % hook_paths[-1])
             raise
 
         return return_value

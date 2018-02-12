@@ -698,12 +698,7 @@ def read_templates(pipeline_configuration):
     return templates
 
 
-def make_template_paths(
-    data,
-    keys,
-    all_per_platform_roots,
-    default_root=None
-):
+def make_template_paths(data, keys, all_per_platform_roots, default_root=None):
     """
     Factory function which creates TemplatePaths.
 

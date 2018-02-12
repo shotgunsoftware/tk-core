@@ -174,12 +174,12 @@ class Sgtk(object):
     @property
     def project_path(self):
         """
-        Path to the primary/default data directory for a project.
+        Path to the default data directory for a project.
 
         Toolkit Projects that utilize the template system to read and write data
         to disk will use a number of Shotgun local storages as part of their
         setup to define where data should be stored on disk. One of these
-        storages is identified as the primary or default storage.
+        storages is identified as the default storage.
 
         :raises: :class:`TankError` if the configuration doesn't use storages.
         """
@@ -188,7 +188,7 @@ class Sgtk(object):
     @property
     def roots(self):
         """
-        Returns a dictionary of root names to root paths.
+        Returns a dictionary of storage root names to storage root paths.
 
         Toolkit Projects that utilize the template system to read and write data
         to disk will use one or more Shotgun local storages as part of their
@@ -198,7 +198,7 @@ class Sgtk(object):
 
             {
                 "work": "/studio/work/my_project",
-                "data": "/studio/data/my_project"
+                "textures": "/studio/textures/my_project"
             }
 
         These items reflect the Local Storages that you have set up in Shotgun.

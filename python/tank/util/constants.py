@@ -48,7 +48,3 @@ SHOTGUN_SCHEMA_CACHE_KEY = "shotgun_schema"
 
 # tk instance cache of sg local storages
 SHOTGUN_LOCAL_STORAGES_CACHE_KEY = "shotgun_local_storages"
-
-# the name of the file that contains the storage root definitions
-STORAGE_ROOTS_FILE = "roots.yml"
-
