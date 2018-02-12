@@ -496,7 +496,7 @@ SHOTGUN_HOME                        Overrides the location where Toolkit stores 
                                     data as well as bundle cache, cached thumbnails and other temp files.
 
 SHOTGUN_BUNDLE_CACHE_PATH           Overrides the path to the main bundle cache, e.g. the location where
-                                    the :ref:`Descriptor Uri<descriptor>` will download bundles.
+                                    the :ref:`Descriptor URI<descriptor>` will download bundles.
 
 SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS Colon separated list of paths to look for bundle cache locations. This is
                                     for example useful if you maintain a centralized bundle cache location

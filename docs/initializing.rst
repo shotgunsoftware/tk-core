@@ -10,43 +10,45 @@ APIs and workflows related to this process.
 Introduction
 ----------------------------------
 
-Toolkit is organized into an arrangement of *Pipeline Configurations*.
-Each Project in Shotgun can have one or more Pipeline Configuration entities associated.
-The entity contains information about which Toolkit configuration to use for the project.
-At runtime, Toolkit executes from an associated Pipeline Configuration on disk, containing
-all the code and configuration required to execute.
+Toolkit is controlled using *Pipeline Configuration Entities*. Each Project in Shotgun can have one or
+more of these entities associated. The Shotgun entity either contains Toolkit configuration settings
+directly, or points to a location where these can be downloaded from.
+
+When Toolkit starts up, it ensures that these configuration settings exists on disk, alongside
+with all other necessary pieces required for Toolkit to operate. This collection of files
+is referred to as a *Pipeline Configuration*.
 
 .. image:: ./resources/initializing/tk_project.png
-    :width: 500px
+    :width: 700px
     :align: center
 
 The Pipeline Configuration on disk contains the following items:
 
-- A configuration. This contains all the the details that define the configuration:
+- Configurat ion files - all the the details that define the configuration:
   app and engine settings, naming convention and file system templates.
 
-- An installed version of the core API as required by the configuration.
+- An installed version of the Toolkit Core API as required by the configuration.
 
 - A ``tank`` command which gives access to admin and maintenance commands to
   make it easy to upgrade and configure the configuration. It also gives
   access to the shell engine environment.
 
-- The bundle cache, contained inside an ``install`` folder, contains
+- A so called bundle cache, contained inside an ``install`` folder, containing
   downloaded apps, frameworks and engines defined by the configuration.
-  This cache is dowloaded from locations such as the Shotgun App Store,
+  This cache is downloaded from locations such as the Shotgun App Store,
   git or from your Shotgun site, all handled by Toolkit's
   :ref:`Descriptor<descriptor>` system.
 
-By default each pipeline configuration in Toolkit has its own
+By default, each pipeline configuration in Toolkit has its own
 independent API and configuration, making it easy to customize different
-projects differently and evolve the pipeline over time without breaking older
+projects independently and evolve the pipeline over time without breaking older
 projects. However, it is possible to arrange your configuration in several
 different other ways, all explained below.
 
-The main Pipeline Configuration for a project is always named ``Primary``.
-In addition to this, additional pipeline configurations can
+In Shotgun, the main Pipeline Configuration Entity for a project is always named ``Primary``.
+In addition to this, additional pipeline configurations entities can
 be set up. Typically, these are used as test areas or **developer sandboxes**, where you
-want to run a special version of the configuration. Configurations can be associated
+want to run with special configuration settings. These developer sandboxes can be associated
 with certain users to make it easy to run development and testing
 in parallel with production.
 
@@ -63,12 +65,11 @@ let's begin by taking a look at how the default Toolkit configuration
 operates at a high level:
 
 .. image:: ./resources/initializing/launch.png
-    :width: 700px
+    :width: 400px
     :align: center
 
 This design is repeated everywhere and is a pattern which can be easily extended.
-Users typically launch Toolkit by launching the Shotgun Desktop. The Shotgun Desktop - seen
-on the left hand side in the figure above -
+Users typically launch Toolkit by launching the Shotgun Desktop. The Shotgun Desktop
 contains a *Toolkit plugin* which runs the :ref:`bootstrap_api` in order to load in a
 full Toolkit environment.
 
@@ -78,14 +79,19 @@ full Toolkit environment.
     suitable for that software environment.
 
 Once the plugin is loaded, and the bootstrap is running, it will start by prompting the user to log in
-to a site. Next, it will connect to the site to determine if any Pipeline Configuration Entities have
-been set up. If so, these are used. If not, the default tooklit plugins will fall back on looking for the
+to a site. Next, it will connect to the Shotgun Site to determine if any Pipeline Configuration Entities
+exist associated with the project. If so, these are used to configure the Toolkit session.
+If not, the default plugins running in Shotgun Desktop will fall back on looking for the
 latest release of the ``tk-config-basic`` configuration in the Shotgun App Store.
 
 The bootstrap API will make the necessary preparations and then launch a Toolkit :ref:`Engine <engines>`,
 as well as the apps defined in the configuration.
 
-In the figure above, especially note the *Launch App* which is designed to launch other software.
+.. image:: ./resources/initializing/launch2.png
+    :width: 700px
+    :align: center
+
+In the figure above, note the *Launch App* which is designed to launch other software.
 This app makes use of a centralized :ref:`Software Launch API<launching_software>`. The launch app
 will use this API to determine the available installations of a software, launch it, and ensure that upon launch,
 the Toolkit plugin associated with that software is launched at startup.
@@ -106,29 +112,35 @@ both briefly outlined below:
 Distributed configurations
 ==========================
 
-To create a distributed configuration manually go into Shotgun and create
-a **Shotgun Pipeline Configuration entity** for your project. At startup,
-this is detected by the Bootstrap API which will automatically
-manage your local configuration on disk, ensuring that you have all the right dependencies needed to
-run the configuration. This is a decentralized workflow where each user will
+Distributed configurations are defined as Pipeline Configurations inside Shotgun.
+At startup, these is detected by the Bootstrap API which will automatically
+manage your local configuration and resources on disk, ensuring that you have all the
+right apps, engines and other dependencies needed to run the configuration.
+This is a decentralized workflow where each user will
 automatically caches all necessary runtime components locally.
 
 .. image:: ./resources/initializing/distributed_config.png
     :width: 700px
     :align: center
 
+.. note:: To create a distributed configuration, manually go into Shotgun and create
+    a **Shotgun Pipeline Configuration entity** for your project. For more information,
+    see :ref:`automatically_managed_pcs`.
+
 Centralized configurations
 ==========================
 
-Via Toolkit's **project setup** system (the project setup wizard or the ``tank setup_project`` command),
-you create a centralized Toolkit configuration
-in a specific location on disk. After project setup, you manually manage the
-configuration, typically via the ``tank`` command. All users who want to access to
-the configuration need to be able to access its shared location on disk.
+Centralized configurations are installed into a specific disk location, usually on a shared storage,
+and accessed by all users. All users who want to access to the configuration need to be able to
+access its shared location on disk.
 
 .. image:: ./resources/initializing/shared_config.png
     :width: 700px
     :align: center
+
+These configurations are created using Toolkit's **project setup** system (either the Shotgun Desktop project
+setup wizard or the ``tank setup_project`` command). After project setup, the configuration is manually
+managed, typically via the ``tank`` command.
 
 
 .. _upload_config_to_shotgun:
@@ -138,8 +150,11 @@ Uploading a configuration to Shotgun
 
 The simplest way to distribute a Toolkit configuration to a group of users, whether these
 are distributed in different locations or all working in the same building, is to upload it
-to Shotgun. Toolkit will take care of distribution and setup. To use this workflow, start by
-creating a custom field on the Pipeline Configuration called
+to Shotgun. At startup, the Toolkit Bootstrap will automatically look for uploaded configuratons
+and if detected, download the configuration locally and then launch. Toolkit will take care
+of distribution and setup.
+
+To use this workflow, start by creating a custom field on the Pipeline Configuration called
 ``sg_uploaded_config``:
 
 .. image:: ./resources/initializing/create_uploaded_config_field.png
@@ -152,8 +167,9 @@ Once created, you can zip up your configuration and upload it as an attachment:
     :width: 700px
     :align: center
 
-At startup, the Toolkit Bootstrap will automatically download the configuration from Shotgun.
-If a new configuration is uploaded to Shotgun, users will pick that up the next time they start up.
+Once a configuration is uploaded, it will be detected and used at boostrap.
+If a new configuration is uploaded to Shotgun, users will pick that up the
+next time they start up.
 
 .. note:: As an example, you can download one of the default configurations from
     github as a zip and upload it as an attachment from Shotgun:
@@ -170,10 +186,10 @@ entity in Shotgun to represent a ``Primary`` configuration:
 .. image:: ./resources/initializing/pipeline_config.png
     :align: center
 
-The descriptor field contains a :ref:`Descriptor Uri<descriptor>` pointing at a
+The descriptor field contains a :ref:`Descriptor URI<descriptor>` pointing at a
 configuration. The bootstrap API will detect this and use it as it starts up
 Toolkit for this particular project. This is a decentralized workflow; every
-user will maintain their own configuration, meaning that you
+user will have a copy of the configuration, meaning that you
 don't need a central storage.
 
 When the bootstrap API starts up, it goes through a series of steps:
@@ -182,7 +198,7 @@ When the bootstrap API starts up, it goes through a series of steps:
     :width: 700px
     :align: center
 
-First, the Shotgn Pipeline Configuration will be determined. The bootstrap
+First, the Shotgun Pipeline Configuration will be determined. The bootstrap
 will search for a configuration in the following order:
 
 - A Pipeline Config for the current project, associated with the current user. These are
@@ -190,55 +206,81 @@ will search for a configuration in the following order:
 - A ``Primary`` Pipeline Config associated with the current project.
 - A site-wide Pipeline Config (e.g. with the Project field blank) associated with the user.
 - A site-wide ``Primary`` Pipeline Config
-- If none of the above is found, :meth:`~sgtk.bootstrap.ToolkitManager.base_configuration` is used.
+- If none of the above is found a *base config fallback*, hardcoded in the plugin, will be used.
+  (In the bootstrap API, this is defined via the :meth:`~sgtk.bootstrap.ToolkitManager.base_configuration` property).
 
 .. note:: Leaving the project field blank on a pipeline configuration means it applies
     to all projets. This makes it possible to have a single configuration that is
     used by all your Shotgun projects.
 
 Once the Pipeline Configuration has been determined, its descriptor is resolved, downloaded and
-all its dependencies (Apps, Engines, Core, Frameworks) are downloaded. All these items
+all its dependencies (Apps, Engines, Core, Frameworks) are checked and the ones that aren't already
+locally cached are downloaded. All these items
 are downloaded into a global bundle cache which by default resides locally on a user's machine
 but is shared between all pipeline configurations.
 
-.. note:: Files are by default downloaded into ``%APPDATA%\Shotgun`` (Windows),
-    ``~/Library/Caches/Shotgun`` (Mac) and ``~/.shotgun`` (Linux), but these locations
-    can be customized by setting a ``SHOTGUN_HOME`` :ref:`environment variable<environment_variables>`.
+.. note:: By default, files are downloaded to the following locations:
 
-Lastly, it creates a Pipeline Configuration on local disk, from which Toolkit is launched.
+    - ``%APPDATA%\Shotgun`` (Windows)
+    - ``~/Library/Caches/Shotgun`` (Mac)
+    - ``~/.shotgun`` (Linux)
+
+    These locations can be customized by setting a ``SHOTGUN_HOME``
+    :ref:`environment variable<environment_variables>`.
+
+Lastly, the Pipeline Configuration structure is created on local disk, from which Toolkit is launched.
 
 
 Examples
 ===============================================
 
 Below are a collection of practical examples for how Pipeline Configurations can be set up.
-Each Pipeline Configuration uses a :ref:`Descriptor Uri<descriptor>` to specify where the
+Each Pipeline Configuration uses a :ref:`Descriptor URI<descriptor>` to specify where the
 configuration should be downloaded from. For full technical details, see the
 Descriptor documentation.
 
 Fixing a version for a project
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. image:: ./resources/initializing/pipeline_config.png
-    :width: 700px
-    :align: center
-
 All users in the current project will be using a fixed version of the ``tk-config-basic`` configuration
 from the Shotgun App Store. This can be useful if you don't want a project to auto update. Omitting
 the version number, e.g. ``sgtk:descriptor:app_store?name=tk-config-basic`` will resolve to the most
 recent version number.
 
-Git site and project configurations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. image:: ./resources/initializing/project_site_git.png
+.. image:: ./resources/initializing/pipeline_config.png
     :width: 700px
     :align: center
+
+================ ===========================================================================
+Config Name      Primary
+
+Plugin Ids       ``basic.*``
+
+Descriptor       ``sgtk:descriptor:app_store?name=tk-config-basic&version=v1.2.3``
+================ ===========================================================================
+
+
+Git site and project configurations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This example shows several things. The Pipeline Configuration without a Project set is a site
 wide configuration - it will be used by all projects except the Bootstrap project, which has a
 specific configuration defined. The Bootstrap project will use tag `v1.2.3` from the specified
 git repository, whereas all other projects will use the tag with the highest version number.
+
+.. image:: ./resources/initializing/project_site_git.png
+    :width: 700px
+    :align: center
+
+================ ===========================================================================
+Config Name      Primary
+
+Plugin Ids       ``basic.*``
+
+Descriptor       ``sgtk:descriptor:git?path=user@host:/path/to/config.git``
+================ ===========================================================================
+
+
 Below are additional examples of how git repositories can be specified:
 
 - Highest tag in a git repository: ``sgtk:descriptor:git?path=user@host:/path/to/config.git``
@@ -253,14 +295,22 @@ Below are additional examples of how git repositories can be specified:
 Developer sandbox
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. image:: ./resources/initializing/dev_sandbox.png
-    :width: 700px
-    :align: center
-
 This example shows a typical development/test setup - alongside the Primary configuraton for the project
 there is a dev sandbox. All user associated with that dev sandbox will pick that up instead of the
 default one, making it easy to 'invite' users in for testing. (In Shotgun Desktop, a dropdown will appear,
 allowing a user to choose which config to use). A ``dev`` descriptor is used to point at a local dev area on disk.
+
+.. image:: ./resources/initializing/dev_sandbox.png
+    :width: 700px
+    :align: center
+
+================ ===========================================================================
+Config Name      Dev Sandbox
+
+Plugin Ids       ``basic.*``
+
+Descriptor       ``sgtk:descriptor:dev?path=/path/to/my_dev_area/config``
+================ ===========================================================================
 
 .. _plugins_and_plugin_ids:
 
@@ -311,7 +361,7 @@ Managing centralized configurations
 
 A manual project is either done via the Shotgun Desktop Project Setup Wizard or through the ``tank setup_project``
 command. During this process, you will choose a location on disk for your configuration. Make sure you
-choose a location in disk which is accessible by all users who wants to access the configuration (e.g.
+choose a location on disk which is accessible by all users who need access to the configuration (e.g.
 typically on a fast, shared storage). The figure below illustrates the process:
 
 .. image:: ./resources/initializing/manual_install.png
@@ -319,7 +369,7 @@ typically on a fast, shared storage). The figure below illustrates the process:
     :align: center
 
 The ``tank setup_project`` command will automatically create a ``Primary`` pipeline configuration
-entity in Shotgun and a full configuration on disk. App, Engine and other payload is downloaded
+entity in Shotgun and a full configuration on disk. App, Engine and other payloads are downloaded
 into the *bundle cache* contained by the config. The three fields ``PipelineConfiguration.windows_path``,
 ``PipelineConfiguration.mac_path`` and ``PipelineConfiguration.linux_path`` are populated with
 paths to the configuration on disk.
@@ -346,7 +396,7 @@ via the ``tank`` command:
   the **Clone Configuration** option.
 
 Starting a Toolkit engine from a centralized project
-===============================================
+============================================================
 
 In this case, when a known location exists for your core API, you are not required to use the
 bootstrap API, however you still can. In order to launch a maya engine using the bootrap API,
@@ -408,18 +458,18 @@ Bootstrap API
 
 The :class:`ToolkitManager` class allows for run-time handling of Toolkit configurations
 and removes the traditional step of a project setup. Instead, you can launch an engine
-directly based on a configuration :ref:`Descriptor Uri<descriptor>`. The manager encapsulates
+directly based on a configuration :ref:`Descriptor URI<descriptor>`. The manager encapsulates
 the configuration setup process and makes it easy to create a running instance of
 Toolkit. It allows for several advanced use cases:
 
 - Bootstrapping via the Toolkit manager does not require anything to be
-  set up or configured in Shotgun. No extensive project setup step is required.
+  set up or configured in Shotgun. No Toolkit project setup step is required.
 
-- A setup can be pre-bundled with for example an application plugin, allowing
+- A setup can be pre-bundled with, for example, an application plugin, allowing
   Toolkit to act as a distribution platform.
 
 The following example code can for example run inside maya in order
-to launch Toolkit's default config for a given Shotgun Asset:
+to launch Toolkit's default config for an Shotgun Asset:
 
 .. code-block:: python
 
@@ -436,7 +486,7 @@ to launch Toolkit's default config for a given Shotgun Asset:
     # now start up the maya engine for a given Shotgun object
     e = mgr.bootstrap_engine("tk-maya", entity={"type": "Asset", "id": 1234})
 
-In this rudimentary example, there is no need to construct any :class:`sgtk.Sgtk`
+In this example, there is no need to construct any :class:`sgtk.Sgtk`
 instance or run a ``tank`` command - the :class:`ToolkitManager` instead becomes the entry
 point into the system. It will handle the setup and initialization of the configuration behind the scenes
 and start up a Toolkit session once all the required pieces have been initialized and set up.
@@ -457,7 +507,7 @@ SHOTGUN_HOME                        Overrides the location where Toolkit stores 
                                     cached thumbnails and other temp files.
 
 SHOTGUN_BUNDLE_CACHE_PATH           Overrides the path to the main bundle cache, e.g. the location where
-                                    the :ref:`Descriptor Uri<descriptor>` will download bundles.
+                                    the :ref:`Descriptor URI<descriptor>` will download bundles.
 
 SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS Colon separated list of paths to look for bundle cache locations. This is
                                     for example useful if you maintain a centralized bundle cache location
