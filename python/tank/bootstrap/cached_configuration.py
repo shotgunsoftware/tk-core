@@ -126,7 +126,7 @@ class CachedConfiguration(Configuration):
         if not storage_roots:
             return
 
-        if not storage_roots.names:
+        if not storage_roots.required:
             # the storage roots definition file exists, but no storage defined
             # within. might be a placeholder file. treat it as though the file
             # does not exist.
@@ -136,19 +136,22 @@ class CachedConfiguration(Configuration):
 
         log.debug(
             "Detected storage roots definition file %s with roots %s" %
-            (storage_roots.roots_file, storage_roots.names)
+            (storage_roots.roots_file, storage_roots.required)
         )
+
+        (_, unmapped_roots) = storage_roots.get_local_storage(
+            self._sg_connection)
 
         # get a list of all defined storage roots without a corresponding SG
         # local storage defined
-        if storage_roots.unmapped:
+        if unmapped_roots:
             raise TankBootstrapError(
                 "This configuration defines one or more storage roots that can "
                 "not be mapped to a local storage defined in Shotgun. Please "
                 "update the roots.yml file in this configuration to correct "
                 "this issue. Roots file: '%s'. Unmapped storage roots: %s." % (
                     storage_roots.roots_file,
-                    ", ".join(storage_roots.unmapped)
+                    ", ".join(unmapped_roots)
                 )
             )
 

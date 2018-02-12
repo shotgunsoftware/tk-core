@@ -100,8 +100,14 @@ class PipelineConfiguration(object):
         config_folder = os.path.join(self._pc_root, "config")
         self._storage_roots = StorageRoots(config_folder)
 
-        # ensure there is a default storage root defined for this configuration
-        if not self._storage_roots.default_path:
+        # If there are storage required for this configuration, ensure one of
+        # them can be identified as the default storage. We need to keep this
+        # constraint as we are not able to keep roots definition in the order
+        # they were defined, so this is the only way we can guarantee we always
+        # use the same root for any template which does not have an explicit
+        # root setting.
+        if (self._storage_roots.required and not
+            self._storage_roots.default_path):
             raise TankError(
                 "Could not identify a default storage root for this pipeline "
                 "configuration! File: '%s'" % (self._storage_roots.roots_file,)

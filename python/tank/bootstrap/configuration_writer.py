@@ -524,7 +524,7 @@ class ConfigurationWriter(object):
 
         :param config_descriptor: Config descriptor object
         """
-        config_descriptor.storage_roots.update()
+        config_descriptor.storage_roots.update(self._sg_connection)
 
     def is_transaction_pending(self):
         """

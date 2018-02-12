@@ -240,7 +240,7 @@ class ConfigDescriptor(Descriptor):
         if not StorageRoots.defined(self.get_config_folder()):
             return []
 
-        return self.storage_roots.names
+        return self.storage_roots.required
 
     @property
     def storage_roots(self):
@@ -251,9 +251,6 @@ class ConfigDescriptor(Descriptor):
         """
 
         config_folder = self.get_config_folder()
-
-        if not StorageRoots.defined(config_folder):
-            return None
 
         # defer StorageRoots instance creation until requested
         if not self._storage_roots:
