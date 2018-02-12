@@ -163,8 +163,8 @@ def current_bundle():
     This special helper method can be useful when code deep inside an app needs
     to reach out to for example grab a configuration value. Then you can simply do::
 
-    app = sgtk.platform.current_bundle()
-    app.get_setting("frame_range")
+        app = sgtk.platform.current_bundle()
+        app.get_setting("frame_range")
 
     :returns: :class:`Application`, :class:`Engine` or :class:`Framework` instance
     """
@@ -185,8 +185,8 @@ def get_framework(framework):
     need to retrieve a configuration setting from this framework, then you can
     simply do::
 
-    fw = sgtk.platform.get_framework("tk-framework-helpers")
-    fw.get_setting("frame_range")
+        fw = sgtk.platform.get_framework("tk-framework-helpers")
+        fw.get_setting("frame_range")
 
     :param framework: name of the framework object to access, as defined in the app's
                       info.yml manifest.

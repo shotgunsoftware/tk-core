@@ -471,8 +471,7 @@ class SoftwareLauncher(object):
         - ``SHOTGUN_ENTITY_TYPE``: Derived from the current context
         - ``SHOTGUN_ENTITY_ID``: Derived from the current context
         - ``SHOTGUN_PIPELINE_CONFIGURATION_ID``: Derived from the current pipeline config id
-        - ``SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS``: Derived from the curent pipeline configuration's
-            list of bundle cache fallback paths.
+        - ``SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS``: Derived from the curent pipeline configuration's list of bundle cache fallback paths.
 
         These environment variables are set when launching a new process to capture the state of
         Toolkit so we can launch in the same environment. It ensures subprocesses have access to the
