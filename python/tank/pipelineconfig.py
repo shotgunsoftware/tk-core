@@ -708,7 +708,7 @@ class PipelineConfiguration(object):
                 "configuration! File: '%s'" % (self._storage_roots.roots_file,)
             )
 
-        return default_path.current_os
+        return default_path.join(self._project_name).current_os
 
     ########################################################################################
     # installation payload (core/apps/engines) disk locations
