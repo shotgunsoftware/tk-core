@@ -9,7 +9,7 @@ What is the Toolkit Platform?
 ----------------------------------------
 
 The toolkit Core platform consists of a number of different APIs and subsystems
-to run the Shotgun toolkit platform.
+used to run the Shotgun toolkit platform.
 
 .. image:: ./resources/overview/overview.png
     :width: 650px
@@ -17,20 +17,20 @@ to run the Shotgun toolkit platform.
 
 The toolkit core platform includes the following systems:
 
-- A standard Shotgun authentication API which centralizes user interaction
-  and persistance of authentication information.
+- A standard Shotgun :ref:`authentication API<authentication>` which centralizes user interaction
+  and persistence of authentication information.
 
-- A Descriptor API which handles remote resource management, code and
+- A :ref:`Descriptor API<descriptor>` which handles remote resource management, code and
   config and distribution and connects the Toolkit platform to
   Shotgun, the Shotgun App Store, git and other systems.
 
 - APIs for launching applications, creating plugins and managing
-  the launch of the Toolkit Platform.
+  the :ref:`launch and initialization<init_and_startup>` of the Toolkit Platform.
 
-- A set of Core APIs to manage file system naming conventions,
-  folder creation and managment of the current work area.
+- A set of :ref:`Core APIs<core_api>` to manage file system naming conventions,
+  folder creation and management of the current work area.
 
-- Base interfaces for Toolkit Apps, Engines and Frameworks.
+- Base interfaces for Toolkit :ref:`Apps, Engines and Frameworks<sgtk_platform_docs>`.
 
 
 Who is this documentation for?

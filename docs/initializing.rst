@@ -150,7 +150,7 @@ Uploading a configuration to Shotgun
 
 The simplest way to distribute a Toolkit configuration to a group of users, whether these
 are distributed in different locations or all working in the same building, is to upload it
-to Shotgun. At startup, the Toolkit Bootstrap will automatically look for uploaded configuratons
+to Shotgun. At startup, the Toolkit Bootstrap will automatically look for uploaded configurations
 and if detected, download the configuration locally and then launch. Toolkit will take care
 of distribution and setup.
 

@@ -1,3 +1,5 @@
+.. _core_api:
+
 .. currentmodule:: sgtk
 
 Core
