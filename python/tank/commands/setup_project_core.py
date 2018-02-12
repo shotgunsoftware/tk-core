@@ -14,6 +14,7 @@ import shutil
 
 from . import constants
 from ..errors import TankError
+from ..util import StorageRoots
 from ..util import filesystem
 from ..api import sgtk_from_path
 
@@ -157,43 +158,21 @@ def run_project_setup(log, sg, setup_params):
     fh.write("# End of file.\n")
     fh.close()
 
-    # XXX update to write new roots file format
 
-    # update the roots.yml file in the config to match our settings
-    # reshuffle list of associated local storages to be a dict keyed by storage name
-    # and with keys mac_path/windows_path/linux_path
-
-    log.debug("Writing %s..." % constants.STORAGE_ROOTS_FILE)
-    roots_path = os.path.join(config_location_curr_os, "config", "core", constants.STORAGE_ROOTS_FILE)
-
+    # write the roots.yml file in the config to match our settings
     roots_data = {}
     for storage_name in setup_params.get_required_storages():
 
-        roots_data[storage_name] = {"windows_path": setup_params.get_storage_path(storage_name, "win32"),
-                                    "linux_path": setup_params.get_storage_path(storage_name, "linux2"),
-                                    "mac_path": setup_params.get_storage_path(storage_name, "darwin")}
+        roots_data[storage_name] = {
+            "windows_path": setup_params.get_storage_path(storage_name, "win32"),
+            "linux_path": setup_params.get_storage_path(storage_name, "linux2"),
+            "mac_path": setup_params.get_storage_path(storage_name, "darwin")
+        }
 
-    try:
-        fh = open(roots_path, "wt")
-        # using safe_dump instead of dump ensures that we
-        # don't serialize any non-std yaml content. In particular,
-        # this causes issues if a unicode object containing a 7-bit
-        # ascii string is passed as part of the data. in this case,
-        # dump will write out a special format which is later on
-        # *loaded in* as a unicode object, even if the content doesn't
-        # need unicode handling. And this causes issues down the line
-        # in toolkit code, assuming strings:
-        #
-        # >>> yaml.dump({"foo": u"bar"})
-        # "{foo: !!python/unicode 'bar'}\n"
-        # >>> yaml.safe_dump({"foo": u"bar"})
-        # '{foo: bar}\n'
-        #
-        yaml.safe_dump(roots_data, fh)
-        fh.close()
-    except Exception as exp:
-        raise TankError("Could not write to roots file %s. "
-                        "Error reported: %s" % (roots_path, exp))
+    storage_roots = StorageRoots.from_metadata(roots_data)
+    config_folder = os.path.join(config_location_curr_os, "config")
+    storage_roots.write(sg, config_folder, storage_roots)
+
 
     # now ensure there is a tank folder in every storage
     setup_params.report_progress_from_installer("Setting up project storage folders...")

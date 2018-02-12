@@ -24,7 +24,6 @@ log = LogManager.get_logger(__name__)
 
 # TODO:
   # double check:
-    # public interfaces using this haven't changed
     # docstring contents
     # params
     # return values
@@ -49,12 +48,21 @@ class StorageRoots(object):
     structure.
     """
 
+    ############################################################################
+    # class data
+
     # the name of the fallback, legacy default storage name if one is not
     # defined explicitly in the roots file
     LEGACY_DEFAULT_STORAGE_NAME = "primary"
 
     # the file path where storage roots are defined in a configuration
     STORAGE_ROOTS_FILE_PATH = os.path.join("core", "roots.yml")
+
+    # sys.platform-specific path keys as expected in the root definitions
+    PLATFORM_KEYS = ["mac_path", "linux_path", "windows_path"]
+
+    ############################################################################
+    # class methods
 
     @classmethod
     def defined(cls, config_folder):
@@ -64,6 +72,34 @@ class StorageRoots(object):
         """
         roots_file = os.path.join(config_folder, cls.STORAGE_ROOTS_FILE_PATH)
         return os.path.exists(roots_file)
+
+    @classmethod
+    def from_config(cls, config_folder):
+        """
+        Constructs a StorageRoots object from the supplied config folder.
+
+        :param config_folder: The path to a config folder
+        :returns: A StorageRoots instance
+        """
+
+        storage_roots = cls()
+        storage_roots._init_from_config(config_folder)
+
+        return storage_roots
+
+    @classmethod
+    def from_metadata(cls, metadata):
+        """
+        Constructs a StorageRoots object from the supplied metadata.
+
+        :param metadata: The storage roots metadata this object wraps
+        :returns: A StorageRoots instance
+        """
+
+        storage_roots = cls()
+        storage_roots._process_metadata(metadata)
+
+        return storage_roots
 
     @classmethod
     def write(cls, sg_connection, config_folder, storage_roots):
@@ -102,7 +138,7 @@ class StorageRoots(object):
         # build up a new metadata dict
         roots_metadata = storage_roots.metadata
 
-        for root_name, root_info in roots_metadata.iteritems():
+        for root_name, root_info in storage_roots:
 
             # get the cached SG storage dict
             sg_local_storage = local_storage_lookup[root_name]
@@ -118,108 +154,47 @@ class StorageRoots(object):
         with filesystem.auto_created_yml(roots_file) as fh:
             yaml.safe_dump(roots_metadata, fh)
 
-    def __init__(self, config_folder):
+    ############################################################################
+    # special methods
+
+    def __init__(self):
         """
         Initialize the storage roots object.
+
+        Instances should not be created directly. Use the from_* class methods
+        to create storage root instances.
 
         :param config_folder: The config folder within the pipeline
             configuration.
         """
 
-        log.debug(
-            "Initializing storage roots object. "
-            "Supplied config folder: %s" %
-            (config_folder,)
-        )
+        # information stored on the object
 
-        # ---- set some basic data for the object
+        # the path to the config folder
+        self._config_root_folder = None
 
-        # the supplied roots folder, just in case
-        self._config_root_folder = config_folder
+        # the path to the roots file
+        self._storage_roots_file = None
 
-        # the full path to the roots file for debugging/messages
-        self._storage_roots_file = os.path.join(
-            self._config_root_folder,
-            self.STORAGE_ROOTS_FILE_PATH
-        )
+        # the underlying metadata for the required storage roots
+        self._storage_roots_metadata = {}
 
-        log.debug(
-            "Storage roots file defined in the config: %s" %
-            (self._storage_roots_file,)
-        )
-
-        # load the roots file and store the metadata
-        if os.path.exists(self._storage_roots_file):
-            roots_metadata = _get_storage_roots_metadata(
-                self._storage_roots_file)
-        else:
-            # file does not exist. initialize with an empty dict
-            roots_metadata = {}
-
-        log.debug("Storage roots metadata: %s" % (roots_metadata,))
-
-        # store it on the object
-        self._storage_roots_metadata = roots_metadata
-
-        # ---- store information about the roots for easy access
-
-        # build a lookup of storage root name to shotgun paths
+        # a lookup of storage root names to shotgun paths
         self._shotgun_paths_lookup = {}
 
+        # the default storage name as determined when parsing the metadata
         self._default_storage_name = None
 
-        log.debug("Processing required storages defined by the config...")
+    def __iter__(self):
+        """
+        Allows iteration over each defined root name and corresponding metadata.
+        :return:
+        """
+        for root_name, root_info in self._storage_roots_metadata.iteritems():
+            yield root_name, root_info
 
-        # iterate over each storage root required by the configuration. try to
-        # identify the default root.
-        for root_name, root_info in roots_metadata.iteritems():
-
-            log.debug("Processing storage: %s - %s" % (root_name, root_info))
-
-            # store a shotgun path for each root definition. sanitize path data
-            # by passing it through the ShotgunPath object. if the configuration
-            # has not been installed, these paths may be None.
-            self._shotgun_paths_lookup[root_name] = \
-                ShotgunPath.from_shotgun_dict(root_info)
-
-            # check to see if this root is marked as the default
-            if root_info.get("default", False):
-                log.debug(
-                    "Storage root %s explicitly marked as the default." %
-                    (root_name,)
-                )
-                self._default_storage_name = root_name
-
-        # no default storage root defined explicitly
-        if not self._default_storage_name:
-
-            log.debug("No default storage explicitly defined...")
-
-            # if there is only one, then that is the default
-            if len(roots_metadata) == 1:
-                sole_storage_root = roots_metadata.keys()[0]
-                log.debug(
-                    "Storage %s identified as the default root because it is "
-                    "the only root required by the configuration" %
-                    (sole_storage_root,)
-                )
-                self._default_storage_name = sole_storage_root
-            elif self.LEGACY_DEFAULT_STORAGE_NAME in roots_metadata:
-                # legacy primary storage name defined. that is the defautl
-                log.debug(
-                    "Storage %s identified as the default root because it "
-                    "matches the legacy default root name." %
-                    (self.LEGACY_DEFAULT_STORAGE_NAME,)
-                )
-                self._default_storage_name = self.LEGACY_DEFAULT_STORAGE_NAME
-            else:
-                # default storage will be None
-                log.warning(
-                    "Unable to identify a default storage root in the config's "
-                    "required storages."
-                )
-
-    # TODO: __str__, __repr__
+    ############################################################################
+    # properties
 
     @property
     def as_shotgun_paths(self):
@@ -272,6 +247,9 @@ class StorageRoots(object):
         """
         The path to the storage root file represented by this object.
         """
+        if not self._storage_roots_file:
+            return None
+
         return self._storage_roots_file
 
     @property
@@ -280,6 +258,9 @@ class StorageRoots(object):
         A list of all reqired storage root names by this configuration.
         """
         return self._storage_roots_metadata.keys()
+
+    ############################################################################
+    # public methods
 
     def get_local_storages(self, sg_connection):
         """
@@ -301,11 +282,17 @@ class StorageRoots(object):
                         "code": "primary",
                         "type": "LocalStorage",
                         "id": 123
+                        "linux_path": "/proj/work"
+                        "mac_path": "/proj/work"
+                        "windows_path": None
                     }
                     "data": {
                         "code": "data",
                         "type": "LocalStorage",
                         "id": 456
+                        "linux_path": "/proj/data"
+                        "mac_path": "/proj/data"
+                        "windows_path": None
                     }
                 },
                 ["data2", "data3"]
@@ -341,8 +328,11 @@ class StorageRoots(object):
 
         # create the SG connection and query
         log.debug("Querying SG local storages...")
-        sg_storages = sg_connection.find("LocalStorage", [],
-                                         local_storage_fields)
+        sg_storages = sg_connection.find(
+            "LocalStorage",
+            [],
+            local_storage_fields
+        )
         log.debug("Query returned %s storages." % (len(sg_storages, )))
 
         # create lookups of storages by name and id for convenience. we'll check
@@ -351,7 +341,7 @@ class StorageRoots(object):
         sg_storages_by_id = {s["id"]: s for s in sg_storages}
         sg_storages_by_name = {s["code"]: s for s in sg_storages}
 
-        for root_name, root_info in self._storage_roots_metadata.iteritems():
+        for root_name, root_info in self:
 
             # see if the shotgun storage id is specified explicitly in the
             # roots.yml file.
@@ -390,6 +380,142 @@ class StorageRoots(object):
         # return a tuple of the processed info
         return local_storage_lookup, unmapped_root_names
 
+    def populate_defaults(self):
+        """
+        This method ensures all sys.platforms are represented in all defined
+        storage roots. If the platform key does not exist, it will be added to
+        the metadata and set to None.
+
+        If there are no roots defined, this method will create a default root
+        definition.
+        """
+        if self.required:
+            # there are roots required by this configuration. ensure all are
+            # populated with the expected platform keys
+            for root_name, root_info in self:
+                for platform_key in self.PLATFORM_KEYS:
+
+                    if platform_key not in root_info:
+                        # platform key not defined for root. add it
+                        root_info[platform_key] = None
+        else:
+
+            # no roots required by this configuration. add a default storage
+            # requirement
+            root_name = self.LEGACY_DEFAULT_STORAGE_NAME
+            root_info = {
+                "description": "Default location where project data is stored.",
+                "mac_path": "/studio/projects",
+                "linux_path": "/studio/projects",
+                "windows_path": "\\\\network\\projects",
+                "default": "true",
+            }
+
+            self._default_storage_name = root_name
+            self._storage_roots_metadata[root_name] = root_info
+            self._shotgun_paths_lookup[root_name] = \
+                ShotgunPath.from_shotgun_dict(root_info)
+
+    ############################################################################
+    # protected methods
+
+    def _init_from_config(self, config_folder):
+
+        log.debug(
+            "Initializing storage roots object. "
+            "Supplied config folder: %s" %
+            (config_folder,)
+        )
+
+        # ---- set some basic data for the object
+
+        # the supplied roots folder, just in case
+        self._config_root_folder = config_folder
+
+        # the full path to the roots file for debugging/messages
+        self._storage_roots_file = os.path.join(
+            self._config_root_folder,
+            self.STORAGE_ROOTS_FILE_PATH
+        )
+
+        log.debug(
+            "Storage roots file defined in the config: %s" %
+            (self._storage_roots_file,)
+        )
+
+        # load the roots file and store the metadata
+        if os.path.exists(self._storage_roots_file):
+            roots_metadata = _get_storage_roots_metadata(
+                self._storage_roots_file)
+        else:
+            # file does not exist. we will initialize with an empty dict
+            roots_metadata = {}
+
+        self._process_metadata(roots_metadata)
+
+    def _process_metadata(self, roots_metadata):
+
+        log.debug("Storage roots metadata: %s" % (roots_metadata,))
+
+        # store it on the object
+        self._storage_roots_metadata = roots_metadata
+
+        # ---- store information about the roots for easy access
+
+        log.debug("Processing required storages defined by the config...")
+
+        # iterate over each storage root required by the configuration. try to
+        # identify the default root.
+        for root_name, root_info in self:
+
+            log.debug("Processing storage: %s - %s" % (root_name, root_info))
+
+            # store a shotgun path for each root definition. sanitize path data
+            # by passing it through the ShotgunPath object. if the configuration
+            # has not been installed, these paths may be None.
+            self._shotgun_paths_lookup[root_name] = \
+                ShotgunPath.from_shotgun_dict(root_info)
+
+            # check to see if this root is marked as the default
+            if root_info.get("default", False):
+                log.debug(
+                    "Storage root %s explicitly marked as the default." %
+                    (root_name,)
+                )
+                self._default_storage_name = root_name
+
+        # no default storage root defined explicitly
+        if not self._default_storage_name:
+
+            log.debug("No default storage explicitly defined...")
+
+            # if there is only one, then that is the default
+            if len(roots_metadata) == 1:
+                sole_storage_root = roots_metadata.keys()[0]
+                log.debug(
+                    "Storage %s identified as the default root because it is "
+                    "the only root required by the configuration" %
+                    (sole_storage_root,)
+                )
+                self._default_storage_name = sole_storage_root
+            elif self.LEGACY_DEFAULT_STORAGE_NAME in roots_metadata:
+                # legacy primary storage name defined. that is the defautl
+                log.debug(
+                    "Storage %s identified as the default root because it "
+                    "matches the legacy default root name." %
+                    (self.LEGACY_DEFAULT_STORAGE_NAME,)
+                )
+                self._default_storage_name = self.LEGACY_DEFAULT_STORAGE_NAME
+            else:
+                # default storage will be None
+                log.warning(
+                    "Unable to identify a default storage root in the config's "
+                    "required storages."
+                )
+
+
+################################################################################
+# internal util methods
 
 def _get_storage_roots_metadata(storage_roots_file):
     """

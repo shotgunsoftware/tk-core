@@ -254,6 +254,6 @@ class ConfigDescriptor(Descriptor):
 
         # defer StorageRoots instance creation until requested
         if not self._storage_roots:
-            self._storage_roots = StorageRoots(config_folder)
+            self._storage_roots = StorageRoots.from_config(config_folder)
 
         return self._storage_roots

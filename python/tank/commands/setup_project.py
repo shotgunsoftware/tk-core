@@ -493,8 +493,6 @@ class SetupProjectAction(Action):
             proj_path = params.preview_project_path(storage_name, suggested_folder_name, sys.platform)            
             log.info(" - %s: %s" % (storage_name, proj_path))
 
-        # XXX allow creation of new storage?
-        
         log.info("")
 
         # now ask for a value and validate

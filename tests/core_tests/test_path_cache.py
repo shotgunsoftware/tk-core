@@ -627,7 +627,7 @@ class TestShotgunSync(TankTestBase):
         with open(roots_yml, "w+") as fh:
             yaml.safe_dump(invalid_roots_data, fh)
 
-        self.pipeline_configuration._storage_roots = StorageRoots(config_folder)
+        self.pipeline_configuration._storage_roots = StorageRoots.from_config(config_folder)
         
         # perform a full sync
         log = sync_path_cache(self.tk, force_full_sync=True)
@@ -636,7 +636,7 @@ class TestShotgunSync(TankTestBase):
         
         # and set roots back again and check
         shutil.move(roots_yml_bak, roots_yml)
-        self.pipeline_configuration._storage_roots = StorageRoots(config_folder)
+        self.pipeline_configuration._storage_roots = StorageRoots.from_config(config_folder)
 
         # perform a full sync
         log = sync_path_cache(self.tk, force_full_sync=True)

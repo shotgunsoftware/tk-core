@@ -98,7 +98,7 @@ class PipelineConfiguration(object):
         # keep a storage roots object interface instance in order to query roots
         # info as needed
         config_folder = os.path.join(self._pc_root, "config")
-        self._storage_roots = StorageRoots(config_folder)
+        self._storage_roots = StorageRoots.from_config(config_folder)
 
         # If there are storage required for this configuration, ensure one of
         # them can be identified as the default storage. We need to keep this
