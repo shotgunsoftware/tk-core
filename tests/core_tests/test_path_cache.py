@@ -30,6 +30,10 @@ from tank import constants
 from tank import LogManager
 import tank
 
+from tank.util import StorageRoots
+
+from tank_vendor import yaml
+
 log = LogManager.get_logger(__name__)
 
 
@@ -594,37 +598,50 @@ class TestShotgunSync(TankTestBase):
         
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
         self.assertEqual( len(self._get_path_cache()), 4)
+
+        config_folder = os.path.join(
+            self.pipeline_config_root,
+            "config"
+        )
         
-        roots_yml = os.path.join(self.pipeline_config_root, 
-                                 "config", 
-                                 "core", 
-                                 constants.STORAGE_ROOTS_FILE)
-        
-        # construct an invalid roots.yml that is out of sync with the records coming from
-        current_roots = self.pipeline_configuration._storage_roots.required
-        invalid_roots = {
-            "primary": tank.util.ShotgunPath.from_shotgun_dict(
-                {"linux_path": "/invalid",
-                 "mac_path": "/invalid",
-                 "windows_path": "X:\\invalid"
-                 }
-            )
+        roots_yml = os.path.join(
+            config_folder,
+            "core",
+            constants.STORAGE_ROOTS_FILE
+        )
+
+        roots_yml_bak = roots_yml + ".bak"
+
+        # move the valid roots to a bak file
+        shutil.move(roots_yml, roots_yml_bak)
+
+        invalid_roots_data = {
+            "primary": {
+                "linux_path": "/invalid",
+                "mac_path": "/invalid",
+                "windows_path": "X:\\invalid"
+            }
         }
-        
-        self.pipeline_configuration._roots = invalid_roots
+
+        # write a new, invalid roots file
+        with open(roots_yml, "w+") as fh:
+            yaml.safe_dump(invalid_roots_data, fh)
+
+        self.pipeline_configuration._storage_roots = StorageRoots(config_folder)
         
         # perform a full sync
         log = sync_path_cache(self.tk, force_full_sync=True)
         self.assertTrue("Could not resolve storages - skipping" in log)
         self.assertEqual( len(self._get_path_cache()), 0)
         
-        # and set roots back again and check 
-        self.pipeline_configuration._roots = current_roots
+        # and set roots back again and check
+        shutil.move(roots_yml_bak, roots_yml)
+        self.pipeline_configuration._storage_roots = StorageRoots(config_folder)
+
         # perform a full sync
         log = sync_path_cache(self.tk, force_full_sync=True)
         self.assertTrue("Could not resolve storages - skipping" not in log)
         self.assertEqual( len(self._get_path_cache()), 4)
-
 
     def test_truncated_eventlog(self):
         """Tests that a full sync happens if the event log is truncated."""

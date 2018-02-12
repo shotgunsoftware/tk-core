@@ -22,6 +22,12 @@ from . import yaml_cache
 log = LogManager.get_logger(__name__)
 
 
+# TODO: double check:
+    # docstring contents
+    # params
+    # return values
+    # logging
+
 class StorageRoots(object):
     """
     This class provides an interface for a configuration's defined storage
@@ -206,6 +212,8 @@ class StorageRoots(object):
                     "Unable to identify a default storage root in the config's "
                     "required storages."
                 )
+
+    # TODO: __str__, __repr__
 
     @property
     def as_shotgun_paths(self):
