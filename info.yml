@@ -13,7 +13,7 @@
 # as the core bundle is uploaded to the app store.
 
 version: "HEAD"
-documentation_url: ""
+documentation_url: "https://support.shotgunsoftware.com/hc/en-us/articles/219039808"
 requires_shotgun_version: "v5.0.0"
 
 features:

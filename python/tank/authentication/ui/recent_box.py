@@ -46,7 +46,7 @@ class RecentBox(QtGui.QComboBox):
 
         # We'll use a completer that shows all results and we'll do the matching ourselves, as the completion
         # engine can only work from the beginning of a string...
-        self._completer = QtGui.QCompleter()
+        self._completer = QtGui.QCompleter(self)
         self._completer.setCompletionMode(QtGui.QCompleter.UnfilteredPopupCompletion)
 
         # We'll do our own filtering.

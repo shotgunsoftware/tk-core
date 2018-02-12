@@ -71,6 +71,20 @@ QComboBox:down-arrow {
 QLineEdit:Disabled {
     background-color: rgb(60, 60, 60);
     color: rgb(160, 160, 160);
+}
+
+QComboBox::drop-down:disabled {
+    border-width: 0px;
+
+}
+
+QComboBox::down-arrow:disabled {
+    image: url(noimg); border-width: 0px;
+}
+
+QComboBox::disabled {
+    background-color: rgb(60, 60, 60);
+    color: rgb(160, 160, 160);
 }</string>
   </property>
   <property name="modal">

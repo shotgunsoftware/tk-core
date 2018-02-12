@@ -159,6 +159,19 @@ class ShotgunSamlUser(ShotgunUser):
         """
         super(ShotgunSamlUser, self).__init__(impl)
         self._timer = None
+        self._claims_renewal_cancelled = False
+
+        # Calling stop_claims_renewal only guarantees that the claims renewal will stop at some point,
+        # not that it will stop right away unfortunately. What this means is that it is possible,
+        # however unlikely, that someone can stop and restart the claims renewal fast enough to
+        # confuse the _timer and _claims_renewal_cancelled flag.
+        #
+        # This lock will ensure the thread-safety of restarting the timer. Since the timer's
+        # thread is impacted by the update to the _claims_renewal_cancelled flag, any update
+        # to these two will be done under a lock.
+        #
+        # see _do_automatic_claims_renewal to see what the race condition is exactly.
+        self._timer_lock = threading.RLock()
 
     def get_claims_expiration(self):
         """
@@ -173,8 +186,11 @@ class ShotgunSamlUser(ShotgunUser):
         Handles automatic renewal of the SAML2 claims for the user.
 
         :param preemtive_renewal_threshold: How far into the claims duration we will attempt renewal.
-                                             Defaults to 90%, usually 4 minutes 30 seconds (90% of 5 mins).
+                                            Defaults to 90%, usually 4 minutes 30 seconds (90% of 5 mins).
         """
+        if self._claims_renewal_cancelled:
+            return
+
         logger.debug("Attempting automatic claims renewal")
         try:
             previous_expiration = self.get_claims_expiration()
@@ -192,8 +208,30 @@ class ShotgunSamlUser(ShotgunUser):
                 if "SHOTGUN_SSO_RENEWAL_INTERVAL" in os.environ:
                     delta = int(os.environ["SHOTGUN_SSO_RENEWAL_INTERVAL"])
                 logger.debug("Next claims renewal attempt: %f" % delta)
-                self._timer = threading.Timer(delta, self._do_automatic_claims_renewal, [preemtive_renewal_threshold])
-                self._timer.start()
+
+                with self._timer_lock:
+                    # Let's pretend "stop_claims_rewnwal" has already been called, so
+                    # "_claims_renewal_cancelled" is currently True. Thread A is the
+                    # main thread and B is the thread that runs "_do_automatic_claims_renewal".
+                    #
+                    # 1. This IF is evaluated by thread B, so the next instruction will be "return"
+                    # 2. From thread A, "start_claims_renewal" is called.
+                    # 3. Thread A sets the flag to False and checks if the timer is active. It is,
+                    #    because _do_automatic_claims_renewal is still executing, so the method
+                    #    thinks it doesn't have to restart the timer and returns.
+                    # 4. Thread B now resumes and returns.
+                    # 5. At some point in the future, claim renewal won't happen and the session
+                    #    is going to go out of date.
+                    #
+                    # With the lock, this isn't an issue anymore, because the act of setting the flag
+                    # and setting the timer, or reading the flag and setting the timer, is done in
+                    # an atomic fashion, so there are no more race conditions.
+                    if self._claims_renewal_cancelled:
+                        return
+                    self._timer = threading.Timer(
+                        delta, self._do_automatic_claims_renewal, [preemtive_renewal_threshold]
+                    )
+                    self._timer.start()
             else:
                 logger.warning("No further attempts to auto-renew in the background will be attempted.")
         except AuthenticationCancelled:
@@ -203,20 +241,34 @@ class ShotgunSamlUser(ShotgunUser):
     def start_claims_renewal(self, preemtive_renewal_threshold=0.9):
         """
         Start claims renewal mechanism.
+
+        :param preemtive_renewal_threshold: Value between 0 and 1 indicating how far into the claims
+            duration we will attempt a renewal. The claims duration is usually 5 minutes. For example,
+            a value of 0.9, which is also the default value, will indicate that the renewal should
+            happen after 4 minutes and 30 seconds.
         """
-        if self._timer is None or not self.is_claims_renewal_active():
-            self._do_automatic_claims_renewal(preemtive_renewal_threshold)
-        else:
-            logger.debug("Attempting to start claims renewal when it was already active.")
+        # Ensure thread-safe access of _claims_renewal_cancelled and _timer. See __init__
+        # for details.
+        with self._timer_lock:
+            self._claims_renewal_cancelled = False
+            if self._timer is None or not self.is_claims_renewal_active():
+
+                self._do_automatic_claims_renewal(preemtive_renewal_threshold)
+            else:
+                logger.debug("Attempting to start claims renewal when it was already active.")
 
     def stop_claims_renewal(self):
         """
         Stops claims renewal mechanism.
         """
-        if self._timer:
-            self._timer.cancel()
-        else:
-            logger.debug("Attempting to stop claims renewal when it was not active.")
+        # Ensure thread-safe access of _claims_renewal_cancelled and _timer. See __init__
+        # for details.
+        with self._timer_lock:
+            self._claims_renewal_cancelled = True
+            if self._timer:
+                self._timer.cancel()
+            else:
+                logger.debug("Attempting to stop claims renewal when it was not active.")
 
     def is_claims_renewal_active(self):
         """

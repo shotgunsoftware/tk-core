@@ -26,15 +26,100 @@ class SessionCacheTests(ShotgunTestBase):
     def setUp(self):
         super(SessionCacheTests, self).setUp()
         # Wipe the global session file that has been edited by previous tests.
+        self._write_global_yml({})
+
+    def _write_global_yml(self, content):
+        """
+        Writes the global authentication file.
+        """
         session_cache._write_yaml_file(
             session_cache._get_global_authentication_file_location(),
-            {}
+            content
+        )
+
+    def _write_site_yml(self, site, content):
+        """
+        Writes the site authentication file.
+        """
+        session_cache._write_yaml_file(
+            session_cache._get_site_authentication_file_location(site),
+            content
         )
 
     def _clear_site_yml(self, site):
-        session_cache._write_yaml_file(
-            session_cache._get_site_authentication_file_location(site),
-            {}
+        """
+        Clears the site authentication file.
+        """
+        self._write_site_yml(site, {})
+
+    def test_recent_users_upgrade(self):
+        """
+        Ensures that if we've just upgraded to the latest core that the current
+        user is part of the recent users.
+        """
+        HOST = "https://host.shotgunstudio.com"
+
+        # The recent_users array is not present in the authentication.yml
+        # file, so make sure that the session cache reports the user as the
+        # most recent.
+        self._write_site_yml(
+            HOST, {"current_user": "current.user", "users": []}
+        )
+
+        self.assertEqual(
+            session_cache.get_recent_users(HOST),
+            ["current.user"]
+        )
+
+    def test_recent_hosts_upgrade(self):
+        """
+        Ensures that if we've just upgraded to the latest core that the current
+        host is part of the recent hosts.
+        """
+        # The recent_users array is not present in the authentication.yml
+        # file, so make sure that the session cache reports the user as the
+        # most recent.
+        self._write_global_yml(
+            {"current_host": "https://host.shotgunstudio.com"}
+        )
+
+        self.assertEqual(
+            session_cache.get_recent_hosts(),
+            ["https://host.shotgunstudio.com"]
+        )
+
+    def test_recent_users_downgrade(self):
+        """
+        Ensures that if an older core updated the authentication file, which means
+        recent_users has not been kept up to date, that the recent users list
+        has the current_user at the front.
+        """
+        HOST = "https://host.shotgunstudio.com"
+        self._write_site_yml(
+            HOST,
+            {"current_user": "current.user", "recent_users": ["older.user", "current.user"]}
+        )
+
+        self.assertEqual(
+            session_cache.get_recent_users(HOST), ["current.user", "older.user"]
+        )
+
+    def test_recent_hosts_downgrade(self):
+        """
+        Ensures that if an older core updated the authentication file, which means
+        recent_hosts has not been kept up to date, that the recent hosts list
+        has the current_host at the front.
+        """
+        self._write_global_yml(
+            {"current_host": "https://current.shotgunstudio.com",
+             "recent_hosts": ["https://older.shotgunstudio.com", "https://current.shotgunstudio.com"]}
+        )
+
+        self.assertEqual(
+            session_cache.get_recent_hosts(), [
+                "https://current.shotgunstudio.com",
+                "https://older.shotgunstudio.com"
+            ]
         )
 
     def test_recent_hosts(self):
