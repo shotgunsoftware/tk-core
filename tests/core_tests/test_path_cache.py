@@ -601,7 +601,7 @@ class TestShotgunSync(TankTestBase):
                                  constants.STORAGE_ROOTS_FILE)
         
         # construct an invalid roots.yml that is out of sync with the records coming from
-        current_roots = self.pipeline_configuration._roots
+        current_roots = self.pipeline_configuration._storage_roots.required
         invalid_roots = {
             "primary": tank.util.ShotgunPath.from_shotgun_dict(
                 {"linux_path": "/invalid",

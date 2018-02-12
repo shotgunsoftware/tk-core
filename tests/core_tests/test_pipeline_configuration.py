@@ -299,7 +299,7 @@ class TestConfigLocations(TankTestBase):
             os.path.join(autogen_files_root, "config", "core", "pipeline_configuration.yml")
         )
         self.assertEqual(
-            pc._get_roots_metadata_location(),
+            pc._storage_roots.roots_file,
             os.path.join(autogen_files_root, "config", "core", "roots.yml")
         )
         self.assertEqual(

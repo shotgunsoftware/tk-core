@@ -19,6 +19,7 @@ from . import constants
 from ..descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
 
 from ..util import filesystem
+from ..util import StorageRoots
 from ..util import ShotgunPath
 from ..util.shotgun import connection
 from ..util.move_guard import MoveGuard
@@ -524,7 +525,13 @@ class ConfigurationWriter(object):
 
         :param config_descriptor: Config descriptor object
         """
-        config_descriptor.storage_roots.update(self._sg_connection)
+
+        config_folder = os.path.join(self._path.current_os, "config")
+        StorageRoots.write(
+            self._sg_connection,
+            config_folder,
+            config_descriptor.storage_roots
+        )
 
     def is_transaction_pending(self):
         """

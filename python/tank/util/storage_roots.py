@@ -53,6 +53,59 @@ class StorageRoots(object):
         roots_file = os.path.join(config_folder, cls.STORAGE_ROOTS_FILE_PATH)
         return os.path.exists(roots_file)
 
+    @classmethod
+    def write(cls, sg_connection, config_folder, storage_roots):
+        """
+        Given a StorageRoots object, write it's contents to the standard roots
+        location within the supplied config folder. The method will write the
+        corresponding local storage paths to the file as defined in Shotgun.
+        This action will overwrite the existing storage roots file for the
+        configuration.
+        """
+
+        (local_storage_lookup, unmapped_roots) = \
+            storage_roots.get_local_storages(sg_connection)
+
+        roots_file = os.path.join(config_folder, cls.STORAGE_ROOTS_FILE_PATH)
+
+        # raise an error if there are any roots that can not be mapped to SG
+        # local storage entries
+        if unmapped_roots:
+            raise TankError(
+                "The following storages are defined by %s but is can not be "
+                "mapped to a local storage in Shotgun: %s" % (
+                    roots_file,
+                    ", ".join(unmapped_roots)
+                )
+            )
+
+        if os.path.exists(roots_file):
+            # warn if this file already exists
+            log.warning(
+                "The file '%s' exists in the configuration "
+                "but will be overwritten with an auto generated file." %
+                (roots_file,)
+            )
+
+        # build up a new metadata dict
+        roots_metadata = storage_roots.metadata
+
+        for root_name, root_info in roots_metadata.iteritems():
+
+            # get the cached SG storage dict
+            sg_local_storage = local_storage_lookup[root_name]
+
+            # get the local storage as a ShotgunPath object
+            storage_sg_path = ShotgunPath.from_shotgun_dict(sg_local_storage)
+
+            # update the root's metadata with the dictionary of all
+            # sys.platform-style paths
+            root_info.update(storage_sg_path.as_shotgun_dict())
+
+        # write the new metadata to disk
+        with filesystem.auto_created_yml(roots_file) as fh:
+            yaml.safe_dump(roots_metadata, fh)
+
     def __init__(self, config_folder):
         """
         Initialize the storage roots object.
@@ -184,6 +237,16 @@ class StorageRoots(object):
         return self._shotgun_paths_lookup[self._default_storage_name]
 
     @property
+    def metadata(self):
+        """
+        The required storage roots metadata dictionary.
+
+        This is a dictionary representation of the contents of the file.
+        :return:
+        """
+        return self._storage_roots_metadata
+
+    @property
     def roots_file(self):
         """
         The path to the storage root file represented by this object.
@@ -305,55 +368,6 @@ class StorageRoots(object):
 
         # return a tuple of the processed info
         return local_storage_lookup, unmapped_root_names
-
-    def update(self, sg_connection):
-        """
-        Updates the storage roots defined by the sourced configuration to
-        include the local storage paths as defined in SG. This action will
-        overwrite the existing storage roots file for the configuration.
-        :return:
-        """
-
-        (local_storage_lookup, unmapped_roots) = \
-            self.get_local_storages(sg_connection)
-
-        # raise an error if there are any roots that can not be mapped to SG
-        # local storage entries
-        if unmapped_roots:
-            raise TankError(
-                "The following storages are defined by %s but is can not be "
-                "mapped to a local storage in Shotgun: %s" % (
-                    self._storage_roots_file,
-                    ", ".join(unmapped_roots)
-                )
-            )
-
-        if os.path.exists(self._storage_roots_file):
-            # warn if this file already exists
-            log.warning(
-                "The file '%s' exists in the configuration "
-                "but will be overwritten with an auto generated file." %
-                (self.STORAGE_ROOTS_FILE_PATH,)
-            )
-
-        # build up a new metadata dict
-        roots_metadata = self._storage_roots_metadata
-
-        for root_name, root_info in roots_metadata.iteritems():
-
-            # get the cached SG storage dict
-            sg_local_storage = local_storage_lookup[root_name]
-
-            # get the local storage as a ShotgunPath object
-            storage_sg_path = ShotgunPath.from_shotgun_dict(sg_local_storage)
-
-            # update the root's metadata with the dictionary of all
-            # sys.platform-style paths
-            root_info.update(storage_sg_path.as_shotgun_dict())
-
-        # write the new metadata to disk
-        with filesystem.auto_created_yml(self._storage_roots_file) as fh:
-            yaml.safe_dump(roots_metadata, fh)
 
 
 def _get_storage_roots_metadata(storage_roots_file):
