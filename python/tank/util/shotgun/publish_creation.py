@@ -475,8 +475,6 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         # to a storage that is associated with this toolkit config.
         storage_name, path_cache = _calc_path_cache(tk, path)
 
-        # XXX: update to use new storage roots format?
-
         if path_cache:
             # there is a toolkit storage mapping defined for this storage
             log.debug(
@@ -700,8 +698,6 @@ def _calc_path_cache(tk, path):
     # may return c:\foo, c:/foo or /foo - assume that we need to normalize this path
     roots = tk.pipeline_configuration.get_data_roots()
 
-    # XXX: update to use new storage logic?
-
     for root_name, root_path in roots.items():
         norm_root_path = root_path.replace(os.sep, "/")
 
@@ -753,7 +749,6 @@ def group_by_storage(tk, list_of_paths):
             {'foo/bar': ['/secondary_storage/foo/bar'] }
         }
     """
-    # XXX: update to use new storage logic?
     storages_paths = {}
 
     for path in list_of_paths:

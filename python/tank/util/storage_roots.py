@@ -22,11 +22,17 @@ from . import yaml_cache
 log = LogManager.get_logger(__name__)
 
 
-# TODO: double check:
+# TODO:
+  # double check:
+    # public interfaces using this haven't changed
     # docstring contents
     # params
     # return values
     # logging
+  # write:
+    # __str__
+    # __repr__
+    # unit tests
 
 class StorageRoots(object):
     """
@@ -232,6 +238,13 @@ class StorageRoots(object):
             }
         """
         return self._shotgun_paths_lookup
+
+    @property
+    def default(self):
+        """
+        The name of the default storage root
+        """
+        return self._default_storage_name
 
     @property
     def default_path(self):

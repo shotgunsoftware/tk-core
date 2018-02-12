@@ -691,6 +691,15 @@ class PipelineConfiguration(object):
         # is at least one storage root has been defined.
         return self._storage_roots.default_path is not None
 
+    def get_primary_data_root_name(self):
+        """
+        Returns the default root name as defined by the required roots for this
+        configuration.
+
+        :returns: str name of a storage root
+        """
+        return self._storage_roots.default
+
     def get_primary_data_root(self):
         """
         Returns the path to the primary (default) data root for the current

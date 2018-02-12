@@ -527,8 +527,6 @@ def _get_pipeline_configs_for_path(path, data):
     :returns: list of pipeline configurations matching the path, [] if no match.
     """
 
-    # XXX: update with latest logic?
-
     # step 1 - extract all storages for the current os
     storages = []
     for s in data["local_storages"]:
