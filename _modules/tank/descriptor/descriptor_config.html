@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor_config &mdash; tk-core v0.18.124 documentation</title>
+  <title>tank.descriptor.descriptor_config &mdash; tk-core v0.18.127 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.124 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.127 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -118,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.124.<br>
+    <b>tk-core</b> v0.18.127.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -191,7 +191,7 @@
 <span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankFileDoesNotExistError</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankInvalidInterpreterLocationError</span>
-<span class="kn">from</span> <span class="nn">.descriptor</span> <span class="kn">import</span> <span class="n">Descriptor</span>
+<span class="kn">from</span> <span class="nn">.descriptor</span> <span class="kn">import</span> <span class="n">Descriptor</span><span class="p">,</span> <span class="n">create_descriptor</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
 <span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">ShotgunPath</span>
 <span class="kn">from</span> <span class="nn">..util.version</span> <span class="kn">import</span> <span class="n">is_version_older</span>
@@ -204,6 +204,13 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Descriptor that describes a Toolkit Configuration</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">bundle_cache_root</span><span class="p">,</span> <span class="n">fallback_roots</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ConfigDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_core_descriptor</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span> <span class="o">=</span> <span class="n">sg_connection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_root</span> <span class="o">=</span> <span class="n">bundle_cache_root</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fallback_roots</span> <span class="o">=</span> <span class="n">fallback_roots</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">associated_core_descriptor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -225,6 +232,47 @@
 <span class="sd">        :returns: Path value stored in the interpreter file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;ConfigDescriptor.python_interpreter is not implemented.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">resolve_core_descriptor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resolves the :class:`CoreDescriptor` from :attr:`ConfigDescriptor.associated_core_descriptor`.</span>
+
+<span class="sd">        :returns: The core descriptor if :attr:`ConfigDescriptor.associated_core_descriptor` is set,</span>
+<span class="sd">            ``None`` otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">associated_core_descriptor</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_core_descriptor</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cached_core_descriptor</span> <span class="o">=</span> <span class="n">create_descriptor</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span><span class="p">,</span>
+                <span class="n">Descriptor</span><span class="o">.</span><span class="n">CORE</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">associated_core_descriptor</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_root</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_fallback_roots</span><span class="p">,</span>
+                <span class="n">resolve_latest</span><span class="o">=</span><span class="bp">False</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_core_descriptor</span>
+
+<div class="viewcode-block" id="ConfigDescriptor.get_associated_core_feature_info"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.ConfigDescriptor.get_associated_core_feature_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_associated_core_feature_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_name</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves information for a given feature in the manifest of the core.</span>
+
+<span class="sd">        The ``default_value`` will be returned in the following cases:</span>
+<span class="sd">            - a feature is missing from the manifest</span>
+<span class="sd">            - the manifest is empty</span>
+<span class="sd">            - the manifest is missing</span>
+<span class="sd">            - there is no core associated with this configuration.</span>
+
+<span class="sd">        :param str feature_name: Name of the feature to retrieve from the manifest.</span>
+<span class="sd">        :param object default_value: Value to return if the feature is missing.</span>
+
+<span class="sd">        :returns: The value for the feature if present, ``default_value`` otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolve_core_descriptor</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">resolve_core_descriptor</span><span class="p">()</span><span class="o">.</span><span class="n">get_feature_info</span><span class="p">(</span><span class="n">feature_name</span><span class="p">,</span> <span class="n">default_value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">default_value</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">version_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -259,7 +307,7 @@
         <span class="n">readme_content</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="n">readme_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_get_config_folder</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_config_folder</span><span class="p">(),</span>
             <span class="n">constants</span><span class="o">.</span><span class="n">CONFIG_README_FILE</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">readme_file</span><span class="p">):</span>
@@ -296,8 +344,7 @@
 
         <span class="k">return</span> <span class="n">result</span></div>
 
-
-    <span class="k">def</span> <span class="nf">_get_config_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_config_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the folder in which the configuration files are located.</span>
 
@@ -305,7 +352,7 @@
 
 <span class="sd">        :returns: Path to the configuration files folder.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;ConfigDescriptor._get_config_folder is not implemented.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;ConfigDescriptor.get_config_folder is not implemented.&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_current_platform_interpreter_file_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">install_root</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -362,7 +409,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># get the roots definition</span>
         <span class="n">root_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_get_config_folder</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_config_folder</span><span class="p">(),</span>
             <span class="s2">&quot;core&quot;</span><span class="p">,</span>
             <span class="n">constants</span><span class="o">.</span><span class="n">STORAGE_ROOTS_FILE</span><span class="p">)</span>
 
@@ -418,7 +465,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.124',
+            VERSION:'v0.18.127',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

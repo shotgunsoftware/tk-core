@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.124 documentation</title>
+  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.127 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.124 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.127 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -118,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.124.<br>
+    <b>tk-core</b> v0.18.127.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -191,6 +191,10 @@
 <span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">LocalFileStorageManager</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
 
+<span class="kn">from</span> <span class="nn">..log</span> <span class="kn">import</span> <span class="n">LogManager</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="create_descriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.create_descriptor">[docs]</a><span class="k">def</span> <span class="nf">create_descriptor</span><span class="p">(</span>
         <span class="n">sg_connection</span><span class="p">,</span>
@@ -203,6 +207,10 @@
         <span class="n">local_fallback_when_disconnected</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Factory method. Use this when creating descriptor objects.</span>
+
+<span class="sd">    .. note:: Descriptors inherit their threading characteristics from</span>
+<span class="sd">        the shotgun connection that they carry internally. They are reentrant</span>
+<span class="sd">        and should not be passed between threads.</span>
 
 <span class="sd">    :param sg_connection: Shotgun connection to associated site</span>
 <span class="sd">    :param descriptor_type: Either ``Descriptor.APP``, ``CORE``, ``CONFIG``, ``INSTALLED_CONFIG``,</span>
@@ -289,10 +297,14 @@
         <span class="k">return</span> <span class="n">FrameworkDescriptor</span><span class="p">(</span><span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">)</span>
 
     <span class="k">elif</span> <span class="n">descriptor_type</span> <span class="o">==</span> <span class="n">Descriptor</span><span class="o">.</span><span class="n">CONFIG</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">CachedConfigDescriptor</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">CachedConfigDescriptor</span><span class="p">(</span>
+            <span class="n">sg_connection</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span><span class="p">,</span> <span class="n">io_descriptor</span>
+        <span class="p">)</span>
 
     <span class="k">elif</span> <span class="n">descriptor_type</span> <span class="o">==</span> <span class="n">Descriptor</span><span class="o">.</span><span class="n">INSTALLED_CONFIG</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">InstalledConfigDescriptor</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">InstalledConfigDescriptor</span><span class="p">(</span>
+            <span class="n">sg_connection</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span><span class="p">,</span> <span class="n">io_descriptor</span>
+        <span class="p">)</span>
 
     <span class="k">elif</span> <span class="n">descriptor_type</span> <span class="o">==</span> <span class="n">Descriptor</span><span class="o">.</span><span class="n">CORE</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">CoreDescriptor</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
@@ -698,7 +710,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.124',
+            VERSION:'v0.18.127',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.authentication.user &mdash; tk-core v0.18.124 documentation</title>
+  <title>tank.authentication.user &mdash; tk-core v0.18.127 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.124 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.127 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -118,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.124.<br>
+    <b>tk-core</b> v0.18.127.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -333,6 +333,19 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ShotgunSamlUser</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">impl</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_claims_renewal_cancelled</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="c1"># Calling stop_claims_renewal only guarantees that the claims renewal will stop at some point,</span>
+        <span class="c1"># not that it will stop right away unfortunately. What this means is that it is possible,</span>
+        <span class="c1"># however unlikely, that someone can stop and restart the claims renewal fast enough to</span>
+        <span class="c1"># confuse the _timer and _claims_renewal_cancelled flag.</span>
+        <span class="c1">#</span>
+        <span class="c1"># This lock will ensure the thread-safety of restarting the timer. Since the timer&#39;s</span>
+        <span class="c1"># thread is impacted by the update to the _claims_renewal_cancelled flag, any update</span>
+        <span class="c1"># to these two will be done under a lock.</span>
+        <span class="c1">#</span>
+        <span class="c1"># see _do_automatic_claims_renewal to see what the race condition is exactly.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_timer_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">get_claims_expiration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -347,8 +360,11 @@
 <span class="sd">        Handles automatic renewal of the SAML2 claims for the user.</span>
 
 <span class="sd">        :param preemtive_renewal_threshold: How far into the claims duration we will attempt renewal.</span>
-<span class="sd">                                             Defaults to 90%, usually 3 minutes 45 seconds (90% of 5 mins).</span>
+<span class="sd">                                            Defaults to 90%, usually 4 minutes 30 seconds (90% of 5 mins).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_claims_renewal_cancelled</span><span class="p">:</span>
+            <span class="k">return</span>
+
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Attempting automatic claims renewal&quot;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">previous_expiration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_claims_expiration</span><span class="p">()</span>
@@ -366,8 +382,30 @@
                 <span class="k">if</span> <span class="s2">&quot;SHOTGUN_SSO_RENEWAL_INTERVAL&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
                     <span class="n">delta</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;SHOTGUN_SSO_RENEWAL_INTERVAL&quot;</span><span class="p">])</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Next claims renewal attempt: </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">delta</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_automatic_claims_renewal</span><span class="p">,</span> <span class="p">[</span><span class="n">preemtive_renewal_threshold</span><span class="p">])</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timer_lock</span><span class="p">:</span>
+                    <span class="c1"># Let&#39;s pretend &quot;stop_claims_rewnwal&quot; has already been called, so</span>
+                    <span class="c1"># &quot;_claims_renewal_cancelled&quot; is currently True. Thread A is the</span>
+                    <span class="c1"># main thread and B is the thread that runs &quot;_do_automatic_claims_renewal&quot;.</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># 1. This IF is evaluated by thread B, so the next instruction will be &quot;return&quot;</span>
+                    <span class="c1"># 2. From thread A, &quot;start_claims_renewal&quot; is called.</span>
+                    <span class="c1"># 3. Thread A sets the flag to False and checks if the timer is active. It is,</span>
+                    <span class="c1">#    because _do_automatic_claims_renewal is still executing, so the method</span>
+                    <span class="c1">#    thinks it doesn&#39;t have to restart the timer and returns.</span>
+                    <span class="c1"># 4. Thread B now resumes and returns.</span>
+                    <span class="c1"># 5. At some point in the future, claim renewal won&#39;t happen and the session</span>
+                    <span class="c1">#    is going to go out of date.</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># With the lock, this isn&#39;t an issue anymore, because the act of setting the flag</span>
+                    <span class="c1"># and setting the timer, or reading the flag and setting the timer, is done in</span>
+                    <span class="c1"># an atomic fashion, so there are no more race conditions.</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_claims_renewal_cancelled</span><span class="p">:</span>
+                        <span class="k">return</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Timer</span><span class="p">(</span>
+                        <span class="n">delta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_automatic_claims_renewal</span><span class="p">,</span> <span class="p">[</span><span class="n">preemtive_renewal_threshold</span><span class="p">]</span>
+                    <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No further attempts to auto-renew in the background will be attempted.&quot;</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">AuthenticationCancelled</span><span class="p">:</span>
@@ -377,20 +415,34 @@
     <span class="k">def</span> <span class="nf">start_claims_renewal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preemtive_renewal_threshold</span><span class="o">=</span><span class="mf">0.9</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Start claims renewal mechanism.</span>
+
+<span class="sd">        :param preemtive_renewal_threshold: Value between 0 and 1 indicating how far into the claims</span>
+<span class="sd">            duration we will attempt a renewal. The claims duration is usually 5 minutes. For example,</span>
+<span class="sd">            a value of 0.9, which is also the default value, will indicate that the renewal should</span>
+<span class="sd">            happen after 4 minutes and 30 seconds.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_claims_renewal_active</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_do_automatic_claims_renewal</span><span class="p">(</span><span class="n">preemtive_renewal_threshold</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Attempting to start claims renewal when it was already active.&quot;</span><span class="p">)</span>
+        <span class="c1"># Ensure thread-safe access of _claims_renewal_cancelled and _timer. See __init__</span>
+        <span class="c1"># for details.</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timer_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_claims_renewal_cancelled</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_claims_renewal_active</span><span class="p">():</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_do_automatic_claims_renewal</span><span class="p">(</span><span class="n">preemtive_renewal_threshold</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Attempting to start claims renewal when it was already active.&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">stop_claims_renewal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Stops claims renewal mechanism.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Attempting to stop claims renewal when it was not active.&quot;</span><span class="p">)</span>
+        <span class="c1"># Ensure thread-safe access of _claims_renewal_cancelled and _timer. See __init__</span>
+        <span class="c1"># for details.</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timer_lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_claims_renewal_cancelled</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Attempting to stop claims renewal when it was not active.&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">is_claims_renewal_active</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -463,7 +515,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.124',
+            VERSION:'v0.18.127',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

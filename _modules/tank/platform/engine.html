@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.engine &mdash; tk-core v0.18.124 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.18.127 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.124 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.127 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -118,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.124.<br>
+    <b>tk-core</b> v0.18.127.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -653,21 +653,21 @@
 
 <div class="viewcode-block" id="Engine.get_metrics_properties"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.get_metrics_properties">[docs]</a>    <span class="k">def</span> <span class="nf">get_metrics_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a dictionary with properties to use when emitting a metric event for</span>
+<span class="sd">        Returns a dictionary with properties to use when emitting a metric event for</span>
 <span class="sd">        this engine.</span>
 
-<span class="sd">        The dictionary contains informations about this engine: its name and version,</span>
+<span class="sd">        The dictionary contains information about this engine: its name and version,</span>
 <span class="sd">        and informations about the application hosting the engine: its name and</span>
-<span class="sd">        version. </span>
+<span class="sd">        version::</span>
 <span class="sd">        </span>
-<span class="sd">        E.g.::</span>
-<span class="sd">        {</span>
-<span class="sd">            &#39;Host App&#39;: &#39;Maya&#39;,</span>
-<span class="sd">            &#39;Host App Version&#39;: &#39;2017&#39;,</span>
-<span class="sd">            &#39;Engine&#39;: &#39;tk-maya&#39;,</span>
-<span class="sd">            &#39;Engine Version&#39;: &#39;v0.4.1&#39;,</span>
-<span class="sd">        }</span>
+<span class="sd">            {</span>
+<span class="sd">                &#39;Host App&#39;: &#39;Maya&#39;,</span>
+<span class="sd">                &#39;Host App Version&#39;: &#39;2017&#39;,</span>
+<span class="sd">                &#39;Engine&#39;: &#39;tk-maya&#39;,</span>
+<span class="sd">                &#39;Engine Version&#39;: &#39;v0.4.1&#39;,</span>
+<span class="sd">            }</span>
 
+<span class="sd">        :returns: A dictionary with metrics properties as per above.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Always create a new dictionary so the caller can safely modify it.</span>
         <span class="k">return</span> <span class="p">{</span>
@@ -841,9 +841,9 @@
 <span class="sd">        </span>
 <span class="sd">        A dictionary with at least a &quot;name&quot; and a &quot;version&quot; key should be returned</span>
 <span class="sd">        by derived implementations, with respectively the host application name </span>
-<span class="sd">        and its release string as values, e.g. { &quot;name&quot;: &quot;Maya&quot;, &quot;version&quot;: &quot;2017.3&quot;}.</span>
+<span class="sd">        and its release string as values, e.g. ``{ &quot;name&quot;: &quot;Maya&quot;, &quot;version&quot;: &quot;2017.3&quot;}``.</span>
 <span class="sd">        </span>
-<span class="sd">        :returns: A {&quot;name&quot;: &quot;unknown&quot;, &quot;version&quot; : &quot;unknown&quot;} dictionary.</span>
+<span class="sd">        :returns: A ``{&quot;name&quot;: &quot;unknown&quot;, &quot;version&quot; : &quot;unknown&quot;}`` dictionary.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;unknown&quot;</span><span class="p">,</span>
@@ -3272,7 +3272,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.124',
+            VERSION:'v0.18.127',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

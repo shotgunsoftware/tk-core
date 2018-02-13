@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.bootstrap.manager &mdash; tk-core v0.18.124 documentation</title>
+  <title>tank.bootstrap.manager &mdash; tk-core v0.18.127 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.124 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.127 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -118,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.124.<br>
+    <b>tk-core</b> v0.18.127.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -792,12 +792,12 @@
         <span class="k">except</span> <span class="n">TankError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankBootstrapError</span><span class="p">(</span><span class="s2">&quot;Unexpected error while caching configuration: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">config</span><span class="o">.</span><span class="n">has_local_bundle_cache</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">requires_dynamic_bundle_caching</span><span class="p">:</span>
             <span class="c1"># make sure we have all the apps locally downloaded</span>
             <span class="c1"># this check is quick, so always perform the check, except for installed config, which are</span>
             <span class="c1"># self contained, even when the config is up to date - someone may have deleted their</span>
             <span class="c1"># bundle cache</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cache_apps</span><span class="p">(</span><span class="n">pc</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress_callback</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache_bundles</span><span class="p">(</span><span class="n">pc</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress_callback</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Configuration has local bundle cache, skipping bundle caching.&quot;</span><span class="p">)</span>
 
@@ -1147,14 +1147,17 @@
 
         <span class="c1"># we can now boot up this config.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="n">progress_callback</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_STARTING_TOOLKIT_RATE</span><span class="p">,</span> <span class="s2">&quot;Starting up Toolkit...&quot;</span><span class="p">)</span>
-        <span class="n">tk</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_tk_instance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span><span class="p">)</span>
+        <span class="n">tk</span><span class="p">,</span> <span class="n">user</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_tk_instance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">config</span><span class="o">.</span><span class="n">has_local_bundle_cache</span><span class="p">:</span>
+        <span class="c1"># Assign the post core-swap user so the rest of the bootstrap uses the new user object.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span> <span class="o">=</span> <span class="n">user</span>
+
+        <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">requires_dynamic_bundle_caching</span><span class="p">:</span>
             <span class="c1"># make sure we have all the apps locally downloaded</span>
             <span class="c1"># this check is quick, so always perform the check, except for installed config, which are</span>
             <span class="c1"># self contained, even when the config is up to date - someone may have deleted their</span>
             <span class="c1"># bundle cache</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cache_apps</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache_bundles</span><span class="p">(</span>
                 <span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="p">,</span>
                 <span class="n">engine_name</span><span class="p">,</span>
                 <span class="n">progress_callback</span>
@@ -1295,9 +1298,9 @@
             <span class="c1"># Call the old style progress callback with signature (message, current_index, maximum_index).</span>
             <span class="n">progress_callback</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_cache_apps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pipeline_configuration</span><span class="p">,</span> <span class="n">config_engine_name</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_cache_bundles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pipeline_configuration</span><span class="p">,</span> <span class="n">config_engine_name</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Caches all apps associated with the given toolkit instance.</span>
+<span class="sd">        Caches all bundles associated with the given toolkit instance.</span>
 
 <span class="sd">        :param pipeline_configuration: :class:`stgk.PipelineConfiguration` to process configuration for</span>
 <span class="sd">        :param pc: Pipeline configuration instance.</span>
@@ -1444,7 +1447,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.124',
+            VERSION:'v0.18.127',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

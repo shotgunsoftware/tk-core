@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptor API &mdash; tk-core v0.18.124 documentation</title>
+  <title>Descriptor API &mdash; tk-core v0.18.127 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.124 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.127 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -140,7 +140,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.124.<br>
+    <b>tk-core</b> v0.18.127.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -460,12 +460,13 @@ to Shotgun and then reference it with a descriptor.</p>
 or other items to your distributed users - regardless of network or file access.
 All they need is a connection to Shotgun.</p>
 <p>A practical application of this is Toolkit&#8217;s cloud based configurations;
-by uploading a zipped up Toolkit configuration to the <code class="docutils literal"><span class="pre">PipelineConfiguration.uploaded_config</span></code>
-field (or a custom field named <code class="docutils literal"><span class="pre">PipelineConfiguration.sg_uploaded_config</span></code> if you have an older
-Shotgun site which does not have the field included by default). The <a class="reference internal" href="bootstrap.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a>
-boostrapping interface will automatically look for an uploaded zip file in this field,
-and if it exists, start your Toolkit session using this configuration. This allows for a workflow
-where a configuration can be distributed to remote users easily.</p>
+Create a custom file/link field named <code class="docutils literal"><span class="pre">PipelineConfiguration.sg_uploaded_config</span></code>
+and upload a zipped up toolkit configuration to your this field on your pipeline configuration.
+The <a class="reference internal" href="bootstrap.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a> boostrapping interface will automatically detect
+this, download the configuration locally and use this when launching.
+This allows for a powerful workflow where a configuration is simply
+uploaded to Shotgun and it gets automatically picked up by all
+users (even if they are remote).</p>
 <p>The Shotgun descriptor is the low level mechanism that is used to implement the cloud
 configurations described above. The descriptor points at a particular attachment
 field in Shotgun and expects a zip file to be uploaded to the field.</p>
@@ -528,6 +529,12 @@ for the code in the <code class="docutils literal"><span class="pre">CACHE_ROOT/
 <dt id="sgtk.descriptor.create_descriptor">
 <code class="descclassname">sgtk.descriptor.</code><code class="descname">create_descriptor</code><span class="sig-paren">(</span><em>sg_connection</em>, <em>descriptor_type</em>, <em>dict_or_uri</em>, <em>bundle_cache_root_override=None</em>, <em>fallback_roots=None</em>, <em>resolve_latest=False</em>, <em>constraint_pattern=None</em>, <em>local_fallback_when_disconnected=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor.html#create_descriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.create_descriptor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Factory method. Use this when creating descriptor objects.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Descriptors inherit their threading characteristics from
+the shotgun connection that they carry internally. They are reentrant
+and should not be passed between threads.</p>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2212,18 +2219,8 @@ min_engine and min_desktop</td>
 <h3>ConfigDescriptor<a class="headerlink" href="#configdescriptor" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="sgtk.descriptor.ConfigDescriptor">
-<em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">ConfigDescriptor</code><span class="sig-paren">(</span><em>io_descriptor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_config.html#ConfigDescriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">ConfigDescriptor</code><span class="sig-paren">(</span><em>sg_connection</em>, <em>bundle_cache_root</em>, <em>fallback_roots</em>, <em>io_descriptor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_config.html#ConfigDescriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Descriptor that describes a Toolkit Configuration</p>
-<p>Use the factory method <a class="reference internal" href="#sgtk.descriptor.create_descriptor" title="sgtk.descriptor.create_descriptor"><code class="xref py py-meth docutils literal"><span class="pre">create_descriptor()</span></code></a> when
-creating new descriptor objects.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>io_descriptor</strong> &#8211; Associated IO descriptor.</td>
-</tr>
-</tbody>
-</table>
 <dl class="attribute">
 <dt id="sgtk.descriptor.ConfigDescriptor.associated_core_descriptor">
 <code class="descname">associated_core_descriptor</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.associated_core_descriptor" title="Permalink to this definition">¶</a></dt>
@@ -2253,6 +2250,37 @@ creating new descriptor objects.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Path value stored in the interpreter file.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.ConfigDescriptor.get_associated_core_feature_info">
+<code class="descname">get_associated_core_feature_info</code><span class="sig-paren">(</span><em>feature_name</em>, <em>default_value=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_config.html#ConfigDescriptor.get_associated_core_feature_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.get_associated_core_feature_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves information for a given feature in the manifest of the core.</p>
+<dl class="docutils">
+<dt>The <code class="docutils literal"><span class="pre">default_value</span></code> will be returned in the following cases:</dt>
+<dd><ul class="first last simple">
+<li>a feature is missing from the manifest</li>
+<li>the manifest is empty</li>
+<li>the manifest is missing</li>
+<li>there is no core associated with this configuration.</li>
+</ul>
+</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>feature_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the feature to retrieve from the manifest.</li>
+<li><strong>default_value</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) &#8211; Value to return if the feature is missing.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The value for the feature if present, <code class="docutils literal"><span class="pre">default_value</span></code> otherwise.</p>
 </td>
 </tr>
 </tbody>
@@ -2670,6 +2698,36 @@ returned: min_sg, min_core, min_engine and min_desktop</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary with optional keys min_sg, min_core,
 min_engine, min_desktop</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.descriptor.CoreDescriptor.get_feature_info">
+<code class="descname">get_feature_info</code><span class="sig-paren">(</span><em>feature_name</em>, <em>default_value=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_core.html#CoreDescriptor.get_feature_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.get_feature_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves information for a given feature in the manifest.</p>
+<dl class="docutils">
+<dt>The <code class="docutils literal"><span class="pre">default_value</span></code> will be returned in the following cases:</dt>
+<dd><ul class="first last simple">
+<li>a feature is missing from the manifest</li>
+<li>the manifest is empty</li>
+<li>the manifest is missing</li>
+</ul>
+</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>feature_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the feature to retrieve from the manifest.</li>
+<li><strong>default_value</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) &#8211; Value to return if the feature is missing.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The value for the feature if present, <code class="docutils literal"><span class="pre">default_value</span></code> otherwise.</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -3106,7 +3164,7 @@ If not url has been defined, <code class="docutils literal"><span class="pre">No
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.124',
+            VERSION:'v0.18.127',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

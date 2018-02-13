@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.18.124 documentation</title>
+  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.18.127 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.124 documentation" href="../../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.127 documentation" href="../../../../index.html"/>
         <link rel="up" title="Module code" href="../../../index.html"/> 
 
   
@@ -118,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.124.<br>
+    <b>tk-core</b> v0.18.127.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -650,54 +650,45 @@
         <span class="n">storage_name</span><span class="p">,</span> <span class="n">path_cache</span> <span class="o">=</span> <span class="n">_calc_path_cache</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">path_cache</span><span class="p">:</span>
-
             <span class="c1"># there is a toolkit storage mapping defined for this storage</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
                 <span class="s2">&quot;The path &#39;</span><span class="si">%s</span><span class="s2">&#39; is associated with config root &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">storage_name</span><span class="p">)</span>
             <span class="p">)</span>
-            <span class="c1"># specify the full path in shotgun</span>
-            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;local_path&quot;</span><span class="p">:</span> <span class="n">path</span><span class="p">}</span>
 
-            <span class="c1"># note - #30005 - there appears to be an issue on the serverside</span>
-            <span class="c1"># related to the explicit storage format and paths containing</span>
-            <span class="c1"># sequence tokens such as %04d. Commenting out the logic to handle</span>
-            <span class="c1"># the new explicit storage format for the time being while this is</span>
-            <span class="c1"># being investigated.</span>
+            <span class="c1"># check if the shotgun server supports the storage and relative_path parameters which</span>
+            <span class="c1"># allows us to specify exactly which storage to bind a publish to rather than relying on</span>
+            <span class="c1"># Shotgun to compute this.</span>
+            <span class="n">supports_specific_storage_syntax</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="nb">hasattr</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="p">,</span> <span class="s2">&quot;server_caps&quot;</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">server_caps</span><span class="o">.</span><span class="n">version</span> <span class="ow">and</span>
+                <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">server_caps</span><span class="o">.</span><span class="n">version</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="p">)</span>
 
-            <span class="c1"># # check if the shotgun server supports the storage and relative_path parameters</span>
-            <span class="c1"># # which allows us to specify exactly which storage to bind a publish to rather</span>
-            <span class="c1"># # than relying on Shotgun to compute this</span>
-            <span class="c1"># supports_specific_storage_syntax = (</span>
-            <span class="c1">#     hasattr(tk.shotgun, &quot;server_caps&quot;) and</span>
-            <span class="c1">#     tk.shotgun.server_caps.version and</span>
-            <span class="c1">#     tk.shotgun.server_caps.version &gt;= (6, 3, 17)</span>
-            <span class="c1"># )</span>
-            <span class="c1">#</span>
-            <span class="c1"># if supports_specific_storage_syntax:</span>
-            <span class="c1">#     # explicitly pass relative path and storage to shotgun</span>
-            <span class="c1">#     storage = tk.shotgun.find_one(&quot;LocalStorage&quot;, [[&quot;code&quot;, &quot;is&quot;, storage_name]])</span>
-            <span class="c1">#</span>
-            <span class="c1">#     if storage is None:</span>
-            <span class="c1">#         # there is no storage in Shotgun that matches the one toolkit expects.</span>
-            <span class="c1">#         # this *may* be ok because there may be another storage in Shotgun that</span>
-            <span class="c1">#         # magically picks up the publishes and associates with them. In this case,</span>
-            <span class="c1">#         # issue a warning and fall back on the server-side functionality</span>
-            <span class="c1">#         log.warning(</span>
-            <span class="c1">#             &quot;Could not find the expected storage &#39;%s&#39; in Shotgun to associate &quot;</span>
-            <span class="c1">#             &quot;publish &#39;%s&#39; with - falling back to Shotgun&#39;s built-in storage &quot;</span>
-            <span class="c1">#             &quot;resolution logic. It is recommended that you add the &#39;%s&#39; storage &quot;</span>
-            <span class="c1">#             &quot;to Shotgun&quot; % (storage_name, path, storage_name))</span>
-            <span class="c1">#         data[&quot;path&quot;] = {&quot;local_path&quot;: path}</span>
-            <span class="c1">#</span>
-            <span class="c1">#     else:</span>
-            <span class="c1">#         data[&quot;path&quot;] = {&quot;relative_path&quot;: path_cache, &quot;local_storage&quot;: storage}</span>
-            <span class="c1">#</span>
-            <span class="c1"># else:</span>
-            <span class="c1">#     # use previous syntax where we pass the whole path to Shotgun</span>
-            <span class="c1">#     # and shotgun will do the storage/relative path split server side.</span>
-            <span class="c1">#     # This operation may do unexpected things if you have multiple</span>
-            <span class="c1">#     # storages that are identical or overlapping</span>
-            <span class="c1">#     data[&quot;path&quot;] = {&quot;local_path&quot;: path}</span>
+            <span class="k">if</span> <span class="n">supports_specific_storage_syntax</span><span class="p">:</span>
+                <span class="c1"># explicitly pass relative path and storage to shotgun</span>
+                <span class="n">storage</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s2">&quot;LocalStorage&quot;</span><span class="p">,</span> <span class="p">[[</span><span class="s2">&quot;code&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">storage_name</span><span class="p">]])</span>
+
+                <span class="k">if</span> <span class="n">storage</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="c1"># there is no storage in Shotgun that matches the one toolkit expects.</span>
+                    <span class="c1"># this *may* be ok because there may be another storage in Shotgun that</span>
+                    <span class="c1"># magically picks up the publishes and associates with them. In this case,</span>
+                    <span class="c1"># issue a warning and fall back on the server-side functionality</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="s2">&quot;Could not find the expected storage &#39;</span><span class="si">%s</span><span class="s2">&#39; in Shotgun to associate &quot;</span>
+                        <span class="s2">&quot;publish &#39;</span><span class="si">%s</span><span class="s2">&#39; with - falling back to Shotgun&#39;s built-in storage &quot;</span>
+                        <span class="s2">&quot;resolution logic. It is recommended that you add the &#39;</span><span class="si">%s</span><span class="s2">&#39; storage &quot;</span>
+                        <span class="s2">&quot;to Shotgun&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">storage_name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">storage_name</span><span class="p">))</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;local_path&quot;</span><span class="p">:</span> <span class="n">path</span><span class="p">}</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;relative_path&quot;</span><span class="p">:</span> <span class="n">path_cache</span><span class="p">,</span> <span class="s2">&quot;local_storage&quot;</span><span class="p">:</span> <span class="n">storage</span><span class="p">}</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># use previous syntax where we pass the whole path to Shotgun</span>
+                <span class="c1"># and shotgun will do the storage/relative path split server side.</span>
+                <span class="c1"># This operation may do unexpected things if you have multiple</span>
+                <span class="c1"># storages that are identical or overlapping</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;local_path&quot;</span><span class="p">:</span> <span class="n">path</span><span class="p">}</span>
 
             <span class="c1"># fill in the path cache field which is used for filtering in Shotgun</span>
             <span class="c1"># (because SG does not support</span>
@@ -985,7 +976,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'v0.18.124',
+            VERSION:'v0.18.127',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

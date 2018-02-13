@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.124 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.127 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.124 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.127 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Foundation" href="core.html"/> 
 
@@ -189,7 +189,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.124.<br>
+    <b>tk-core</b> v0.18.127.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -817,19 +817,27 @@ to a logging console, you can attach a std log handler here.</p>
 <dl class="method">
 <dt id="sgtk.platform.Engine.get_metrics_properties">
 <code class="descname">get_metrics_properties</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.get_metrics_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.get_metrics_properties" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a dictionary with properties to use when emitting a metric event for
+<dd><p>Returns a dictionary with properties to use when emitting a metric event for
 this engine.</p>
-<p>The dictionary contains informations about this engine: its name and version,
+<p>The dictionary contains information about this engine: its name and version,
 and informations about the application hosting the engine: its name and
-version.</p>
-<p>E.g.::
-{</p>
-<blockquote>
-<div>&#8216;Host App&#8217;: &#8216;Maya&#8217;,
-&#8216;Host App Version&#8217;: &#8216;2017&#8217;,
-&#8216;Engine&#8217;: &#8216;tk-maya&#8217;,
-&#8216;Engine Version&#8217;: &#8216;v0.4.1&#8217;,</div></blockquote>
-<p>}</p>
+version:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;Host App&#39;</span><span class="p">:</span> <span class="s1">&#39;Maya&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Host App Version&#39;</span><span class="p">:</span> <span class="s1">&#39;2017&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Engine&#39;</span><span class="p">:</span> <span class="s1">&#39;tk-maya&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Engine Version&#39;</span><span class="p">:</span> <span class="s1">&#39;v0.4.1&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A dictionary with metrics properties as per above.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
@@ -1017,12 +1025,12 @@ to be forwarded to SG.</td>
 specific to the application the engine is designed for.</p>
 <p>A dictionary with at least a &#8220;name&#8221; and a &#8220;version&#8221; key should be returned
 by derived implementations, with respectively the host application name 
-and its release string as values, e.g. { &#8220;name&#8221;: &#8220;Maya&#8221;, &#8220;version&#8221;: &#8220;2017.3&#8221;}.</p>
+and its release string as values, e.g. <code class="docutils literal"><span class="pre">{</span> <span class="pre">&quot;name&quot;:</span> <span class="pre">&quot;Maya&quot;,</span> <span class="pre">&quot;version&quot;:</span> <span class="pre">&quot;2017.3&quot;}</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A {&#8220;name&#8221;: &#8220;unknown&#8221;, &#8220;version&#8221; : &#8220;unknown&#8221;} dictionary.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <code class="docutils literal"><span class="pre">{&quot;name&quot;:</span> <span class="pre">&quot;unknown&quot;,</span> <span class="pre">&quot;version&quot;</span> <span class="pre">:</span> <span class="pre">&quot;unknown&quot;}</span></code> dictionary.</td>
 </tr>
 </tbody>
 </table>
@@ -2344,21 +2352,29 @@ to <code class="xref py py-meth docutils literal"><span class="pre">shotgun()</s
 <dl class="method">
 <dt id="sgtk.platform.Application.get_metrics_properties">
 <code class="descname">get_metrics_properties</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/application.html#Application.get_metrics_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Application.get_metrics_properties" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a dictionary with properties to use when emitting a metric event
+<dd><p>Returns a dictionary with properties to use when emitting a metric event
 for this application in the current engine.</p>
-<p>The dictionary contains informations about this application, about the
+<p>The dictionary contains information about this application, about the
 current engine, and about the application hosting the engine. For each of
-them a name and a version string are available.</p>
-<p>E.g.::
-{</p>
-<blockquote>
-<div>&#8216;Host App&#8217;: &#8216;Maya&#8217;,
-&#8216;Host App Version&#8217;: &#8216;2017&#8217;,
-&#8216;Engine&#8217;: &#8216;tk-maya&#8217;,
-&#8216;Engine Version&#8217;: &#8216;v0.4.1&#8217;,
-&#8216;App&#8217;: &#8216;tk-multi-about&#8217;,
-&#8216;App Version&#8217;: &#8216;1.2.3&#8217;</div></blockquote>
-<p>}</p>
+them, a name and a version string are available:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;Host App&#39;</span><span class="p">:</span> <span class="s1">&#39;Maya&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Host App Version&#39;</span><span class="p">:</span> <span class="s1">&#39;2017&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Engine&#39;</span><span class="p">:</span> <span class="s1">&#39;tk-maya&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;Engine Version&#39;</span><span class="p">:</span> <span class="s1">&#39;v0.4.1&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;App&#39;</span><span class="p">:</span> <span class="s1">&#39;tk-multi-about&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;App Version&#39;</span><span class="p">:</span> <span class="s1">&#39;1.2.3&#39;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary with info per above.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -3313,10 +3329,18 @@ framework code.</p>
 <dl class="method">
 <dt id="sgtk.platform.Framework.get_metrics_properties">
 <code class="descname">get_metrics_properties</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/framework.html#Framework.get_metrics_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Framework.get_metrics_properties" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a dictionary with properties to use when emitting a metric event
+<dd><p>Returns a dictionary with properties to use when emitting a metric event
 for this framework in the current engine.</p>
 <p>Frameworks don&#8217;t have any particular properties and just return the result
-of <code class="xref py py-meth docutils literal"><span class="pre">Engine._get_metrics_properties()</span></code>.</p>
+of <a class="reference internal" href="#sgtk.platform.Engine.get_metrics_properties" title="sgtk.platform.Engine.get_metrics_properties"><code class="xref py py-meth docutils literal"><span class="pre">Engine.get_metrics_properties()</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary as per above.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -5938,7 +5962,7 @@ that need to be passed down to the DCC.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.124',
+            VERSION:'v0.18.127',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

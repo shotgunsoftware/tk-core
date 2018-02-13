@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.pipelineconfig_utils &mdash; tk-core v0.18.124 documentation</title>
+  <title>tank.pipelineconfig_utils &mdash; tk-core v0.18.127 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.124 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.127 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -118,7 +118,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.124.<br>
+    <b>tk-core</b> v0.18.127.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -270,62 +270,6 @@
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Looks like a config file is corrupt. Please contact &quot;</span>
                         <span class="s2">&quot;support! File: &#39;</span><span class="si">%s</span><span class="s2">&#39; Error: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cfg_yml</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">data</span>
-
-
-<span class="k">def</span> <span class="nf">get_roots_metadata</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Loads and validates the roots metadata file.</span>
-<span class="sd">    </span>
-<span class="sd">    The roots.yml file is a reflection of the local storages setup in Shotgun</span>
-<span class="sd">    at project setup time and may contain anomalies in the path layout structure.</span>
-<span class="sd">    </span>
-<span class="sd">    The roots data will be prepended to paths and used for comparison so it is </span>
-<span class="sd">    critical that the paths are on a correct normalized form once they have been </span>
-<span class="sd">    loaded into the system.</span>
-<span class="sd">    </span>
-<span class="sd">    :param pipeline_config_path: Path to the root of a pipeline configuration,</span>
-<span class="sd">                                 (excluding the &quot;config&quot; folder).  </span>
-<span class="sd">    </span>
-<span class="sd">    :returns: A dictionary structure with an entry for each storage defined. Each</span>
-<span class="sd">              storage will have three keys mac_path, windows_path and linux_path, </span>
-<span class="sd">              for example</span>
-<span class="sd">              { &quot;primary&quot;  : &lt;ShotgunPath&gt;,</span>
-<span class="sd">                &quot;textures&quot; : &lt;ShotgunPath&gt;</span>
-<span class="sd">              }</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># now read in the roots.yml file</span>
-    <span class="c1"># this will contain something like</span>
-    <span class="c1"># {&#39;primary&#39;: {&#39;mac_path&#39;: &#39;/studio&#39;, &#39;windows_path&#39;: None, &#39;linux_path&#39;: &#39;/studio&#39;}}</span>
-    <span class="n">roots_yml</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-        <span class="n">pipeline_config_path</span><span class="p">,</span>
-        <span class="s2">&quot;config&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;core&quot;</span><span class="p">,</span>
-        <span class="n">constants</span><span class="o">.</span><span class="n">STORAGE_ROOTS_FILE</span>
-    <span class="p">)</span>
-
-    <span class="k">try</span><span class="p">:</span>
-        <span class="c1"># if file is empty, initialize with empty dict...</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">yaml_cache</span><span class="o">.</span><span class="n">g_yaml_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">roots_yml</span><span class="p">,</span> <span class="n">deepcopy_data</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Looks like the roots file is corrupt. Please contact &quot;</span>
-                        <span class="s2">&quot;support! File: &#39;</span><span class="si">%s</span><span class="s2">&#39; Error: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">roots_yml</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
-
-    <span class="c1"># If there are more than one storage defined, ensure one of them is the primary storage</span>
-    <span class="c1"># We need to keep this constraint as we are not able to keep roots definition</span>
-    <span class="c1"># in the order they were defined, so this is the only way we can guarantee we</span>
-    <span class="c1"># always use the same root for any template which does not have an explicit</span>
-    <span class="c1"># root setting.</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">constants</span><span class="o">.</span><span class="n">PRIMARY_STORAGE_NAME</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-            <span class="s2">&quot;Could not find a primary storage in multi-roots file &quot;</span>
-            <span class="s2">&quot;for configuration </span><span class="si">%s</span><span class="s2">!&quot;</span> <span class="o">%</span> <span class="n">pipeline_config_path</span>
-        <span class="p">)</span>
-
-    <span class="c1"># Sanitize path data by passing it through the ShotgunPath</span>
-    <span class="n">shotgun_paths</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">storage_name</span><span class="p">,</span> <span class="n">storage_definition</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
-        <span class="n">shotgun_paths</span><span class="p">[</span><span class="n">storage_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">from_shotgun_dict</span><span class="p">(</span><span class="n">storage_definition</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">shotgun_paths</span>
 
 
 <span class="c1">####################################################################################################################</span>
@@ -726,7 +670,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.124',
+            VERSION:'v0.18.127',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
