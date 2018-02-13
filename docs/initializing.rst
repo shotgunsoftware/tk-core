@@ -228,8 +228,23 @@ but is shared between all pipeline configurations.
     These locations can be customized by setting a ``SHOTGUN_HOME``
     :ref:`environment variable<environment_variables>`.
 
-Lastly, the Pipeline Configuration structure is created on local disk, from which Toolkit is launched.
+.. note:: You can include a local ``bundle_cache`` folder within your configuration to make it self contained.
 
+    .. image:: ./resources/initializing/bundle_cache_in_config.png
+        :align: center
+
+    |
+    The structure of this folder is identical to the global ``bundle_cache``
+    folder found in the locations listed above and can contain all of the
+    apps, engines, and frameworks required by your configuration.
+
+    If the folder exists within the config, then the folder is added to the list
+    of :attr:`~sgtk.bootstrap.ToolkitManager.bundle_cache_fallback_paths`
+    used by the bootstrap logic. If a bundle exists in this local cache, Toolkit
+    will use it from this location rather than downloading it or using the
+    global bundle cache.
+
+Lastly, the Pipeline Configuration structure is created on local disk, from which Toolkit is launched.
 
 Examples
 ===============================================
