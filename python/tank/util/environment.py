@@ -22,7 +22,7 @@ def append_path_to_env_var(env_var_name, path, environ=None):
     will concatenate paths using : on linux and ; on windows
     """
     
-    return _add_path_to_env_var(env_var_name, path, prepend=False)
+    return _add_path_to_env_var(env_var_name, path, prepend=False, environ)
 
 
 def prepend_path_to_env_var(env_var_name, path, environ=None):
@@ -32,7 +32,7 @@ def prepend_path_to_env_var(env_var_name, path, environ=None):
     will concatenate paths using : on linux and ; on windows
     """
     
-    return _add_path_to_env_var(env_var_name, path, prepend=True)
+    return _add_path_to_env_var(env_var_name, path, prepend=True, environ)
 
 
 def _add_path_to_env_var(env_var_name, path, prepend=False, environ=None):
