@@ -387,6 +387,11 @@ class StorageRoots(object):
         # name if the id mapping field is not defined.
         sg_storages_by_id = {s["id"]: s for s in sg_storages}
         sg_storages_by_name = {s["code"]: s for s in sg_storages}
+        for sg_storage in sg_storages:
+            id = sg_storage["id"]
+            name = sg_storage["code"]
+            sg_storages_by_id[id] = sg_storage
+            sg_storages_by_name[name] = sg_storage
 
         for root_name, root_info in self:
 
