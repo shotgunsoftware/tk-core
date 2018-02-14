@@ -607,10 +607,8 @@ class SetupProjectAction(Action):
         # Multi-root configurations require a storage named "primary" so we base
         # our default on that. If only a single storage is available, we just use it.
         storage_names = params.get_required_storages()
-        primary_storage_name = constants.PRIMARY_STORAGE_NAME
-        if len(storage_names) == 1:
-            primary_storage_name = storage_names[0]
-        primary_local_path = params.get_storage_path(primary_storage_name, sys.platform)
+        default_storage_name = params.get_default_storage_name()
+        primary_local_path = params.get_storage_path(default_storage_name, sys.platform)
         
         curr_core_path = pipelineconfig_utils.get_path_to_current_core()
         core_locations = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)

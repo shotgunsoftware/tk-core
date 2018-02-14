@@ -158,9 +158,9 @@ def run_project_setup(log, sg, setup_params):
     fh.write("# End of file.\n")
     fh.close()
 
-
     # write the roots.yml file in the config to match our settings
     roots_data = {}
+    default_storage_name = setup_params.get_default_storage_name()
     for storage_name in setup_params.get_required_storages():
 
         roots_data[storage_name] = {
@@ -169,10 +169,21 @@ def run_project_setup(log, sg, setup_params):
             "mac_path": setup_params.get_storage_path(storage_name, "darwin")
         }
 
+        # if this is the default storage, ensure it is explicitly marked in the
+        # roots file
+        if default_storage_name and storage_name == default_storage_name:
+            roots_data[storage_name]["default"] = True
+
+        # if there is a SG local storage associated with this root, make sure
+        # it is explicit in the the roots file. this allows roots to exist that
+        # are not named the same as the storage in SG
+        sg_storage_id = setup_params.get_storage_shotgun_id(storage_name)
+        if sg_storage_id is not None:
+            roots_data[storage_name]["shotgun_storage_id"] = sg_storage_id
+
     storage_roots = StorageRoots.from_metadata(roots_data)
     config_folder = os.path.join(config_location_curr_os, "config")
     storage_roots.write(sg, config_folder, storage_roots)
-
 
     # now ensure there is a tank folder in every storage
     setup_params.report_progress_from_installer("Setting up project storage folders...")

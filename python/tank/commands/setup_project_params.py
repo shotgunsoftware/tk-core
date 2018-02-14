@@ -181,8 +181,6 @@ class ProjectSetupParameters(object):
 
         return self._cached_config_templates[config_uri].resolve_storages()
 
-
-
     def set_config_uri(self, config_uri, check_storage_path=True):
         """
         Sets the configuration uri to use for this project.
@@ -309,6 +307,13 @@ class ProjectSetupParameters(object):
 
         return self._config_template.get_readme_content()
 
+    def get_default_storage_name(self):
+        """
+        Returns the name of the default storage.
+
+        :rtype: str
+        """
+        return self._config_template.get_default_storage_name()
 
     def get_required_storages(self):
         """
@@ -335,6 +340,15 @@ class ProjectSetupParameters(object):
             raise TankError("Configuration template does not contain a storage with name '%s'!" % storage_name)
 
         return self._storage_data.get(storage_name).get("description")
+
+    def get_storage_shotgun_id(self, storage_name):
+        """
+        Given a storage name as defined in the configuration roots, return the
+        corresponding shotgun id as defined in Shotgun. If no SG storage can
+        be correlated, return None.
+        :return:
+        """
+        return self._storage_data.get(storage_name, {}).get("shotgun_id")
 
     def get_storage_path(self, storage_name, platform):
         """
@@ -1032,6 +1046,8 @@ class TemplateConfiguration(object):
         (local_storage_lookup, unmapped_roots) = \
             self._storage_roots.get_local_storages(self._sg)
 
+        default_storage_name = self._storage_roots.default
+
         # process each required storage root and poplate the info dict
         for root_name, root_info in self._storage_roots:
 
@@ -1039,6 +1055,10 @@ class TemplateConfiguration(object):
             storage_info[root_name] = {
                 "description": root_info.get("description"),
             }
+
+            # default
+            if default_storage_name and default_storage_name == root_name:
+                storage_info[root_name]["default"] = True
 
             # path key defaults
             for key in StorageRoots.PLATFORM_KEYS:
@@ -1074,6 +1094,13 @@ class TemplateConfiguration(object):
                     storage_info[root_name]["exists_on_disk"] = True
 
         return storage_info
+
+    def get_default_storage_name(self):
+        """
+        Returns the default storage name for this template configuration.
+        :return:
+        """
+        return self._storage_roots.default
 
     def get_required_core_version(self):
         """
