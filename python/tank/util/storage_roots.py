@@ -191,7 +191,7 @@ class StorageRoots(object):
 
         # write the new metadata to disk
         with filesystem.auto_created_yml(roots_file) as fh:
-            yaml.safe_dump(roots_metadata, fh)
+            yaml.safe_dump(roots_metadata, fh, default_flow_style=False)
 
         log.debug("Finished writing storage roots file: %s" % (roots_file,))
 
