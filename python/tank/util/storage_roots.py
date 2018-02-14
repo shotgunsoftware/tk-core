@@ -385,8 +385,8 @@ class StorageRoots(object):
         # create lookups of storages by name and id for convenience. we'll check
         # against each root's shotgun_storage_id first, falling back to the
         # name if the id mapping field is not defined.
-        sg_storages_by_id = {s["id"]: s for s in sg_storages}
-        sg_storages_by_name = {s["code"]: s for s in sg_storages}
+        sg_storages_by_id = {}
+        sg_storages_by_name = {}
         for sg_storage in sg_storages:
             id = sg_storage["id"]
             name = sg_storage["code"]
