@@ -22,8 +22,6 @@ from . import yaml_cache
 log = LogManager.get_logger(__name__)
 
 
-# TODO: add unittests for this
-
 class StorageRoots(object):
     """
     This class provides a centralized interface and processing logic for the
@@ -457,7 +455,7 @@ class StorageRoots(object):
                 "mac_path": "/studio/projects",
                 "linux_path": "/studio/projects",
                 "windows_path": "\\\\network\\projects",
-                "default": "true",
+                "default": True,
             }
 
             self._default_storage_name = root_name
