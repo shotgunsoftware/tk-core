@@ -125,6 +125,15 @@ class TestStorageRoots(ShotgunTestBase):
             "config"
         )
 
+        # setup a temp folder for reading/writing configs
+        self._config_folder = os.path.join(
+            self.tank_temp,
+            "test_storage_roots",
+            "config"
+        )
+        if not os.path.exists(self._config_folder):
+            os.makedirs(self._config_folder)
+
     def test_storage_roots_defined(self):
 
         self.assertTrue(StorageRoots.defined(self._single_root_config_folder))
@@ -144,7 +153,7 @@ class TestStorageRoots(ShotgunTestBase):
         self.assertIsInstance(no_roots, StorageRoots)
 
         with self.assertRaises(TankError):
-            corrupt_roots = StorageRoots.from_config(self._corrupt_roots_config_folder)
+            _ = StorageRoots.from_config(self._corrupt_roots_config_folder)
 
     def test_storage_roots_from_metadata(self):
 
@@ -158,8 +167,53 @@ class TestStorageRoots(ShotgunTestBase):
         self.assertIsInstance(no_roots, StorageRoots)
 
     def test_storage_roots_write(self):
-        # TODO
-        pass
+
+        config_root_folders = [
+            self._single_root_config_folder,
+            self._multiple_roots_config_folder,
+            self._no_roots_config_folder
+        ]
+
+        for config_root_folder in config_root_folders:
+
+            storage_roots_A = StorageRoots.from_config(config_root_folder)
+
+            out_roots_folder = os.path.join(
+                self._config_folder,
+                "core",
+            )
+            if not os.path.exists(out_roots_folder):
+                os.makedirs(out_roots_folder)
+
+            if config_root_folder == self._multiple_roots_config_folder:
+                # this should raise because there is an unmapped storage (foobar)
+                with self.assertRaises(TankError):
+                    StorageRoots.write(self.mockgun, self._config_folder, storage_roots_A)
+                continue
+            else:
+                # all others should without issue
+                StorageRoots.write(self.mockgun, self._config_folder, storage_roots_A)
+
+            roots_file = os.path.join(out_roots_folder, "roots.yml")
+            self.assertTrue(os.path.exists(roots_file))
+
+            storage_roots_B = StorageRoots.from_config(self._config_folder)
+
+            self.assertEqual(storage_roots_B.roots_file, roots_file)
+
+            self.assertEqual(
+                sorted(storage_roots_A.required),
+                sorted(storage_roots_B.required)
+            )
+
+            for root_name in storage_roots_A.required:
+                self.assertEqual(
+                    storage_roots_A.metadata[root_name],
+                    storage_roots_B.metadata[root_name],
+                )
+
+            # clean up the file written to disk
+            os.remove(storage_roots_B.roots_file)
 
     def test_storage_roots_as_paths(self):
 
