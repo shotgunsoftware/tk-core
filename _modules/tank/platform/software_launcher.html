@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.software_launcher &mdash; tk-core v0.18.127 documentation</title>
+  <title>tank.platform.software_launcher &mdash; tk-core v0.18.128 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.127 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.128 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -89,11 +89,12 @@
             
             
                 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../bootstrap.html">Deploy and management</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../initializing.html">Initialization and startup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../platform.html">Apps, Engines and Frameworks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../utils.html">Utilities</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../descriptor.html">Descriptors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../authentication.html">Authentication</a></li>
 </ul>
 
@@ -118,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.127.<br>
+    <b>tk-core</b> v0.18.128.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -209,7 +210,7 @@
 <span class="n">core_logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="create_engine_launcher"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.create_engine_launcher">[docs]</a><span class="k">def</span> <span class="nf">create_engine_launcher</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">versions</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">products</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="create_engine_launcher"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.create_engine_launcher">[docs]</a><span class="k">def</span> <span class="nf">create_engine_launcher</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">versions</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">products</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Factory method that creates a :class:`SoftwareLauncher` subclass</span>
 <span class="sd">    instance implemented by a toolkit engine in the environment config</span>
@@ -289,7 +290,7 @@
     <span class="k">return</span> <span class="n">launcher</span></div>
 
 
-<div class="viewcode-block" id="SoftwareLauncher"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.SoftwareLauncher">[docs]</a><span class="k">class</span> <span class="nc">SoftwareLauncher</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="SoftwareLauncher"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher">[docs]</a><span class="k">class</span> <span class="nc">SoftwareLauncher</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Functionality related to the discovery and launch of a DCC. This class</span>
 <span class="sd">    should only be constructed through the :meth:`create_engine_launcher`</span>
@@ -472,7 +473,7 @@
     <span class="c1">##########################################################################################</span>
     <span class="c1"># abstract methods</span>
 
-<div class="viewcode-block" id="SoftwareLauncher.prepare_launch"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.SoftwareLauncher.prepare_launch">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_launch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exec_path</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">file_to_open</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SoftwareLauncher.prepare_launch"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher.prepare_launch">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_launch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exec_path</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">file_to_open</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This is an abstract method that must be implemented by a subclass. The</span>
 <span class="sd">        engine implementation should prepare an environment to launch the specified</span>
@@ -507,7 +508,7 @@
             <span class="n">template</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;{</span><span class="si">%s</span><span class="s2">}&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">template</span>
 
-<div class="viewcode-block" id="SoftwareLauncher._glob_and_match"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.SoftwareLauncher._glob_and_match">[docs]</a>    <span class="k">def</span> <span class="nf">_glob_and_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">match_template</span><span class="p">,</span> <span class="n">template_key_expressions</span><span class="p">):</span>
+<div class="viewcode-block" id="SoftwareLauncher._glob_and_match"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher._glob_and_match">[docs]</a>    <span class="k">def</span> <span class="nf">_glob_and_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">match_template</span><span class="p">,</span> <span class="n">template_key_expressions</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This is a helper method that can be invoked in an implementation of :meth:`scan_software`.</span>
 
@@ -615,7 +616,7 @@
     <span class="c1">##########################################################################################</span>
     <span class="c1"># public methods</span>
 
-<div class="viewcode-block" id="SoftwareLauncher.get_setting"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.SoftwareLauncher.get_setting">[docs]</a>    <span class="k">def</span> <span class="nf">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SoftwareLauncher.get_setting"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher.get_setting">[docs]</a>    <span class="k">def</span> <span class="nf">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get a value from the item&#39;s settings::</span>
 
@@ -635,7 +636,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">sgtk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="SoftwareLauncher.get_standard_plugin_environment"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.SoftwareLauncher.get_standard_plugin_environment">[docs]</a>    <span class="k">def</span> <span class="nf">get_standard_plugin_environment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SoftwareLauncher.get_standard_plugin_environment"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher.get_standard_plugin_environment">[docs]</a>    <span class="k">def</span> <span class="nf">get_standard_plugin_environment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a standard plugin environment, suitable for</span>
 <span class="sd">        plugins to utilize. This will compute the following</span>
@@ -645,8 +646,7 @@
 <span class="sd">        - ``SHOTGUN_ENTITY_TYPE``: Derived from the current context</span>
 <span class="sd">        - ``SHOTGUN_ENTITY_ID``: Derived from the current context</span>
 <span class="sd">        - ``SHOTGUN_PIPELINE_CONFIGURATION_ID``: Derived from the current pipeline config id</span>
-<span class="sd">        - ``SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS``: Derived from the curent pipeline configuration&#39;s</span>
-<span class="sd">            list of bundle cache fallback paths.</span>
+<span class="sd">        - ``SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS``: Derived from the curent pipeline configuration&#39;s list of bundle cache fallback paths.</span>
 
 <span class="sd">        These environment variables are set when launching a new process to capture the state of</span>
 <span class="sd">        Toolkit so we can launch in the same environment. It ensures subprocesses have access to the</span>
@@ -696,7 +696,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Returning Plugin Environment: </span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pprint</span><span class="o">.</span><span class="n">pformat</span><span class="p">(</span><span class="n">env</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">env</span></div>
 
-<div class="viewcode-block" id="SoftwareLauncher.scan_software"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.SoftwareLauncher.scan_software">[docs]</a>    <span class="k">def</span> <span class="nf">scan_software</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SoftwareLauncher.scan_software"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher.scan_software">[docs]</a>    <span class="k">def</span> <span class="nf">scan_software</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Performs a search for supported software installations.</span>
 
@@ -713,7 +713,7 @@
     <span class="c1">##########################################################################################</span>
     <span class="c1"># protected methods</span>
 
-<div class="viewcode-block" id="SoftwareLauncher._is_supported"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.SoftwareLauncher._is_supported">[docs]</a>    <span class="k">def</span> <span class="nf">_is_supported</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sw_version</span><span class="p">):</span>
+<div class="viewcode-block" id="SoftwareLauncher._is_supported"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareLauncher._is_supported">[docs]</a>    <span class="k">def</span> <span class="nf">_is_supported</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sw_version</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Inspects the supplied :class:`SoftwareVersion` object to see if it</span>
 <span class="sd">        aligns with this launcher&#39;s known product and version limitations. Will</span>
@@ -819,7 +819,7 @@
         <span class="k">return</span> <span class="n">product</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lower_case_products</span></div>
 
 
-<div class="viewcode-block" id="SoftwareVersion"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.SoftwareVersion">[docs]</a><span class="k">class</span> <span class="nc">SoftwareVersion</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="SoftwareVersion"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.SoftwareVersion">[docs]</a><span class="k">class</span> <span class="nc">SoftwareVersion</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Container class that stores properties of a DCC that</span>
 <span class="sd">    are useful for Toolkit Engine Startup functionality.</span>
@@ -914,7 +914,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_args</span></div>
 
 
-<div class="viewcode-block" id="LaunchInformation"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.LaunchInformation">[docs]</a><span class="k">class</span> <span class="nc">LaunchInformation</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="LaunchInformation"><a class="viewcode-back" href="../../../initializing.html#sgtk.platform.LaunchInformation">[docs]</a><span class="k">class</span> <span class="nc">LaunchInformation</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Stores blueprints for how to launch a specific DCC which includes</span>
 <span class="sd">    required environment variables, the executable path, and command</span>
@@ -1001,7 +1001,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.127',
+            VERSION:'v0.18.128',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

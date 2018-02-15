@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.engine &mdash; tk-core v0.18.127 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.18.128 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.127 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.128 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -89,11 +89,12 @@
             
             
                 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../bootstrap.html">Deploy and management</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../initializing.html">Initialization and startup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../platform.html">Apps, Engines and Frameworks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../utils.html">Utilities</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../descriptor.html">Descriptors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../authentication.html">Authentication</a></li>
 </ul>
 
@@ -118,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.127.<br>
+    <b>tk-core</b> v0.18.128.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -2842,6 +2843,10 @@
 <span class="sd">        &gt;&gt;&gt; engine</span>
 <span class="sd">        &lt;Sgtk Engine 0x10451b690: tk-maya, env: shotgun&gt;</span>
 
+<span class="sd">    .. note:: This is for advanced workflows. For standard use</span>
+<span class="sd">        cases, use :meth:`~sgtk.bootstrap.ToolkitManager.bootstrap_engine`.</span>
+<span class="sd">        For more information, see :ref:`init_and_startup`.</span>
+
 <span class="sd">    :param engine_name: Name of the engine to launch, e.g. tk-maya</span>
 <span class="sd">    :param tk: :class:`~sgtk.Sgtk` instance to associate the engine with</span>
 <span class="sd">    :param context: :class:`~sgtk.Context` object of the context to launch the engine for.</span>
@@ -3272,7 +3277,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.127',
+            VERSION:'v0.18.128',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

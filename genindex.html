@@ -11,7 +11,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index &mdash; tk-core v0.18.127 documentation</title>
+  <title>Index &mdash; tk-core v0.18.128 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.127 documentation" href="index.html"/> 
+    <link rel="top" title="tk-core v0.18.128 documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -89,11 +89,12 @@
             
             
                 <ul>
-<li class="toctree-l1"><a class="reference internal" href="bootstrap.html">Deploy and management</a></li>
-<li class="toctree-l1"><a class="reference internal" href="core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="initializing.html">Initialization and startup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core</a></li>
 <li class="toctree-l1"><a class="reference internal" href="platform.html">Apps, Engines and Frameworks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities</a></li>
-<li class="toctree-l1"><a class="reference internal" href="descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="descriptor.html">Descriptors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a></li>
 </ul>
 
@@ -118,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.127.<br>
+    <b>tk-core</b> v0.18.128.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -235,7 +236,7 @@
   </dt>
 
       
-  <dt><a href="platform.html#sgtk.platform.SoftwareLauncher._glob_and_match">_glob_and_match() (sgtk.platform.SoftwareLauncher method)</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareLauncher._glob_and_match">_glob_and_match() (sgtk.platform.SoftwareLauncher method)</a>
   </dt>
 
       
@@ -243,7 +244,7 @@
   </dt>
 
       
-  <dt><a href="platform.html#sgtk.platform.SoftwareLauncher._is_supported">_is_supported() (sgtk.platform.SoftwareLauncher method)</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareLauncher._is_supported">_is_supported() (sgtk.platform.SoftwareLauncher method)</a>
   </dt>
 
       
@@ -262,10 +263,6 @@
 
       
   <dt><a href="core.html#sgtk.Context.additional_entities">additional_entities (sgtk.Context attribute)</a>
-  </dt>
-
-      
-  <dt><a href="bootstrap.html#sgtk.bootstrap.ToolkitManager.allow_config_overrides">allow_config_overrides (sgtk.bootstrap.ToolkitManager attribute)</a>
   </dt>
 
       
@@ -299,12 +296,12 @@
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="platform.html#sgtk.platform.LaunchInformation.args">args (sgtk.platform.LaunchInformation attribute)</a>
+  <dt><a href="initializing.html#sgtk.platform.LaunchInformation.args">args (sgtk.platform.LaunchInformation attribute)</a>
   </dt>
 
       <dd><dl>
         
-  <dt><a href="platform.html#sgtk.platform.SoftwareVersion.args">(sgtk.platform.SoftwareVersion attribute)</a>, <a href="platform.html#sgtk.platform.SoftwareVersion.args">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareVersion.args">(sgtk.platform.SoftwareVersion attribute)</a>
   </dt>
 
       </dl></dd>
@@ -351,7 +348,7 @@
   </dt>
 
       
-  <dt><a href="bootstrap.html#sgtk.bootstrap.ToolkitManager.base_configuration">base_configuration (sgtk.bootstrap.ToolkitManager attribute)</a>
+  <dt><a href="initializing.html#sgtk.bootstrap.ToolkitManager.base_configuration">base_configuration (sgtk.bootstrap.ToolkitManager attribute)</a>
   </dt>
 
       
@@ -361,15 +358,15 @@
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="bootstrap.html#sgtk.bootstrap.ToolkitManager.bootstrap_engine">bootstrap_engine() (sgtk.bootstrap.ToolkitManager method)</a>
+  <dt><a href="initializing.html#sgtk.bootstrap.ToolkitManager.bootstrap_engine">bootstrap_engine() (sgtk.bootstrap.ToolkitManager method)</a>
   </dt>
 
       
-  <dt><a href="bootstrap.html#sgtk.bootstrap.ToolkitManager.bootstrap_engine_async">bootstrap_engine_async() (sgtk.bootstrap.ToolkitManager method)</a>
+  <dt><a href="initializing.html#sgtk.bootstrap.ToolkitManager.bootstrap_engine_async">bootstrap_engine_async() (sgtk.bootstrap.ToolkitManager method)</a>
   </dt>
 
       
-  <dt><a href="bootstrap.html#sgtk.bootstrap.ToolkitManager.bundle_cache_fallback_paths">bundle_cache_fallback_paths (sgtk.bootstrap.ToolkitManager attribute)</a>
+  <dt><a href="initializing.html#sgtk.bootstrap.ToolkitManager.bundle_cache_fallback_paths">bundle_cache_fallback_paths (sgtk.bootstrap.ToolkitManager attribute)</a>
   </dt>
 
       <dd><dl>
@@ -399,7 +396,7 @@
 
       </dl></dd>
       
-  <dt><a href="bootstrap.html#sgtk.bootstrap.ToolkitManager.caching_policy">caching_policy (sgtk.bootstrap.ToolkitManager attribute)</a>
+  <dt><a href="initializing.html#sgtk.bootstrap.ToolkitManager.caching_policy">caching_policy (sgtk.bootstrap.ToolkitManager attribute)</a>
   </dt>
 
       
@@ -546,7 +543,7 @@
   </dt>
 
         
-  <dt><a href="platform.html#sgtk.platform.SoftwareLauncher.context">(sgtk.platform.SoftwareLauncher attribute)</a>, <a href="platform.html#sgtk.platform.SoftwareLauncher.context">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareLauncher.context">(sgtk.platform.SoftwareLauncher attribute)</a>
   </dt>
 
       </dl></dd>
@@ -625,7 +622,7 @@
   </dt>
 
       
-  <dt><a href="platform.html#sgtk.platform.create_engine_launcher">create_engine_launcher() (in module sgtk.platform)</a>
+  <dt><a href="initializing.html#sgtk.platform.create_engine_launcher">create_engine_launcher() (in module sgtk.platform)</a>
   </dt>
 
       
@@ -820,7 +817,7 @@
   </dt>
 
         
-  <dt><a href="platform.html#sgtk.platform.SoftwareLauncher.disk_location">(sgtk.platform.SoftwareLauncher attribute)</a>, <a href="platform.html#sgtk.platform.SoftwareLauncher.disk_location">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareLauncher.disk_location">(sgtk.platform.SoftwareLauncher attribute)</a>
   </dt>
 
       </dl></dd>
@@ -858,16 +855,16 @@
   </dt>
 
         
-  <dt><a href="platform.html#sgtk.platform.SoftwareLauncher.display_name">(sgtk.platform.SoftwareLauncher attribute)</a>, <a href="platform.html#sgtk.platform.SoftwareLauncher.display_name">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareLauncher.display_name">(sgtk.platform.SoftwareLauncher attribute)</a>
   </dt>
 
         
-  <dt><a href="platform.html#sgtk.platform.SoftwareVersion.display_name">(sgtk.platform.SoftwareVersion attribute)</a>, <a href="platform.html#sgtk.platform.SoftwareVersion.display_name">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareVersion.display_name">(sgtk.platform.SoftwareVersion attribute)</a>
   </dt>
 
       </dl></dd>
       
-  <dt><a href="bootstrap.html#sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup">do_shotgun_config_lookup (sgtk.bootstrap.ToolkitManager attribute)</a>
+  <dt><a href="initializing.html#sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup">do_shotgun_config_lookup (sgtk.bootstrap.ToolkitManager attribute)</a>
   </dt>
 
       
@@ -955,7 +952,7 @@
 
       </dl></dd>
       
-  <dt><a href="platform.html#sgtk.platform.SoftwareLauncher.engine_name">engine_name (sgtk.platform.SoftwareLauncher attribute)</a>, <a href="platform.html#sgtk.platform.SoftwareLauncher.engine_name">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareLauncher.engine_name">engine_name (sgtk.platform.SoftwareLauncher attribute)</a>
   </dt>
 
       
@@ -1034,7 +1031,7 @@
 
       <dd><dl>
         
-  <dt><a href="platform.html#sgtk.platform.LaunchInformation.environment">(sgtk.platform.LaunchInformation attribute)</a>
+  <dt><a href="initializing.html#sgtk.platform.LaunchInformation.environment">(sgtk.platform.LaunchInformation attribute)</a>
   </dt>
 
       </dl></dd>
@@ -1147,7 +1144,7 @@
 
       </dl></dd>
       
-  <dt><a href="bootstrap.html#sgtk.bootstrap.ToolkitManager.extract_settings">extract_settings() (sgtk.bootstrap.ToolkitManager method)</a>
+  <dt><a href="initializing.html#sgtk.bootstrap.ToolkitManager.extract_settings">extract_settings() (sgtk.bootstrap.ToolkitManager method)</a>
   </dt>
 
   </dl></td>
@@ -1295,7 +1292,7 @@
   </dt>
 
       
-  <dt><a href="bootstrap.html#sgtk.bootstrap.ToolkitManager.get_core_python_path">get_core_python_path() (sgtk.bootstrap.ToolkitManager static method)</a>
+  <dt><a href="initializing.html#sgtk.bootstrap.ToolkitManager.get_core_python_path">get_core_python_path() (sgtk.bootstrap.ToolkitManager static method)</a>
   </dt>
 
       
@@ -1349,7 +1346,7 @@
   </dt>
 
       
-  <dt><a href="bootstrap.html#sgtk.bootstrap.ToolkitManager.get_entity_from_environment">get_entity_from_environment() (sgtk.bootstrap.ToolkitManager method)</a>
+  <dt><a href="initializing.html#sgtk.bootstrap.ToolkitManager.get_entity_from_environment">get_entity_from_environment() (sgtk.bootstrap.ToolkitManager method)</a>
   </dt>
 
       
@@ -1471,7 +1468,7 @@
 
       </dl></dd>
       
-  <dt><a href="bootstrap.html#sgtk.bootstrap.ToolkitManager.get_pipeline_configurations">get_pipeline_configurations() (sgtk.bootstrap.ToolkitManager method)</a>
+  <dt><a href="initializing.html#sgtk.bootstrap.ToolkitManager.get_pipeline_configurations">get_pipeline_configurations() (sgtk.bootstrap.ToolkitManager method)</a>
   </dt>
 
       
@@ -1518,7 +1515,7 @@
   </dt>
 
         
-  <dt><a href="platform.html#sgtk.platform.SoftwareLauncher.get_setting">(sgtk.platform.SoftwareLauncher method)</a>, <a href="platform.html#sgtk.platform.SoftwareLauncher.get_setting">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareLauncher.get_setting">(sgtk.platform.SoftwareLauncher method)</a>
   </dt>
 
         
@@ -1543,7 +1540,7 @@
   </dt>
 
       
-  <dt><a href="platform.html#sgtk.platform.SoftwareLauncher.get_standard_plugin_environment">get_standard_plugin_environment() (sgtk.platform.SoftwareLauncher method)</a>, <a href="platform.html#sgtk.platform.SoftwareLauncher.get_standard_plugin_environment">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareLauncher.get_standard_plugin_environment">get_standard_plugin_environment() (sgtk.platform.SoftwareLauncher method)</a>
   </dt>
 
       
@@ -1681,7 +1678,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="platform.html#sgtk.platform.SoftwareVersion.icon">icon (sgtk.platform.SoftwareVersion attribute)</a>, <a href="platform.html#sgtk.platform.SoftwareVersion.icon">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareVersion.icon">icon (sgtk.platform.SoftwareVersion attribute)</a>
   </dt>
 
       
@@ -1875,7 +1872,7 @@
   </dt>
 
       
-  <dt><a href="platform.html#sgtk.platform.LaunchInformation">LaunchInformation (class in sgtk.platform)</a>
+  <dt><a href="initializing.html#sgtk.platform.LaunchInformation">LaunchInformation (class in sgtk.platform)</a>
   </dt>
 
       
@@ -2010,7 +2007,7 @@
   </dt>
 
         
-  <dt><a href="platform.html#sgtk.platform.SoftwareLauncher.logger">(sgtk.platform.SoftwareLauncher attribute)</a>, <a href="platform.html#sgtk.platform.SoftwareLauncher.logger">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareLauncher.logger">(sgtk.platform.SoftwareLauncher attribute)</a>
   </dt>
 
       </dl></dd>
@@ -2037,7 +2034,7 @@
   </dt>
 
       
-  <dt><a href="platform.html#sgtk.platform.SoftwareLauncher.minimum_supported_version">minimum_supported_version (sgtk.platform.SoftwareLauncher attribute)</a>, <a href="platform.html#sgtk.platform.SoftwareLauncher.minimum_supported_version">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareLauncher.minimum_supported_version">minimum_supported_version (sgtk.platform.SoftwareLauncher attribute)</a>
   </dt>
 
   </dl></td>
@@ -2117,12 +2114,12 @@
 
       </dl></dd>
       
-  <dt><a href="platform.html#sgtk.platform.LaunchInformation.path">path (sgtk.platform.LaunchInformation attribute)</a>
+  <dt><a href="initializing.html#sgtk.platform.LaunchInformation.path">path (sgtk.platform.LaunchInformation attribute)</a>
   </dt>
 
       <dd><dl>
         
-  <dt><a href="platform.html#sgtk.platform.SoftwareVersion.path">(sgtk.platform.SoftwareVersion attribute)</a>, <a href="platform.html#sgtk.platform.SoftwareVersion.path">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareVersion.path">(sgtk.platform.SoftwareVersion attribute)</a>
   </dt>
 
       </dl></dd>
@@ -2135,11 +2132,11 @@
   </dt>
 
       
-  <dt><a href="bootstrap.html#sgtk.bootstrap.ToolkitManager.pipeline_configuration">pipeline_configuration (sgtk.bootstrap.ToolkitManager attribute)</a>
+  <dt><a href="initializing.html#sgtk.bootstrap.ToolkitManager.pipeline_configuration">pipeline_configuration (sgtk.bootstrap.ToolkitManager attribute)</a>
   </dt>
 
       
-  <dt><a href="bootstrap.html#sgtk.bootstrap.ToolkitManager.plugin_id">plugin_id (sgtk.bootstrap.ToolkitManager attribute)</a>
+  <dt><a href="initializing.html#sgtk.bootstrap.ToolkitManager.plugin_id">plugin_id (sgtk.bootstrap.ToolkitManager attribute)</a>
   </dt>
 
       
@@ -2183,17 +2180,17 @@
 
       </dl></dd>
       
-  <dt><a href="bootstrap.html#sgtk.bootstrap.ToolkitManager.pre_engine_start_callback">pre_engine_start_callback (sgtk.bootstrap.ToolkitManager attribute)</a>
+  <dt><a href="initializing.html#sgtk.bootstrap.ToolkitManager.pre_engine_start_callback">pre_engine_start_callback (sgtk.bootstrap.ToolkitManager attribute)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="bootstrap.html#sgtk.bootstrap.ToolkitManager.prepare_engine">prepare_engine() (sgtk.bootstrap.ToolkitManager method)</a>
+  <dt><a href="initializing.html#sgtk.bootstrap.ToolkitManager.prepare_engine">prepare_engine() (sgtk.bootstrap.ToolkitManager method)</a>
   </dt>
 
       
-  <dt><a href="platform.html#sgtk.platform.SoftwareLauncher.prepare_launch">prepare_launch() (sgtk.platform.SoftwareLauncher method)</a>, <a href="platform.html#sgtk.platform.SoftwareLauncher.prepare_launch">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareLauncher.prepare_launch">prepare_launch() (sgtk.platform.SoftwareLauncher method)</a>
   </dt>
 
       
@@ -2205,15 +2202,15 @@
   </dt>
 
       
-  <dt><a href="platform.html#sgtk.platform.SoftwareVersion.product">product (sgtk.platform.SoftwareVersion attribute)</a>, <a href="platform.html#sgtk.platform.SoftwareVersion.product">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareVersion.product">product (sgtk.platform.SoftwareVersion attribute)</a>
   </dt>
 
       
-  <dt><a href="platform.html#sgtk.platform.SoftwareLauncher.products">products (sgtk.platform.SoftwareLauncher attribute)</a>, <a href="platform.html#sgtk.platform.SoftwareLauncher.products">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareLauncher.products">products (sgtk.platform.SoftwareLauncher attribute)</a>
   </dt>
 
       
-  <dt><a href="bootstrap.html#sgtk.bootstrap.ToolkitManager.progress_callback">progress_callback (sgtk.bootstrap.ToolkitManager attribute)</a>
+  <dt><a href="initializing.html#sgtk.bootstrap.ToolkitManager.progress_callback">progress_callback (sgtk.bootstrap.ToolkitManager attribute)</a>
   </dt>
 
       
@@ -2313,7 +2310,7 @@
   </dt>
 
       
-  <dt><a href="bootstrap.html#sgtk.bootstrap.ToolkitManager.resolve_descriptor">resolve_descriptor() (sgtk.bootstrap.ToolkitManager method)</a>
+  <dt><a href="initializing.html#sgtk.bootstrap.ToolkitManager.resolve_descriptor">resolve_descriptor() (sgtk.bootstrap.ToolkitManager method)</a>
   </dt>
 
       
@@ -2325,7 +2322,7 @@
   </dt>
 
       
-  <dt><a href="bootstrap.html#sgtk.bootstrap.ToolkitManager.restore_settings">restore_settings() (sgtk.bootstrap.ToolkitManager method)</a>
+  <dt><a href="initializing.html#sgtk.bootstrap.ToolkitManager.restore_settings">restore_settings() (sgtk.bootstrap.ToolkitManager method)</a>
   </dt>
 
       
@@ -2369,7 +2366,7 @@
   </dt>
 
       
-  <dt><a href="platform.html#sgtk.platform.SoftwareLauncher.scan_software">scan_software() (sgtk.platform.SoftwareLauncher method)</a>, <a href="platform.html#sgtk.platform.SoftwareLauncher.scan_software">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareLauncher.scan_software">scan_software() (sgtk.platform.SoftwareLauncher method)</a>
   </dt>
 
       
@@ -2426,7 +2423,7 @@
   </dt>
 
         
-  <dt><a href="platform.html#sgtk.platform.SoftwareLauncher.sgtk">(sgtk.platform.SoftwareLauncher attribute)</a>, <a href="platform.html#sgtk.platform.SoftwareLauncher.sgtk">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareLauncher.sgtk">(sgtk.platform.SoftwareLauncher attribute)</a>
   </dt>
 
       </dl></dd>
@@ -2435,11 +2432,11 @@
   </dt>
 
       
-  <dt><a href="core.html#sgtk.sgtk_from_entity">sgtk_from_entity() (in module sgtk)</a>
+  <dt><a href="initializing.html#sgtk.sgtk_from_entity">sgtk_from_entity() (in module sgtk)</a>
   </dt>
 
       
-  <dt><a href="core.html#sgtk.sgtk_from_path">sgtk_from_path() (in module sgtk)</a>
+  <dt><a href="initializing.html#sgtk.sgtk_from_path">sgtk_from_path() (in module sgtk)</a>
   </dt>
 
       
@@ -2464,7 +2461,7 @@
   </dt>
 
         
-  <dt><a href="platform.html#sgtk.platform.SoftwareLauncher.shotgun">(sgtk.platform.SoftwareLauncher attribute)</a>, <a href="platform.html#sgtk.platform.SoftwareLauncher.shotgun">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareLauncher.shotgun">(sgtk.platform.SoftwareLauncher attribute)</a>
   </dt>
 
       </dl></dd>
@@ -2547,11 +2544,11 @@
 
       </dl></dd>
       
-  <dt><a href="platform.html#sgtk.platform.SoftwareLauncher">SoftwareLauncher (class in sgtk.platform)</a>, <a href="platform.html#sgtk.platform.SoftwareLauncher">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareLauncher">SoftwareLauncher (class in sgtk.platform)</a>
   </dt>
 
       
-  <dt><a href="platform.html#sgtk.platform.SoftwareVersion">SoftwareVersion (class in sgtk.platform)</a>, <a href="platform.html#sgtk.platform.SoftwareVersion">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareVersion">SoftwareVersion (class in sgtk.platform)</a>
   </dt>
 
       
@@ -2721,7 +2718,7 @@
   </dt>
 
       
-  <dt><a href="bootstrap.html#sgtk.bootstrap.TankBootstrapError">TankBootstrapError (class in sgtk.bootstrap)</a>
+  <dt><a href="initializing.html#sgtk.bootstrap.TankBootstrapError">TankBootstrapError (class in sgtk.bootstrap)</a>
   </dt>
 
       
@@ -2821,7 +2818,7 @@
   </dt>
 
       
-  <dt><a href="bootstrap.html#sgtk.bootstrap.ToolkitManager">ToolkitManager (class in sgtk.bootstrap)</a>
+  <dt><a href="initializing.html#sgtk.bootstrap.ToolkitManager">ToolkitManager (class in sgtk.bootstrap)</a>
   </dt>
 
       
@@ -2926,7 +2923,7 @@
   </dt>
 
         
-  <dt><a href="platform.html#sgtk.platform.SoftwareVersion.version">(sgtk.platform.SoftwareVersion attribute)</a>, <a href="platform.html#sgtk.platform.SoftwareVersion.version">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareVersion.version">(sgtk.platform.SoftwareVersion attribute)</a>
   </dt>
 
       </dl></dd>
@@ -2953,7 +2950,7 @@
 
       </dl></dd>
       
-  <dt><a href="platform.html#sgtk.platform.SoftwareLauncher.versions">versions (sgtk.platform.SoftwareLauncher attribute)</a>, <a href="platform.html#sgtk.platform.SoftwareLauncher.versions">[1]</a>
+  <dt><a href="initializing.html#sgtk.platform.SoftwareLauncher.versions">versions (sgtk.platform.SoftwareLauncher attribute)</a>
   </dt>
 
   </dl></td>
@@ -3007,7 +3004,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.127',
+            VERSION:'v0.18.128',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

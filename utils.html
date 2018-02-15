@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.18.127 documentation</title>
+  <title>Utilities &mdash; tk-core v0.18.128 documentation</title>
   
 
   
@@ -32,8 +32,8 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.127 documentation" href="index.html"/>
-        <link rel="next" title="Descriptor API" href="descriptor.html"/>
+    <link rel="top" title="tk-core v0.18.128 documentation" href="index.html"/>
+        <link rel="next" title="Descriptors" href="descriptor.html"/>
         <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
 
   
@@ -90,8 +90,9 @@
             
             
                 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="bootstrap.html">Deploy and management</a></li>
-<li class="toctree-l1"><a class="reference internal" href="core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="initializing.html">Initialization and startup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core</a></li>
 <li class="toctree-l1"><a class="reference internal" href="platform.html">Apps, Engines and Frameworks</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Utilities</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#logging">Logging</a><ul>
@@ -124,7 +125,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#exceptions">Exceptions</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="descriptor.html">Descriptors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a></li>
 </ul>
 
@@ -149,7 +150,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.127.<br>
+    <b>tk-core</b> v0.18.128.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1609,7 +1610,7 @@ should be specified via the plugin id parameter.</li>
 <li><strong>project_id</strong> &#8211; Shotgun project id as integer. For the site config, this should be None.</li>
 <li><strong>plugin_id</strong> &#8211; Plugin id string to identify the scope for a particular plugin
 or integration. For more information,
-see <a class="reference internal" href="bootstrap.html#sgtk.bootstrap.ToolkitManager.plugin_id" title="sgtk.bootstrap.ToolkitManager.plugin_id"><code class="xref py py-meth docutils literal"><span class="pre">plugin_id()</span></code></a>. For
+see <a class="reference internal" href="initializing.html#sgtk.bootstrap.ToolkitManager.plugin_id" title="sgtk.bootstrap.ToolkitManager.plugin_id"><code class="xref py py-meth docutils literal"><span class="pre">plugin_id()</span></code></a>. For
 non-plugin based toolkit projects, this value is None.</li>
 <li><strong>pipeline_config_id</strong> &#8211; Shotgun pipeline config id. None for bootstraped configs.</li>
 <li><strong>path_type</strong> &#8211; Type of path to return. One of <code class="docutils literal"><span class="pre">LocalFileStorageManager.LOGGING</span></code>,
@@ -2200,7 +2201,7 @@ example unsupported url schemes.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="descriptor.html" class="btn btn-neutral float-right" title="Descriptor API" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="descriptor.html" class="btn btn-neutral float-right" title="Descriptors" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="platform.html" class="btn btn-neutral" title="Apps, Engines and Frameworks" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -2233,7 +2234,7 @@ example unsupported url schemes.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.127',
+            VERSION:'v0.18.128',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

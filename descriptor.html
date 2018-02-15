@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptor API &mdash; tk-core v0.18.127 documentation</title>
+  <title>Descriptors &mdash; tk-core v0.18.128 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.127 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.128 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -90,11 +90,12 @@
             
             
                 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="bootstrap.html">Deploy and management</a></li>
-<li class="toctree-l1"><a class="reference internal" href="core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="initializing.html">Initialization and startup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core</a></li>
 <li class="toctree-l1"><a class="reference internal" href="platform.html">Apps, Engines and Frameworks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Descriptor API</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Descriptors</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#descriptor-types">Descriptor types</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#the-shotgun-app-store">The Shotgun App store</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tracking-against-tags-in-git">Tracking against tags in git</a></li>
@@ -102,6 +103,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#pointing-to-a-path-on-disk">Pointing to a path on disk</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pointing-at-a-file-attachment-in-shotgun">Pointing at a file attachment in Shotgun</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#manual-descriptors">Manual Descriptors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#environment-variables">Environment Variables</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#api-reference">API reference</a><ul>
@@ -140,7 +142,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.127.<br>
+    <b>tk-core</b> v0.18.128.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -179,7 +181,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="index.html">Docs</a> &raquo;</li>
       
-    <li>Descriptor API</li>
+    <li>Descriptors</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -191,11 +193,19 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="descriptor-api">
-<h1>Descriptor API<a class="headerlink" href="#descriptor-api" title="Permalink to this headline">¶</a></h1>
-<p>Descriptors are used to describe a location of code or configuration.
-They are used extensively by Toolkit and allow a user to configure and drive
-Toolkit in a flexible fashion. Descriptors usually point at a remote location
+  <div class="section" id="descriptors">
+<span id="descriptor"></span><h1>Descriptors<a class="headerlink" href="#descriptors" title="Permalink to this headline">¶</a></h1>
+<p>Descriptors are abstractions used to describe a remote piece of code or configuration.
+They handle caching of remote resources locally, making it easy to write workflows
+around installation and deployment.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The Toolkit descriptor API does not require an installed or
+bootstrapped instance of the Toolkit Core platform. You can use it
+simply by importing <code class="docutils literal"><span class="pre">sgtk</span></code> and calling its methods.</p>
+</div>
+<p>Descriptors are used extensively by Toolkit and allow a user to configure and drive
+Toolkit in a flexible fashion. Descriptors typically point at a remote location
 and makes it easy to handle code transport from that location into a local cache.
 Descriptors form the backbone for Shotgun deployment and installation. The following
 example shows basic usage:</p>
@@ -208,7 +218,7 @@ example shows basic usage:</p>
 <span class="n">sg</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">create_sg_connection</span><span class="p">()</span>
 
 <span class="c1"># we are fetching v1.2.3 of the default config from the app store</span>
-<span class="n">uri</span> <span class="o">=</span> <span class="s2">&quot;sgtk:descriptor:app_store?name=tk-config-default&amp;version=v1.2.3&quot;</span>
+<span class="n">uri</span> <span class="o">=</span> <span class="s2">&quot;sgtk:descriptor:app_store?name=tk-config-basic&amp;version=v1.2.3&quot;</span>
 
 <span class="c1"># create object</span>
 <span class="n">desc</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">descriptor</span><span class="o">.</span><span class="n">create_descriptor</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">Descriptor</span><span class="o">.</span><span class="n">CONFIG</span><span class="p">,</span> <span class="n">uri</span><span class="p">)</span>
@@ -238,7 +248,12 @@ example shows basic usage:</p>
 </div>
 </li>
 </ul>
-<p>When a the payload of a descriptor is downloaded, it ends up by default in the <em>global bundle cache</em>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">To convert between descriptor URI format and dictionary format, you can use
+the methods <a class="reference internal" href="#sgtk.descriptor.descriptor_dict_to_uri" title="sgtk.descriptor.descriptor_dict_to_uri"><code class="xref py py-meth docutils literal"><span class="pre">descriptor_dict_to_uri()</span></code></a> and <a class="reference internal" href="#sgtk.descriptor.descriptor_uri_to_dict" title="sgtk.descriptor.descriptor_uri_to_dict"><code class="xref py py-meth docutils literal"><span class="pre">descriptor_uri_to_dict()</span></code></a>.</p>
+</div>
+<p>When a the payload of a descriptor is downloaded, it ends up by default in the <strong>global bundle cache</strong>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p>The global bundle cache can be found in the following locations:</p>
@@ -283,25 +298,27 @@ while the <strong>path</strong>, <strong>dev</strong> and <strong>manual</strong
 <p>The Shotgun app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
 tested and approved by Shotgun. App store descriptors should include a name and version token and
 are on the following form:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>{
-    type: app_store,
-    name: tk-core,
-    version: v12.3.4
-}
-
-sgtk:descriptor:app_store?name=tk-core&amp;version=v12.3.4
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+    <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">app_store</span><span class="p p-Indicator">,</span>
+    <span class="nv">name</span><span class="p p-Indicator">:</span> <span class="nv">tk-core</span><span class="p p-Indicator">,</span>
+    <span class="nv">version</span><span class="p p-Indicator">:</span> <span class="nv">v12.3.4</span>
+<span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:app_store?name=tk-core&amp;version=v12.3.4</span>
 </pre></div>
 </div>
 <p>App store may also have an optional <code class="docutils literal"><span class="pre">label</span></code> parameter. This indicates that the descriptor is tracking
 against a particular label in the app store and will not download updates which do not have the label assigned:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>{
-    type: app_store,
-    name: tk-core,
-    version: v12.3.4,
-    label: v2018.3
-}
-
-sgtk:descriptor:app_store?name=tk-core&amp;version=v12.3.4&amp;label=v2018.3
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+    <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">app_store</span><span class="p p-Indicator">,</span>
+    <span class="nv">name</span><span class="p p-Indicator">:</span> <span class="nv">tk-core</span><span class="p p-Indicator">,</span>
+    <span class="nv">version</span><span class="p p-Indicator">:</span> <span class="nv">v12.3.4</span><span class="p p-Indicator">,</span>
+    <span class="nv">label</span><span class="p p-Indicator">:</span> <span class="nv">v2018.3</span>
+<span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:app_store?name=tk-core&amp;version=v12.3.4&amp;label=v2018.3</span>
 </pre></div>
 </div>
 <p>A label can for example be used by plugins that are bundled with DCCs to only receive app store updates
@@ -314,54 +331,109 @@ for the latest available version in the app store, only versions labelled with v
 <h3>Tracking against tags in git<a class="headerlink" href="#tracking-against-tags-in-git" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal"><span class="pre">git</span></code> descriptor type is used to track git tags and typically used when you are tracking released
 versions of something. You can use any syntax that git supports, with a path key containing the path
-to the git repository:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>{type: git, path: /path/to/repo.git, version: v0.2.1}
-
-sgtk:descriptor:git?path=/path/to/repo.git&amp;version=v12.3.4
-
-
-{type: git, path: user@remotehost:/path_to/repo.git, version: v0.1.0}
-
-sgtk:descriptor:git?path=user%40remotehost%3A/path_to/repo.git&amp;version=v0.1.0
-
-
-{type: git, path: git://github.com/user/tk-multi-publish.git, version: v0.1.0}
-
-sgtk:descriptor:git?path=git%3A//github.com/user/tk-multi-publish.git&amp;version=v0.1.0
-
-
-{type: git, path: https://github.com/user/tk-multi-publish.git, version: v0.1.0}
-
-sgtk:descriptor:git?path=https%3A//github.com/user/tk-multi-publish.git&amp;version=v0.1.0
+to the git repository.</p>
+<p>Git repository residing on the local file system:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+    <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">git</span><span class="p p-Indicator">,</span>
+    <span class="nv">path</span><span class="p p-Indicator">:</span> <span class="nv">/path/to/repo.git</span><span class="p p-Indicator">,</span>
+    <span class="nv">version</span><span class="p p-Indicator">:</span> <span class="nv">v0.2.1</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<p>The latest version for a descriptor is determined by retrieving the list of tags for
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=/path/to/repo.git&amp;version=v12.3.4</span>
+</pre></div>
+</div>
+<p>SSH git syntax:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+    <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">git</span><span class="p p-Indicator">,</span>
+    <span class="nv">path</span><span class="p p-Indicator">:</span> <span class="nv">user@remotehost</span><span class="p p-Indicator">:</span><span class="nv">/path_to/repo.git</span><span class="p p-Indicator">,</span>
+    <span class="nv">version</span><span class="p p-Indicator">:</span> <span class="nv">v0.1.0</span>
+<span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=user%40remotehost%3A/path_to/repo.git&amp;version=v0.1.0</span>
+</pre></div>
+</div>
+<p>Git protocol syntax:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+    <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">git</span><span class="p p-Indicator">,</span>
+    <span class="nv">path</span><span class="p p-Indicator">:</span> <span class="nv">git</span><span class="p p-Indicator">:</span><span class="nv">//github.com/user/tk-multi-publish.git</span><span class="p p-Indicator">,</span>
+    <span class="nv">version</span><span class="p p-Indicator">:</span> <span class="nv">v0.1.0</span>
+<span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=git%3A//github.com/user/tk-multi-publish.git&amp;version=v0.1.0</span>
+</pre></div>
+</div>
+<p>Http protocol syntax:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+    <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">git</span><span class="p p-Indicator">,</span>
+    <span class="nv">path</span><span class="p p-Indicator">:</span> <span class="nv">https</span><span class="p p-Indicator">:</span><span class="nv">//github.com/user/tk-multi-publish.git</span><span class="p p-Indicator">,</span>
+    <span class="nv">version</span><span class="p p-Indicator">:</span> <span class="nv">v0.1.0</span>
+<span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=https%3A//github.com/user/tk-multi-publish.git&amp;version=v0.1.0</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The latest version for a descriptor is determined by retrieving the list of tags for
 the repository and comparing the version numbers in order to determine the highest one.
 For this comparison, <code class="xref py py-class docutils literal"><span class="pre">LooseVersion</span></code> is used and we recommend
 that version numbers follow the semantic versioning standard that can be found at <a class="reference external" href="http://semver.org">http://semver.org</a>.</p>
 </div>
+</div>
 <div class="section" id="tracking-against-commits-in-a-git-branch">
 <h3>Tracking against commits in a git branch<a class="headerlink" href="#tracking-against-commits-in-a-git-branch" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal"><span class="pre">git_branch</span></code> descriptor type is typically used during development and allows you to track
-a commit in a particular branch:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>{type: git_branch, branch: master, path: /path/to/repo.git, version: 17fedd8}
-
-sgtk:descriptor:git_branch?branch=master&amp;path=/path/to/repo.git&amp;version=17fedd8
-
-
-{type: git_branch, branch: master, path: user@remotehost:/path_to/repo.git, version: 17fedd8}
-
-sgtk:descriptor:git_branch?branch=master&amp;path=user%40remotehost%3A/path_to/repo.git&amp;version=17fedd8
-
-
-{type: git_branch, branch: master, path: git://github.com/user/tk-multi-publish.git, version: 17fedd8}
-
-sgtk:descriptor:git_branch?branch=master&amp;path=git%3A//github.com/user/tk-multi-publish.git&amp;version=17fedd8
-
-
-{type: git_branch, branch: master, path: https://github.com/user/tk-multi-publish.git, version: 17fedd8}
-
-sgtk:descriptor:git_branch?branch=master&amp;path=https%3A//github.com/user/tk-multi-publish.git&amp;version=17fedd8
+a commit in a particular branch.</p>
+<p>Git repository residing on the local file system:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+    <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">git_branch</span><span class="p p-Indicator">,</span>
+    <span class="nv">branch</span><span class="p p-Indicator">:</span> <span class="nv">master</span><span class="p p-Indicator">,</span>
+    <span class="nv">path</span><span class="p p-Indicator">:</span> <span class="nv">/path/to/repo.git</span><span class="p p-Indicator">,</span>
+    <span class="nv">version</span><span class="p p-Indicator">:</span> <span class="nv">17fedd8</span>
+<span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=/path/to/repo.git&amp;version=17fedd8</span>
+</pre></div>
+</div>
+<p>SSH git syntax:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+    <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">git_branch</span><span class="p p-Indicator">,</span>
+    <span class="nv">branch</span><span class="p p-Indicator">:</span> <span class="nv">master</span><span class="p p-Indicator">,</span>
+    <span class="nv">path</span><span class="p p-Indicator">:</span> <span class="nv">user@remotehost</span><span class="p p-Indicator">:</span><span class="nv">/path_to/repo.git</span><span class="p p-Indicator">,</span>
+    <span class="nv">version</span><span class="p p-Indicator">:</span> <span class="nv">17fedd8</span>
+<span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=user%40remotehost%3A/path_to/repo.git&amp;version=17fedd8</span>
+</pre></div>
+</div>
+<p>Git protocol syntax:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+    <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">git_branch</span><span class="p p-Indicator">,</span>
+    <span class="nv">branch</span><span class="p p-Indicator">:</span> <span class="nv">master</span><span class="p p-Indicator">,</span>
+    <span class="nv">path</span><span class="p p-Indicator">:</span> <span class="nv">git</span><span class="p p-Indicator">:</span><span class="nv">//github.com/user/tk-multi-publish.git</span><span class="p p-Indicator">,</span>
+    <span class="nv">version</span><span class="p p-Indicator">:</span> <span class="nv">17fedd8</span>
+<span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=git%3A//github.com/user/tk-multi-publish.git&amp;version=17fedd8</span>
+</pre></div>
+</div>
+<p>Http protocol syntax:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+    <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">git_branch</span><span class="p p-Indicator">,</span>
+    <span class="nv">branch</span><span class="p p-Indicator">:</span> <span class="nv">master</span><span class="p p-Indicator">,</span>
+    <span class="nv">path</span><span class="p p-Indicator">:</span> <span class="nv">https</span><span class="p p-Indicator">:</span><span class="nv">//github.com/user/tk-multi-publish.git</span><span class="p p-Indicator">,</span>
+    <span class="nv">version</span><span class="p p-Indicator">:</span> <span class="nv">17fedd8</span>
+<span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=https%3A//github.com/user/tk-multi-publish.git&amp;version=17fedd8</span>
 </pre></div>
 </div>
 <p>You can use both long and short hash formats for the version token. The latest version for a git_branch
@@ -389,66 +461,69 @@ resolve and normal operation.</p>
 <h3>Pointing to a path on disk<a class="headerlink" href="#pointing-to-a-path-on-disk" title="Permalink to this headline">¶</a></h3>
 <p>Pointing Toolkit to an app that resides in the local file system is often very useful for managing your own bundles
 or doing development on an app or engine before releasing onto production. To allow for these scenarios, Toolkit
-provides the <code class="docutils literal"><span class="pre">dev</span></code> and <code class="docutils literal"><span class="pre">path</span></code> descriptors. Here are some examples:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span># locally managed bundle that is used for development
-{
-    type: dev,
-    path: /path/to/app
-}
-sgtk:descriptor:dev?path=/path/to/app
-
-# locally managed bundle that is meant to be deployed
-{
-    type: path,
-    path: /path/to/app
-}
-sgtk:descriptor:dev?path=/path/to/app
-
-# using environment variables in the paths
-{
-    type: dev,
-    path: ${HOME}/path/to/app
-}
-
-# exapanding the user directory
-{
-    type: path,
-    path: ~/path/to/app
-}
-
-# use different paths on different operating systems
-{
-    type: dev,
-    windows_path: c:\path\to\app,
-    linux_path: /path/to/app,
-    mac_path: /path/to/app
-}
-</pre></div>
-</div>
+provides the <code class="docutils literal"><span class="pre">dev</span></code> and <code class="docutils literal"><span class="pre">path</span></code> descriptors.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">As noted in the comments above, the <code class="docutils literal"><span class="pre">path</span></code> and <code class="docutils literal"><span class="pre">dev</span></code> descriptors
-support environment variable resolution on the form <code class="docutils literal"><span class="pre">${MYENVVAR}</span></code> as well
-as user directory resolution if the path starts with <cite>~</cite>.</p>
+<p class="last"><code class="docutils literal"><span class="pre">dev</span></code> and <code class="docutils literal"><span class="pre">path</span></code> descriptors are using the exact same syntax. The difference between them is that
+the <code class="docutils literal"><span class="pre">dev</span></code> descriptor indicates that development is happening and Toolkit will use this to enable developer
+related functionality at runtime, such as making available options to automatically reload the code at runtime.
+For production deploys, always use the <code class="docutils literal"><span class="pre">path</span></code> descriptor.</p>
 </div>
-<p>The path and dev descriptors are very similar in terms of functionality.  The
-optional and required parameters are the same for each.  The <code class="docutils literal"><span class="pre">dev</span></code> descriptor
-has some additional information associated with it is used to provide more
-developer friendly workflows. An example of this is the <strong>Reload and Restart</strong>
-action that shows up in DCCs when using the <code class="docutils literal"><span class="pre">dev</span></code> descriptor.</p>
-<p>Sometimes it can be handy to organize your development sandbox relative to a pipeline configuration.
+<p>Basic example with a path intended to be used on the local operating system - the typical setup for doing
+personal development:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+    <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">dev</span><span class="p p-Indicator">,</span>
+    <span class="nv">path</span><span class="p p-Indicator">:</span> <span class="nv">/path/to/app</span>
+<span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=/path/to/app</span>
+</pre></div>
+</div>
+<p>When using a <code class="docutils literal"><span class="pre">path</span></code> descriptor in production, you can include paths to multiple different operating systems:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+    <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">path</span><span class="p p-Indicator">,</span>
+    <span class="nv">windows_path</span><span class="p p-Indicator">:</span> <span class="nv">c</span><span class="p p-Indicator">:</span><span class="nv">\path\to\app</span><span class="p p-Indicator">,</span>
+    <span class="nv">linux_path</span><span class="p p-Indicator">:</span> <span class="nv">/path/to/app</span><span class="p p-Indicator">,</span>
+    <span class="nv">mac_path</span><span class="p p-Indicator">:</span> <span class="nv">/path/to/app</span>
+<span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:path?linux_path=/path/to/app&amp;mac_path=/path/to/app&amp;windows_path=c%3A%5Cpath%5Cto%5Capp</span>
+</pre></div>
+</div>
+<p>Environment variables can be included in paths:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+    <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">dev</span><span class="p p-Indicator">,</span>
+    <span class="nv">path</span><span class="p p-Indicator">:</span> <span class="nv">$</span><span class="p p-Indicator">{</span><span class="nv">HOME</span><span class="p p-Indicator">}</span><span class="nv">/path/to/app</span>
+<span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=%24%7BHOME%7D/path/to/app</span>
+</pre></div>
+</div>
+<p>Home directory <cite>~</cite> syntax will be expanded:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+    <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">path</span><span class="p p-Indicator">,</span>
+    <span class="nv">path</span><span class="p p-Indicator">:</span> <span class="nv">~/path/to/app</span>
+<span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:path?path=%7E/path/to/app</span>
+</pre></div>
+</div>
+<p>Sometimes it can be useful to organize your development sandbox relative to a pipeline configuration.
 If all developers in the studio share a convention where they for example have a <code class="docutils literal"><span class="pre">dev</span></code> folder inside
 their pipeline configuration dev sandboxes, it becomes easy to exchange environment configs.
 You can achieve this by using the special token <code class="docutils literal"><span class="pre">{PIPELINE_CONFIG}</span></code> which will resolve into the
 local path to the pipeline configuration:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;dev&quot;</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{PIPELINE_CONFIG}</span><span class="s2">/dev/tk-nuke-myapp&quot;</span><span class="p">}</span>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+    <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">dev</span><span class="p p-Indicator">,</span>
+    <span class="nv">path</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">{</span><span class="nv">PIPELINE_CONFIG</span><span class="p p-Indicator">}</span><span class="nv">/dev/tk-nuke-myapp</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<p>Since Sgtk does not know what version of the app is being run, it will return <code class="docutils literal"><span class="pre">Undefined</span></code> for
-an app referenced via a <code class="docutils literal"><span class="pre">dev</span></code> or <code class="docutils literal"><span class="pre">path</span></code> descriptor. Sometimes, especially when doing framework development,
-it can be useful to be able to specify a version number. In that case, you can specify
-a specific version number and Toolkit will associate this version number with the app:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;dev&quot;</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;/path/to/app&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;v0.2.1&quot;</span><span class="p">}</span>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=%7BPIPELINE_CONFIG%7D/dev/tk-nuke-myapp</span>
 </pre></div>
 </div>
 </div>
@@ -462,7 +537,7 @@ All they need is a connection to Shotgun.</p>
 <p>A practical application of this is Toolkit&#8217;s cloud based configurations;
 Create a custom file/link field named <code class="docutils literal"><span class="pre">PipelineConfiguration.sg_uploaded_config</span></code>
 and upload a zipped up toolkit configuration to your this field on your pipeline configuration.
-The <a class="reference internal" href="bootstrap.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a> boostrapping interface will automatically detect
+The <a class="reference internal" href="initializing.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a> boostrapping interface will automatically detect
 this, download the configuration locally and use this when launching.
 This allows for a powerful workflow where a configuration is simply
 uploaded to Shotgun and it gets automatically picked up by all
@@ -476,15 +551,16 @@ id based syntax you specify the Shotgun entity type and field name you want
 to look for and the entity id to inspect. For example, if your attachment field is called
 <code class="docutils literal"><span class="pre">PipelineConfiguration.sg_uploaded_config</span></code> and you want to access the uploaded payload for
 the Pipeline Configuration entity with id 111, use the following descriptor:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>{
-    type: shotgun,
-    entity_type: PipelineConfiguration,  # entity type
-    id: 111,                             # shotgun entity id
-    field: sg_uploaded_config,           # attachment field where payload can be found
-    version: 222                         # attachment id of particular attachment
-}
-
-sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&amp;id=111&amp;field=sg_config&amp;version=222
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+    <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">shotgun</span><span class="p p-Indicator">,</span>
+    <span class="nv">entity_type</span><span class="p p-Indicator">:</span> <span class="nv">PipelineConfiguration</span><span class="p p-Indicator">,</span>  <span class="c1"># entity type</span>
+    <span class="nv">id</span><span class="p p-Indicator">:</span> <span class="nv">111</span><span class="p p-Indicator">,</span>                             <span class="c1"># shotgun entity id</span>
+    <span class="nv">field</span><span class="p p-Indicator">:</span> <span class="nv">sg_uploaded_config</span><span class="p p-Indicator">,</span>           <span class="c1"># attachment field where payload can be found</span>
+    <span class="nv">version</span><span class="p p-Indicator">:</span> <span class="nv">222</span>                         <span class="c1"># attachment id of particular attachment</span>
+<span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&amp;id=111&amp;field=sg_config&amp;version=222</span>
 </pre></div>
 </div>
 <p>The version token above refers to the version of the attachment. Every time a new
@@ -494,16 +570,17 @@ attachment. It is also used to handle the underlying logic to understand what th
 latest version of an attachment is.</p>
 <p>In some workflows, typically where you follow name based naming conventions, the
 following syntax can be useful:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>{
-    type: shotgun,
-    entity_type: PipelineConfiguration,  # entity type
-    name: Primary,                       # name of the record in shotgun (e.g. &#39;code&#39; field)
-    project_id: 123,                     # optional project id. If omitted, name is assumed to be unique.
-    field: sg_uploaded_config,           # attachment field where payload can be found
-    version: 456                         # attachment id of particular attachment
-}
-
-sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&amp;name=primary&amp;project_id=123&amp;field=sg_config&amp;version=456
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+    <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">shotgun</span><span class="p p-Indicator">,</span>
+    <span class="nv">entity_type</span><span class="p p-Indicator">:</span> <span class="nv">PipelineConfiguration</span><span class="p p-Indicator">,</span>  <span class="c1"># entity type</span>
+    <span class="nv">name</span><span class="p p-Indicator">:</span> <span class="nv">Primary</span><span class="p p-Indicator">,</span>                       <span class="c1"># name of the record in shotgun (e.g. &#39;code&#39; field)</span>
+    <span class="nv">project_id</span><span class="p p-Indicator">:</span> <span class="nv">123</span><span class="p p-Indicator">,</span>                     <span class="c1"># optional project id. If omitted, name is assumed to be unique.</span>
+    <span class="nv">field</span><span class="p p-Indicator">:</span> <span class="nv">sg_uploaded_config</span><span class="p p-Indicator">,</span>           <span class="c1"># attachment field where payload can be found</span>
+    <span class="nv">version</span><span class="p p-Indicator">:</span> <span class="nv">456</span>                         <span class="c1"># attachment id of particular attachment</span>
+<span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&amp;name=primary&amp;project_id=123&amp;field=sg_config&amp;version=456</span>
 </pre></div>
 </div>
 <p>Here, instead of specifying the entity id you can specify a <code class="docutils literal"><span class="pre">name</span></code> and an optional <code class="docutils literal"><span class="pre">project_id</span></code> field. The name
@@ -514,11 +591,58 @@ field will be translated into an appropriate Shotgun name field, typically the <
 <p>Toolkit also provides a <code class="docutils literal"><span class="pre">manual</span></code> mode to make it easy to manage production installations of apps
 and engines without any automation. When you use the manual descriptor, it is up to you to install the code in the right
 location and no automated update checks will ever take place. The manual mode uses the following syntax:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;manual&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tk-nuke-publish&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;v0.5.0&quot;</span><span class="p">}</span>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+    <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">manual</span><span class="p p-Indicator">,</span>
+    <span class="nv">name</span><span class="p p-Indicator">:</span> <span class="nv">tk-nuke-publish</span><span class="p p-Indicator">,</span>
+    <span class="nv">version</span><span class="p p-Indicator">:</span> <span class="nv">v0.5.0</span>
+<span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<p>It will look for the code in a <cite>manual</cite> folder in the bundle cache, so with the example above, Toolkit would look
-for the code in the <code class="docutils literal"><span class="pre">CACHE_ROOT/manual/tk-nuke-publish/v0.5.0</span></code> folder.</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:manual?name=tk-nuke-publish&amp;version=v0.5.0</span>
+</pre></div>
+</div>
+<p>It will look for the code in a <code class="docutils literal"><span class="pre">manual</span></code> folder in the bundle cache, so with the example above, Toolkit would look
+for the code in the <code class="docutils literal"><span class="pre">BUNDLE_CACHE/manual/tk-nuke-publish/v0.5.0</span></code> folder.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Manual descriptors are part of an older toolkit workflow methodology and while they are supported,
+we do not recommend using them.</p>
+</div>
+</div>
+<div class="section" id="environment-variables">
+<h3>Environment Variables<a class="headerlink" href="#environment-variables" title="Permalink to this headline">¶</a></h3>
+<p>A number of different environment variables exist to help control the behavior of Descriptors:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="32%" />
+<col width="68%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Environment Variable Name</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>SHOTGUN_HOME</td>
+<td>Overrides the location where Toolkit stores data. This includes bootstrap
+data as well as bundle cache, cached thumbnails and other temp files.</td>
+</tr>
+<tr class="row-odd"><td>SHOTGUN_BUNDLE_CACHE_PATH</td>
+<td>Overrides the path to the main bundle cache, e.g. the location where
+the <a class="reference internal" href="#descriptor"><span class="std std-ref">Descriptor URI</span></a> will download bundles.</td>
+</tr>
+<tr class="row-even"><td>SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS</td>
+<td>Colon separated list of paths to look for bundle cache locations. This is
+for example useful if you maintain a centralized bundle cache location
+that you want the bootstrap API to pick up bundles from.</td>
+</tr>
+<tr class="row-odd"><td>SHOTGUN_DISABLE_APPSTORE_ACCESS</td>
+<td>Setting this to <code class="docutils literal"><span class="pre">1</span></code> will disable any Shotgun Appstore access. No attempts
+to connect will be carried out. This option can be useful in cases where
+complex proxy setups is preventing Toolkit to correctly operate.</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="section" id="api-reference">
@@ -3164,7 +3288,7 @@ If not url has been defined, <code class="docutils literal"><span class="pre">No
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.127',
+            VERSION:'v0.18.128',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

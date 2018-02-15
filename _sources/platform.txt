@@ -1,5 +1,7 @@
 .. _sgtk_platform_docs:
 
+.. _apps_engines_and_frameworks:
+
 .. currentmodule:: sgtk.platform
 
 Apps, Engines and Frameworks
@@ -8,6 +10,10 @@ Apps, Engines and Frameworks
 This part of the API documentation covers all the classes and methods used when dealing with Engines, Apps and Frameworks.
 If you are interested in developing your own apps, engines or frameworks, the base classes needed to be derived
 from are outlined below. The documentation also covers how to initialize and shut down the Toolkit engine platform.
+
+.. note:: In order to use the functionality of ``sgtk.platform``, you need to run it
+    from an initialized toolkit environment. For more information on how to
+    set this up, see :ref:`init_and_startup`.
 
 
 Managing Engines and Apps
@@ -31,6 +37,7 @@ interface for launching host applications are also provided.
 
 .. autofunction:: restart
 
+.. _engines:
 
 Engines
 ---------------------------------------
@@ -289,8 +296,13 @@ The following exception types are raised from within ``sgtk.platform``:
     :members:
 
 
-Import and access methods
+
+App and Engine Development
 ---------------------------------------
+
+
+Import and access methods
+========================================
 
 The following methods are useful when writing app, engine or framework code and you need to
 access and load other objects.
@@ -309,8 +321,8 @@ access and load other objects.
 
 
 
-Configuration and ``info.yml`` manifest
----------------------------------------
+Manifest file
+========================================
 
 Apps, engines and frameworks each have a metadata file. It always resides in the root of the app or engine
 and is always named ``info.yml``. This metadata file contains important information about the item:
@@ -328,7 +340,7 @@ or the `Shotgun Nuke Write Node <https://github.com/shotgunsoftware/tk-nuke-writ
 
 
 Display name and Description
-====================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The optional ``display_name`` field defines the name that the user will see for the app.
 The optional ``description`` field is a brief one line description of what the app does::
@@ -339,7 +351,7 @@ The optional ``description`` field is a brief one line description of what the a
 
 
 Frameworks
-====================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If a framework is being used by the app, declare it in the ``info.yml`` and Toolkit will keep track
 and make sure that it is installed and available. Once inside the app, use the call
@@ -361,7 +373,7 @@ compatible bug fixes. We therefore recommend to have framework dependencies trac
 major version number.
 
 Version constraints
-====================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If your app or engine requires specific versions of shotgun, the core or other things,
 you can specify this using the three parameters ``requires_shotgun_version``, ``requires_core_version``
@@ -373,7 +385,7 @@ and (for apps only) ``requires_engine_version``::
     requires_engine_version: "v0.2.3"
 
 Supported Engines and operating systems
-====================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If your app is not a multi-app that has been designed to run in *any* engine, use
 this option to specify which engines are supported::
@@ -387,7 +399,7 @@ or engine will work on all platforms.
 
 
 Documentation and Support
-====================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you are developing an app for the Toolkit app store, no need to fill this in - the Sgtk Store
 manages documentation separately! But if you are building an in-house app for your studio,
@@ -410,7 +422,7 @@ This setting is optional, and if left blank, the support url will automatically
 be the standard Toolkit support location.
 
 Required Context Fields
-====================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Toolkit has a :class:`~sgtk.Context` which it uses to determine what the current Shot, Project or Asset is.
 Apps may require a particular feature to be present in the context - for example, a
@@ -419,7 +431,7 @@ current Asset or Shot. The ``required_context`` settings help defining what fiel
 Possible values are ``project``, ``entity``, ``step``, ``task`` and ``user``.
 
 Shotgun fields
-====================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If your app requires a particular custom field in Shotgun to operate correctly, you can add this to the
 ``info.yml`` manifest. Whenever the app is installed into a setup, toolkit will ensure that this custom field exists in shotgun.
@@ -829,294 +841,10 @@ A valid setting could look like this::
     - {name: Dpx Render, file_type: dpx, publish_type: Quicktime, render_template: dpx_shot_render}
 
 
-Launching Software
----------------------------------------------------
-
-This section provides an overview of Toolkit standards around launching DCC software. Generally,
-Toolkit exists and executes in an initialized state after a DCC application has already started up.
-The software launch interface is specialized to operate outside of this known state. The interface 
-is made up of three main components:  
-
-- **Software Entity** - An entity in Shotgun used to identify local software installs to display in Launch interfaces such as Desktop and SG web
-- **Core Launch Interface** - Standard methods and interfaces that provide the launch mechanism for scripts and apps such as ``tk-multi-launchapp``
-- **Toolkit Engine** - Implementation of the core interface for a specific toolkit integration which includes finding installed executables, preparing the toolkit environment, and launching the DCC
-
-
-A Simple Launch Application
-===================================================
-
-The Toolkit core API provides an interface that custom applications can use to implement the business
-logic for launching DCC software related to a particular Toolkit engine. This interface is comprised
-of a factory method :meth:`~sgtk.platform.create_engine_launcher` and classes :class:`SoftwareLauncher`,
-:class:`SoftwareVersion`, and :class:`LaunchInformation`. The factory method is called for a specific
-engine in the environment configuration and returns a SoftwareLauncher subclass instance implemented
-by that engine.
-
-Methods on the launcher instance can be used to determine which versions of the DCC
-are installed on the local filesystem and the proper environment, including command line arguments,
-required for a successful launch.
-
-The following lines of python code demonstrate how to launch Maya using the core interface::
-
-    import subprocess
-    import sgtk
-    
-    # Create a Toolkit Core API instance based on a project path or
-    # path that points directly at a pipeline configuration.
-    tk = sgtk.sgtk_from_path("/site/project_root")
-    
-    # Specify the context the DCC will be started up in.
-    context = tk.context_from_path("/site/project_root/sequences/AAA/ABC/Light/work")
-    
-    # Using a core factory method, construct a SoftwareLauncher
-    # subclass for the desired tk engine.
-    software_launcher = sgtk.platform.create_engine_launcher(tk, context, "tk-maya")
-     
-    # Use the SoftwareLauncher instance to find a list of Maya versions installed on the 
-    # local filesystem. A list of SoftwareVersion instances is returned.
-    software_versions = software_launcher.get_supported_software()
-     
-    # Ask the SoftwareLauncher instance to prepare an environment to launch Maya in.
-    # For simplicity, use the first version returned from the list of software_versions.
-    # A LaunchInformation instance is returned from the call to prepare_launch().
-    extra_command_line_args = ""
-    file_to_open_on_startup = "/site/project_root/sequences/AAA/ABC/Light/work/scene.ma"
-    launch_info = software_launcher.prepare_launch(software_versions[0].path, extra_command_line_args, file_to_open_on_startup)
-     
-    # Launch Maya!
-    launch_command = "%s %s" % (launch_info.path, launch_info.args)
-    subprocess.Popen([launch_command], env=launch_info.environment)
-
-More robust launch applications can utilize :ref:`Configuration Using the Software Entity in Shotgun`
-to determine information about DCCs that are available to launch.
-
-
-Engine Implementation
-===================================================
-
-To plug into the core API software launch interface, a Toolkit engine must implement a subclass of
-:class:`SoftwareLauncher` in a ``startup.py`` file at the engine root level, analogous to the
-``engine.py`` file.
-
-For the classic tooklit scenario, scripts required by the engine to prepare the launch environment
-or initialize the engine once the DCC has started up typically reside under a sibiling ``startup``
-directory:
-
-.. image:: ./resources/tk_engine_root_directory_structure.png
-
-Since the launch logic for the engine is invoked while the engine is not actually running, the
-:class:`~SoftwareLauncher` base class provides functionality similar to the :class:`~Engine` base
-class. Two SoftwareLauncher methods that *must* be implemented by an engine are :meth:`~SoftwareLauncher.scan_software`
-and :meth:`~SoftwareLauncher.prepare_launch`.
-
-The ``scan_software`` method is responsible for discovering the executable paths for the related DCC
-installed on the local filesystem and returns a list of :class:`SoftwareVersion` instances representing
-the executables found.
-
-The ``prepare_launch`` method establishes the environment to launch the DCC in, confirms the correct
-executable path to launch, and supplies command line arguments required for launch. This method returns a
-:class:`LaunchInformation` instance that contains all information required to successfully launch the
-DCC and startup the engine integration.
-
-To recap, a skeleton ``startup.py`` file for the Maya engine contains the following::
-
-    from sgtk.platform import SoftwareLauncher, SoftwareVersion, LaunchInformation
-
-    class MayaLauncher(SoftwareLauncher):
-        def scan_software(self):
-            # Construct a list of SoftwareVersion instances representing executable versions of the DCC
-            # installed on the local filesystem.
-            software_versions = []
-            ...
-            return software_versions
-
-        def prepare_launch(self, exec_path, args, file_to_open=None):
-            # Construct an environment to launch the DCC in, confirm the correct executable path to
-            # launch, and provide required command line args. Return this information as a
-            # LaunchInformation instance.
-            correct_executable_path = ""
-            command_line_args = ""
-            launch_environment = {}
-            ...
-            launch_information = LaunchInformation(correct_executable_path, command_line_args, launch_environment)
-            return launch_information
-
-
-Starting the Engine on DCC Launch: Classic vs. TaaP
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The engine implementation of :meth:`~SoftwareLauncher.prepare_launch` should be able to handle
-starting the engine during the DCC launch phase in either Classic or Toolkit as a Plugin mode.
-
-In Classic mode, environment variables for the engine name (SGTK_ENGINE) and current context (SGTK_CONTEXT)
-are set and a startup script calling :meth:`~sgtk.platform.start_engine` with those values parsed
-from the environment is registered with the DCC.
-
-For plugin mode, values for required environment variables are set and a startup script to load the plugin(s)
-is registered with the DCC. Which mode to use at runtime is controlled by the ``launch_builtin_plugins`` engine
-configuration setting. If the resolved setting value is an empty list, Classic mode is invoked. Otherwise, the
-list of plugins will be loaded.
-
-For either case, the :meth:`~SoftwareLauncher.prepare_launch` method must assure the paths to ``sgtk`` and any
-startup files are specified in the ``PYTHONPATH`` environment variable. It is also considered good practice to
-account for the name of a file to open on launch in the environment (e.g. SGTK_FILE_TO_OPEN).
-
-.. note:: How to initialize and runs code at startup will vary from DCC to DCC. The supported toolkit engines for Maya, Nuke, and Houdini are good reference implementations.
-
-.. note:: When setting an environment variable containing the current context value, be sure to use a serialized version of the context to encode login information in the shell.
-
-To put this into practice, here is ``tk-maya``'s implementation of prepare_launch()::
-
-    import sgtk
-    from sgtk.platform import SoftwareLauncher, SoftwareVersion, LaunchInformation
-
-    class MayaLauncher(SoftwareLauncher):
-        ...
-        def prepare_launch(self, exec_path, args, file_to_open=None):
-        """
-        Prepares an environment to launch Maya in that will automatically
-        load Toolkit and the tk-maya engine when Maya starts.
-        :param str exec_path: Path to Maya executable to launch.
-        :param str args: Command line arguments as strings.
-        :param str file_to_open: (optional) Full path name of a file to open on launch.
-        :returns: :class:`LaunchInformation` instance
-        """
-        required_env = {}
-
-        # Run the engine's userSetup.py file when Maya starts up
-        # by appending it to the env PYTHONPATH.
-        startup_path = os.path.join(self.disk_location, "startup")
-        sgtk.util.append_path_to_env_var("PYTHONPATH", startup_path)
-        required_env["PYTHONPATH"] = os.environ["PYTHONPATH"]
-
-        # Check the engine settings to see whether any plugins have been
-        # specified to load.
-        find_plugins = self.get_setting("launch_builtin_plugins")
-        if find_plugins:
-            # Parse the specified comma-separated list of plugins
-            self.logger.debug(
-                "Plugins found from 'launch_builtin_plugins': %s" % find_plugins
-            )
-
-            # Keep track of the specific list of Toolkit plugins to load when
-            # launching Maya. This list is passed through the environment and
-            # used by the startup/userSetup.py file.
-            load_maya_plugins = []
-
-            # Add Toolkit plugins to load to the MAYA_MODULE_PATH environment
-            # variable so the Maya loadPlugin command can find them.
-            maya_module_paths = os.environ.get("MAYA_MODULE_PATH") or []
-            if maya_module_paths:
-                maya_module_paths = maya_module_paths.split(os.pathsep)
-
-            for find_plugin in find_plugins:
-                load_plugin = os.path.join(
-                    self.disk_location, "plugins", find_plugin
-                )
-                if os.path.exists(load_plugin):
-                    # If the plugin path exists, add it to the list of MAYA_MODULE_PATHS
-                    # so Maya can find it and to the list of SGTK_LOAD_MAYA_PLUGINS so
-                    # the startup's userSetup.py file knows what plugins to load.
-                    self.logger.debug("Preparing to launch builtin plugin '%s'" % load_plugin)
-                    load_maya_plugins.append(load_plugin)
-                    if load_plugin not in maya_module_paths:
-                        maya_module_paths.append(load_plugin)
-                else:
-                    # Report the missing plugin directory
-                    self.logger.warning(
-                        "Resolved plugin path '%s' does not exist!" %
-                        load_plugin
-                    )
-
-            # Add MAYA_MODULE_PATH and SGTK_LOAD_MAYA_PLUGINS to the launch
-            # environment.
-            required_env["MAYA_MODULE_PATH"] = os.pathsep.join(maya_module_paths)
-            required_env["SGTK_LOAD_MAYA_PLUGINS"] = os.pathsep.join(load_maya_plugins)
-
-            # Add context and site info
-            std_env = self.get_standard_plugin_environment()
-            required_env.update(std_env)
-
-        else:
-            # Prepare the launch environment with variables required by the
-            # classic bootstrap approach.
-            self.logger.info("Preparing Maya Launch via Toolkit Classic methodology ...")
-            required_env["SGTK_ENGINE"] = self.engine_name
-            required_env["SGTK_CONTEXT"] = sgtk.context.serialize(self.context)
-
-        if file_to_open:
-            # Add the file name to open to the launch environment
-            required_env["SGTK_FILE_TO_OPEN"] = file_to_open
-
-        return LaunchInformation(exec_path, args, required_env)
-
-
-Configuration Using the Software Entity in Shotgun
-===================================================
-
-Software entities are used to specify and configure locally installed DCC applications that are 
-launchable from Toolkit and/or Shotgun for a user on the site. They are readable by all users, but
-only writeable by admins.
-
-The ``tk-multi-launchapp`` Toolkit application (installed by default with Desktop and available in
-the App Store for download) parses the site Software entries to determine which launch commands to
-present in Desktop for a specific Project and user. At minimum, a ``Software Name`` and ``Engine``
-for DCCs that have Toolkit integrations or ``<platform> Path`` for those that do not must be specified
-for a launch command to be added to Desktop. The full list of launch commands a user has access to
-may be limited by Project, user name, Group membership, or DCC version.
-
-The Software site page can be accessed from either "All Pages > Global Pages > Software" or "User Menu >
-Admin > Software" menus.
-
-.. image:: ./resources/software_entities.png
-
-.. note:: Since the engine field is optional, any locally installed DCC application can be registered to launch by specifying a ``Software Name``, ``<platform> Path``, and ``Thumbnail``. A proper Toolkit integration for this DCC is not required.
-
-.. image:: ./resources/desktop_sw_entities.png
-
-Software Entity Field Reference
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- **Thumbnail** (``image`` ``[url``) - Icon to use for Desktop launch command. If no thumbnail is uploaded, the corresponding Toolkit engine (if specified) will attempt to load one from the resolved DCC application bundle.  In auto discovery mode*, this value will be overridden by the SoftwareVersion.icon value, unless no icon is found for the DCC.
-- **Software Name** (``code`` ``[text]``) - Menu name to use for Desktop launch command. In auto discovery mode*, this value will be overridden by the SoftwareVersion.display_name value.
-- **Status List** (``sg_status_list`` ``[status list]``) - Active (act) or Disabled (dis). These are the same status values applicable to HumanUsers.
-- **Engine** (``engine`` ``[text]``) - Toolkit engine to construct a SoftwareLauncher instance for and startup on application launch. If specified, the Shotgun Panel and other related Toolkit applications will be available to the user once the DCC has finished loading. The engine may be able to locate corresponding application executables and/or icons in the case all platform path and/or thumbnail fields are left blank. This field may be left blank to launch DCC applications that do not have a Toolkit integration implemented.
-- **Projects** (``projects`` ``[multi-entity:Project]``) - List of Projects to restrict launch commands generated by this Software entity to. If no Projects are specified, then the resulting  launch command(s) will be displayed for all Projects.
-- **Users (User Restrictions)** (``user_restrictions`` ``[multi-entity:HumanUser|Group]``) - List of Groups and/or HumanUsers launch commands generated by this Software entity are restricted to. If no Groups or HumanUsers are specified, then the resulting launch commands will be visible to all Groups and HumanUsers.
-- **Products** (``products`` ``[text]``) - Comma separated list of strings representing project names relevant to DCC applications to create launch commands for. If not specified, all products will be searched for. A product string is DCC-specific but could be something like : ``“Houdini FX, Houdini Core, Houdini”``
-- **Versions** (``versions`` ``[text]``) - Comma separated list of specific DCC application versions to create launch commands for. If any of the specified versions are not found locally installed, then a launch command will not be created for those versions. Conversely, launch commands will not be constructed for locally installed DCC versions that do not appear in this list.  This field may be left empty to register launch commands for all available versions of a DCC.
-- **Group** (``group`` ``[text]``) - Group name launch commands for this Software entity belong to.  This value is interpreted by the engine the commands are being registered with. For example, in Desktop all launch commands generated for this Software entity will appear as drop-down menu items of a button with this name on a Project window.
-- **Group Default** (``group_default`` ``[checkbox]``) - If a single launch command is generated by this Software entity and a ``group`` value has been specified, this field value indicates whether to launch this command if the group is selected instead of an individual command. This value is ignored if more than one launch command is generated for this Software entity, and the command with the highest version is used as the default instead.  This value is interpreted by the engine the commands are being registered with.
-- **Linux Path / Mac Path / Windows Path** (``linux_path`` / ``mac_path`` / ``windows_path`` ``[text]``) - DCC application executable path or name to launch on the specified platform (linux, mac, or windows). The specified path may contain environment and/or configuration variables. If no applicaion path or name is given, the corresponding Toolkit engine (if specified) will attempt to create launch commands for ALL versions of the DCC application found installed on the local file system. The list of commands generated bay be limited by the contents of the ``versions`` field
-- **Linux Args / Mac Args / Windows Args** (``linux_args`` / ``mac_args`` / ``windows_args`` ``[text]``) - Command line options to pass to the DCC as it is being launched.
-
-SoftwareLauncher
----------------------------------------------------
-
-This section contains the techincal documentation for the core classes and methods described in the
-:ref:`Launching Software` section above. 
-
-.. autofunction:: create_engine_launcher
-
-.. autoclass:: SoftwareLauncher
-    :exclude-members: descriptor,
-                      settings
-    :members:
-
-SoftwareVersion
-============================
-.. autoclass:: SoftwareVersion
-    :members:
-
-LaunchInformation
-============================
-.. autoclass:: LaunchInformation
-    :members:
-
 
 
 Using QT inside your Toolkit App
----------------------------------------
+========================================
 
 You can use QT classes inside your app code. Sgtk will handle the import and gracefully manage different
 platform considerations in the background. Typically, PySide is being used for QT integration, but Sgtk
@@ -1132,7 +860,7 @@ may not have a functional Qt that can be imported when they run in batch mode.
 
 
 Using QT 5 inside your Toolkit App
----------------------------------------
+========================================
 
 When running in an environment with PySide 2 , Toolkit will provide under ``sgtk.platform.qt`` an
 emulation layer that mimics the PySide 1 API on top of PySide 2 so that your Toolkit applications don't
@@ -1224,18 +952,3 @@ When developping your app, you can enable interactive styling by setting the ``S
 .. note:: The style sheet file watching can be helpful when developping apps, but shouldn't be used in production.
 
 
-Software launching
-==================
-
-.. autoclass:: SoftwareLauncher
-  :members:
-  :exclude-members: descriptor,
-                    settings
-
-  The following methods can be used by subclasses to help implement :meth:`scan_software`.
-
-  .. automethod:: _is_supported
-  .. automethod:: _glob_and_match
-
-.. autoclass:: SoftwareVersion
-  :members:

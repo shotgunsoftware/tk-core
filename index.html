@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Shotgun pipeline Toolkit Core reference, v0.18.127 &mdash; tk-core v0.18.127 documentation</title>
+  <title>Shotgun pipeline toolkit core platform, v0.18.128 &mdash; tk-core v0.18.128 documentation</title>
   
 
   
@@ -32,8 +32,8 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.127 documentation" href="#"/>
-        <link rel="next" title="Deploy and management" href="bootstrap.html"/> 
+    <link rel="top" title="tk-core v0.18.128 documentation" href="#"/>
+        <link rel="next" title="Overview" href="overview.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -89,11 +89,12 @@
             
             
                 <ul>
-<li class="toctree-l1"><a class="reference internal" href="bootstrap.html">Deploy and management</a></li>
-<li class="toctree-l1"><a class="reference internal" href="core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="initializing.html">Initialization and startup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core</a></li>
 <li class="toctree-l1"><a class="reference internal" href="platform.html">Apps, Engines and Frameworks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities</a></li>
-<li class="toctree-l1"><a class="reference internal" href="descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="descriptor.html">Descriptors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authentication.html">Authentication</a></li>
 </ul>
 
@@ -118,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.127.<br>
+    <b>tk-core</b> v0.18.128.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -157,7 +158,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="#">Docs</a> &raquo;</li>
       
-    <li>Shotgun pipeline Toolkit Core reference, v0.18.127</li>
+    <li>Shotgun pipeline toolkit core platform, v0.18.128</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -169,50 +170,33 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="shotgun-pipeline-toolkit-core-reference-release">
-<h1>Shotgun pipeline Toolkit Core reference, v0.18.127<a class="headerlink" href="#shotgun-pipeline-toolkit-core-reference-release" title="Permalink to this headline">¶</a></h1>
-<p>Welcome to the Shotgun pipeline Toolkit developer and reference documentation.
-Below you will find a detailed technical reference of all Toolkit Core APIs as well
-as information useful for developers and engineers.</p>
-<p><strong>Who is this documentation for?</strong></p>
-<p>This documentation is intended for <strong>Software Engineers or TDs</strong> who
-are either developing Toolkit Apps/Engines or doing advanced integration
-of Toolkit into their pipeline and workflows.</p>
-<p><strong>Accessing the Toolkit Core API</strong></p>
-<p>As with all APIs, the Toolkit Core API is a combination of public interfaces
-and internal logic. We refactor and evolve the Toolkit Core code on a regular
-basis and this sometimes changes to the internal structure of the code.
-We  recommend only accessing Toolkit via the methods
-documented in this API reference. These form the official Toolkit Core API
-and will always remain backwards compatible.</p>
-<p>As a general rule, each package in the sgtk core API imports its
-full public interface. This is to provide a cleaner interface and
-make refactoring easier. We therefore recommend importing from the
-package level whenever possible:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># recommended and documented API access</span>
-<span class="kn">from</span> <span class="nn">sgtk.authentication</span> <span class="k">import</span> <span class="n">ShotgunAuthenticator</span>
-
-<span class="c1"># we recommend *avoiding* deeper, module level imports</span>
-<span class="kn">from</span> <span class="nn">sgtk.authentication.shotgun_authenticator</span> <span class="k">import</span> <span class="n">ShotgunAuthenticator</span>
-</pre></div>
-</div>
-<div class="section" id="api-reference-table-of-contents">
-<h2>API Reference table of contents<a class="headerlink" href="#api-reference-table-of-contents" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="shotgun-pipeline-toolkit-core-platform-release">
+<h1>Shotgun pipeline toolkit core platform, v0.18.128<a class="headerlink" href="#shotgun-pipeline-toolkit-core-platform-release" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="bootstrap.html">Deploy and management</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="bootstrap.html#traditional-project-setup">Traditional project setup</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bootstrap.html#bootstrapping-toolkit">Bootstrapping Toolkit</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bootstrap.html#installing-the-sgtk-module-using-pip">Installing the sgtk module using pip</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#what-is-the-toolkit-platform">What is the Toolkit Platform?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#who-is-this-documentation-for">Who is this documentation for?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#accessing-the-toolkit-core-api">Accessing the Toolkit Core API</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="core.html">Foundation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="core.html#launching-and-initializing">Launching and initializing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#the-toolkit-core-api">The Toolkit Core API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#executing-tank-commands">Executing Tank commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="initializing.html">Initialization and startup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="initializing.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="initializing.html#the-toolkit-startup">The Toolkit startup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="initializing.html#uploading-a-configuration-to-shotgun">Uploading a configuration to Shotgun</a></li>
+<li class="toctree-l2"><a class="reference internal" href="initializing.html#managing-distributed-configurations">Managing distributed configurations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="initializing.html#managing-centralized-configurations">Managing centralized configurations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="initializing.html#bootstrap-api">Bootstrap API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="initializing.html#installing-the-sgtk-module-using-pip">Installing the sgtk module using pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="initializing.html#launching-software">Launching Software</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.html#sgtk">Sgtk</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#context">Context</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#commands">Commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#hooks">Hooks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#template-system">Template system</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#configuration-file-resolution">Configuration file resolution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#templates">Templates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#exceptions">Exceptions</a></li>
 </ul>
 </li>
@@ -222,12 +206,7 @@ package level whenever possible:</p>
 <li class="toctree-l2"><a class="reference internal" href="platform.html#applications">Applications</a></li>
 <li class="toctree-l2"><a class="reference internal" href="platform.html#frameworks">Frameworks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="platform.html#exceptions">Exceptions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="platform.html#import-and-access-methods">Import and access methods</a></li>
-<li class="toctree-l2"><a class="reference internal" href="platform.html#configuration-and-info-yml-manifest">Configuration and <code class="docutils literal"><span class="pre">info.yml</span></code> manifest</a></li>
-<li class="toctree-l2"><a class="reference internal" href="platform.html#launching-software">Launching Software</a></li>
-<li class="toctree-l2"><a class="reference internal" href="platform.html#softwarelauncher">SoftwareLauncher</a></li>
-<li class="toctree-l2"><a class="reference internal" href="platform.html#using-qt-inside-your-toolkit-app">Using QT inside your Toolkit App</a></li>
-<li class="toctree-l2"><a class="reference internal" href="platform.html#using-qt-5-inside-your-toolkit-app">Using QT 5 inside your Toolkit App</a></li>
+<li class="toctree-l2"><a class="reference internal" href="platform.html#app-and-engine-development">App and Engine Development</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">Utilities</a><ul>
@@ -239,7 +218,7 @@ package level whenever possible:</p>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#exceptions">Exceptions</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="descriptor.html">Descriptor API</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="descriptor.html">Descriptors</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="descriptor.html#descriptor-types">Descriptor types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="descriptor.html#api-reference">API reference</a></li>
 </ul>
@@ -252,7 +231,6 @@ package level whenever possible:</p>
 </ul>
 </div>
 </div>
-</div>
 
 
            </div>
@@ -261,7 +239,7 @@ package level whenever possible:</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="bootstrap.html" class="btn btn-neutral float-right" title="Deploy and management" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="overview.html" class="btn btn-neutral float-right" title="Overview" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
     </div>
@@ -292,7 +270,7 @@ package level whenever possible:</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.127',
+            VERSION:'v0.18.128',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

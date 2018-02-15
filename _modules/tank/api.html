@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.api &mdash; tk-core v0.18.127 documentation</title>
+  <title>tank.api &mdash; tk-core v0.18.128 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.127 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.128 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -89,11 +89,12 @@
             
             
                 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../bootstrap.html">Deploy and management</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../core.html">Foundation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../initializing.html">Initialization and startup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../core.html">Core</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../platform.html">Apps, Engines and Frameworks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../utils.html">Utilities</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../descriptor.html">Descriptor API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../descriptor.html">Descriptors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../authentication.html">Authentication</a></li>
 </ul>
 
@@ -118,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.127.<br>
+    <b>tk-core</b> v0.18.128.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -205,7 +206,7 @@
 
 <div class="viewcode-block" id="Sgtk"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk">[docs]</a><span class="k">class</span> <span class="nc">Sgtk</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    The Toolkit Core API class. Instances of this class are associated with a particular</span>
+<span class="sd">    The Toolkit Core API. Instances of this class are associated with a particular</span>
 <span class="sd">    configuration and contain access methods for a number of low level</span>
 <span class="sd">    Toolkit services such as filesystem creation, hooks, context</span>
 <span class="sd">    manipulation and the Toolkit template system.</span>
@@ -213,9 +214,10 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_path</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Instances of this class should be created via the factory methods</span>
-<span class="sd">        :meth:`sgtk_from_path` and :meth:`sgtk_from_entity` or implicitly via the</span>
-<span class="sd">        :class:`~sgtk.bootstrap.ToolkitManager`.</span>
+<span class="sd">        .. note:: Do not create this instance directly - Instead, instances of</span>
+<span class="sd">            this class should be created using the methods :meth:`sgtk_from_path`,</span>
+<span class="sd">            :meth:`sgtk_from_entity` or via the :class:`sgtk.bootstrap.ToolkitManager`.</span>
+<span class="sd">            For more information, see :ref:`init_and_startup`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># special stuff to make sure we maintain backwards compatibility in the constructor</span>
         <span class="c1"># if the &#39;project_path&#39; parameter contains a pipeline config object,</span>
@@ -971,22 +973,10 @@
 <span class="c1">##########################################################################################</span>
 <span class="c1"># module methods</span>
 
-<div class="viewcode-block" id="sgtk_from_path"><a class="viewcode-back" href="../../core.html#sgtk.sgtk_from_path">[docs]</a><span class="k">def</span> <span class="nf">sgtk_from_path</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<div class="viewcode-block" id="sgtk_from_path"><a class="viewcode-back" href="../../initializing.html#sgtk.sgtk_from_path">[docs]</a><span class="k">def</span> <span class="nf">sgtk_from_path</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a Toolkit Core API instance based on a path to a configuration</span>
 <span class="sd">    or a path to any file inside a project root location.</span>
-
-<span class="sd">    .. note::</span>
-
-<span class="sd">        This method was designed to initialize toolkit in workflows where the location of configuration</span>
-<span class="sd">        is pre-determined, typically via the ``tank setup_project`` command (or via Shotgun Desktop&#39;s</span>
-<span class="sd">        project setup wizard). These setups are sometimes referred to as &#39;classic&#39; configurations.</span>
-
-<span class="sd">        Modern toolkit workflows handle the configuration management automatically, driven by the</span>
-<span class="sd">        configuration information in Shotgun and via the :class:`~sgtk.bootstrap.ToolkitManager` API.</span>
-<span class="sd">        For these workflows, there is typically no need to utilize the ``sgtk_from_path`` command.</span>
-<span class="sd">        Instead, launch your toolkit engine directly using the :class:`~sgtk.bootstrap.ToolkitManager`</span>
-<span class="sd">        methods.</span>
 
 <span class="sd">    This factory method will do the following:</span>
 
@@ -1029,7 +1019,7 @@
 <span class="sd">        import sgtk</span>
 
 <span class="sd">        # import the configuration</span>
-<span class="sd">        tk = sgtk.sgtk_from_path(&quot;/mnt/projects/hidden_forest/tk_config/install/core/python&quot;)</span>
+<span class="sd">        tk = sgtk.sgtk_from_path(&quot;/mnt/projects/hidden_forest/tk_config&quot;)</span>
 
 <span class="sd">    If you have a shared core for all your projects, you could pass a file path to this</span>
 <span class="sd">    method and toolkit would automatically figure out which configuration would be suitable::</span>
@@ -1050,7 +1040,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">Tank</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="sgtk_from_entity"><a class="viewcode-back" href="../../core.html#sgtk.sgtk_from_entity">[docs]</a><span class="k">def</span> <span class="nf">sgtk_from_entity</span><span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
+<div class="viewcode-block" id="sgtk_from_entity"><a class="viewcode-back" href="../../initializing.html#sgtk.sgtk_from_entity">[docs]</a><span class="k">def</span> <span class="nf">sgtk_from_entity</span><span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a Toolkit Core API instance given an entity in Shotgun.</span>
 
@@ -1153,7 +1143,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.127',
+            VERSION:'v0.18.128',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
