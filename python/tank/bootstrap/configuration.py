@@ -178,13 +178,12 @@ class Configuration(object):
         # module, so try to import.
         try:
             # Use backwards compatible imports.
-            from tank_vendor.shotgun_authentication import ShotgunAuthenticator
+            from tank_vendor.shotgun_authentication import ShotgunAuthenticator, deserialize_user
             from ..util import CoreDefaultsManager
         except ImportError:
             log.debug("Using pre-0.16 core, no authenticated user will be set.")
             return None
 
-        from ..authentication import deserialize_user
         from .. import api
 
         log.debug("The project's core supports the authentication module.")
