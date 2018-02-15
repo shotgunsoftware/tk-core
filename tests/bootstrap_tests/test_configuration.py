@@ -22,6 +22,7 @@ from sgtk.bootstrap.configuration import Configuration
 from sgtk.authentication import ShotgunAuthenticator, ShotgunSamlUser
 from sgtk.authentication.user_impl import SessionUser
 import sgtk
+import tank_vendor
 
 
 REPO_ROOT = os.path.normpath(
@@ -105,8 +106,8 @@ class TestConfiguration(TestConfigurationBase):
         ):
             # Python 2.6 doesn't support multi-expression with statement, so nest the calls instead.
             with patch(
-                "tank.authentication.deserialize_user",
-                wraps=sgtk.authentication.user.deserialize_user
+                "tank_vendor.shotgun_authentication.deserialize_user",
+                wraps=tank_vendor.shotgun_authentication.deserialize_user
             ) as deserialize_wrapper:
                 current_user = self._create_session_user("current_user")
                 configuration._set_authenticated_user(current_user, current_user.login, "invalid")
