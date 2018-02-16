@@ -26,9 +26,11 @@ from . import pipelineconfig
 from . import pipelineconfig_utils
 from . import pipelineconfig_factory
 from . import LogManager
+from . import util
 
 log = LogManager.get_logger(__name__)
-
+    
+    
 class Sgtk(object):
     """
     The Toolkit Core API. Instances of this class are associated with a particular
