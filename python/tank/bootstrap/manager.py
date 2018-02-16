@@ -124,12 +124,13 @@ class ToolkitManager(object):
         repr += " Caching policy %s\n" % self._caching_policy
         repr += " Plugin id %s\n" % self._plugin_id
         repr += " Config %s %s\n" % (identifier_type, self._pipeline_configuration_identifier)
-        repr += " Allows config overrides %s\n" % self._allow_config_overrides
         repr += " Base %s >" % self._base_config_descriptor
         return repr
 
     def extract_settings(self):
         """
+        Serializes the state of the class.
+
         Serializes settings that impact resolution of a pipeline configuration into an
         object and returns it to the user.
 
@@ -157,13 +158,15 @@ class ToolkitManager(object):
 
     def restore_settings(self, data):
         """
-        Restores user defined with :methd:`ToolkitManager.extract_settings`.
+        Restores serialized state.
 
-        .. note:: Always use :methd:`ToolkitManager.extract_settings` to extract settings when you
+        This will restores the state user defined with :meth:`ToolkitManager.extract_settings`.
+
+        .. note:: Always use :meth:`ToolkitManager.extract_settings` to extract settings when you
             plan on calling this method. The content of the settings should be treated as opaque
             data.
 
-        :param object data: Settings obtained from :methd:`ToolkitManager.extract_settings`
+        :param object data: Settings obtained from :meth:`ToolkitManager.extract_settings`
         """
         self.bundle_cache_fallback_paths = data["bundle_cache_fallback_paths"]
         self.caching_policy = data["caching_policy"]
@@ -260,8 +263,8 @@ class ToolkitManager(object):
 
     def _get_pre_engine_start_callback(self):
         """
-        This callback will be invoked after the Toolkit instance has been
-        created but before the engine is started.
+        Callback invoked after the :class:`~sgtk.Sgtk` instance has been
+        created.
 
         This function should have the following signature::
 
@@ -285,8 +288,10 @@ class ToolkitManager(object):
 
     def _get_do_shotgun_config_lookup(self):
         """
-        Flag to indicate if the bootstrap process should connect to
-        Shotgun and attempt to resolve a config. Defaults to True.
+        Controls the Shotgun override behaviour.
+
+        Boolean property to indicate if the bootstrap process should connect to
+        Shotgun and attempt to resolve a config. Defaults to ``True``.
 
         If ``True``, the bootstrap process will connect to Shotgun as part
         of the startup, look for a pipeline configuration and attempt
@@ -307,12 +312,11 @@ class ToolkitManager(object):
 
     def _get_plugin_id(self):
         """
+        The associated plugin id.
+
         The Plugin Id is a string that defines the scope of the bootstrap operation.
 
-        If you are bootstrapping into an entire Toolkit pipeline, e.g
-        a traditional Toolkit setup, this should be left at its default ``None`` value.
-
-        If you are writing a plugin that is intended to run side by
+        When you are writing plugins or tools that is intended to run side by
         side with other plugins in your target environment, the entry
         point will be used to define a scope and sandbox in which your
         plugin will execute.
@@ -323,14 +327,11 @@ class ToolkitManager(object):
         - Plugin Ids should uniquely identify the plugin.
         - The name should be short and descriptive.
 
-        We recommend a Plugin Id naming convention of ``service.dcc``,
-        for example:
+        The basic toolkit integration uses a ``basic`` prefix, e.g.
+        ``basic.maya``, ``basic.nuke``. We recommend using the
+        ``basic`` prefix for standard workflows.
 
-        - A review plugin running inside RV: ``review.rv``.
-        - A basic set of pipeline tools running inside of Nuke: ``basic.nuke``
-        - A plugin containg a suite of motion capture tools for maya: ``mocap.maya``
-
-        Please make sure that your Plugin Id is **unique, explicit and short**.
+        For more information, see :ref:`plugins_and_plugin_ids`.
         """
         return self._plugin_id
 
@@ -345,10 +346,13 @@ class ToolkitManager(object):
 
     def _get_base_configuration(self):
         """
+        The fallback configuration to use.
+
         The descriptor (string or dict) for the
         configuration that should be used as a base fallback
-        to be used whenever runtime and shotgun configuration
-        resolution doesn't resolve an override configuration to use.
+        to be used if an override configuration isn't set in Shotgun.
+
+        For
         """
         return self._base_config_descriptor
 
@@ -360,17 +364,16 @@ class ToolkitManager(object):
 
     def _get_user_bundle_cache_fallback_paths(self):
         """
-        Specifies a list of fallback paths where toolkit will go
-        look for cached bundles in case a bundle isn't found in
-        the primary app cache.
+        A list of fallback paths where toolkit will look for cached bundles.
 
         This is useful if you want to distribute a pre-baked
         package, containing all the app version that a user needs.
         This avoids downloading anything from the app store or other
         sources.
 
-        Any missing bundles will be downloaded and cached into
-        the *primary* bundle cache.
+        Any bundles missing from locations specified in the
+        fallback paths will be downloaded and cached into
+        the global bundle cache.
         """
         return self._user_bundle_cache_fallback_paths
 
@@ -408,7 +411,7 @@ class ToolkitManager(object):
 
     def _get_progress_callback(self):
         """
-        Callback function property to call whenever progress of the bootstrap should be reported back.
+        Callback that gets called whenever progress should be reported.
 
         This function should have the following signature::
 
@@ -480,6 +483,8 @@ class ToolkitManager(object):
                                completed_callback=None,
                                failed_callback=None):
         """
+        Asynchronous version of :meth:`bootstrap_engine`.
+
         Create an :class:`~sgtk.Sgtk` instance for the given engine and entity,
         then launch into the given engine.
 
@@ -697,6 +702,8 @@ class ToolkitManager(object):
 
     def get_entity_from_environment(self):
         """
+        Standardized environment variable retrieval.
+
         Helper method that looks for the standard environment variables
         ``SHOTGUN_SITE``, ``SHOTGUN_ENTITY_TYPE`` and
         ``SHOTGUN_ENTITY_ID`` and attempts to extract and validate them.
@@ -973,7 +980,10 @@ class ToolkitManager(object):
 
         # we can now boot up this config.
         self._report_progress(progress_callback, self._STARTING_TOOLKIT_RATE, "Starting up Toolkit...")
-        tk = config.get_tk_instance(self._sg_user)
+        tk, user = config.get_tk_instance(self._sg_user)
+
+        # Assign the post core-swap user so the rest of the bootstrap uses the new user object.
+        self._sg_user = user
 
         if config.requires_dynamic_bundle_caching:
             # make sure we have all the apps locally downloaded

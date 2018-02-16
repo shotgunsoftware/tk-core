@@ -10,8 +10,8 @@
 
 from __future__ import with_statement
 
-from tank_test.tank_test_base import ShotgunTestBase
 from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import ShotgunTestBase
 
 from mock import patch
 
@@ -112,6 +112,26 @@ class UserTests(ShotgunTestBase):
         self.assertEquals(su.login, su_2.login)
         self.assertEquals(su.impl.get_key(), su_2.impl.get_key())
         self.assertEquals(su.impl.get_script(), su_2.impl.get_script())
+
+        # Make sure we can unserialize a user with data that is not completely understood.
+        user_with_unknown_data = {
+            "host": "https://test.shotgunstudio.com",
+            "login": "login",
+            "session_token": "token",
+            "http_proxy": "127.0.0.1",
+            "unexpected": "stuff"
+        }
+
+        user_impl.SessionUser.from_dict(user_with_unknown_data)
+
+        script_user_with_unknown_data = {
+            "host": "https://test.shotgunstudio.com",
+            "api_script": "x123",
+            "api_key": "x12333",
+            "http_proxy": "127.0.0.1",
+            "unexpected": "stuff"
+        }
+        user_impl.ScriptUser.from_dict(script_user_with_unknown_data)
 
     @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")

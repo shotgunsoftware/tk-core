@@ -205,6 +205,11 @@ def _try_load_site_authentication_file(file_path):
     :returns: site authentication style dictionary
     """
     content = _try_load_yaml_file(file_path)
+
+    # Do not attempt to filter out content that is not understood. This allows
+    # the file to be backwards and forward compatible with different versions
+    # of core.
+
     # Make sure any mandatory entry is present.
     content.setdefault(_USERS, [])
     content.setdefault(_CURRENT_USER, None)
@@ -228,6 +233,11 @@ def _try_load_global_authentication_file(file_path):
     :returns: global authentication style dictionary
     """
     content = _try_load_yaml_file(file_path)
+
+    # Do not attempt to filter out content that is not understood. This allows
+    # the file to be backwards and forward compatible with different versions
+    # of core.
+
     # Make sure any mandatody entry is present.
     content.setdefault(_CURRENT_HOST, None)
     content.setdefault(_RECENT_HOSTS, [])
@@ -462,6 +472,35 @@ def get_current_host():
     return host
 
 
+def _get_recent_items(document, recent_field, current_field, type_name):
+    """
+    Extract the list of recent items from the document.
+
+    If the recent_field is not set, then we'll simply return the current_field's
+    value. The recent_field will be empty when upgrading from an older core
+    that didn't support the recent users/hosts list.
+
+    :param object document: Document to extract information from
+    :param recent_field: Field from which we need to retrieve
+    """
+    # Extract the list of recent items.
+    items = document[recent_field]
+
+    # Then check if the current is part of the list. It's not? This is because
+    # an older core updated the file, but didn't know about the recent list and
+    # didn't update it. This is possible because since day one the authentication.yml
+    # has been treated as document with certain fields set and when the document
+    # is rewritten it is rewritten as is, except for the bits that were updated.
+    if document[current_field]:
+        # If the item was present in the list, remove it and move it to the top
+        # so it's marked as the most recent.
+        if document[current_field] in items:
+            items.remove(document[current_field])
+        items.insert(0, document[current_field])
+    logger.debug("Recent %s are: %s", type_name, items)
+    return items
+
+
 def get_recent_hosts():
     """
     Retrieves the list of recently visited hosts.
@@ -470,8 +509,7 @@ def get_recent_hosts():
     """
     info_path = _get_global_authentication_file_location()
     document = _try_load_global_authentication_file(info_path)
-    logger.debug("Recent hosts are: %s", document[_RECENT_HOSTS])
-    return document[_RECENT_HOSTS]
+    return _get_recent_items(document, _RECENT_HOSTS, _CURRENT_HOST, "hosts")
 
 
 def get_recent_users(site):
@@ -483,7 +521,7 @@ def get_recent_users(site):
     info_path = _get_site_authentication_file_location(site)
     document = _try_load_site_authentication_file(info_path)
     logger.debug("Recent users are: %s", document[_RECENT_USERS])
-    return document[_RECENT_USERS]
+    return _get_recent_items(document, _RECENT_USERS, _CURRENT_USER, "users")
 
 
 @LogManager.log_timing

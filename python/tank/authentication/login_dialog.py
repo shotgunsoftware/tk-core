@@ -220,7 +220,7 @@ class LoginDialog(QtGui.QDialog):
         # show or hide the login and password fields.
         self.ui.site.lineEdit().textEdited.connect(self._site_url_changing)
         # If a site has been selected, we need to update the login field.
-        self.ui.site.activated.connect(lambda x: self._on_site_changed())
+        self.ui.site.activated.connect(self._on_site_changed)
         self.ui.site.lineEdit().editingFinished.connect(self._on_site_changed)
 
         self._query_task = QuerySiteAndUpdateUITask(self)
@@ -422,9 +422,11 @@ class LoginDialog(QtGui.QDialog):
         """
         # Wait for any ongoing SSO check thread.
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-        if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
-            logger.warning("Timed out awaiting check for SSO support on the site: %s" % self._get_current_site())
-        QtGui.QApplication.restoreOverrideCursor()
+        try:
+            if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
+                logger.warning("Timed out awaiting check for SSO support on the site: %s" % self._get_current_site())
+        finally:
+            QtGui.QApplication.restoreOverrideCursor()
 
         # pull values from the gui
         site = self._get_current_site()

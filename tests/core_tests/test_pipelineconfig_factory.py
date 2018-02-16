@@ -482,6 +482,48 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         else:
             os.environ["TANK_CURRENT_PC"] = old_tank_current_pc
 
+class TestTankFromPathPCWithProjectWithoutTankName(TankTestBase):
+    """
+    Tests edge case where getting path for classic/installed project and another
+    project exists without a tank name.
+    """
 
+    def setUp(self):
 
+        super(TestTankFromPathPCWithProjectWithoutTankName, self).setUp()
 
+        # a separate project record without the tank name set
+        self.other_project = {
+            "type": "Project",
+            "name": "Project without tank_name set",
+            "id": 77777,
+            "archived": False,
+            "tank_name": None
+        }
+
+        # define an additional pipeline config linked to the other project
+        self.other_pc = {
+            "type": "PipelineConfiguration",
+            "code": "Other",
+            "id": 123456,
+            "project": self.other_project,
+            "windows_path": "/foobar",
+            "mac_path": "/foobar",
+            "linux_path": "/foobar",
+        }
+
+        self.add_to_sg_mock_db(self.other_project)
+        self.add_to_sg_mock_db(self.other_pc)
+
+    def test_sgtk_from_path_project_no_tank_name(self):
+        """
+        Ensure no errors and valid Tank instance returned when a project exists
+        with no tank_name
+        """
+
+        path = os.path.join(self.project_root, "child_dir")
+
+        # this will raise if an exception occurs. prior to the associated fix
+        # (#46590), if there was a project defined for the site without a
+        # tank_name set, this code would fail.
+        config = sgtk.pipelineconfig_factory.from_path(path)
