@@ -39,9 +39,6 @@ class TestEvaluator(Hook):
         # test_str_evaluator: hook:test_evaluator
         # test_int_evaluator: hook:test_evaluator
         # test_simple_dictionary_evaluator: hook:test_evaluator:param
-        # test_complex_dictionary_evaluator:
-        # test_str: a
-        # test_list: hook:test_evaluator
 
         if setting == "test_str_evaluator":
             return "string_value"
