@@ -1062,6 +1062,9 @@ def _post_process_settings_r(tk, key, value, schema, bundle=None):
     """
     settings_type = schema.get("type")
 
+    # first check for procedural overrides where instead of getting a value,
+    # directly from the config, we call a hook to evaluate a config value
+    # at runtime:
     if isinstance(value, basestring) and value.startswith("hook:"):
         # handle the special form where the value is computed in a hook.
         #
@@ -1079,8 +1082,10 @@ def _post_process_settings_r(tk, key, value, schema, bundle=None):
         processed_val = tk.execute_core_hook(
             hook_name, setting=key, bundle_obj=bundle, extra_params=params
         )
+        return processed_val
 
-    elif settings_type == "list":
+    # No procedural overrides in place - instead handle the value based on type
+    if settings_type == "list":
         processed_val = []
         value_schema = schema["values"]
         for x in value:

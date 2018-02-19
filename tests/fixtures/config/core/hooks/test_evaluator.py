@@ -45,5 +45,13 @@ class TestEvaluator(Hook):
         if setting == "test_int_evaluator":
             return 1
         if setting == "test_simple_dictionary_evaluator":
-            # test_str: 'param'
+            #
+            # we are grabbing the value passed from the configuration
+            # and passing it back. In this particular case, tests
+            # are calling it with the following env config syntax:
+            #
+            # test_simple_dictionary_evaluator: hook:test_evaluator:param
+            #
+            # ...which will result in extra_params[0]=='param'
+            #
             return {"test_str": extra_params[0], "test_int": 1}
