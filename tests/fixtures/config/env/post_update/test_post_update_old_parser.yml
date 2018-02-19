@@ -52,11 +52,14 @@ engines:
         test_hook_std: config_test_hook
         test_icon: foo/bar.png
         test_int: 1
+        test_int_evaluator: hook:test_evaluator
         test_no_schema: 1234.5678
         test_publish_type: Render Scene
         test_simple_dictionary: {test_int: 1, test_str: a}
+        test_simple_dictionary_evaluator: hook:test_evaluator:param
         test_simple_list: [a, b, c, d]
         test_str: a
+        test_str_evaluator: hook:test_evaluator
         test_tank_type: Render Scene Tank
         test_template: maya_publish_name
         test_very_complex_list:
