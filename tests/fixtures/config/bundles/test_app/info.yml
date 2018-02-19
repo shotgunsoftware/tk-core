@@ -282,6 +282,23 @@ configuration:
         type: str
         default_value_tk-maya: "foobar"
 
+    # hook evaluator tests
+    test_str_evaluator:
+        type: str
+
+    test_int_evaluator:
+        type: int
+
+    test_simple_dictionary_evaluator:
+        type: dict
+        items:
+            test_str:
+                type: str
+            test_int:
+                type: int
+
+
+
 # the Shotgun fields that this app needs in order to operate correctly
 requires_shotgun_fields:
 

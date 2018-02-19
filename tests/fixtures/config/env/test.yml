@@ -113,6 +113,10 @@ engines:
                             -   test_str: ba
                             -   test_str: bb
 
+                test_str_evaluator: hook:test_evaluator
+                test_int_evaluator: hook:test_evaluator
+                test_simple_dictionary_evaluator: hook:test_evaluator:param
+
             disabled_app:
                 location: {'type': 'dev', 'path': 'DISABLED_APP_LOCATION', 'disabled': True}
     disabled_engine:
