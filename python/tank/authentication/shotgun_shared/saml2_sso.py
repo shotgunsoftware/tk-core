@@ -192,7 +192,8 @@ class Saml2Sso(object):
         # Worst case scenario : should Shotgun modify how the warning is displayed
         # it would show up in the page.
         css_style = base64.b64encode("div.browser_not_approved { display: none !important; }")
-        self._view.settings().setUserStyleSheetUrl("data:text/css;charset=utf-8;base64," + css_style)
+        url = QtCore.QUrl("data:text/css;charset=utf-8;base64," + css_style)
+        self._view.settings().setUserStyleSheetUrl(url)
 
         # Threshold percentage of the SSO session duration, at which
         # time the pre-emptive renewal operation should be started.
