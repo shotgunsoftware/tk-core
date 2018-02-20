@@ -61,6 +61,52 @@ BAKED_BUNDLE_VERSION = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 BUILD_GENERATION = 2
 
 
+def _bake_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data):
+    """
+    Bake the given configuration by ensuring it is locally cached and by modifying
+    the manifest_data.
+
+    :param sg_connection: Shotgun connection
+    :param source_path: Root path of plugin source.
+    :param target_path: Build target path
+    :param bundle_cache_root: Bundle cache root
+    :param manifest_data: Manifest data as a dictionary
+    """
+    logger.info(
+        "Baking your configuration definition into an immutable state. "
+        "This means that the plugin will be frozen and no automatic updates "
+        "will be performed at startup."
+    )
+    base_config_def = manifest_data["base_configuration"]
+    if isinstance(base_config_def, str):
+        # convert to dict so we can introspect
+        base_config_uri_dict = descriptor_uri_to_dict(base_config_def)
+    else:
+        base_config_uri_dict = base_config_def
+
+    using_latest_config = is_descriptor_version_missing(base_config_uri_dict)
+    if using_latest_config:
+        logger.info(
+            "Your configuration definition does not contain a version number. "
+            "Retrieving the latest version of the configuration for baking."
+        )
+
+    cfg_descriptor = create_descriptor(
+        sg_connection,
+        Descriptor.CONFIG,
+        base_config_uri_dict,
+        resolve_latest=using_latest_config
+    )
+    cfg_descriptor.ensure_local()
+    local_path = cfg_descriptor.get_path()
+    if not local_path:
+        raise ValueError("Unable to get a local copy of %s" % cfg_descriptor)
+    baked_descriptor = {
+        "type": bootstrap_constants.BAKED_DESCRIPTOR_TYPE,
+        "path": local_path
+    }
+    manifest_data["base_configuration"] = baked_descriptor
+
 def _process_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data):
     """
     Given data in the plugin manifest, download resolve and
@@ -143,24 +189,35 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
                 "version": BAKED_BUNDLE_VERSION
             }
         )
-
+        # Workaround for tk-core bootstrap needing a shotgun.yml file: when swapping
+        # tk-core, this file is checked to see if a script user was specified and
+        # should be used in place of the authenticated user. So we create a dummy
+        # file with an "unspecified" host, as the key is required by the tk-core
+        # code parsing the file.
+        # It is not clear if this workaround is needed for non baked configs as
+        # their workflow is different, so for now we just keep it for bake configs
+        # only.
+        shotgun_yaml_path = os.path.join(install_path, "config", "core", "shotgun.yml")
+        if not os.path.exists(shotgun_yaml_path):
+            logger.info("Patching %s" % shotgun_yaml_path)
+            with open(shotgun_yaml_path, "w") as pf:
+                pf.write("# Workaround for tk-core bootstrap\nhost: unspecified")
     else:
 
         # if the descriptor in the config contains a version number
         # we will go into a fixed update mode.
-        if is_descriptor_version_missing(base_config_uri_dict):
+        using_latest_config = is_descriptor_version_missing(base_config_uri_dict)
+        if using_latest_config:
             logger.info(
                 "Your configuration definition does not contain a version number. "
                 "This means that the plugin will attempt to auto update at startup."
             )
-            using_latest_config = True
         else:
             logger.info(
                 "Your configuration definition contains a version number. "
                 "This means that the plugin will be frozen and no automatic updates "
                 "will be performed at startup."
             )
-            using_latest_config = False
 
         cfg_descriptor = create_descriptor(
             sg_connection,
@@ -168,7 +225,6 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
             base_config_uri_dict,
             resolve_latest=using_latest_config
         )
-
     logger.info("Resolved config %r" % cfg_descriptor)
     logger.info("Runtime config descriptor uri will be %s" % base_config_uri_str)
     return cfg_descriptor, base_config_uri_str
@@ -351,7 +407,7 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
         raise TankError("Cannot write manifest file: %s" % e)
 
 
-def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=None):
+def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=None, do_bake=False):
     """
     Perform a build of a plugin.
 
@@ -367,7 +423,7 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
                                the latest core from the app store will be used.
     """
     logger.info("Your toolkit plugin in '%s' will be processed." % source_path)
-    logger.info("The build will generated into '%s'" % target_path)
+    logger.info("The build will %s into '%s'" % (["generated", "baked"][do_bake], target_path))
 
     # check for existence
     if not os.path.exists(source_path):
@@ -394,6 +450,14 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     bundle_cache_root = os.path.join(target_path, BUNDLE_CACHE_ROOT_FOLDER_NAME)
     filesystem.ensure_folder_exists(bundle_cache_root)
 
+    if do_bake:
+        _bake_configuration(
+            sg_connection,
+            source_path,
+            target_path,
+            bundle_cache_root,
+            manifest_data,
+        )
     # resolve config descriptor
     # the config_uri_str returned by the method contains the fully resolved
     # uri to use at runtime - in the case of baked descriptors, the config_uri_str
@@ -403,7 +467,7 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
         source_path,
         target_path,
         bundle_cache_root,
-        manifest_data
+        manifest_data,
     )
 
     # cache config in bundle cache
@@ -517,6 +581,15 @@ If you want to use a specific core for the bootstrap, this can be specified via 
             --bootstrap-core-uri='sgtk:descriptor:dev?path=~/dev/tk-core'
             ~/dev/tk-maya/plugins/basic /tmp/maya-plugin
 
+By using the '--bake' option, you can build a plugin with an immutable configuration
+where every single Toolkit component is cached and frozen to the version retrieved at
+build time. This can be useful to distribute a self contained plugin to third party
+users.
+
+> python build_plugin.py
+            ~/dev/tk-maya/plugins/basic /tmp/maya-plugin
+            --bake
+
 For information about the various descriptors that can be used, see
 http://developer.shotgunsoftware.com/tk-core/descriptor
 
@@ -541,6 +614,12 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
               "If not specified, defaults to the most recently released core.")
     )
 
+    parser.add_option(
+        "--bake",
+        default=False,
+        action="store_true",
+        help="Bake the plugin with an immutable configuration."
+    )
     add_authentication_options(parser)
 
     # parse cmd line
@@ -585,7 +664,8 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         sg_connection,
         source_path,
         target_path,
-        bootstrap_core_uri
+        bootstrap_core_uri,
+        options.bake
     )
 
     # all good!
