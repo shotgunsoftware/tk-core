@@ -60,6 +60,7 @@ BAKED_BUNDLE_VERSION = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 # generation of the build syntax
 BUILD_GENERATION = 2
 
+
 def _bake_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data):
     """
     Bake the given configuration by ensuring it is locally cached and by modifying
