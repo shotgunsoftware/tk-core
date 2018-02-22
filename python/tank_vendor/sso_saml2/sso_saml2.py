@@ -89,16 +89,6 @@ class SsoSaml2(object):
         if self._core.is_session_renewal_active():
             self._core.stop_session_renewal()
 
-    def get_cookies(self):
-        """
-        Get the session cookies.
-
-        :returns: A string where all of the session cookies are encoded.
-        """
-        # session_data = self._core.get_session_data()
-        # return session_data[3]
-        return self._core._session.cookies
-
     @property
     def session_id(self):
         """
@@ -116,3 +106,12 @@ class SsoSaml2(object):
         :returns: The encoded cookies, or None
         """
         return self._core._session.cookies
+
+    @property
+    def session_error(self):
+        """
+        Property: session error.
+
+        :returns: The session error string or ""
+        """
+        return self._core._session.error

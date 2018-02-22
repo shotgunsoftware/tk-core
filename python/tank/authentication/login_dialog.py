@@ -497,7 +497,7 @@ class LoginDialog(QtGui.QDialog):
                     self._new_session_token = self._sso_saml2.session_id
                     self._session_metadata = self._sso_saml2.cookies
                 else:
-                    error_msg = self._sso_saml2.error_message
+                    error_msg = self._sso_saml2.session_error
                     if error_msg:
                         raise AuthenticationError(error_msg)
                     return
