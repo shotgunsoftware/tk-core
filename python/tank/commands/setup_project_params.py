@@ -835,7 +835,7 @@ class TemplateConfiguration(object):
         self._storage_roots.populate_defaults()
 
         # ensure a default root can be determined from the required roots
-        if self._storage_roots.required and not self._storage_roots.default:
+        if self._storage_roots.required_roots and not self._storage_roots.default:
             raise TankError(
                 "Looks like your configuration has required storage roots but "
                 "does not specify a default root. You can mark a storage root "

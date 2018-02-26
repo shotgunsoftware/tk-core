@@ -55,7 +55,7 @@ class StorageRoots(object):
     # class methods
 
     @classmethod
-    def defined(cls, config_folder):
+    def file_exists(cls, config_folder):
         """
         Returns ``True`` if the configuration has a storage roots definition
         file. ``False`` otherwise.
@@ -157,7 +157,7 @@ class StorageRoots(object):
         # local storage entries
         if unmapped_roots:
             raise TankError(
-                "The following storages are defined by %s but is can not be "
+                "The following storages are defined by %s but can not be "
                 "mapped to a local storage in Shotgun: %s" % (
                     roots_file,
                     ", ".join(unmapped_roots)
@@ -236,7 +236,7 @@ class StorageRoots(object):
         """
         return "<StorageRoots folder:'%s', roots:'%s'>" % (
             self._storage_roots_file,
-            ",".join(self.required)
+            ",".join(self.required_roots)
         )
 
     ############################################################################
@@ -271,12 +271,10 @@ class StorageRoots(object):
     def default_path(self):
         """
         A ``ShotgunPath`` object for the configuration's default storage root.
-        """
-        if self._default_storage_name not in self._shotgun_paths_lookup:
-            # no default storage defined
-            return None
 
-        return self._shotgun_paths_lookup[self._default_storage_name]
+        May be ``None`` if no default could be determined.
+        """
+        return self._shotgun_paths_lookup.get(self._default_storage_name)
 
     @property
     def metadata(self):
@@ -293,13 +291,10 @@ class StorageRoots(object):
         """
         The path (``str``) to the storage root file represented by this object.
         """
-        if not self._storage_roots_file:
-            return None
-
         return self._storage_roots_file
 
     @property
-    def required(self):
+    def required_roots(self):
         """
         A list of all required storage root names (``str``) by this
         configuration.
@@ -441,7 +436,7 @@ class StorageRoots(object):
         If there are no roots defined, this method will create a default root
         definition.
         """
-        if self.required:
+        if self.required_roots:
             # there are roots required by this configuration. ensure all are
             # populated with the expected platform keys
             for root_name, root_info in self:

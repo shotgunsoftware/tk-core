@@ -237,10 +237,10 @@ class ConfigDescriptor(Descriptor):
         """
 
         # empty list if the described config does not define storage roots
-        if not StorageRoots.defined(self.get_config_folder()):
+        if not StorageRoots.file_exists(self.get_config_folder()):
             return []
 
-        return self.storage_roots.required
+        return self.storage_roots.required_roots
 
     @property
     def storage_roots(self):

@@ -134,12 +134,12 @@ class TestStorageRoots(ShotgunTestBase):
         if not os.path.exists(self._config_folder):
             os.makedirs(self._config_folder)
 
-    def test_storage_roots_defined(self):
+    def test_storage_roots_file_exists(self):
 
-        self.assertTrue(StorageRoots.defined(self._single_root_config_folder))
-        self.assertTrue(StorageRoots.defined(self._multiple_roots_config_folder))
-        self.assertTrue(StorageRoots.defined(self._corrupt_roots_config_folder))
-        self.assertFalse(StorageRoots.defined(self._no_roots_config_folder))
+        self.assertTrue(StorageRoots.file_exists(self._single_root_config_folder))
+        self.assertTrue(StorageRoots.file_exists(self._multiple_roots_config_folder))
+        self.assertTrue(StorageRoots.file_exists(self._corrupt_roots_config_folder))
+        self.assertFalse(StorageRoots.file_exists(self._no_roots_config_folder))
 
     def test_storage_roots_from_config(self):
 
@@ -202,11 +202,11 @@ class TestStorageRoots(ShotgunTestBase):
             self.assertEqual(storage_roots_B.roots_file, roots_file)
 
             self.assertEqual(
-                sorted(storage_roots_A.required),
-                sorted(storage_roots_B.required)
+                sorted(storage_roots_A.required_roots),
+                sorted(storage_roots_B.required_roots)
             )
 
-            for root_name in storage_roots_A.required:
+            for root_name in storage_roots_A.required_roots:
                 self.assertEqual(
                     storage_roots_A.metadata[root_name],
                     storage_roots_B.metadata[root_name],
@@ -290,17 +290,17 @@ class TestStorageRoots(ShotgunTestBase):
     def test_storage_roots_required(self):
 
         single_root = StorageRoots.from_config(self._single_root_config_folder)
-        single_root_required_storage_names = single_root.required
+        single_root_required_storage_names = single_root.required_roots
         for root_name in self._single_root_metadata:
             self.assertTrue(root_name in single_root_required_storage_names)
 
         multiple_roots = StorageRoots.from_config(self._multiple_roots_config_folder)
-        multiple_roots_required_storage_names = multiple_roots.required
+        multiple_roots_required_storage_names = multiple_roots.required_roots
         for root_name in self._multiple_roots_metadata:
             self.assertTrue(root_name in multiple_roots_required_storage_names)
 
         no_roots = StorageRoots.from_config(self._no_roots_config_folder)
-        self.assertEqual(no_roots.required, [])
+        self.assertEqual(no_roots.required_roots, [])
 
     def test_storage_roots_get_local_storages(self):
 

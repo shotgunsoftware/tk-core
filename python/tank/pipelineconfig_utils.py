@@ -70,7 +70,7 @@ def is_pipeline_config(pipeline_config_path):
     """
     # probe by looking for the existence of a key config file.
     config_folder = os.path.join(pipeline_config_path, "config")
-    return StorageRoots.defined(config_folder)
+    return StorageRoots.file_exists(config_folder)
 
 
 def get_metadata(pipeline_config_path):

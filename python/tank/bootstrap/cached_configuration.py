@@ -126,7 +126,7 @@ class CachedConfiguration(Configuration):
         if not storage_roots:
             return
 
-        if not storage_roots.required:
+        if not storage_roots.required_roots:
             # the storage roots definition file exists, but no storage defined
             # within. might be a placeholder file. treat it as though the file
             # does not exist.
@@ -136,7 +136,7 @@ class CachedConfiguration(Configuration):
 
         log.debug(
             "Detected storage roots definition file %s with roots %s" %
-            (storage_roots.roots_file, storage_roots.required)
+            (storage_roots.roots_file, storage_roots.required_roots)
         )
 
         (_, unmapped_roots) = storage_roots.get_local_storage(
