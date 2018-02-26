@@ -599,22 +599,6 @@ class TestShotgunSync(TankTestBase):
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
         self.assertEqual( len(self._get_path_cache()), 4)
 
-        config_folder = os.path.join(
-            self.pipeline_config_root,
-            "config"
-        )
-        
-        roots_yml = os.path.join(
-            config_folder,
-            "core",
-            constants.STORAGE_ROOTS_FILE
-        )
-
-        roots_yml_bak = roots_yml + ".bak"
-
-        # move the valid roots to a bak file
-        shutil.move(roots_yml, roots_yml_bak)
-
         invalid_roots_data = {
             "primary": {
                 "linux_path": "/invalid",
@@ -623,19 +607,19 @@ class TestShotgunSync(TankTestBase):
             }
         }
 
-        # write a new, invalid roots file
-        with open(roots_yml, "w+") as fh:
-            yaml.safe_dump(invalid_roots_data, fh)
-
-        self.pipeline_configuration._storage_roots = StorageRoots.from_config(config_folder)
+        self.pipeline_configuration._storage_roots = StorageRoots.from_metadata(invalid_roots_data)
         
         # perform a full sync
         log = sync_path_cache(self.tk, force_full_sync=True)
         self.assertTrue("Could not resolve storages - skipping" in log)
         self.assertEqual( len(self._get_path_cache()), 0)
-        
+
+        config_folder = os.path.join(
+            self.pipeline_config_root,
+            "config"
+        )
+
         # and set roots back again and check
-        shutil.move(roots_yml_bak, roots_yml)
         self.pipeline_configuration._storage_roots = StorageRoots.from_config(config_folder)
 
         # perform a full sync
