@@ -135,6 +135,7 @@ class TestStorageRoots(ShotgunTestBase):
             os.makedirs(self._config_folder)
 
     def test_storage_roots_file_exists(self):
+        """Test the file_exists class method."""
 
         self.assertTrue(StorageRoots.file_exists(self._single_root_config_folder))
         self.assertTrue(StorageRoots.file_exists(self._multiple_roots_config_folder))
@@ -142,6 +143,7 @@ class TestStorageRoots(ShotgunTestBase):
         self.assertFalse(StorageRoots.file_exists(self._no_roots_config_folder))
 
     def test_storage_roots_from_config(self):
+        """Test the from_config factory class method."""
 
         single_root = StorageRoots.from_config(self._single_root_config_folder)
         self.assertIsInstance(single_root, StorageRoots)
@@ -156,6 +158,7 @@ class TestStorageRoots(ShotgunTestBase):
             _ = StorageRoots.from_config(self._corrupt_roots_config_folder)
 
     def test_storage_roots_from_metadata(self):
+        """Test the from_metadata factory class method."""
 
         single_root = StorageRoots.from_metadata(self._single_root_metadata)
         self.assertIsInstance(single_root, StorageRoots)
@@ -167,6 +170,7 @@ class TestStorageRoots(ShotgunTestBase):
         self.assertIsInstance(no_roots, StorageRoots)
 
     def test_storage_roots_write(self):
+        """Test the write class method."""
 
         config_root_folders = [
             self._single_root_config_folder,
@@ -215,7 +219,8 @@ class TestStorageRoots(ShotgunTestBase):
             # clean up the file written to disk
             os.remove(storage_roots_B.roots_file)
 
-    def test_storage_roots_as_paths(self):
+    def test_storage_roots_as_shotgun_paths(self):
+        """Test the as_shotgun_paths property."""
 
         config_root_folders = [
             self._single_root_config_folder,
@@ -229,6 +234,7 @@ class TestStorageRoots(ShotgunTestBase):
                 self.assertIsInstance(sg_path, ShotgunPath)
 
     def test_storage_roots_default(self):
+        """Test the default property."""
 
         single_root = StorageRoots.from_config(self._single_root_config_folder)
         self.assertEqual(single_root.default, "primary")
@@ -240,6 +246,7 @@ class TestStorageRoots(ShotgunTestBase):
         self.assertEqual(no_roots.default, None)
 
     def test_storage_roots_default_path(self):
+        """Test the default_path property."""
 
         single_root = StorageRoots.from_config(self._single_root_config_folder)
         single_root_default_path = ShotgunPath.from_shotgun_dict(
@@ -255,6 +262,7 @@ class TestStorageRoots(ShotgunTestBase):
         self.assertEqual(no_roots.default_path, None)
 
     def test_storage_roots_metadata(self):
+        """Test the metadata property."""
 
         single_root = StorageRoots.from_metadata(self._single_root_metadata)
         self.assertEqual(single_root.metadata, self._single_root_metadata)
@@ -265,7 +273,8 @@ class TestStorageRoots(ShotgunTestBase):
         no_roots = StorageRoots.from_metadata(self._no_roots_metadata)
         self.assertEqual(no_roots.metadata, self._no_roots_metadata)
 
-    def test_storage_roots_root_file(self):
+    def test_storage_roots_roots_file(self):
+        """Test the roots_file property."""
 
         relative_roots_path = os.path.join("core", "roots.yml")
 
@@ -287,7 +296,8 @@ class TestStorageRoots(ShotgunTestBase):
             os.path.join(self._no_roots_config_folder, relative_roots_path)
         )
 
-    def test_storage_roots_required(self):
+    def test_storage_roots_required_roots(self):
+        """Test the required_roots property."""
 
         single_root = StorageRoots.from_config(self._single_root_config_folder)
         single_root_required_storage_names = single_root.required_roots
@@ -303,6 +313,7 @@ class TestStorageRoots(ShotgunTestBase):
         self.assertEqual(no_roots.required_roots, [])
 
     def test_storage_roots_get_local_storages(self):
+        """Test the get_local_storages method."""
 
         single_root = StorageRoots.from_metadata(self._single_root_metadata)
         (single_root_lookup, unmapped_roots) = single_root.get_local_storages(self.mockgun)
@@ -331,6 +342,7 @@ class TestStorageRoots(ShotgunTestBase):
         self.assertEqual(unmapped_roots, ["foobar"])
 
     def test_storage_rotos_populate_defaults(self):
+        """Test the populate_defaults method."""
 
         empty_roots_metadata = {}
         empty_roots = StorageRoots.from_metadata(empty_roots_metadata)
