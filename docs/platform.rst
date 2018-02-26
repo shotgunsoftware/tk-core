@@ -372,6 +372,14 @@ minor version number increments indicates added features and patch version numbe
 compatible bug fixes. We therefore recommend to have framework dependencies track against a
 major version number.
 
+.. note:: If there is a required minimum version for a framework, a ``minimum_version`` setting
+          can be used in the ``info.yml`` manifest::
+            # the frameworks required to run this app
+            frameworks:
+                - {"name": "tk-framework-shotgunutils", "version": "v2.x.x", "minimum_version": "v2.3.3"}
+                - {"name": "tk-framework-qtwidgets", "version": "v1.x.x"}
+
+
 Version constraints
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
