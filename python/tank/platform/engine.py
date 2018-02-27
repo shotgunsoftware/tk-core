@@ -2129,14 +2129,14 @@ class Engine(TankBundle):
 
         # This closely resembles the color palette used in Maya 2017 with a
         # few minor tweaks.
-        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Button, QtGui.QColor(80,80,80))
-        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Light, QtGui.QColor(97,97,97))
-        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Midlight, QtGui.QColor(59,59,59))
-        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Dark, QtGui.QColor(37,37,37))
-        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Mid, QtGui.QColor(45,45,45))
-        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Base, QtGui.QColor(42,42,42))
-        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Window, QtGui.QColor(68,68,68))
-        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Shadow, QtGui.QColor(0,0,0))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Button, QtGui.QColor(80, 80, 80))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Light, QtGui.QColor(97, 97, 97))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Midlight, QtGui.QColor(59, 59, 59))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Dark, QtGui.QColor(37, 37, 37))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Mid, QtGui.QColor(45, 45, 45))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Base, QtGui.QColor(42, 42, 42))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Window, QtGui.QColor(68, 68, 68))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Shadow, QtGui.QColor(0, 0, 0))
         palette.setBrush(
             QtGui.QPalette.Disabled,
             QtGui.QPalette.AlternateBase,
@@ -2148,36 +2148,36 @@ class Engine(TankBundle):
             palette.color(QtGui.QPalette.Disabled, QtGui.QPalette.Base).lighter(250)
         )
 
-        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.WindowText, QtGui.QColor(200,200,200))
-        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Button, QtGui.QColor(75,75,75))
-        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.ButtonText, QtGui.QColor(200,200,200))
-        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Light, QtGui.QColor(97,97,97))
-        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Midlight, QtGui.QColor(59,59,59))
-        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Dark, QtGui.QColor(37,37,37))
-        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Mid, QtGui.QColor(45,45,45))
-        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Text, QtGui.QColor(200,200,200))
-        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.BrightText, QtGui.QColor(37,37,37))
-        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Base, QtGui.QColor(42,42,42))
-        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Window, QtGui.QColor(68,68,68))
-        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Shadow, QtGui.QColor(0,0,0))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.WindowText, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Button, QtGui.QColor(75, 75, 75))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.ButtonText, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Light, QtGui.QColor(97, 97, 97))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Midlight, QtGui.QColor(59, 59, 59))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Dark, QtGui.QColor(37, 37, 37))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Mid, QtGui.QColor(45, 45, 45))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Text, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.BrightText, QtGui.QColor(37, 37, 37))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Base, QtGui.QColor(42, 42, 42))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Window, QtGui.QColor(68, 68, 68))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Shadow, QtGui.QColor(0, 0, 0))
         palette.setBrush(
             QtGui.QPalette.Active,
             QtGui.QPalette.AlternateBase,
             palette.color(QtGui.QPalette.Active, QtGui.QPalette.Base).lighter(110)
         )
 
-        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.WindowText, QtGui.QColor(200,200,200))
-        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Button, QtGui.QColor(75,75,75))
-        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.ButtonText, QtGui.QColor(200,200,200))
-        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Light, QtGui.QColor(97,97,97))
-        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Midlight, QtGui.QColor(59,59,59))
-        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Dark, QtGui.QColor(37,37,37))
-        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Mid, QtGui.QColor(45,45,45))
-        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Text, QtGui.QColor(200,200,200))
-        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.BrightText, QtGui.QColor(37,37,37))
-        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Base, QtGui.QColor(42,42,42))
-        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Window, QtGui.QColor(68,68,68))
-        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Shadow, QtGui.QColor(0,0,0))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.WindowText, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Button, QtGui.QColor(75, 75, 75))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.ButtonText, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Light, QtGui.QColor(97, 97, 97))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Midlight, QtGui.QColor(59, 59, 59))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Dark, QtGui.QColor(37, 37, 37))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Mid, QtGui.QColor(45, 45, 45))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Text, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.BrightText, QtGui.QColor(37, 37, 37))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Base, QtGui.QColor(42, 42, 42))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Window, QtGui.QColor(68, 68, 68))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Shadow, QtGui.QColor(0, 0, 0))
         palette.setBrush(
             QtGui.QPalette.Inactive,
             QtGui.QPalette.AlternateBase,
