@@ -2115,7 +2115,7 @@ class Engine(TankBundle):
         at the application level, and then constructs and applies a custom palette
         that emulates Maya 2017's color scheme.
         """
-        from .qt import QtGui, QtCore
+        from .qt import QtGui
         app = QtGui.QApplication.instance()
 
         # Set the fusion style, which gives us a good base to build on. With
