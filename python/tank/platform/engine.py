@@ -2098,6 +2098,9 @@ class Engine(TankBundle):
         This will initialize the plastique style (for Qt4) or the fusion style
         (for Qt5), and set it up with a standard dark palette and supporting
         stylesheet.
+
+        `Qt4 setStyle documentation <http://doc.qt.io/archives/qt-4.8/qapplication.html#setStyle-2>`_
+        `Qt5 setStyle documentation <https://doc.qt.io/qt-5.10/qapplication.html#setStyle-1>`_
         
         Apps and UIs can then extend this further by using further css.
         
