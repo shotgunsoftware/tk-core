@@ -2105,9 +2105,15 @@ class Engine(TankBundle):
         has been instantiated.
         """
         if self.has_qt5:
+            self.log_debug("Applying Qt5-specific styling...")
             self.__initialize_dark_look_and_feel_qt5()
-        else:
+        elif self.has_qt4:
+            self.log_debug("Applying Qt4-specific styling...")
             self.__initialize_dark_look_and_feel_qt4()
+        else:
+            self.log_warning(
+                "Neither Qt4 or Qt5 is available. Toolkit styling will not be applied."
+            )
 
     def __initialize_dark_look_and_feel_qt5(self):
         """
