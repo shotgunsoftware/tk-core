@@ -53,7 +53,8 @@ REQUIRED_MANIFEST_PARAMETERS = ["base_configuration", "plugin_id"]
 # the folder where all items will be cached
 BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 
-# when we are baking a config, use these settings
+# when we are baking a config, use these settings if the name and the version
+# can't be retrieved from the descriptor itself.
 BAKED_BUNDLE_NAME = "tk-config-plugin"
 BAKED_BUNDLE_VERSION = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
@@ -61,16 +62,14 @@ BAKED_BUNDLE_VERSION = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 BUILD_GENERATION = 2
 
 
-def _bake_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data):
+def _bake_configuration(sg_connection, manifest_data):
     """
     Bake the given configuration by ensuring it is locally cached and by modifying
     the manifest_data.
 
     :param sg_connection: Shotgun connection
-    :param source_path: Root path of plugin source.
-    :param target_path: Build target path
-    :param bundle_cache_root: Bundle cache root
     :param manifest_data: Manifest data as a dictionary
+    :returns: The baked descriptor dictionary issued from configuration descriptor.
     """
     logger.info(
         "Baking your configuration definition into an immutable state. "
@@ -103,9 +102,12 @@ def _bake_configuration(sg_connection, source_path, target_path, bundle_cache_ro
         raise ValueError("Unable to get a local copy of %s" % cfg_descriptor)
     baked_descriptor = {
         "type": bootstrap_constants.BAKED_DESCRIPTOR_TYPE,
-        "path": local_path
+        "path": local_path,
+        "system_name": cfg_descriptor.system_name,
+        "version": cfg_descriptor.version
     }
     manifest_data["base_configuration"] = baked_descriptor
+    return baked_descriptor
 
 def _process_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data):
     """
@@ -161,11 +163,13 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
 
         logger.info("Will bake an immutable config into the plugin from '%s'" % full_baked_path)
 
+        baked_name = base_config_uri_dict.get("system_name") or BAKED_BUNDLE_NAME
+        baked_version = base_config_uri_dict.get("version") or BAKED_BUNDLE_VERSION
         install_path = os.path.join(
             bundle_cache_root,
             bootstrap_constants.BAKED_DESCRIPTOR_FOLDER_NAME,
-            BAKED_BUNDLE_NAME,
-            BAKED_BUNDLE_VERSION
+            baked_name,
+            baked_version
         )
 
         cfg_descriptor = create_descriptor(
@@ -185,8 +189,8 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
         base_config_uri_str = descriptor_dict_to_uri(
             {
                 "type": bootstrap_constants.BAKED_DESCRIPTOR_TYPE,
-                "name": BAKED_BUNDLE_NAME,
-                "version": BAKED_BUNDLE_VERSION
+                "name": baked_name,
+                "version": baked_version
             }
         )
         # Workaround for tk-core bootstrap needing a shotgun.yml file: when swapping
@@ -429,6 +433,21 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     if not os.path.exists(source_path):
         raise TankError("Source path '%s' cannot be found on disk!" % source_path)
 
+    # check manifest
+    manifest_data = _validate_manifest(source_path)
+
+    if do_bake:
+        baked_descriptor = _bake_configuration(
+            sg_connection,
+            manifest_data,
+        )
+        # When baking we control the output path by adding a folder based on the
+        # configuration descriptor and version.
+        target_path = os.path.join(target_path, "%s-%s" % (
+            baked_descriptor["system_name"],
+            baked_descriptor["version"]
+        ))
+
     # check that target path doesn't exist
     if os.path.exists(target_path):
         logger.info("The folder '%s' already exists on disk. Removing it" % target_path)
@@ -436,9 +455,6 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
 
     # try to create target path
     filesystem.ensure_folder_exists(target_path)
-
-    # check manifest
-    manifest_data = _validate_manifest(source_path)
 
     # copy all plugin data across
     # skip info.yml, this is baked into the manifest python code
@@ -450,14 +466,6 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     bundle_cache_root = os.path.join(target_path, BUNDLE_CACHE_ROOT_FOLDER_NAME)
     filesystem.ensure_folder_exists(bundle_cache_root)
 
-    if do_bake:
-        _bake_configuration(
-            sg_connection,
-            source_path,
-            target_path,
-            bundle_cache_root,
-            manifest_data,
-        )
     # resolve config descriptor
     # the config_uri_str returned by the method contains the fully resolved
     # uri to use at runtime - in the case of baked descriptors, the config_uri_str
