@@ -761,30 +761,33 @@ class PipelineConfiguration(object):
     def _preprocess_descriptor(self, descriptor_dict):
         """
         Preprocess descriptor dictionary to resolve config-specific
-        constants and directives such as {PIPELINE_CONFIG}.
+        constants and directives such as {PIPELINE_CONFIG} and
+        {CONFIG_ROOT}
 
         :param descriptor_dict: Descriptor dict to operate on
         :returns: Descriptor dict with any directives resolved.
         """
 
-        if descriptor_dict.get("type") == "dev":
-            # several different path parameters are supported by the dev descriptor.
-            # scan through all path keys and look for pipeline config token
+        # Not a path or dev descriptor, early out.
+        if descriptor_dict.get("type") not in ["dev", "path"]:
+            return descriptor_dict
 
-            # platform specific resolve
-            platform_key = ShotgunPath.get_shotgun_storage_key()
-            if platform_key in descriptor_dict:
-                descriptor_dict[platform_key] = descriptor_dict[platform_key].replace(
-                    constants.PIPELINE_CONFIG_DEV_DESCRIPTOR_TOKEN,
-                    self.get_path()
-                )
+        # several different path parameters are supported by path based descriptors.
 
-            # local path resolve
-            if "path" in descriptor_dict:
-                descriptor_dict["path"] = descriptor_dict["path"].replace(
-                    constants.PIPELINE_CONFIG_DEV_DESCRIPTOR_TOKEN,
-                    self.get_path()
-                )
+        substitutions = {
+            constants.PIPELINE_CONFIG_DESCRIPTOR_TOKEN: self.get_path(),
+            constants.CONFIG_FOLDER_DESCRIPTOR_TOKEN: self.get_config_location()
+        }
+
+        # For each token, check if the platform or the generic path key are specified
+        # and replace the token if found.
+        for token, substitution in substitutions.iteritems():
+            for key in ["path", ShotgunPath.get_shotgun_storage_key()]:
+                if key in descriptor_dict:
+                    descriptor_dict[key] = descriptor_dict[key].replace(
+                        token,
+                        substitution
+                    )
 
         return descriptor_dict
 
