@@ -299,8 +299,6 @@ class EntityExpression(object):
         # convert Shotgun values to string values
         str_data = {}
 
-        print field_defs
-        
         # get the Shotgun id from the Shotgun entity dict
         sg_id = values.get("id")
         
