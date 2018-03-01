@@ -231,17 +231,19 @@ class TestConfigLocations(TankTestBase):
         """
         self.setup_fixtures(parameters={"copy_config": True})
 
-        # For both path based descriptors
-        for desc_type in ["path", "dev"]:
-
-            for desc_str in [
-                "sgtk:descriptor:%s?path={PIPELINE_CONFIG}/config/bundles/test_app" % desc_type,
-                "sgtk:descriptor:%s?path={CONFIG_FOLDER}/bundles/test_app" % desc_type
-            ]:
-                desc = self.tk.pipeline_configuration.get_app_descriptor(desc_str)
-                self.assertEqual(
-                    desc.get_path(), os.path.join(self.pipeline_config_root, "config", "bundles", "test_app")
-                )
+        # For path and the platform specific path token...
+        for path_key in ["path", ShotgunPath.get_shotgun_storage_key()]:
+            # For both path based descriptors..
+            for desc_type in ["path", "dev"]:
+                for desc_str in [
+                    "sgtk:descriptor:%s?%s={PIPELINE_CONFIG}/config/bundles/test_app" % (desc_type, path_key),
+                    "sgtk:descriptor:%s?%s={CONFIG_FOLDER}/bundles/test_app" % (desc_type, path_key)
+                ]:
+                    desc = self.tk.pipeline_configuration.get_app_descriptor(desc_str)
+                    # Ensure the bundle is resolved inside the installed configuration.
+                    self.assertEqual(
+                        desc.get_path(), os.path.join(self.pipeline_config_root, "config", "bundles", "test_app")
+                    )
 
     def test_cached_configuration(self):
         """
@@ -249,13 +251,16 @@ class TestConfigLocations(TankTestBase):
         """
         self.setup_fixtures()
 
-        # For both path based descriptors
-        for desc_type in ["path", "dev"]:
-            desc_str = "sgtk:descriptor:%s?path={CONFIG_FOLDER}/bundles/test_app" % desc_type
-            desc = self.tk.pipeline_configuration.get_app_descriptor(desc_str)
-            self.assertEqual(
-                desc.get_path(), os.path.join(self.fixtures_root, "config", "bundles", "test_app")
-            )
+        # For path and the platform specific path token...
+        for path_key in ["path", ShotgunPath.get_shotgun_storage_key()]:
+            # For both path based descriptors...
+            for desc_type in ["path", "dev"]:
+                desc_str = "sgtk:descriptor:%s?%s={CONFIG_FOLDER}/bundles/test_app" % (desc_type, path_key)
+                desc = self.tk.pipeline_configuration.get_app_descriptor(desc_str)
+                # Ensure the bundle is resolved inside the source configuration.
+                self.assertEqual(
+                    desc.get_path(), os.path.join(self.fixtures_root, "config", "bundles", "test_app")
+                )
 
     def test_classic_config_with_studio_core(self):
         """
