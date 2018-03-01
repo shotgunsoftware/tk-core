@@ -87,7 +87,11 @@ class Entity(Folder):
         
         self._tk = tk
         self._entity_type = entity_type
-        self._entity_expression = shotgun_entity.EntityExpression(self._tk, self._entity_type, field_name_expression)
+        self._entity_expression = shotgun_entity.EntityExpression(
+            self._tk,
+            self._entity_type,
+            field_name_expression
+        )
         self._filters = filters
         self._create_with_parent = create_with_parent    
 
@@ -190,14 +194,16 @@ class Entity(Folder):
             # we have a constraint!
             entity_id = sg_data[my_sg_data_key]["id"]
             # add the id constraint to the filters
-            resolved_filters["conditions"].append({ "path": "id", "relation": "is", "values": [entity_id] })
+            resolved_filters["conditions"].append(
+                {"path": "id", "relation": "is", "values": [entity_id]}
+            )
             # get data - can be None depending on external filters
 
         # figure out which fields to retrieve
         fields = self._entity_expression.get_shotgun_fields()
         
         # add any shotgun link fields used in the expression
-        fields.update( self._entity_expression.get_shotgun_link_fields() )
+        fields.update(self._entity_expression.get_shotgun_link_fields())
         
         # always retrieve the name field for the entity
         fields.add(shotgun_entity.get_sg_entity_name_field(self._entity_type))
