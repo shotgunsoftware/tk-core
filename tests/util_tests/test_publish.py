@@ -413,15 +413,15 @@ class TestShotgunRegisterPublish(TankTestBase):
 
 class TestCalcPathCache(TankTestBase):
     
-    @patch("tank.pipelineconfig.PipelineConfiguration.get_data_roots")
-    def test_case_difference(self, get_data_roots):
+    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    def test_case_difference(self, get_local_storage_roots):
         """
         Case that root case is different between input path and that in roots file.
         Bug Ticket #18116
         """
-        get_data_roots.return_value = {"primary" : self.project_root}
+        get_local_storage_roots.return_value = {"primary": self.tank_temp}
         
-        relative_path = os.path.join("Some","Path")
+        relative_path = os.path.join("Some", "Path")
         wrong_case_root = self.project_root.swapcase()
         expected = os.path.join(os.path.basename(wrong_case_root), relative_path).replace(os.sep, "/")
 
