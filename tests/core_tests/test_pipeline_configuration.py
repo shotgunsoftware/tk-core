@@ -144,7 +144,7 @@ class TestPipelineConfig(TankTestBase):
         """
         Makes sure we are using the pipeline configuration form the fixture
         """
-        self.setup_fixtures(name="fixture_tests")
+        self.setup_fixtures(name="fixture_tests", parameters={"copy_config": True})
         self.assertEqual(
             self.tk.pipeline_configuration.get_shotgun_id(),
             42
