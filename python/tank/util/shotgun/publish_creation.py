@@ -684,28 +684,52 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
 def _calc_path_cache(tk, path):
     """
     Calculates root path name and relative path (including project directory).
-    returns (root_name, path_cache)
+    returns (root_name, path_cache). The relative path is always using forward
+    slashes.
 
     If the location cannot be computed, because the path does not belong
     to a valid root, (None, None) is returned.
+
+    Examples:
+
+        - Primary Root name: X:\mnt\projects
+        - Project name: project_b
+        - Path: X:\mnt\projects\project_b\path\to\file.ma
+        - Returns: (Primary, 'project_b/path/to/file.ma')
+
+        - Primary Root name: /mnt/projects
+        - Project name: client_a/project_b
+        - Path: /mnt/projects/client_a/project_b/path/to/file.ma
+        - Returns: (Primary, 'client_a/project_b/path/to/file.ma')
+
+    :param tk: Toolkit API instance
+    :param str path: Path to normalize.
+    :returns: (root_name, path_cache)
     """
-    # paths may be c:/foo in Maya on Windows - don't rely on os.sep here!
+    # Note: paths may be c:/foo in Maya on Windows - don't rely on os.sep here!
 
     # normalize input path first c:\foo -> c:/foo
     norm_path = path.replace(os.sep, "/")
 
-    # get roots - don't assume data is returned on any particular form
-    # may return c:\foo, c:/foo or /foo - assume that we need to normalize this path
-    roots = tk.pipeline_configuration.get_data_roots()
+    # get roots - dict keyed by storage name
+    storage_roots = tk.pipeline_configuration.get_local_storage_roots()
 
-    for root_name, root_path in roots.items():
+    # get project name, typically a a-z string but can contain
+    # forward slashes, e.g. 'my_project', or 'client_a/proj_b'
+    project_disk_name = tk.pipeline_configuration.get_project_disk_name()
+
+    for root_name, root_path in storage_roots.items():
         norm_root_path = root_path.replace(os.sep, "/")
 
-        if norm_path.lower().startswith(norm_root_path.lower()):
-            norm_parent_dir = os.path.dirname(norm_root_path)
+        # append the project name to the root path
+        proj_path = "%s/%s" % (norm_root_path, project_disk_name)
+
+        if norm_path.lower().startswith(proj_path.lower()):
+            # our path matches this storage!
+
             # Remove parent dir plus "/" - be careful to handle the case where
             # the parent dir ends with a '/', e.g. 'T:/' for a Windows drive
-            path_cache = norm_path[len(norm_parent_dir):].lstrip("/")
+            path_cache = norm_path[len(norm_root_path):].lstrip("/")
             log.debug(
                 "Split up path '%s' into storage %s and relative path '%s'" % (path, root_name, path_cache)
             )
@@ -714,7 +738,6 @@ def _calc_path_cache(tk, path):
     # not found, return None values
     log.debug("Unable to split path '%s' into a storage and a relative path." % path)
     return None, None
-
 
 
 def group_by_storage(tk, list_of_paths):
