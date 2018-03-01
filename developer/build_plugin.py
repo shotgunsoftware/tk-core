@@ -53,11 +53,6 @@ REQUIRED_MANIFEST_PARAMETERS = ["base_configuration", "plugin_id"]
 # the folder where all items will be cached
 BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 
-# when we are baking a config, use these settings if the name and the version
-# can't be retrieved from the descriptor itself.
-BAKED_BUNDLE_NAME = "tk-config-plugin"
-BAKED_BUNDLE_VERSION = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-
 # generation of the build syntax
 BUILD_GENERATION = 2
 
@@ -103,7 +98,7 @@ def _bake_configuration(sg_connection, manifest_data):
     baked_descriptor = {
         "type": bootstrap_constants.BAKED_DESCRIPTOR_TYPE,
         "path": local_path,
-        "system_name": cfg_descriptor.system_name,
+        "name": cfg_descriptor.system_name,
         "version": cfg_descriptor.version
     }
     manifest_data["base_configuration"] = baked_descriptor
@@ -163,8 +158,17 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
 
         logger.info("Will bake an immutable config into the plugin from '%s'" % full_baked_path)
 
-        baked_name = base_config_uri_dict.get("system_name") or BAKED_BUNDLE_NAME
-        baked_version = base_config_uri_dict.get("version") or BAKED_BUNDLE_VERSION
+        # A baked config descriptor does not require a name nor a version, so
+        # if these keys are not available, use the current date time for the
+        # version and an arbitrary name for the config. Please note that this
+        # only happens if the baked descriptor was set in the original config.
+        # When baking a plugin with the --bake option, which is the recommended
+        # workflow, these values are automatically set.
+        baked_name = base_config_uri_dict.get("name") or "tk-config-plugin"
+        baked_version = (
+            base_config_uri_dict.get("version") or
+            datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        )
         install_path = os.path.join(
             bundle_cache_root,
             bootstrap_constants.BAKED_DESCRIPTOR_FOLDER_NAME,
@@ -444,7 +448,7 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
         # When baking we control the output path by adding a folder based on the
         # configuration descriptor and version.
         target_path = os.path.join(target_path, "%s-%s" % (
-            baked_descriptor["system_name"],
+            baked_descriptor["name"],
             baked_descriptor["version"]
         ))
 
