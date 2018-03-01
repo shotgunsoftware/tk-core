@@ -54,7 +54,7 @@ class TestEnvironment(TankTestBase):
     def test_basic_properties(self):
         self.assertEqual(self.env.name, "test")
         # disabled engine should be skipped
-        self.assertEqual(self.env.get_engines(), ["test_included_engine", "test_engine"])
+        self.assertEqual(self.env.get_engines(), ["test_included_engine", "incomplete_engine", "test_engine"])
         # disabled app should be skipped
         self.assertEqual(self.env.get_apps("test_engine"), ["test_app"])
 

@@ -4,6 +4,9 @@ engines:
       test_app:
         location: {path: TEST_APP_LOCATION, type: dev}
     location: {disabled: true, path: DISABLED_ENGINE_LOCATION, type: dev}
+  incomplete_engine:
+    apps: {}
+    location: '@incomplete_engine.location'
   new_engine:
     apps: {}
     location: {}
