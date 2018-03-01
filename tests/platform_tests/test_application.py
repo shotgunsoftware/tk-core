@@ -32,9 +32,9 @@ class TestApplication(TankTestBase):
     Base class for Application tests
     """
 
-    def setUp(self):
+    def setUp(self, parameters=None):
         super(TestApplication, self).setUp()
-        self.setup_fixtures()
+        self.setup_fixtures(parameters=parameters)
         
         # setup shot
         seq = {"type":"Sequence", "code": "seq_name", "id":3 }
@@ -49,12 +49,6 @@ class TestApplication(TankTestBase):
         self.shot_step_path = os.path.join(shot_path, "step_name")
         self.add_production_path(self.shot_step_path, step)
 
-        self.test_resource = os.path.join(self.pipeline_config_root, "config", "foo", "bar.png")
-        os.makedirs(os.path.dirname(self.test_resource))
-        fh = open(self.test_resource, "wt")
-        fh.write("test")
-        fh.close()
-        
         context = self.tk.context_from_path(self.shot_step_path)
         self.engine = tank.platform.start_engine("test_engine", self.tk, context)
 
@@ -64,7 +58,6 @@ class TestApplication(TankTestBase):
         cur_engine = tank.platform.current_engine()
         if cur_engine:
             cur_engine.destroy()
-        os.remove(self.test_resource)
 
         # important to call base class so it can clean up memory
         super(TestApplication, self).tearDown()
@@ -145,7 +138,7 @@ class TestGetApplication(TestApplication):
         """
         Tests a get_application valid path
         """
-        app_path = os.path.join(self.project_config, "bundles", "test_app")
+        app_path = os.path.join(self.fixtures_root, "config", "bundles", "test_app")
         # make a dev location and create descriptor
         app_desc = self.tk.pipeline_configuration.get_app_descriptor({"type": "dev", "path": app_path})
         result = application.get_application(self.engine, app_path, app_desc, {}, "instance_name", None)
@@ -158,9 +151,20 @@ class TestGetSetting(TestApplication):
     """
 
     def setUp(self):
-        super(TestGetSetting, self).setUp()
+        # Ask to copy the config because we'll be writing a file into it.
+        super(TestGetSetting, self).setUp({"copy_config": True})
+
+        self.test_resource = os.path.join(self.pipeline_config_root, "config", "foo", "bar.png")
+        os.makedirs(os.path.dirname(self.test_resource))
+        with open(self.test_resource, "wt") as fh:
+            fh.write("test")
+
         self.app = self.engine.apps["test_app"]
         
+    def tearDown(self):
+        os.remove(self.test_resource)
+        super(TestGetSetting, self).tearDown()
+
     def test_get_setting(self):
         """
         Tests application.get_setting()
@@ -392,7 +396,7 @@ class TestExecuteHook(TestApplication):
         disk_location = app.execute_hook_method("test_hook_std", "test_disk_location")
         self.assertEquals(
             disk_location,
-            os.path.join(self.pipeline_config_root, "config", "hooks", "toolkitty.png")
+            os.path.join(self.fixtures_root, "config", "hooks", "toolkitty.png")
         )
 
     def test_inheritance_disk_location(self):
@@ -410,7 +414,7 @@ class TestExecuteHook(TestApplication):
         self.assertEquals(
             disk_location_1,
             os.path.join(
-                self.pipeline_config_root,
+                self.fixtures_root,
                 "config",
                 "hooks",
                 "toolkitty.png"
@@ -419,7 +423,7 @@ class TestExecuteHook(TestApplication):
         self.assertEquals(
             disk_location_2,
             os.path.join(
-                self.pipeline_config_root,
+                self.fixtures_root,
                 "config",
                 "hooks",
                 "more_hooks",
@@ -432,7 +436,7 @@ class TestExecuteHook(TestApplication):
         self.assertEquals(
             hook.disk_location,
             os.path.join(
-                self.pipeline_config_root,
+                self.fixtures_root,
                 "config",
                 "hooks",
                 "more_hooks"

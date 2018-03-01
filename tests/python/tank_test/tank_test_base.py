@@ -603,7 +603,7 @@ class TankTestBase(unittest.TestCase):
             core_source = os.path.join(config_root, "core")
 
         # Check if the tests wants the files to be copied.
-        copy_config = parameters.get("copy_config", True)
+        copy_config = parameters.get("copy_config", False)
 
         # If the config is not simple of the tests wants the files to be copied
         if not simple_config or copy_config:
