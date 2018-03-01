@@ -621,6 +621,9 @@ class TankTestBase(unittest.TestCase):
             with open(pc_yml_location, "r") as fh:
                 pc_data = yaml.safe_load(fh)
             pc_data["source_descriptor"] = {"path": config_root, "type": "path"}
+
+            # Update where the config root variable points to.
+            self.project_config = config_root
             with open(pc_yml_location, "w") as fh:
                 fh.write(yaml.dump(pc_data))
 

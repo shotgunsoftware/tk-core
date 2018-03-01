@@ -16,6 +16,10 @@ engines:
         apps: 
         location: '@engine.location'
 
+    incomplete_engine:
+        apps: 
+        location: '@incomplete_engine.location'
+
     test_engine:
         location: {'type': 'dev', 'path': '{CONFIG_FOLDER}/bundles/test_engine'}
         debug_logging: false
