@@ -590,22 +590,39 @@ class TankTestBase(unittest.TestCase):
 
         # first figure out core location
         if "core" in parameters:
+            # This config is not simple, as it is piece from a env and hooks folder from one
+            # location and the core from another.
+            simple_config = False
             # convert slashes to be windows friendly
             core_path_suffix = parameters["core"].replace("/", os.sep)
             core_source = os.path.join(config_root, core_path_suffix)
         else:
+            # This config is simple, as it is based on a config that is layed out into a single folder.
+            simple_config = True
             # use the default core fixture
             core_source = os.path.join(config_root, "core")
 
-        # copy core over to target
-        core_target = os.path.join(self.project_config, "core")
-        self._copy_folder(core_source, core_target)
-        # now copy the rest of the config fixtures
-        for config_folder in ["env", "hooks", "bundles"]:
-            config_source = os.path.join(config_root, config_folder)
-            if os.path.exists(config_source):
-                config_target = os.path.join(self.project_config, config_folder)
-                self._copy_folder(config_source, config_target)
+        # Check if the tests wants the files to be copied.
+        copy_config = parameters.get("copy_config", True)
+
+        # If the config is not simple of the tests wants the files to be copied
+        if not simple_config or copy_config:
+            # copy core over to target
+            core_target = os.path.join(self.project_config, "core")
+            self._copy_folder(core_source, core_target)
+            # now copy the rest of the config fixtures
+            for config_folder in ["env", "hooks", "bundles"]:
+                config_source = os.path.join(config_root, config_folder)
+                if os.path.exists(config_source):
+                    config_target = os.path.join(self.project_config, config_folder)
+                    self._copy_folder(config_source, config_target)
+        else:
+            pc_yml_location = os.path.join(self.pipeline_config_root, "config", "core", "pipeline_configuration.yml")
+            with open(pc_yml_location, "r") as fh:
+                pc_data = yaml.safe_load(fh)
+            pc_data["source_descriptor"] = {"path": config_root, "type": "path"}
+            with open(pc_yml_location, "w") as fh:
+                fh.write(yaml.dump(pc_data))
 
         # need to reload the pipeline config to respect the config data from
         # the fixtures
