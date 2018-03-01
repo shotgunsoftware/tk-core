@@ -235,6 +235,8 @@ class TestConfigLocations(TankTestBase):
         for path_key in ["path", ShotgunPath.get_shotgun_storage_key()]:
             # For both path based descriptors..
             for desc_type in ["path", "dev"]:
+                # For both tokens that can point to the bunldes that have been copied inside the
+                # pipeline configuration...
                 for desc_str in [
                     "sgtk:descriptor:%s?%s={PIPELINE_CONFIG}/config/bundles/test_app" % (desc_type, path_key),
                     "sgtk:descriptor:%s?%s={CONFIG_FOLDER}/bundles/test_app" % (desc_type, path_key)
