@@ -572,6 +572,13 @@ class TankTestBase(unittest.TestCase):
                                                             do post processing of your fixtures or config
                                                             and don't want to load templates into the tk
                                                             instance just yet.
+                           - 'copy_config': True - Tell the fixtures loader to simply put a source_descriptor
+                                                   inside pipeline_confuguration.yml instead of copying
+                                                   the fixture into the test folder. By default, the
+                                                   configuration will be loaded from the fixture folder.
+                                                   However, if a custom 'core' parameter is used, then
+                                                   the setting is ignored and the configuration folder
+                                                   is copied as it needs to be pieced from multiple sources.
         """
         # setup_multi_root_fixtures invokes setup_fixtures, which inflates our timing statistics.
         # So we'll have the actual implementation of setup_fixtures in a private method

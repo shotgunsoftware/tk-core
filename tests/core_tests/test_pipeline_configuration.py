@@ -225,6 +225,38 @@ class TestConfigLocations(TankTestBase):
                     desc.get_path(), os.path.join(self.fixtures_root, "config", "bundles", "test_app")
                 )
 
+    def test_installed_configuration(self):
+        """
+        Tests an installed configuration's resolving of the CONFIG_FOLDER and PIPELINE_CONFIG
+        """
+        self.setup_fixtures(parameters={"copy_config": True})
+
+        # For both path based descriptors
+        for desc_type in ["path", "dev"]:
+
+            for desc_str in [
+                "sgtk:descriptor:%s?path={PIPELINE_CONFIG}/config/bundles/test_app" % desc_type,
+                "sgtk:descriptor:%s?path={CONFIG_FOLDER}/bundles/test_app" % desc_type
+            ]:
+                desc = self.tk.pipeline_configuration.get_app_descriptor(desc_str)
+                self.assertEqual(
+                    desc.get_path(), os.path.join(self.pipeline_config_root, "config", "bundles", "test_app")
+                )
+
+    def test_cached_configuration(self):
+        """
+        Tests a cached configuration's resolving of the CONFIG_FOLDER
+        """
+        self.setup_fixtures()
+
+        # For both path based descriptors
+        for desc_type in ["path", "dev"]:
+            desc_str = "sgtk:descriptor:%s?path={CONFIG_FOLDER}/bundles/test_app" % desc_type
+            desc = self.tk.pipeline_configuration.get_app_descriptor(desc_str)
+            self.assertEqual(
+                desc.get_path(), os.path.join(self.fixtures_root, "config", "bundles", "test_app")
+            )
+
     def test_classic_config_with_studio_core(self):
         """
         Tests the paths for a classic configuration with a studio core.
