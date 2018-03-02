@@ -11,23 +11,12 @@
 from __future__ import with_statement
 import os
 import sys
-import datetime
-import threading
-import urlparse
-import unittest2 as unittest
-import logging
 
 from mock import patch, call
 
 import tank
 from tank import context, errors
 from tank_test.tank_test_base import TankTestBase, setUpModule
-from tank.template import TemplatePath
-from tank.templatekey import SequenceKey
-from tank.authentication.user import ShotgunUser
-from tank.authentication.user_impl import SessionUser
-from tank.descriptor import Descriptor
-from tank.descriptor.io_descriptor.appstore import IODescriptorAppStore
 
 
 class TestShotgunRegisterPublish(TankTestBase):
@@ -412,7 +401,6 @@ class TestShotgunRegisterPublish(TankTestBase):
 
 
 class TestCalcPathCache(TankTestBase):
-    
     @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_case_difference(self, get_local_storage_roots):
         """
@@ -420,7 +408,7 @@ class TestCalcPathCache(TankTestBase):
         Bug Ticket #18116
         """
         get_local_storage_roots.return_value = {"primary": self.tank_temp}
-        
+
         relative_path = os.path.join("Some", "Path")
         wrong_case_root = self.project_root.swapcase()
         expected = os.path.join(os.path.basename(wrong_case_root), relative_path).replace(os.sep, "/")
@@ -430,4 +418,28 @@ class TestCalcPathCache(TankTestBase):
         self.assertEqual("primary", root_name)
         self.assertEqual(expected, path_cache)
 
+
+class TestCalcPathCacheProjectWithSlash(TankTestBase):
+
+    def setUp(self):
+        """Sets up entities in mocked shotgun database and creates Mock objects
+        to pass in as callbacks to Schema.create_folders. The mock objects are
+        then queried to see what paths the code attempted to create.
+        """
+        super(TestCalcPathCacheProjectWithSlash, self).setUp({'project_tank_name': 'foo/bar'})
+
+    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    def test_multi_project_root(self, get_local_storage_roots):
+        """
+        Testing path cache calculations for project names with slashes
+        """
+        get_local_storage_roots.return_value = {"primary": self.tank_temp}
+
+        relative_path = os.path.join("Some", "Path")
+        expected = os.path.join("foo", "bar", relative_path).replace(os.sep, "/")
+        input_path = os.path.join(self.project_root, relative_path)
+
+        root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(self.tk, input_path)
+        self.assertEqual("primary", root_name)
+        self.assertEqual(expected, path_cache)
 
