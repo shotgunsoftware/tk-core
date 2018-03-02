@@ -572,13 +572,14 @@ class TankTestBase(unittest.TestCase):
                                                             do post processing of your fixtures or config
                                                             and don't want to load templates into the tk
                                                             instance just yet.
-                           - 'copy_config': True - Tell the fixtures loader to simply put a source_descriptor
-                                                   inside pipeline_confuguration.yml instead of copying
-                                                   the fixture into the test folder. By default, the
-                                                   configuration will be loaded from the fixture folder.
-                                                   However, if a custom 'core' parameter is used, then
-                                                   the setting is ignored and the configuration folder
-                                                   is copied as it needs to be pieced from multiple sources.
+
+                           - 'installed_config': False - Tells the fixtures loader to create an installed
+                                                         configuration instead of a cached one from
+                                                         the configuration passed in. By default,
+                                                         a cached configuration is created. Note that
+                                                         if a custom core is passed in, an installed
+                                                         configuration is always set up, as the configuration
+                                                         will be pieced of different locations on disk.
         """
         # setup_multi_root_fixtures invokes setup_fixtures, which inflates our timing statistics.
         # So we'll have the actual implementation of setup_fixtures in a private method
@@ -610,10 +611,10 @@ class TankTestBase(unittest.TestCase):
             core_source = os.path.join(config_root, "core")
 
         # Check if the tests wants the files to be copied.
-        copy_config = parameters.get("copy_config", False)
+        installed_config = parameters.get("installed_config", False)
 
         # If the config is not simple of the tests wants the files to be copied
-        if not simple_config or copy_config:
+        if not simple_config or installed_config:
             # copy core over to target
             core_target = os.path.join(self.project_config, "core")
             self._copy_folder(core_source, core_target)
@@ -624,6 +625,7 @@ class TankTestBase(unittest.TestCase):
                     config_target = os.path.join(self.project_config, config_folder)
                     self._copy_folder(config_source, config_target)
         else:
+            # We're going to be using a cached configuration, so set up the source_descriptor.
             pc_yml_location = os.path.join(self.pipeline_config_root, "config", "core", "pipeline_configuration.yml")
             with open(pc_yml_location, "r") as fh:
                 pc_data = yaml.safe_load(fh)

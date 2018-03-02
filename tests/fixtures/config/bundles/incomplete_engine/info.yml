@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Shotgun Software Inc.
+# Copyright (c) 2018 Shotgun Software Inc.
 # 
 # CONFIDENTIAL AND PROPRIETARY
 # 
@@ -8,15 +8,5 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-# Metadata defining the behaviour and requirements for this engine
-
-# expected fields in the configuration file for this engine
 configuration:
-    debug_logging: 
-        type: bool
-        default_value: false
-        description: Controls whether debug messages should be emitted to the logger 
-
-
-# the Shotgun fields that this engine needs in order to operate correctly
 requires_shotgun_fields:

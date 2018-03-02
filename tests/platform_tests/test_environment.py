@@ -95,7 +95,7 @@ class TestDumpEnvironment(TankTestBase):
     def setUp(self):
         super(TestDumpEnvironment, self).setUp()
         # This test will write to the configuration folder, so copy it.
-        self.setup_fixtures(parameters={"copy_config": True})
+        self.setup_fixtures(parameters={"installed_config": True})
 
         # create env object
         self.env = self.tk.pipeline_configuration.get_environment("test_dump", writable=True)
@@ -195,7 +195,7 @@ class TestUpdateEnvironment(TankTestBase):
     def setUp(self):
         super(TestUpdateEnvironment, self).setUp()
         # The following tests are going to update the configuration.
-        self.setup_fixtures(parameters={"copy_config": True})
+        self.setup_fixtures(parameters={"installed_config": True})
 
         self.test_env = "test"
         self.test_engine = "test_engine"
@@ -407,7 +407,7 @@ class TestRuamelParser(TankTestBase):
 
     def setUp(self):
         super(TestRuamelParser, self).setUp()
-        self.setup_fixtures(parameters={"copy_config": True})
+        self.setup_fixtures(parameters={"installed_config": True})
 
     def test_yaml(self):
 
@@ -446,7 +446,7 @@ class TestPyYamlParser(TankTestBase):
 
     def setUp(self):
         super(TestPyYamlParser, self).setUp()
-        self.setup_fixtures(parameters={"copy_config": True})
+        self.setup_fixtures(parameters={"installed_config": True})
 
     def test_yaml(self):
 

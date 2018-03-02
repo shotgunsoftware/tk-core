@@ -32,9 +32,9 @@ class TestApplication(TankTestBase):
     Base class for Application tests
     """
 
-    def setUp(self, parameters=None):
+    def setUp(self):
         super(TestApplication, self).setUp()
-        self.setup_fixtures(parameters=parameters)
+        self.setup_fixtures()
         
         # setup shot
         seq = {"type":"Sequence", "code": "seq_name", "id":3 }
@@ -151,19 +151,8 @@ class TestGetSetting(TestApplication):
     """
 
     def setUp(self):
-        # Ask to copy the config because we'll be writing a file into it.
-        super(TestGetSetting, self).setUp({"copy_config": True})
-
-        self.test_resource = os.path.join(self.pipeline_config_root, "config", "foo", "bar.png")
-        os.makedirs(os.path.dirname(self.test_resource))
-        with open(self.test_resource, "wt") as fh:
-            fh.write("test")
-
+        super(TestGetSetting, self).setUp()
         self.app = self.engine.apps["test_app"]
-        
-    def tearDown(self):
-        os.remove(self.test_resource)
-        super(TestGetSetting, self).tearDown()
 
     def test_get_setting(self):
         """
@@ -176,9 +165,12 @@ class TestGetSetting(TestApplication):
 
         # Also ensure that we can define a template via core hook.
         self.assertEqual("12345", self.app.get_setting("test_template_hook"))
-        
+
         # test resource
-        self.assertEqual(self.test_resource, self.app.get_setting("test_icon"))
+        self.assertEqual(
+            os.path.join(self.project_config, "foo", "bar.png"),
+            self.app.get_setting("test_icon")
+        )
 
         # Test a simple list
         test_list = self.app.get_setting("test_simple_list")

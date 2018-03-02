@@ -24,7 +24,9 @@ class TestGetProjectRoots(TankTestBase):
     
     def setUp(self):
         super(TestGetProjectRoots, self).setUp()
-        self.setup_fixtures(parameters={"copy_config": True})
+
+        # Tests are updating the roots.yml file, so we'll turn this into an installed configuration.
+        self.setup_fixtures(parameters={"installed_config": True})
         self.root_file_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")
 
         # TODO make os specific paths

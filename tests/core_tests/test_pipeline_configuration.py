@@ -144,7 +144,9 @@ class TestPipelineConfig(TankTestBase):
         """
         Makes sure we are using the pipeline configuration form the fixture
         """
-        self.setup_fixtures(name="fixture_tests", parameters={"copy_config": True})
+        # The fixture contains a pipeline_configuration.yml file that needs to be copied into the
+        # pipeline_configuration_root, so we'll copy the configuration into it.
+        self.setup_fixtures(name="fixture_tests", parameters={"installed_config": True})
         self.assertEqual(
             self.tk.pipeline_configuration.get_shotgun_id(),
             42
@@ -225,11 +227,10 @@ class TestConfigLocations(TankTestBase):
                     desc.get_path(), os.path.join(self.fixtures_root, "config", "bundles", "test_app")
                 )
 
-    def test_installed_configuration(self):
         """
         Tests an installed configuration's resolving of the CONFIG_FOLDER and PIPELINE_CONFIG
         """
-        self.setup_fixtures(parameters={"copy_config": True})
+        self.setup_fixtures(parameters={"installed_config": True})
 
         # For path and the platform specific path token...
         for path_key in ["path", ShotgunPath.get_shotgun_storage_key()]:
@@ -247,7 +248,7 @@ class TestConfigLocations(TankTestBase):
                         desc.get_path(), os.path.join(self.pipeline_config_root, "config", "bundles", "test_app")
                     )
 
-    def test_cached_configuration(self):
+    def test_token_resolution_with_cached_configuration(self):
         """
         Tests a cached configuration's resolving of the CONFIG_FOLDER
         """
