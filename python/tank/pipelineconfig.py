@@ -762,7 +762,7 @@ class PipelineConfiguration(object):
         """
         Preprocess descriptor dictionary to resolve config-specific
         constants and directives such as {PIPELINE_CONFIG} and
-        {CONFIG_ROOT}
+        {CONFIG_FOLDER}
 
         :param descriptor_dict: Descriptor dict to operate on
         :returns: Descriptor dict with any directives resolved.
