@@ -273,9 +273,9 @@ class EntityExpression(object):
             
             # try to make a nice descriptive name if possible
             if "code" in values:
-                nice_name = "%s %s (id %s)" % (self._entity_type, values["code"], values["id"])
+                nice_name = "%s %s (id %s)" % (self._entity_type, values["code"], values.get("id"))
             else:
-                nice_name = "%s %s" % (self._entity_type, values["id"])
+                nice_name = "%s id %s" % (self._entity_type, values.get("id"))
             
             raise TankError("Folder Configuration Error. Could not create folders for %s! "
                             "The expression %s refers to one or more values that are blank "

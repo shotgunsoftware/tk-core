@@ -302,21 +302,3 @@ class TestShotgunDownloadUrl(ShotgunTestBase):
         self.assertEqual(self.download_destination, full_path)
 
 
-class TestShotgunUtils(unittest.TestCase):
-    """
-    Test various Shotgun utilities and helpers
-    """
-    def test_entity_name_field(self):
-        """
-        Test retrieving the right "name" field for various entity types.
-        """
-        # Test most standard entities, and check that custom entities use "code"
-        for entity_type in ["Sequence", "Shot", "Asset", "CustomXXXXEntity"]:
-            self.assertEqual(
-                get_sg_entity_name_field(entity_type), "code"
-            )
-        # Test most standard entities where the name is in a "name" field.
-        for entity_type in ["HumanUser", "Project"]:
-            self.assertEqual(
-                get_sg_entity_name_field(entity_type), "name"
-            )
