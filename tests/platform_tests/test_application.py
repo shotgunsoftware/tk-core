@@ -138,7 +138,7 @@ class TestGetApplication(TestApplication):
         """
         Tests a get_application valid path
         """
-        app_path = os.path.join(self.fixtures_root, "config", "bundles", "test_app")
+        app_path = os.path.join(self.project_config, "bundles", "test_app")
         # make a dev location and create descriptor
         app_desc = self.tk.pipeline_configuration.get_app_descriptor({"type": "dev", "path": app_path})
         result = application.get_application(self.engine, app_path, app_desc, {}, "instance_name", None)
@@ -388,7 +388,7 @@ class TestExecuteHook(TestApplication):
         disk_location = app.execute_hook_method("test_hook_std", "test_disk_location")
         self.assertEquals(
             disk_location,
-            os.path.join(self.fixtures_root, "config", "hooks", "toolkitty.png")
+            os.path.join(self.project_config, "hooks", "toolkitty.png")
         )
 
     def test_inheritance_disk_location(self):
@@ -406,8 +406,7 @@ class TestExecuteHook(TestApplication):
         self.assertEquals(
             disk_location_1,
             os.path.join(
-                self.fixtures_root,
-                "config",
+                self.project_config,
                 "hooks",
                 "toolkitty.png"
             )
@@ -415,8 +414,7 @@ class TestExecuteHook(TestApplication):
         self.assertEquals(
             disk_location_2,
             os.path.join(
-                self.fixtures_root,
-                "config",
+                self.project_config,
                 "hooks",
                 "more_hooks",
                 "toolkitty.png"
@@ -428,8 +426,7 @@ class TestExecuteHook(TestApplication):
         self.assertEquals(
             hook.disk_location,
             os.path.join(
-                self.fixtures_root,
-                "config",
+                self.project_config,
                 "hooks",
                 "more_hooks"
             )

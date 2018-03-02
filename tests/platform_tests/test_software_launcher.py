@@ -77,7 +77,7 @@ class TestEngineLauncher(TankTestBase):
 
         # Verify valid input results in a valid SoftwareLauncher
         expected_disk_location = os.path.join(
-            self.fixtures_root, "config", "bundles", "test_engine"
+            self.project_config, "bundles", "test_engine"
         )
 
         versions_list = [1, 2, 3, 4]
@@ -280,7 +280,7 @@ class TestEngineLauncher(TankTestBase):
         prep_args = "-t 1-20 --show_all -v --select parts"
         open_file = "open_this_file.ext"
         startup_path = os.path.join(
-            self.fixtures_root, "config", "bundles", "test_engine", "startup"
+            self.project_config, "bundles", "test_engine", "startup"
         )
 
         launcher = create_engine_launcher(self.tk, self.context, self.engine_name)
