@@ -237,7 +237,7 @@ class EntityExpression(object):
         field_defs = self._variations[longest_expr]
         link_names = [
             field["link_field_name"] for field in field_defs if field["link_field_name"] is not None
-            ]
+        ]
         return set(link_names)
 
     def generate_name(self, values):

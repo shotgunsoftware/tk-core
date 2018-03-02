@@ -10,13 +10,13 @@
 
 import sgtk
 import tank
-from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule
+from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule  # noqa
 from tank.util.shotgun_entity import get_sg_entity_name_field, sg_entity_to_string
 
 
-class TestShotgunUtils(TankTestBase):
+class TestShotgunEntity(TankTestBase):
     """
-    Test various Shotgun utilities and helpers
+    Test shotgun entity parsing classes and methods.
     """
 
     def setUp(self):
@@ -24,7 +24,7 @@ class TestShotgunUtils(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestShotgunUtils, self).setUp()
+        super(TestShotgunEntity, self).setUp()
         self.setup_fixtures()
 
     def test_entity_name_field(self):
@@ -53,35 +53,56 @@ class TestShotgunUtils(TankTestBase):
         # project fields are allowed to have slashes for folder creation purposes.
         self.assertEqual(
             sg_entity_to_string(
-                self.tk, sg_entity_type="Project", sg_id=123, sg_field_name="tank_name", data="foo/bar&"
+                self.tk,
+                sg_entity_type="Project",
+                sg_id=123,
+                sg_field_name="tank_name",
+                data="foo/bar&"
             ),
             "foo/bar-"
         )
         # other ETs are not.
         self.assertEqual(
             sg_entity_to_string(
-                self.tk, sg_entity_type="Shot", sg_id=123, sg_field_name="code", data="foo/bar&"
+                self.tk,
+                sg_entity_type="Shot",
+                sg_id=123,
+                sg_field_name="code",
+                data="foo/bar&"
             ),
             "foo-bar-"
         )
 
         # basic conversion of other types
         self.assertEqual(
-            sg_entity_to_string(self.tk, sg_entity_type="Shot", sg_id=123, sg_field_name="int_field", data=123
+            sg_entity_to_string(
+                self.tk,
+                sg_entity_type="Shot",
+                sg_id=123,
+                sg_field_name="int_field",
+                data=123
             ),
             "123"
         )
 
         self.assertEqual(
-            sg_entity_to_string(self.tk, sg_entity_type="Shot", sg_id=123,
-                sg_field_name="link_field", data={"type": "Shot", "id": 123, "name": "foo"}
+            sg_entity_to_string(
+                self.tk,
+                sg_entity_type="Shot",
+                sg_id=123,
+                sg_field_name="link_field",
+                data={"type": "Shot", "id": 123, "name": "foo"}
             ),
             "foo"
         )
 
         self.assertEqual(
-            sg_entity_to_string(self.tk, sg_entity_type="Shot", sg_id=123,
-                sg_field_name="link_field", data=[{"name":"foo"}, {"name":"bar"}]
+            sg_entity_to_string(
+                self.tk,
+                sg_entity_type="Shot",
+                sg_id=123,
+                sg_field_name="link_field",
+                data=[{"name":"foo"}, {"name":"bar"}]
             ),
             "foo_bar"
         )
@@ -100,7 +121,8 @@ class TestShotgunUtils(TankTestBase):
         self.assertEqual(ee.get_shotgun_link_fields(), set())
         self.assertEqual(
             ee.generate_name({"code": "foo", "entity": {"type:": "Asset", "id": 123, "name": "NAB"}}),
-            "foo_NAB")
+            "foo_NAB"
+        )
 
         ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code}_{sg_sequence.Sequence.code}")
         self.assertEqual(ee.get_shotgun_fields(), set(["code", "sg_sequence.Sequence.code"]))
@@ -109,8 +131,10 @@ class TestShotgunUtils(TankTestBase):
             ee.generate_name(
                 {"code": "foo",
                  "sg_sequence.Sequence.code": "NAB",
-                 "sg_sequence": {"type:": "Sequence", "id": 123, "name": "NAB"}}),
-            "foo_NAB")
+                 "sg_sequence": {"type:": "Sequence", "id": 123, "name": "NAB"}}
+            ),
+            "foo_NAB"
+        )
 
         # raise exception when fields are not supplied
         ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code}")
@@ -129,7 +153,8 @@ class TestShotgunUtils(TankTestBase):
         self.assertEqual(ee.get_shotgun_link_fields(), set())
         self.assertEqual(
             ee.generate_name({"code": "foo", "entity": {"type:": "Asset", "id": 123, "name": "NAB"}}),
-            "foo_NAB")
+            "foo_NAB"
+        )
 
         # setting entity to none omits the optional field
         self.assertEqual(ee.generate_name({"code": "foo", "entity": None}), "foo")
