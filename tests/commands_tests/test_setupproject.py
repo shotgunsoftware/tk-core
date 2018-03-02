@@ -38,7 +38,7 @@ class TestSetupProject(TankTestBase):
             # Use a custom primary root name
             parameters={"primary_root_name": "setup_project_root"}
         )
-        self.setup_fixtures("app_store_tests", parameters={"copy_config": True})
+        self.setup_fixtures("app_store_tests")
 
         patcher = patch_app_store()
         self._mock_store = patcher.start()
