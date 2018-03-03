@@ -144,6 +144,13 @@ class TestShotgunEntity(TankTestBase):
             {"extra": "data"}
         )
 
+    def test_entity_expression_multi_folder(self):
+        """
+        Tests that expressions can contain slashes
+        """
+        ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code}/{code2}")
+        self.assertEqual(ee.generate_name({"code": "foo", "code2": "bar"}), "foo/bar")
+
     def test_entity_expression_optional(self):
         """
         Tests basic expressions for entity objects with optional tokens
