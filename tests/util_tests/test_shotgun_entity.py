@@ -102,7 +102,7 @@ class TestShotgunEntity(TankTestBase):
                 sg_entity_type="Shot",
                 sg_id=123,
                 sg_field_name="link_field",
-                data=[{"name":"foo"}, {"name":"bar"}]
+                data=[{"name": "foo"}, {"name": "bar"}]
             ),
             "foo_bar"
         )
