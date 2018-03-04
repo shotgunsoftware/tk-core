@@ -230,6 +230,16 @@ class SetupProjectWizard(object):
         """
         self._params.set_config_uri(config_uri)
 
+    def set_storage_roots(self, config_uri, storage_roots):
+        """
+        Manually set the storage roots for the supplied template config uri.
+
+        :param config_uri: A config uri
+        :param storage_roots: A ``StorageRoots`` instance.
+        :return:
+        """
+        self._params.set_storage_roots(config_uri, storage_roots)
+
     def get_config_metadata(self):
         """
         Returns a metadata dictionary for the config that has been associated with the wizard.

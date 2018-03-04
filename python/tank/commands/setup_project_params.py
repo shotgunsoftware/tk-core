@@ -367,6 +367,18 @@ class ProjectSetupParameters(object):
 
         return self._storage_data.get(storage_name).get(platform)
 
+    def set_storage_roots(self, config_uri, storage_roots):
+        """
+        Manually set the storage roots for the template configuration for the
+        given uri.
+
+        :param config_uri: A template configuration uri.
+        :param storage_roots: A ``StorageRoots`` instance.
+        """
+
+        self._cached_config_templates[config_uri].set_storage_roots(
+            storage_roots)
+
     def create_configuration(self, target_path):
         """
         Sets up the associated template configuration. Copies files.
@@ -1186,4 +1198,12 @@ class TemplateConfiguration(object):
             # copy the config from its source location into place
             filesystem.copy_folder(self._cfg_folder, target_path)
 
+    def set_storage_roots(self, storage_roots):
+        """
+        Override the storages defined on disk, as read when the instance was
+        created.
 
+        :param storage_roots: A ``StorageRoots`` instance
+        """
+
+        self._storage_roots = storage_roots
