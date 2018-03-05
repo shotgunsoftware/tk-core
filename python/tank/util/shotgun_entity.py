@@ -112,11 +112,13 @@ class EntityExpression(object):
 
         # Extract and store a bunch of data for each variation.
         self._variations = {}
-        for v in expr_variations:
+        for expr_variation in expr_variations:
             
-            try:            
-                # find all field names: "{code:^([^_]+)}_{yy}_{zz.xx}"
-                fields = set(re.findall('{([^}]*)}', v))
+            try:
+                # find all field names, for example:
+                # "{xx}_{yy}_{zz.xx}" ----> ["xx", "yy", "zz.xx"]
+                # "{code:([^_]+)}_{yy}" --> ["code:([^_]+)", "yy"]
+                fields = set(re.findall('{([^}]*)}', expr_variation))
             except Exception as error:
                 raise TankError(
                     "Could not parse the configuration field '%s' - "
@@ -172,7 +174,7 @@ class EntityExpression(object):
                 )
 
             # add this to our variations dict
-            self._variations[v] = resolved_fields
+            self._variations[expr_variation] = resolved_fields
 
     def _get_expression_variations(self, definition):
         """

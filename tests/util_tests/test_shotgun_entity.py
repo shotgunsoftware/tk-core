@@ -207,3 +207,4 @@ class TestShotgunEntity(TankTestBase):
         ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code:^([^_]+)}[XXX{status:^([^_]+)}]")
         self.assertEqual(ee.generate_name({"code": "foo_bar", "status": "baz_boo"}), "fooXXXbaz")
         self.assertEqual(ee.generate_name({"code": "foo_bar", "status": None}), "foo")
+
