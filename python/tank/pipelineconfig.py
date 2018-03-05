@@ -501,6 +501,10 @@ class PipelineConfiguration(object):
     def get_project_disk_name(self):
         """
         Returns the project name for the project associated with this PC.
+
+        .. note:: If the project name spans over multiple folder levels,
+                  it will contain a forward slash regardless of the current
+                  operating system platform.
         """
         return self._project_name
 

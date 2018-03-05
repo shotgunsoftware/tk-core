@@ -1,6 +1,8 @@
+.. _core_api:
+
 .. currentmodule:: sgtk
 
-Foundation
+Core
 ########################################
 
 The Toolkit Foundation is the part of the Toolkit Core API
@@ -15,43 +17,13 @@ that contains lower level components and APIs. These include
 
 For apps and engines, see the :ref:`sgtk_platform_docs` documentation.
 
-Launching and initializing
---------------------------
+.. note:: The Toolkit Foundation APIs require that you run them from within
+    an initialized toolkit environment. For more information on how to
+    set this up, see :ref:`init_and_startup`.
 
-Toolkit can be launched and started up in two fundamentally different ways:
-
-- All configurations can be started up via the :class:`~sgtk.bootstrap.ToolkitManager` bootstrap API. This
-  API abstracts the entire process of initialization and provides a consistent set of methods for all
-  projects and configurations. This is the recommended way to launch toolkit and gain access to a running
-  Toolkit :class:`~sgtk.platform.Engine` instance (which in turn contains a :class:`sgtk.Sgtk` instance.
-
-- Configurations which have been installed into a specific location via the ``tank setup_project`` command
-  or via Shotgun Desktop's setup wizard can be initialized in additional ways. Such setups are referred to
-  as 'classic' toolkit setups. For most scenarios, we recommend using the :class:`~sgtk.bootstrap.ToolkitManager`
-  for access.
-
-Factory methods for classic configurations
-==========================================
-
-For classic configurations, where the configuration resides in a specific location on disk, you can use
-the following factory methods to create a :class:`sgtk.Sgtk` instance:
-
-.. autofunction:: sgtk_from_path
-.. autofunction:: sgtk_from_entity
-
-.. note::
-    You can also use the methods above in conjunction with projects handled
-    by the :class:`~sgtk.bootstrap.ToolkitManager`, but since the location
-    of the configuration of such projects isn't explicit and known beforehand,
-    the factory methods are less useful in this context.
-
-
-
-The Toolkit Core API
---------------------
 
 Sgtk
-====
+---------------------------------
 
 .. autoclass:: Sgtk
     :members:
@@ -62,14 +34,6 @@ Sgtk
                       execute_core_hook_method,
                       get_cache_item,
                       set_cache_item
-
-
-Context
-=======
-
-.. autoclass:: Context
-    :members:
-    :exclude-members: tank
 
 Authentication
 ==============
@@ -93,8 +57,18 @@ the currently running version of the Toolkit Core.
 
 .. autofunction:: get_core_python_path_for_config
 .. autofunction:: get_sgtk_module_path
+.. autofunction:: get_python_interpreter_for_config
 
-Executing Tank commands
+
+Context
+------------------------------------
+
+.. autoclass:: Context
+    :members:
+    :exclude-members: tank
+
+
+Commands
 ---------------------------------------------------------
 
 The ``tank`` command offers a variety of system utility commands to handle for example upgrades,
@@ -140,7 +114,7 @@ get_hook_baseclass
 .. autofunction:: get_hook_baseclass
 
 
-Template system
+Templates
 -----------------------------------------
 
 The Toolkit template system is used to handle path and string token manipulations.
@@ -242,13 +216,6 @@ TimestampKey
 
 .. autoclass:: TimestampKey
     :members:
-
-
-Configuration file resolution
------------------------------------------
-Each pipeline configuration has configuration files that help Toolkit locate the Python interpreter to use.
-
-.. autofunction:: get_python_interpreter_for_config
 
 
 Exceptions

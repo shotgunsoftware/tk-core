@@ -52,8 +52,13 @@ class ConfigDescriptor(Descriptor):
         """
         Retrieves the Python interpreter for the current platform from the interpreter files.
 
-        :raises TankFileDoesNotExistError: If the interpreter file is missing.
-        :raises TankInvalidInterpreterLocationError: If the interpreter can't be found on disk.
+        .. note:: Most runtime environments (Nuke, Maya, Houdini, etc.) provide their
+            own python interpreter that needs to used when executing code. This property
+            is useful if the engine you are running (e.g. ``tk-shell``) does not have
+            an explicit interpreter associated.
+
+        :raises :class:`TankFileDoesNotExistError`: If the interpreter file is missing.
+        :raises :class:`TankInvalidInterpreterLocationError`: If the interpreter can't be found on disk.
 
         :returns: Path value stored in the interpreter file.
         """

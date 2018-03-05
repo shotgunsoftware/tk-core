@@ -365,7 +365,16 @@ class LoginDialog(QtGui.QDialog):
         """
         Displays the window modally.
         """
-        self.show()
+        # This fixes a weird bug on Qt where calling show() and exec_() might lead
+        # to having an invisible modal QDialog and this state freezes the host
+        # application. (Require a `pkill -9 applicationName`). The fix in our case
+        # is pretty simple, we just have to not call show() before the call to
+        # exec_() since it implicitly call exec_().
+        #
+        # This bug is described here: https://bugreports.qt.io/browse/QTBUG-48248
+        if QtCore.__version__.startswith("4."):
+            self.show()
+
         self.raise_()
         self.activateWindow()
 

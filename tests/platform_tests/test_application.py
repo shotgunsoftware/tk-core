@@ -207,6 +207,14 @@ class TestGetSetting(TestApplication):
         # test legacy case where a setting has no schema
         self.assertEqual(1234.5678, self.app.get_setting("test_no_schema"))
 
+        # procudural hook based evaluation of settings
+        self.assertEqual("string_value", self.app.get_setting("test_str_evaluator"))
+        self.assertEqual(1, self.app.get_setting("test_int_evaluator"))
+        self.assertEqual(
+            {"test_str": "param", "test_int": 1},
+            self.app.get_setting("test_simple_dictionary_evaluator")
+        )
+
         # test allow empty types with no default
         self.assertEqual([], self.app.get_setting("test_allow_empty_list"))
         self.assertEqual({}, self.app.get_setting("test_allow_empty_dict"))
