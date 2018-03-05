@@ -1246,7 +1246,6 @@ def _resolve_default_hook_value(value, engine_name=None):
     :param value: The unresolved default value for the hook
     :param engine_name: The name of the engine for engine-specific hook values
     :return: The resolved hook default value.
-
     """
 
     if not value:
