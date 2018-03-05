@@ -1060,7 +1060,7 @@ class TemplateConfiguration(object):
 
         default_storage_name = self._storage_roots.default
 
-        # process each required storage root and poplate the info dict
+        # process each required storage root and populate the info dict
         for root_name, root_info in self._storage_roots:
 
             # description

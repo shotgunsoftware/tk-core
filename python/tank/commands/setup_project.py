@@ -10,8 +10,11 @@
 
 from __future__ import print_function
 
-import sys
 import os
+import sys
+import textwrap
+import traceback
+
 from .action_base import Action
 from . import core_localize
 from ..errors import TankError
@@ -19,6 +22,8 @@ from ..util import shotgun
 from ..util import ShotgunPath
 from . import constants
 from .. import pipelineconfig_utils
+from ..util.filesystem import ensure_folder_exists
+from ..util.storage_roots import StorageRoots
 
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
@@ -183,7 +188,7 @@ class SetupProjectAction(Action):
         :param log: std python logger
         :param args: command line args
         """
-        
+
         if len(args) not in [0, 1]:
             raise TankError("Syntax: setup_project [--no-storage-check] [--force]")
         
@@ -219,6 +224,11 @@ class SetupProjectAction(Action):
         
         # now ask which config to use. Download if necessary and examine
         config_uri = self._select_template_configuration(log, sg)
+
+        # allow the user to map storages required by the configuration
+        required_roots = params.validate_config_uri(config_uri)
+        mapped_storages = self._map_storages(required_roots, log, sg)
+        params.set_storage_roots(config_uri, mapped_storages)
     
         # now try to load the config
         params.set_config_uri(config_uri, check_storage_path_exists)
@@ -745,5 +755,200 @@ class SetupProjectAction(Action):
         log.info("      that file will be localized after project setup is ")
         log.info("      complete.")
         log.info("")
+
+    def _map_storages(self, required_roots, log, sg):
+        """
+        Present the user with information about the storage roots defined by
+        the configuration. Allows them to map a root to an existing local
+        storage in SG.
+
+        :param dict required_roots: A dictionary of information about the roots
+            required by the configuration
+        :param log: python logger object
+        :param sg: Shotgun API instance
+        """
+
+        # query all storages that exist in SG
+        storages = sg.find(
+            "LocalStorage",
+            filters=[],
+            fields=["code", "id", "linux_path", "mac_path", "windows_path"],
+            order=[{"field_name": "code", "direction": "asc"}]
+        )
+
+        # build lookups by name and id
+        storage_by_id = {}
+        storage_by_name = {}
+        for storage in storages:
+            storage_name = storage["code"]
+            storage_id = storage["id"]
+            storage_by_id[storage_id] = storage
+            storage_by_name[storage_name] = storage
+
+        # present a summary of storages that exist in SG
+        log.info("")
+        log.info("The following local storages exist in Shotgun:")
+        log.info("")
+        for storage in sorted(storages, key=lambda s: s["id"]):
+
+            linux_path = storage.get("linux_path") or ""
+            mac_path = storage.get("mac_path") or ""
+            windows_path = storage.get("windows_path") or ""
+
+            storage_name = storage["code"]
+
+            log.info(storage_name)
+            log.info("-" * len(storage_name))
+            log.info("    Linux: %s" % (linux_path,))
+            log.info("      Mac: %s" % (mac_path,))
+            log.info("  Windows: %s" % (windows_path,))
+            log.info("")
+
+        log.info(
+            "This configuration requires %s storage root(s)." %
+            len(required_roots)
+        )
+        log.info("")
+        log.info("For each storage root, enter the name of the local storage ")
+        log.info("above you wish to use.")
+        log.info("")
+
+        # a list of tuples we'll use to map a root name to a storage name
+        mapped_roots = []
+
+        # loop over required storage roots
+        for (root_name, root_info) in required_roots.iteritems():
+
+            log.info("%s" % (root_name,))
+            log.info("-" * len(root_name))
+
+            # format the description so that it wraps nicely
+            description = root_info.get("description")
+
+            if description:
+                wrapped_desc_lines = textwrap.wrap(description)
+                for line in wrapped_desc_lines:
+                    log.info("  %s" % (line,))
+            log.info("")
+
+            # make a best guess as to which storage to use
+            suggested_storage = None
+
+            # see if a shotgun storage id is defined in the root info.
+            root_sg_id = root_info.get("shotgun_id")
+            if root_sg_id in storage_by_id:
+                storage_name = storage_by_id[root_sg_id]["code"]
+                # shotgun id defined explicitly for this root
+                log.info(
+                    "Press ENTER to use the explicit mapping to the '%s' "
+                    "storage as defined in the configuration." % (storage_name,)
+                )
+                log.info("")
+                suggested_storage = storage_name
+
+            # does name match an existing storage?
+            elif root_name in storage_by_name:
+                log.info(
+                    "Press ENTER to use the storage wth the same name as the "
+                    "root."
+                )
+                log.info("")
+                suggested_storage = root_name
+
+            if suggested_storage:
+                suggested_storage_display = " [%s]: " % (suggested_storage,)
+            else:
+                suggested_storage_display = ": "
+
+            # ask the user which storage to associate with this root
+            storage_to_use = raw_input(
+                "Which local storage would you like to associate root '%s'%s" %
+                (root_name, suggested_storage_display,)
+            ).strip()
+
+            if storage_to_use == "" and suggested_storage:
+                storage_to_use = suggested_storage
+            if storage_to_use not in storage_by_name:
+                raise TankError("Please enter a valid storage name!")
+
+            log.info("")
+
+            storage = storage_by_name[storage_to_use]
+
+            # if the selected storage does not have a valid path for the current
+            # operating system, prompt the user for a path to create/use
+            if sys.platform.startswith("linux"):
+                current_os_key = "linux_path"
+                current_os_path = storage.get("linux_path")
+            elif sys.platform == "darwin":
+                current_os_key = "mac_path"
+                current_os_path = storage.get("mac_path")
+            elif sys.platform == "win32":
+                current_os_key = "windows_path"
+                current_os_path = storage.get("windows_path")
+            else:
+                raise TankError("Unrecognized platform: %s" % (sys.platform,))
+
+            if not current_os_path:
+                # the current os path for the selected storage is not populated.
+                # prompt the user and update the path in SG.
+                current_os_path = raw_input(
+                    "Please enter a path for this storage on the current OS: ")
+
+                if not current_os_path:
+                    raise TankError("A path is required for the current OS.")
+
+                if not os.path.isabs(current_os_path):
+                    raise TankError(
+                        "An absolute path is required for the current OS."
+                    )
+
+                # try to create the path on disk
+                try:
+                    ensure_folder_exists(current_os_path)
+                except Exception, e:
+                    raise TankError(
+                        "Unable to create the folder on disk.\n"
+                        "Error: %s\n%s" % (e, traceback.format_exc())
+                    )
+
+                # update the storage in SG.
+                log.info("Updating the local storage in SG...")
+                log.info("")
+                update_data = sg.update(
+                    "LocalStorage",
+                    storage["id"],
+                    {current_os_key: current_os_path}
+                )
+
+                storage[current_os_key] = update_data[current_os_key]
+
+            mapped_roots.append((root_name, storage_to_use))
+
+        # ---- now we've mapped the roots, and they're all valid, we need to
+        #      create a StorageRoots instance and set it on the project params.
+
+        roots_metadata = {}
+        for (root_name, storage_name) in mapped_roots:
+
+            root_info = required_roots[root_name]
+            storage_data = storage_by_name[storage_name]
+
+            # populate the data defined prior to mapping
+            roots_metadata[root_name] = root_info
+
+            # update the mapped shotgun data
+            roots_metadata[root_name]["shotgun_storage_id"] = storage_data["id"]
+            roots_metadata[root_name]["linux_path"] = str(
+                storage_data["linux_path"])
+            roots_metadata[root_name]["mac_path"] = str(
+                storage_data["mac_path"])
+            roots_metadata[root_name]["windows_path"] = str(
+                storage_data["windows_path"])
+
+        log.info("")
+
+        return StorageRoots.from_metadata(roots_metadata)
+
 
 
