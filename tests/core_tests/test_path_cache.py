@@ -32,8 +32,6 @@ import tank
 
 from tank.util import StorageRoots
 
-from tank_vendor import yaml
-
 log = LogManager.get_logger(__name__)
 
 

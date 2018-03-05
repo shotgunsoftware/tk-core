@@ -155,7 +155,7 @@ class TestStorageRoots(ShotgunTestBase):
         self.assertIsInstance(no_roots, StorageRoots)
 
         with self.assertRaises(TankError):
-            _ = StorageRoots.from_config(self._corrupt_roots_config_folder)
+            StorageRoots.from_config(self._corrupt_roots_config_folder)
 
     def test_storage_roots_from_metadata(self):
         """Test the from_metadata factory class method."""

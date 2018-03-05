@@ -102,8 +102,10 @@ class PipelineConfiguration(object):
         # they were defined, so this is the only way we can guarantee we always
         # use the same root for any template which does not have an explicit
         # root setting.
-        if (self._storage_roots.required_roots and not
-            self._storage_roots.default_path):
+        if (
+            self._storage_roots.required_roots and not
+            self._storage_roots.default_path
+        ):
             raise TankError(
                 "Could not identify a default storage root for this pipeline "
                 "configuration! File: '%s'" % (self._storage_roots.roots_file,)
