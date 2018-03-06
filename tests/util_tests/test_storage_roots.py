@@ -383,3 +383,30 @@ class TestStorageRoots(ShotgunTestBase):
 
             }
         )
+
+    def test_update_root(self):
+        """Tests the update_root method."""
+
+        single_root = StorageRoots.from_metadata(self._single_root_metadata)
+        single_root.update_root(
+            "primary",
+            {
+                "linux_path": "/tmp/foobar",
+                "mac_path": "/tmp/foobar",
+                "windows_path": "X:\\tmp\\foobar",
+                "shotgun_storage_id": 1,
+                "default": True
+            }
+        )
+        self.assertEqual(
+            single_root.metadata,
+            {
+                "primary": {
+                    "linux_path": "/tmp/foobar",
+                    "mac_path": "/tmp/foobar",
+                    "windows_path": "X:\\tmp\\foobar",
+                    "shotgun_storage_id": 1,
+                    "default": True
+                }
+            }
+        )
