@@ -54,7 +54,7 @@ class TestEnvironment(TankTestBase):
     def test_basic_properties(self):
         self.assertEqual(self.env.name, "test")
         # disabled engine should be skipped
-        self.assertEqual(self.env.get_engines(), ["test_included_engine", "test_engine"])
+        self.assertEqual(self.env.get_engines(), ["test_included_engine", "incomplete_engine", "test_engine"])
         # disabled app should be skipped
         self.assertEqual(self.env.get_apps("test_engine"), ["test_app"])
 
@@ -94,11 +94,11 @@ class TestDumpEnvironment(TankTestBase):
 
     def setUp(self):
         super(TestDumpEnvironment, self).setUp()
-        self.setup_fixtures()
+        # This test will write to the configuration folder, so copy it.
+        self.setup_fixtures(parameters={"installed_config": True})
 
         # create env object
-        self.env = self.tk.pipeline_configuration.get_environment("test_dump",
-            writable=True)
+        self.env = self.tk.pipeline_configuration.get_environment("test_dump", writable=True)
 
     def test_dump(self):
 
@@ -192,18 +192,16 @@ class TestUpdateEnvironment(TankTestBase):
     Tests yaml environment updates
     """
 
-
     def setUp(self):
         super(TestUpdateEnvironment, self).setUp()
-        self.setup_fixtures()
+        # The following tests are going to update the configuration.
+        self.setup_fixtures(parameters={"installed_config": True})
 
         self.test_env = "test"
         self.test_engine = "test_engine"
 
         # create env object
         self.env = self.tk.pipeline_configuration.get_environment(self.test_env, writable=True)
-
-
 
     def test_add_engine(self):
 
@@ -234,7 +232,6 @@ class TestUpdateEnvironment(TankTestBase):
         cfg_after = self.env.get_engine_settings("new_engine")
         self.assertEqual(cfg_after, {})
 
-
     def test_add_app(self):
 
         self.assertRaises(TankError, self.env.create_app_settings, "test_engine", "test_app")
@@ -242,17 +239,15 @@ class TestUpdateEnvironment(TankTestBase):
 
         # get raw environment before
         env_file = os.path.join(self.project_config, "env", "test.yml")
-        fh = open(env_file)
-        env_before = yaml.load(fh)
-        fh.close()
+        with open(env_file) as fh:
+            env_before = yaml.load(fh)
 
         self.env.create_app_settings("test_engine", "new_app")
 
         # get raw environment after
         env_file = os.path.join(self.project_config, "env", "test.yml")
-        fh = open(env_file)
-        env_after = yaml.load(fh)
-        fh.close()
+        with open(env_file) as fh:
+            env_after = yaml.load(fh)
 
         # ensure that disk was updated
         self.assertNotEqual(env_after, env_before)
@@ -412,7 +407,7 @@ class TestRuamelParser(TankTestBase):
 
     def setUp(self):
         super(TestRuamelParser, self).setUp()
-        self.setup_fixtures()
+        self.setup_fixtures(parameters={"installed_config": True})
 
     def test_yaml(self):
 
@@ -423,9 +418,8 @@ class TestRuamelParser(TankTestBase):
 
         # get environment content before
         env_file = os.path.join(self.project_config, "env", "test.yml")
-        fh = open(env_file)
-        updated_env = fh.readlines()
-        fh.close()
+        with open(env_file) as fh:
+            updated_env = fh.readlines()
 
         # get raw environment after
         # ruamel parser only used in py2.6+
@@ -434,9 +428,8 @@ class TestRuamelParser(TankTestBase):
         else:
             env_file = os.path.join(self.project_config, "env", "post_update", "test_post_update_new_parser.yml")
 
-        fh = open(env_file)
-        expected_env = fh.readlines()
-        fh.close()
+        with open(env_file) as fh:
+            expected_env = fh.readlines()
 
         # because floats are rendered differently on different versions of
         # python, replace the FLOAT_VALUE keyword in the expected fixture
@@ -453,7 +446,7 @@ class TestPyYamlParser(TankTestBase):
 
     def setUp(self):
         super(TestPyYamlParser, self).setUp()
-        self.setup_fixtures()
+        self.setup_fixtures(parameters={"installed_config": True})
 
     def test_yaml(self):
 

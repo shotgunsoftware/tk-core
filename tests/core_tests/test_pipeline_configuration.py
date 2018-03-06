@@ -144,7 +144,9 @@ class TestPipelineConfig(TankTestBase):
         """
         Makes sure we are using the pipeline configuration form the fixture
         """
-        self.setup_fixtures(name="fixture_tests")
+        # The fixture contains a pipeline_configuration.yml file that needs to be copied into the
+        # pipeline_configuration_root, so we'll copy the configuration into it.
+        self.setup_fixtures(name="fixture_tests", parameters={"installed_config": True})
         self.assertEqual(
             self.tk.pipeline_configuration.get_shotgun_id(),
             42
@@ -176,7 +178,7 @@ class TestConfigLocations(TankTestBase):
         """
         Tests an installed configuration's resolving of the CONFIG_FOLDER and PIPELINE_CONFIG
         """
-        self.setup_fixtures()
+        self.setup_fixtures(parameters={"installed_config": True})
 
         # For path and the platform specific path token...
         for path_key in ["path", ShotgunPath.get_shotgun_storage_key()]:
@@ -198,21 +200,7 @@ class TestConfigLocations(TankTestBase):
         """
         Tests a cached configuration's resolving of the CONFIG_FOLDER
         """
-        pc_yaml_location = os.path.join(self.pipeline_config_root, "config", "core", "pipeline_configuration.yml")
-        with open(pc_yaml_location, "rt") as fh:
-            pc_data = yaml.safe_load(fh.read())
-
-        config_location = os.path.join(self.fixtures_root, "config")
-        pc_data["source_descriptor"] = {
-            "path": config_location,
-            "type": "path"
-        }
-
-        with open(pc_yaml_location, "wt") as fh:
-            fh.write(yaml.safe_dump(pc_data))
-
-        self.reload_pipeline_config()
-        self.assertEqual(self.tk.pipeline_configuration.get_config_location(), config_location)
+        self.setup_fixtures()
 
         # For path and the platform specific path token...
         for path_key in ["path", ShotgunPath.get_shotgun_storage_key()]:

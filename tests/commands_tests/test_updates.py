@@ -39,7 +39,9 @@ class TestSimpleUpdates(TankTestBase):
         self._mock_store = patcher.start()
         self.addCleanup(patcher.stop)
 
-        self.setup_fixtures("app_store_tests")
+        # Test is running updates on the configuration files, so we'll copy the config into the
+        # pipeline configuration.
+        self.setup_fixtures("app_store_tests", parameters={"installed_config": True})
 
         self._mock_store.add_engine("tk-test", "v1.0.0")
         self._mock_store.add_application("tk-multi-nodep", "v1.0.0")
@@ -108,7 +110,9 @@ class TestIncludeUpdates(TankTestBase):
         Prepares unit test with basic bundles.
         """
         TankTestBase.setUp(self)
-        self.setup_fixtures("app_store_tests")
+        # Test is running updates on the configuration files, so we'll copy the config into the
+        # pipeline configuration.
+        self.setup_fixtures("app_store_tests", parameters={"installed_config": True})
 
         patcher = patch_app_store()
         self._mock_store = patcher.start()
