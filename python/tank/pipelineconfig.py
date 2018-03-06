@@ -130,7 +130,7 @@ class PipelineConfiguration(object):
         else:
             self._bundle_cache_fallback_paths = []
 
-        # There are four ways this initializer can be invoked.
+        # There are five ways this initializer can be invoked.
         #
         # 1) Classic: We're instantiated from sgtk_from_path with a single path.
         # 2) Bootstrap: path is set, descriptor is unset and no descriptor inside
@@ -139,6 +139,8 @@ class PipelineConfiguration(object):
         #    pipeline_configuration.yml
         # 4) Bootstrap, path is set, descriptor is set and descriptor inside
         #    pipeline_configuration.yml
+        # 5) Baked configs via bootstrap, path is set, the rest is None. A baked
+        #    config has got the same layout as a classic installation.
         #
         # The correct way to handle all of this is to go from a descriptor string or dictionary and
         # instantiate the correct descriptor type.
@@ -156,6 +158,7 @@ class PipelineConfiguration(object):
             # The bootstrapper wrote the descriptor in the pipeline_configuration.yml file, nothing
             # more needs to be done.
             pass
+
         # If there's nothing in the file, but we're being passed down something by the bootstrapper,
         # we should use it! (3)
         elif descriptor:
@@ -171,7 +174,8 @@ class PipelineConfiguration(object):
                 is_installed = True
 
             descriptor_dict = descriptor.get_dict()
-        # Now we only have a path set. (1&2). We can't assume anything, but since all pipeline
+
+        # Now we only have a path set. (1, 2, 5). We can't assume anything, but since all pipeline
         # configurations, cached or installed, have the same layout on disk, we'll assume that we're
         # in an installed one. Also, since installed configurations are a bit more lenient about
         # things like info.yml, its a great fit since there are definitely installed configurations
