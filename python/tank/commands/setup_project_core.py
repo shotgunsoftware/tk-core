@@ -160,7 +160,7 @@ def run_project_setup(log, sg, setup_params):
 
     # write the roots.yml file in the config to match our settings
     roots_data = {}
-    default_storage_name = setup_params.get_default_storage_name()
+    default_storage_name = setup_params.default_storage_name
     for storage_name in setup_params.get_required_storages():
 
         roots_data[storage_name] = {

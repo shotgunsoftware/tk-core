@@ -139,6 +139,14 @@ class ProjectSetupParameters(object):
     ################################################################################################################
     # Configuration template related logic
 
+    @property
+    def default_storage_name(self):
+        """
+        The name of the default storage.
+        """
+        return self._config_template.default_storage_name
+
+
     def validate_config_uri(self, config_uri):
         """
         Validates a configuration template to check if it is compatible with the current Shotgun setup.
@@ -307,14 +315,6 @@ class ProjectSetupParameters(object):
 
         return self._config_template.get_readme_content()
 
-    def get_default_storage_name(self):
-        """
-        Returns the name of the default storage.
-
-        :rtype: str
-        """
-        return self._config_template.get_default_storage_name()
-
     def get_required_storages(self):
         """
         Returns a list of storage names which are required for this project.
@@ -346,7 +346,6 @@ class ProjectSetupParameters(object):
         Given a storage name as defined in the configuration roots, return the
         corresponding shotgun id as defined in Shotgun. If no SG storage can
         be correlated, return None.
-        :return:
         """
         return self._storage_data.get(storage_name, {}).get("shotgun_id")
 
@@ -1009,6 +1008,13 @@ class TemplateConfiguration(object):
     ################################################################################################
     # Public interface
 
+    @property
+    def default_storage_name(self):
+        """
+        The default storage name for this template configuration.
+        """
+        return self._storage_roots.default
+
     def resolve_storages(self):
         """
         Validate that the roots exist in shotgun. Communicates with Shotgun.
@@ -1106,13 +1112,6 @@ class TemplateConfiguration(object):
                     storage_info[root_name]["exists_on_disk"] = True
 
         return storage_info
-
-    def get_default_storage_name(self):
-        """
-        Returns the default storage name for this template configuration.
-        :return:
-        """
-        return self._storage_roots.default
 
     def get_required_core_version(self):
         """

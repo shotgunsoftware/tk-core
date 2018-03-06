@@ -235,7 +235,7 @@ class StorageRoots(object):
         Returns a string representation of the object.
         """
         return "<StorageRoots folder:'%s', roots:'%s'>" % (
-            self._storage_roots_file,
+            self._config_root_folder,
             ",".join(self.required_roots)
         )
 
