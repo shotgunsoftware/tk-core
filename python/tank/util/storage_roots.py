@@ -463,6 +463,46 @@ class StorageRoots(object):
             self._shotgun_paths_lookup[root_name] = \
                 ShotgunPath.from_shotgun_dict(root_info)
 
+    def update_root(self, root_name, storage_data):
+        """
+        Given a required storage root name, update the object's storage
+        metadata.
+
+        The data is in the same form as the dict required for a root provided to
+        the `from_metadata` factory class method. Example::
+
+            {
+                "description": "A top-level root folder for production data...",
+                "mac_path": "/shotgun/prod",
+                "linux_path": "/shotgun/prod",
+                "windows_path": "C:\shotgun\prod",
+                "default": True,
+                "shotgun_storage_id": 1,
+            }
+
+        Not all fields are required to be specified. Only the supplied fields
+        will be updated on the existing storage data.
+
+        :param root_name: The name of a root to update.
+        :param storage_data: A dctionary
+        """
+
+        if root_name in self._storage_roots_metadata:
+            # update the existing root info
+            self._storage_roots_metadata[root_name].update(storage_data)
+        else:
+            # add the root/storage info to the metadata
+            self._storage_roots_metadata[root_name] = storage_data
+
+        if storage_data.get("default", False):
+            self._default_storage_name = root_name
+
+        # update the cached ShotgunPath with the new root storage info
+        self._shotgun_paths_lookup[root_name] = \
+            ShotgunPath.from_shotgun_dict(
+                self._storage_roots_metadata[root_name]
+            )
+
     ############################################################################
     # protected methods
 

@@ -23,7 +23,6 @@ from ..util import ShotgunPath
 from . import constants
 from .. import pipelineconfig_utils
 from ..util.filesystem import ensure_folder_exists
-from ..util.storage_roots import StorageRoots
 
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
@@ -226,10 +225,8 @@ class SetupProjectAction(Action):
         config_uri = self._select_template_configuration(log, sg)
 
         # allow the user to map storages required by the configuration
-        required_roots = params.validate_config_uri(config_uri)
-        mapped_storages = self._map_storages(required_roots, log, sg)
-        params.set_storage_roots(config_uri, mapped_storages)
-    
+        self._map_storages(params, config_uri, log, sg)
+
         # now try to load the config
         params.set_config_uri(config_uri, check_storage_path_exists)
         
@@ -756,14 +753,14 @@ class SetupProjectAction(Action):
         log.info("      complete.")
         log.info("")
 
-    def _map_storages(self, required_roots, log, sg):
+    def _map_storages(self, params, config_uri, log, sg):
         """
         Present the user with information about the storage roots defined by
         the configuration. Allows them to map a root to an existing local
         storage in SG.
 
-        :param dict required_roots: A dictionary of information about the roots
-            required by the configuration
+        :param params: Project setup params instance
+        :param config_uri: A config uri
         :param log: python logger object
         :param sg: Shotgun API instance
         """
@@ -804,6 +801,8 @@ class SetupProjectAction(Action):
             log.info("  Windows: %s" % (windows_path,))
             log.info("")
 
+        # get all roots required by the supplied config uri
+        required_roots = params.validate_config_uri(config_uri)
         log.info(
             "This configuration requires %s storage root(s)." %
             len(required_roots)
@@ -917,26 +916,28 @@ class SetupProjectAction(Action):
             mapped_roots.append((root_name, storage_to_use))
 
         # ---- now we've mapped the roots, and they're all valid, we need to
-        #      create a StorageRoots instance and set it on the project params.
+        #      update the root information on the core wizard
 
-        roots_metadata = {}
         for (root_name, storage_name) in mapped_roots:
 
             root_info = required_roots[root_name]
             storage_data = storage_by_name[storage_name]
 
             # populate the data defined prior to mapping
-            roots_metadata[root_name] = root_info
+            updated_storage_data = root_info
 
             # update the mapped shotgun data
-            roots_metadata[root_name]["shotgun_storage_id"] = storage_data["id"]
-            roots_metadata[root_name]["linux_path"] = str(
-                storage_data["linux_path"])
-            roots_metadata[root_name]["mac_path"] = str(
-                storage_data["mac_path"])
-            roots_metadata[root_name]["windows_path"] = str(
+            updated_storage_data["shotgun_storage_id"] = storage_data["id"]
+            updated_storage_data["linux_path"] = str(storage_data["linux_path"])
+            updated_storage_data["mac_path"] = str(storage_data["mac_path"])
+            updated_storage_data["windows_path"] = str(
                 storage_data["windows_path"])
 
-        log.info("")
+            # now update the core wizard's root info
+            params.update_storage_root(
+                config_uri,
+                root_name,
+                updated_storage_data
+            )
 
-        return StorageRoots.from_metadata(roots_metadata)
+        log.info("")

@@ -366,17 +366,14 @@ class ProjectSetupParameters(object):
 
         return self._storage_data.get(storage_name).get(platform)
 
-    def set_storage_roots(self, config_uri, storage_roots):
+    def update_storage_root(self, config_uri, root_name, storage_data):
         """
-        Manually set the storage roots for the template configuration for the
-        given uri.
-
-        :param config_uri: A template configuration uri.
-        :param storage_roots: A ``StorageRoots`` instance.
+        Given a required storage root name, update the template config's storage
+        root information. See the corresponding template config method for more
+        info.
         """
-
-        self._cached_config_templates[config_uri].set_storage_roots(
-            storage_roots)
+        self._cached_config_templates[config_uri].update_storage_root(
+            root_name, storage_data)
 
     def create_configuration(self, target_path):
         """
@@ -1197,12 +1194,28 @@ class TemplateConfiguration(object):
             # copy the config from its source location into place
             filesystem.copy_folder(self._cfg_folder, target_path)
 
-    def set_storage_roots(self, storage_roots):
+    def update_storage_root(self, root_name, storage_data):
         """
-        Override the storages defined on disk, as read when the instance was
-        created.
+        Given a required storage root name, update the template config's storage
+        root information.
 
-        :param storage_roots: A ``StorageRoots`` instance
+        The data is in the same form as the required roots dictionary stored in
+        the config's root.yml file. Example::
+
+            {
+                "description": "A top-level root folder for production data...",
+                "mac_path": "/shotgun/prod",
+                "linux_path": "/shotgun/prod",
+                "windows_path": "C:\shotgun\prod",
+                "default": True,
+                "shotgun_storage_id": 1,
+            }
+
+        Not all fields are required to be specified. Only the supplied fields
+        will be updated on the existing storage data.
+
+        :param root_name: The name of a root to update.
+        :param storage_data: A dctionary
+        :return:
         """
-
-        self._storage_roots = storage_roots
+        self._storage_roots.update_root(root_name, storage_data)
