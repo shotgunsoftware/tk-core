@@ -133,20 +133,28 @@ class BakedConfiguration(Configuration):
                           non-plugin based toolkit projects, this value is None.
         :param config_descriptor: Descriptor object describing the configuration.
         """
-        config_writer = ConfigurationWriter(ShotgunPath.from_current_os_path(path), sg_connection)
+        # Write out a baked configuration - this is just like one of the
+        # configurations that are written out at runtime for cached configs,
+        # but with the difference that this will be bundled with an installation
+        # and therefore needs to be completely location agnostic.
+        config_writer = ConfigurationWriter(
+            ShotgunPath.from_current_os_path(path),
+            sg_connection
+        )
 
         config_writer.ensure_project_scaffold()
-
         config_descriptor.copy(os.path.join(path, "config"))
-
         config_writer.install_core(config_descriptor, bundle_cache_fallback_paths=[])
 
+        # write the pipeline_config.yml file but do not include the
+        # source_descriptor - setting this to None indicates
+        # that this should be looked up at runtime.
         config_writer.write_pipeline_config_file(
             pipeline_config_id=None,
             project_id=None,
             plugin_id=plugin_id,
             bundle_cache_fallback_paths=[],
-            source_descriptor=config_descriptor
+            source_descriptor=None
         )
 
     @property
