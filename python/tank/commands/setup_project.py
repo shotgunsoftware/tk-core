@@ -877,17 +877,8 @@ class SetupProjectAction(Action):
 
             # if the selected storage does not have a valid path for the current
             # operating system, prompt the user for a path to create/use
-            if sys.platform.startswith("linux"):
-                current_os_key = "linux_path"
-                current_os_path = storage.get("linux_path")
-            elif sys.platform == "darwin":
-                current_os_key = "mac_path"
-                current_os_path = storage.get("mac_path")
-            elif sys.platform == "win32":
-                current_os_key = "windows_path"
-                current_os_path = storage.get("windows_path")
-            else:
-                raise TankError("Unrecognized platform: %s" % (sys.platform,))
+            current_os_key = ShotgunPath.get_shotgun_storage_key()
+            current_os_path = storage.get(current_os_key)
 
             if not current_os_path:
                 # the current os path for the selected storage is not populated.
@@ -949,6 +940,3 @@ class SetupProjectAction(Action):
         log.info("")
 
         return StorageRoots.from_metadata(roots_metadata)
-
-
-
