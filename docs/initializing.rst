@@ -228,6 +228,9 @@ but is shared between all pipeline configurations.
     These locations can be customized by setting a ``SHOTGUN_HOME``
     :ref:`environment variable<environment_variables>`.
 
+
+.. _local_bundle_caches:
+
 .. note:: You can include a local ``bundle_cache`` folder within your configuration to make it self contained.
 
     .. image:: ./resources/initializing/bundle_cache_in_config.png
