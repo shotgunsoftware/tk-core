@@ -906,7 +906,7 @@ class SetupProjectAction(Action):
                 # try to create the path on disk
                 try:
                     ensure_folder_exists(current_os_path)
-                except Exception, e:
+                except Exception as e:
                     raise TankError(
                         "Unable to create the folder on disk.\n"
                         "Error: %s\n%s" % (e, traceback.format_exc())
