@@ -432,8 +432,11 @@ class ConfigurationWriter(object):
 
     def write_pipeline_config_file(
         self,
-        pipeline_config_id, project_id, plugin_id,
-        bundle_cache_fallback_paths, source_descriptor
+        pipeline_config_id,
+        project_id,
+        plugin_id,
+        bundle_cache_fallback_paths,
+        source_descriptor
     ):
         """
         Writes out the the pipeline configuration file config/core/pipeline_config.yml
@@ -448,6 +451,10 @@ class ConfigurationWriter(object):
                           see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
                           non-plugin based toolkit projects, this value is None.
         :param bundle_cache_fallback_paths: List of bundle cache fallback paths.
+        :param source_descriptor: Descriptor object used to identify
+            which descriptor the pipeline configuration originated from.
+            For configurations where this source may not be directly accessible,
+            (e.g. baked configurations), this can be set to ``None``.
 
         :returns: Path to the configuration file that was written out.
         """
@@ -502,8 +509,10 @@ class ConfigurationWriter(object):
             "use_bundle_cache": True,
             "bundle_cache_fallback_roots": bundle_cache_fallback_paths,
             "use_shotgun_path_cache": True,
-            "source_descriptor": source_descriptor.get_dict()
         }
+
+        if source_descriptor:
+            pipeline_config_content["source_descriptor"] = source_descriptor.get_dict()
 
         # write pipeline_configuration.yml
         pipeline_config_path = os.path.join(
