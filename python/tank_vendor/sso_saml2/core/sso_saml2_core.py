@@ -451,7 +451,7 @@ class SsoSaml2Core(object):
         (_sso_renew_watchdog_timer) which will trigger and attempt to cleanup
         the process.
 
-        :param succeeded: indicate the status of the load process.
+        :param succeeded: indicate the status of the load process. (not used)
         """
         url = self._view.page().mainFrame().url().toString().encode("utf-8")
         if (
@@ -463,10 +463,6 @@ class SsoSaml2Core(object):
                 self.start_sso_renewal()
 
             self._dialog.accept()
-
-        if not succeeded and url != "":
-            self._logger.error("Loading of page \"%s\" generated an error." % url)
-            # @FIXME: Figure out proper way of handling error.
 
     def on_http_response_finished(self, reply):
         """

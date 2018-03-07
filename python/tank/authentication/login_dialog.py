@@ -233,6 +233,13 @@ class LoginDialog(QtGui.QDialog):
         if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
             logger.warning("Timed out awaiting check for SSO support on the site: %s" % self._get_current_site())
 
+    def __del__(self):
+        """
+        Destructor.
+        """
+        # We want to clean up any running qthread.
+        self._query_task.wait()
+
     def _get_current_site(self):
         """
         Retrieves the properly filtered site name from the site combo box.
@@ -396,6 +403,7 @@ class LoginDialog(QtGui.QDialog):
         if self._session_metadata and self._sso_saml2:
             res = self._sso_saml2.login_attempt(
                 host=self._get_current_site(),
+                http_proxy=self._http_proxy,
                 cookies=self._session_metadata,
                 product=PRODUCT_IDENTIFIER,
                 use_watchdog=True
@@ -490,6 +498,7 @@ class LoginDialog(QtGui.QDialog):
             if self._use_sso and self._sso_saml2:
                 res = self._sso_saml2.login_attempt(
                     host=site,
+                    http_proxy=self._http_proxy,
                     cookies=self._session_metadata,
                     product=PRODUCT_IDENTIFIER
                 )
