@@ -208,3 +208,9 @@ class TestShotgunEntity(TankTestBase):
         self.assertEqual(ee.generate_name({"code": "foo_bar", "status": "baz_boo"}), "fooXXXbaz")
         self.assertEqual(ee.generate_name({"code": "foo_bar", "status": None}), "foo")
 
+        # test that we can repeat a token
+        ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code:^(.)}/{code}")
+        self.assertEqual(ee.get_shotgun_fields(), set(["code"]))
+        self.assertEqual(ee.get_shotgun_link_fields(), set())
+        self.assertEqual(ee.generate_name({"code": "hello"}), "h/hello")
+
