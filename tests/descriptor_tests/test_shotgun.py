@@ -68,7 +68,10 @@ class TestShotgunIODescriptor(ShotgunTestBase):
 
         # test project id not int
         _test_raises_error(
-            {"type": "shotgun", "version": 123, "entity_type": "Shot", "field": "sg_field", "project_id": "foo", "name": "aaa123"}
+            {
+                "type": "shotgun", "version": 123, "entity_type": "Shot",
+                "field": "sg_field", "project_id": "foo", "name": "aaa123"
+            }
         )
 
     def test_construction_by_id(self):
@@ -121,7 +124,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         """
         Test downloading shotgun descriptor based on id
         """
-        expected_path = os.path.join(self.bundle_cache, "sg", "unit_test_mock_sg", "Shot.sg_field", "1234", "v123")
+        expected_path = os.path.join(self.bundle_cache, "sg", "unit_test_mock_sg", "v123")
 
         def fake_download_attachment(*args, **kwargs):
             # assert that the expected download target is requested
@@ -153,7 +156,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         Test downloading descriptor based on name
         """
         expected_path = os.path.join(
-            self.bundle_cache, "sg", "unit_test_mock_sg", "Shot.sg_field", "p123_bbb111", "v123"
+            self.bundle_cache, "sg", "unit_test_mock_sg", "v124"
         )
 
         def fake_download_attachment(*args, **kwargs):
@@ -168,7 +171,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             sgtk.descriptor.Descriptor.APP,
             {
                 "type": "shotgun",
-                "version": 123,
+                "version": 124,
                 "entity_type": "Shot",
                 "field": "sg_field",
                 "name": "bbb111",
@@ -394,18 +397,16 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         """
         Tests resolving locally cached items by name
         """
-        root_path = os.path.join(self.bundle_cache, "sg", "unit_test_mock_sg", "Shot.sg_field", "p123_aaa111")
-        os.makedirs(os.path.join(root_path, "v123"))
-        os.makedirs(os.path.join(root_path, "v99"))
-        os.makedirs(os.path.join(root_path, "invalid_stuff"))
-        os.makedirs(os.path.join(root_path, "v2454"))
+        os.makedirs(
+            os.path.join(self.bundle_cache, "sg", "unit_test_mock_sg", "v99")
+        )
 
         desc = sgtk.descriptor.create_descriptor(
             self.mockgun,
             sgtk.descriptor.Descriptor.APP,
             {
                 "type": "shotgun",
-                "version": 0,
+                "version": 99,
                 "entity_type": "Shot",
                 "field": "sg_field",
                 "name": "aaa111",
@@ -414,26 +415,42 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             bundle_cache_root_override=self.bundle_cache
         )
 
-        self.assertEquals(desc.version, "v0")
+        self.assertEquals(desc.version, "v99")
         latest_cached = desc.find_latest_cached_version()
-        self.assertEquals(latest_cached.version, "v2454")
-
-    def test_get_latest_cached_by_id(self):
-        """
-        Tests resolving locally cached items by id
-        """
-        root_path = os.path.join(self.bundle_cache, "sg", "unit_test_mock_sg", "Shot.sg_field", "567")
-        os.makedirs(os.path.join(root_path, "v123"))
-        os.makedirs(os.path.join(root_path, "v99"))
-        os.makedirs(os.path.join(root_path, "invalid_stuff"))
-        os.makedirs(os.path.join(root_path, "v2454"))
+        self.assertEquals(latest_cached.version, "v99")
 
         desc = sgtk.descriptor.create_descriptor(
             self.mockgun,
             sgtk.descriptor.Descriptor.APP,
             {
                 "type": "shotgun",
-                "version": 0,
+                "version": 1,
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "name": "aaa111",
+                "project_id": 123
+            },
+            bundle_cache_root_override=self.bundle_cache
+        )
+
+        self.assertEquals(desc.version, "v1")
+        latest_cached = desc.find_latest_cached_version()
+        self.assertEquals(latest_cached, None)
+
+    def test_get_latest_cached_by_id(self):
+        """
+        Tests resolving locally cached items by id
+        """
+        os.makedirs(
+            os.path.join(self.bundle_cache, "sg", "unit_test_mock_sg", "v98")
+        )
+
+        desc = sgtk.descriptor.create_descriptor(
+            self.mockgun,
+            sgtk.descriptor.Descriptor.APP,
+            {
+                "type": "shotgun",
+                "version": 98,
                 "entity_type": "Shot",
                 "field": "sg_field",
                 "id": 567
@@ -441,6 +458,23 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             bundle_cache_root_override=self.bundle_cache
         )
 
-        self.assertEquals(desc.version, "v0")
+        self.assertEquals(desc.version, "v98")
         latest_cached = desc.find_latest_cached_version()
-        self.assertEquals(latest_cached.version, "v2454")
+        self.assertEquals(latest_cached.version, "v98")
+
+        desc = sgtk.descriptor.create_descriptor(
+            self.mockgun,
+            sgtk.descriptor.Descriptor.APP,
+            {
+                "type": "shotgun",
+                "version": 1,
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "id": 567
+            },
+            bundle_cache_root_override=self.bundle_cache
+        )
+
+        self.assertEquals(desc.version, "v1")
+        latest_cached = desc.find_latest_cached_version()
+        self.assertEquals(latest_cached, None)

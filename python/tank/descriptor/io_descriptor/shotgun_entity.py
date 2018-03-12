@@ -141,20 +141,9 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         #
         # format for these paths will be
         #
-        # for the syntax when name and project is specified:
-        # bundle_cache/sg/SITE_NAME/EntityType.AttachmentField/[ProjectId_]NameField/AttachmentId
+        # bundle_cache/sg/SITE_NAME/AttachmentId
         #
-        # bundle_cache/sg/wintermute/PipelineConfiguration.sg_config/p509_Primary/v25283
-        #
-        #
-        # for the syntax when id is specified:
-        # bundle_cache/sg/SITE_NAME/EntityType.AttachmentField/entity_id/AttachmentId
-        #
-        # bundle_cache/sg/wintermute/PipelineConfiguration.sg_config/12345/v25283
-        #
-        # note: readability is promoted here - if in the future we discover issues with MAXPATH,
-        #       we turn the wintermute/PipelineConfiguration.sg_config/p509_Primary part into
-        #       a hash.
+        # bundle_cache/sg/wintermute/v25283
 
         # Firstly, because the bundle cache can be global, make sure we include the sg site name.
         # first, get site only; https://www.FOO.com:8080 -> www.foo.com
@@ -162,18 +151,10 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         # make it as short as possible for hosted sites
         base_url = base_url.replace(".shotgunstudio.com", "")
 
-        if self._mode == self._MODE_NAME_BASED:
-            # the name field and project id
-            name_field = self._name if self._project_id is None else "p%d_%s" % (self._project_id, self._name)
-        elif self._mode == self._MODE_ID_BASED:
-            name_field = str(self._entity_id)
-
         return os.path.join(
             bundle_cache_root,
             "sg",
             base_url,
-            "%s.%s" % (self._entity_type, self._field),
-            name_field,
             self.get_version()
         )
 
@@ -233,12 +214,8 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
                   constraint_pattern argument will be ignored by this
                   method implementation.
 
-        :param constraint_pattern: If this is specified, the query will be constrained
-               by the given pattern. Version patterns are on the following forms:
-
-                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
-                - v0.12.x - get the highest v0.12 version
-                - v1.x.x - get the highest v1 version
+        :param constraint_pattern: This parameter is unused and remains here to be compatible
+            with the expected signature for this method.
 
         :returns: IODescriptorShotgunEntity object
         """
@@ -248,11 +225,6 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         log.debug("Finding latest version of %s..." % self)
 
         if self._mode == self._MODE_NAME_BASED:
-            spec_name_fields = {
-                "Project": "name",
-                "Task": "content",
-                "HumanUser": "name"
-            }
             name_field = get_sg_entity_name_field(self._entity_type)
 
             filters = [[name_field, "is", self._name]]
@@ -316,66 +288,29 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
     def get_latest_cached_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version
-        that is locally avaiable in the bundle cache search path.
+        that is locally available in the bundle cache search path.
 
-        :param constraint_pattern: If this is specified, the query will be constrained
-               by the given pattern. Version patterns are on the following forms:
+        .. note:: The concept of constraint patterns doesn't apply to
+                  shotgun attachment ids and any data passed via the
+                  constraint_pattern argument will be ignored by this
+                  method implementation.
 
-                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
-                - v0.12.x - get the highest v0.12 version
-                - v1.x.x - get the highest v1 version
+        :param constraint_pattern: This parameter is unused and remains here to be compatible
+            with the expected signature for this method.
 
         :returns: instance deriving from IODescriptorBase or None if not found
         """
         if constraint_pattern:
             log.warning("%s does not support version constraint patterns." % self)
 
-        log.debug("Looking for cached versions of %r..." % self)
-        all_versions = self._get_locally_cached_versions().keys()
-        log.debug("Found %d versions" % len(all_versions))
-
-        # convert string of versions to ints
-        all_versions_int = []
-        for version_str in all_versions:
-            # remove any prefix v
-            if version_str[0] == "v":
-                version_str = version_str[1:]
-            try:
-                all_versions_int.append(int(version_str))
-            except ValueError:
-                log.warning("%r: Ignoring invalid cached version number" % version_str)
-
-        if len(all_versions_int) == 0:
+        # not possible to determine what 'latest' means in this case
+        # so check if the current descriptor exists on disk and in this
+        # case return it
+        if self.get_path():
+            return self
+        else:
+            # no cached version exists
             return None
-
-        # make a descriptor dict
-        if self._mode == self._MODE_NAME_BASED:
-            descriptor_dict = {
-                "type": "shotgun",
-                "entity_type": self._entity_type,
-                "field": self._field,
-                "name": self._name,
-                "version": max(all_versions_int)
-            }
-
-            if self._project_link:
-                descriptor_dict["project_id"] = self._project_id
-
-        elif self._mode == self._MODE_ID_BASED:
-            descriptor_dict = {
-                "type": "shotgun",
-                "entity_type": self._entity_type,
-                "field": self._field,
-                "id": self._entity_id,
-                "version": max(all_versions_int)
-            }
-
-        # and return a descriptor instance
-        desc = IODescriptorShotgunEntity(descriptor_dict, self._sg_connection)
-        desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
-
-        log.debug("Latest cached version resolved to %r" % desc)
-        return desc
 
     def has_remote_access(self):
         """

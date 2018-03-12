@@ -330,8 +330,7 @@ class TestDescriptorSupport(TankTestBase):
         }
 
         path = os.path.join(
-            self.install_root, "sg", "unit_test_mock_sg",
-            "PipelineConfiguration.sg_config", "p123_primary", "v456"
+            self.install_root, "sg", "unit_test_mock_sg", "v456"
         )
         self._create_info_yaml(path)
 
