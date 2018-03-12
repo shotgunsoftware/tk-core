@@ -225,12 +225,8 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
                   constraint_pattern argument will be ignored by this
                   method implementation.
 
-        :param constraint_pattern: If this is specified, the query will be constrained
-               by the given pattern. Version patterns are on the following forms:
-
-                - v0.1.2, v0.12.3.2, v0.1.3beta - a specific version
-                - v0.12.x - get the highest v0.12 version
-                - v1.x.x - get the highest v1 version
+        :param constraint_pattern: This parameter is unused and remains here to be compatible
+            with the expected signature for this method.
 
         :returns: IODescriptorShotgunEntity object
         """
@@ -240,11 +236,6 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         log.debug("Finding latest version of %s..." % self)
 
         if self._mode == self._MODE_NAME_BASED:
-            spec_name_fields = {
-                "Project": "name",
-                "Task": "content",
-                "HumanUser": "name"
-            }
             name_field = get_sg_entity_name_field(self._entity_type)
 
             filters = [[name_field, "is", self._name]]
@@ -310,10 +301,19 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         Returns a descriptor object that represents the latest version
         that is locally available in the bundle cache search path.
 
-        :param constraint_pattern: This parameter is unused.
+        .. note:: The concept of constraint patterns doesn't apply to
+                  shotgun attachment ids and any data passed via the
+                  constraint_pattern argument will be ignored by this
+                  method implementation.
+
+        :param constraint_pattern: This parameter is unused and remains here to be compatible
+            with the expected signature for this method.
 
         :returns: instance deriving from IODescriptorBase or None if not found
         """
+        if constraint_pattern:
+            log.warning("%s does not support version constraint patterns." % self)
+
         # not possible to determine what 'latest' means in this case
         # so check if the current descriptor exists on disk and in this
         # case return it
