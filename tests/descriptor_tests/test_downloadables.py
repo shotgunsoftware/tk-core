@@ -358,8 +358,7 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         self._test_multiprocess_download_to_shared_bundle_cache(
             self._download_shotgun_bundle,
             os.path.join(self.tank_temp, "shared_bundle_cache"),
-            os.path.join(self.tank_temp, "shared_bundle_cache", "sg", "unit_test_mock_sg",
-                         "PipelineConfiguration.sg_config", "p123_primary", "v456", "large_binary_file")
+            os.path.join(self.tank_temp, "shared_bundle_cache", "sg", "unit_test_mock_sg", "v456", "large_binary_file")
         )
 
     @skip_if_git_missing
