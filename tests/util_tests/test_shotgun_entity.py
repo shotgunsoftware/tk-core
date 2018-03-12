@@ -151,6 +151,22 @@ class TestShotgunEntity(TankTestBase):
         ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code}/{code2}")
         self.assertEqual(ee.generate_name({"code": "foo", "code2": "bar"}), "foo/bar")
 
+        # make sure that we don't have any empty tokens - in static syntax
+        ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code}//{code2}")
+        self.assertRaises(
+            tank.errors.TankError,
+            ee.generate_name,
+            {"code": "foo", "code2": "bar"}
+        )
+
+        # make sure that we don't have any empty tokens - in dynamic syntax
+        ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code}/{code2}")
+        self.assertRaises(
+            tank.errors.TankError,
+            ee.generate_name,
+            {"code": "foo", "code2": ""}
+        )
+
     def test_entity_expression_optional(self):
         """
         Tests basic expressions for entity objects with optional tokens
@@ -207,4 +223,17 @@ class TestShotgunEntity(TankTestBase):
         ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code:^([^_]+)}[XXX{status:^([^_]+)}]")
         self.assertEqual(ee.generate_name({"code": "foo_bar", "status": "baz_boo"}), "fooXXXbaz")
         self.assertEqual(ee.generate_name({"code": "foo_bar", "status": None}), "foo")
+
+        # test that we can repeat a token
+        ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code:^(.)}/{code}")
+        self.assertEqual(ee.generate_name({"code": "hello"}), "h/hello")
+
+        # test what happens when regex fails to match
+        ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code:^([A-Z]+)}")
+        self.assertEqual(ee.generate_name({"code": "Toolkitty"}), "T")
+        self.assertRaises(
+            tank.errors.TankError,
+            ee.generate_name,
+            {"code": "toolkitty"}
+        )
 
