@@ -98,7 +98,7 @@ class EntityExpression(object):
         self._tk = tk
         self._entity_type = entity_type
         self._field_name_expr = field_name_expr
-        
+
         # now validate
         if "{" not in field_name_expr:
             # simple form - surround with brackets to turn into a expression
@@ -143,7 +143,6 @@ class EntityExpression(object):
 
             resolved_fields = []
             for field_token_expression in fields:
-
                 full_field_name = None
                 link_field_name = None
                 regex_obj = None
@@ -167,6 +166,7 @@ class EntityExpression(object):
 
                 resolved_fields.append(
                     {
+                        "token": field_token_expression,
                         "full_field_name": full_field_name,
                         "link_field_name": link_field_name,
                         "regex_obj": regex_obj
@@ -296,9 +296,10 @@ class EntityExpression(object):
         :param values: dictionary of values to use 
         :returns: fully resolved name string or None if it cannot be resolved.
         """
-
         field_defs = self._variations[expression]
+
         # convert Shotgun values to string values
+        # key these by their full expression
         str_data = {}
 
         # get the Shotgun id from the Shotgun entity dict
@@ -308,6 +309,7 @@ class EntityExpression(object):
         for field_def in field_defs:
 
             full_sg_field_name = field_def["full_field_name"]
+            token = field_def["token"]
 
             # get value from Shotgun data dict
             raw_val = values.get(full_sg_field_name)
@@ -331,47 +333,54 @@ class EntityExpression(object):
                     field_def["regex_obj"],
                 )
 
-            str_data[full_sg_field_name] = str_value
+            str_data[token] = str_value
 
-        # change format from {xxx} to %(xxx)s for value substitution.
-        # make sure we remove any expression tokens from folder:
-        # {xxx} -> %(xxx)s
-        # {xxx:yyy} -> %(xxx)s
-        adjusted_expr = re.sub("\{([^:\}]+)[^\}]*\}", "%(\\1)s", expression)
+        # Now str_data looks something like
+        # {'code': 'hello', 'code:^(.)': 'h'}.
+        #
+        # Replace tokens in the string with actual values:
+        resolved_expression = expression
+        for token, value in str_data.iteritems():
+            resolved_expression = resolved_expression.replace("{%s}" % token, value)
 
-        # just to be sure, make sure to catch any exceptions here
-        # and produce a more sensible error message.
-        try:
-            val = adjusted_expr % str_data
-        except Exception as error:
-            raise TankError(
-                "Could not populate values for the expression '%s' - please "
-                "contact support! Error message: %s. "
-                "Data: %s" % (expression, error, str_data)
-            )
-            
         # now validate the entire value!
-        if not self._validate_name(val):
+        if not self._validate_name(resolved_expression):
             raise TankError(
                 "The format string '%s' used in the configuration "
                 "does not generate a valid folder name ('%s')! Valid "
-                "values are %s." % (expression, val, constants.VALID_SG_ENTITY_NAME_EXPLANATION)
+                "values are %s." % (
+                    expression,
+                    resolved_expression,
+                    constants.VALID_SG_ENTITY_NAME_EXPLANATION
+                )
             )
-            
-        return val
+        return resolved_expression
 
     def _validate_name(self, name):
         """
         Check that the name meets basic file system naming standards.
-        """
-        exp = re.compile(constants.VALID_SG_PROJECT_NAME_REGEX, re.UNICODE)
 
-        if isinstance(name, unicode):
-            return bool(exp.match(name))
-        else:
-            # try decoding from utf-8:
-            u_name = name.decode("utf-8")
-            return bool(exp.match(u_name))
+        :returns: True if valid, false otherwise
+        """
+        exp = re.compile(constants.VALID_SG_ENTITY_NAME_REGEX, re.UNICODE)
+
+        # split into sub-segments based on slash
+        # and validate each one separately
+        if name is None:
+            return False
+
+        # iterate over all tokens and validate
+        for folder_subgroup in name.split("/"):
+            if isinstance(folder_subgroup, unicode):
+                u_name = folder_subgroup
+            else:
+                # try decoding from utf-8:
+                u_name = folder_subgroup.decode("utf-8")
+
+            if exp.match(u_name) is None:
+                return False
+
+        return True
 
     def _process_regex(self, value, regex_obj):
         """
