@@ -141,20 +141,9 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         #
         # format for these paths will be
         #
-        # for the syntax when name and project is specified:
-        # bundle_cache/sg/SITE_NAME/EntityType.AttachmentField/[ProjectId_]NameField/AttachmentId
+        # bundle_cache/sg/SITE_NAME/AttachmentId
         #
-        # bundle_cache/sg/wintermute/PipelineConfiguration.sg_config/p509_Primary/v25283
-        #
-        #
-        # for the syntax when id is specified:
-        # bundle_cache/sg/SITE_NAME/EntityType.AttachmentField/entity_id/AttachmentId
-        #
-        # bundle_cache/sg/wintermute/PipelineConfiguration.sg_config/12345/v25283
-        #
-        # note: readability is promoted here - if in the future we discover issues with MAXPATH,
-        #       we turn the wintermute/PipelineConfiguration.sg_config/p509_Primary part into
-        #       a hash.
+        # bundle_cache/sg/wintermute/v25283
 
         # Firstly, because the bundle cache can be global, make sure we include the sg site name.
         # first, get site only; https://www.FOO.com:8080 -> www.foo.com
