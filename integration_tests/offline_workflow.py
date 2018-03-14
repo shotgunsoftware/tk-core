@@ -33,6 +33,8 @@ import sys
 import atexit
 import tempfile
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "python"))
+
 import sgtk
 from sgtk.util.filesystem import safe_delete_folder
 
@@ -121,7 +123,7 @@ class OfflineWorkflow(unittest2.TestCase):
             "{temp_dir}/config.zip".format(temp_dir=temp_dir),
         )
 
-    def test_05_upload_to_pipeline_configuration(self):
+    def test_03_upload_to_pipeline_configuration(self):
         """
         Ensures the project and pipeline configuration we want to use are ready in Shotgun. This
         includes uploading the pipeline configuration to Shotgun.
@@ -131,7 +133,10 @@ class OfflineWorkflow(unittest2.TestCase):
         projects = self.sg.find("Project", [["name", "is", self.OFFLINE_WORKFLOW_TEST]])
         self.assertLessEqual(len(projects), 1)
         if not projects:
-            project = self.sg.create("Project", {"name": self.OFFLINE_WORKFLOW_TEST, "tank_name": self.OFFLINE_WORKFLOW_TEST})
+            project = self.sg.create(
+                "Project",
+                {"name": self.OFFLINE_WORKFLOW_TEST, "tank_name": self.OFFLINE_WORKFLOW_TEST}
+            )
         else:
             project = projects[0]
 
@@ -139,7 +144,10 @@ class OfflineWorkflow(unittest2.TestCase):
         pcs = self.sg.find("PipelineConfiguration", [["code", "is", "Primary"], ["project", "is", project]])
         self.assertLessEqual(len(pcs), 1)
         if not pcs:
-            pc = self.sg.create("PipelineConfiguration", {"code": "Primary", "project": project, "plugin_ids": "basic.*"})
+            pc = self.sg.create(
+                "PipelineConfiguration",
+                {"code": "Primary", "project": project, "plugin_ids": "basic.*"}
+            )
         else:
             pc = pcs[0]
 
@@ -151,7 +159,7 @@ class OfflineWorkflow(unittest2.TestCase):
             "Uploaded by tk-core integration tests."
         )
 
-    def test_05_bootstrap(self):
+    def test_04_bootstrap(self):
         """
         Ensures we can bootstrap into the uploaded configuration and that no bundles are downloaded from
         the app store.
