@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor_config &mdash; tk-core v0.18.129 documentation</title>
+  <title>tank.descriptor.descriptor_config &mdash; tk-core v0.18.132 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.129 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.132 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.129.<br>
+    <b>tk-core</b> v0.18.132.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -227,8 +227,13 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves the Python interpreter for the current platform from the interpreter files.</span>
 
-<span class="sd">        :raises TankFileDoesNotExistError: If the interpreter file is missing.</span>
-<span class="sd">        :raises TankInvalidInterpreterLocationError: If the interpreter can&#39;t be found on disk.</span>
+<span class="sd">        .. note:: Most runtime environments (Nuke, Maya, Houdini, etc.) provide their</span>
+<span class="sd">            own python interpreter that needs to used when executing code. This property</span>
+<span class="sd">            is useful if the engine you are running (e.g. ``tk-shell``) does not have</span>
+<span class="sd">            an explicit interpreter associated.</span>
+
+<span class="sd">        :raises :class:`TankFileDoesNotExistError`: If the interpreter file is missing.</span>
+<span class="sd">        :raises :class:`TankInvalidInterpreterLocationError`: If the interpreter can&#39;t be found on disk.</span>
 
 <span class="sd">        :returns: Path value stored in the interpreter file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -466,7 +471,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.129',
+            VERSION:'v0.18.132',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

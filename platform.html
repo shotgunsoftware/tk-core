@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.129 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.132 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.129 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.132 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Core" href="core.html"/> 
 
@@ -173,7 +173,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.129.<br>
+    <b>tk-core</b> v0.18.132.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -754,10 +754,13 @@ QPalette and stylesheets.</p>
 a dark style defined, do not call this method. The Toolkit apps are 
 designed to work well with most dark themes.</p>
 <p>However, if you are for example creating your own QApplication instance
-you can execute this method to but the session into Toolkit&#8217;s 
+you can execute this method to put the session into Toolkit&#8217;s 
 standard dark mode.</p>
-<p>This will initialize the plastique style and set it up with a standard
-dark palette and supporting stylesheet.</p>
+<p>This will initialize the plastique style (for Qt4) or the fusion style
+(for Qt5), and set it up with a standard dark palette and supporting
+stylesheet.</p>
+<p><a class="reference external" href="http://doc.qt.io/archives/qt-4.8/qapplication.html#setStyle-2">Qt4 setStyle documentation</a>
+<a class="reference external" href="https://doc.qt.io/qt-5.10/qapplication.html#setStyle-1">Qt5 setStyle documentation</a></p>
 <p>Apps and UIs can then extend this further by using further css.</p>
 <p>Due to restrictions in QT, this needs to run after a QApplication object
 has been instantiated.</p>
@@ -1041,7 +1044,7 @@ command registered during engine initialization.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)">bool</a></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)">bool</a></td>
 </tr>
 </tbody>
 </table>
@@ -1991,7 +1994,7 @@ hook. This will override the default hook base class, <code class="docutils lite
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>project_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The project Entity id number.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>project_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) &#8211; The project Entity id number.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Cache location directory path.</td>
 </tr>
@@ -2923,7 +2926,7 @@ hook. This will override the default hook base class, <code class="docutils lite
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>project_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The project Entity id number.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>project_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) &#8211; The project Entity id number.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Cache location directory path.</td>
 </tr>
@@ -3804,7 +3807,7 @@ hook. This will override the default hook base class, <code class="docutils lite
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>project_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The project Entity id number.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>project_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) &#8211; The project Entity id number.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Cache location directory path.</td>
 </tr>
@@ -4242,6 +4245,17 @@ the most recent approved major version one of the framework. Toolkit uses semant
 minor version number increments indicates added features and patch version numbers indicates backwards
 compatible bug fixes. We therefore recommend to have framework dependencies track against a
 major version number.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>If there is a required minimum version for a framework, a <code class="docutils literal"><span class="pre">minimum_version</span></code> setting
+can be used in the <code class="docutils literal"><span class="pre">info.yml</span></code> manifest:</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="c1"># the frameworks required to run this app</span>
+<span class="n">frameworks</span><span class="p">:</span>
+    <span class="o">-</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tk-framework-shotgunutils&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;v2.x.x&quot;</span><span class="p">,</span> <span class="s2">&quot;minimum_version&quot;</span><span class="p">:</span> <span class="s2">&quot;v2.3.3&quot;</span><span class="p">}</span>
+    <span class="o">-</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tk-framework-qtwidgets&quot;</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;v1.x.x&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="version-constraints">
 <h4>Version constraints<a class="headerlink" href="#version-constraints" title="Permalink to this headline">¶</a></h4>
@@ -4823,7 +4837,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.129',
+            VERSION:'v0.18.132',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

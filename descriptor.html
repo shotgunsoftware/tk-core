@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptors &mdash; tk-core v0.18.129 documentation</title>
+  <title>Descriptors &mdash; tk-core v0.18.132 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.129 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.132 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -142,7 +142,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.129.<br>
+    <b>tk-core</b> v0.18.132.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -294,7 +294,7 @@ Descriptors that are downloaded (cached) to the local disk are called <strong>do
 The <strong>app_store</strong>, <strong>shotgun</strong>, <strong>git</strong> and <strong>git_branch</strong> descriptors are downloadable descriptors,
 while the <strong>path</strong>, <strong>dev</strong> and <strong>manual</strong> descriptors are accessed directly from the specified path.</p>
 <div class="section" id="the-shotgun-app-store">
-<h3>The Shotgun App store<a class="headerlink" href="#the-shotgun-app-store" title="Permalink to this headline">¶</a></h3>
+<span id="app-store-descriptor"></span><h3>The Shotgun App store<a class="headerlink" href="#the-shotgun-app-store" title="Permalink to this headline">¶</a></h3>
 <p>The Shotgun app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
 tested and approved by Shotgun. App store descriptors should include a name and version token and
 are on the following form:</p>
@@ -328,7 +328,7 @@ v2017 of a DCC, the plugin can be set up to track against the latest released ve
 for the latest available version in the app store, only versions labelled with v2017 will be taken into account.</p>
 </div>
 <div class="section" id="tracking-against-tags-in-git">
-<h3>Tracking against tags in git<a class="headerlink" href="#tracking-against-tags-in-git" title="Permalink to this headline">¶</a></h3>
+<span id="git-descriptors"></span><h3>Tracking against tags in git<a class="headerlink" href="#tracking-against-tags-in-git" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal"><span class="pre">git</span></code> descriptor type is used to track git tags and typically used when you are tracking released
 versions of something. You can use any syntax that git supports, with a path key containing the path
 to the git repository.</p>
@@ -512,11 +512,38 @@ personal development:</p>
 <div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:path?path=%7E/path/to/app</span>
 </pre></div>
 </div>
-<p>Sometimes it can be useful to organize your development sandbox relative to a pipeline configuration.
-If all developers in the studio share a convention where they for example have a <code class="docutils literal"><span class="pre">dev</span></code> folder inside
-their pipeline configuration dev sandboxes, it becomes easy to exchange environment configs.
-You can achieve this by using the special token <code class="docutils literal"><span class="pre">{PIPELINE_CONFIG}</span></code> which will resolve into the
-local path to the pipeline configuration:</p>
+<p>Sometimes it may be useful to distribute application code within the configuration for applications
+that may not be accessible through the traditional distribution mechanism for Toolkit applications
+like the <a class="reference internal" href="#app-store-descriptor"><span class="std std-ref">App Store</span></a> or the various <a class="reference internal" href="#git-descriptors"><span class="std std-ref">Git</span></a>
+descriptor types. Although we recommend in those case to use the <a class="reference internal" href="initializing.html#local-bundle-caches"><span class="std std-ref">local bundle
+caches</span></a>, it may not always be desirable. In those cases, it is possible to
+package the application code alongside the <code class="docutils literal"><span class="pre">env</span></code> or <code class="docutils literal"><span class="pre">hooks</span></code> folder and refer to it with the
+<code class="docutils literal"><span class="pre">CONFIG_FOLDER</span></code> token:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+    <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">dev</span><span class="p p-Indicator">,</span>
+    <span class="nv">path</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">{</span><span class="nv">CONFIG_FOLDER</span><span class="p p-Indicator">}</span><span class="nv">/dev/tk-nuke-myapp</span>
+<span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=%7BCONFIG_FOLDER%7D/dev/tk-nuke-myapp</span>
+</pre></div>
+</div>
+<p>When using an installed pipeline configuration, this will refer to
+<code class="docutils literal"><span class="pre">{PIPELINE_ROOT}/config</span></code>. When using a cached or baked pipeline configuration, it will point where
+the bundle was found in one of the bundle caches.</p>
+<img alt="_images/config_folder_token.png" src="_images/config_folder_token.png" />
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you don&#8217;t know if your configuration will be used with an installed, baked or cached pipeline
+configuration, we recommend the use of the <code class="docutils literal"><span class="pre">CONFIG_FOLDER</span></code> token as it allows to resolve where
+the configuration&#8217;s files will be located as the pipeline configuration may or may not contain
+the <code class="docutils literal"><span class="pre">config</span></code> folder depending on usage.</p>
+</div>
+<p>When using an installed pipeline configuration, it can be useful to organize your development
+sandbox relative to a pipeline configuration. If all developers in the studio share a convention
+where they for example have a <code class="docutils literal"><span class="pre">dev</span></code> folder inside their pipeline configuration dev sandboxes, it
+becomes easy to exchange environment configs. You can achieve this by using the special token
+<code class="docutils literal"><span class="pre">{PIPELINE_CONFIG}</span></code> which will resolve into the local path to the pipeline configuration:</p>
 <div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
     <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">dev</span><span class="p p-Indicator">,</span>
     <span class="nv">path</span><span class="p p-Indicator">:</span> <span class="p p-Indicator">{</span><span class="nv">PIPELINE_CONFIG</span><span class="p p-Indicator">}</span><span class="nv">/dev/tk-nuke-myapp</span>
@@ -525,6 +552,13 @@ local path to the pipeline configuration:</p>
 </div>
 <div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=%7BPIPELINE_CONFIG%7D/dev/tk-nuke-myapp</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <code class="docutils literal"><span class="pre">PIPELINE_CONFIG</span></code> refers to the root of the pipeline configuration, which for cached or baked
+pipeline configurations do not contain the <code class="docutils literal"><span class="pre">config</span></code> folder with all the environment and hook files.
+If you wish to refer to elements inside the <code class="docutils literal"><span class="pre">config</span></code> folder and wish the configuration to be usable
+both with installed, baked or cached configuration, we recommend you use the <code class="docutils literal"><span class="pre">CONFIG_FOLDER</span></code> token.</p>
 </div>
 </div>
 <div class="section" id="pointing-at-a-file-attachment-in-shotgun">
@@ -837,9 +871,9 @@ to indicate that no changelog exists.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Core version. If None, current core version will be used.</li>
+<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) &#8211; Core version. If None, current core version will be used.</li>
 <li><strong>engine_descriptor</strong> (<code class="xref py py-class docutils literal"><span class="pre">DescriptorBundle</span></code>) &#8211; Descriptor of the engine this bundle will run under. None by default.</li>
-<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Version of the Shotgun Desktop. None by default.</li>
+<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) &#8211; Version of the Shotgun Desktop. None by default.</li>
 </ul>
 </td>
 </tr>
@@ -1347,9 +1381,9 @@ to indicate that no changelog exists.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Core version. If None, current core version will be used.</li>
+<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) &#8211; Core version. If None, current core version will be used.</li>
 <li><strong>engine_descriptor</strong> (<code class="xref py py-class docutils literal"><span class="pre">DescriptorBundle</span></code>) &#8211; Descriptor of the engine this bundle will run under. None by default.</li>
-<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Version of the Shotgun Desktop. None by default.</li>
+<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) &#8211; Version of the Shotgun Desktop. None by default.</li>
 </ul>
 </td>
 </tr>
@@ -1873,9 +1907,9 @@ to indicate that no changelog exists.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Core version. If None, current core version will be used.</li>
+<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) &#8211; Core version. If None, current core version will be used.</li>
 <li><strong>engine_descriptor</strong> (<code class="xref py py-class docutils literal"><span class="pre">DescriptorBundle</span></code>) &#8211; Descriptor of the engine this bundle will run under. None by default.</li>
-<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Version of the Shotgun Desktop. None by default.</li>
+<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) &#8211; Version of the Shotgun Desktop. None by default.</li>
 </ul>
 </td>
 </tr>
@@ -2363,18 +2397,20 @@ min_engine and min_desktop</td>
 <dt id="sgtk.descriptor.ConfigDescriptor.python_interpreter">
 <code class="descname">python_interpreter</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.python_interpreter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves the Python interpreter for the current platform from the interpreter files.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Most runtime environments (Nuke, Maya, Houdini, etc.) provide their
+own python interpreter that needs to used when executing code. This property
+is useful if the engine you are running (e.g. <code class="docutils literal"><span class="pre">tk-shell</span></code>) does not have
+an explicit interpreter associated.</p>
+</div>
+<p>:raises <code class="xref py py-class docutils literal"><span class="pre">TankFileDoesNotExistError</span></code>: If the interpreter file is missing.
+:raises <a class="reference internal" href="#sgtk.descriptor.TankInvalidInterpreterLocationError" title="sgtk.descriptor.TankInvalidInterpreterLocationError"><code class="xref py py-class docutils literal"><span class="pre">TankInvalidInterpreterLocationError</span></code></a>: If the interpreter can&#8217;t be found on disk.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first simple">
-<li><strong>TankFileDoesNotExistError</strong> &#8211; If the interpreter file is missing.</li>
-<li><strong>TankInvalidInterpreterLocationError</strong> &#8211; If the interpreter can&#8217;t be found on disk.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Path value stored in the interpreter file.</p>
-</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path value stored in the interpreter file.</td>
 </tr>
 </tbody>
 </table>
@@ -2399,8 +2435,8 @@ min_engine and min_desktop</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>feature_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the feature to retrieve from the manifest.</li>
-<li><strong>default_value</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) &#8211; Value to return if the feature is missing.</li>
+<li><strong>feature_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) &#8211; Name of the feature to retrieve from the manifest.</li>
+<li><strong>default_value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><em>object</em></a>) &#8211; Value to return if the feature is missing.</li>
 </ul>
 </td>
 </tr>
@@ -2845,8 +2881,8 @@ min_engine, min_desktop</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>feature_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the feature to retrieve from the manifest.</li>
-<li><strong>default_value</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) &#8211; Value to return if the feature is missing.</li>
+<li><strong>feature_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) &#8211; Name of the feature to retrieve from the manifest.</li>
+<li><strong>default_value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><em>object</em></a>) &#8211; Value to return if the feature is missing.</li>
 </ul>
 </td>
 </tr>
@@ -3288,7 +3324,7 @@ If not url has been defined, <code class="docutils literal"><span class="pre">No
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.129',
+            VERSION:'v0.18.132',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

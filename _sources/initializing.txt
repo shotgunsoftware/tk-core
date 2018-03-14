@@ -228,6 +228,9 @@ but is shared between all pipeline configurations.
     These locations can be customized by setting a ``SHOTGUN_HOME``
     :ref:`environment variable<environment_variables>`.
 
+
+.. _local_bundle_caches:
+
 .. note:: You can include a local ``bundle_cache`` folder within your configuration to make it self contained.
 
     .. image:: ./resources/initializing/bundle_cache_in_config.png
@@ -370,6 +373,29 @@ Create your configuration, manually add a ``bundle_cache`` folder
 containing the necessary app, engine, core and framework payload, zip it and
 :ref:`upload it to Shotgun<upload_config_to_shotgun>`.
 
+
+Configurations with filesystem templates
+===============================================
+
+If the configuration you have specified in the descriptor field (or have uploaded to Shotgun) is using
+the Toolkit folder schema and templates system, you need to manually configure a series of settings
+related to file storage locations.
+
+A toolkit configuration contains a ``roots.yml`` file which defines the file storages required by
+that configuration. See for example the `Toolkit default configuration <https://github.com/shotgunsoftware/tk-config-default2/blob/master/core/roots.yml>`_.
+All storages defined here need to have a corresponding Local File Storage defined in Shotgun.
+These settings can be found in Shotgun's site preferences.
+
+In addition to this, a project folder name needs to be defined. This will be the name which is given
+to the root folder on disk when the folder structure starts getting populated. The project name
+is defined in field named ``tank_name`` on the Shotgun Project entity.
+
+.. note:: When using a  :ref:`centralized configuraion<centralized_configs>`, this process
+          is automatically handled by the project setup wizard. In this case, you have to
+          do it manually.
+
+
+.. _centralized_configs:
 
 Managing centralized configurations
 ----------------------------------------------------------
