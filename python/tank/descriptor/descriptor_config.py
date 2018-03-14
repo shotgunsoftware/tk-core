@@ -74,13 +74,17 @@ class ConfigDescriptor(Descriptor):
         if not self.associated_core_descriptor:
             return None
 
+        local_bundle_cache = os.path.join(
+            self.get_config_folder(), "bundle_cache"
+        )
+
         if not self._cached_core_descriptor:
             self._cached_core_descriptor = create_descriptor(
                 self._sg_connection,
                 Descriptor.CORE,
                 self.associated_core_descriptor,
                 self._bundle_cache_root,
-                self._fallback_roots,
+                [local_bundle_cache] + self._fallback_roots,
                 resolve_latest=False
             )
 
