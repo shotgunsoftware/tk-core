@@ -69,6 +69,35 @@ class TestCachedConfigDescriptor(ShotgunTestBase):
             "bar"
         )
 
+    def test_self_contained_config_core_descriptor(self):
+        """
+        Ensures that a configuration with a local bundle cache can return a core
+        descriptor that points inside the configuration if the core is cached there.
+        """
+        config_root = os.path.join(self.tank_temp, "self_contained_config")
+        core_location = os.path.join(
+            config_root, "bundle_cache", "app_store", "tk-core", "v0.18.133"
+        )
+        self.create_file(
+            os.path.join(core_location, "info.yml"),
+            ""
+        )
+        self.create_file(
+            os.path.join(config_root, "core", "core_api.yml"),
+            yaml.dump({"location": {"type": "app_store", "name": "tk-core", "version": "v0.18.133"}})
+        )
+
+        config_desc = create_descriptor(
+            self.mockgun,
+            Descriptor.CONFIG,
+            "sgtk:descriptor:path?path={0}".format(config_root)
+        )
+        core_desc = config_desc.resolve_core_descriptor()
+        self.assertEqual(
+            core_desc.get_path(),
+            core_location
+        )
+
     def test_cached_config_associated_core_descriptor(self):
         """
         Ensures core_api.yml is handled properly.
