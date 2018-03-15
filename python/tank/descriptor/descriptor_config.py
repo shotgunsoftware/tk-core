@@ -57,8 +57,8 @@ class ConfigDescriptor(Descriptor):
             is useful if the engine you are running (e.g. ``tk-shell``) does not have
             an explicit interpreter associated.
 
-        :raises :class:`TankFileDoesNotExistError`: If the interpreter file is missing.
-        :raises :class:`TankInvalidInterpreterLocationError`: If the interpreter can't be found on disk.
+        :raises: :class:`TankFileDoesNotExistError` If the interpreter file is missing.
+        :raises: :class:`TankInvalidInterpreterLocationError` If the interpreter can't be found on disk.
 
         :returns: Path value stored in the interpreter file.
         """
