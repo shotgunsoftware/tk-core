@@ -12,6 +12,10 @@ One common set of environment variables would be:
 ``SHOTGUN_TEST_API_SCRIPT``: Name of script on that site.
 ``SHOTGUN_TEST_API_KEY``: Key for said script.
 
+How to run an integration test
+------------------------------
+Simply set the three environment variables and then type ``python <test_name>.py``.
+
 How to write an integration test
 --------------------------------
 
