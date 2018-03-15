@@ -252,7 +252,7 @@ class TestWritePipelineConfigFile(ShotgunTestBase):
     def _create_test_data(self, create_project):
         """
         Creates test data, including
-            - __pipeline_configuration, a shotgun entity dict.
+            - __site_configuration, a shotgun entity dict.
             - optional __project entity dict, linked from the pipeline configuration
             - __descriptor, a sgtk.descriptor.Descriptor refering to a config on disk.
             - __cw, a ConfigurationWriter
@@ -269,7 +269,15 @@ class TestWritePipelineConfigFile(ShotgunTestBase):
         else:
             self.__project = None
 
-        self.__pipeline_configuration = self.mockgun.create(
+        self.__site_configuration = self.mockgun.create(
+            "PipelineConfiguration",
+            {
+                "code": "PC_TestWritePipelineConfigFile",
+                "project": None
+            }
+        )
+
+        self.__project_configuration = self.mockgun.create(
             "PipelineConfiguration",
             {
                 "code": "PC_TestWritePipelineConfigFile",
@@ -338,7 +346,7 @@ class TestWritePipelineConfigFile(ShotgunTestBase):
 
         with self._fixme_find_one():
             path = self.__cw.write_pipeline_config_file(
-                self.__pipeline_configuration["id"],
+                self.__site_configuration["id"],
                 None,
                 "basic.plugin",
                 self.FALLBACK_PATHS,
@@ -351,8 +359,8 @@ class TestWritePipelineConfigFile(ShotgunTestBase):
         self.assertDictEqual(
             config_info,
             {
-                "pc_id": self.__pipeline_configuration["id"],
-                "pc_name": self.__pipeline_configuration["code"],
+                "pc_id": self.__site_configuration["id"],
+                "pc_name": self.__site_configuration["code"],
                 "project_id": None,
                 "project_name": "unnamed",
                 "plugin_id": "basic.plugin",
@@ -363,6 +371,31 @@ class TestWritePipelineConfigFile(ShotgunTestBase):
                 "source_descriptor": self.__descriptor.get_dict()
             }
         )
+
+    @contextlib.contextmanager
+    def _fixme_find_one(self):
+        """
+        Workaround for a bug in Mockgun.
+        """
+        # FIXME: There's a bug in Mockgun when a linked field is set to None. A client fixed this
+        # bug, we're only waiting for the PR to be merged.
+        with patch("tank_vendor.shotgun_api3.lib.mockgun.mockgun.Shotgun.find_one") as p:
+            def mocked_find_one(entity_type, filters, *args):
+                # Make sure we're being queried for the pipeline configuration we are expecting.
+                self.assertEqual(entity_type, "PipelineConfiguration")
+                self.assertEqual(
+                    filters, [["id", "is", self.__site_configuration["id"]]]
+                )
+                # Make sure we are mocking the call for the project which is None.
+                self.assertIsNone(self.__site_configuration["project"])
+                result = {
+                    "project.Project.tank_name": None
+                }
+                result.update(self.__site_configuration)
+                return result
+
+            p.side_effect = mocked_find_one
+            yield
 
     def test_write_project_config(self):
         """
@@ -397,38 +430,13 @@ class TestWritePipelineConfigFile(ShotgunTestBase):
             }
         )
 
-    @contextlib.contextmanager
-    def _fixme_find_one(self):
-        """
-        Workaround for a bug in Mockgun.
-        """
-        # FIXME: There's a bug in Mockgun when a linked field is set to None. A client fixed this
-        # bug, we're only waiting for the PR to be merged.
-        with patch("tank_vendor.shotgun_api3.lib.mockgun.mockgun.Shotgun.find_one") as p:
-            def mocked_find_one(entity_type, filters, *args):
-                # Make sure we're being queried for the pipeline configuration we are expecting.
-                self.assertEqual(entity_type, "PipelineConfiguration")
-                self.assertEqual(
-                    filters, [["id", "is", self.__pipeline_configuration["id"]]]
-                )
-                # Make sure we are mocking the call for the project which is None.
-                self.assertIsNone(self.__pipeline_configuration["project"])
-                result = {
-                    "project.Project.tank_name": None
-                }
-                result.update(self.__pipeline_configuration)
-                return result
-
-            p.side_effect = mocked_find_one
-            yield
-
     def test_write_project_sandbox_config(self):
         """
         Expects project configuration sandboxes are written out properly.
         """
         self._create_test_data(create_project=True)
         path = self.__cw.write_pipeline_config_file(
-            self.__pipeline_configuration["id"],
+            self.__project_configuration["id"],
             self.__project["id"],
             "basic.plugin",
             self.FALLBACK_PATHS,
@@ -441,8 +449,8 @@ class TestWritePipelineConfigFile(ShotgunTestBase):
         self.assertDictEqual(
             config_info,
             {
-                "pc_id": self.__pipeline_configuration["id"],
-                "pc_name": self.__pipeline_configuration["code"],
+                "pc_id": self.__project_configuration["id"],
+                "pc_name": self.__project_configuration["code"],
                 "project_id": self.__project["id"],
                 "project_name": self.__project["tank_name"],
                 "plugin_id": "basic.plugin",
