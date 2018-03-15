@@ -80,7 +80,7 @@ def authenticate(options):
             return 2
 
         logger.info("Connecting to %s using script user %s..." % (options.shotgun_host, script_name))
-        sg_user = sg_auth.create_script_user(script_name, script_key, shotgun_host )
+        sg_user = sg_auth.create_script_user(script_name, script_key, shotgun_host)
 
     else:
         logger.info("Connect to any Shotgun site to collect AppStore keys.")
