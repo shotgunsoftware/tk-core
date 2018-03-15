@@ -19,6 +19,9 @@ There is currently no framework to write those. You should split your test
 in multiple sub-tests that can be run independently, so you can run them one at
 a time. You can leverage pyUnit's functionality for that.
 
+Note that pyUnit's documentation says that tests in a tests class are sorted
+alphabetically, so you can number your tests functions to order them.
+
 Future work
 -----------
 
@@ -28,7 +31,7 @@ the way we do things.
 
 The pre-requisites for picking a framework would have to be:
 
-- be open-source, we want this to run on travis
+- be open-source or publicly available, as we want this to run on travis
 - be able to split a test in multiple steps, which can fail the test early
 - be able to run a test one step at a time to debug them
 - make it easy to integrate code coverage from subprocesses that are invoked

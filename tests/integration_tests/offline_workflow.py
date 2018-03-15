@@ -90,7 +90,7 @@ class OfflineWorkflow(unittest2.TestCase):
         """
         repo_root = os.path.join(
             os.path.dirname(__file__),
-            ".."
+            "..", ".."
         )
         try:
             sgtk.util.process.subprocess_check_output([
