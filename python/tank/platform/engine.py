@@ -2092,16 +2092,123 @@ class Engine(TankBundle):
         designed to work well with most dark themes.
         
         However, if you are for example creating your own QApplication instance
-        you can execute this method to but the session into Toolkit's 
+        you can execute this method to put the session into Toolkit's 
         standard dark mode.
         
-        This will initialize the plastique style and set it up with a standard
-        dark palette and supporting stylesheet.
+        This will initialize the plastique style (for Qt4) or the fusion style
+        (for Qt5), and set it up with a standard dark palette and supporting
+        stylesheet.
+
+        `Qt4 setStyle documentation <http://doc.qt.io/archives/qt-4.8/qapplication.html#setStyle-2>`_
+        `Qt5 setStyle documentation <https://doc.qt.io/qt-5.10/qapplication.html#setStyle-1>`_
         
         Apps and UIs can then extend this further by using further css.
         
         Due to restrictions in QT, this needs to run after a QApplication object
         has been instantiated.
+        """
+        if self.has_qt5:
+            self.log_debug("Applying Qt5-specific styling...")
+            self.__initialize_dark_look_and_feel_qt5()
+        elif self.has_qt4:
+            self.log_debug("Applying Qt4-specific styling...")
+            self.__initialize_dark_look_and_feel_qt4()
+        else:
+            self.log_warning(
+                "Neither Qt4 or Qt5 is available. Toolkit styling will not be applied."
+            )
+
+    def __initialize_dark_look_and_feel_qt5(self):
+        """
+        Applies a dark style for Qt5 environments. This sets the "fusion" style
+        at the application level, and then constructs and applies a custom palette
+        that emulates Maya 2017's color scheme.
+        """
+        from .qt import QtGui
+        app = QtGui.QApplication.instance()
+
+        # Set the fusion style, which gives us a good base to build on. With
+        # this, we'll be sticking largely to the style and won't need to
+        # introduce much qss to get a good look.
+        app.setStyle("fusion")
+
+        # Build ourselves a dark palette to assign to the application. This
+        # will take the fusion style and darken it up.
+        palette = QtGui.QPalette()
+
+        # This closely resembles the color palette used in Maya 2017 with a
+        # few minor tweaks.
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Button, QtGui.QColor(80, 80, 80))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Light, QtGui.QColor(97, 97, 97))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Midlight, QtGui.QColor(59, 59, 59))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Dark, QtGui.QColor(37, 37, 37))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Mid, QtGui.QColor(45, 45, 45))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Base, QtGui.QColor(42, 42, 42))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Window, QtGui.QColor(68, 68, 68))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Shadow, QtGui.QColor(0, 0, 0))
+        palette.setBrush(
+            QtGui.QPalette.Disabled,
+            QtGui.QPalette.AlternateBase,
+            palette.color(QtGui.QPalette.Disabled, QtGui.QPalette.Base).lighter(110)
+        )
+        palette.setBrush(
+            QtGui.QPalette.Disabled,
+            QtGui.QPalette.Text,
+            palette.color(QtGui.QPalette.Disabled, QtGui.QPalette.Base).lighter(250)
+        )
+
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.WindowText, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Button, QtGui.QColor(75, 75, 75))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.ButtonText, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Light, QtGui.QColor(97, 97, 97))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Midlight, QtGui.QColor(59, 59, 59))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Dark, QtGui.QColor(37, 37, 37))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Mid, QtGui.QColor(45, 45, 45))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Text, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.BrightText, QtGui.QColor(37, 37, 37))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Base, QtGui.QColor(42, 42, 42))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Window, QtGui.QColor(68, 68, 68))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Shadow, QtGui.QColor(0, 0, 0))
+        palette.setBrush(
+            QtGui.QPalette.Active,
+            QtGui.QPalette.AlternateBase,
+            palette.color(QtGui.QPalette.Active, QtGui.QPalette.Base).lighter(110)
+        )
+
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.WindowText, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Button, QtGui.QColor(75, 75, 75))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.ButtonText, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Light, QtGui.QColor(97, 97, 97))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Midlight, QtGui.QColor(59, 59, 59))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Dark, QtGui.QColor(37, 37, 37))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Mid, QtGui.QColor(45, 45, 45))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Text, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.BrightText, QtGui.QColor(37, 37, 37))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Base, QtGui.QColor(42, 42, 42))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Window, QtGui.QColor(68, 68, 68))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Shadow, QtGui.QColor(0, 0, 0))
+        palette.setBrush(
+            QtGui.QPalette.Inactive,
+            QtGui.QPalette.AlternateBase,
+            palette.color(QtGui.QPalette.Inactive, QtGui.QPalette.Base).lighter(110)
+        )
+
+        app.setPalette(palette)
+
+        # Finally, we just need to set the default font size for our widgets
+        # deriving from QWidget. This also has the side effect of correcting
+        # a couple of styling quirks in the tank dialog header when it's
+        # used with the fusion style.
+        app.setStyleSheet(
+            ".QWidget { font-size: 11px; }"
+        )
+
+    def __initialize_dark_look_and_feel_qt4(self):
+        """
+        Applies a dark style for Qt4 environments. This sets the "plastique"
+        style at the application level, and then loads a Maya-2014-like QPalette
+        to give a consistent dark theme to all widgets owned by the current
+        application. Lastly, a stylesheet is read from disk and applied.
         """
         from .qt import QtGui, QtCore
 

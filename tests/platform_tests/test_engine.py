@@ -89,7 +89,7 @@ class TestStartEngine(TestEngineBase):
         Makes sure the engine is loaded from the right location.
         """
         engine_path = tank.platform.get_engine_path("test_engine", self.tk, self.context)
-        expected_engine_path = os.path.join(self.pipeline_config_root, "config", "bundles", "test_engine")
+        expected_engine_path = os.path.join(self.project_config, "bundles", "test_engine")
         self.assertEquals(engine_path, expected_engine_path)
 
     def test_valid_engine(self):

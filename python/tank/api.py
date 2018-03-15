@@ -160,8 +160,8 @@ class Sgtk(object):
     @property
     def configuration_descriptor(self):
         """
-        The configuration descriptor represents the source of the environments associated
-        with this pipeline configuration.
+        The :class:`~sgtk.descriptor.ConfigDescriptor` which represents the
+        source of the environments associated with this pipeline configuration.
         """
         return self.__pipeline_config.get_configuration_descriptor()
 

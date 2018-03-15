@@ -63,7 +63,6 @@ class UiAuthenticationHandler(object):
         :param http_proxy: Proxy server to use when validating credentials. Can be None.
         :returns: A tuple of (hostname, login, session_token)
         """
-
         if self._is_session_renewal:
             logger.debug("Requesting password in a dialog.")
         else:

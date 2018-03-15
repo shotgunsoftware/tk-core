@@ -172,6 +172,22 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
     
     if os.path.exists(target_folder):
         raise TankError("Cannot clone! Target folder '%s' already exists!" % target_folder)
+
+    # Register the new entity in Shotgun. This is being done first, because one
+    # common problem is the user's permissions not being sufficient to allow them
+    # to create the PC entity. In this situation, we want to fail quickly and not
+    # leave garbage files on disk. As such, we do this first, then copy the config
+    # on disk.
+    data = {"linux_path": target_linux,
+            "windows_path":target_win,
+            "mac_path": target_mac,
+            "code": new_name,
+            "project": source_pc["project"],
+            "users": [ {"type": "HumanUser", "id": user_id} ] 
+            }
+    log.debug("Create sg: %s" % str(data))
+    pc_entity = tk.shotgun.create(constants.PIPELINE_CONFIGURATION_ENTITY, data)
+    log.debug("Created in SG: %s" % str(pc_entity))
     
     # copy files and folders across
     try:
@@ -210,18 +226,6 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
     
     except Exception as e:
         raise TankError("Could not create file system structure: %s" % e)
-
-    # finally register with shotgun
-    data = {"linux_path": target_linux,
-            "windows_path":target_win,
-            "mac_path": target_mac,
-            "code": new_name,
-            "project": source_pc["project"],
-            "users": [ {"type": "HumanUser", "id": user_id} ] 
-            }
-    log.debug("Create sg: %s" % str(data))
-    pc_entity = tk.shotgun.create(constants.PIPELINE_CONFIGURATION_ENTITY, data)
-    log.debug("Created in SG: %s" % str(pc_entity))
 
     # lastly, update the pipeline_configuration.yml file
     try:
