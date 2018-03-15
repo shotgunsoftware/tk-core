@@ -24,7 +24,7 @@ is referred to as a *Pipeline Configuration*.
 
 The Pipeline Configuration on disk contains the following items:
 
-- Configurat ion files - all the the details that define the configuration:
+- Configuration files - all the the details that define the configuration:
   app and engine settings, naming convention and file system templates.
 
 - An installed version of the Toolkit Core API as required by the configuration.
@@ -113,7 +113,7 @@ Distributed configurations
 ==========================
 
 Distributed configurations are defined as Pipeline Configurations inside Shotgun.
-At startup, these is detected by the Bootstrap API which will automatically
+At startup, these are detected by the Bootstrap API which will automatically
 manage your local configuration and resources on disk, ensuring that you have all the
 right apps, engines and other dependencies needed to run the configuration.
 This is a decentralized workflow where each user will
@@ -210,7 +210,7 @@ will search for a configuration in the following order:
   (In the bootstrap API, this is defined via the :meth:`~sgtk.bootstrap.ToolkitManager.base_configuration` property).
 
 .. note:: Leaving the project field blank on a pipeline configuration means it applies
-    to all projets. This makes it possible to have a single configuration that is
+    to all projects. This makes it possible to have a single configuration that is
     used by all your Shotgun projects.
 
 Once the Pipeline Configuration has been determined, its descriptor is resolved, downloaded and
@@ -388,7 +388,7 @@ These settings can be found in Shotgun's site preferences.
 
 In addition to this, a project folder name needs to be defined. This will be the name which is given
 to the root folder on disk when the folder structure starts getting populated. The project name
-is defined in field named ``tank_name`` on the Shotgun Project entity.
+is defined in a field named ``tank_name`` on the Shotgun Project entity.
 
 .. note:: When using a  :ref:`centralized configuraion<centralized_configs>`, this process
           is automatically handled by the project setup wizard. In this case, you have to
