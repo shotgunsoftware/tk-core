@@ -193,4 +193,4 @@ class OfflineWorkflow(unittest2.TestCase):
 
 
 if __name__ == "__main__":
-    unittest2.main(failfast=True, exit=False, verbosity=2)
+    ret_val = unittest2.main(failfast=True, verbosity=2)
