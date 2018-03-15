@@ -67,7 +67,7 @@ class OfflineWorkflow(unittest2.TestCase):
         sa = sgtk.authentication.ShotgunAuthenticator()
         user = sa.create_script_user(
             os.environ["SHOTGUN_TEST_API_SCRIPT"],
-            os.environ["SHOTGUN_TEST_API_KEY"],
+            os.environ["SHOTGsUN_TEST_API_KEY"],
             os.environ["SHOTGUN_TEST_SITE_URL"]
         )
         cls.user = user
