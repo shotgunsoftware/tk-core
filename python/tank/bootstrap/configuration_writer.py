@@ -458,25 +458,9 @@ class ConfigurationWriter(object):
 
         :returns: Path to the configuration file that was written out.
         """
-        # the pipeline config metadata
-        # resolve project name and pipeline config name from shotgun.
-        if pipeline_config_id:
-            # look up pipeline config name and project name via the pc
-            log.debug("Checking pipeline config in Shotgun...")
-
-            sg_data = self._sg_connection.find_one(
-                constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
-                [["id", "is", pipeline_config_id]],
-                ["code", "project.Project.tank_name"]
-            )
-
-            project_name = sg_data["project.Project.tank_name"] or constants.UNNAMED_PROJECT_NAME
-            pipeline_config_name = sg_data["code"] or constants.UNMANAGED_PIPELINE_CONFIG_NAME
-
-        elif project_id:
-            # no pc. look up the project name via the project id
+        if project_id:
+            # Look up the project name via the project id
             log.debug("Checking project in Shotgun...")
-
             sg_data = self._sg_connection.find_one(
                 "Project",
                 [["id", "is", project_id]],
@@ -490,8 +474,23 @@ class ConfigurationWriter(object):
                 raise ValueError(msg)
 
             project_name = sg_data["tank_name"] or constants.UNNAMED_PROJECT_NAME
-            pipeline_config_name = constants.UNMANAGED_PIPELINE_CONFIG_NAME
+        else:
+            project_name = constants.UNNAMED_PROJECT_NAME
 
+        # the pipeline config metadata
+        # resolve project name and pipeline config name from shotgun.
+        if pipeline_config_id:
+            # look up pipeline config name and project name via the pc
+            log.debug("Checking pipeline config in Shotgun...")
+
+            sg_data = self._sg_connection.find_one(
+                constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
+                [["id", "is", pipeline_config_id]],
+                ["code"]
+            )
+            pipeline_config_name = sg_data["code"] or constants.UNMANAGED_PIPELINE_CONFIG_NAME
+        elif project_id:
+            pipeline_config_name = constants.UNMANAGED_PIPELINE_CONFIG_NAME
         else:
             # this is either a site config or a baked config.
             # in the latter case, the project name will be overridden at
