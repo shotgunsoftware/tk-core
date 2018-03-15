@@ -13,18 +13,6 @@ This test ensures that the offline workflow using local bundle cached inside an 
 zipped config can be bootstrap into without requiring to download anything from Shotgun.
 """
 
-# TODO: We should look for a proper integration test framework. This is implemented here
-# as a small proof of concept but in no way is it really usable.
-#
-# The pre-requisites would have to be:
-# - be open-source, we want this to run on travis
-# - be able to run test one after the other in a fixed order
-# - be able to pass some results from a test into the next one
-# - make it easy to invoke subprocesses and capture their output for post-crash debugging
-# - make it easy to integrate code coverage into subprocesses
-# - make it easy to have a single test folder for multiple tests that is cleaned up on exit
-
-
 from __future__ import print_function
 
 import unittest2
@@ -33,7 +21,7 @@ import sys
 import atexit
 import tempfile
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "python"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "python"))
 
 import sgtk
 from sgtk.util.filesystem import safe_delete_folder
@@ -67,7 +55,7 @@ class OfflineWorkflow(unittest2.TestCase):
         sa = sgtk.authentication.ShotgunAuthenticator()
         user = sa.create_script_user(
             os.environ["SHOTGUN_TEST_API_SCRIPT"],
-            os.environ["SHOTGsUN_TEST_API_KEY"],
+            os.environ["SHOTGUN_TEST_API_KEY"],
             os.environ["SHOTGUN_TEST_SITE_URL"]
         )
         cls.user = user
