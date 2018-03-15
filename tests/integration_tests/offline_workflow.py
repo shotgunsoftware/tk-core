@@ -54,9 +54,9 @@ class OfflineWorkflow(unittest2.TestCase):
         # Create a user and connection to Shotgun.
         sa = sgtk.authentication.ShotgunAuthenticator()
         user = sa.create_script_user(
-            os.environ["SHOTGUN_TEST_API_SCRIPT"],
-            os.environ["SHOTGUN_TEST_API_KEY"],
-            os.environ["SHOTGUN_TEST_SITE_URL"]
+            os.environ["SHOTGUN_SCRIPT_NAME"],
+            os.environ["SHOTGUN_SCRIPT_KEY"],
+            os.environ["SHOTGUN_HOST"]
         )
         cls.user = user
         cls.sg = user.create_sg_connection()
@@ -96,9 +96,6 @@ class OfflineWorkflow(unittest2.TestCase):
             sgtk.util.process.subprocess_check_output([
                 sys.executable,
                 os.path.join(repo_root, "developer", "populate_bundle_cache.py"),
-                "--shotgun-host", self.sg.base_url,
-                "--shotgun-script-name", self.sg.config.script_name,
-                "--shotgun-script-key", self.sg.config.api_key,
                 "sgtk:descriptor:path?path={0}".format(self.config_dir),
                 self.config_dir
             ])

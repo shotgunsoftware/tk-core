@@ -143,6 +143,9 @@ and corresponding script key:
             --shotgun-script-key='<script-key-here>'
             "sgtk:descriptor:app_store?version=v0.3.6&name=tk-config-basic" /tmp
 
+You can also use the SHOTGUN_HOST, SHOTGUN_SCRIPT_NAME and SHOTGUN_SCRIPT_KEY environment
+variables to authenticate.
+
 For information about the various descriptors that can be used, see
 http://developer.shotgunsoftware.com/tk-core/descriptor
 

@@ -24,7 +24,5 @@ if [[ $SHOTGUN_COMPILE_ONLY -eq 1 ]]; then
     exit 0
 fi
 
-PYTHONPATH="../python"
-
 PYTHONPATH=tests/python/third_party python -3 tests/python/third_party/coverage run tests/run_tests.py
 PYTHONPATH=tests/python/third_party python -3 tests/python/third_party/coverage run tests/integration_tests/offline_workflow.py

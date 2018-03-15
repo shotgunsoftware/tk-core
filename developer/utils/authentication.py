@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import optparse
+import os
 
 from tank import LogManager
 from tank.authentication import ShotgunAuthenticator
@@ -69,16 +70,17 @@ def authenticate(options):
     # now authenticate to shotgun
     sg_auth = ShotgunAuthenticator()
 
-    if options.shotgun_host:
-        script_name = options.shotgun_script_name
-        script_key = options.shotgun_script_key
+    shotgun_host = options.shotgun_host or os.environ.get("SHOTGUN_HOST")
+    if shotgun_host:
+        script_name = options.shotgun_script_name or os.environ.get("SHOTGUN_SCRIPT_NAME")
+        script_key = options.shotgun_script_key or os.environ.get("SHOTGUN_SCRIPT_KEY")
 
         if script_name is None or script_key is None:
             logger.error("Need to provide, host, script name and script key! Run with -h for more info.")
             return 2
 
         logger.info("Connecting to %s using script user %s..." % (options.shotgun_host, script_name))
-        sg_user = sg_auth.create_script_user(script_name, script_key, options.shotgun_host)
+        sg_user = sg_auth.create_script_user(script_name, script_key, shotgun_host )
 
     else:
         logger.info("Connect to any Shotgun site to collect AppStore keys.")
