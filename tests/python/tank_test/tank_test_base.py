@@ -74,8 +74,13 @@ def _is_git_missing():
 
 
 def skip_if_on_travis_ci(reason):
+    """
+    Skips a test if we're on travis-ci and display the error.
+    :returns: The decorated function.
+    """
     def wrapper(func):
         return unittest.skipIf("TRAVIS" in os.environ, "Skipping on travis: %s" % reason)(func)
+    return wrapper
 
 
 def skip_if_git_missing(func):
