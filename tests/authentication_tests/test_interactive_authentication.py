@@ -19,7 +19,7 @@ import contextlib
 import sys
 
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase, skip_if_pyside_missing, interactive
+from tank_test.tank_test_base import ShotgunTestBase, skip_if_pyside_missing, skip_if_on_travis_ci, interactive
 from mock import patch
 from tank.authentication import (
     console_authentication,
