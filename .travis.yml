@@ -30,9 +30,9 @@ install:
   # Travis CI servers use virtualenvs, so we need to finish the install by the following
   - python ~/virtualenv/python${TRAVIS_PYTHON_VERSION}/bin/pyside_postinstall.py -install
   # Now we need to start the X server...
-  export DISPLAY=:99.0
-  sh -e /etc/init.d/xvfb start
-  sleep 3
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+  - sleep 3
 
 # command to run tests
 script: tests/run_travis.sh
