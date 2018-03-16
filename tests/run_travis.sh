@@ -25,7 +25,7 @@ if [[ $SHOTGUN_COMPILE_ONLY -eq 1 ]]; then
 fi
 
 
-if [[ $TRAVIS -eq 1 ]]; then
+if [[ $TRAVIS -eq true ]]; then
     # PySide is tricky to install and run. Let's get a wheel from someone who already compiled it for
     # Travis.
     sudo apt-get install libqt4-dev
