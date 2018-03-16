@@ -82,10 +82,18 @@ class InstalledConfigDescriptor(ConfigDescriptor):
         :returns: Core descriptor dict.
         """
         pipeline_config_path = self._get_pipeline_config_path()
-        return {
-            "type": "path",
-            "path": os.path.join(self._get_core_path_for_config(pipeline_config_path), "install", "core")
-        }
+        try:
+          return {
+              "type": "path",
+              "path": os.path.join(self._get_core_path_for_config(pipeline_config_path), "install", "core")
+          }
+        except TankFileDoesNotExistError as e:
+            # Fallback on using the current tk-core
+            import sgtk
+            return {
+                "type": "path",
+                "path": os.path.dirname(os.path.dirname(os.path.dirname(sgtk.__file__)))
+            }
 
     def _get_manifest(self):
         """
