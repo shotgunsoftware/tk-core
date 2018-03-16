@@ -296,7 +296,7 @@ class InteractiveTests(ShotgunTestBase):
         """
         handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
         self.assertEqual(
-            handler._get_user_credentials(None, None),
+            handler._get_user_credentials(None, None, None),
             ("https://test.shotgunstudio.com", "username", " password ")
         )
         self.assertEqual(
@@ -319,7 +319,7 @@ class InteractiveTests(ShotgunTestBase):
         """
         handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
         with self.assertRaises(ConsoleLoginWithSSONotSupportedError):
-            handler._get_user_credentials(None, None)
+            handler._get_user_credentials(None, None, None)
 
     @skip_if_pyside_missing
     def test_ui_auth_with_whitespace(self):
