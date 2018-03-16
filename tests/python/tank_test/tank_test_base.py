@@ -73,6 +73,11 @@ def _is_git_missing():
     return git_missing
 
 
+def skip_if_on_travis_ci(reason):
+    def wrapper(func):
+        return unittest.skipIf("TRAVIS" in os.environ, "Skipping on travis: %s" % reason)(func)
+
+
 def skip_if_git_missing(func):
     """
     Decorated that allows to skips a test if PySide is missing.

@@ -84,7 +84,7 @@ class InteractiveTests(ShotgunTestBase):
             self._prepare_window(ld)
             yield ld
 
-    @skip_if_pyside_missing
+    @skip_if_on_travis_ci("Offscreen XServer doesn't do focus changes.")
     def test_focus(self):
         """
         Make sure that the site and user fields are disabled when doing session renewal
@@ -322,7 +322,7 @@ class InteractiveTests(ShotgunTestBase):
         with self.assertRaises(ConsoleLoginWithSSONotSupportedError):
             handler._get_user_credentials(None, None)
 
-    @skip_if_pyside_missing
+    @skip_if_on_travis_ci("Offscreen XServer doesn't do focus changes.")
     def test_ui_auth_with_whitespace(self):
         """
         Makes sure that the ui strips out whitespaces.
