@@ -16,7 +16,7 @@ matrix:
   include:
   - python: "2.7"
     # When set to 1, tests/run_travis.sh will only compile the sources using python -m compileall
-    env: SHOTGUN_COMPILE_ONLY=0 QT_QPA_PLATFORM=offscreen
+    env: SHOTGUN_COMPILE_ONLY=0
   - python: "3.6"
     # We do not support Python 3 for the moment, but we will be compilable at the very least.
     env: SHOTGUN_COMPILE_ONLY=1
