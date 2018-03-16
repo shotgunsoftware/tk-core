@@ -79,26 +79,13 @@ class InstalledConfigDescriptor(ConfigDescriptor):
         .. note:: If the pipeline configuration uses a shared core, the ``core_<os>.cfg`` files will
             be followed and refer the shared core location.
 
-        .. note:: If the pipeline configuration does not specify a core location,
-            a descriptor for the current running core is returned.
-
-        :returns: A Core descriptor dict.
+        :returns: Core descriptor dict.
         """
         pipeline_config_path = self._get_pipeline_config_path()
-        try:
-          return {
-              "type": "path",
-              "path": os.path.join(self._get_core_path_for_config(pipeline_config_path), "install", "core")
-          }
-        except TankFileDoesNotExistError as e:
-            # This config does not specify a particular core.
-            # Fallback on using the current tk-core
-            import sgtk
-            return {
-                "type": "path",
-                # Remove python/sgtk/__init__.py from the module path.
-                "path": os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(sgtk.__file__))))
-            }
+        return {
+            "type": "path",
+            "path": os.path.join(self._get_core_path_for_config(pipeline_config_path), "install", "core")
+        }
 
     def _get_manifest(self):
         """

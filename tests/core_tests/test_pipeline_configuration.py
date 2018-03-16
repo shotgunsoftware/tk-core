@@ -229,19 +229,6 @@ class TestConfigLocations(TankTestBase):
         self._test_core_locations(pc, config_root, is_localized=True)
         self._test_config_locations(pc, config_root, os.path.join(config_root, "config"))
 
-    def test_classic_config_with_global_core(self):
-        """
-        Tests the paths for a classic configuration with a core installed in the
-        system.
-        """
-        import sgtk
-        current_core_path = os.path.dirname(os.path.dirname(os.path.dirname(sgtk.__file__)))
-        pc, config_root, core_root = self._setup_project(
-            is_localized=False, use_global_core=current_core_path
-        )
-        self._test_core_locations(pc, current_core_path, is_localized=False)
-        self._test_config_locations(pc, config_root, os.path.join(config_root, "config"))
-
     def test_zero_config(self):
         """
         Tests the paths for a zero-config configuration.
@@ -274,29 +261,25 @@ class TestConfigLocations(TankTestBase):
         self._test_core_locations(pc, config_root, True)
         self._test_config_locations(pc, config_root, config_desc.get_path())
 
-    def _setup_project(self, is_localized, use_global_core=None):
+    def _setup_project(self, is_localized):
         """
         Setups a Toolkit classic pipeline configuration with a localized or not core.
         """
 
         # Create the project's destination folder.
         locality = "localized" if is_localized else "studio"
-        if use_global_core:
-            locality = "%s_global" % locality
         project_folder_name = "config_with_%s_core" % locality
         config_root = os.path.join(self.tank_temp, project_folder_name, "pipeline_configuration")
 
         os.makedirs(os.path.join(self.tank_temp, project_folder_name))
 
         # Mock a core that will setup the project.
-        if not use_global_core:
-            core_root = os.path.join(self.tank_temp, "%s_core" % locality)
-            core_install_folder = os.path.join(core_root, "install", "core")
-            os.makedirs(core_install_folder)
-        else:
-            core_root = use_global_core
+        core_root = os.path.join(self.tank_temp, "%s_core" % locality)
+        core_install_folder = os.path.join(core_root, "install", "core")
+        os.makedirs(core_install_folder)
+
         # Mock a localized core if required.
-        if not use_global_core and is_localized:
+        if is_localized:
             self.create_file(os.path.join(core_root, "config", "core", "interpreter_Darwin.cfg"))
             self.create_file(os.path.join(core_root, "config", "core", "interpreter_Windows.cfg"))
             self.create_file(os.path.join(core_root, "config", "core", "interpreter_Linux.cfg"))

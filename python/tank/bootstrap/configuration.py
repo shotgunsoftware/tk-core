@@ -94,51 +94,42 @@ class Configuration(object):
         """
         path = self._path.current_os
         core_path = pipelineconfig_utils.get_core_python_path_for_config(path)
+        current_core_path = self._get_current_core_python_path()
 
-        # Check the returned path against the current one: if they match, not
-        # need to swap.
-        import sgtk
-        current_core_path = os.path.dirname(os.path.dirname(sgtk.__file__))
-        # swap the core out
-        if core_path == current_core_path:
-            # If we are not swapping core, we don't need to check if the current
-            # user should be changed: this is solely based on the place where core
-            # resides.
-            from .. import api
-            api.set_authenticated_user(sg_user)
+        # Swap the core out if needed and ensure we use the right login
+        # Get the user before the core swapping and serialize it.
+        from ..authentication import serialize_user, ShotgunSamlUser
+        serialized_user = serialize_user(sg_user)
+
+        # Stop claims renewal before swapping core, but only if the claims loop
+        # is actually active.
+        if isinstance(sg_user, ShotgunSamlUser) and sg_user.is_claims_renewal_active():
+            uses_claims_renewal = True
+            log.debug("Stopping claims renewal before swapping core.")
+            sg_user.stop_claims_renewal()
         else:
-            # Get the user before the core swapping and serialize it.
-            from ..authentication import serialize_user, ShotgunSamlUser
-            serialized_user = serialize_user(sg_user)
+            uses_claims_renewal = False
 
-            # Stop claims renewal before swapping core, but only if the claims loop
-            # is actually active.
-            if isinstance(sg_user, ShotgunSamlUser) and sg_user.is_claims_renewal_active():
-                uses_claims_renewal = True
-                log.debug("Stopping claims renewal before swapping core.")
-                sg_user.stop_claims_renewal()
-            else:
-                uses_claims_renewal = False
-
+        if core_path != current_core_path:
             CoreImportHandler.swap_core(core_path)
 
-            log.debug("Core swapped, authenticated user will be set.")
+        log.debug("Core swapped, authenticated user will be set.")
 
-            sg_user = self._set_authenticated_user(sg_user, sg_user.login, serialized_user)
+        sg_user = self._set_authenticated_user(sg_user, sg_user.login, serialized_user)
 
-            # If we're swapping into a core that supports authentication, restart claims renewal. Note
-            # that here we're not testing that the API supports claims renewal as to not complexify this
-            # code any further. We're assuming it does support claims renewal. If it doesn't that's a
-            # user configuration error and they need to upgrade their project.
-            #
-            # Also make sure that we have a HumanUser and not a ScriptUser by checking the login
-            # attribute. Some exotic setup or old project might have people authenticate on startup
-            # with a user but then when actually running a project they are switching to script-based
-            # authentication, so we have to be mindful that we still are using login based
-            # authentication.
-            if sg_user and sg_user.login and uses_claims_renewal:
-                log.debug("Restarting claims renewal.")
-                sg_user.start_claims_renewal()
+        # If we're swapping into a core that supports authentication, restart claims renewal. Note
+        # that here we're not testing that the API supports claims renewal as to not complexify this
+        # code any further. We're assuming it does support claims renewal. If it doesn't that's a
+        # user configuration error and they need to upgrade their project.
+        #
+        # Also make sure that we have a HumanUser and not a ScriptUser by checking the login
+        # attribute. Some exotic setup or old project might have people authenticate on startup
+        # with a user but then when actually running a project they are switching to script-based
+        # authentication, so we have to be mindful that we still are using login based
+        # authentication.
+        if sg_user and sg_user.login and uses_claims_renewal:
+            log.debug("Restarting claims renewal.")
+            sg_user.start_claims_renewal()
 
         # Perform a local import here to make sure we are getting
         # the newly swapped in core code, if it was swapped
@@ -165,6 +156,16 @@ class Configuration(object):
         log.debug("Core API code located here: %s" % inspect.getfile(tk.__class__))
 
         return tk, sg_user
+
+    def _get_current_core_python_path(self):
+        """
+        Returns the path to the python folder where the current core is.
+
+        :returns: a string.
+        """
+        import sgtk
+        # Remove sgtk/__init__.py from the module name to get the "python" folder.
+        return os.path.abspath(os.path.dirname(os.path.dirname(sgtk.__file__)))
 
     def _set_authenticated_user(self, bootstrap_user, bootstrap_user_login, serialized_user):
         """
