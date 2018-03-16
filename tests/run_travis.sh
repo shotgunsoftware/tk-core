@@ -20,13 +20,12 @@ python -m compileall python/tank
 python -m compileall tests/*.py
 python -m compileall tests/*/*.py
 
-if [ "${SHOTGUN_COMPILE_ONLY}" = "1" ]]; then
+if [[ $SHOTGUN_COMPILE_ONLY -eq 1 ]]; then
     exit 0
 fi
 
 
-if [ "${TRAVIS}" = "true" ]; then
-
+if [[ $TRAVIS -eq true ]]; then
     # PySide is tricky to install and run. Let's get a wheel from someone who already compiled it for
     # Travis.
     sudo apt-get install libqt4-dev
