@@ -70,6 +70,7 @@ class InteractiveTests(ShotgunTestBase):
 
         ld.show()
         ld.raise_()
+        ld.activateWindow()
 
         QApplication.processEvents()
 
