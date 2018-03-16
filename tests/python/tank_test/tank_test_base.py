@@ -79,7 +79,7 @@ def skip_if_on_travis_ci(reason):
     :returns: The decorated function.
     """
     def wrapper(func):
-        return unittest.skipIf("TRAVIS" in os.environ, "Skipping on travis: %s" % reason)(func)
+        return unittest.skipIf("TRAVIS" in os.environ, reason)(func)
     return wrapper
 
 
