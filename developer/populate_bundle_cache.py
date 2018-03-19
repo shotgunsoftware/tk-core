@@ -33,7 +33,8 @@ from sgtk.util import filesystem
 from sgtk.descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
 
 from utils import (
-    cache_apps, authenticate, add_authentication_options, OptionParserLineBreakingEpilog, cleanup_bundle_cache
+    cache_apps, authenticate, add_authentication_options, OptionParserLineBreakingEpilog, cleanup_bundle_cache,
+    automated_setup_documentation
 )
 
 # set up logging
@@ -134,20 +135,13 @@ where the bundle cache should be created.
 Note that it is important to use quotes around the descriptor as shells usually
 give special meaning to the & character.
 
-For automated build setups, you can provide a specific shotgun API script name and
-and corresponding script key:
-
-> python populate_bundle_cache.py
-            --shotgun-host='https://mysite.shotgunstudio.com'
-            --shotgun-script-name='plugin_build'
-            --shotgun-script-key='<script-key-here>'
-            "sgtk:descriptor:app_store?version=v0.3.6&name=tk-config-basic" /tmp
+{automated_setup_documentation}
 
 For information about the various descriptors that can be used, see
 http://developer.shotgunsoftware.com/tk-core/descriptor
 
 
-"""
+""".format(automated_setup_documentation=automated_setup_documentation)
     parser = OptionParserLineBreakingEpilog(usage=usage, description=desc, epilog=epilog)
 
     parser.add_option(

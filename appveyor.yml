@@ -25,4 +25,4 @@ test_script:
   # the interpreter you're using - Appveyor does not do anything special
   # to put the Python version you want to use on PATH.
   - "%PYTHON%\\scripts\\pip.exe install PySide==1.2.2"
-  - "%PYTHON%\\python.exe tests\\run_tests.py"
+  - "tests\\run_appveyor.bat"

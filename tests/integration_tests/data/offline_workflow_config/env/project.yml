@@ -1,0 +1,39 @@
+# Copyright (c) 2018 Shotgun Software Inc.
+#
+# CONFIDENTIAL AND PROPRIETARY
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+# Source Code License included in this distribution package. See LICENSE.
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
+# not expressly granted therein are reserved by Shotgun Software Inc.
+#
+
+description: Small environment to test the offline workflow.
+
+################################################################################
+
+
+################################################################################
+# configuration for all engines to load in a project context
+
+engines:
+  tk-shell:
+    apps:
+      tk-multi-launchapp:
+        use_software_entity: true
+        location: 
+          type: app_store
+          name: tk-multi-launchapp
+          version: v0.9.15
+    location:
+      type: app_store
+      name: tk-shell
+      version: v0.6.0
+
+frameworks:
+  tk-framework-shotgunutils_v5.x.x:
+    location:
+      version: v5.3.4
+      type: app_store
+      name: tk-framework-shotgunutils
