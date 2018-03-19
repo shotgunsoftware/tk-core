@@ -11,8 +11,6 @@
 import os
 import inspect
 
-from .import_handler import CoreImportHandler
-
 from .configuration import Configuration
 from .configuration_writer import ConfigurationWriter
 
@@ -113,6 +111,10 @@ class BakedConfiguration(Configuration):
         :param sg_user: Authenticated Shotgun user to associate
                         the tk instance with.
         """
+
+        # Heads up that the base implementation is not called: we totally
+        # override it.
+
         # set up the environment to pass on to the tk instance
         pipeline_config = {
             "project_id": self._project_id,
@@ -124,48 +126,28 @@ class BakedConfiguration(Configuration):
         os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA] = pickle.dumps(pipeline_config)
 
         path = self._path.current_os
-        current_core_path = self._get_current_core_python_path()
         try:
-            core_path = pipelineconfig_utils.get_core_python_path_for_config(path)
+            python_core_path = pipelineconfig_utils.get_core_python_path_for_config(path)
         except TankFileDoesNotExistError as e:
             # For baked config we allow a globally installed tk-core to be used
-            core_path = current_core_path
+            python_core_path = self._get_current_core_python_path()
+            log.debug(
+                "Couldn't retrieve a core path from the config, keeping current one: %s" % (
+                    python_core_path
+                )
+            )
 
-        # Check the returned path against the current one: if they match, not
-        # need to swap.
-        # swap the core out
-        if core_path != current_core_path:
-            CoreImportHandler.swap_core(core_path)
+        self._swap_core_if_needed(python_core_path)
 
         # Perform a local import here to make sure we are getting
         # the newly swapped in core code, if it was swapped
         from .. import api
-        from .. import pipelineconfig
         # Baked config are typically not attached to any Shotgun site, or project
         # so we can simply keep using the current user, which holds Shotgun
         # connection informations.
         api.set_authenticated_user(sg_user)
 
-        log.debug("Executing tank_from_path('%s')" % path)
-
-        # now bypass some of the very extensive validation going on
-        # by creating a pipeline configuration object directly
-        # and pass that into the factory method.
-
-        # Previous versions of the PipelineConfiguration API didn't support having a descriptor
-        # passed in, so we'll have to be backwards compatible with these. If the pipeline
-        # configuration does support the get_configuration_descriptor method however, we can
-        # pass the descriptor in.
-        if hasattr(pipelineconfig.PipelineConfiguration, "get_configuration_descriptor"):
-            pc = pipelineconfig.PipelineConfiguration(path, self.descriptor)
-        else:
-            pc = pipelineconfig.PipelineConfiguration(path)
-        tk = api.tank_from_path(pc)
-
-        log.debug("Bootstrapped into tk instance %r (%r)" % (tk, tk.pipeline_configuration))
-        log.debug("Core API code located here: %s" % inspect.getfile(tk.__class__))
-
-        return tk, sg_user
+        return self._tank_from_path(path), sg_user
 
     @classmethod
     def bake_config_scaffold(cls, path, sg_connection, plugin_id, config_descriptor):

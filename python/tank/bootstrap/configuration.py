@@ -93,8 +93,7 @@ class Configuration(object):
             the new current user and the Toolkit instance.
         """
         path = self._path.current_os
-        core_path = pipelineconfig_utils.get_core_python_path_for_config(path)
-        current_core_path = self._get_current_core_python_path()
+        python_core_path = pipelineconfig_utils.get_core_python_path_for_config(path)
 
         # Swap the core out if needed and ensure we use the right login
         # Get the user before the core swapping and serialize it.
@@ -110,10 +109,10 @@ class Configuration(object):
         else:
             uses_claims_renewal = False
 
-        if core_path != current_core_path:
-            CoreImportHandler.swap_core(core_path)
-
-        log.debug("Core swapped, authenticated user will be set.")
+        if self._swap_core_if_needed(python_core_path):
+            log.debug("Core swapped, authenticated user will be set.")
+        else:
+            log.debug("Core didn't need to be swapped, authenticated user will be set.")
 
         sg_user = self._set_authenticated_user(sg_user, sg_user.login, serialized_user)
 
@@ -131,6 +130,15 @@ class Configuration(object):
             log.debug("Restarting claims renewal.")
             sg_user.start_claims_renewal()
 
+        return self._tank_from_path(path), sg_user
+
+    def _tank_from_path(self, path):
+        """
+        Perform a tank_from_path for the given pipeline config path.
+
+        :param str path: A pipeline config path for the current os.
+        :returns: A :class:`Sgtk` instance.
+        """
         # Perform a local import here to make sure we are getting
         # the newly swapped in core code, if it was swapped
         from .. import api
@@ -155,7 +163,28 @@ class Configuration(object):
         log.debug("Bootstrapped into tk instance %r (%r)" % (tk, tk.pipeline_configuration))
         log.debug("Core API code located here: %s" % inspect.getfile(tk.__class__))
 
-        return tk, sg_user
+        return tk
+
+    def _swap_core_if_needed(self, target_python_core_path):
+        """
+        Swap the current tk-core with the one at the given path if their paths
+        are not identical.
+
+        :param str target_core_path: Full path to the required tk-core.
+        :returns: A bool, True if core was swapped, False otherwise.
+        """
+        current_python_core_path = self._get_current_core_python_path()
+
+        if target_python_core_path != current_python_core_path:
+            CoreImportHandler.swap_core(target_python_core_path)
+            return True
+
+        log.debug(
+            "Avoided core swap on identical paths: '%s' (current) vs '%s' (target)" % (
+                current_python_core_path, target_python_core_path
+            )
+        )
+        return False
 
     def _get_current_core_python_path(self):
         """
