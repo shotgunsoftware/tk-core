@@ -74,7 +74,10 @@ class ConfigDescriptor(Descriptor):
         if not self.associated_core_descriptor:
             return None
 
-        local_bundle_cache = os.path.join(
+        # When resolving the descriptor, we need to take into account that the config folder may be
+        # holding a bundle cache with the core in it, so we're adding it to the list of fallback
+        # roots.
+        config_bundle_cache = os.path.join(
             self.get_config_folder(), "bundle_cache"
         )
 
@@ -84,7 +87,7 @@ class ConfigDescriptor(Descriptor):
                 Descriptor.CORE,
                 self.associated_core_descriptor,
                 self._bundle_cache_root,
-                [local_bundle_cache] + self._fallback_roots,
+                [config_bundle_cache] + self._fallback_roots,
                 resolve_latest=False
             )
 
