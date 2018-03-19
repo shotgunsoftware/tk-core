@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import inspect
 
 from .configuration import Configuration
 from .configuration_writer import ConfigurationWriter

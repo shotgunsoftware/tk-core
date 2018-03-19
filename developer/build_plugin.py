@@ -56,19 +56,6 @@ BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 # generation of the build syntax
 BUILD_GENERATION = 2
 
-# code to retrieve the current tk-core python path.
-GET_SYSTEM_CORE_PYTHON_CODE = """
-def get_sgtk_pythonpath(plugin_root):
-    \"\"\"
-    Auto generated helper method which returns the
-    path to the core bundled with the plugin.
-
-    For more information, see the documentation.
-    \"\"\"
-    import sgtk
-    import os
-    return os.path.dirname(os.path.dirname(sgtk.__file__))
-"""
 
 def _bake_configuration(sg_connection, manifest_data):
     """
@@ -128,6 +115,8 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
     :param target_path: Build target path
     :param bundle_cache_root: Bundle cache root
     :param manifest_data: Manifest data as a dictionary
+    :param bool use_system_core: If True, use a globally installed tk-core instead
+                                 of the one specified in the configuration.
     :return: (Resolved config descriptor object, config descriptor uri to use at runtime)
     """
     logger.info("Analyzing configuration")
@@ -212,8 +201,13 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
             }
         )
         if use_system_core:
+            # If asked to use a globally installed tk-core instead of the one
+            # specified by the config, we remove the local copy which was created
+            # in the scaffold step.
             logger.info("Removing core reference in %s" % install_path)
             wipe_folder(os.path.join(install_path, "install"))
+            # And make sure we don't have any reference to a tk-core in the config,
+            # otherwise it would be picked up when bootstrapping.
             filesystem.safe_delete_file(os.path.join(install_path, "config", "core", "core_api.yml"))
         else:
             # Workaround for tk-core bootstrap needing a shotgun.yml file: when swapping
@@ -355,10 +349,22 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
             # Write out helper function 'get_sgtk_pythonpath()'.
             # this makes it easy for a plugin to import sgtk
             if not core_descriptor:
-                # If we don't have core_descriptor, the plugin will used the
+                # If we don't have core_descriptor, the plugin will use the
                 # system installed tk-core. Arguably in that case we don't need
                 # this method, but let's keep things consistent.
-                fh.write(GET_SYSTEM_CORE_PYTHON_CODE)
+                fh.write("\n\n")
+                fh.write("def get_sgtk_pythonpath(plugin_root):\n")
+                fh.write("    \"\"\" \n")
+                fh.write("    Auto generated helper method which returns the \n")
+                fh.write("    path to the core bundled with the plugin.\n")
+                fh.write("    \n")
+                fh.write("    For more information, see the documentation.\n")
+                fh.write("    \"\"\" \n")
+                fh.write("    import os\n")
+                fh.write("    import sgtk\n")
+                fh.write("    return os.path.dirname(os.path.dirname(sgtk.__file__))\n")
+                fh.write("\n\n")
+
             elif core_descriptor.get_path().startswith(plugin_root):
                 # the core descriptor is cached inside our plugin
                 core_path_parts = os.path.normpath(core_descriptor.get_path()).split(os.path.sep)
@@ -453,6 +459,9 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     :param target_path: Path to build
     :param bootstrap_core_uri: Custom bootstrap core uri. If None,
                                the latest core from the app store will be used.
+    :param bool do_bake: If True, bake the plugin prior to building it.
+    :param bool use_system_core: If True, use a globally installed tk-core instead
+                                 of the one specified in the configuration.
     """
     logger.info("Your toolkit plugin in '%s' will be processed." % source_path)
     logger.info("The build will %s into '%s'" % (["generated", "baked"][do_bake], target_path))
@@ -517,6 +526,7 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     cache_apps(sg_connection, cfg_descriptor, bundle_cache_root)
 
     if use_system_core:
+        logger.info("An external core will be used for this plugin, not caching it")
         bootstrap_core_desc = None
     else:
         # get latest core - cache it directly into the plugin root folder
