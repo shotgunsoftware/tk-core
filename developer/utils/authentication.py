@@ -17,6 +17,18 @@ from tank.authentication import ShotgunAuthenticator
 
 logger = LogManager.get_logger("utils.authentication")
 
+automated_setup_documentation = """For automated build setups, you can provide a specific shotgun API script name and
+and corresponding script key:
+
+> python populate_bundle_cache.py
+            --shotgun-host='https://mysite.shotgunstudio.com'
+            --shotgun-script-name='plugin_build'
+            --shotgun-script-key='<script-key-here>'
+            "sgtk:descriptor:app_store?version=v0.3.6&name=tk-config-basic" /tmp
+
+You can also use the SHOTGUN_HOST, SHOTGUN_SCRIPT_NAME and SHOTGUN_SCRIPT_KEY environment
+variables to authenticate."""
+
 
 def add_authentication_options(parser):
     """

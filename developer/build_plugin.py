@@ -41,7 +41,7 @@ from tank_vendor import yaml
 
 from utils import (
     cache_apps, authenticate, add_authentication_options, OptionParserLineBreakingEpilog, cleanup_bundle_cache,
-    wipe_folder
+    wipe_folder, automated_setup_documentation
 )
 
 # set up logging
@@ -576,15 +576,6 @@ In its simplest form, just provide a source and target folder for the build.
 
 > python build_plugin.py ~/dev/tk-maya/plugins/basic /tmp/maya-plugin
 
-For automated build setups, you can provide a specific shotgun API script name and
-and corresponding script key:
-
-> python build_plugin.py
-            --shotgun-host='https://mysite.shotgunstudio.com'
-            --shotgun-script-name='plugin_build'
-            --shotgun-script-key='<script-key-here>'
-            ~/dev/tk-maya/plugins/basic /tmp/maya-plugin
-
 By default, the build script will use the latest app store core for its bootstrapping.
 If you want to use a specific core for the bootstrap, this can be specified via the
 --bootstrap-core-uri option:
@@ -602,11 +593,13 @@ users.
             ~/dev/tk-maya/plugins/basic /tmp/maya-plugin
             --bake
 
+{automated_setup_documentation}
+
 For information about the various descriptors that can be used, see
 http://developer.shotgunsoftware.com/tk-core/descriptor
 
 
-"""
+""".format(automated_setup_documentation=automated_setup_documentation)
     parser = OptionParserLineBreakingEpilog(usage=usage, description=desc, epilog=epilog)
 
     parser.add_option(
