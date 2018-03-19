@@ -104,7 +104,7 @@ def _bake_configuration(sg_connection, manifest_data):
     manifest_data["base_configuration"] = baked_descriptor
     return baked_descriptor
 
-def _process_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data):
+def _process_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data, use_system_core):
     """
     Given data in the plugin manifest, download resolve and
     cache the configuration.
@@ -197,19 +197,24 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
                 "version": baked_version
             }
         )
-        # Workaround for tk-core bootstrap needing a shotgun.yml file: when swapping
-        # tk-core, this file is checked to see if a script user was specified and
-        # should be used in place of the authenticated user. So we create a dummy
-        # file with an "unspecified" host, as the key is required by the tk-core
-        # code parsing the file.
-        # It is not clear if this workaround is needed for non baked configs as
-        # their workflow is different, so for now we just keep it for bake configs
-        # only.
-        shotgun_yaml_path = os.path.join(install_path, "config", "core", "shotgun.yml")
-        if not os.path.exists(shotgun_yaml_path):
-            logger.info("Patching %s" % shotgun_yaml_path)
-            with open(shotgun_yaml_path, "w") as pf:
-                pf.write("# Workaround for tk-core bootstrap\nhost: unspecified")
+        if use_system_core:
+            logger.info("Removing core reference in %s" % install_path)
+            wipe_folder(os.path.join(install_path, "install"))
+            filesystem.safe_delete_file(os.path.join(install_path, "config", "core", "core_api.yml"))
+        else:
+            # Workaround for tk-core bootstrap needing a shotgun.yml file: when swapping
+            # tk-core, this file is checked to see if a script user was specified and
+            # should be used in place of the authenticated user. So we create a dummy
+            # file with an "unspecified" host, as the key is required by the tk-core
+            # code parsing the file.
+            # It is not clear if this workaround is needed for non baked configs as
+            # their workflow is different, so for now we just keep it for bake configs
+            # only.
+            shotgun_yaml_path = os.path.join(install_path, "config", "core", "shotgun.yml")
+            if not os.path.exists(shotgun_yaml_path):
+                logger.info("Patching %s" % shotgun_yaml_path)
+                with open(shotgun_yaml_path, "w") as pf:
+                    pf.write("# Workaround for tk-core bootstrap\nhost: unspecified")
     else:
 
         # if the descriptor in the config contains a version number
@@ -415,7 +420,7 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
         raise TankError("Cannot write manifest file: %s" % e)
 
 
-def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=None, do_bake=False):
+def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=None, do_bake=False, use_system_core=False):
     """
     Perform a build of a plugin.
 
@@ -480,6 +485,7 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
         target_path,
         bundle_cache_root,
         manifest_data,
+        use_system_core
     )
 
     # cache config in bundle cache
@@ -491,32 +497,42 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     # cache all apps, engines and frameworks
     cache_apps(sg_connection, cfg_descriptor, bundle_cache_root)
 
-    # get latest core - cache it directly into the plugin root folder
-    if bootstrap_core_uri:
-        logger.info("Caching custom core for boostrap (%s)" % bootstrap_core_uri)
+    if use_system_core:
+        logger.info("Using system core...")
         bootstrap_core_desc = create_descriptor(
             sg_connection,
             Descriptor.CORE,
-            bootstrap_core_uri,
-            resolve_latest=is_descriptor_version_missing(bootstrap_core_uri),
+            {"type": "dev", "name": "tk-core", "path": ""},
+            resolve_latest=False,
             bundle_cache_root_override=bundle_cache_root
         )
-
     else:
-        # by default, use latest core for bootstrap
-        logger.info("Caching latest official core to use when bootstrapping plugin.")
-        logger.info("(To use a specific config instead, specify a --bootstrap-core-uri flag.)")
+        # get latest core - cache it directly into the plugin root folder
+        if bootstrap_core_uri:
+            logger.info("Caching custom core for boostrap (%s)" % bootstrap_core_uri)
+            bootstrap_core_desc = create_descriptor(
+                sg_connection,
+                Descriptor.CORE,
+                bootstrap_core_uri,
+                resolve_latest=is_descriptor_version_missing(bootstrap_core_uri),
+                bundle_cache_root_override=bundle_cache_root
+            )
 
-        bootstrap_core_desc = create_descriptor(
-            sg_connection,
-            Descriptor.CORE,
-            {"type": "app_store", "name": "tk-core"},
-            resolve_latest=True,
-            bundle_cache_root_override=bundle_cache_root
-        )
+        else:
+            # by default, use latest core for bootstrap
+            logger.info("Caching latest official core to use when bootstrapping plugin.")
+            logger.info("(To use a specific config instead, specify a --bootstrap-core-uri flag.)")
 
-    # cache it
-    bootstrap_core_desc.ensure_local()
+            bootstrap_core_desc = create_descriptor(
+                sg_connection,
+                Descriptor.CORE,
+                {"type": "app_store", "name": "tk-core"},
+                resolve_latest=True,
+                bundle_cache_root_override=bundle_cache_root
+            )
+
+        # cache it
+        bootstrap_core_desc.ensure_local()
 
     # make a python folder where we put our manifest
     logger.info("Creating configuration manifest...")
@@ -530,17 +546,20 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     )
 
     # now analyze what core the config needs
-    if cfg_descriptor.associated_core_descriptor:
-        logger.info("Config is specifying a custom core in config/core/core_api.yml.")
-        logger.info("This will be used when the config is executing.")
-        logger.info("Ensuring this core (%s) is cached..." % cfg_descriptor.associated_core_descriptor)
-        associated_core_desc = create_descriptor(
-            sg_connection,
-            Descriptor.CORE,
-            cfg_descriptor.associated_core_descriptor,
-            bundle_cache_root_override=bundle_cache_root
-        )
-        associated_core_desc.ensure_local()
+    if use_system_core:
+        logger.info("Removing core from %s %s" % (cfg_descriptor.get_config_folder(), bundle_cache_root))
+    else:
+        if cfg_descriptor.associated_core_descriptor:
+            logger.info("Config is specifying a custom core in config/core/core_api.yml.")
+            logger.info("This will be used when the config is executing.")
+            logger.info("Ensuring this core (%s) is cached..." % cfg_descriptor.associated_core_descriptor)
+            associated_core_desc = create_descriptor(
+                sg_connection,
+                Descriptor.CORE,
+                cfg_descriptor.associated_core_descriptor,
+                bundle_cache_root_override=bundle_cache_root
+            )
+            associated_core_desc.ensure_local()
 
     cleanup_bundle_cache(bundle_cache_root)
 
@@ -632,6 +651,14 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         action="store_true",
         help="Bake the plugin with an immutable configuration."
     )
+
+    parser.add_option(
+        "--system-core",
+        default=False,
+        action="store_true",
+        help="Use tk-core installed on the system rather than a private copy in the config."
+    )
+
     add_authentication_options(parser)
 
     # parse cmd line
@@ -642,6 +669,18 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
 
     if options.debug:
         LogManager().global_debug = True
+
+    if options.system_core:
+        if options.bootstrap_core_uri:
+            parser.error(
+                "bootstrap-core-uri and system-core options are incompatible. "
+                "Please use one or the other but not both."
+            )
+        if not options.bake:
+            parser.error(
+                "system-core option can only be used for baked plugins. "
+                "Please use the --bake option or do not use --system-core."
+            )
 
     if options.bootstrap_core_uri:
         bootstrap_core_uri = options.bootstrap_core_uri
@@ -677,7 +716,8 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         source_path,
         target_path,
         bootstrap_core_uri,
-        options.bake
+        options.bake,
+        options.system_core
     )
 
     # all good!
