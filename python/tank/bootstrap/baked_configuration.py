@@ -11,6 +11,8 @@
 import os
 import inspect
 
+from .import_handler import CoreImportHandler
+
 from .configuration import Configuration
 from .configuration_writer import ConfigurationWriter
 
