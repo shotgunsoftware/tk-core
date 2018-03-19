@@ -57,7 +57,7 @@ BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 BUILD_GENERATION = 2
 
 # code to retrieve the current tk-core python path.
-GET_SYSTEM_CORE_PYTHON_CODE="""
+GET_SYSTEM_CORE_PYTHON_CODE = """
 def get_sgtk_pythonpath(plugin_root):
     \"\"\"
     Auto generated helper method which returns the
@@ -116,6 +116,7 @@ def _bake_configuration(sg_connection, manifest_data):
     }
     manifest_data["base_configuration"] = baked_descriptor
     return baked_descriptor
+
 
 def _process_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data, use_system_core):
     """
