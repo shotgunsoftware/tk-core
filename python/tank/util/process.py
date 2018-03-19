@@ -54,13 +54,21 @@ def subprocess_check_output(*popenargs, **kwargs):
     if "stdout" in kwargs or "stderr" in kwargs or "stdin" in kwargs:
         raise ValueError("stdout, stderr and stdin arguments not allowed, they will be overridden.")
 
-    process = subprocess.Popen(
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE,
-        *popenargs, **kwargs
-    )
-    # Very important to close stdin on Windows. See issue mentioned above.
     if sys.platform == "win32":
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        process = subprocess.Popen(
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE, startupinfo=startupinfo,
+            *popenargs, **kwargs
+        )
         process.stdin.close()
+    else:
+        process = subprocess.Popen(
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE,
+            *popenargs, **kwargs
+        )
+
+    # Very important to close stdin on Windows. See issue mentioned above.
     output, unused_err = process.communicate()
     retcode = process.poll()
 
