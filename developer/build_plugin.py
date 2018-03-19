@@ -56,6 +56,19 @@ BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 # generation of the build syntax
 BUILD_GENERATION = 2
 
+# code to retrieve the current tk-core python path.
+GET_SYSTEM_CORE_PYTHON_CODE="""
+def get_sgtk_pythonpath(plugin_root):
+    \"\"\"
+    Auto generated helper method which returns the
+    path to the core bundled with the plugin.
+
+    For more information, see the documentation.
+    \"\"\"
+    import sgtk
+    import os
+    return os.path.dirname(os.path.dirname(sgtk.__file__))
+"""
 
 def _bake_configuration(sg_connection, manifest_data):
     """
@@ -340,7 +353,12 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
 
             # Write out helper function 'get_sgtk_pythonpath()'.
             # this makes it easy for a plugin to import sgtk
-            if core_descriptor.get_path().startswith(plugin_root):
+            if not core_descriptor:
+                # If we don't have core_descriptor, the plugin will used the
+                # system installed tk-core. Arguably in that case we don't need
+                # this method, but let's keep things consistent.
+                fh.write(GET_SYSTEM_CORE_PYTHON_CODE)
+            elif core_descriptor.get_path().startswith(plugin_root):
                 # the core descriptor is cached inside our plugin
                 core_path_parts = os.path.normpath(core_descriptor.get_path()).split(os.path.sep)
                 core_path_relative_parts = core_path_parts[core_path_parts.index(BUNDLE_CACHE_ROOT_FOLDER_NAME):]
@@ -498,14 +516,7 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     cache_apps(sg_connection, cfg_descriptor, bundle_cache_root)
 
     if use_system_core:
-        logger.info("Using system core...")
-        bootstrap_core_desc = create_descriptor(
-            sg_connection,
-            Descriptor.CORE,
-            {"type": "dev", "name": "tk-core", "path": ""},
-            resolve_latest=False,
-            bundle_cache_root_override=bundle_cache_root
-        )
+        bootstrap_core_desc = None
     else:
         # get latest core - cache it directly into the plugin root folder
         if bootstrap_core_uri:
@@ -546,20 +557,17 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     )
 
     # now analyze what core the config needs
-    if use_system_core:
-        logger.info("Removing core from %s %s" % (cfg_descriptor.get_config_folder(), bundle_cache_root))
-    else:
-        if cfg_descriptor.associated_core_descriptor:
-            logger.info("Config is specifying a custom core in config/core/core_api.yml.")
-            logger.info("This will be used when the config is executing.")
-            logger.info("Ensuring this core (%s) is cached..." % cfg_descriptor.associated_core_descriptor)
-            associated_core_desc = create_descriptor(
-                sg_connection,
-                Descriptor.CORE,
-                cfg_descriptor.associated_core_descriptor,
-                bundle_cache_root_override=bundle_cache_root
-            )
-            associated_core_desc.ensure_local()
+    if not use_system_core and cfg_descriptor.associated_core_descriptor:
+        logger.info("Config is specifying a custom core in config/core/core_api.yml.")
+        logger.info("This will be used when the config is executing.")
+        logger.info("Ensuring this core (%s) is cached..." % cfg_descriptor.associated_core_descriptor)
+        associated_core_desc = create_descriptor(
+            sg_connection,
+            Descriptor.CORE,
+            cfg_descriptor.associated_core_descriptor,
+            bundle_cache_root_override=bundle_cache_root
+        )
+        associated_core_desc.ensure_local()
 
     cleanup_bundle_cache(bundle_cache_root)
 
@@ -568,7 +576,10 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     logger.info("")
     logger.info("- Your plugin is ready in '%s'" % target_path)
     logger.info("- Plugin uses config %r" % cfg_descriptor)
-    logger.info("- Bootstrap core is %r" % bootstrap_core_desc)
+    if bootstrap_core_desc:
+        logger.info("- Bootstrap core is %r" % bootstrap_core_desc)
+    else:
+        logger.info("- Plugin will need an external installed core.")
     logger.info("- All dependencies have been baked out into the bundle_cache folder")
     logger.info("")
     logger.info("")
