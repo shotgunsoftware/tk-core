@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Initialization and startup &mdash; tk-core v0.18.133 documentation</title>
+  <title>Initialization and startup &mdash; tk-core v0.18.134 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.133 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.134 documentation" href="index.html"/>
         <link rel="next" title="Core" href="core.html"/>
         <link rel="prev" title="Overview" href="overview.html"/> 
 
@@ -169,7 +169,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.133.<br>
+    <b>tk-core</b> v0.18.134.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -236,7 +236,7 @@ is referred to as a <em>Pipeline Configuration</em>.</p>
 <a class="reference internal image-reference" href="_images/tk_project.png"><img alt="_images/tk_project.png" class="align-center" src="_images/tk_project.png" style="width: 700px;" /></a>
 <p>The Pipeline Configuration on disk contains the following items:</p>
 <ul class="simple">
-<li>Configurat ion files - all the the details that define the configuration:
+<li>Configuration files - all the the details that define the configuration:
 app and engine settings, naming convention and file system templates.</li>
 <li>An installed version of the Toolkit Core API as required by the configuration.</li>
 <li>A <code class="docutils literal"><span class="pre">tank</span></code> command which gives access to admin and maintenance commands to
@@ -311,7 +311,7 @@ both briefly outlined below:</p>
 <div class="section" id="distributed-configurations">
 <h3>Distributed configurations<a class="headerlink" href="#distributed-configurations" title="Permalink to this headline">¶</a></h3>
 <p>Distributed configurations are defined as Pipeline Configurations inside Shotgun.
-At startup, these is detected by the Bootstrap API which will automatically
+At startup, these are detected by the Bootstrap API which will automatically
 manage your local configuration and resources on disk, ensuring that you have all the
 right apps, engines and other dependencies needed to run the configuration.
 This is a decentralized workflow where each user will
@@ -383,7 +383,7 @@ typically dev or test sandboxes.</li>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Leaving the project field blank on a pipeline configuration means it applies
-to all projets. This makes it possible to have a single configuration that is
+to all projects. This makes it possible to have a single configuration that is
 used by all your Shotgun projects.</p>
 </div>
 <p>Once the Pipeline Configuration has been determined, its descriptor is resolved, downloaded and
@@ -555,7 +555,7 @@ All storages defined here need to have a corresponding Local File Storage define
 These settings can be found in Shotgun&#8217;s site preferences.</p>
 <p>In addition to this, a project folder name needs to be defined. This will be the name which is given
 to the root folder on disk when the folder structure starts getting populated. The project name
-is defined in field named <code class="docutils literal"><span class="pre">tank_name</span></code> on the Shotgun Project entity.</p>
+is defined in a field named <code class="docutils literal"><span class="pre">tank_name</span></code> on the Shotgun Project entity.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">When using a  <a class="reference internal" href="#centralized-configs"><span class="std std-ref">centralized configuraion</span></a>, this process
@@ -2133,7 +2133,7 @@ launching DCC.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.133',
+            VERSION:'v0.18.134',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

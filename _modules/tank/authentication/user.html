@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.authentication.user &mdash; tk-core v0.18.133 documentation</title>
+  <title>tank.authentication.user &mdash; tk-core v0.18.134 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.133 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.134 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.133.<br>
+    <b>tk-core</b> v0.18.134.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -187,9 +187,9 @@
 <span class="kn">import</span> <span class="nn">threading</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
+<span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">sso_saml2</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">interactive_authentication</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">user_impl</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">shotgun_shared</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
 <span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">AuthenticationCancelled</span>
 
@@ -197,7 +197,7 @@
 <span class="n">logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="c1"># Ensure that the SSO-related logging will be merged in our loggin.</span>
-<span class="n">shotgun_shared</span><span class="o">.</span><span class="n">set_logger_parent</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+<span class="n">sso_saml2</span><span class="o">.</span><span class="n">set_logger_parent</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="ShotgunUser"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.ShotgunUser">[docs]</a><span class="k">class</span> <span class="nc">ShotgunUser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -354,7 +354,7 @@
 
 <span class="sd">        :returns: The claims expiration time, expressed as the number of seconds since epoch.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">shotgun_shared</span><span class="o">.</span><span class="n">get_saml_claims_expiration</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">get_session_metadata</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">sso_saml2</span><span class="o">.</span><span class="n">get_saml_claims_expiration</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="o">.</span><span class="n">get_session_metadata</span><span class="p">())</span>
 
     <span class="k">def</span> <span class="nf">_do_automatic_claims_renewal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preemtive_renewal_threshold</span><span class="o">=</span><span class="mf">0.9</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -516,7 +516,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.133',
+            VERSION:'v0.18.134',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
