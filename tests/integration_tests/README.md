@@ -6,11 +6,11 @@ multiple parts of Toolkit. Each file can be run individually from the command-li
 and often need special parameters to be able to communicate with a live Shotgun
 site.
 
-One common set of environment variables would be:
+These variables, which are also set on our CI servers, should be set before running the tests.
 
-``SHOTGUN_TEST_SITE_URL``: URL of the live site to use to run the tests.
-``SHOTGUN_TEST_API_SCRIPT``: Name of script on that site.
-``SHOTGUN_TEST_API_KEY``: Key for said script.
+``SHOTGUN_HOST``: URL of the live site to use to run the tests.
+``SHOTGUN_SCRIPT_NAME``: Name of script on that site.
+``SHOTGUN_SCRIPT_KEY``: Key for said script.
 
 How to run an integration test
 ------------------------------
@@ -22,6 +22,8 @@ How to write an integration test
 There is currently no framework to write those. You should split your test
 in multiple sub-tests that can be run independently, so you can run them one at
 a time. You can leverage pyUnit's functionality for that.
+
+What's currently in the first test needs to be refactored to be reusable for other tests. Keep that in mind if you are adding a new test.
 
 Note that pyUnit's documentation says that tests in a tests class are sorted
 alphabetically, so you can number your tests functions to order them.
