@@ -275,7 +275,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, pro
 
     if config_context_path:
 
-        # --- THE LOCALIZED CORE CASE ----
+        # --- THE PROJECT CASE ----
 
         # This is the localized case where the imported code has a 1:1 correspondence
         # with the pipeline configuration. Now we need to verify that the path is compatible
@@ -330,7 +330,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, pro
         #
         # When you are running the tank command or import sgtk from a shared core.
         #
-        # we are running the tank command or API proxy from the studio location, e.g.
+        # we are running the tank command or API from the studio location, e.g.
         # a core which is located outside a pipeline configuration.
         # in this case, find the primary pipeline config and use that.
         #
