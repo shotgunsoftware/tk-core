@@ -12,7 +12,6 @@ from __future__ import with_statement
 
 import uuid
 import os
-import subprocess
 import sys
 from mock import patch
 
@@ -26,7 +25,6 @@ from sgtk.authentication.user_impl import SessionUser
 from sgtk.descriptor.constants import DISABLE_APPSTORE_ACCESS_ENV_VAR
 import sgtk
 import tank_vendor
-
 
 REPO_ROOT = os.path.normpath(
     os.path.join(
@@ -388,7 +386,7 @@ class TestInvalidInstalledConfiguration(TankTestBase):
                 "Cannot find required system file"):
             config.status()
 
-class TestBakedConfiguration(TankTestBase):
+class TestBakedConfiguration(TestConfigurationBase):
     def setUp(self):
         super(TestBakedConfiguration, self).setUp()
         self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
@@ -405,12 +403,14 @@ class TestBakedConfiguration(TankTestBase):
         current_engine = sgtk.platform.current_engine()
         if current_engine:
             current_engine.destroy()
+        if sgtk.constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA in os.environ:
+            del os.environ[sgtk.constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA]
 
     @patch("sgtk.bootstrap.configuration_writer.ConfigurationWriter.install_core")
     @patch("tank.authentication.ShotgunAuthenticator.get_user")
     def test_build_and_use(self, core_install_mock, get_user_mock):
         """
-        Test baking a plugin and bootstrapping it.
+        Test baking a plugin and bootstrapping it with current tk-core.
         """
         default_user = self._create_session_user("default_user")
         get_user_mock.return_value = default_user
@@ -428,7 +428,7 @@ class TestBakedConfiguration(TankTestBase):
         # And try to bootstrap it
         # The config name and version is controlled by the
         # fixtures/bootstrap_tests/test_plugin/info.yml file.
-        bootstrap_script = os.path.join(bake_folder, "tk-config-test-v1.2.3", "bootstrap.py")
+        bootstrap_script = os.path.join(bake_folder, "tk-config-boottest-v1.2.3", "bootstrap.py")
         # Define some globals needed by the bootstrap script
         global_namespace = {
             "__file__": bootstrap_script,

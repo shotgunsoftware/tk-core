@@ -11,8 +11,8 @@
 
 import os
 import imp
-import sgtk
 import time
+import sgtk
 
 ENGINE_NAME = "test_engine"
 

@@ -13,7 +13,7 @@ base_configuration:
   # For documentation and details, see
   #
   type: dev
-  name: tk-config-test
+  name: tk-config-boottest
   # Please make sure TK_TEST_FIXTURES is set to an absolute path when baking
   # this plugin
   path: "$TK_TEST_FIXTURES/bootstrap_tests/config"
