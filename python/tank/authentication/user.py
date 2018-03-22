@@ -12,7 +12,7 @@ import os
 import threading
 import time
 
-from tank_vendor import sso_saml2
+from . import sso_saml2
 from . import interactive_authentication
 from . import user_impl
 from .. import LogManager

@@ -69,7 +69,7 @@ SRC_REPO=git@github.com:shotgunsoftware/sso_saml2.git
 # Where we'll clone the repo
 DEST_REPO=$ROOT/repo
 # Destination relative to this script for the files
-DEST=`pwd`/../python/tank_vendor/sso_saml2
+DEST=`pwd`/../python/tank/authentication/sso_saml2
 
 # Recreate the folder structure
 mkdir $ROOT
