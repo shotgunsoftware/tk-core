@@ -11,17 +11,20 @@
 
 from tank import Hook
 
+
 class FirstLevelDerived(Hook):
     pass
+
 
 class FirstLevelDerivedB(Hook):
     pass
 
+
 class SecondLevelDerived(FirstLevelDerived):
     pass
+
 
 class TestHook(SecondLevelDerived):
     
     def execute(self, dummy_param):
         return "doubly derived class"
-        

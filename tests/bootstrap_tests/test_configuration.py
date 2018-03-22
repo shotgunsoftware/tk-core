@@ -22,7 +22,6 @@ from sgtk.bootstrap.cached_configuration import CachedConfiguration
 from sgtk.bootstrap.configuration import Configuration
 from sgtk.authentication import ShotgunAuthenticator, ShotgunSamlUser
 from sgtk.authentication.user_impl import SessionUser
-from sgtk.descriptor.constants import DISABLE_APPSTORE_ACCESS_ENV_VAR
 import sgtk
 import tank_vendor
 
@@ -385,6 +384,7 @@ class TestInvalidInstalledConfiguration(TankTestBase):
                 sgtk.bootstrap.TankBootstrapError,
                 "Cannot find required system file"):
             config.status()
+
 
 class TestBakedConfiguration(TestConfigurationBase):
     def setUp(self):

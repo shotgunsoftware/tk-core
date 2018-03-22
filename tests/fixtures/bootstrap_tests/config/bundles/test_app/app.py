@@ -13,7 +13,7 @@ A simple app to support unit tests.
 """
 
 from tank.platform import Application
-import tank
+
 
 class TestApp(Application):
     
