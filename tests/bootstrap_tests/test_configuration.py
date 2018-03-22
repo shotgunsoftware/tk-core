@@ -388,25 +388,23 @@ class TestInvalidInstalledConfiguration(TankTestBase):
                 "Cannot find required system file"):
             config.status()
 
-class TestBakedConfiguration(TestConfigurationBase):
+class TestBakedConfiguration(TankTestBase):
     def setUp(self):
         super(TestBakedConfiguration, self).setUp()
         self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
         self._build_plugin_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "..", "..", "developer", "build_plugin.py")
         )
-        # work around the app store connection lookup loops to just use std mockgun instance to mock the app store
-#        self._get_app_store_key_from_shotgun_mock = patch(
-#            "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore._IODescriptorAppStore__create_sg_app_store_connection",
-#            return_value=(self.mockgun, None)
-#        )
-#        self._get_app_store_key_from_shotgun_mock.start()
         sys.path.append(os.path.dirname(self._build_plugin_path))
 
     def tearDown(self):
         super(TestBakedConfiguration, self).tearDown()
         if os.path.dirname(self._build_plugin_path) in sys.path:
             sys.path.remove(os.path.dirname(self._build_plugin_path))
+        # Tear down the running engine, if any
+        current_engine = sgtk.platform.current_engine()
+        if current_engine:
+            current_engine.destroy()
 
     @patch("sgtk.bootstrap.configuration_writer.ConfigurationWriter.install_core")
     @patch("tank.authentication.ShotgunAuthenticator.get_user")
@@ -419,7 +417,7 @@ class TestBakedConfiguration(TestConfigurationBase):
         # Bake the plugin
         import build_plugin
         plugin_path = os.path.join(self.fixtures_root, "bootstrap_tests", "test_plugin")
-        bake_folder = os.path.join("/tmp", "test_baked") # self.tank_temp
+        bake_folder = os.path.join(self.tank_temp, "test_baked")
         build_plugin.build_plugin(
             self.mockgun,
             plugin_path,
@@ -431,10 +429,12 @@ class TestBakedConfiguration(TestConfigurationBase):
         # The config name and version is controlled by the
         # fixtures/bootstrap_tests/test_plugin/info.yml file.
         bootstrap_script = os.path.join(bake_folder, "tk-config-test-v1.2.3", "bootstrap.py")
+        # Define some globals needed by the bootstrap script
         global_namespace = {
             "__file__": bootstrap_script,
             "__name__": "__main__",
         }
-        with open(bootstrap_script, 'rb') as pf:
-            exec(compile(pf.read(), bootstrap_script, 'exec'), global_namespace)
-
+        with open(bootstrap_script, "rb") as pf:
+            exec(compile(pf.read(), bootstrap_script, "exec"), global_namespace)
+        self.assertNotEqual(sgtk.platform.current_engine(), None)
+        sgtk.platform.current_engine().destroy()
