@@ -12,6 +12,8 @@ from __future__ import with_statement
 
 import uuid
 import os
+import subprocess
+import sys
 from mock import patch
 
 from tank_test.tank_test_base import setUpModule # noqa
@@ -21,6 +23,7 @@ from sgtk.bootstrap.cached_configuration import CachedConfiguration
 from sgtk.bootstrap.configuration import Configuration
 from sgtk.authentication import ShotgunAuthenticator, ShotgunSamlUser
 from sgtk.authentication.user_impl import SessionUser
+from sgtk.descriptor.constants import DISABLE_APPSTORE_ACCESS_ENV_VAR
 import sgtk
 import tank_vendor
 
@@ -384,3 +387,54 @@ class TestInvalidInstalledConfiguration(TankTestBase):
                 sgtk.bootstrap.TankBootstrapError,
                 "Cannot find required system file"):
             config.status()
+
+class TestBakedConfiguration(TestConfigurationBase):
+    def setUp(self):
+        super(TestBakedConfiguration, self).setUp()
+        self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
+        self._build_plugin_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "..", "developer", "build_plugin.py")
+        )
+        # work around the app store connection lookup loops to just use std mockgun instance to mock the app store
+#        self._get_app_store_key_from_shotgun_mock = patch(
+#            "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore._IODescriptorAppStore__create_sg_app_store_connection",
+#            return_value=(self.mockgun, None)
+#        )
+#        self._get_app_store_key_from_shotgun_mock.start()
+        sys.path.append(os.path.dirname(self._build_plugin_path))
+
+    def tearDown(self):
+        super(TestBakedConfiguration, self).tearDown()
+        if os.path.dirname(self._build_plugin_path) in sys.path:
+            sys.path.remove(os.path.dirname(self._build_plugin_path))
+
+    @patch("sgtk.bootstrap.configuration_writer.ConfigurationWriter.install_core")
+    @patch("tank.authentication.ShotgunAuthenticator.get_user")
+    def test_build_and_use(self, core_install_mock, get_user_mock):
+        """
+        Test baking a plugin and bootstrapping it.
+        """
+        default_user = self._create_session_user("default_user")
+        get_user_mock.return_value = default_user
+        # Bake the plugin
+        import build_plugin
+        plugin_path = os.path.join(self.fixtures_root, "bootstrap_tests", "test_plugin")
+        bake_folder = os.path.join("/tmp", "test_baked") # self.tank_temp
+        build_plugin.build_plugin(
+            self.mockgun,
+            plugin_path,
+            bake_folder,
+            do_bake=True,
+            use_system_core=True,
+        )
+        # And try to bootstrap it
+        # The config name and version is controlled by the
+        # fixtures/bootstrap_tests/test_plugin/info.yml file.
+        bootstrap_script = os.path.join(bake_folder, "tk-config-test-v1.2.3", "bootstrap.py")
+        global_namespace = {
+            "__file__": bootstrap_script,
+            "__name__": "__main__",
+        }
+        with open(bootstrap_script, 'rb') as pf:
+            exec(compile(pf.read(), bootstrap_script, 'exec'), global_namespace)
+
