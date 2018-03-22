@@ -26,7 +26,7 @@ from ..util import login
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit
 from tank_vendor import shotgun_api3
-from tank_vendor.sso_saml2 import SsoSaml2Toolkit, SsoSaml2MissingQtModuleError, is_sso_enabled_on_site
+from .sso_saml2 import SsoSaml2Toolkit, SsoSaml2MissingQtModuleError, is_sso_enabled_on_site
 from .. import LogManager
 
 logger = LogManager.get_logger(__name__)

@@ -10,7 +10,7 @@
 
 """Shotgun Authenticator."""
 
-from tank_vendor.sso_saml2 import has_sso_info_in_cookies
+from .sso_saml2 import has_sso_info_in_cookies
 from . import interactive_authentication
 from . import user
 from . import user_impl
