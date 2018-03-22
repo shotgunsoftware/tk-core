@@ -1,4 +1,4 @@
-#*****************************************************************************
+# *****************************************************************************
 # Copyright (c) 2018 Autodesk, Inc.
 # All rights reserved.
 #
@@ -7,7 +7,7 @@
 # protected by Federal copyright law. They may not be disclosed to third
 # parties or copied or duplicated in any form, in whole or in part, without
 # the prior written consent of Autodesk, Inc.
-#*****************************************************************************
+# *****************************************************************************
 
 import os
 import imp
@@ -83,6 +83,7 @@ def bootstrap_plugin():
 
     time_spent = time.time() - time_before
     engine.log_info("Toolkit integration launched in %ss" % time_spent)
+
 
 if __name__ == "__main__":
     bootstrap_plugin()

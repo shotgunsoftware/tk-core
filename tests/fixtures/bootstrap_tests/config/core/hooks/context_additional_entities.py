@@ -23,6 +23,7 @@ Returns a dict with two keys:
 
 from tank import Hook
 
+
 class ContextAdditionalEntities(Hook):
 
     def execute(self):

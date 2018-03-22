@@ -11,6 +11,7 @@
 
 from tank import Hook
 
+
 class TestHook(Hook):
             
     def test_method(self):
