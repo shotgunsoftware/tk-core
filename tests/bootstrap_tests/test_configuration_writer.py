@@ -10,7 +10,6 @@
 
 from __future__ import with_statement
 
-import contextlib
 import os
 import sys
 
@@ -344,14 +343,13 @@ class TestWritePipelineConfigFile(ShotgunTestBase):
         """
         self._create_test_data(create_project=False)
 
-        with self._fixme_find_one():
-            path = self.__cw.write_pipeline_config_file(
-                self.__site_configuration["id"],
-                None,
-                "basic.plugin",
-                self.FALLBACK_PATHS,
-                self.__descriptor
-            )
+        path = self.__cw.write_pipeline_config_file(
+            self.__site_configuration["id"],
+            None,
+            "basic.plugin",
+            self.FALLBACK_PATHS,
+            self.__descriptor
+        )
 
         with open(path, "r") as fh:
             config_info = yaml.safe_load(fh)
@@ -379,14 +377,13 @@ class TestWritePipelineConfigFile(ShotgunTestBase):
         """
         self._create_test_data(create_project=True)
 
-        with self._fixme_find_one():
-            path = self.__cw.write_pipeline_config_file(
-                self.__site_configuration["id"],
-                self.__project["id"],
-                "basic.plugin",
-                self.FALLBACK_PATHS,
-                self.__descriptor
-            )
+        path = self.__cw.write_pipeline_config_file(
+            self.__site_configuration["id"],
+            self.__project["id"],
+            "basic.plugin",
+            self.FALLBACK_PATHS,
+            self.__descriptor
+        )
 
         with open(path, "r") as fh:
             config_info = yaml.safe_load(fh)
@@ -406,35 +403,6 @@ class TestWritePipelineConfigFile(ShotgunTestBase):
                 "source_descriptor": self.__descriptor.get_dict()
             }
         )
-
-    @contextlib.contextmanager
-    def _fixme_find_one(self):
-        """
-        Workaround for a bug in Mockgun.
-        """
-        # FIXME: There's a bug in Mockgun when a linked field is set to None. A client fixed this
-        # bug, we're only waiting for the PR to be merged.
-        original_find_one = self.mockgun.find_one
-        with patch.object(self.mockgun, "find_one") as p:
-            def mocked_find_one(entity_type, filters, *args):
-                if entity_type == "PipelineConfiguration":
-                    # Make sure we're being queried for the pipeline configuration we are expecting.
-                    self.assertEqual(entity_type, "PipelineConfiguration")
-                    self.assertEqual(
-                        filters, [["id", "is", self.__site_configuration["id"]]]
-                    )
-                    # Make sure we are mocking the call for the project which is None.
-                    self.assertIsNone(self.__site_configuration["project"])
-                    result = {
-                        "project.Project.tank_name": None
-                    }
-                    result.update(self.__site_configuration)
-                    return result
-                else:
-                    return original_find_one(entity_type, filters, *args)
-
-            p.side_effect = mocked_find_one
-            yield
 
     def test_write_project_config(self):
         """
