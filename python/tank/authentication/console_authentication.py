@@ -25,7 +25,7 @@ from .. import LogManager
 from .errors import AuthenticationError, AuthenticationCancelled, ConsoleLoginWithSSONotSupportedError
 from tank_vendor import shotgun_api3
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
-from tank_vendor.sso_saml2 import is_sso_enabled_on_site
+from .sso_saml2 import is_sso_enabled_on_site
 from ..util.shotgun.connection import sanitize_url
 
 from getpass import getpass

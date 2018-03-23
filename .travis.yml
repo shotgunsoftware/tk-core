@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Shotgun Software Inc.
+# Copyright (c) 2018 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -22,7 +22,7 @@ matrix:
     env: SHOTGUN_COMPILE_ONLY=1
 
 install:
-  pip install -r tests/ci_requirements.txt
+  - pip install -r tests/ci_requirements.txt
 
 # command to run tests
 script: tests/run_travis.sh
