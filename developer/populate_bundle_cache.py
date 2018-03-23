@@ -137,9 +137,6 @@ give special meaning to the & character.
 
 {automated_setup_documentation}
 
-You can also use the SHOTGUN_HOST, SHOTGUN_SCRIPT_NAME and SHOTGUN_SCRIPT_KEY environment
-variables to authenticate.
-
 For information about the various descriptors that can be used, see
 http://developer.shotgunsoftware.com/tk-core/descriptor
 

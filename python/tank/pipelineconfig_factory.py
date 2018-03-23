@@ -766,6 +766,7 @@ def _get_pipeline_configs(force=False):
         ["name", "tank_name"]
     )
 
+    # Index the result by project id so look-ups are easier to do later on.
     projects = dict((project["id"], project) for project in projects)
 
     # cache this data
