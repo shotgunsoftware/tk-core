@@ -1,0 +1,9 @@
+# this is a comment at the top of the file
+include: ./includes/empty_config.yml
+
+engines:
+  # this is a comment after the engines section
+    test_engine:
+        location: {'type': 'dev', 'path': '{CONFIG_FOLDER}/bundles/test_engine'}
+        debug_logging: false
+        apps: {}

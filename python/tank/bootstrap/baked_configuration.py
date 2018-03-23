@@ -15,9 +15,12 @@ from .configuration_writer import ConfigurationWriter
 
 from .. import LogManager
 from .. import constants
+
 import cPickle as pickle
 
 from ..util import ShotgunPath
+from ..errors import TankFileDoesNotExistError
+from .. import pipelineconfig_utils
 
 log = LogManager.get_logger(__name__)
 
@@ -107,6 +110,10 @@ class BakedConfiguration(Configuration):
         :param sg_user: Authenticated Shotgun user to associate
                         the tk instance with.
         """
+
+        # Heads up that the base implementation is not called: we totally
+        # override it.
+
         # set up the environment to pass on to the tk instance
         pipeline_config = {
             "project_id": self._project_id,
@@ -117,8 +124,29 @@ class BakedConfiguration(Configuration):
         log.debug("Setting External config data: %s" % pipeline_config)
         os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA] = pickle.dumps(pipeline_config)
 
-        # call base class
-        return super(BakedConfiguration, self).get_tk_instance(sg_user)
+        path = self._path.current_os
+        try:
+            python_core_path = pipelineconfig_utils.get_core_python_path_for_config(path)
+        except TankFileDoesNotExistError as e:
+            # For baked config we allow a globally installed tk-core to be used
+            python_core_path = self._get_current_core_python_path()
+            log.debug(
+                "Couldn't retrieve a core path from the config, keeping current one: %s" % (
+                    python_core_path
+                )
+            )
+
+        self._swap_core_if_needed(python_core_path)
+
+        # Perform a local import here to make sure we are getting
+        # the newly swapped in core code, if it was swapped
+        from .. import api
+        # Baked config are typically not attached to any Shotgun site, or project
+        # so we can simply keep using the current user, which holds Shotgun
+        # connection informations.
+        api.set_authenticated_user(sg_user)
+
+        return self._tank_from_path(path), sg_user
 
     @classmethod
     def bake_config_scaffold(cls, path, sg_connection, plugin_id, config_descriptor):
