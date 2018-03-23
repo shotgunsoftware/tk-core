@@ -26,7 +26,7 @@ from ..util import login
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit
 from tank_vendor import shotgun_api3
-from tank_vendor.sso_saml2 import SsoSaml2Toolkit, SsoSaml2MissingQtModuleError, is_sso_enabled_on_site
+from .sso_saml2 import SsoSaml2Toolkit, SsoSaml2MissingQtModuleError, is_sso_enabled_on_site
 from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
@@ -121,7 +121,7 @@ class LoginDialog(QtGui.QDialog):
         try:
             self._sso_saml2 = SsoSaml2Toolkit("SSO Login", qt_modules=qt_modules)
         except SsoSaml2MissingQtModuleError as e:
-            logger.error("SSO login not supported due to missing Qt module: %s" % e)
+            logger.info("SSO login not supported due to missing Qt module: %s" % e)
             self._sso_saml2 = None
 
         hostname = hostname or ""
