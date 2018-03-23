@@ -72,7 +72,7 @@ setup(
     # Additional data which must sit in packages folders
     package_data={
         # If any package contains data files, include them:
-        "": ["resources/*", ".txt", "*.*"],
+        "": ["resources/*", ".txt", "*.*", "fonts/OpenSans/*"],
     },
     # Everything can be found under the python folder, but installed without it
     package_dir={"": "python"}
