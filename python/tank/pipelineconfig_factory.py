@@ -267,15 +267,14 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, pro
     # Introspect the TANK_CURRENT_PC env var to determine which pipeline configuration
     # the current sgtk import belongs to.
     #
-    # if the call returns a path, we are running a localized pipeline configuration, e.g.
-    # the pipeline configuration has its own associated core. If it returns None,
-    # we are running a shared core, e.g. a core API which is used by multiple
-    # pipeline configurations.
+    # if the call returns a path, we are running a inside a pipeline configuration.
+    # If it returns None, we are running a shared core, e.g. a core API which is
+    # used by multiple pipeline configurations.
     config_context_path = _get_configuration_context()
 
     if config_context_path:
 
-        # --- THE PROJECT CASE ----
+        # --- RUNNING THE API WITHIN A PROJECT ----
 
         # This is the localized case where the imported code has a 1:1 correspondence
         # with the pipeline configuration. Now we need to verify that the path is compatible
@@ -326,7 +325,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, pro
 
     else:
 
-        # --- THE SHARED CORE CASE ----
+        # --- RUNNING THE API WITHIN A CENTRALIZED CORE ----
         #
         # When you are running the tank command or import sgtk from a shared core.
         #
@@ -640,9 +639,9 @@ def _get_pipeline_configs_for_project(project_id, data):
 
     for pc in data["pipeline_configurations"]:
 
-        # note the null check - in the future, the site configs will
-        # have null values for project.
-        if not pc["project"] or pc["project"]["id"] == project_id:
+        # The pipeline configuration can match a project if it has no project associated or if it is
+        # associated to it.
+        if pc["project"] is None or pc["project"]["id"] == project_id:
             matching_pipeline_configs.append(pc)
 
     return matching_pipeline_configs
@@ -726,13 +725,15 @@ def _get_pipeline_configs(force=False):
     :returns: dictionary with keys local_storages and pipeline_configurations.
     """
 
-    CACHE_KEY = "paths"
+    # The new cache is not backwards compatible with previous version of Toolkit, so create
+    # new cache key.
+    CACHE_KEY = "paths_v2"
 
     if force is False:
         # try to load cache first
         # if that doesn't work, fall back on shotgun
         cache = _load_lookup_cache()
-        if cache and cache.get(CACHE_KEY) and "project" in cache.get(CACHE_KEY):
+        if cache and cache.get(CACHE_KEY):
             # cache hit!
             return cache.get(CACHE_KEY)
 
@@ -762,7 +763,7 @@ def _get_pipeline_configs(force=False):
     projects = sg.find(
         "Project",
         [["archived", "is", False]],
-        ["tank_name"]
+        ["name", "tank_name"]
     )
 
     projects = dict((project["id"], project) for project in projects)
