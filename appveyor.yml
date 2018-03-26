@@ -30,5 +30,5 @@ test_script:
   # to put the Python version you want to use on PATH.
   # Do not let PySide figure out a version of PySide. This fails intermittently
   # on AppVeyor, so we'll provide the full path directly.
-  - "%PYTHON%\\scripts\\pip.exe install PySide --no-index -f https://pypi.python.org/packages/43/59/534c8d20f0cb0aa8ed5fbb1d97c761f8188afeeeaa4bca9dd9fe25c9f538/PySide-1.2.4-cp26-none-win_amd64.whl"
+  - "%PYTHON%\\scripts\\pip.exe install PySide --no-index -f https://pypi.python.org/packages/43/59/534c8d20f0cb0aa8ed5fbb1d97c761f8188afeeeaa4bca9dd9fe25c9f538/PySide-1.2.4-cp26-none-win_amd64.whl#md5=54b6bc1a4470738c96c5666e9e18a142"
   - "tests\\run_appveyor.bat"
