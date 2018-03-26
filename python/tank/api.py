@@ -346,6 +346,25 @@ class Sgtk(object):
         from . import commands
         return commands.get_command(command_name, self)
         
+    def templates_from_path(self, path):
+        """
+        Finds templates that matches the given path::
+
+            >>> import sgtk
+            >>> tk = sgtk.sgtk_from_path("/studio/project_root")
+            >>> tk.templates_from_path("/studio/my_proj/assets/Car/Anim/work")
+            <Sgtk Template maya_asset_project: assets/%(Asset)s/%(Step)s/work>
+
+
+        :param path: Path to match against a template
+        :returns: list of :class:`TemplatePath` or [] if no match could be found.
+        """
+        matched_templates = []
+        for key, template in self.templates.items():
+            if template.validate(path):
+                matched_templates.append(template)
+        return matched_templates
+            
     def template_from_path(self, path):
         """
         Finds a template that matches the given path::
@@ -359,11 +378,8 @@ class Sgtk(object):
         :param path: Path to match against a template
         :returns: :class:`TemplatePath` or None if no match could be found.
         """
-        matched_templates = []
-        for key, template in self.templates.items():
-            if template.validate(path):
-                matched_templates.append(template)
-
+        matched_templates = self.templates_from_path(path)
+        
         if len(matched_templates) == 0:
             return None
         elif len(matched_templates) == 1:
