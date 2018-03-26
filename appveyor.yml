@@ -28,6 +28,7 @@ test_script:
   # Note that you must use the environment variable %PYTHON% to refer to
   # the interpreter you're using - Appveyor does not do anything special
   # to put the Python version you want to use on PATH.
-  # Upgrade pip to avoid intermittent errors during install of PySide
-  - "%PYTHON%\\scripts\\pip.exe install PySide== --no-index -f https://pypi.python.org/packages/43/59/534c8d20f0cb0aa8ed5fbb1d97c761f8188afeeeaa4bca9dd9fe25c9f538/PySide-1.2.4-cp26-none-win_amd64.whl"
+  # Do not let PySide figure out a version of PySide. This fails intermittently
+  # on AppVeyor, so we'll provide the full path directly.
+  - "%PYTHON%\\scripts\\pip.exe install PySide --no-index -f https://pypi.python.org/packages/43/59/534c8d20f0cb0aa8ed5fbb1d97c761f8188afeeeaa4bca9dd9fe25c9f538/PySide-1.2.4-cp26-none-win_amd64.whl"
   - "tests\\run_appveyor.bat"
