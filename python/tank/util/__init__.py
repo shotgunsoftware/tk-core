@@ -43,3 +43,6 @@ from .errors import PublishResolveError
 from .errors import PublishPathNotDefinedError, PublishPathNotSupported
 
 from .user_settings import UserSettings
+
+from .storage_roots import StorageRoots
+

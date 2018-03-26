@@ -230,6 +230,33 @@ class SetupProjectWizard(object):
         """
         self._params.set_config_uri(config_uri)
 
+    def update_storage_root(self, config_uri, root_name, storage_data):
+        """
+        Given a required storage root name, update the template config's storage
+        root information.
+
+        The data is in the same form as the required roots dictionary stored in
+        the config's root.yml file. Example::
+
+            {
+                "description": "A top-level root folder for production data...",
+                "mac_path": "/shotgun/prod",
+                "linux_path": "/shotgun/prod",
+                "windows_path": "C:\shotgun\prod",
+                "default": True,
+                "shotgun_storage_id": 1,
+            }
+
+        Not all fields are required to be specified. Only the supplied fields
+        will be updated on the existing storage data.
+
+        :param config_uri: A config uri
+        :param root_name: The name of a root to update.
+        :param storage_data: A dctionary
+        :return:
+        """
+        self._params.update_storage_root(config_uri, root_name, storage_data)
+
     def get_config_metadata(self):
         """
         Returns a metadata dictionary for the config that has been associated with the wizard.
