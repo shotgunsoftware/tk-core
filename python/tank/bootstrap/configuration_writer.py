@@ -125,7 +125,9 @@ class ConfigurationWriter(object):
         core_target_path = os.path.join(config_root_path, "install", "core")
 
         log.debug("Copying core into place")
-        core_descriptor.copy(core_target_path)
+        # Skip the tests and docs folder. They make the copying of the core
+        # longer for no added benefit.
+        core_descriptor.copy(core_target_path, skip_list=["tests", "docs"])
 
     def get_descriptor_metadata_file(self):
         """
