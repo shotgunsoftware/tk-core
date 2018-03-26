@@ -465,8 +465,12 @@ class TestLookupCache(ShotgunTestBase):
 
 
 class TestTankFromWithSiteConfig(TankTestBase):
+    """
+    Tests tank.tank_from_* with site configurations.
+    """
 
-    def test_from_path(self):
+    def setUp(self):
+        super(TestTankFromWithSiteConfig, self).setUp()
         # Turn the config into a site configuration.
         self.mockgun.update(
             "PipelineConfiguration",
@@ -486,15 +490,28 @@ class TestTankFromWithSiteConfig(TankTestBase):
                 "project": self.project
             }
         )
-        self._validate_sgtk_instance(self.project_root)
 
-    def _validate_sgtk_instance(self, path):
-
+    def test_from_path(self):
+        """
+        Ensures tank_from_path will resolve site wide configs.
+        """
         os.environ["TANK_CURRENT_PC"] = self.pipeline_config_root
         try:
-            result = tank.tank_from_path(path)
-            self.assertIsInstance(result, Tank)
+            result = tank.tank_from_path(self.project_root)
             self.assertEquals(result.project_path, self.project_root)
+            self.assertEquals(result.pipeline_configuration.get_path(), self.pipeline_config_root)
+        finally:
+            del os.environ["TANK_CURRENT_PC"]
+
+    def test_from_entity(self):
+        """
+        Ensures tank_from_entity will resolve site wide configs.
+        """
+        os.environ["TANK_CURRENT_PC"] = self.pipeline_config_root
+        try:
+            result = tank.tank_from_entity("Project", self.project["id"])
+            self.assertEquals(result.project_path, self.project_root)
+            self.assertEquals(result.pipeline_configuration.get_path(), self.pipeline_config_root)
         finally:
             del os.environ["TANK_CURRENT_PC"]
 
