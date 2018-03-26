@@ -30,6 +30,6 @@ test_script:
   # to put the Python version you want to use on PATH.
 
   # Upgrade pip to avoid intermittent errors during install of PySide
-  - "%PYTHON%\\scripts\\pip.exe install --upgrade pip
+  - "%PYTHON%\\scripts\\pip.exe install --upgrade pip"
   - "%PYTHON%\\scripts\\pip.exe install PySide==1.2.2"
   - "tests\\run_appveyor.bat"
