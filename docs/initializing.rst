@@ -624,6 +624,11 @@ Exception Classes
     :inherited-members:
     :members:
 
+.. autoclass:: TankMissingTankNameError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+
 
 Factory methods
 ========================================
