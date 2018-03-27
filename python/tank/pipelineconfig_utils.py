@@ -23,6 +23,7 @@ from . import constants
 from . import LogManager
 
 from .util import yaml_cache
+from .util import StorageRoots
 from .util import ShotgunPath
 from .util.shotgun import get_deferred_sg_connection
 
@@ -68,8 +69,8 @@ def is_pipeline_config(pipeline_config_path):
     :returns: true if pipeline config, false if not
     """
     # probe by looking for the existence of a key config file.
-    pc_file = os.path.join(pipeline_config_path, "config", "core", constants.STORAGE_ROOTS_FILE)
-    return os.path.exists(pc_file)
+    config_folder = os.path.join(pipeline_config_path, "config")
+    return StorageRoots.file_exists(config_folder)
 
 
 def get_metadata(pipeline_config_path):

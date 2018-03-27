@@ -677,7 +677,14 @@ def read_templates(pipeline_configuration):
         return d            
             
     keys = templatekey.make_keys(get_data_section("keys"))
-    template_paths = make_template_paths(get_data_section("paths"), keys, per_platform_roots)
+
+    template_paths = make_template_paths(
+        get_data_section("paths"),
+        keys,
+        per_platform_roots,
+        default_root=pipeline_configuration.get_primary_data_root_name()
+    )
+
     template_strings = make_template_strings(get_data_section("strings"), keys, template_paths)
 
     # Detect duplicate names across paths and strings
@@ -691,7 +698,7 @@ def read_templates(pipeline_configuration):
     return templates
 
 
-def make_template_paths(data, keys, all_per_platform_roots):
+def make_template_paths(data, keys, all_per_platform_roots, default_root=None):
     """
     Factory function which creates TemplatePaths.
 
@@ -716,13 +723,19 @@ def make_template_paths(data, keys, all_per_platform_roots):
         definition = template_data["definition"]
         root_name = template_data.get("root_name")
         if not root_name:
-            # If the root name is not explicitly set we use the only one we got
-            # if dealing with a single root or enforce the use of the good old
-            # "primary" storage if dealing with multiple entries.
-            if len(all_per_platform_roots) > 1:
-                root_name = constants.PRIMARY_STORAGE_NAME
+            # If the root name is not explicitly set we use the default arg
+            # provided
+            if default_root:
+                root_name = default_root
             else:
-                root_name = all_per_platform_roots.keys()[0]
+                raise TankError(
+                    "The template %s (%s) can not be evaluated. No root_name "
+                    "is specified, and no root name can be determined from "
+                    "the configuration. Update the template definition to "
+                    "include a root_name or update your configuration's "
+                    "roots.yml file to mark one of the storage roots as the "
+                    "default: `default: true`." % (template_name, definition)
+                )
         # to avoid confusion between strings and paths, validate to check
         # that each item contains at least a "/" (#19098)
         if "/" not in definition:

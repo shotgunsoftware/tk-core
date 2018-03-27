@@ -268,14 +268,14 @@ class TestMakeTemplatePaths(ShotgunTestBase):
 
     def test_simple(self):
         data = {"template_name": "something/{Shot}"}
-        result = make_template_paths(data, self.keys, self.multi_os_data_roots)
+        result = make_template_paths(data, self.keys, self.multi_os_data_roots, default_root="unit_tests")
         template_path = result.get("template_name")
         self.assertIsInstance(template_path, TemplatePath)
         self.assertEquals(self.keys.get("Shot"), template_path.keys.get("Shot"))
 
     def test_complex(self):
         data = {"template_name": {"definition": "something/{Shot}"}}
-        result = make_template_paths(data, self.keys, self.multi_os_data_roots)
+        result = make_template_paths(data, self.keys, self.multi_os_data_roots, default_root="unit_tests")
         template_path = result.get("template_name")
         self.assertIsInstance(template_path, TemplatePath)
         self.assertEquals(self.keys.get("Shot"), template_path.keys.get("Shot"))
@@ -311,8 +311,8 @@ class TestMakeTemplatePaths(ShotgunTestBase):
                 "root_name": "alternate_1"
             }
         }
-        
-        result = make_template_paths(data, self.keys, modified_roots)
+
+        result = make_template_paths(data, self.keys, modified_roots, default_root=self.primary_root_name)
         prim_template = result.get("template_name")
         alt_templatte = result.get("another_template")
         self.assertEquals(self.project_root, prim_template.root_path)
@@ -331,7 +331,7 @@ class TestMakeTemplatePaths(ShotgunTestBase):
                 "root_name": "alternate_1"
             }
         }
-        result = make_template_paths(data, self.keys, modified_roots)
+        result = make_template_paths(data, self.keys, modified_roots, default_root="primary")
         prim_template = result.get("template_name")
         alt_templatte = result.get("another_template")
         self.assertEquals(self.project_root, prim_template.root_path)
