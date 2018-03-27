@@ -406,8 +406,8 @@ class TestBakedConfiguration(TestConfigurationBase):
         if sgtk.constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA in os.environ:
             del os.environ[sgtk.constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA]
 
-    @patch("sgtk.bootstrap.configuration_writer.ConfigurationWriter.install_core")
     @patch("tank.authentication.ShotgunAuthenticator.get_user")
+    @patch("sgtk.bootstrap.configuration_writer.ConfigurationWriter.install_core")
     def test_build_and_use(self, core_install_mock, get_user_mock):
         """
         Test baking a plugin and bootstrapping it with current tk-core.
