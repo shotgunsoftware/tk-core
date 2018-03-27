@@ -438,3 +438,32 @@ class TestBakedConfiguration(TestConfigurationBase):
             exec(compile(pf.read(), bootstrap_script, "exec"), global_namespace)
         self.assertNotEqual(sgtk.platform.current_engine(), None)
         sgtk.platform.current_engine().destroy()
+
+
+class TestCachedConfiguration(ShotgunTestBase):
+
+    def test_verifies_tank_name(self):
+
+        # Reset the tank_name and create a storage named after the one in the config.
+        self.mockgun.update("Project", self.project["id"], {"tank_name": None})
+        self.mockgun.create("LocalStorage", {"code": "primary"})
+
+        # Initialize a cached configuration pointing to the config.
+        config_root = os.path.join(self.fixtures_root, "bootstrap_tests", "config")    
+        cached_config = CachedConfiguration(
+            self.tank_temp,
+            self.mockgun,
+            sgtk.descriptor.create_descriptor(
+                self.mockgun,
+                sgtk.descriptor.Descriptor.CONFIG,
+                "sgtk:descriptor:path?path={0}".format(config_root)
+            ),
+            self.project["id"],
+            "basic.*",
+            None,
+            []
+        )
+
+        # Make sure that the missing tank name is detected.
+        with self.assertRaises(sgtk.bootstrap.TankMissingTankNameError):
+            cached_config.verify_required_shotgun_fields()
