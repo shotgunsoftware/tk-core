@@ -14,7 +14,7 @@ import pprint
 
 from . import constants
 
-from .errors import TankBootstrapError
+from .errors import TankBootstrapError, TankMissingTankNameError
 
 from ..util import filesystem
 
@@ -164,9 +164,9 @@ class CachedConfiguration(Configuration):
             ["tank_name"]
         )
         if proj_data["tank_name"] is None:
-            raise TankBootstrapError(
-                "The configuration requires you to specify a value for the "
-                "Project.tank_name field in Shotgun."
+            raise TankMissingTankNameError(
+                "The configuration requires you to specify a value for the project's "
+                "tank_name field in Shotgun."
             )
 
     def status(self):
