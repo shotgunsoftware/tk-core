@@ -117,9 +117,11 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
     :param manifest_data: Manifest data as a dictionary
     :param bool use_system_core: If True, use a globally installed tk-core instead
                                  of the one specified in the configuration.
-    :return: (Resolved config descriptor object, config descriptor uri to use at runtime)
+    :return: (Resolved config descriptor object, config descriptor uri to use at runtime, install path)
     """
     logger.info("Analyzing configuration")
+
+    install_path = None
 
     # get config def from info yml and generate both
     # dict and string uris.
@@ -248,7 +250,9 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
         )
     logger.info("Resolved config %r" % cfg_descriptor)
     logger.info("Runtime config descriptor uri will be %s" % base_config_uri_str)
-    return cfg_descriptor, base_config_uri_str
+    if install_path:
+        logger.info("The config was baked in %s" % install_path)
+    return cfg_descriptor, base_config_uri_str, install_path
 
 
 def _validate_manifest(source_path):
@@ -366,7 +370,8 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
                 fh.write("\n\n")
 
             elif core_descriptor.get_path().startswith(plugin_root):
-                # the core descriptor is cached inside our plugin
+                # The core descriptor is cached inside our plugin, build a relative
+                # path from the plugin root.
                 core_path_parts = os.path.normpath(core_descriptor.get_path()).split(os.path.sep)
                 core_path_relative_parts = core_path_parts[core_path_parts.index(BUNDLE_CACHE_ROOT_FOLDER_NAME):]
                 core_path_relative_parts.append("python")
@@ -442,6 +447,7 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
             fh.write("# end of file.\n")
 
     except Exception, e:
+        logger.exception(e)
         raise TankError("Cannot write manifest file: %s" % e)
 
 
@@ -506,8 +512,9 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     # resolve config descriptor
     # the config_uri_str returned by the method contains the fully resolved
     # uri to use at runtime - in the case of baked descriptors, the config_uri_str
-    # contains a manual descriptor uri.
-    (cfg_descriptor, config_uri_str) = _process_configuration(
+    # contains a manual descriptor uri and install_path is set with the baked
+    # folder.
+    (cfg_descriptor, config_uri_str, install_path) = _process_configuration(
         sg_connection,
         source_path,
         target_path,
@@ -529,7 +536,7 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
         logger.info("An external core will be used for this plugin, not caching it")
         bootstrap_core_desc = None
     else:
-        # get latest core - cache it directly into the plugin root folder
+        # get core - cache it directly into the plugin root folder
         if bootstrap_core_uri:
             logger.info("Caching custom core for boostrap (%s)" % bootstrap_core_uri)
             bootstrap_core_desc = create_descriptor(
@@ -539,8 +546,10 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
                 resolve_latest=is_descriptor_version_missing(bootstrap_core_uri),
                 bundle_cache_root_override=bundle_cache_root
             )
+            # cache it
+            bootstrap_core_desc.ensure_local()
 
-        else:
+        elif not cfg_descriptor.associated_core_descriptor:
             # by default, use latest core for bootstrap
             logger.info("Caching latest official core to use when bootstrapping plugin.")
             logger.info("(To use a specific config instead, specify a --bootstrap-core-uri flag.)")
@@ -553,19 +562,11 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
                 bundle_cache_root_override=bundle_cache_root
             )
 
-        # cache it
-        bootstrap_core_desc.ensure_local()
-
-    # make a python folder where we put our manifest
-    logger.info("Creating configuration manifest...")
-
-    # bake out the manifest into python files.
-    _bake_manifest(
-        manifest_data,
-        config_uri_str,
-        bootstrap_core_desc,
-        target_path
-    )
+            # cache it
+            bootstrap_core_desc.ensure_local()
+        else:
+            # The bootstrap core will be derived from the associated core desc below.
+            bootstrap_core_desc = None
 
     # now analyze what core the config needs
     if not use_system_core and cfg_descriptor.associated_core_descriptor:
@@ -579,6 +580,45 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
             bundle_cache_root_override=bundle_cache_root
         )
         associated_core_desc.ensure_local()
+        if bootstrap_core_desc is None:
+            # Use the same version as the one specified by the config.
+            if install_path:
+                # Install path is set only if the config was baked. We re-use the
+                # install path as an optimisation to avoid core swapping when the
+                # config is bootstrapped.
+                logger.info(
+                    "Bootstrapping will use installed %s required by the config" %
+                    associated_core_desc
+                )
+                # If the core was installed we directly use it.
+                bootstrap_core_desc = create_descriptor(
+                    sg_connection,
+                    Descriptor.CORE, {
+                        "type": "path",
+                        "name": "tk-core",
+                        "path": os.path.join(install_path, "install", "core"),
+                        "version": associated_core_desc.version,
+                    },
+                    resolve_latest=False,
+                    bundle_cache_root_override=bundle_cache_root
+                )
+            else:
+                logger.info(
+                    "Bootstrapping will use core %s required by the config" %
+                    associated_core_desc
+                )
+                bootstrap_core_desc = associated_core_desc
+
+    # make a python folder where we put our manifest
+    logger.info("Creating configuration manifest...")
+
+    # bake out the manifest into python files.
+    _bake_manifest(
+        manifest_data,
+        config_uri_str,
+        bootstrap_core_desc,
+        target_path
+    )
 
     cleanup_bundle_cache(bundle_cache_root)
 
