@@ -237,7 +237,6 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
         - linux_path
         - mac_path
         - project (associated project entity link)
-        - project.Project.tank_name (associated project tank name)
 
     This method will either return a pipeline configuration instance based on
     one of the ``associated_pipeline_configs`` entries or raise a TankInitError
@@ -266,15 +265,14 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
     # Introspect the TANK_CURRENT_PC env var to determine which pipeline configuration
     # the current sgtk import belongs to.
     #
-    # if the call returns a path, we are running a localized pipeline configuration, e.g.
-    # the pipeline configuration has its own associated core. If it returns None,
-    # we are running a shared core, e.g. a core API which is used by multiple
-    # pipeline configurations.
+    # if the call returns a path, we are running a inside a pipeline configuration.
+    # If it returns None, we are running a shared core, e.g. a core API which is
+    # used by multiple pipeline configurations.
     config_context_path = _get_configuration_context()
 
     if config_context_path:
 
-        # --- THE LOCALIZED CORE CASE ----
+        # --- RUNNING THE API WITHIN A PROJECT ----
 
         # This is the localized case where the imported code has a 1:1 correspondence
         # with the pipeline configuration. Now we need to verify that the path is compatible
@@ -325,11 +323,11 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
 
     else:
 
-        # --- THE SHARED CORE CASE ----
+        # --- RUNNING THE API WITHIN A CENTRALIZED CORE ----
         #
         # When you are running the tank command or import sgtk from a shared core.
         #
-        # we are running the tank command or API proxy from the studio location, e.g.
+        # we are running the tank command or API from the studio location, e.g.
         # a core which is located outside a pipeline configuration.
         # in this case, find the primary pipeline config and use that.
         #
@@ -488,7 +486,6 @@ def _get_pipeline_configs_for_path(path, data):
         - linux_path
         - mac_path
         - project
-        - project.Project.tank_name
 
     Edge case notes:
 
@@ -537,49 +534,34 @@ def _get_pipeline_configs_for_path(path, data):
     project_paths = collections.defaultdict(list)
     for pc in data["pipeline_configurations"]:
 
-        for s in storages:
+        for storage in storages:
 
-            # installed/classic pipeline configurations are associated with a
-            # project which has a tank_name set. this key should always exist,
-            # but the value may be None for projects not using the
-            # templates/schema system. for safety, call 'get' as we've seen
-            # issues with invalid/corrupt toolkit_init caches.
-            project_name = pc.get("project.Project.tank_name")
+            # This pipeline can be associated with all projects, so add this
+            # pipeline configuration to all project paths
+            if pc["project"] is None:
+                for project in data["projects"].values():
+                    if project["tank_name"]:
+                        _add_to_project_paths(project_paths, project["tank_name"], storage, pc)
 
-            # this method is used to look up the appropriate configuration given
-            # a path on disk. Configurations that don't have a file system
-            # presence (not using the templates/schema system) can be safely
-            # ignored as the path can't be associated with that type of
-            # configuration
-            if not project_name:
-                continue
+            else:
+                # installed/classic pipeline configurations are associated with a
+                # project which has a tank_name set. this key should always exist,
+                # but the value may be None for projects not using the
+                # templates/schema system. for safety, call 'get' as we've seen
+                # issues with invalid/corrupt toolkit_init caches.
+                project_id = pc["project"]["id"]
+                project_name = data["projects"][project_id].get("tank_name")
 
-            # for multi level projects, there may be slashes, e.g
-            # project_name is "parent/child"
-            # ensure this is translated to "parent\child" on windows
-            project_name = project_name.replace("/", os.path.sep)
+                # this method is used to look up the appropriate configuration given
+                # a path on disk. Configurations that don't have a file system
+                # presence (not using the templates/schema system) can be safely
+                # ignored as the path can't be associated with that type of
+                # configuration
+                if not project_name:
+                    continue
 
-            # now, another windows edge case we need to ensure is covered
-            # if a windows storage is defined as 'x:', then
-            # os.path.join('x:', 'folder') will return 'x:folder'
-            # and not 'x:\folder as we would expect
-            # so ensure that any path on this form is extended:
-            # 'x:' --> 'x:\'
-            if len(s) == 2 and s.endswith(":"):
-                s = "%s%s" % (s, os.path.sep)
+                _add_to_project_paths(project_paths, project_name, storage, pc)
 
-            # and concatenate it with the storage
-            project_path = os.path.join(s, project_name)
-
-            # Associate this path with the pipeline configuration if it's not already.
-            # If there are multiple storages defined with the same path,
-            # this prevents the pipeline config from being added multiple times.
-            # Ultimately we probably want to check that the storage
-            # is being used by the pipeline config by checking the roots.yml
-            # in the pipeline config before associating it here.
-            if pc not in project_paths[project_path]:
-                project_paths[project_path].append(pc)
-    
     # step 3 - look at the path we passed in - see if any of the computed
     # project folders are determined to be a parent path
     all_matching_pcs = []
@@ -601,6 +583,45 @@ def _get_pipeline_configs_for_path(path, data):
     return all_matching_pcs
 
 
+def _add_to_project_paths(project_paths, project_name, storage, pipeline_config):
+    """
+    Adds a pipeline configuration to the list of pipelines that can be used
+    with a given storage path.
+
+    :param projects_path: Mapping between a project's path inside the storage
+        all the pipeline configurations that can understand it.
+    :param name: tank_name of the project.
+    :param storage: Storage root path for the current OS.
+    :param pipeline_config: Pipeline configuration entity to add.
+    """
+
+    # for multi level projects, there may be slashes, e.g
+    # project_name is "parent/child"
+    # ensure this is translated to "parent\child" on windows
+    project_name = project_name.replace("/", os.path.sep)
+
+    # now, another windows edge case we need to ensure is covered
+    # if a windows storage is defined as 'x:', then
+    # os.path.join('x:', 'folder') will return 'x:folder'
+    # and not 'x:\folder as we would expect
+    # so ensure that any path on this form is extended:
+    # 'x:' --> 'x:\'
+    if len(storage) == 2 and storage.endswith(":"):
+        storage = "%s%s" % (storage, os.path.sep)
+
+    # and concatenate it with the storage
+    project_path = os.path.join(storage, project_name)
+
+    # Associate this path with the pipeline configuration if it's not already.
+    # If there are multiple storages defined with the same path,
+    # this prevents the pipeline config from being added multiple times.
+    # Ultimately we probably want to check that the storage
+    # is being used by the pipeline config by checking the roots.yml
+    # in the pipeline config before associating it here.
+    if pipeline_config not in project_paths[project_path]:
+        project_paths[project_path].append(pipeline_config)
+
+
 def _get_pipeline_configs_for_project(project_id, data):
     """
     Given a project id, return a list of associated pipeline configurations.
@@ -619,7 +640,6 @@ def _get_pipeline_configs_for_project(project_id, data):
         - linux_path
         - mac_path
         - project
-        - project.Project.tank_name
 
     :param project_id: Project id to look for
     :param data: Cache data chunk, obtained using _get_pipeline_configs()
@@ -629,9 +649,9 @@ def _get_pipeline_configs_for_project(project_id, data):
 
     for pc in data["pipeline_configurations"]:
 
-        # note the null check - in the future, the site configs will
-        # have null values for project.
-        if pc["project"] and pc["project"]["id"] == project_id:
+        # The pipeline configuration can match a project if it has no project associated or if it is
+        # associated to it.
+        if pc["project"] is None or pc["project"]["id"] == project_id:
             matching_pipeline_configs.append(pc)
 
     return matching_pipeline_configs
@@ -658,7 +678,7 @@ def __get_project_id(entity_type, entity_id, force=False):
 
     CACHE_KEY = "%s_%s" % (entity_type, entity_id)
 
-    if force == False:
+    if force is False:
         # try to load cache first
         # if that doesn't work, fall back on shotgun
         cache = _load_lookup_cache()
@@ -705,16 +725,21 @@ def _get_pipeline_configs(force=False):
         - linux_path
         - mac_path
         - project
-        - project.Project.tank_name
         - plugin_ids
+
+    projects:
+        - id
+        - tank_name
 
     :param force: set this to true to force a cache refresh
     :returns: dictionary with keys local_storages and pipeline_configurations.
     """
 
-    CACHE_KEY = "paths"
+    # The new cache is not backwards compatible with previous version of Toolkit, so create
+    # new cache key.
+    CACHE_KEY = "paths_v2"
 
-    if force == False:
+    if force is False:
         # try to load cache first
         # if that doesn't work, fall back on shotgun
         cache = _load_lookup_cache()
@@ -732,21 +757,31 @@ def _get_pipeline_configs(force=False):
 
     # get all pipeline configurations (and their associated projects) for this site.
     #
-    # note: to make sure we are not retrieving more and more projects
-    #       over time, only include non-archived projects.
+    # To make sure we are not retrieving more and more projects over time, only
+    # include non-archived projects.
     #
-    pipeline_configs = sg.find("PipelineConfiguration",
-                               [["project.Project.archived", "is", False]],
-                               ["id",
-                                "code",
-                                "windows_path",
-                                "linux_path",
-                                "mac_path",
-                                "project",
-                                "project.Project.tank_name"])
+    # Note that we are using the filter_operator "any", not the default "all".
+    pipeline_configs = sg.find(
+        "PipelineConfiguration",
+        [
+            ["project.Project.archived", "is", False],
+            ["project", "is", None]
+        ],
+        ["id", "code", "windows_path", "linux_path", "mac_path", "project"],
+        filter_operator="any"
+    )
+
+    projects = sg.find(
+        "Project",
+        [["archived", "is", False]],
+        ["name", "tank_name"]
+    )
+
+    # Index the result by project id so look-ups are easier to do later on.
+    projects = dict((project["id"], project) for project in projects)
 
     # cache this data
-    data = {"local_storages": local_storages, "pipeline_configurations": pipeline_configs}
+    data = {"local_storages": local_storages, "pipeline_configurations": pipeline_configs, "projects": projects}
     _add_to_lookup_cache(CACHE_KEY, data)
 
     return data
@@ -824,4 +859,3 @@ def _get_cache_location():
     sg_base_url = shotgun.get_associated_sg_base_url()
     root_path = LocalFileStorageManager.get_site_root(sg_base_url, LocalFileStorageManager.CACHE)
     return os.path.join(root_path, constants.TOOLKIT_INIT_CACHE_FILE)
-
