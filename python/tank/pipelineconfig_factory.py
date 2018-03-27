@@ -102,7 +102,6 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
     # create a pipeline configuration
     return _validate_and_create_pipeline_configuration(
         associated_sg_pipeline_configs,
-        data["projects"].values(),
         source="%s %s" % (entity_type, entity_id)
     )
 
@@ -215,12 +214,11 @@ def _from_path(path, force_reread_shotgun_cache):
     # create a pipeline configuration
     return _validate_and_create_pipeline_configuration(
         associated_sg_pipeline_configs,
-        sg_data["projects"].values(),
         source=path
     )
 
 
-def _validate_and_create_pipeline_configuration(associated_pipeline_configs, projects, source):
+def _validate_and_create_pipeline_configuration(associated_pipeline_configs, source):
     """
     Given a set of pipeline configuration, validate that the currently running code
     is compliant and construct and return a suitable pipeline configuration instance.
@@ -536,21 +534,22 @@ def _get_pipeline_configs_for_path(path, data):
     project_paths = collections.defaultdict(list)
     for pc in data["pipeline_configurations"]:
 
-        for s in storages:
+        for storage in storages:
 
             # This pipeline can be associated with all projects, so add this
             # pipeline configuration to all project paths
             if pc["project"] is None:
                 for project in data["projects"].values():
                     if project["tank_name"]:
-                        _add_to_project_paths(project_paths, project["tank_name"], s, pc)
+                        _add_to_project_paths(project_paths, project["tank_name"], storage, pc)
 
             else:
                 # installed/classic pipeline configurations are associated with a
                 # project which has a tank_name set. this key will always exist, but
                 # the value may be None for projects not using the templates/schema
                 # system
-                project_name = data["projects"][pc["project"]["id"]].get("tank_name")
+                project_id = pc["project"]["id"]
+                project_name = data["projects"][project_id].get("tank_name")
 
                 # this method is used to look up the appropriate configuration given
                 # a path on disk. Configurations that don't have a file system
@@ -560,7 +559,7 @@ def _get_pipeline_configs_for_path(path, data):
                 if not project_name:
                     continue
 
-                _add_to_project_paths(project_paths, project_name, s, pc)
+                _add_to_project_paths(project_paths, project_name, storage, pc)
 
     # step 3 - look at the path we passed in - see if any of the computed
     # project folders are determined to be a parent path
@@ -583,7 +582,17 @@ def _get_pipeline_configs_for_path(path, data):
     return all_matching_pcs
 
 
-def _add_to_project_paths(project_paths, project_name, s, pc):
+def _add_to_project_paths(project_paths, project_name, storage, pipeline_config):
+    """
+    Adds a pipeline configuration to the list of pipelines that can be used
+    with a given storage path.
+
+    :param projects_path: Mapping between a project's path inside the storage
+        all the pipeline configurations that can understand it.
+    :param name: tank_name of the project.
+    :param storage: Storage root path for the current OS.
+    :param pipeline_config: Pipeline configuration entity to add.
+    """
 
     # for multi level projects, there may be slashes, e.g
     # project_name is "parent/child"
@@ -596,11 +605,11 @@ def _add_to_project_paths(project_paths, project_name, s, pc):
     # and not 'x:\folder as we would expect
     # so ensure that any path on this form is extended:
     # 'x:' --> 'x:\'
-    if len(s) == 2 and s.endswith(":"):
-        s = "%s%s" % (s, os.path.sep)
+    if len(storage) == 2 and storage.endswith(":"):
+        storage = "%s%s" % (storage, os.path.sep)
 
     # and concatenate it with the storage
-    project_path = os.path.join(s, project_name)
+    project_path = os.path.join(storage, project_name)
 
     # Associate this path with the pipeline configuration if it's not already.
     # If there are multiple storages defined with the same path,
@@ -608,8 +617,8 @@ def _add_to_project_paths(project_paths, project_name, s, pc):
     # Ultimately we probably want to check that the storage
     # is being used by the pipeline config by checking the roots.yml
     # in the pipeline config before associating it here.
-    if pc not in project_paths[project_path]:
-        project_paths[project_path].append(pc)
+    if pipeline_config not in project_paths[project_path]:
+        project_paths[project_path].append(pipeline_config)
 
 
 def _get_pipeline_configs_for_project(project_id, data):
@@ -747,9 +756,10 @@ def _get_pipeline_configs(force=False):
 
     # get all pipeline configurations (and their associated projects) for this site.
     #
-    # note: to make sure we are not retrieving more and more projects
-    #       over time, only include non-archived projects.
+    # To make sure we are not retrieving more and more projects over time, only
+    # include non-archived projects.
     #
+    # Note that we are using the filter_operator "any", not the default "all".
     pipeline_configs = sg.find(
         "PipelineConfiguration",
         [
