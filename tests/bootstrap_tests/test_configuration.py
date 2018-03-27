@@ -470,3 +470,7 @@ class TestCachedConfiguration(ShotgunTestBase):
         # Make sure that the missing tank name is detected.
         with self.assertRaises(sgtk.bootstrap.TankMissingTankNameError):
             cached_config.verify_required_shotgun_fields()
+
+        # Ensure our change is backwards compatible.
+        with self.assertRaises(sgtk.bootstrap.TankBootstrapError):
+            cached_config.verify_required_shotgun_fields()
