@@ -443,13 +443,16 @@ class TestBakedConfiguration(TestConfigurationBase):
 class TestCachedConfiguration(ShotgunTestBase):
 
     def test_verifies_tank_name(self):
+        """
+        Ensures that missing tank name on project is detected when using roots.
+        """
 
         # Reset the tank_name and create a storage named after the one in the config.
         self.mockgun.update("Project", self.project["id"], {"tank_name": None})
         self.mockgun.create("LocalStorage", {"code": "primary"})
 
         # Initialize a cached configuration pointing to the config.
-        config_root = os.path.join(self.fixtures_root, "bootstrap_tests", "config")    
+        config_root = os.path.join(self.fixtures_root, "bootstrap_tests", "config")
         cached_config = CachedConfiguration(
             self.tank_temp,
             self.mockgun,
