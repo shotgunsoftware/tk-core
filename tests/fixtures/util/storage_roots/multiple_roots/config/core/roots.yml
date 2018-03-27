@@ -1,0 +1,17 @@
+work:
+  linux_path: /tmp/work
+  mac_path: /tmp/work
+  windows_path: None
+  default: "X:\\tmp\\foobar"
+
+data:
+  linux_path: /tmp/data
+  mac_path: /tmp/data
+  windows_path: "X:\\tmp\\foobar"
+
+foobar:
+  linux_path: /tmp/foobar
+  mac_path: /tmp/foobar
+  windows_path: "X:\\tmp\\foobar"
+
+

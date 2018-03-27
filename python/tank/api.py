@@ -175,13 +175,12 @@ class Sgtk(object):
     @property
     def project_path(self):
         """
-        Path to the primary data directory for a project.
+        Path to the default data directory for a project.
 
         Toolkit Projects that utilize the template system to read and write data
-        to disk will use a number of Shotgun local storages as part of their setup
-        to define where data should be stored on disk. One of these storages
-        are identified as the 'primary' storage root and this is the value
-        returned by this property.
+        to disk will use a number of Shotgun local storages as part of their
+        setup to define where data should be stored on disk. One of these
+        storages is identified as the default storage.
 
         :raises: :class:`TankError` if the configuration doesn't use storages.
         """
@@ -190,27 +189,31 @@ class Sgtk(object):
     @property
     def roots(self):
         """
-        Returns a dictionary of root names to root paths.
+        Returns a dictionary of storage root names to storage root paths.
 
         Toolkit Projects that utilize the template system to read and write data
-        to disk will use a number of Shotgun local storages as part of their setup
-        to define where data should be stored on disk. This method returns a dictionary
-        keyed by storage root name with the value being the path on the current
-        operating system platform::
+        to disk will use one or more Shotgun local storages as part of their
+        setup to define where data should be stored on disk. This method returns
+        a dictionary keyed by storage root name with the value being the path
+        on the current operating system platform::
 
-            {"primary": "/studio/my_project", "textures": "/textures/my_project"}
+            {
+                "work": "/studio/work/my_project",
+                "textures": "/studio/textures/my_project"
+            }
 
         These items reflect the Local Storages that you have set up in Shotgun.
-        Each project in the Pipeline Toolkit is connected to a number of these
+
+        Each project using the template system is connected to a number of these
         storages - these storages define the root points for all the different
         data locations for your project. So for example, if you have a mount
         point for textures, one for renders and one for production data such
         as scene files, you can set up a multi root configuration which uses
         three Local Storages in Shotgun. This method returns the project
-        storage locations for the current project. The key is the name of the local
-        storage, the way it is defined in Shotgun. The value is the path which is defined in the
-        Shotgun Local storage definition for the current operating system,
-        concatenated with the project folder name.
+        storage locations for the current project. The key is the name of the
+        local storage as defined in your configuration. The value is the path
+        which is defined in the associated Shotgun Local storage definition for
+        the current operating system, concatenated with the project folder name.
         """
         return self.__pipeline_config.get_data_roots()
 
@@ -343,6 +346,25 @@ class Sgtk(object):
         from . import commands
         return commands.get_command(command_name, self)
         
+    def templates_from_path(self, path):
+        """
+        Finds templates that matches the given path::
+
+            >>> import sgtk
+            >>> tk = sgtk.sgtk_from_path("/studio/project_root")
+            >>> tk.templates_from_path("/studio/my_proj/assets/Car/Anim/work")
+            <Sgtk Template maya_asset_project: assets/%(Asset)s/%(Step)s/work>
+
+
+        :param path: Path to match against a template
+        :returns: list of :class:`TemplatePath` or [] if no match could be found.
+        """
+        matched_templates = []
+        for key, template in self.templates.items():
+            if template.validate(path):
+                matched_templates.append(template)
+        return matched_templates
+            
     def template_from_path(self, path):
         """
         Finds a template that matches the given path::
@@ -356,11 +378,8 @@ class Sgtk(object):
         :param path: Path to match against a template
         :returns: :class:`TemplatePath` or None if no match could be found.
         """
-        matched_templates = []
-        for key, template in self.templates.items():
-            if template.validate(path):
-                matched_templates.append(template)
-
+        matched_templates = self.templates_from_path(path)
+        
         if len(matched_templates) == 0:
             return None
         elif len(matched_templates) == 1:

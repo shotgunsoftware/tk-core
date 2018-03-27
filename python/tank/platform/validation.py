@@ -200,7 +200,7 @@ def validate_and_return_frameworks(descriptor, environment):
                         #           v0.9.0 IS older than v1.0.0, set to False
                         min_version_satisfied = not is_version_older(fw_version, min_version)
                     else:
-                        core_logger.warning(
+                        core_logger.debug(
                             "Not checking minimum framework version compliance "
                             "due to one or both versions being malformed: "
                             "%s and %s." % (min_version, fw_version)

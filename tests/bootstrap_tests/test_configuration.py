@@ -406,8 +406,8 @@ class TestBakedConfiguration(TestConfigurationBase):
         if sgtk.constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA in os.environ:
             del os.environ[sgtk.constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA]
 
-    @patch("sgtk.bootstrap.configuration_writer.ConfigurationWriter.install_core")
     @patch("tank.authentication.ShotgunAuthenticator.get_user")
+    @patch("sgtk.bootstrap.configuration_writer.ConfigurationWriter.install_core")
     def test_build_and_use(self, core_install_mock, get_user_mock):
         """
         Test baking a plugin and bootstrapping it with current tk-core.
@@ -438,3 +438,39 @@ class TestBakedConfiguration(TestConfigurationBase):
             exec(compile(pf.read(), bootstrap_script, "exec"), global_namespace)
         self.assertNotEqual(sgtk.platform.current_engine(), None)
         sgtk.platform.current_engine().destroy()
+
+
+class TestCachedConfiguration(ShotgunTestBase):
+
+    def test_verifies_tank_name(self):
+        """
+        Ensures that missing tank name on project is detected when using roots.
+        """
+
+        # Reset the tank_name and create a storage named after the one in the config.
+        self.mockgun.update("Project", self.project["id"], {"tank_name": None})
+        self.mockgun.create("LocalStorage", {"code": "primary"})
+
+        # Initialize a cached configuration pointing to the config.
+        config_root = os.path.join(self.fixtures_root, "bootstrap_tests", "config")
+        cached_config = CachedConfiguration(
+            self.tank_temp,
+            self.mockgun,
+            sgtk.descriptor.create_descriptor(
+                self.mockgun,
+                sgtk.descriptor.Descriptor.CONFIG,
+                "sgtk:descriptor:path?path={0}".format(config_root)
+            ),
+            self.project["id"],
+            "basic.*",
+            None,
+            []
+        )
+
+        # Make sure that the missing tank name is detected.
+        with self.assertRaises(sgtk.bootstrap.TankMissingTankNameError):
+            cached_config.verify_required_shotgun_fields()
+
+        # Ensure our change is backwards compatible.
+        with self.assertRaises(sgtk.bootstrap.TankBootstrapError):
+            cached_config.verify_required_shotgun_fields()

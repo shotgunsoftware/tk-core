@@ -545,9 +545,10 @@ def _get_pipeline_configs_for_path(path, data):
 
             else:
                 # installed/classic pipeline configurations are associated with a
-                # project which has a tank_name set. this key will always exist, but
-                # the value may be None for projects not using the templates/schema
-                # system
+                # project which has a tank_name set. this key should always exist,
+                # but the value may be None for projects not using the
+                # templates/schema system. for safety, call 'get' as we've seen
+                # issues with invalid/corrupt toolkit_init caches.
                 project_id = pc["project"]["id"]
                 project_name = data["projects"][project_id].get("tank_name")
 

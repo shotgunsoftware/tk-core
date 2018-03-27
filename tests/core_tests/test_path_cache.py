@@ -30,6 +30,8 @@ from tank import constants
 from tank import LogManager
 import tank
 
+from tank.util import StorageRoots
+
 log = LogManager.get_logger(__name__)
 
 
@@ -594,37 +596,34 @@ class TestShotgunSync(TankTestBase):
         
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
         self.assertEqual( len(self._get_path_cache()), 4)
-        
-        roots_yml = os.path.join(self.pipeline_config_root, 
-                                 "config", 
-                                 "core", 
-                                 constants.STORAGE_ROOTS_FILE)
-        
-        # construct an invalid roots.yml that is out of sync with the records coming from
-        current_roots = self.pipeline_configuration._roots
-        invalid_roots = {
-            "primary": tank.util.ShotgunPath.from_shotgun_dict(
-                {"linux_path": "/invalid",
-                 "mac_path": "/invalid",
-                 "windows_path": "X:\\invalid"
-                 }
-            )
+
+        invalid_roots_data = {
+            "primary": {
+                "linux_path": "/invalid",
+                "mac_path": "/invalid",
+                "windows_path": "X:\\invalid"
+            }
         }
-        
-        self.pipeline_configuration._roots = invalid_roots
+
+        self.pipeline_configuration._storage_roots = StorageRoots.from_metadata(invalid_roots_data)
         
         # perform a full sync
         log = sync_path_cache(self.tk, force_full_sync=True)
         self.assertTrue("Could not resolve storages - skipping" in log)
         self.assertEqual( len(self._get_path_cache()), 0)
-        
-        # and set roots back again and check 
-        self.pipeline_configuration._roots = current_roots
+
+        config_folder = os.path.join(
+            self.pipeline_config_root,
+            "config"
+        )
+
+        # and set roots back again and check
+        self.pipeline_configuration._storage_roots = StorageRoots.from_config(config_folder)
+
         # perform a full sync
         log = sync_path_cache(self.tk, force_full_sync=True)
         self.assertTrue("Could not resolve storages - skipping" not in log)
         self.assertEqual( len(self._get_path_cache()), 4)
-
 
     def test_truncated_eventlog(self):
         """Tests that a full sync happens if the event log is truncated."""

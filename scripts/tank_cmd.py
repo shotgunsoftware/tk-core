@@ -18,7 +18,7 @@ import string
 import tank
 import textwrap
 import datetime
-from tank import TankError
+from tank.errors import TankError, TankInitError
 from tank.commands.tank_command import get_actions, run_action
 from tank.commands.clone_configuration import clone_pipeline_configuration_html
 from tank.commands.core_upgrade import TankCoreUpdater
@@ -1248,8 +1248,24 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
             entity_id = _resolve_shotgun_entity(entity_type, entity_search_token, project_id)
 
         # now initialize toolkit and set up the context.
-        tk = tank.tank_from_entity(entity_type, entity_id)
+        try:
+            tk = tank.tank_from_entity(entity_type, entity_id)
+        except TankInitError as exc:
+            # If we failed to get an object back, a likely cause is that the entity
+            # has been retired. In the situation where an unregister_folders command
+            # is being called, we can give the user some better feedback concerning
+            # how to unregister the folder using the path instead of the entity.
+            if command == "unregister_folders":
+                raise TankInitError(
+                    "%s If you want to unregister folders associated with this "
+                    "entity, you can do so by calling the unregister_folders "
+                    "command on the associated path instead: "
+                    "\"tank unregister_folders /path/to/folder\"" % exc.message
+                )
+            raise
+
         ctx = tk.context_from_entity(entity_type, entity_id)
+
 
     logger.debug("Sgtk API and Context resolve complete.")
     logger.debug("Sgtk API: %s" % tk)
