@@ -860,12 +860,10 @@ class SetupProjectAction(Action):
 
             # match case insensitively
             if storage_to_use.lower() in storage_by_name:
-                # ensure we have the proper capitalization as stored in SG
                 storage_to_use = storage_by_name[storage_to_use.lower()]["code"]
+                storage = storage_by_name[storage_to_use.lower()]
             else:
                 raise TankError("Please enter a valid storage name!")
-
-            storage = storage_by_name[storage_to_use]
 
             log.info("")
             log.info(
@@ -921,7 +919,7 @@ class SetupProjectAction(Action):
         for (root_name, storage_name) in mapped_roots:
 
             root_info = required_roots[root_name]
-            storage_data = storage_by_name[storage_name]
+            storage_data = storage_by_name[storage_name.lower()]
 
             # populate the data defined prior to mapping
             updated_storage_data = root_info
