@@ -19,6 +19,7 @@ from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
+from ..util import ShotgunPath
 
 log = LogManager.get_logger(__name__)
 
@@ -670,7 +671,9 @@ class ToolkitManager(object):
         :type project: Dictionary with keys ``type`` and ``id``.
 
         :returns: List of pipeline configurations.
-        :rtype: List of dictionaries with keys ``type``, ``id``, ``name``, ``project``, and ``descriptor``.
+        :rtype: List of dictionaries with keys ``type``, ``id``, ``name``, ``project``, ``descriptor``,
+            and ``descriptor_uri``. The ``descriptor_uri`` parameter reflects the descriptor field in
+            Shotgun, for configurations where this is being used, and None in other cases.
             The pipeline configurations will always be sorted such as the primary pipeline configuration,
             if available, will be first. Then the remaining pipeline configurations will be sorted by
             ``name`` field (case insensitive), then the ``project`` field and finally then ``id`` field.
@@ -690,13 +693,27 @@ class ToolkitManager(object):
             current_login=self._sg_user.login,
             sg_connection=self._sg_connection,
         ):
-            pcs.append({
+            pipeline_config_data = {
                 "id": pc["id"],
                 "type": pc["type"],
                 "name": pc["code"],
                 "project": pc["project"],
                 "descriptor": pc["config_descriptor"],
-            })
+                "descriptor_uri": None,
+            }
+
+            # if the config is descriptor based, resolve the uri
+            # note: for a descriptor such as
+            # sgtk:descriptor:app_store?name=tk-config-basic,
+            # this is not the same as
+            # pipeline_config_data["descriptor"].get_uri(), which
+            # will return the fully resolved descriptor URI.
+            path = ShotgunPath.from_shotgun_dict(pc)
+            if path.current_os is None and pc["plugin_ids"] is None:
+                # this is a descriptor based config:
+                pipeline_config_data["descriptor_uri"] = pc["descriptor"]
+
+            pcs.append(pipeline_config_data)
 
         return pcs
 
