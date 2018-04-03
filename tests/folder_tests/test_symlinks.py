@@ -101,6 +101,3 @@ class TestSymlinks(TankTestBase):
         else:
             # no support on windows
             self.assertFalse(os.path.exists(self.bbb_link))
-
-
-        
