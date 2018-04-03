@@ -10,13 +10,6 @@
 
 import os
 import sys
-import unittest
-import shutil
-from mock import Mock
-import tank
-from tank_vendor import yaml
-from tank import TankError
-from tank import hook
 from tank import folder
 from tank_test.tank_test_base import *
 
@@ -29,17 +22,20 @@ class TestSymlinks(TankTestBase):
         super(TestSymlinks, self).setUp()
         self.setup_fixtures(parameters = {"core": "core.override/symlinks_core"})
         
-        self.shot_aaa = {"type": "Shot", 
-                         "id": 1,
-                         "code": "aaa",
-                         "project": self.project}
+        self.shot_aaa = {
+            "type": "Shot",
+            "id": 1,
+            "code": "aaa",
+            "project": self.project
+        }
 
-        self.asset_bbb = {"type": "Asset",
-                         "id": 1,
-                         "code": "bbb",
-                         "sg_asset_type": "vehicle",
-                         "project": self.project}
-
+        self.asset_bbb = {
+            "type": "Asset",
+            "id": 1,
+            "code": "bbb",
+            "sg_asset_type": "vehicle",
+            "project": self.project
+        }
 
         self.add_to_sg_mock_db(
             [self.shot_aaa, self.asset_bbb]
@@ -62,11 +58,13 @@ class TestSymlinks(TankTestBase):
         self.assertFalse(os.path.exists(self.aaa_link))
         
 
-        folder.process_filesystem_structure(self.tk, 
-                                            self.shot_aaa["type"], 
-                                            self.shot_aaa["id"], 
-                                            preview=False,
-                                            engine=None)
+        folder.process_filesystem_structure(
+            self.tk,
+            self.shot_aaa["type"],
+            self.shot_aaa["id"],
+            preview=False,
+            engine=None
+        )
 
         self.assertTrue(os.path.exists(self.aaa))
         self.assertTrue(os.path.exists(self.aaa_work))
