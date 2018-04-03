@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.api &mdash; tk-core v0.18.135 documentation</title>
+  <title>tank.api &mdash; tk-core v0.18.141 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.135 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.141 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.135.<br>
+    <b>tk-core</b> v0.18.141.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -350,13 +350,12 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">project_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Path to the primary data directory for a project.</span>
+<span class="sd">        Path to the default data directory for a project.</span>
 
 <span class="sd">        Toolkit Projects that utilize the template system to read and write data</span>
-<span class="sd">        to disk will use a number of Shotgun local storages as part of their setup</span>
-<span class="sd">        to define where data should be stored on disk. One of these storages</span>
-<span class="sd">        are identified as the &#39;primary&#39; storage root and this is the value</span>
-<span class="sd">        returned by this property.</span>
+<span class="sd">        to disk will use a number of Shotgun local storages as part of their</span>
+<span class="sd">        setup to define where data should be stored on disk. One of these</span>
+<span class="sd">        storages is identified as the default storage.</span>
 
 <span class="sd">        :raises: :class:`TankError` if the configuration doesn&#39;t use storages.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -365,27 +364,31 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">roots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns a dictionary of root names to root paths.</span>
+<span class="sd">        Returns a dictionary of storage root names to storage root paths.</span>
 
 <span class="sd">        Toolkit Projects that utilize the template system to read and write data</span>
-<span class="sd">        to disk will use a number of Shotgun local storages as part of their setup</span>
-<span class="sd">        to define where data should be stored on disk. This method returns a dictionary</span>
-<span class="sd">        keyed by storage root name with the value being the path on the current</span>
-<span class="sd">        operating system platform::</span>
+<span class="sd">        to disk will use one or more Shotgun local storages as part of their</span>
+<span class="sd">        setup to define where data should be stored on disk. This method returns</span>
+<span class="sd">        a dictionary keyed by storage root name with the value being the path</span>
+<span class="sd">        on the current operating system platform::</span>
 
-<span class="sd">            {&quot;primary&quot;: &quot;/studio/my_project&quot;, &quot;textures&quot;: &quot;/textures/my_project&quot;}</span>
+<span class="sd">            {</span>
+<span class="sd">                &quot;work&quot;: &quot;/studio/work/my_project&quot;,</span>
+<span class="sd">                &quot;textures&quot;: &quot;/studio/textures/my_project&quot;</span>
+<span class="sd">            }</span>
 
 <span class="sd">        These items reflect the Local Storages that you have set up in Shotgun.</span>
-<span class="sd">        Each project in the Pipeline Toolkit is connected to a number of these</span>
+
+<span class="sd">        Each project using the template system is connected to a number of these</span>
 <span class="sd">        storages - these storages define the root points for all the different</span>
 <span class="sd">        data locations for your project. So for example, if you have a mount</span>
 <span class="sd">        point for textures, one for renders and one for production data such</span>
 <span class="sd">        as scene files, you can set up a multi root configuration which uses</span>
 <span class="sd">        three Local Storages in Shotgun. This method returns the project</span>
-<span class="sd">        storage locations for the current project. The key is the name of the local</span>
-<span class="sd">        storage, the way it is defined in Shotgun. The value is the path which is defined in the</span>
-<span class="sd">        Shotgun Local storage definition for the current operating system,</span>
-<span class="sd">        concatenated with the project folder name.</span>
+<span class="sd">        storage locations for the current project. The key is the name of the</span>
+<span class="sd">        local storage as defined in your configuration. The value is the path</span>
+<span class="sd">        which is defined in the associated Shotgun Local storage definition for</span>
+<span class="sd">        the current operating system, concatenated with the project folder name.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span><span class="o">.</span><span class="n">get_data_roots</span><span class="p">()</span>
 
@@ -518,6 +521,25 @@
         <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">commands</span>
         <span class="k">return</span> <span class="n">commands</span><span class="o">.</span><span class="n">get_command</span><span class="p">(</span><span class="n">command_name</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></div>
         
+<div class="viewcode-block" id="Sgtk.templates_from_path"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk.templates_from_path">[docs]</a>    <span class="k">def</span> <span class="nf">templates_from_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Finds templates that matches the given path::</span>
+
+<span class="sd">            &gt;&gt;&gt; import sgtk</span>
+<span class="sd">            &gt;&gt;&gt; tk = sgtk.sgtk_from_path(&quot;/studio/project_root&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; tk.templates_from_path(&quot;/studio/my_proj/assets/Car/Anim/work&quot;)</span>
+<span class="sd">            &lt;Sgtk Template maya_asset_project: assets/%(Asset)s/%(Step)s/work&gt;</span>
+
+
+<span class="sd">        :param path: Path to match against a template</span>
+<span class="sd">        :returns: list of :class:`TemplatePath` or [] if no match could be found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">matched_templates</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">template</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">template</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+                <span class="n">matched_templates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">matched_templates</span></div>
+            
 <div class="viewcode-block" id="Sgtk.template_from_path"><a class="viewcode-back" href="../../core.html#sgtk.Sgtk.template_from_path">[docs]</a>    <span class="k">def</span> <span class="nf">template_from_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Finds a template that matches the given path::</span>
@@ -531,11 +553,8 @@
 <span class="sd">        :param path: Path to match against a template</span>
 <span class="sd">        :returns: :class:`TemplatePath` or None if no match could be found.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">matched_templates</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">template</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">template</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-                <span class="n">matched_templates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">template</span><span class="p">)</span>
-
+        <span class="n">matched_templates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">templates_from_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matched_templates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">None</span>
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">matched_templates</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -1143,7 +1162,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.135',
+            VERSION:'v0.18.141',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

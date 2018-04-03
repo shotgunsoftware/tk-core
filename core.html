@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Core &mdash; tk-core v0.18.135 documentation</title>
+  <title>Core &mdash; tk-core v0.18.141 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.135 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.141 documentation" href="index.html"/>
         <link rel="next" title="Apps, Engines and Frameworks" href="platform.html"/>
         <link rel="prev" title="Initialization and startup" href="initializing.html"/> 
 
@@ -150,7 +150,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.135.<br>
+    <b>tk-core</b> v0.18.141.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -251,12 +251,11 @@ source of the environments associated with this pipeline configuration.</p>
 <dl class="attribute">
 <dt id="sgtk.Sgtk.project_path">
 <code class="descname">project_path</code><a class="headerlink" href="#sgtk.Sgtk.project_path" title="Permalink to this definition">¶</a></dt>
-<dd><p>Path to the primary data directory for a project.</p>
+<dd><p>Path to the default data directory for a project.</p>
 <p>Toolkit Projects that utilize the template system to read and write data
-to disk will use a number of Shotgun local storages as part of their setup
-to define where data should be stored on disk. One of these storages
-are identified as the &#8216;primary&#8217; storage root and this is the value
-returned by this property.</p>
+to disk will use a number of Shotgun local storages as part of their
+setup to define where data should be stored on disk. One of these
+storages is identified as the default storage.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -270,26 +269,29 @@ returned by this property.</p>
 <dl class="attribute">
 <dt id="sgtk.Sgtk.roots">
 <code class="descname">roots</code><a class="headerlink" href="#sgtk.Sgtk.roots" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a dictionary of root names to root paths.</p>
+<dd><p>Returns a dictionary of storage root names to storage root paths.</p>
 <p>Toolkit Projects that utilize the template system to read and write data
-to disk will use a number of Shotgun local storages as part of their setup
-to define where data should be stored on disk. This method returns a dictionary
-keyed by storage root name with the value being the path on the current
-operating system platform:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;primary&quot;</span><span class="p">:</span> <span class="s2">&quot;/studio/my_project&quot;</span><span class="p">,</span> <span class="s2">&quot;textures&quot;</span><span class="p">:</span> <span class="s2">&quot;/textures/my_project&quot;</span><span class="p">}</span>
+to disk will use one or more Shotgun local storages as part of their
+setup to define where data should be stored on disk. This method returns
+a dictionary keyed by storage root name with the value being the path
+on the current operating system platform:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;work&quot;</span><span class="p">:</span> <span class="s2">&quot;/studio/work/my_project&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;textures&quot;</span><span class="p">:</span> <span class="s2">&quot;/studio/textures/my_project&quot;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
-<p>These items reflect the Local Storages that you have set up in Shotgun.
-Each project in the Pipeline Toolkit is connected to a number of these
+<p>These items reflect the Local Storages that you have set up in Shotgun.</p>
+<p>Each project using the template system is connected to a number of these
 storages - these storages define the root points for all the different
 data locations for your project. So for example, if you have a mount
 point for textures, one for renders and one for production data such
 as scene files, you can set up a multi root configuration which uses
 three Local Storages in Shotgun. This method returns the project
-storage locations for the current project. The key is the name of the local
-storage, the way it is defined in Shotgun. The value is the path which is defined in the
-Shotgun Local storage definition for the current operating system,
-concatenated with the project folder name.</p>
+storage locations for the current project. The key is the name of the
+local storage as defined in your configuration. The value is the path
+which is defined in the associated Shotgun Local storage definition for
+the current operating system, concatenated with the project folder name.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -399,6 +401,28 @@ Lastly, you can execute the command by running the execute() method.</p>
 using the <a class="reference internal" href="#sgtk.list_commands" title="sgtk.list_commands"><code class="xref py py-meth docutils literal"><span class="pre">list_commands()</span></code></a> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sgtk.SgtkSystemCommand" title="sgtk.SgtkSystemCommand"><code class="xref py py-class docutils literal"><span class="pre">SgtkSystemCommand</span></code></a> object instance</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.Sgtk.templates_from_path">
+<code class="descname">templates_from_path</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.templates_from_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.templates_from_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds templates that matches the given path:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span><span class="o">.</span><span class="n">templates_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/my_proj/assets/Car/Anim/work&quot;</span><span class="p">)</span>
+<span class="go">&lt;Sgtk Template maya_asset_project: assets/%(Asset)s/%(Step)s/work&gt;</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> &#8211; Path to match against a template</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of <a class="reference internal" href="#sgtk.TemplatePath" title="sgtk.TemplatePath"><code class="xref py py-class docutils literal"><span class="pre">TemplatePath</span></code></a> or [] if no match could be found.</td>
 </tr>
 </tbody>
 </table>
@@ -2921,7 +2945,7 @@ The format follows the convention of <code class="xref py py-meth docutils liter
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.135',
+            VERSION:'v0.18.141',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

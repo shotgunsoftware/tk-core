@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.template &mdash; tk-core v0.18.135 documentation</title>
+  <title>tank.template &mdash; tk-core v0.18.141 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.135 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.141 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.135.<br>
+    <b>tk-core</b> v0.18.141.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -852,7 +852,14 @@
         <span class="k">return</span> <span class="n">d</span>            
             
     <span class="n">keys</span> <span class="o">=</span> <span class="n">templatekey</span><span class="o">.</span><span class="n">make_keys</span><span class="p">(</span><span class="n">get_data_section</span><span class="p">(</span><span class="s2">&quot;keys&quot;</span><span class="p">))</span>
-    <span class="n">template_paths</span> <span class="o">=</span> <span class="n">make_template_paths</span><span class="p">(</span><span class="n">get_data_section</span><span class="p">(</span><span class="s2">&quot;paths&quot;</span><span class="p">),</span> <span class="n">keys</span><span class="p">,</span> <span class="n">per_platform_roots</span><span class="p">)</span>
+
+    <span class="n">template_paths</span> <span class="o">=</span> <span class="n">make_template_paths</span><span class="p">(</span>
+        <span class="n">get_data_section</span><span class="p">(</span><span class="s2">&quot;paths&quot;</span><span class="p">),</span>
+        <span class="n">keys</span><span class="p">,</span>
+        <span class="n">per_platform_roots</span><span class="p">,</span>
+        <span class="n">default_root</span><span class="o">=</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_primary_data_root_name</span><span class="p">()</span>
+    <span class="p">)</span>
+
     <span class="n">template_strings</span> <span class="o">=</span> <span class="n">make_template_strings</span><span class="p">(</span><span class="n">get_data_section</span><span class="p">(</span><span class="s2">&quot;strings&quot;</span><span class="p">),</span> <span class="n">keys</span><span class="p">,</span> <span class="n">template_paths</span><span class="p">)</span>
 
     <span class="c1"># Detect duplicate names across paths and strings</span>
@@ -866,7 +873,7 @@
     <span class="k">return</span> <span class="n">templates</span>
 
 
-<span class="k">def</span> <span class="nf">make_template_paths</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">all_per_platform_roots</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">make_template_paths</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">all_per_platform_roots</span><span class="p">,</span> <span class="n">default_root</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Factory function which creates TemplatePaths.</span>
 
@@ -891,13 +898,19 @@
         <span class="n">definition</span> <span class="o">=</span> <span class="n">template_data</span><span class="p">[</span><span class="s2">&quot;definition&quot;</span><span class="p">]</span>
         <span class="n">root_name</span> <span class="o">=</span> <span class="n">template_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;root_name&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">root_name</span><span class="p">:</span>
-            <span class="c1"># If the root name is not explicitly set we use the only one we got</span>
-            <span class="c1"># if dealing with a single root or enforce the use of the good old</span>
-            <span class="c1"># &quot;primary&quot; storage if dealing with multiple entries.</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_per_platform_roots</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">root_name</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">PRIMARY_STORAGE_NAME</span>
+            <span class="c1"># If the root name is not explicitly set we use the default arg</span>
+            <span class="c1"># provided</span>
+            <span class="k">if</span> <span class="n">default_root</span><span class="p">:</span>
+                <span class="n">root_name</span> <span class="o">=</span> <span class="n">default_root</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">root_name</span> <span class="o">=</span> <span class="n">all_per_platform_roots</span><span class="o">.</span><span class="n">keys</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
+                    <span class="s2">&quot;The template </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">) can not be evaluated. No root_name &quot;</span>
+                    <span class="s2">&quot;is specified, and no root name can be determined from &quot;</span>
+                    <span class="s2">&quot;the configuration. Update the template definition to &quot;</span>
+                    <span class="s2">&quot;include a root_name or update your configuration&#39;s &quot;</span>
+                    <span class="s2">&quot;roots.yml file to mark one of the storage roots as the &quot;</span>
+                    <span class="s2">&quot;default: `default: true`.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_name</span><span class="p">,</span> <span class="n">definition</span><span class="p">)</span>
+                <span class="p">)</span>
         <span class="c1"># to avoid confusion between strings and paths, validate to check</span>
         <span class="c1"># that each item contains at least a &quot;/&quot; (#19098)</span>
         <span class="k">if</span> <span class="s2">&quot;/&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">definition</span><span class="p">:</span>
@@ -1048,7 +1061,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.135',
+            VERSION:'v0.18.141',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
