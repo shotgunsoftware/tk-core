@@ -1,0 +1,4 @@
+
+# the type of dynamic content
+target: "../Stuff/$Project/$Asset.sg_asset_type/$Asset"
+
