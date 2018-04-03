@@ -56,7 +56,6 @@ class TestSymlinks(TankTestBase):
         self.assertFalse(os.path.exists(self.aaa))
         self.assertFalse(os.path.exists(self.aaa_work))
         self.assertFalse(os.path.exists(self.aaa_link))
-        
 
         folder.process_filesystem_structure(
             self.tk,
