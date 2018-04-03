@@ -86,6 +86,11 @@ echo "Copying Shotgun API to the required location..."
 # Copy the files to the destination
 cp -R $DEST_REPO/shotgun_api3 $DEST/..
 
+# Move to the git repo to generate the sha and write it to the $DEST
+pushd $DEST_REPO
+git rev-parse HEAD > $DEST/commit_id
+popd
+
 # Put files in the staging area.
 echo "adding new files to git..."
 git add -A $DEST
