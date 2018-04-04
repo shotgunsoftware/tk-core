@@ -66,7 +66,7 @@ class SymlinkToken(object):
                         # entity data is contained in a computed_name key (see above)
                         name_value = field_value.get("computed_name")
                         break
-                    elif isinstance(field_value, str):
+                    elif isinstance(field_value, basestring):
                         # listfields contain their values as a string
                         name_value = field_value
                         break
