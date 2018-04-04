@@ -1,0 +1,24 @@
+# Copyright (c) 2015 Shotgun Software Inc.
+# 
+# CONFIDENTIAL AND PROPRIETARY
+# 
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+# Source Code License included in this distribution package. See LICENSE.
+# By accessing, using, copying or modifying this work you indicate your 
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# not expressly granted therein are reserved by Shotgun Software Inc.
+
+# the type of dynamic content
+type: "shotgun_list_field"
+
+# the shotgun entity type to connect to
+entity_type: "Asset"
+
+# switch this to true if you only want to make folders for
+# values that are being used. Note that evaluating this is 
+# expensive and may potentially slow down folder creation.
+skip_unused: false 
+
+# the shotgun field to use for the folder name
+field_name: "sg_asset_type"
+

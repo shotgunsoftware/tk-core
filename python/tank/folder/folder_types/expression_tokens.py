@@ -48,16 +48,37 @@ class SymlinkToken(object):
             # strip the dollar sign
             token = self._name[1:]
 
-            # check that the referenced token is matching one of the tokens which
-            # has a computed name part to represent the dynamically created folder name
-            # this computed_name field exists for all entity folders for example.
-            valid_tokens = [x for x in sg_data if (isinstance(sg_data[x], dict) and "computed_name" in sg_data[x])]
+            # sg_data will contain entries on the following form:
+            #
+            # {'Project': {'type': 'Project', 'computed_name': 'project_code', 'id': 1},
+            #  'Shot': {'computed_name': 'aaa', 'type': 'Shot', 'id': 1},
+            #  'Asset.sg_asset_type': 'vehicle',
+            #  'current_task_data': None
+            # }
+            #
+            # - listfield tokens contain the value
+            # - sg entity values contain the value in a compute_name key
+            name_value = None
+            for (field_name, field_value) in sg_data.iteritems():
 
-            if token not in valid_tokens:
+                if token == field_name:
+                    if isinstance(field_value, dict):
+                        # entity data is contained in a computed_name key (see above)
+                        name_value = field_value.get("computed_name")
+                        break
+                    elif isinstance(field_value, basestring):
+                        # listfields contain their values as a string
+                        name_value = field_value
+                        break
+                    else:
+                        raise ValueError(
+                            "Cannot compute symlink target for %s: The reference token '%s' is of "
+                            "type %s and cannot be resolved." % (folder_obj, self._name, type(field_value))
+                        )
+
+            if name_value is None:
                 raise TankError("Cannot compute symlink target for %s: The reference token '%s' cannot be resolved. "
-                                "Available tokens are %s." % (folder_obj, self._name, valid_tokens))
-
-            name_value = sg_data[token].get("computed_name")
+                                "Available tokens are %s." % (folder_obj, self._name, sg_data.keys()))
 
             return name_value
 

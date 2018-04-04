@@ -800,7 +800,7 @@ def _list_commands(tk, ctx):
         logger.info("%s Commands" % cat)
         logger.info("=" * 50)
         logger.info("")
-        for cmd in by_category[cat]:
+        for cmd in sorted(by_category[cat], key=lambda c: c.name):
             logger.info(cmd.name)
             logger.info("-" * len(cmd.name))
             logger.info(cmd.description)
