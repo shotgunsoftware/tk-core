@@ -228,23 +228,13 @@ class Descriptor(object):
         """
         return self._io_descriptor.get_uri()
 
-    def copy(self, target_folder, skip_list=None):
+    def copy(self, target_folder):
         """
         Copy the config descriptor into the specified target location.
 
-        The copy operation will always skip source control related files, unless
-        a source control based descriptor is used. In that case, the files will
-        be copied integrally, unless some files are specified in the
-        ``skip_list`` parameter.
-
         :param target_folder: Folder to copy the descriptor to
-        :param skip_list: List of folders or files that should not be copied
-            into the destination.
-
-        .. note::
-            The folders or files specified must be at the root of the bundle.
         """
-        self._io_descriptor.copy(target_folder, skip_list=skip_list)
+        self._io_descriptor.copy(target_folder)
 
     def clone_cache(self, cache_root):
         """
