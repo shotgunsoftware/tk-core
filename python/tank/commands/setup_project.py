@@ -777,7 +777,8 @@ class SetupProjectAction(Action):
         storage_by_id = {}
         storage_by_name = {}
         for storage in storages:
-            storage_name = storage["code"]
+            # store lower case names so we can do case insensitive comparisons
+            storage_name = storage["code"].lower()
             storage_id = storage["id"]
             storage_by_id[storage_id] = storage
             storage_by_name[storage_name] = storage
@@ -786,20 +787,8 @@ class SetupProjectAction(Action):
         log.info("")
         log.info("The following local storages exist in Shotgun:")
         log.info("")
-        for storage in sorted(storages, key=lambda s: s["id"]):
-
-            linux_path = storage.get("linux_path") or ""
-            mac_path = storage.get("mac_path") or ""
-            windows_path = storage.get("windows_path") or ""
-
-            storage_name = storage["code"]
-
-            log.info(storage_name)
-            log.info("-" * len(storage_name))
-            log.info("    Linux: %s" % (linux_path,))
-            log.info("      Mac: %s" % (mac_path,))
-            log.info("  Windows: %s" % (windows_path,))
-            log.info("")
+        for storage in sorted(storages, key=lambda s: s["code"]):
+            self._print_storage_info(storage, log)
 
         # get all roots required by the supplied config uri
         required_roots = params.validate_config_uri(config_uri)
@@ -846,13 +835,14 @@ class SetupProjectAction(Action):
                 suggested_storage = storage_name
 
             # does name match an existing storage?
-            elif root_name in storage_by_name:
+            elif root_name.lower() in storage_by_name:
                 log.info(
                     "Press ENTER to use the storage wth the same name as the "
                     "root."
                 )
                 log.info("")
-                suggested_storage = root_name
+                # get the actual name by indexing into the storage dict
+                suggested_storage = storage_by_name[root_name.lower()]["code"]
 
             if suggested_storage:
                 suggested_storage_display = " [%s]: " % (suggested_storage,)
@@ -867,12 +857,20 @@ class SetupProjectAction(Action):
 
             if storage_to_use == "" and suggested_storage:
                 storage_to_use = suggested_storage
-            if storage_to_use not in storage_by_name:
+
+            # match case insensitively
+            if storage_to_use.lower() in storage_by_name:
+                storage_to_use = storage_by_name[storage_to_use.lower()]["code"]
+                storage = storage_by_name[storage_to_use.lower()]
+            else:
                 raise TankError("Please enter a valid storage name!")
 
             log.info("")
-
-            storage = storage_by_name[storage_to_use]
+            log.info(
+                "Accepted mapping: root '%s' ==> local storage '%s':" %
+                (root_name, storage_to_use)
+            )
+            log.info("")
 
             # if the selected storage does not have a valid path for the current
             # operating system, prompt the user for a path to create/use
@@ -921,7 +919,7 @@ class SetupProjectAction(Action):
         for (root_name, storage_name) in mapped_roots:
 
             root_info = required_roots[root_name]
-            storage_data = storage_by_name[storage_name]
+            storage_data = storage_by_name[storage_name.lower()]
 
             # populate the data defined prior to mapping
             updated_storage_data = root_info
@@ -940,4 +938,22 @@ class SetupProjectAction(Action):
                 updated_storage_data
             )
 
+        log.info("")
+
+    def _print_storage_info(self, storage, log):
+        """
+        Given a dict of local storage info, print the name and paths
+        """
+
+        linux_path = storage.get("linux_path") or ""
+        mac_path = storage.get("mac_path") or ""
+        windows_path = storage.get("windows_path") or ""
+
+        storage_name = storage["code"]
+
+        log.info(storage_name)
+        log.info("-" * len(storage_name))
+        log.info("    Linux: %s" % (linux_path,))
+        log.info("      Mac: %s" % (mac_path,))
+        log.info("  Windows: %s" % (windows_path,))
         log.info("")
