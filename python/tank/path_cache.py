@@ -44,6 +44,11 @@ SG_PIPELINE_CONFIG_FIELD = "pipeline_configuration"
 
 log = LogManager.get_logger(__name__)
 
+# MOFA - imports
+from .util.shotgun.publish_creation import _calc_path_cache
+from .util import fix_root_duplicate
+
+
 class PathCache(object):
     """
     A global cache which holds the mapping between a shotgun entity and a location on disk.
@@ -252,6 +257,7 @@ class PathCache(object):
         relative_path = None
         for cur_root_name, root_path in self._roots.items():
             n_root = root_path.replace(os.sep, "/")
+
             if n_path.lower().startswith(n_root.lower()):
                 root_name = cur_root_name
                 # chop off root
@@ -461,6 +467,25 @@ class PathCache(object):
             db_path = self._path_to_dbpath(relative_path)
             path_display_name = "[%s] %s" % (root_name, db_path) 
             
+            # MOFA - fix uploaded path
+            supports_specific_storage_syntax = (
+                hasattr(self._tk.shotgun, "server_caps") and
+                self._tk.shotgun.server_caps.version and
+                self._tk.shotgun.server_caps.version >= (7, 0, 1)
+            )
+
+            path_datas = {"local_path": d["path"], "name": path_display_name}
+
+            if supports_specific_storage_syntax:
+                _, path_cache, storage = _calc_path_cache(self._tk, d["path"])
+
+                if storage:
+                    path_datas = {
+                        "name": path_display_name,
+                        "relative_path": path_cache,
+                        "local_storage": storage
+                    }
+
             req = {"request_type":"create", 
                    "entity_type": SHOTGUN_ENTITY, 
                    "data": {"project": self._get_project_link(),
@@ -472,8 +497,10 @@ class PathCache(object):
                             SG_ENTITY_ID_FIELD: d["entity"]["id"],
                             SG_ENTITY_TYPE_FIELD: d["entity"]["type"],
                             SG_ENTITY_NAME_FIELD: d["entity"]["name"],
-                            SG_PATH_FIELD: { "local_path": d["path"], "name": path_display_name }
+                            SG_PATH_FIELD: path_datas
                             } }
+                            # SG_PATH_FIELD: { "local_path": d["path"], "name": path_display_name }
+            # MOFA End
             
             sg_batch_data.append(req)
         
@@ -498,7 +525,14 @@ class PathCache(object):
         rowid_sgid_lookup = {}
         for sg_obj in response:
             sg_id = sg_obj["id"]
-            pc_row_id = _rowid_from_path( sg_obj[SG_PATH_FIELD]["local_path"] )
+
+            local_path = sg_obj[SG_PATH_FIELD]["local_path"]
+            # MOFA - bugfix invalid root
+            local_path = fix_root_duplicate(self._tk, local_path)
+
+            pc_row_id = _rowid_from_path(local_path)
+
+            # pc_row_id = _rowid_from_path( sg_obj[SG_PATH_FIELD]["local_path"] )
             rowid_sgid_lookup[pc_row_id] = sg_id
         
         # now register the created ids in the event log
@@ -557,7 +591,7 @@ class PathCache(object):
             
         :param cursor: Sqlite database cursor
         """
-        
+
         show_global_busy("Hang on, Toolkit is preparing folders...", 
                          ("Toolkit is retrieving folder listings from Shotgun and ensuring that your "
                           "setup is up to date. Hang tight while data is being downloaded..."))
@@ -944,6 +978,9 @@ class PathCache(object):
         if local_os_path is None:
             log.debug("No local os path associated with entry for %s. Skipping." % entity)
             return None
+
+        # MOFA - detect broken project roots
+        local_os_path = fix_root_duplicate(self._tk, local_os_path)
 
         # if the path cannot be split up into a root_name and a leaf path
         # using the roots.yml file, log a warning and continue. This can happen

@@ -69,6 +69,7 @@ class Context(object):
         methods :meth:`Sgtk.context_from_entity`, :meth:`Sgtk.context_from_entity_dictionary`
         and :meth:`Sgtk.context_from_path`.
         """
+
         self.__tk = tk
         self.__project = project
         self.__entity = entity
@@ -571,6 +572,7 @@ class Context(object):
         :raises:            :class:`TankError` if the fields can't be resolved for some reason or if 'validate' is True
                             and any of the context fields for the template weren't found. 
         """
+
         # Get all entities into a dictionary
         entities = {}
 
@@ -806,7 +808,9 @@ class Context(object):
                 
                 # check the context cache 
                 cache_key = (entity["type"], entity["id"], key.shotgun_field_name)
-                if cache_key in self._entity_fields_cache:
+                # MOFA - test for actual cache value, can be None here ...
+                # if cache_key in self._entity_fields_cache:
+                if cache_key in self._entity_fields_cache and self._entity_fields_cache[cache_key] is not None:
                     # already have the value cached - no need to fetch from shotgun
                     fields[key.name] = self._entity_fields_cache[cache_key]
                 
@@ -878,6 +882,8 @@ class Context(object):
         # are matching the template that is passed in. In that case, try to
         # extract the fields values.
         for cur_path in path_cache_locations:
+            # MOFA - bugfix endless loop
+            old_path = cur_path
 
             # walk up path until we reach the project root and get values
             while cur_path not in project_roots:
@@ -892,6 +898,13 @@ class Context(object):
                     break
                 else:
                     cur_path = os.path.dirname(cur_path)
+                    # MOFA - mounted folders can return the same path here
+                    # maybe not necessary for newer versions of python
+                    # os.path.dirname is definitely buggy here ...
+                    if cur_path == old_path:
+                        break
+                    else:
+                        old_path = cur_path
 
         return fields
 
@@ -911,6 +924,7 @@ class Context(object):
                                     belonging to this context.
         :returns:                   A dictionary of all fields found by this method
         """
+
         # Step 1 - Walk up the template tree and collect templates
         #
         # Use cached paths to find field values
@@ -1132,6 +1146,23 @@ def _from_entity_type_and_id(tk, entity, source_entity=None):
             # base the context on the project that the published is linked with
             return _from_entity_type_and_id(tk, sg_entity["project"], sg_entity)
     
+    elif entity_type in ["Version"]:
+        # MOFA - fetch version associated task
+        # will allow "jump to filesystem" actions
+        sg_vers = tk.shotgun.find_one(entity_type, 
+                                      [["id", "is", entity_id]],
+                                      ["project", "entity", "sg_task"])
+        if sg_vers is None:
+            raise TankError("Entity %s with id %s not found in Shotgun!" % (entity_type, entity_id))
+        if sg_vers.get("sg_task"):
+            # base the context on the task for the published file
+            return from_entity(tk, "Task", sg_vers["sg_task"]["id"])
+        elif sg_vers.get("entity"):
+            # base the context on the entity that the published is linked with
+            return from_entity(tk, sg_vers["entity"]["type"], sg_vers["entity"]["id"])
+        elif sg_vers.get("project"):
+            # base the context on the project that the published is linked with
+            return from_entity(tk, "Project", sg_vers["project"]["id"])
     else:
         # Get data from path cache
         entity_context = _context_data_from_cache(tk, entity_type, entity_id)

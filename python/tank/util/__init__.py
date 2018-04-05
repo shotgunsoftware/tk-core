@@ -46,3 +46,5 @@ from .user_settings import UserSettings
 
 from .storage_roots import StorageRoots
 
+# MOFA - fix for #30005
+from .fix_root_duplicate import fix_root_duplicate

@@ -28,6 +28,9 @@ from .. import login
 
 log = LogManager.get_logger(__name__)
 
+# MOFA - imports
+import sys
+
 
 @LogManager.log_timing
 def register_publish(tk, context, path, name, version_number, **kwargs):
@@ -473,9 +476,18 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
 
         # Make path platform agnostic and determine if it belongs
         # to a storage that is associated with this toolkit config.
-        storage_name, path_cache = _calc_path_cache(tk, path)
 
-        if path_cache:
+        # MOFA - added third value (storage)
+        # storage_name, path_cache = _calc_path_cache(tk, path)
+        storage_name, path_cache, storage = _calc_path_cache(tk, path)
+
+        # MOFA - test storage value since it's more relevant to check
+        # that we were actually able to retrieve a proper LocalStorage entity
+        # if path_cache:
+        if storage is not None:
+            # MOFA - show the real storage name
+            storage_name = storage.get("code", storage_name)
+
             # there is a toolkit storage mapping defined for this storage
             log.debug(
                 "The path '%s' is associated with config root '%s'." % (path, storage_name)
@@ -492,8 +504,10 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
 
             if supports_specific_storage_syntax:
                 # explicitly pass relative path and storage to shotgun
-                storage = tk.shotgun.find_one("LocalStorage", [["code", "is", storage_name]])
+                data["path"] = {"relative_path": path_cache, "local_storage": storage}
 
+                # MOFA - no more necessary, we do have a LocalStorage entry
+                '''
                 if storage is None:
                     # there is no storage in Shotgun that matches the one toolkit expects.
                     # this *may* be ok because there may be another storage in Shotgun that
@@ -508,7 +522,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
 
                 else:
                     data["path"] = {"relative_path": path_cache, "local_storage": storage}
-
+                '''
             else:
                 # use previous syntax where we pass the whole path to Shotgun
                 # and shotgun will do the storage/relative path split server side.
@@ -521,7 +535,6 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
             data["path_cache"] = path_cache
 
         else:
-
             # path does not map to any configured root - fall back gracefully:
             # 1. look for storages in Shotgun and see if we can create a local path
             # 2. failing that, just register the entry as a file:// resource.
@@ -724,20 +737,65 @@ def _calc_path_cache(tk, path):
         # append the project name to the root path
         proj_path = "%s/%s" % (norm_root_path, project_disk_name)
 
-        if norm_path.lower().startswith(proj_path.lower()):
+        # MOFA - check proj_path/ to avoid confusion with overlapping project names
+        # ie: //server/2017/project vs //server/2017_project
+        # both starting with //server/2017 but on different storages
+        # test values directly too to allow projects roots detection and
+        # not only subfolders / files
+
+        # if norm_path.lower().startswith(proj_path.lower()):
+        norm_path_lw = norm_path.lower().lstrip("/")
+        proj_path_lw = proj_path.lower().lstrip("/")
+
+        if norm_path_lw == proj_path_lw or norm_path_lw.startswith(proj_path_lw + "/"):
             # our path matches this storage!
 
             # Remove parent dir plus "/" - be careful to handle the case where
             # the parent dir ends with a '/', e.g. 'T:/' for a Windows drive
             path_cache = norm_path[len(norm_root_path):].lstrip("/")
+
             log.debug(
                 "Split up path '%s' into storage %s and relative path '%s'" % (path, root_name, path_cache)
             )
-            return root_name, path_cache
+
+            # MOFA - retrieve the real root name, otherwise it will always
+            # return "primary", and then fetch the wrong root
+
+            PLATFORM_KEYS = {"darwin": "mac_path",
+                             "win32": "windows_path",
+                             "linux": "linux_path"}
+
+            if sys.platform.startswith("linux"):
+                # handle python 3.3 unversionned platform for linux
+                field_name = PLATFORM_KEYS.get("linux")
+            else:
+                field_name = PLATFORM_KEYS.get(sys.platform)
+
+            if field_name is None:
+                raise RuntimeError("Unsupported platform {0}".format(sys.platform))
+
+            local_storage = tk.shotgun.find_one("LocalStorage", 
+                                                [[field_name, "is", root_path]],
+                                                ["code"])
+
+            if not local_storage:
+                # storage not found, fallback on root name
+                local_storage = tk.shotgun.find_one("LocalStorage", 
+                                                    [["code", "is", root_name]],
+                                                    ["code"])
+
+            # only return if we were able to fetch a proper entity
+            if local_storage is not None:
+                return root_name, path_cache, local_storage
+
+            # MOFA End
+
 
     # not found, return None values
     log.debug("Unable to split path '%s' into a storage and a relative path." % path)
-    return None, None
+    # MOFA - return the third value
+    # return None, None
+    return None, None, None
 
 
 def group_by_storage(tk, list_of_paths):
@@ -778,7 +836,11 @@ def group_by_storage(tk, list_of_paths):
 
         # use abstracted path if path is part of a sequence
         abstract_path = _translate_abstract_fields(tk, path)
-        root_name, dep_path_cache = _calc_path_cache(tk, abstract_path)
+
+        # MOFA - added third return value (storage) and ignore it
+        # since I don't know the impact of using "real" vs primary name
+        # root_name, dep_path_cache = _calc_path_cache(tk, abstract_path)
+        root_name, dep_path_cache, _ = _calc_path_cache(tk, abstract_path)
 
         # make sure that the path is even remotely valid, otherwise skip
         if dep_path_cache is None:

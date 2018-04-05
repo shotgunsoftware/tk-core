@@ -28,6 +28,9 @@ from ..errors import PublishPathNotDefinedError, PublishPathNotSupported
 
 log = LogManager.get_logger(__name__)
 
+# MOFA - imports
+from .. import fix_root_duplicate
+
 
 def resolve_publish_path(tk, sg_publish_data):
     """
@@ -223,8 +226,12 @@ def __resolve_local_file_link(tk, attachment_data):
                     )
                     break
 
+    # MOFA - detect broken project roots
+    local_path = fix_root_duplicate(tk, local_path)
+
     # normalize
     local_path = ShotgunPath.normalize(local_path)
+
     log.debug("Resolved local file link: '%s'" % local_path)
     return local_path
 
