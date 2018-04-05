@@ -691,10 +691,10 @@ class ToolkitManager(object):
                   this happens in the case when a descriptor uri is omitting
                   the version number and tracking against the latest version
                   number available.
-                  In that case, the ``descriptor`` object will contain the
-                  fully resolved descriptor object which represents the
-                  latest descriptor version right now, where as the
-                  ``descriptor_source_uri`` contains the versionless descriptor
+                  In that case, the ``descriptor`` key will contain the
+                  fully resolved descriptor object, representing the
+                  latest descriptor version as of right now, where as the
+                  ``descriptor_source_uri`` key contains the versionless descriptor
                   uri string as it is defined in Shotgun.
 
         :param project: Project entity link to enumerate pipeline configurations for.
