@@ -665,15 +665,44 @@ class ToolkitManager(object):
         user and project will be retrieved. Note that this method does not support
         :meth:`pipeline_configuration` being an integer.
 
+        **Return value**
+
+        The data structure returned is a dictionary with several keys to
+        describe the configuration, for example::
+
+            {'descriptor': <CachedConfigDescriptor <IODescriptorAppStore sgtk:descriptor:app_store?name=tk-config-basic&version=v1.1.6>>,
+             'descriptor_source_uri': 'sgtk:descriptor:app_store?name=tk-config-basic',
+             'id': 500,
+             'name': 'Primary',
+             'project': {'id': 123, 'name': 'Test Project', 'type': 'Project'},
+             'type': 'PipelineConfiguration'}
+
+        The returned dictionary mimics the result of a Shotgun API query, including
+        standard fields for ``type``, ``id``, ``name`` and ``project``. In addition,
+        the resolved descriptor object is returned in a ``descriptor`` key.
+
+        For pipeline configurations which are defined in Shotgun via their **descriptor** field,
+        this field is returned in a ``descriptor_source_uri`` key. For pipeline configurations
+        defined via an uploaded attachment or explicit path fields, the ``descriptor_source_uri``
+        key will return ``None``.
+
+        .. note:: Note as per the example above how the ``descriptor_source_uri``
+                  value can be different than the descriptor field; this will happen in the case
+                  when a descriptor uri is omitting the version number
+                  and tracking against the latest version number available:
+                  In that case, the ``descriptor`` object will contain the
+                  fully resolved descriptor object which represents the
+                  latest descriptor version right now, where as the
+                  ``descriptor_source_uri`` contains the versionless descriptor
+                  uri string as it is defined in Shotgun.
+
         :param project: Project entity link to enumerate pipeline configurations for.
             If ``None``, this will enumerate the pipeline configurations
             for the site configuration.
         :type project: Dictionary with keys ``type`` and ``id``.
 
         :returns: List of pipeline configurations.
-        :rtype: List of dictionaries with keys ``type``, ``id``, ``name``, ``project``, ``descriptor``,
-            and ``descriptor_uri``. The ``descriptor_uri`` parameter reflects the descriptor field in
-            Shotgun, for configurations where this is being used, and None in other cases.
+        :rtype: List of dictionaries with syntax described above.
             The pipeline configurations will always be sorted such as the primary pipeline configuration,
             if available, will be first. Then the remaining pipeline configurations will be sorted by
             ``name`` field (case insensitive), then the ``project`` field and finally then ``id`` field.
@@ -699,7 +728,7 @@ class ToolkitManager(object):
                 "name": pc["code"],
                 "project": pc["project"],
                 "descriptor": pc["config_descriptor"],
-                "descriptor_uri": None,
+                "descriptor_source_uri": None,
             }
 
             # if the config is descriptor based, resolve the uri
@@ -711,7 +740,7 @@ class ToolkitManager(object):
             path = ShotgunPath.from_shotgun_dict(pc)
             if path.current_os is None and pc["plugin_ids"] is None:
                 # this is a descriptor based config:
-                pipeline_config_data["descriptor_uri"] = pc["descriptor"]
+                pipeline_config_data["descriptor_source_uri"] = pc["descriptor"]
 
             pcs.append(pipeline_config_data)
 
