@@ -270,7 +270,7 @@ class TestGetPipelineConfigs(TankTestBase):
         """
         Test user based sandboxes
         """
-        cc = self.mockgun.create(
+        self.mockgun.create(
             "PipelineConfiguration",
             dict(
                 code="Doe Dev",
@@ -285,7 +285,7 @@ class TestGetPipelineConfigs(TankTestBase):
             )
         )
 
-        cc2 = self.mockgun.create(
+        self.mockgun.create(
             "PipelineConfiguration",
             dict(
                 code="Smith Dev",
@@ -313,7 +313,7 @@ class TestGetPipelineConfigs(TankTestBase):
         """
         Test descriptors tracking latest
         """
-        cc = self.mockgun.create(
+        self.mockgun.create(
             "PipelineConfiguration",
             dict(
                 code="Primary",
@@ -341,7 +341,7 @@ class TestGetPipelineConfigs(TankTestBase):
         Tests that paths override descriptors
         """
 
-        cc = self.mockgun.create(
+        self.mockgun.create(
             "PipelineConfiguration",
             dict(
                 code="Primary",
