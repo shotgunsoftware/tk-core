@@ -18,6 +18,7 @@ from sgtk.bootstrap import ToolkitManager
 
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
+from tank_test.tank_test_base import TankTestBase
 
 
 class TestErrorHandling(ShotgunTestBase):
@@ -185,69 +186,61 @@ class TestFunctionality(ShotgunTestBase):
         # back correctly.
         self.assertEqual(restored_mgr.extract_settings(), modified_settings)
 
-    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
-    @patch("tank.bootstrap.resolver.ConfigurationResolver.find_matching_pipeline_configurations")
-    def test_get_pipeline_configurations(self, find_matching_pc_mock, _):
+
+class _MockedShotgunUser(object):
+    """
+    A fake shotgun user object that we can pass to the manager.
+    """
+    def __init__(self, mockgun, login):
+        self._mockgun = mockgun
+        self._login = login
+
+    @property
+    def login(self):
         """
-        Tests the business logic of get_pipeline_configurations().
-
-        Note that the logic for actually resolving configurations is covered by tests in
-        the test_resolver.py test file.
+        Current User Login
         """
-        # set up a series of pipeline config cases to test against
-        sg_pipeline_config_data = []
+        return self._login
 
-        # basic config tracking latest
-        sg_pipeline_config_data.append({
-            "id": 1,
-            "type": "PipelineConfiguration",
-            "code": "Primary",
-            "project": {"type": "Project", "id": 123},
-            "users": [],
-            "plugin_ids": "basic.*",
-            "windows_path": None,
-            "linux_path": None,
-            "mac_path": None,
-            "descriptor": "sgtk:descriptor:app_store?name=tk-config-basic",
-            "config_descriptor": Mock(descriptor_name="descriptor1")
-        })
+    def create_sg_connection(self):
+        """
+        Returns the associated mockgun connection
+        """
+        return self._mockgun
 
-        # classic config fields overrides descriptor and plugin id
-        sg_pipeline_config_data.append({
-            "id": 2,
-            "type": "PipelineConfiguration",
-            "code": "Dev Dev",
-            "project": {"type": "Project", "id": 123},
-            "users": [{"type": "HumanUser", "id": 123}],
-            "plugin_ids": "basic.*",
-            "windows_path": "/path",
-            "linux_path": "/path",
-            "mac_path": "/path",
-            "descriptor": "sgtk:descriptor:app_store?name=tk-config-basic",
-            "config_descriptor": Mock(descriptor_name="descriptor2")
-        })
 
-        # descriptor defined but no plugin id set
-        sg_pipeline_config_data.append({
-            "id": 3,
-            "type": "PipelineConfiguration",
-            "code": "Primary",
-            "project": {"type": "Project", "id": 123},
-            "users": [],
-            "plugin_ids": "",
-            "windows_path": None,
-            "linux_path": None,
-            "mac_path": None,
-            "descriptor": "sgtk:descriptor:app_store?name=tk-config-basic",
-            "config_descriptor": Mock(descriptor_name="descriptor3")
-        })
+class TestGetPipelineConfigs(TankTestBase):
 
-        find_matching_pc_mock.return_value = sg_pipeline_config_data
+    def setUp(self):
+        super(TestGetPipelineConfigs, self).setUp()
 
-        mgr = ToolkitManager()
-        configs = mgr.get_pipeline_configurations({"type": "Project", "id": 123})
+        self._john_doe = self.mockgun.create("HumanUser", {"login": "john.doe"})
+        self._john_smith = self.mockgun.create("HumanUser", {"login": "john.smith"})
+        self._project = self.mockgun.create("Project", {"name": "my_project"})
+        self._mocked_sg_user = _MockedShotgunUser(self.mockgun, "john.doe")
 
-        self.assertEqual(len(configs), 3)
+    def test_basic_execution(self):
+        """
+        Test basic execution and return value structure
+        """
+        cc = self.mockgun.create(
+            "PipelineConfiguration",
+            dict(
+                code="Primary",
+                project=self._project,
+                users=[],
+                windows_path=None,
+                mac_path=None,
+                linux_path=None,
+                plugin_ids="basic.*",
+                descriptor="sgtk:descriptor:app_store?name=tk-config-basic&version=v1.2.3",
+                uploaded_config=None,
+            )
+        )
+
+        mgr = ToolkitManager(self._mocked_sg_user)
+        mgr.plugin_id = "basic.test"
+        configs = mgr.get_pipeline_configurations(self._project)
 
         expected_fields = [
             "descriptor_source_uri",
@@ -258,35 +251,118 @@ class TestFunctionality(ShotgunTestBase):
             "id"
         ]
 
-        # basic config tracking latest
+        self.assertEqual(len(configs), 1)
         config = configs[0]
-        # check that all fields
         self.assertEqual(sorted(expected_fields), sorted(config.keys()))
-        self.assertEqual(config["id"], 1)
+        self.assertEqual(config["id"], cc["id"])
         self.assertEqual(config["type"], "PipelineConfiguration")
         self.assertEqual(config["name"], "Primary")
-        self.assertEqual(config["project"], {"type": "Project", "id": 123})
-        self.assertEqual(config["descriptor"].descriptor_name, "descriptor1")
+        self.assertEqual(config["project"], self._project)
+        self.assertEqual(config["descriptor"].get_uri(), "sgtk:descriptor:app_store?name=tk-config-basic&version=v1.2.3")
+        self.assertEqual(config["descriptor_source_uri"], "sgtk:descriptor:app_store?name=tk-config-basic&version=v1.2.3")
+
+        # with a different plugin id we won't get anything
+        mgr.plugin_id = "something.else"
+        configs = mgr.get_pipeline_configurations(self._project)
+        self.assertEqual(len(configs), 0)
+
+    def test_user_filters(self):
+        """
+        Test user based sandboxes
+        """
+        cc = self.mockgun.create(
+            "PipelineConfiguration",
+            dict(
+                code="Doe Dev",
+                project=self._project,
+                users=[self._john_doe],
+                windows_path=None,
+                mac_path=None,
+                linux_path=None,
+                plugin_ids="basic.*",
+                descriptor="sgtk:descriptor:app_store?name=tk-config-basic&version=v1.2.3",
+                uploaded_config=None,
+            )
+        )
+
+        cc2 = self.mockgun.create(
+            "PipelineConfiguration",
+            dict(
+                code="Smith Dev",
+                project=self._project,
+                users=[self._john_smith],
+                windows_path=None,
+                mac_path=None,
+                linux_path=None,
+                plugin_ids="basic.*",
+                descriptor="sgtk:descriptor:app_store?name=tk-config-basic&version=v1.2.3",
+                uploaded_config=None,
+            )
+        )
+
+        mgr = ToolkitManager(self._mocked_sg_user)
+        mgr.plugin_id = "basic.test"
+        configs = mgr.get_pipeline_configurations(self._project)
+
+        self.assertEqual(len(configs), 1)
+        config = configs[0]
+        self.assertEqual(config["name"], "Doe Dev")
+
+    @patch("tank.bootstrap.resolver.ConfigurationResolver._create_config_descriptor", return_value=Mock())
+    def test_latest_tracking_descriptor(self, _):
+        """
+        Test descriptors tracking latest
+        """
+        cc = self.mockgun.create(
+            "PipelineConfiguration",
+            dict(
+                code="Primary",
+                project=self._project,
+                users=[],
+                windows_path=None,
+                mac_path=None,
+                linux_path=None,
+                plugin_ids="basic.*",
+                descriptor="sgtk:descriptor:app_store?name=tk-config-basic",
+                uploaded_config=None,
+            )
+        )
+
+        mgr = ToolkitManager(self._mocked_sg_user)
+        mgr.plugin_id = "basic.test"
+        configs = mgr.get_pipeline_configurations(self._project)
+
+        config = configs[0]
+        self.assertTrue(isinstance(config["descriptor"], Mock))
         self.assertEqual(config["descriptor_source_uri"], "sgtk:descriptor:app_store?name=tk-config-basic")
 
-        # classic config fields overrides descriptor and plugin id
-        config = configs[1]
-        # check that all fields
-        self.assertEqual(sorted(expected_fields), sorted(config.keys()))
-        self.assertEqual(config["id"], 2)
-        self.assertEqual(config["type"], "PipelineConfiguration")
-        self.assertEqual(config["name"], "Dev Dev")
-        self.assertEqual(config["project"], {"type": "Project", "id": 123})
-        self.assertEqual(config["descriptor"].descriptor_name, "descriptor2")
-        self.assertEqual(config["descriptor_source_uri"], None)
+    def test_override_logic(self):
+        """
+        Tests that paths override descriptors
+        """
 
-        # descriptor defined but no plugin id set
-        config = configs[2]
-        # check that all fields
-        self.assertEqual(sorted(expected_fields), sorted(config.keys()))
-        self.assertEqual(config["id"], 3)
-        self.assertEqual(config["type"], "PipelineConfiguration")
-        self.assertEqual(config["name"], "Primary")
-        self.assertEqual(config["project"], {"type": "Project", "id": 123})
-        self.assertEqual(config["descriptor"].descriptor_name, "descriptor3")
+        cc = self.mockgun.create(
+            "PipelineConfiguration",
+            dict(
+                code="Primary",
+                project=self._project,
+                users=[],
+                windows_path="/path",
+                mac_path="/path",
+                linux_path="/path",
+                plugin_ids="basic.*",
+                descriptor="sgtk:descriptor:app_store?name=tk-config-basic&version=v1.2.3",
+                uploaded_config=None,
+            )
+        )
+
+        mgr = ToolkitManager(self._mocked_sg_user)
+        mgr.plugin_id = "basic.test"
+        configs = mgr.get_pipeline_configurations(self._project)
+
+        config = configs[0]
+        self.assertEqual(
+            config["descriptor"].get_uri(),
+            "sgtk:descriptor:path?linux_path=/path&mac_path=/path&windows_path=%5Cpath"
+        )
         self.assertEqual(config["descriptor_source_uri"], None)
