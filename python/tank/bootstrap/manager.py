@@ -738,7 +738,7 @@ class ToolkitManager(object):
             # pipeline_config_data["descriptor"].get_uri(), which
             # will return the fully resolved descriptor URI.
             path = ShotgunPath.from_shotgun_dict(pc)
-            if path.current_os is None and pc["plugin_ids"] is None:
+            if path.current_os is None and pc["plugin_ids"]:
                 # this is a descriptor based config:
                 pipeline_config_data["descriptor_source_uri"] = pc["descriptor"]
 

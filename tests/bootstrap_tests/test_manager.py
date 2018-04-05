@@ -184,3 +184,110 @@ class TestFunctionality(ShotgunTestBase):
         # Extract the settings back from the restored manager to make sure everything was written
         # back correctly.
         self.assertEqual(restored_mgr.extract_settings(), modified_settings)
+
+    @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
+    @patch("tank.bootstrap.resolver.ConfigurationResolver.find_matching_pipeline_configurations")
+    def test_get_pipeline_configurations(self, find_matching_pc_mock, _):
+        """
+        Tests the business logic of get_pipeline_configurations().
+
+        Note that the logic for actually resolving configurations is covered by tests in
+        the test_resolver.py test file.
+        """
+        # set up a series of pipeline config cases to test against
+        sg_pipeline_config_data = []
+
+        # basic config tracking latest
+        sg_pipeline_config_data.append({
+            "id": 1,
+            "type": "PipelineConfiguration",
+            "code": "Primary",
+            "project": {"type": "Project", "id": 123},
+            "users": [],
+            "plugin_ids": "basic.*",
+            "windows_path": None,
+            "linux_path": None,
+            "mac_path": None,
+            "descriptor": "sgtk:descriptor:app_store?name=tk-config-basic",
+            "config_descriptor": Mock(descriptor_name="descriptor1")
+        })
+
+        # classic config fields overrides descriptor and plugin id
+        sg_pipeline_config_data.append({
+            "id": 2,
+            "type": "PipelineConfiguration",
+            "code": "Dev Dev",
+            "project": {"type": "Project", "id": 123},
+            "users": [{"type": "HumanUser", "id": 123}],
+            "plugin_ids": "basic.*",
+            "windows_path": "/path",
+            "linux_path": "/path",
+            "mac_path": "/path",
+            "descriptor": "sgtk:descriptor:app_store?name=tk-config-basic",
+            "config_descriptor": Mock(descriptor_name="descriptor2")
+        })
+
+        # descriptor defined but no plugin id set
+        sg_pipeline_config_data.append({
+            "id": 3,
+            "type": "PipelineConfiguration",
+            "code": "Primary",
+            "project": {"type": "Project", "id": 123},
+            "users": [],
+            "plugin_ids": "",
+            "windows_path": None,
+            "linux_path": None,
+            "mac_path": None,
+            "descriptor": "sgtk:descriptor:app_store?name=tk-config-basic",
+            "config_descriptor": Mock(descriptor_name="descriptor3")
+        })
+
+        find_matching_pc_mock.return_value = sg_pipeline_config_data
+
+        mgr = ToolkitManager()
+        configs = mgr.get_pipeline_configurations({"type": "Project", "id": 123})
+
+
+        self.assertEqual(len(configs), 3)
+
+        expected_fields = [
+            "descriptor_source_uri",
+            "name",
+            "project",
+            "descriptor",
+            "type",
+            "id"
+        ]
+
+        # basic config tracking latest
+        config = configs[0]
+        # check that all fields
+        self.assertEqual(sorted(expected_fields), sorted(config.keys()))
+        self.assertEqual(config["id"], 1)
+        self.assertEqual(config["type"], "PipelineConfiguration")
+        self.assertEqual(config["name"], "Primary")
+        self.assertEqual(config["project"], {"type": "Project", "id": 123})
+        self.assertEqual(config["descriptor"].descriptor_name, "descriptor1")
+        self.assertEqual(config["descriptor_source_uri"], "sgtk:descriptor:app_store?name=tk-config-basic")
+
+        # classic config fields overrides descriptor and plugin id
+        config = configs[1]
+        # check that all fields
+        self.assertEqual(sorted(expected_fields), sorted(config.keys()))
+        self.assertEqual(config["id"], 2)
+        self.assertEqual(config["type"], "PipelineConfiguration")
+        self.assertEqual(config["name"], "Dev Dev")
+        self.assertEqual(config["project"], {"type": "Project", "id": 123})
+        self.assertEqual(config["descriptor"].descriptor_name, "descriptor2")
+        self.assertEqual(config["descriptor_source_uri"], None)
+
+        # descriptor defined but no plugin id set
+        config = configs[2]
+        # check that all fields
+        self.assertEqual(sorted(expected_fields), sorted(config.keys()))
+        self.assertEqual(config["id"], 3)
+        self.assertEqual(config["type"], "PipelineConfiguration")
+        self.assertEqual(config["name"], "Primary")
+        self.assertEqual(config["project"], {"type": "Project", "id": 123})
+        self.assertEqual(config["descriptor"].descriptor_name, "descriptor3")
+        self.assertEqual(config["descriptor_source_uri"], None)
