@@ -335,11 +335,11 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
         #       all configurations are always localized
         #
 
-        # We're running with a classic pipeline configuration here, which means we can ignore site-
-        # wide pipeline configurations as they are not compatible with this way of doing configs.
-        # Strip them all out so only project based pipeline configurations remain. This is important
-        # otherwise more than one primary might match a centralized core.
-        primary_pc_data = [pc for pc in primary_pc_data if pc["project"]]
+        # We're running with a classic pipeline configuration with shared core, which means we can
+        # ignore site-wide pipeline configurations as they are not compatible with this way of doing
+        # configs. Strip them all out so only project based pipeline configurations remain. This is
+        # important otherwise more than one primary might match a centralized core.
+        primary_pc_data = [pc for pc in primary_pc_data if pc["project_id"]]
 
         if len(primary_pc_data) == 0:
 

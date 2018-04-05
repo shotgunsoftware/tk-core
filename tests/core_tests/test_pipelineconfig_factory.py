@@ -249,6 +249,57 @@ class TestTankFromPathDuplicatePcPaths(TankTestBase):
                                 self.project["id"])
 
 
+class TestSharedCoreWithSiteWideConfigs(TankTestBase):
+
+    def test_multiple_primaries(self):
+        """
+        Ensures that a site-level primary is not considered for a shared-core for a project.
+        """
+        self.mockgun.create(
+            "PipelineConfiguration",
+            {
+                "code": "Primary",
+                "mac_path": "/a/b/c",
+                "windows_path": "C:\\b\\a",
+                "linux_path": "/a/b/c"
+            }
+        )
+
+        sgtk.sgtk_from_path(self.project_root)
+        sgtk.sgtk_from_entity(self.project["type"], self.project["id"])
+
+    def test_no_primary(self):
+        """
+        Ensures error is raised if there are no primary available.
+        """
+        self.mockgun.update(
+            "PipelineConfiguration",
+            self.pipeline_configuration.get_shotgun_id(),
+            {"code": "Secondary"}
+        )
+        with self.assertRaisesRegexp(
+            TankInitError,
+            "does not have a Primary pipeline configuration!"
+        ):
+            sgtk.sgtk_from_path(self.project_root)
+
+    def test_no_path(self):
+        """
+        Ensures error is raised if the primary has no path set.
+        """
+        self.mockgun.update(
+            "PipelineConfiguration",
+            self.pipeline_configuration.get_shotgun_id(),
+            {"windows_path": None, "linux_path": None, "mac_path": None}
+        )
+        # We do not support site-wide pipeline configurations from shared cores.
+        with self.assertRaisesRegexp(
+            TankInitError,
+            "cannot be instantiated because it does not have an absolute path"
+        ):
+            sgtk.sgtk_from_path(self.project_root)
+
+
 class TestPipelineConfigurationEnumeration(ShotgunTestBase):
     """
     Tests pipeline configuration enumeration.
@@ -468,7 +519,6 @@ class TestTankFromWithSiteConfig(TankTestBase):
     """
     Tests tank.tank_from_* with site configurations.
     """
-
     def setUp(self):
         super(TestTankFromWithSiteConfig, self).setUp()
         # Turn the config into a site configuration.
@@ -500,6 +550,13 @@ class TestTankFromWithSiteConfig(TankTestBase):
             result = tank.tank_from_path(self.project_root)
             self.assertEquals(result.project_path, self.project_root)
             self.assertEquals(result.pipeline_configuration.get_path(), self.pipeline_config_root)
+
+            self._invalidate_pipeline_configuration_yml()
+            with self.assertRaisesRegexp(
+                TankInitError,
+                "however that is not associated with the pipeline configuration"
+            ):
+                tank.tank_from_path(self.project_root)
         finally:
             del os.environ["TANK_CURRENT_PC"]
 
@@ -512,8 +569,32 @@ class TestTankFromWithSiteConfig(TankTestBase):
             result = tank.tank_from_entity("Project", self.project["id"])
             self.assertEquals(result.project_path, self.project_root)
             self.assertEquals(result.pipeline_configuration.get_path(), self.pipeline_config_root)
+
+            self._invalidate_pipeline_configuration_yml()
+            with self.assertRaisesRegexp(
+                TankInitError,
+                "however that is not associated with the pipeline configuration"
+            ):
+                tank.tank_from_entity("Project", self.project["id"])
         finally:
             del os.environ["TANK_CURRENT_PC"]
+
+    def _invalidate_pipeline_configuration_yml(self):
+        """
+        Updates pipeline_configuration.yml to point to a pipeline configuration id
+        that doesn't match.
+        """
+        pc_yml = os.path.join(self.pipeline_config_root, "config", "core", "pipeline_configuration.yml")
+        pc_yml_data = (
+            "{ project_name: %s, use_shotgun_path_cache: true, pc_id: %d, "
+            "project_id: %d, pc_name: %s}\n\n" % (
+                self.project["tank_name"],
+                9595,
+                self.project["id"],
+                self.sg_pc_entity["code"]
+            )
+        )
+        self.create_file(pc_yml, pc_yml_data)
 
 
 class TestTankFromEntityWithMixedSlashes(TankTestBase):
