@@ -26,10 +26,10 @@ from ..shotgun_path import ShotgunPath
 from .. import constants
 from .. import login
 
-log = LogManager.get_logger(__name__)
-
 # MOFA - imports
 import sys
+
+log = LogManager.get_logger(__name__)
 
 
 @LogManager.log_timing

@@ -26,10 +26,10 @@ from ...log import LogManager
 from ..shotgun_path import ShotgunPath
 from ..errors import PublishPathNotDefinedError, PublishPathNotSupported
 
-log = LogManager.get_logger(__name__)
-
 # MOFA - imports
-from .. import fix_root_duplicate
+from ..fix_root_duplicate import fix_root_duplicate
+
+log = LogManager.get_logger(__name__)
 
 
 def resolve_publish_path(tk, sg_publish_data):
