@@ -247,7 +247,6 @@ class TestFunctionality(ShotgunTestBase):
         mgr = ToolkitManager()
         configs = mgr.get_pipeline_configurations({"type": "Project", "id": 123})
 
-
         self.assertEqual(len(configs), 3)
 
         expected_fields = [
