@@ -687,9 +687,10 @@ class ToolkitManager(object):
         key will return ``None``.
 
         .. note:: Note as per the example above how the ``descriptor_source_uri``
-                  value can be different than the descriptor field; this will happen in the case
-                  when a descriptor uri is omitting the version number
-                  and tracking against the latest version number available:
+                  value can be different than the uri of the resolved descriptor;
+                  this happens in the case when a descriptor uri is omitting
+                  the version number and tracking against the latest version
+                  number available.
                   In that case, the ``descriptor`` object will contain the
                   fully resolved descriptor object which represents the
                   latest descriptor version right now, where as the
