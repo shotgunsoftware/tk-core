@@ -839,8 +839,11 @@ class TemplateConfiguration(object):
         # load the required storage roots for the config
         self._storage_roots = StorageRoots.from_config(self._cfg_folder)
 
-        # populate any missing defaults in the file
-        self._storage_roots.populate_defaults()
+        # if the file doesn't exist, create some defaults. if the file does
+        # exist, we'll assume that the intention is not to define any storage
+        # roots, as is the case with the basic and site config.
+        if not os.path.exists(self._storage_roots.roots_file):
+            self._storage_roots.populate_defaults()
 
         # ensure a default root can be determined from the required roots
         if self._storage_roots.required_roots and not self._storage_roots.default:

@@ -436,6 +436,7 @@ class StorageRoots(object):
         If there are no roots defined, this method will create a default root
         definition.
         """
+
         if self.required_roots:
             # there are roots required by this configuration. ensure all are
             # populated with the expected platform keys
@@ -600,7 +601,7 @@ class StorageRoots(object):
                 )
                 self._default_storage_name = sole_storage_root
             elif self.LEGACY_DEFAULT_STORAGE_NAME in roots_metadata:
-                # legacy primary storage name defined. that is the defautl
+                # legacy primary storage name defined. that is the default
                 log.debug(
                     "Storage %s identified as the default root because it "
                     "matches the legacy default root name." %
