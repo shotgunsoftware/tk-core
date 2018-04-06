@@ -13,5 +13,6 @@
 ::
 
 set PYTHONPATH=tests/python/third_party
-%PYTHON%\python -3 tests/run_tests.py
-%PYTHON%\python -3 tests/integration_tests/offline_workflow.py
+:: %PYTHON%\python -3 tests/run_tests.py
+
+IF "%TRAVIS_SECURE_ENV_VARS%"=="true" (%PYTHON%\python -3 tests/integration_tests/offline_workflow.py)
