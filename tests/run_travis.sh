@@ -46,7 +46,7 @@ PYTHONPATH=tests/python/third_party python tests/python/third_party/coverage run
 
 # Run these tests only if the integration tests environment variables are set.
 if [ -z ${SHOTGUN_HOST+x} ]; then
-    echo "Skipping integration tests"
+    echo "Skipping integration tests, SHOTGUN_HOST is not set."
 else
     PYTHONPATH=tests/python/third_party python tests/python/third_party/coverage run -a tests/integration_tests/offline_workflow.py
 fi
