@@ -132,5 +132,6 @@ class TankCommands(SgtkIntegrationTest):
             ("Project", str(self.project["id"]))
         )
 
+
 if __name__ == "__main__":
     ret_val = unittest2.main(failfast=True, verbosity=2)
