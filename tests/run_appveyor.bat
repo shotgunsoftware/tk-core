@@ -13,6 +13,7 @@
 ::
 
 set PYTHONPATH=tests/python/third_party
-:: %PYTHON%\python -3 tests/run_tests.py
+%PYTHON%\python -3 tests/run_tests.py
 
+:: Run these tests only if the integration tests environment variables are set.
 IF DEFINED SHOTGUN_HOST (%PYTHON%\python -3 tests/integration_tests/offline_workflow.py) ELSE (ECHO "Skipping integration tests.")
