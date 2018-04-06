@@ -12,7 +12,7 @@
 :: This file is run by the appveyor builds.
 ::
 
-set PYTHONPATH=tests/python/third_party
+set PYTHONPATH=tests/python/third_party;python
 %PYTHON%\python tests/run_tests.py
 
 :: Run these tests only if the integration tests environment variables are set.

@@ -48,5 +48,5 @@ PYTHONPATH=tests/python/third_party python tests/python/third_party/coverage run
 if [ -z ${SHOTGUN_HOST+x} ]; then
     echo "Skipping integration tests, SHOTGUN_HOST is not set."
 else
-    PYTHONPATH=tests/python/third_party python tests/python/third_party/coverage run -a tests/integration_tests/offline_workflow.py
+    PYTHONPATH=tests/python/third_party:python python tests/python/third_party/coverage run -a tests/integration_tests/offline_workflow.py
 fi
