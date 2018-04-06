@@ -14,22 +14,15 @@ This test makes sure that various tank command operations do not fail.
 
 from __future__ import print_function
 
-import unittest2
-from mock import Mock, patch
 import os
 import sys
+
+import unittest2
+from mock import Mock, patch
 
 from sgtk_integration_test import SgtkIntegrationTest
 
 import sgtk
-
-REPO_ROOT = os.path.normpath(
-    os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        ".."
-    )
-)
 
 # Set up logging
 sgtk.LogManager().initialize_base_file_handler("offline_workflow")
@@ -44,6 +37,7 @@ class TankCommands(SgtkIntegrationTest):
 
     def setUp(self):
         self.site_config_location = os.path.join(self.temp_dir, "site")
+        self.shared_core_location = os.path.join(self.temp_dir, "shared")
         self.legacy_bootstrap_core = os.path.join(self.temp_dir, "bootstrap")
 
     def test_01_setup_legacy_bootstrap_core(self):
@@ -69,7 +63,7 @@ class TankCommands(SgtkIntegrationTest):
         cw.write_install_location_file()
 
         sgtk.util.filesystem.copy_folder(
-            REPO_ROOT, install_core_folder, skip_list=[".git", "docs", "tests"]
+            self.tk_core_repo_root, install_core_folder, skip_list=[".git", "docs", "tests"]
         )
         cw.create_tank_command()
 
@@ -92,6 +86,13 @@ class TankCommands(SgtkIntegrationTest):
             ).as_system_dict()
         ):
             setup_project.execute(params)
+
+    def test_02_share_site_core(self):
+        self.run_tank_cmd(
+            self.site_config_location,
+            ("share_core",) + (self.shared_core_location,) * 3,
+            input="y\n"
+        )
 
 
 if __name__ == "__main__":
