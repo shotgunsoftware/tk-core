@@ -98,17 +98,24 @@ class SgtkIntegrationTest(unittest2.TestCase):
         Runs the tank command.
 
         :param str location: Folder that contains the tank command.
+        :param list args: List of arguments for the command line.
+        :param list user_input: List of answers to provide to provide to the tank command prompt.
+            Each entry will be followed by a \n automatically.
+        :param int timeout: Timeout for the subprocess in seconds.
+
+        :raises Exception: Raised then timeout occurs or when the subprocess does not return 0.
         """
         proc_dict = {}
 
         # Take each command line arguments and make a string out of them.
-        args = args or ()
+        args = args or []
         args = [str(arg) for arg in args]
 
         # Take each input and turn it into a string with a \n at the end.
-        user_input = user_input or tuple()
+        user_input = list(user_input) or []
         user_input = ("%s\n" * len(user_input)) % user_input
 
+        # Launch the command in a subprocess.
         def tank_cmd_thread(proc_dict):
             proc = subprocess.Popen(
                 [
@@ -122,28 +129,35 @@ class SgtkIntegrationTest(unittest2.TestCase):
             )
             proc_dict["handle"] = proc
             proc.stdin.write(user_input)
-            if proc.wait() == 0:
-                print(proc.stdout.read())
-            else:
+            # If the process failed, print the output.
+            if proc.wait() != 0:
                 print(proc.stdout.read())
 
         thread = threading.Thread(target=tank_cmd_thread, args=(proc_dict,))
         thread.start()
+        # Wait timeout seconds before aborting the process.
         thread.join(timeout)
 
+        # If the process hasn't finished, kill it.
         if proc_dict["handle"].poll() is None:
             print("Time out, killing process!")
             proc_dict["handle"].kill()
             raise Exception("Subprocess timed out!")
+        # If the process did not finish with 0, return an error.
         elif proc_dict["handle"].poll() != 0:
             raise Exception("Process completed unsuccesfully.")
 
     def remove_files(self, *files):
+        """
+        Removes a list of files or folders on disk if they exist.
+
+        :param *args: List of files to delete.
+        """
         for f in files:
             if os.path.exists(f):
                 shutil.rmtree(f)
 
-    def setup_project(
+    def tank_setup_project(
         self,
         location,
         source_configuration,
@@ -153,6 +167,17 @@ class SgtkIntegrationTest(unittest2.TestCase):
         pipeline_root,
         force=False
     ):
+        """
+        Setups a Toolkit project.
+
+        :param location: Location of the tank command.
+        :param source_configuration: Location on disk where to find the configuration to use.
+        :param storage_name: Name of the storage to assign to the config's root.
+        :param project_id: Id of the project to setup.
+        :param tank_name: Tank name for the project.
+        :param pipeline_root: Location where the pipeline configuration will be written.
+        :param force: If True, the project will be setup even if already configured.
+        """
         if os.path.exists(pipeline_root):
             shutil.rmtree(pipeline_root)
 

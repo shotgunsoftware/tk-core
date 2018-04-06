@@ -108,8 +108,11 @@ class TankCommands(SgtkIntegrationTest):
         )
 
     def test_03_setup_project_from_site_core(self):
+        """
+        Setups the project.
+        """
         pipeline_location = os.path.join(self.temp_dir, "pipeline")
-        self.setup_project(
+        self.tank_setup_project(
             self.shared_core_location,
             self.simple_config_location,
             self.local_storage["code"],
@@ -120,23 +123,14 @@ class TankCommands(SgtkIntegrationTest):
         )
 
     def test_04_list_actions_for_project_with_shared_core(self):
-        # description_token = "This should be automatically be deleted by your unit tests."
-        # pc = self.sg.create(
-        #     "PipelineConfiguration",
-        #     {
-        #         "code": "Primary",
-        #         "description": description_token,
-        #         sgtk.util.ShotgunPath.get_shotgun_storage_key(): os.path.join(self.temp_dir, "some_other_config")
-        #     }
-        # )
-        try:
-            self.run_tank_cmd(
-                self.shared_core_location,
-                ("Project", str(self.project["id"]))
-            )
-        finally:
-            pass
-            # self.sg.delete("PipelineConfiguration", pc["id"])
+        """
+        Ensures that running the tank command when there is a site-wide Primary
+        configurations will be able to match the project nonetheless.
+        """
+        self.run_tank_cmd(
+            self.shared_core_location,
+            ("Project", str(self.project["id"]))
+        )
 
 if __name__ == "__main__":
     ret_val = unittest2.main(failfast=True, verbosity=2)
