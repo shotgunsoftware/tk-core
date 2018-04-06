@@ -20,6 +20,7 @@ import atexit
 import subprocess
 import threading
 import shutil
+import time
 
 import unittest2
 
@@ -93,7 +94,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
         if not os.path.exists(cls.local_storage["path"]):
             os.makedirs(cls.local_storage["path"])
 
-    def run_tank_cmd(self, location, args=None, user_input=None, timeout=30):
+    def run_tank_cmd(self, location, args=None, user_input=None, timeout=120):
         """
         Runs the tank command.
 
@@ -117,21 +118,25 @@ class SgtkIntegrationTest(unittest2.TestCase):
 
         # Launch the command in a subprocess.
         def tank_cmd_thread(proc_dict):
-            proc = subprocess.Popen(
-                [
-                    os.path.join(location, "tank.bat" if sys.platform == "win32" else "tank"),
-                    "--script-name=%s" % os.environ["SHOTGUN_SCRIPT_NAME"],
-                    "--script-key=%s" % os.environ["SHOTGUN_SCRIPT_KEY"],
-                ] + list(args),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                stdin=subprocess.PIPE
-            )
-            proc_dict["handle"] = proc
-            proc.stdin.write(user_input)
-            # If the process failed, print the output.
-            if proc.wait() != 0:
-                print(proc.stdout.read())
+            before = time.time()
+            try:
+                proc = subprocess.Popen(
+                    [
+                        os.path.join(location, "tank.bat" if sys.platform == "win32" else "tank"),
+                        "--script-name=%s" % os.environ["SHOTGUN_SCRIPT_NAME"],
+                        "--script-key=%s" % os.environ["SHOTGUN_SCRIPT_KEY"],
+                    ] + list(args),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    stdin=subprocess.PIPE
+                )
+                proc_dict["handle"] = proc
+                proc.stdin.write(user_input)
+                # If the process failed, print the output.
+                if proc.wait() != 0:
+                    print(proc.stdout.read())
+            finally:
+                print "tank command ran in %.2f seconds." & (time.time() - before)
 
         thread = threading.Thread(target=tank_cmd_thread, args=(proc_dict,))
         thread.start()
