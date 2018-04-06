@@ -341,6 +341,9 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
         # important otherwise more than one primary might match a centralized core.
         primary_pc_data = [pc for pc in primary_pc_data if pc["project_id"]]
 
+        import pprint
+        pprint.pprint(primary_pc_data)
+
         if len(primary_pc_data) == 0:
 
             raise TankInitError(

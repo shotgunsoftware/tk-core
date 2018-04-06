@@ -35,12 +35,22 @@ class TankCommands(SgtkIntegrationTest):
 
     OFFLINE_WORKFLOW_TEST = "offline_workflow_test"
 
-    def setUp(self):
-        self.site_config_location = os.path.join(self.temp_dir, "site")
-        self.shared_core_location = os.path.join(self.temp_dir, "shared")
-        self.legacy_bootstrap_core = os.path.join(self.temp_dir, "bootstrap")
+    @classmethod
+    def setUpClass(cls):
+        super(TankCommands, cls).setUpClass()
+
+        cls.site_config_location = os.path.join(cls.temp_dir, "site")
+        cls.shared_core_location = os.path.join(cls.temp_dir, "shared")
+        cls.legacy_bootstrap_core = os.path.join(cls.temp_dir, "bootstrap")
+        cls.simple_config_location = os.path.join(os.path.dirname(__file__), "data", "offline_workflow_config")
+
+        cls.project = cls.sg.find_one("Project", [["name", "is", "TankCommandsTest"]])
+        if not cls.project:
+            cls.project = cls.sg.create("Project", {"name": "TankCommandsTest"})
 
     def test_01_setup_legacy_bootstrap_core(self):
+
+        self.remove_files(self.legacy_bootstrap_core, self.site_config_location)
 
         if sys.platform == "darwin":
             path_param = "config_path_mac"
@@ -88,12 +98,45 @@ class TankCommands(SgtkIntegrationTest):
             setup_project.execute(params)
 
     def test_02_share_site_core(self):
+
+        self.remove_files(self.shared_core_location)
+
         self.run_tank_cmd(
             self.site_config_location,
             ("share_core",) + (self.shared_core_location,) * 3,
-            input="y\n"
+            user_input=("y",)
         )
 
+    def test_03_setup_project_from_site_core(self):
+        pipeline_location = os.path.join(self.temp_dir, "pipeline")
+        self.setup_project(
+            self.shared_core_location,
+            self.simple_config_location,
+            self.local_storage["code"],
+            self.project["id"],
+            "tankcommandtest",
+            pipeline_location,
+            force=True
+        )
+
+    def test_04_list_actions_for_project_with_shared_core(self):
+        # description_token = "This should be automatically be deleted by your unit tests."
+        # pc = self.sg.create(
+        #     "PipelineConfiguration",
+        #     {
+        #         "code": "Primary",
+        #         "description": description_token,
+        #         sgtk.util.ShotgunPath.get_shotgun_storage_key(): os.path.join(self.temp_dir, "some_other_config")
+        #     }
+        # )
+        try:
+            self.run_tank_cmd(
+                self.shared_core_location,
+                ("Project", str(self.project["id"]))
+            )
+        finally:
+            pass
+            # self.sg.delete("PipelineConfiguration", pc["id"])
 
 if __name__ == "__main__":
     ret_val = unittest2.main(failfast=True, verbosity=2)
