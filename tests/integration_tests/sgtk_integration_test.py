@@ -13,6 +13,8 @@ This test ensures that the offline workflow using local bundle cached inside an 
 zipped config can be bootstrap into without requiring to download anything from Shotgun.
 """
 
+from __future__ import print_function
+
 import os
 import sys
 import tempfile
@@ -113,7 +115,8 @@ class SgtkIntegrationTest(unittest2.TestCase):
         args = [str(arg) for arg in args]
 
         # Take each input and turn it into a string with a \n at the end.
-        user_input = list(user_input) or []
+        user_input = user_input or ()
+        user_input = tuple(user_input)
         user_input = ("%s\n" * len(user_input)) % user_input
 
         # Launch the command in a subprocess.
@@ -136,7 +139,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
                 if proc.wait() != 0:
                     print(proc.stdout.read())
             finally:
-                print "tank command ran in %.2f seconds." & (time.time() - before)
+                print("tank command ran in %.2f seconds." % (time.time() - before))
 
         thread = threading.Thread(target=tank_cmd_thread, args=(proc_dict,))
         thread.start()
