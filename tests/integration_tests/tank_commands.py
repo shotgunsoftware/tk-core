@@ -75,7 +75,7 @@ class TankCommands(SgtkIntegrationTest):
 
         params = {
             "auto_path": True,
-            "config_uri": "tk-config-site",
+            "config_uri": os.path.join(os.path.dirname(__file__), "data", "site_config"),
             "project_folder_name": "site",
             "project_id": None,
             path_param: self.site_config_location,
