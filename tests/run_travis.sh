@@ -42,7 +42,7 @@ if [[ $TRAVIS -eq true ]]; then
     export QT_QPA_PLATFORM=offscreen
 fi
 
-PYTHONPATH=tests/python/third_party python tests/python/third_party/coverage run tests/run_tests.py
+#PYTHONPATH=tests/python/third_party python tests/python/third_party/coverage run tests/run_tests.py
 
 # Run these tests only if the integration tests environment variables are set.
 if [ -z ${SHOTGUN_HOST+x} ]; then
