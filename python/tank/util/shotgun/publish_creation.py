@@ -217,7 +217,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     :returns: The created entity dictionary.
     """
     log.debug(
-        "Publish: Begin register publish for context %s and path %s" % (context, path)
+        "Publish: Begin register publish for context {0} and path {1}".format(context, path)
     )
     entity = None
     try:
