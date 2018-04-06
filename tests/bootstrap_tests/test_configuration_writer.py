@@ -20,7 +20,7 @@ import sgtk
 from sgtk.bootstrap.configuration_writer import ConfigurationWriter
 from sgtk.util import ShotgunPath
 from tank_vendor import yaml
-from mock import patch
+from mock import patch, MagicMock
 
 
 class TestConfigurationWriterBase(ShotgunTestBase):
@@ -60,6 +60,36 @@ class TestConfigurationWriterBase(ShotgunTestBase):
         )
         writer.ensure_project_scaffold()
         return writer
+
+
+class TestCoreInstallation(TestConfigurationWriterBase):
+
+    def test_core_install_with_skip_list(self):
+        cw = self._create_configuration_writer()
+        core_source_location = os.path.normpath(
+            os.path.join(
+                os.path.dirname(__file__),
+                "..",
+                ".."
+            )
+        )
+
+        descriptor = MagicMock()
+        descriptor.associated_core_descriptor = {
+            "path": core_source_location,
+            "type": "path"
+        }
+
+        cw.install_core(descriptor, [])
+
+        core_install_location = os.path.join(cw.path.current_os, "install", "core")
+
+        removed_files = set(["docs", "tests", ".git", ".gitignore", ".DS_Store"])
+        self.assertEqual(
+            # The installed location should have way less files now.
+            set(os.listdir(core_install_location)),
+            set(os.listdir(core_source_location)) - removed_files
+        )
 
 
 class TestShotgunYmlWriting(TestConfigurationWriterBase):

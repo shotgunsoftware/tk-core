@@ -78,3 +78,11 @@ class CoreDescriptor(Descriptor):
         except TankMissingManifestError:
             return {}
         return manifest.get("features") or {}
+
+    def copy(self, target_folder):
+        """
+        Copy the config descriptor into the specified target location.
+
+        :param target_folder: Folder to copy the descriptor to
+        """
+        self._io_descriptor.copy(target_folder, skip_list=["tests", "docs"])

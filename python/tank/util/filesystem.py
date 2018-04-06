@@ -25,6 +25,9 @@ from .. import LogManager
 
 log = LogManager.get_logger(__name__)
 
+# files or directories to skip if no skip_list is specified
+SKIP_LIST_DEFAULT = [".svn", ".git", ".gitignore", ".hg", ".hgignore"]
+
 
 def with_cleared_umask(func):
     """
@@ -207,9 +210,6 @@ def copy_folder(src, dst, folder_permissions=0o775, skip_list=None):
     """
     # files or directories to always skip
     SKIP_LIST_ALWAYS = ["__MACOSX", ".DS_Store"]
-
-    # files or directories to skip if no skip_list is specified
-    SKIP_LIST_DEFAULT = [".svn", ".git", ".gitignore", ".hg", ".hgignore"]
 
     # compute full skip list
     # note: we don't do

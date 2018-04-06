@@ -230,7 +230,7 @@ class Descriptor(object):
 
     def copy(self, target_folder):
         """
-        Copy the config descriptor into the specified target location
+        Copy the config descriptor into the specified target location.
 
         :param target_folder: Folder to copy the descriptor to
         """
