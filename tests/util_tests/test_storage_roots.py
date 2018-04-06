@@ -77,6 +77,15 @@ class TestStorageRoots(ShotgunTestBase):
         # these tests assume the metadata matches the corresponding fixture roots
         self._no_roots_metadata = {}
 
+        # empty roots
+        self._empty_roots_config_folder = os.path.join(
+            roots_fixtures_folder,
+            "empty_roots",
+            "config"
+        )
+        # these tests assume the metadata matches the corresponding fixture roots
+        self._empty_roots_metadata = {}
+
         # single root
         self._single_root_config_folder = os.path.join(
             roots_fixtures_folder,
@@ -140,6 +149,7 @@ class TestStorageRoots(ShotgunTestBase):
         self.assertTrue(StorageRoots.file_exists(self._single_root_config_folder))
         self.assertTrue(StorageRoots.file_exists(self._multiple_roots_config_folder))
         self.assertTrue(StorageRoots.file_exists(self._corrupt_roots_config_folder))
+        self.assertTrue(StorageRoots.file_exists(self._empty_roots_config_folder))
         self.assertFalse(StorageRoots.file_exists(self._no_roots_config_folder))
 
     def test_storage_roots_from_config(self):
@@ -150,6 +160,9 @@ class TestStorageRoots(ShotgunTestBase):
 
         multiple_roots = StorageRoots.from_config(self._multiple_roots_config_folder)
         self.assertIsInstance(multiple_roots, StorageRoots)
+
+        empty_roots = StorageRoots.from_config(self._empty_roots_config_folder)
+        self.assertIsInstance(empty_roots, StorageRoots)
 
         no_roots = StorageRoots.from_config(self._no_roots_config_folder)
         self.assertIsInstance(no_roots, StorageRoots)
@@ -166,6 +179,9 @@ class TestStorageRoots(ShotgunTestBase):
         multiple_roots = StorageRoots.from_metadata(self._multiple_roots_metadata)
         self.assertIsInstance(multiple_roots, StorageRoots)
 
+        empty_roots = StorageRoots.from_metadata(self._empty_roots_metadata)
+        self.assertIsInstance(empty_roots, StorageRoots)
+
         no_roots = StorageRoots.from_metadata(self._no_roots_metadata)
         self.assertIsInstance(no_roots, StorageRoots)
 
@@ -175,6 +191,7 @@ class TestStorageRoots(ShotgunTestBase):
         config_root_folders = [
             self._single_root_config_folder,
             self._multiple_roots_config_folder,
+            self._empty_roots_config_folder,
             self._no_roots_config_folder
         ]
 
@@ -225,6 +242,7 @@ class TestStorageRoots(ShotgunTestBase):
         config_root_folders = [
             self._single_root_config_folder,
             self._multiple_roots_config_folder,
+            self._empty_roots_config_folder,
             self._no_roots_config_folder
         ]
 
@@ -242,6 +260,9 @@ class TestStorageRoots(ShotgunTestBase):
         multiple_roots = StorageRoots.from_config(self._multiple_roots_config_folder)
         self.assertEqual(multiple_roots.default, "work")
 
+        empty_roots = StorageRoots.from_config(self._empty_roots_config_folder)
+        self.assertEqual(empty_roots.default, None)
+
         no_roots = StorageRoots.from_config(self._no_roots_config_folder)
         self.assertEqual(no_roots.default, None)
 
@@ -258,6 +279,9 @@ class TestStorageRoots(ShotgunTestBase):
             self._multiple_roots_metadata["work"])
         self.assertTrue(multiple_roots.default_path, multiple_roots_default_path)
 
+        empty_roots = StorageRoots.from_config(self._empty_roots_config_folder)
+        self.assertEqual(empty_roots.default_path, None)
+
         no_roots = StorageRoots.from_config(self._no_roots_config_folder)
         self.assertEqual(no_roots.default_path, None)
 
@@ -269,6 +293,9 @@ class TestStorageRoots(ShotgunTestBase):
 
         multiple_roots = StorageRoots.from_metadata(self._multiple_roots_metadata)
         self.assertEqual(multiple_roots.metadata, self._multiple_roots_metadata)
+
+        empty_roots = StorageRoots.from_metadata(self._empty_roots_metadata)
+        self.assertEqual(empty_roots.metadata, self._empty_roots_metadata)
 
         no_roots = StorageRoots.from_metadata(self._no_roots_metadata)
         self.assertEqual(no_roots.metadata, self._no_roots_metadata)
@@ -290,6 +317,12 @@ class TestStorageRoots(ShotgunTestBase):
             os.path.join(self._multiple_roots_config_folder, relative_roots_path)
         )
 
+        empty_roots = StorageRoots.from_config(self._empty_roots_config_folder)
+        self.assertEqual(
+            empty_roots.roots_file,
+            os.path.join(self._empty_roots_config_folder, relative_roots_path)
+        )
+
         no_roots = StorageRoots.from_config(self._no_roots_config_folder)
         self.assertEqual(
             no_roots.roots_file,
@@ -308,6 +341,9 @@ class TestStorageRoots(ShotgunTestBase):
         multiple_roots_required_storage_names = multiple_roots.required_roots
         for root_name in self._multiple_roots_metadata:
             self.assertTrue(root_name in multiple_roots_required_storage_names)
+
+        empty_roots = StorageRoots.from_config(self._empty_roots_config_folder)
+        self.assertEqual(empty_roots.required_roots, [])
 
         no_roots = StorageRoots.from_config(self._no_roots_config_folder)
         self.assertEqual(no_roots.required_roots, [])
@@ -341,7 +377,7 @@ class TestStorageRoots(ShotgunTestBase):
         self.assertEqual(multiple_roots_storage_paths, ShotgunPath.from_shotgun_dict(multiple_roots_default))
         self.assertEqual(unmapped_roots, ["foobar"])
 
-    def test_storage_rotos_populate_defaults(self):
+    def test_storage_roots_populate_defaults(self):
         """Test the populate_defaults method."""
 
         empty_roots_metadata = {}
