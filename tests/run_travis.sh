@@ -44,8 +44,8 @@ fi
 
 
 # PYTHONPATH=tests/python/third_party python -3 tests/python/third_party/coverage run tests/run_tests.py
-echo TRAVIS_SECURE_ENV_VARS $TRAVIS_SECURE_ENV_VARS
-if [ "${TRAVIS_SECURE_ENV_VARS}" == "true" ]; then
-    echo "in if"
+if [ -z ${SHOTGUN_HOST+x} ]; then
+    echo "Skipping integration tests"
+else
     PYTHONPATH=tests/python/third_party python -3 tests/python/third_party/coverage run -a tests/integration_tests/offline_workflow.py
 fi

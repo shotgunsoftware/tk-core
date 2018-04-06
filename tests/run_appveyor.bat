@@ -15,4 +15,4 @@
 set PYTHONPATH=tests/python/third_party
 :: %PYTHON%\python -3 tests/run_tests.py
 
-IF "%TRAVIS_SECURE_ENV_VARS%"=="true" (%PYTHON%\python -3 tests/integration_tests/offline_workflow.py)
+IF DEFINED SHOTGUN_HOST (%PYTHON%\python -3 tests/integration_tests/offline_workflow.py) ELSE (ECHO "Skipping integration tests.")
