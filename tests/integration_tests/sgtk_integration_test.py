@@ -225,8 +225,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
         finally:
             print("tank command ran in %.2f seconds." % (time.time() - before))
             print("tank command return code", proc.returncode)
-            # Do not print output in CI environment, we do not want to leak the site's name.
-            if "CI" not in os.environ:
+            if stdout:
                 print("tank command output:")
                 print(stdout)
 

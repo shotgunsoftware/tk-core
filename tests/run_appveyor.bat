@@ -21,7 +21,6 @@ set SHOTGUN_TEST_ENTITY_SUFFIX=app_veyor
 IF DEFINED SHOTGUN_HOST (
 ::    %PYTHON%\python tests\integration_tests\offline_workflow.py
     %PYTHON%\python tests\integration_tests\tank_commands.py
-)
-ELSE (
+) ELSE (
     ECHO "Skipping integration tests, SHOTGUN_HOST is not set."
 )
