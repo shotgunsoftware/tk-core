@@ -29,7 +29,8 @@ class TestConfigurationWriterBase(ShotgunTestBase):
         """
         Creates a fake config with the provided shotgun.yml data.
         """
-        mock_config_root = os.path.join(self.tank_temp, "template", self.id())
+        # Make the file name not too long or we'll run into file length issues on Windows.
+        mock_config_root = os.path.join(self.tank_temp, "template", "%s" % ".".rsplit(self.id(), 1)[-1])
         # Make sure the bundle "exists" on disk.
         os.makedirs(mock_config_root)
 
