@@ -40,10 +40,14 @@ class TankCommands(SgtkIntegrationTest):
         cls.legacy_bootstrap_core = os.path.join(cls.temp_dir, "bootstrap")
         cls.simple_config_location = os.path.join(os.path.dirname(__file__), "data", "offline_workflow_config")
 
+        # Create a sandbox project for this this suite to run under.
         cls.project = cls.create_or_find_project("TankCommandsTest", {})
 
     def test_01_setup_legacy_bootstrap_core(self):
-
+        """
+        Sets up a site-wide configuration like Shotgun Desktop 1.3.6 used to do so we
+        can make sure it doesn't get broken by more recent versions of tk-core.
+        """
         self.remove_files(self.legacy_bootstrap_core, self.site_config_location)
 
         if sys.platform == "darwin":
@@ -58,6 +62,7 @@ class TankCommands(SgtkIntegrationTest):
             self.sg
         )
 
+        # Activate the core.
         cw.ensure_project_scaffold()
 
         install_core_folder = os.path.join(self.legacy_bootstrap_core, "install", "core")
@@ -71,6 +76,7 @@ class TankCommands(SgtkIntegrationTest):
         )
         cw.create_tank_command()
 
+        # Setup the site config in the legacy auto_path mode that the Desktop used.
         params = {
             "auto_path": True,
             "config_uri": os.path.join(os.path.dirname(__file__), "data", "site_config"),
