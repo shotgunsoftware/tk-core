@@ -81,9 +81,10 @@ class SgtkIntegrationTest(unittest2.TestCase):
 
         # Create or update the integration_tests local storage with the current test run
         # temp folder location.
-        cls.local_storage = cls.sg.find_one("LocalStorage", [["code", "is", "integration_tests"]], ["code"])
+        storage_name = cls._create_unique_name("integration_tests")
+        cls.local_storage = cls.sg.find_one("LocalStorage", [["code", "is", storage_name]], ["code"])
         if cls.local_storage is None:
-            cls.local_storage = cls.sg.create("LocalStorage", {"code": "integration_tests"})
+            cls.local_storage = cls.sg.create("LocalStorage", {"code": storage_name})
 
         # Use platform agnostic token to facilitate tests.
         cls.local_storage["path"] = os.path.join(cls.temp_dir, "storage")
@@ -98,6 +99,17 @@ class SgtkIntegrationTest(unittest2.TestCase):
         # Ensure the local storage folder exists on disk.
         if not os.path.exists(cls.local_storage["path"]):
             os.makedirs(cls.local_storage["path"])
+
+    @classmethod
+    def _create_unique_name(cls, name):
+        """
+        Returns a name that can be unique for the environment the test is running in.
+        If SHOTGUN_TEST_ENTITY_SUFFIX environment variable is set, the suffix will be added.
+        """
+        if "SHOTGUN_TEST_ENTITY_SUFFIX" in os.environ:
+            return "%s_%s" % (name, os.environ["SHOTGUN_TEST_ENTITY_SUFFIX"])
+        else:
+            return name
 
     @classmethod
     def create_or_find_project(cls, name, entity=None):
@@ -115,14 +127,11 @@ class SgtkIntegrationTest(unittest2.TestCase):
         """
         entity = entity or {}
 
-        if "SHOTGUN_TEST_ENTITY_SUFFIX" in os.environ:
-            project_name = "%s_%s" % (name, os.environ["SHOTGUN_TEST_ENTITY_SUFFIX"])
-        else:
-            project_name = name
+        name = cls._create_unique_name(name)
 
-        project = cls.sg.find_one("Project", [["name", "is", project_name]])
+        project = cls.sg.find_one("Project", [["name", "is", name]])
         if not project:
-            entity["name"] = project_name
+            entity["name"] = name
             project = cls.sg.create("Project", entity)
 
         return project
