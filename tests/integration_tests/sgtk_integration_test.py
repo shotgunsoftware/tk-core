@@ -23,6 +23,7 @@ import subprocess
 import threading
 import shutil
 import time
+import copy
 
 import unittest2
 
@@ -183,13 +184,13 @@ class SgtkIntegrationTest(unittest2.TestCase):
         # Note: we're not using backported subprocess32 which supports a timeout argument
         # because it has not been validated on Windows.
 
+        env = copy.copy(os.environ)
+        # Set PYTHONPATH, just like tank_cmd shell script does
+        env["PYTHONPATH"] = os.path.join(core_location, "install", "core", "python")
+
         proc = subprocess.Popen(
             args,
-            # Set PYTHONPATH, just like tank_cmd shell script does
-            env={
-                "PYTHONPATH": os.path.join(core_location, "install", "core", "python"),
-                "TK_CORE_REPO_ROOT": TK_CORE_REPO_ROOT
-            },
+            env=env,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             stdin=subprocess.PIPE
