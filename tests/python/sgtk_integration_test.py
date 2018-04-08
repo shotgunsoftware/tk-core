@@ -9,8 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-This test ensures that the offline workflow using local bundle cached inside an uploaded
-zipped config can be bootstrap into without requiring to download anything from Shotgun.
+Provides a base class for integration tests.
 """
 
 from __future__ import print_function
