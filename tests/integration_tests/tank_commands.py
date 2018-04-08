@@ -38,7 +38,7 @@ class TankCommands(SgtkIntegrationTest):
         cls.site_config_location = os.path.join(cls.temp_dir, "site")
         cls.shared_core_location = os.path.join(cls.temp_dir, "shared")
         cls.legacy_bootstrap_core = os.path.join(cls.temp_dir, "bootstrap")
-        cls.simple_config_location = os.path.join(os.path.dirname(__file__), "data", "offline_workflow_config")
+        cls.simple_config_location = os.path.join(os.path.dirname(__file__), "data", "simple_config")
 
         # Create a sandbox project for this this suite to run under.
         cls.project = cls.create_or_find_project("TankCommandsTest", {})
