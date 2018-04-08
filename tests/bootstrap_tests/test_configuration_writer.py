@@ -30,7 +30,8 @@ class TestConfigurationWriterBase(ShotgunTestBase):
         Creates a fake config with the provided shotgun.yml data.
         """
         # Make the file name not too long or we'll run into file length issues on Windows.
-        mock_config_root = os.path.join(self.tank_temp, "template", "%s" % self.id().rsplit(".", 1)[-1])
+        mock_config_root = os.path.join(self.tank_temp, "template", "%s" % self.short_test_name)
+        print mock_config_root
         # Make sure the bundle "exists" on disk.
         os.makedirs(mock_config_root)
 
@@ -50,7 +51,7 @@ class TestConfigurationWriterBase(ShotgunTestBase):
         """
         Creates a configuration writer that will write to a unique folder for this test.
         """
-        new_config_root = os.path.join(self.tank_temp, "new_configuration", self.id())
+        new_config_root = os.path.join(self.tank_temp, "new_configuration", self.short_test_name)
         shotgun_yml_root = os.path.join(new_config_root, "config", "core")
         # Ensures the location for the shotgun.yml exists.
         os.makedirs(shotgun_yml_root)
@@ -160,7 +161,7 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
     def setUp(self):
         # Makes sure every unit test run in its own sandbox.
         super(TestInterpreterFilesWriter, self).setUp()
-        self._root = os.path.join(self.tank_temp, self.id())
+        self._root = os.path.join(self.tank_temp, self.short_test_name)
         os.makedirs(self._root)
         self._cw = ConfigurationWriter(
             ShotgunPath.from_current_os_path(self._root),
@@ -321,7 +322,7 @@ class TestWritePipelineConfigFile(ShotgunTestBase):
             dict(type="dev", path="/a/b/c")
         )
 
-        config_root = os.path.join(self.tank_temp, self.id())
+        config_root = os.path.join(self.tank_temp, self.short_test_name)
 
         self.__cw = ConfigurationWriter(
             ShotgunPath.from_current_os_path(config_root),
@@ -507,7 +508,7 @@ class TestTransaction(ShotgunTestBase):
         """
         Ensures the transaction flags are properly handled for a config.
         """
-        new_config_root = os.path.join(self.tank_temp, self.id())
+        new_config_root = os.path.join(self.tank_temp, self.short_test_name)
 
         writer = ConfigurationWriter(
             ShotgunPath.from_current_os_path(new_config_root),

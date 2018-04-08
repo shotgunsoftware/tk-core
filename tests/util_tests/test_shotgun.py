@@ -243,7 +243,7 @@ class TestShotgunDownloadUrl(ShotgunTestBase):
 
         # Temporary destination to "download" source file to.
         self.download_destination = os.path.join(
-            self.tank_temp, self.id(), "config", "foo",
+            self.tank_temp, self.short_test_name, "config", "foo",
             "test_shotgun_download_url.png"
         )
         os.makedirs(os.path.dirname(self.download_destination))
