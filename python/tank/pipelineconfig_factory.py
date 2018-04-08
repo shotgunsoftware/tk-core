@@ -272,6 +272,8 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
 
     if config_context_path:
 
+        _ensure_on_disk(config_context_path)
+
         # --- RUNNING THE API WITHIN A PROJECT ----
 
         # This is the localized case where the imported code has a 1:1 correspondence
@@ -387,8 +389,24 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
                     "definition in Shotgun." % (sg_config_data["id"], source)
                 )
 
+            _ensure_on_disk(sg_config_data["path"])
+
             # all good. init and return.
             return PipelineConfiguration(sg_config_data["path"])
+
+
+def _ensure_on_disk(config_location):
+    """
+    Ensures that the pipeline configuration exists on disk.
+
+    :raises TankInitError: Raised when the pipeline configuration does not exist on disk.
+    """
+    if not os.path.exists(config_location):
+        raise TankInitError(
+            "The pipeline configuration %s does not exist on disk. This can happen if the "
+            "pipeline configuration entry has been deleted from Shotgun since the local "
+            "Toolkit cache has been updated or if the pipeline configuration was moved." % (config_location,)
+        )
 
 
 #################################################################################################################
