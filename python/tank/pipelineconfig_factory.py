@@ -272,8 +272,6 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
 
     if config_context_path:
 
-        _ensure_on_disk(config_context_path)
-
         # --- RUNNING THE API WITHIN A PROJECT ----
 
         # This is the localized case where the imported code has a 1:1 correspondence
@@ -389,29 +387,21 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
                     "definition in Shotgun." % (sg_config_data["id"], source)
                 )
 
-            _ensure_on_disk(sg_config_data["path"])
+            # This checks for a very subtle bug. If the toolkit_init.cache contains a path to a pipeline
+            # configuration that matches the pre-requisites, but that doesn't actually exist on disk because
+            # it was either move to another location or delete from disk altogether, then we need to raise
+            # TankInitError. If the cache hadn't been force reread, this will be caught by the factory
+            # and Shotgun will be queried once again for the pipeline configuration info, hopefully
+            # finding the real pipeline configuration this time around.
+            if not os.path.exists(sg_config_data["path"]):
+                raise TankInitError(
+                    "The pipeline configuration %s does not exist on disk. This can happen if the "
+                    "pipeline configuration has been deleted from disk or if it was moved." %
+                    sg_config_data["path"]
+                )
 
             # all good. init and return.
             return PipelineConfiguration(sg_config_data["path"])
-
-
-def _ensure_on_disk(config_location):
-    """
-    Ensures that the pipeline configuration exists on disk.
-
-    :raises TankInitError: Raised when the pipeline configuration does not exist on disk.
-    """
-    # This checks for a very subtle bug. If the toolkit_init.cache contains a path to a pipeline
-    # configuration that matches the pre-requisites, but that doesn't actually exist on disk because
-    # it was either move to another location or delete from disk altogether, then we need to raise
-    # TankInitError. If the cache hadn't been force reread, this will be caught by the factory
-    # and Shotgun will be queried once again for the pipeline configuration info, hopefully
-    # finding the real pipeline configuration this time around.
-    if not os.path.exists(config_location):
-        raise TankInitError(
-            "The pipeline configuration %s does not exist on disk. This can happen if the "
-            "pipeline configuration has been deleted from disk or if it was moved." % (config_location,)
-        )
 
 
 #################################################################################################################
