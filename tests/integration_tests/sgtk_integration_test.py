@@ -30,46 +30,49 @@ import unittest2
 import sgtk
 from sgtk.util.filesystem import safe_delete_folder
 
-TK_CORE_REPO_ROOT = os.path.normpath(
-    os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        ".."
-    )
-)
-
-CORE_CFG_OS_MAP = {"linux2": "core_Linux.cfg", "win32": "core_Windows.cfg", "darwin": "core_Darwin.cfg"}
-
-
-def cleanup():
-    """
-    Called to cleanup the test folder.
-    """
-    # Close the file logger so that the file is not in use on Windows.
-    sgtk.LogManager.uninitialize_base_file_handler()
-    safe_delete_folder(temp_dir)
-
-# Create a temporary directory for these tests and make sure
-# it is cleaned up.
-if "SHOTGUN_TEST_TEMP" not in os.environ:
-    temp_dir = tempfile.mkdtemp()
-    atexit.register(cleanup)
-else:
-    temp_dir = os.environ["SHOTGUN_TEST_TEMP"]
-
-# Ensure Toolkit writes to the temporary directory/
-os.environ["SHOTGUN_HOME"] = os.path.join(
-    temp_dir, "shotgun_home"
-)
-
 
 class SgtkIntegrationTest(unittest2.TestCase):
+    """
+    Base class for integration tests. Each integration test should be invoke in its own subprocess.
+
+    The base class takes care of:
+        - setting up a log file named after the test
+        - creating a random temporary folder to write to or use the path pointed by SHOTGUN_TEST_TEMP
+        - setting SHOTGUN_HOME to point to <temp_dir>/shotgun_home
+        - creating a Shotgun connection based on the SHOTGUN_HOST, SHOTGUN_SCRIPT_NAME, SHOTGUN_SCRIPT_KEY
+          environment variables
+        - sets the TK_CORE_REPO_ROOT environment variable, which points to the root of this repo.
+        - creating a local storage named integration_tests with an optional suffix provided by the continous
+          integration provider so that multiple tests running on different CIs at the same time do not
+          interact with each other
+        - local storage is updated each run to point into the temporary folder.
+        - cleaning up the test folder when the tests are done running.
+    """
 
     @classmethod
     def setUpClass(cls):
         """
         Sets up the test suite.
         """
+
+        # Set up logging
+        sgtk.LogManager().initialize_base_file_handler(cls.__name__.lower())
+        sgtk.LogManager().initialize_custom_handler()
+
+        # Create a temporary directory for these tests and make sure
+        # it is cleaned up.
+        if "SHOTGUN_TEST_TEMP" not in os.environ:
+            cls.temp_dir = tempfile.mkdtemp()
+            # Do not rely on tearDown to cleanup files on disk. Use the atexit callback which is
+            # much more realiable.
+            atexit.register(cls._cleanup_temp_dir)
+        else:
+            cls.temp_dir = os.environ["SHOTGUN_TEST_TEMP"]
+
+        # Ensure Toolkit writes to the temporary directory
+        os.environ["SHOTGUN_HOME"] = os.path.join(
+            cls.temp_dir, "shotgun_home"
+        )
 
         # Create a user and connection to Shotgun.
         sa = sgtk.authentication.ShotgunAuthenticator()
@@ -82,10 +85,15 @@ class SgtkIntegrationTest(unittest2.TestCase):
         cls.sg = user.create_sg_connection()
 
         # Advertise the temporary directory and root of the tk-core repo
-        cls.temp_dir = temp_dir
-        cls.tk_core_repo_root = TK_CORE_REPO_ROOT
+        cls.tk_core_repo_root = os.path.normpath(
+            os.path.join(
+                os.path.dirname(__file__),
+                "..",
+                ".."
+            )
+        )
         # Set it also as an environment variable so it can be used by subprocess or a configuration.
-        os.environ["TK_CORE_REPO_ROOT"] = TK_CORE_REPO_ROOT
+        os.environ["TK_CORE_REPO_ROOT"] = cls.tk_core_repo_root
 
         # Create or update the integration_tests local storage with the current test run
         # temp folder location.
@@ -107,6 +115,15 @@ class SgtkIntegrationTest(unittest2.TestCase):
         # Ensure the local storage folder exists on disk.
         if not os.path.exists(cls.local_storage["path"]):
             os.makedirs(cls.local_storage["path"])
+
+    @classmethod
+    def _cleanup_temp_dir(cls):
+        """
+        Called to cleanup the test folder.
+        """
+        # Close the file logger so that the file is not in use on Windows.
+        sgtk.LogManager().uninitialize_base_file_handler()
+        safe_delete_folder(cls.temp_dir)
 
     @classmethod
     def _create_unique_name(cls, name):
@@ -172,7 +189,8 @@ class SgtkIntegrationTest(unittest2.TestCase):
         # For this, we'll have to replicate the logic from the tank shell script.
 
         # Check if this is a shared core.
-        core_location_file = os.path.join(location, "install", "core", CORE_CFG_OS_MAP[sys.platform])
+        core_cfg_map = {"linux2": "core_Linux.cfg", "win32": "core_Windows.cfg", "darwin": "core_Darwin.cfg"}
+        core_location_file = os.path.join(location, "install", "core", core_cfg_map[sys.platform])
         if os.path.exists(core_location_file):
             with open(core_location_file, "rt") as fh:
                 core_location = fh.read()

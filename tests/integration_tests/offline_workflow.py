@@ -23,10 +23,6 @@ from sgtk_integration_test import SgtkIntegrationTest
 
 import sgtk
 
-# Set up logging
-sgtk.LogManager().initialize_base_file_handler("offline_workflow")
-sgtk.LogManager().initialize_custom_handler()
-
 
 class OfflineWorkflow(SgtkIntegrationTest):
 
