@@ -37,6 +37,8 @@ TK_CORE_REPO_ROOT = os.path.normpath(
     )
 )
 
+CORE_CFG_OS_MAP = {"linux2": "core_Linux.cfg", "win32": "core_Windows.cfg", "darwin": "core_Darwin.cfg"}
+
 # Create a temporary directory for these tests and make sure
 # it is cleaned up.
 
@@ -96,7 +98,35 @@ class SgtkIntegrationTest(unittest2.TestCase):
         if not os.path.exists(cls.local_storage["path"]):
             os.makedirs(cls.local_storage["path"])
 
-    def run_tank_cmd(self, location, args=None, user_input=None, timeout=120):
+    @classmethod
+    def create_or_find_project(cls, name, entity=None):
+        """
+        Creates or finds a project with a given name.
+
+        :param str name: Name of the project to find or create.
+        :param dict entity: Entity dictionary for the project if it needs to be created.
+
+        .. note:
+            The actual name of the project might be different than the name passed in if you
+            are in a CI environment. As such, always use the name returned from the entity.
+
+        :returns: Entity dictionary of the project.
+        """
+        entity = entity or {}
+
+        if "SHOTGUN_TEST_ENTITY_SUFFIX" in os.environ:
+            project_name = "%s_%s" % (name, os.environ["SHOTGUN_TEST_ENTITY_SUFFIX"])
+        else:
+            project_name = name
+
+        project = cls.sg.find_one("Project", [["name", "is", project_name]])
+        if not project:
+            entity["name"] = project_name
+            project = cls.sg.create("Project", entity)
+
+        return project
+
+    def run_tank_cmd(self, location, user_args=None, user_input=None, timeout=120):
         """
         Runs the tank command.
 
@@ -108,52 +138,97 @@ class SgtkIntegrationTest(unittest2.TestCase):
 
         :raises Exception: Raised then timeout occurs or when the subprocess does not return 0.
         """
-        proc_dict = {}
-
         # Take each command line arguments and make a string out of them.
-        args = args or []
-        args = [str(arg) for arg in args]
+        user_args = user_args or []
+        user_args = [str(arg) for arg in user_args]
 
         # Take each input and turn it into a string with a \n at the end.
         user_input = user_input or ()
         user_input = tuple(user_input)
         user_input = ("%s\n" * len(user_input)) % user_input
 
-        # Launch the command in a subprocess.
-        def tank_cmd_thread(proc_dict):
-            before = time.time()
-            try:
-                proc = subprocess.Popen(
-                    [
-                        os.path.join(location, "tank.bat" if sys.platform == "win32" else "tank"),
-                        "--script-name=%s" % os.environ["SHOTGUN_SCRIPT_NAME"],
-                        "--script-key=%s" % os.environ["SHOTGUN_SCRIPT_KEY"],
-                    ] + list(args),
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    stdin=subprocess.PIPE
-                )
-                proc_dict["handle"] = proc
-                proc.stdin.write(user_input)
-                # If the process failed, print the output.
-                if proc.wait() != 0:
-                    print(proc.stdout.read())
-            finally:
-                print("tank command ran in %.2f seconds." % (time.time() - before))
+        # Do not invoke the tank shell script. This causes issues when trying to timeout the subprocess
+        # because killing the shell script does not terminate the python subprocess, so we want
+        # to launch the python interpreter directly.
 
-        thread = threading.Thread(target=tank_cmd_thread, args=(proc_dict,))
+        # For this, we'll have to replicate the logic from the tank shell script.
+
+        # Check if this is a shared core.
+        core_location_file = os.path.join(location, "install", "core", CORE_CFG_OS_MAP[sys.platform])
+        if os.path.exists(core_location_file):
+            with open(core_location_file, "rt") as fh:
+                core_location = fh.read()
+        else:
+            core_location = location
+
+        args = [
+            sys.executable,
+            # The tank_cmd.py is installed with the core
+            os.path.join(core_location, "install", "core", "scripts", "tank_cmd.py"),
+            # The script always expects as the first param the tk-core is installed
+            core_location,
+            # Then pass the credentials to run silently the command.
+            "--script-name=%s" % os.environ["SHOTGUN_SCRIPT_NAME"],
+            "--script-key=%s" % os.environ["SHOTGUN_SCRIPT_KEY"],
+            # Finally pass the user requested
+        ] + list(user_args)
+
+        # If we're launching the command from a pipeline configuration that uses a shared core,
+        # we need to tell the tank command which pipeline configuration it is being launched from.
+        if core_location != location:
+            args += ["--pc=%s" % location]
+
+        # The following is heavily inspired from
+        # http://www.ostricher.com/2015/01/python-subprocess-with-timeout/
+        # Note: we're not using backported subprocess32 which supports a timeout argument
+        # because it has not been validated on Windows.
+
+        proc = subprocess.Popen(
+            args,
+            # Set PYTHONPATH, just like tank_cmd shell script does
+            env={
+                "PYTHONPATH": os.path.join(core_location, "install", "core", "python"),
+                "TK_CORE_REPO_ROOT": TK_CORE_REPO_ROOT
+            },
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            stdin=subprocess.PIPE
+        )
+        thread = threading.Thread(target=self._tank_cmd_thread, args=(proc, user_input))
         thread.start()
         # Wait timeout seconds before aborting the process.
         thread.join(timeout)
 
         # If the process hasn't finished, kill it.
-        if proc_dict["handle"].poll() is None:
+        if thread.is_alive():
             print("Time out, killing process!")
-            proc_dict["handle"].kill()
-            raise Exception("Subprocess timed out!")
+            try:
+                proc.kill()
+            except OSError:
+                # The process finished between the is_alive() and kill()
+                pass
+            else:
+                raise Exception("Subprocess timed out!")
         # If the process did not finish with 0, return an error.
-        elif proc_dict["handle"].poll() != 0:
+        elif proc.returncode != 0:
             raise Exception("Process completed unsuccesfully.")
+
+    def _tank_cmd_thread(self, proc, user_input):
+        """
+        Clocks the time it takes to run the subprocess and prints out the return code
+        and how much time it took to run.
+        """
+        before = time.time()
+        stdout = None
+        try:
+            stdout, _ = proc.communicate(user_input)
+        finally:
+            print("tank command ran in %.2f seconds." % (time.time() - before))
+            print("tank command return code", proc.returncode)
+            # Do not print output in CI environment, we do not want to leak the site's name.
+            if "CI" not in os.environ:
+                print("tank command output:")
+                print(stdout)
 
     def remove_files(self, *files):
         """

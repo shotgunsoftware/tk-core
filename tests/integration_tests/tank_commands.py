@@ -44,9 +44,7 @@ class TankCommands(SgtkIntegrationTest):
         cls.legacy_bootstrap_core = os.path.join(cls.temp_dir, "bootstrap")
         cls.simple_config_location = os.path.join(os.path.dirname(__file__), "data", "offline_workflow_config")
 
-        cls.project = cls.sg.find_one("Project", [["name", "is", "TankCommandsTest"]])
-        if not cls.project:
-            cls.project = cls.sg.create("Project", {"name": "TankCommandsTest"})
+        cls.project = cls.create_or_find_project("TankCommandsTest", {})
 
     def test_01_setup_legacy_bootstrap_core(self):
 
@@ -98,7 +96,9 @@ class TankCommands(SgtkIntegrationTest):
             setup_project.execute(params)
 
     def test_02_share_site_core(self):
-
+        """
+        Shares the site config's core.
+        """
         self.remove_files(self.shared_core_location)
 
         self.run_tank_cmd(

@@ -16,16 +16,15 @@
 
 set -e
 
-python -m compileall python/tank
-python -m compileall tests/*.py
-python -m compileall tests/*/*.py
+# python -m compileall python/tank
+# python -m compileall tests/*.py
+# python -m compileall tests/*/*.py
 
 if [[ $SHOTGUN_COMPILE_ONLY -eq 1 ]]; then
     exit 0
 fi
 
-
-if [[ $TRAVIS -eq true ]]; then
+if [[ $TRAVIS = true ]]; then
     # PySide is tricky to install and run. Let's get a wheel from someone who already compiled it for
     # Travis.
     # Taken from: https://stackoverflow.com/questions/24489588/how-can-i-install-pyside-on-travis
@@ -42,12 +41,14 @@ if [[ $TRAVIS -eq true ]]; then
     export QT_QPA_PLATFORM=offscreen
 fi
 
+export SHOTGUN_TEST_ENTITY_SUFFIX=travis
+
 #PYTHONPATH=tests/python/third_party python tests/python/third_party/coverage run tests/run_tests.py
 
 # Run these tests only if the integration tests environment variables are set.
 if [ -z ${SHOTGUN_HOST+x} ]; then
     echo "Skipping integration tests, SHOTGUN_HOST is not set."
 else
-    PYTHONPATH=tests/python/third_party:python python tests/python/third_party/coverage run -a tests/integration_tests/offline_workflow.py
+#    PYTHONPATH=tests/python/third_party:python python tests/python/third_party/coverage run -a tests/integration_tests/offline_workflow.py
     PYTHONPATH=tests/python/third_party:python python tests/python/third_party/coverage run -a tests/integration_tests/tank_commands.py
 fi
