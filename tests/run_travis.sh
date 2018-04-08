@@ -41,7 +41,8 @@ if [[ $TRAVIS = true ]]; then
     export QT_QPA_PLATFORM=offscreen
 fi
 
-export SHOTGUN_TEST_ENTITY_SUFFIX=travis
+# Insert the event type, since there can be two builds at once: once for a commit and the other for the pull request.
+export SHOTGUN_TEST_ENTITY_SUFFIX="travis_${TRAVIS_EVENT_TYPE}""
 
 #PYTHONPATH=tests/python/third_party python tests/python/third_party/coverage run tests/run_tests.py
 
