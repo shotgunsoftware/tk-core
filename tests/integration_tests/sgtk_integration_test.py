@@ -40,12 +40,20 @@ TK_CORE_REPO_ROOT = os.path.normpath(
 
 CORE_CFG_OS_MAP = {"linux2": "core_Linux.cfg", "win32": "core_Windows.cfg", "darwin": "core_Darwin.cfg"}
 
+
+def cleanup():
+    """
+    Called to cleanup the test folder.
+    """
+    # Close the file logger so that the file is not in use on Windows.
+    sgtk.LogManager.uninitialize_base_file_handler()
+    safe_delete_folder(temp_dir)
+
 # Create a temporary directory for these tests and make sure
 # it is cleaned up.
-
 if "SHOTGUN_TEST_TEMP" not in os.environ:
     temp_dir = tempfile.mkdtemp()
-    atexit.register(lambda: safe_delete_folder(temp_dir))
+    atexit.register(cleanup)
 else:
     temp_dir = os.environ["SHOTGUN_TEST_TEMP"]
 
