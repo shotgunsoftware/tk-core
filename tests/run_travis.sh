@@ -16,9 +16,9 @@
 
 set -e
 
-# python -m compileall python/tank
-# python -m compileall tests/*.py
-# python -m compileall tests/*/*.py
+python -m compileall python/tank
+python -m compileall tests/*.py
+python -m compileall tests/*/*.py
 
 if [[ $SHOTGUN_COMPILE_ONLY -eq 1 ]]; then
     exit 0
@@ -41,15 +41,15 @@ if [[ $TRAVIS = true ]]; then
     export QT_QPA_PLATFORM=offscreen
 fi
 
-# Insert the event type, since there can be two builds at once: once for a commit and the other for the pull request.
-export SHOTGUN_TEST_ENTITY_SUFFIX="travis_${TRAVIS_EVENT_TYPE}"
+# Insert the event type and python version, since we can be running multiple builds at the same time.
+export SHOTGUN_TEST_ENTITY_SUFFIX="travis_${TRAVIS_EVENT_TYPE}_${TRAVIS_PYTHON_VERSION}"
 
-#PYTHONPATH=tests/python/third_party python tests/python/third_party/coverage run tests/run_tests.py
+PYTHONPATH=tests/python/third_party python tests/python/third_party/coverage run tests/run_tests.py
 
 # Run these tests only if the integration tests environment variables are set.
 if [ -z ${SHOTGUN_HOST+x} ]; then
     echo "Skipping integration tests, SHOTGUN_HOST is not set."
 else
-#    PYTHONPATH=tests/python/third_party:python python tests/python/third_party/coverage run -a tests/integration_tests/offline_workflow.py
+    PYTHONPATH=tests/python/third_party:python python tests/python/third_party/coverage run -a tests/integration_tests/offline_workflow.py
     PYTHONPATH=tests/python/third_party:python python tests/python/third_party/coverage run -a tests/integration_tests/tank_commands.py
 fi

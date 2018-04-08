@@ -401,11 +401,16 @@ def _ensure_on_disk(config_location):
 
     :raises TankInitError: Raised when the pipeline configuration does not exist on disk.
     """
+    # This checks for a very subtle bug. If the toolkit_init.cache contains a path to a pipeline
+    # configuration that matches the pre-requisites, but that doesn't actually exist on disk because
+    # it was either move to another location or delete from disk altogether, then we need to raise
+    # TankInitError. If the cache hadn't been force reread, this will be caught by the factory
+    # and Shotgun will be queried once again for the pipeline configuration info, hopefully
+    # finding the real pipeline configuration this time around.
     if not os.path.exists(config_location):
         raise TankInitError(
             "The pipeline configuration %s does not exist on disk. This can happen if the "
-            "pipeline configuration entry has been deleted from Shotgun since the local "
-            "Toolkit cache has been updated or if the pipeline configuration was moved." % (config_location,)
+            "pipeline configuration has been deleted from disk or if it was moved." % (config_location,)
         )
 
 
