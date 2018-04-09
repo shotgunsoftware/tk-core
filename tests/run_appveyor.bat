@@ -12,8 +12,26 @@
 :: This file is run by the appveyor builds.
 ::
 
-set PYTHONPATH=tests/python/third_party
+set PYTHONPATH=tests/python/third_party;tests/python;python
 %PYTHON%\python tests/run_tests.py
 
+:: FIXME: This approach does not scale...
+if not %ERRORLEVEL% == 0 exit /b %ERRORLEVEL%
+
+:: This suffix for appveyor is sufficient, since we never run more than one build at a time.
+set SHOTGUN_TEST_ENTITY_SUFFIX=app_veyor
+
 :: Run these tests only if the integration tests environment variables are set.
-IF DEFINED SHOTGUN_HOST (%PYTHON%\python tests/integration_tests/offline_workflow.py) ELSE (ECHO "Skipping integration tests, SHOTGUN_HOST is not set.")
+IF DEFINED SHOTGUN_HOST (
+    %PYTHON%\python tests\integration_tests\offline_workflow.py
+
+    :: FIXME: This approach does not scale...
+    if not %ERRORLEVEL% == 0 exit /b %ERRORLEVEL%
+
+    %PYTHON%\python tests\integration_tests\tank_commands.py
+
+    :: FIXME: This approach does not scale...
+    if not %ERRORLEVEL% == 0 exit /b %ERRORLEVEL%
+) ELSE (
+    ECHO "Skipping integration tests, SHOTGUN_HOST is not set."
+)

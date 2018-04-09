@@ -277,6 +277,13 @@ class TankTestBase(unittest.TestCase):
             self._testMethodName, unittest.util.strclass(self.__class__) + "." + self._testMethodName
         )
 
+    @property
+    def short_test_name(self):
+        """
+        Name of the current test function.
+        """
+        return self.id().rsplit(".", 1)[-1]
+
     @timer.clock_func("TankTestBase.setUp")
     def setUp(self, parameters=None):
         """

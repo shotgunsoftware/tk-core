@@ -18,30 +18,13 @@ from __future__ import print_function
 import unittest2
 import os
 import sys
-import atexit
-import tempfile
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "python"))
+from sgtk_integration_test import SgtkIntegrationTest
 
 import sgtk
-from sgtk.util.filesystem import safe_delete_folder
-
-# Create a temporary directory for these tests and make sure
-# it is cleaned up.
-temp_dir = tempfile.mkdtemp()
-atexit.register(lambda: safe_delete_folder(temp_dir))
-
-# Set up logging
-sgtk.LogManager().initialize_base_file_handler("offline_workflow")
-sgtk.LogManager().initialize_custom_handler()
-
-# Ensure Toolkit writes to the temporary directory/
-os.environ["SHOTGUN_HOME"] = os.path.join(
-    temp_dir, "shotgun_home"
-)
 
 
-class OfflineWorkflow(unittest2.TestCase):
+class OfflineWorkflow(SgtkIntegrationTest):
 
     OFFLINE_WORKFLOW_TEST = "offline_workflow_test"
 
@@ -50,19 +33,9 @@ class OfflineWorkflow(unittest2.TestCase):
         """
         Sets up the test suite.
         """
-
-        # Create a user and connection to Shotgun.
-        sa = sgtk.authentication.ShotgunAuthenticator()
-        user = sa.create_script_user(
-            os.environ["SHOTGUN_SCRIPT_NAME"],
-            os.environ["SHOTGUN_SCRIPT_KEY"],
-            os.environ["SHOTGUN_HOST"]
-        )
-        cls.user = user
-        cls.sg = user.create_sg_connection()
-
+        super(OfflineWorkflow, cls).setUpClass()
         # Points to where the config will be cached to.
-        cls.config_dir = os.path.join(temp_dir, "config")
+        cls.config_dir = os.path.join(cls.temp_dir, "config")
 
     def test_01_copy_config_to_test_folder(self):
         """
@@ -77,7 +50,7 @@ class OfflineWorkflow(unittest2.TestCase):
                 "path": os.path.join(
                     os.path.dirname(__file__),
                     "data",
-                    "offline_workflow_config"
+                    "simple_config"
                 )
             }
         )
@@ -108,7 +81,7 @@ class OfflineWorkflow(unittest2.TestCase):
 
         sgtk.util.zip.zip_file(
             self.config_dir,
-            "{temp_dir}/config.zip".format(temp_dir=temp_dir),
+            "{temp_dir}/config.zip".format(temp_dir=self.temp_dir),
         )
 
     def test_03_upload_to_pipeline_configuration(self):
@@ -142,7 +115,7 @@ class OfflineWorkflow(unittest2.TestCase):
         # Upload the zip file to Shotgun.
         self.sg.upload(
             "PipelineConfiguration", pc["id"],
-            "{temp_dir}/config.zip".format(temp_dir=temp_dir),
+            "{temp_dir}/config.zip".format(temp_dir=self.temp_dir),
             "sg_uploaded_config",
             "Uploaded by tk-core integration tests."
         )
@@ -155,7 +128,7 @@ class OfflineWorkflow(unittest2.TestCase):
 
         # Change the Toolkit sandbox so we don't reuse the previous cache.
         os.environ["SHOTGUN_HOME"] = os.path.join(
-            temp_dir, "new_shotgun_home"
+            self.temp_dir, "new_shotgun_home"
         )
         self.assertFalse(os.path.exists(os.environ["SHOTGUN_HOME"]))
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Shotgun Software Inc.
+# Copyright (c) 2018 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -7,20 +7,7 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-#
-# coverage configuration - used by https://coveralls.io/ integration
-#
-#
-[run]
-source=tank
-omit=
-    # We can't unit test our uis, so we're not going to put them inside the coverage
-    *tank/authentication/ui/*
-    *tank/authentication/sso_saml2/*
-    *tank/platform/qt/*
-    *tank/platform/qt5/*
 
-[report]
-exclude_lines =
-    raise NotImplementedError
-
+# Leave this file empty. Legacy site config has an empty roots file because it
+# didn't use any storage.
+integration_tests: {}

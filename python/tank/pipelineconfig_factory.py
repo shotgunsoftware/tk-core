@@ -335,6 +335,12 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
         #       all configurations are always localized
         #
 
+        # We're running with a classic pipeline configuration with shared core, which means we can
+        # ignore site-wide pipeline configurations as they are not compatible with this way of doing
+        # configs. Strip them all out so only project based pipeline configurations remain. This is
+        # important otherwise more than one primary might match a centralized core.
+        primary_pc_data = [pc for pc in primary_pc_data if pc["project_id"]]
+
         if len(primary_pc_data) == 0:
 
             raise TankInitError(
@@ -379,6 +385,20 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
                     "The pipeline configuration with id %s, associated with %s, "
                     "cannot be instantiated because it does not have an absolute path "
                     "definition in Shotgun." % (sg_config_data["id"], source)
+                )
+
+            # This checks for a very subtle bug. If the toolkit_init.cache contains a path to a
+            # pipeline configuration that matches the pre-requisites, but that doesn't actually
+            # exist on disk because it was either moved to another location or deleted from disk
+            # altogether, then we need to raise TankInitError. If the cache hadn't been force
+            # reread, this will be caught by the factory and Shotgun will be queried once again for
+            # the pipeline configuration info, hopefully finding the real pipeline configuration
+            # this time around.
+            if not os.path.exists(sg_config_data["path"]):
+                raise TankInitError(
+                    "The pipeline configuration %s does not exist on disk. This can happen if the "
+                    "pipeline configuration has been moved to another location or deleted from "
+                    "disk." % sg_config_data["path"]
                 )
 
             # all good. init and return.

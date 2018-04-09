@@ -8,25 +8,26 @@ site.
 
 These variables, which are also set on our CI servers, should be set before running the tests.
 
-``SHOTGUN_HOST``: URL of the live site to use to run the tests.
-``SHOTGUN_SCRIPT_NAME``: Name of script on that site.
-``SHOTGUN_SCRIPT_KEY``: Key for said script.
+`SHOTGUN_HOST`: URL of the live site to use to run the tests.
+`SHOTGUN_SCRIPT_NAME`: Name of script on that site.
+`SHOTGUN_SCRIPT_KEY`: Key for said script.
 
 How to run an integration test
 ------------------------------
-Simply set the three environment variables and then type ``python <test_name>.py``.
+ - set the three environment variables
+ - add `<tk-core>/python` and `<tk-core>/tests/python` in the `PYTHONPATH`
+ - launch a test by typing `python <test_name>.py`.
 
 How to write an integration test
 --------------------------------
 
-There is currently no framework to write those. You should split your test
-in multiple sub-tests that can be run independently, so you can run them one at
-a time. You can leverage pyUnit's functionality for that.
+There is a special class to write integration tests named SgtkIntegrationTest and is importable through
 
-What's currently in the first test needs to be refactored to be reusable for other tests. Keep that in mind if you are adding a new test.
+    from sgtk_integration_test import SgtkIntegrationTest
 
-Note that pyUnit's documentation says that tests in a tests class are sorted
-alphabetically, so you can number your tests functions to order them.
+This test class will take care of sandboxing your test in a way that multiple continuous integration
+should be able to run in parallel without having the tests step on each other's toes. See `SgtkIntegrationTest`s
+documentation to learn more how the class can help you sandbox tests.
 
 Future work
 -----------
@@ -40,5 +41,9 @@ The pre-requisites for picking a framework would have to be:
 - be open-source or publicly available, as we want this to run on travis
 - be able to split a test in multiple steps, which can fail the test early
 - be able to run a test one step at a time to debug them
+    - this is complicated right now, you need to comment out the `safe_delete_folder` call in the
+      base integration class and add an underscore in front of steps you want to skip.
 - make it easy to integrate code coverage from subprocesses that are invoked
+    - right now the coverage is captured but can't be merged, as you can see from travis's coveralls
+      command.
 - make it easy to have a single test folder for multiple tests that is cleaned up on exit
