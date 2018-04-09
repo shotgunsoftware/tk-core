@@ -414,7 +414,7 @@ class TestCalcPathCache(TankTestBase):
         expected = os.path.join(os.path.basename(wrong_case_root), relative_path).replace(os.sep, "/")
 
         input_path = os.path.join(wrong_case_root, relative_path)
-        root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(self.tk, input_path)
+        root_name, path_cache, _ = tank.util.shotgun.publish_creation._calc_path_cache(self.tk, input_path)
         self.assertEqual("primary", root_name)
         self.assertEqual(expected, path_cache)
 
@@ -439,7 +439,7 @@ class TestCalcPathCacheProjectWithSlash(TankTestBase):
         expected = os.path.join("foo", "bar", relative_path).replace(os.sep, "/")
         input_path = os.path.join(self.project_root, relative_path)
 
-        root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(self.tk, input_path)
+        root_name, path_cache, _ = tank.util.shotgun.publish_creation._calc_path_cache(self.tk, input_path)
         self.assertEqual("primary", root_name)
         self.assertEqual(expected, path_cache)
 
