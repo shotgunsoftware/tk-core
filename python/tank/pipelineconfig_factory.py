@@ -387,17 +387,18 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
                     "definition in Shotgun." % (sg_config_data["id"], source)
                 )
 
-            # This checks for a very subtle bug. If the toolkit_init.cache contains a path to a pipeline
-            # configuration that matches the pre-requisites, but that doesn't actually exist on disk because
-            # it was either move to another location or delete from disk altogether, then we need to raise
-            # TankInitError. If the cache hadn't been force reread, this will be caught by the factory
-            # and Shotgun will be queried once again for the pipeline configuration info, hopefully
-            # finding the real pipeline configuration this time around.
+            # This checks for a very subtle bug. If the toolkit_init.cache contains a path to a
+            # pipeline configuration that matches the pre-requisites, but that doesn't actually
+            # exist on disk because it was either moved to another location or deleted from disk
+            # altogether, then we need to raise TankInitError. If the cache hadn't been force
+            # reread, this will be caught by the factory and Shotgun will be queried once again for
+            # the pipeline configuration info, hopefully finding the real pipeline configuration
+            # this time around.
             if not os.path.exists(sg_config_data["path"]):
                 raise TankInitError(
                     "The pipeline configuration %s does not exist on disk. This can happen if the "
-                    "pipeline configuration has been deleted from disk or if it was moved." %
-                    sg_config_data["path"]
+                    "pipeline configuration has been moved to another location or deleted from "
+                    "disk." % sg_config_data["path"]
                 )
 
             # all good. init and return.
