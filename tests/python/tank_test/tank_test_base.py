@@ -685,6 +685,8 @@ class TankTestBase(unittest.TestCase):
         project_name = os.path.basename(self.project_root)
         self.alt_root_1 = os.path.join(self.tank_temp, "alternate_1", project_name)
         self.alt_root_2 = os.path.join(self.tank_temp, "alternate_2", project_name)
+        self.alt_root_3 = os.path.join(self.tank_temp, "alternate_3", project_name)
+        self.alt_root_4 = os.path.join(self.tank_temp, "alternate_4", project_name)
 
         # add local storages to represent the alternate root points
         self.alt_storage_1 = {"type": "LocalStorage",
@@ -703,13 +705,38 @@ class TankTestBase(unittest.TestCase):
                               "mac_path": os.path.join(self.tank_temp, "alternate_2")}
         self.add_to_sg_mock_db(self.alt_storage_2)
 
+        self.alt_storage_3 = {"type": "LocalStorage",
+                              "id": 7780,
+                              "code": "alternate_3",
+                              "windows_path": os.path.join(self.tank_temp, "alternate_3"),
+                              "linux_path": os.path.join(self.tank_temp, "alternate_3"),
+                              "mac_path": os.path.join(self.tank_temp, "alternate_3")}
+        self.add_to_sg_mock_db(self.alt_storage_3)
+
+        self.alt_storage_4 = {"type": "LocalStorage",
+                              "id": 7781,
+                              "code": "alternate_4",
+                              "windows_path": os.path.join(self.tank_temp, "alternate_4"),
+                              "linux_path": os.path.join(self.tank_temp, "alternate_4"),
+                              "mac_path": os.path.join(self.tank_temp, "alternate_4")}
+        self.add_to_sg_mock_db(self.alt_storage_4)
+
         # Write roots file
-        roots = {"primary": {}, "alternate_1": {}, "alternate_2": {}}
+        roots = {"primary": {}, "alternate_1": {}, "alternate_2": {}, "alternate_3": {}, "alternate_4": {}}
         for os_name in ["windows_path", "linux_path", "mac_path"]:
             # TODO make os specific roots
             roots["primary"][os_name]     = os.path.dirname(self.project_root)
             roots["alternate_1"][os_name] = os.path.dirname(self.alt_root_1)
             roots["alternate_2"][os_name] = os.path.dirname(self.alt_root_2)
+
+            # NOTE: swap the mapped roots
+            roots["alternate_3"][os_name] = os.path.dirname(self.alt_root_4)
+            roots["alternate_4"][os_name] = os.path.dirname(self.alt_root_3)
+
+        # swap the mapped storage ids
+        roots["alternate_3"]["shotgun_storage_id"] = 7781  # local storage 4
+        roots["alternate_4"]["shotgun_storage_id"] = 7780  # local storage 3
+
         roots_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")
         roots_file = open(roots_path, "w")
         roots_file.write(yaml.dump(roots))

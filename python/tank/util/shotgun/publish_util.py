@@ -122,7 +122,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     # in case of sequences, there will be more than one file
     # per path cache
     # {<storage name>: { path_cache: [full_path, full_path]}}
-    storages_paths = group_by_storage(tk, list_of_paths)
+    storage_root_to_paths = group_by_storage(tk, list_of_paths)
 
     filters = filters or []
     fields = fields or []
@@ -144,17 +144,21 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
 
     # get a list of all storages that we should look up.
     # for 0.12 backwards compatibility, add the Tank Storage.
-    local_storage_names = storages_paths.keys()
-    if constants.PRIMARY_STORAGE_NAME in local_storage_names:
-        local_storage_names.append("Tank")
+    root_names = storage_root_to_paths.keys()
+    if constants.PRIMARY_STORAGE_NAME in root_names:
+        root_names.append("Tank")
+
+    # get a lookup of required root to local storage
+    (mapped_roots, unmapped_roots) = \
+        tk.pipeline_configuration.get_local_storage_mapping()
 
     published_file_entity_type = get_published_file_entity_type(tk)
-    for local_storage_name in local_storage_names:
+    for root_name in root_names:
 
-        local_storage = tk.shotgun.find_one("LocalStorage", [["code", "is", local_storage_name]])
+        local_storage = mapped_roots.get(root_name)
         if not local_storage:
             # fail gracefully here - it may be a storage which has been deleted
-            published_files[local_storage_name] = []
+            published_files[root_name] = []
             continue
 
         # make copy
@@ -164,20 +168,20 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
         # now get the list of normalized files for this storage
         # 0.12 backwards compatibility: if the storage name is Tank,
         # this is the same as the primary storage.
-        if local_storage_name == "Tank":
-            normalized_paths = storages_paths[constants.PRIMARY_STORAGE_NAME].keys()
+        if root_name == "Tank":
+            normalized_paths = storage_root_to_paths[constants.PRIMARY_STORAGE_NAME].keys()
         else:
-            normalized_paths = storages_paths[local_storage_name].keys()
+            normalized_paths = storage_root_to_paths[root_name].keys()
 
         # add all of those to the query filter
         for path_cache_path in normalized_paths:
             path_cache_filter.append(path_cache_path)
 
         sg_filters.append(path_cache_filter)
-        sg_filters.append( ["path_cache_storage", "is", local_storage] )
+        sg_filters.append(["path_cache_storage", "is", local_storage])
 
         # organize the returned data by storage
-        published_files[local_storage_name] = tk.shotgun.find(published_file_entity_type, sg_filters, sg_fields)
+        published_files[root_name] = tk.shotgun.find(published_file_entity_type, sg_filters, sg_fields)
 
     # PASS 2
     # take the published_files structure, containing the shotgun data
@@ -189,9 +193,9 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
 
         # get a dictionary which maps shotgun paths to file system paths
         if local_storage_name == "Tank":
-            normalized_path_lookup_dict = storages_paths[constants.PRIMARY_STORAGE_NAME]
+            normalized_path_lookup_dict = storage_root_to_paths[constants.PRIMARY_STORAGE_NAME]
         else:
-            normalized_path_lookup_dict = storages_paths[local_storage_name]
+            normalized_path_lookup_dict = storage_root_to_paths[local_storage_name]
 
         # now go through all publish entities found for current storage
         for publish in publishes:
