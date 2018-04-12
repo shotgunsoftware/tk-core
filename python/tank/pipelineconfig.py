@@ -593,6 +593,88 @@ class PipelineConfiguration(object):
 
         return current_os_path_lookup
 
+    def get_local_storage_for_root(self, root_name):
+        """
+        Given a root name, return the associated local storage in SG.
+
+        If no local storage can be determined, ``None`` will be returned.
+
+        :param root_name:
+        :return: A standard SG entity dictionary for the matching SG local
+            storage.
+        """
+
+        if root_name not in self._storage_roots.required_roots:
+            log.warning(
+                "Unable to identify SG local storage for root name '%s'. "
+                "This root name is not required by the configuration." %
+                (root_name,)
+            )
+            return None
+
+        # get the storage data for required roots
+        (mapped_roots, unmapped_roots) = self.get_local_storage_mapping()
+
+        if root_name in mapped_roots:
+            return mapped_roots[root_name]
+        else:
+            log.warning(
+                "Unable to identify SG local storage for root name '%s'. "
+                "The root is not mapped to any SG local storage. It does "
+                "not explicitly define a local storage id and does not match "
+                "the name of any known storages." % (root_name,)
+            )
+            return None
+
+    def get_local_storage_mapping(self):
+        """
+        Returns a tuple of information about the required storage roots and how
+        they map to local storages in SG.
+
+        The first item in the tuple is a dictionary of storage root names mapped
+        to a corresponding dictionary of fields for a local storage defined in
+        Shotgun.
+
+        The second item is a list of storage roots required by the configuration
+        that can not be mapped to a SG local storage.
+
+        Example return value::
+
+            (
+                {
+                    "work": {
+                        "code": "primary",
+                        "type": "LocalStorage",
+                        "id": 123
+                        "linux_path": "/proj/work"
+                        "mac_path": "/proj/work"
+                        "windows_path": None
+                    }
+                    "data": {
+                        "code": "data",
+                        "type": "LocalStorage",
+                        "id": 456
+                        "linux_path": "/proj/data"
+                        "mac_path": "/proj/data"
+                        "windows_path": None
+                    }
+                },
+                ["data2", "data3"]
+            )
+
+        In the example above, 4 storage roots are defined by the configuration:
+        "work", "data", "data2", and "data3". The "work" and "data" roots can
+        be associated with a SG local storage. The other two roots have no
+        corresponding local storage in SG.
+
+        :param: A shotgun connection
+        :returns: A tuple of information about local storages mapped to the
+            configuration's required storage roots.
+        """
+        # get the storage data for required roots
+        sg = shotgun.get_sg_connection()
+        return self._storage_roots.get_local_storages(sg)
+
     def get_all_platform_data_roots(self):
         """
         Similar to get_data_roots but instead of returning project data roots

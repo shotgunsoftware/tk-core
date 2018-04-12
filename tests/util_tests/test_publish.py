@@ -400,6 +400,66 @@ class TestShotgunRegisterPublish(TankTestBase):
         self.assertTrue(cm.exception.entity["type"]==tank.util.get_published_file_entity_type(self.tk))
 
 
+class TestMultiRoot(TankTestBase):
+
+    def setUp(self):
+        super(TestMultiRoot, self).setUp()
+        self.setup_multi_root_fixtures()
+
+        self.shot = {"type": "Shot",
+                     "name": "shot_name",
+                     "id": 2,
+                     "project": self.project}
+        self.step = {"type": "Step", "name": "step_name", "id": 4}
+
+        context_data = {
+            "tk": self.tk,
+            "project": self.project,
+            "entity": self.shot,
+            "step": self.step,
+        }
+
+        self.context = context.Context(**context_data)
+        self.path = os.path.join(self.project_root, "foo", "bar")
+        self.name = "Test Publish"
+        self.version = 1
+
+        # mock server caps so we can test local storage mapping for publishes
+        class server_capsMock:
+            def __init__(self):
+                self.version = (7, 0, 1)
+        self.mockgun.server_caps = server_capsMock()
+
+        # Prevents an actual connection to a Shotgun site.
+        self._server_caps_mock = patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+        self._server_caps_mock.start()
+        self.addCleanup(self._server_caps_mock.stop)
+
+    def test_storage_misdirection(self):
+
+        # publish a file to root 3 path. should map to alt 4 storage
+        publish_data = tank.util.register_publish(
+            self.tk,
+            self.context,
+            os.path.join(self.alt_root_3, "foo", "bar"),
+            self.name,
+            self.version,
+            dry_run=True
+        )
+        self.assertTrue(publish_data["path"]["local_storage"]["id"], 7780)
+
+        # publish a file to root 4 path. should map to alt 3 storage
+        publish_data = tank.util.register_publish(
+            self.tk,
+            self.context,
+            os.path.join(self.alt_root_4, "foo", "bar"),
+            self.name,
+            self.version,
+            dry_run=True
+        )
+        self.assertTrue(publish_data["path"]["local_storage"]["id"], 7781)
+
+
 class TestCalcPathCache(TankTestBase):
     @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_case_difference(self, get_local_storage_roots):
