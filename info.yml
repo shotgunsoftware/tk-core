@@ -21,3 +21,9 @@ features:
    # v1: When bootstrapping with a descriptor based configuration, the
    #     config folder is run from the bundle cache.
    bootstrap.lean_config.version: 1
+
+   # storage roots api history
+   # v1: Core includes a storage roots API that encapsulates all interaction
+   #     with the roots.yml file in a configuration. Prior to this feature, the
+   #     file was read/write by various code independently in core.
+   storage_roots.api.version: 1

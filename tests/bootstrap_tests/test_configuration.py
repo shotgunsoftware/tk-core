@@ -453,14 +453,15 @@ class TestCachedConfiguration(ShotgunTestBase):
 
         # Initialize a cached configuration pointing to the config.
         config_root = os.path.join(self.fixtures_root, "bootstrap_tests", "config")
+        descriptor = sgtk.descriptor.create_descriptor(
+            self.mockgun,
+            sgtk.descriptor.Descriptor.CONFIG,
+            "sgtk:descriptor:path?path={0}".format(config_root)
+        )
         cached_config = CachedConfiguration(
             self.tank_temp,
             self.mockgun,
-            sgtk.descriptor.create_descriptor(
-                self.mockgun,
-                sgtk.descriptor.Descriptor.CONFIG,
-                "sgtk:descriptor:path?path={0}".format(config_root)
-            ),
+            descriptor,
             self.project["id"],
             "basic.*",
             None,
@@ -468,7 +469,11 @@ class TestCachedConfiguration(ShotgunTestBase):
         )
 
         # Make sure that the missing tank name is detected.
-        with self.assertRaises(sgtk.bootstrap.TankMissingTankNameError):
+        if descriptor.get_associated_core_feature_info("storage_roots.api.version", 0) < 1:
+            missing_tank_name_exception = sgtk.bootstrap.TankBootstrapError
+        else:
+            missing_tank_name_exception = sgtk.bootstrap.TankMissingTankNameError
+        with self.assertRaises(missing_tank_name_exception):
             cached_config.verify_required_shotgun_fields()
 
         # Ensure our change is backwards compatible.
