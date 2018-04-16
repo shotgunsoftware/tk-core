@@ -120,7 +120,7 @@ class CachedConfiguration(Configuration):
 
         # see if the storage roots api is available in the config's core
         if self._descriptor.get_associated_core_feature_info(
-            "storage_roots.api.version", 0) < 1:
+                "storage_roots.api.version", 0) < 1:
 
             # bootstrapping into an older core. we need to verify storages the
             # old way, by reading the roots file manually.

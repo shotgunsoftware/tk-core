@@ -899,7 +899,8 @@ class TestFeaturesApi(unittest2.TestCase):
         desc = sgtk.descriptor.CoreDescriptor(io_desc)
 
         features = {
-            "bootstrap.lean_config.version": 1
+            "bootstrap.lean_config.version": 1,
+            "storage_roots.api.version": 1
         }
 
         # Make sure every feature is at the expected version.
