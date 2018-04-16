@@ -118,42 +118,111 @@ class CachedConfiguration(Configuration):
             "available in order for config %s to run..." % self
         )
 
-        # ---- verify any defined storage roots for this configuration
+        # see if the storage roots api is available in the config's core
+        if self._descriptor.get_associated_core_feature_info(
+            "storage_roots.api.version", 0) < 1:
 
-        storage_roots = self._descriptor.storage_roots
+            # bootstrapping into an older core. we need to verify storages the
+            # old way, by reading the roots file manually.
 
-        # no required storages for this configuration
-        if not storage_roots:
-            return
-
-        if not storage_roots.required_roots:
-            # the storage roots definition file exists, but no storage defined
-            # within. might be a placeholder file. treat it as though the file
-            # does not exist.
-            return
-
-        # ---- validate the storage roots
-
-        log.debug(
-            "Detected storage roots definition file %s with roots %s" %
-            (storage_roots.roots_file, storage_roots.required_roots)
-        )
-
-        (_, unmapped_roots) = storage_roots.get_local_storages(
-            self._sg_connection)
-
-        # get a list of all defined storage roots without a corresponding SG
-        # local storage defined
-        if unmapped_roots:
-            raise TankBootstrapError(
-                "This configuration defines one or more storage roots that can "
-                "not be mapped to a local storage defined in Shotgun. Please "
-                "update the roots.yml file in this configuration to correct "
-                "this issue. Roots file: '%s'. Unmapped storage roots: %s." % (
-                    storage_roots.roots_file,
-                    ", ".join(unmapped_roots)
-                )
+            roots_data = None
+            roots_path = os.path.join(
+                self._descriptor.get_path(),
+                "core",
+                constants.STORAGE_ROOTS_FILE
             )
+
+            if os.path.exists(roots_path):
+                with open(roots_path, "rt") as fh:
+                    try:
+                        roots_data = yaml.load(fh)
+                    except Exception:
+                        pass
+
+            if isinstance(roots_data, dict) and len(roots_data) > 0:
+                log.debug(
+                    "Detected roots.yml with roots %s" % roots_data.keys())
+
+                log.debug(
+                    "Ensuring that current project has a tank_name field...")
+
+                proj_data = self._sg_connection.find_one(
+                    "Project",
+                    [["id", "is", self._project_id]],
+                    ["tank_name"]
+                )
+
+                if proj_data["tank_name"] is None:
+                    raise TankBootstrapError(
+                        "The configuration requires you to specify a value "
+                        "for the Project.tank_name field in Shotgun."
+                    )
+
+            # get all storages to ensure all roots exist in SG
+            log.debug(
+                "Ensuring that all required local storages exist in Shotgun.")
+            shotgun_storages = self._sg_connection.find(
+                "LocalStorage",
+                [],
+                ["code"]
+            )
+
+            shotgun_storage_names = \
+                [storage["code"] for storage in shotgun_storages]
+
+            # check that the required storages are defined in Shotgun
+            required_storage_names = roots_data.keys()
+            for required_storage_name in required_storage_names:
+                if required_storage_name not in shotgun_storage_names:
+
+                    storage_str = "storage" \
+                        if len(required_storage_names) == 1 else "storages"
+                    raise TankBootstrapError(
+                        "The configuration requires the following local %s "
+                        "to be defined in Shotgun: %s" %
+                        (storage_str, ", ".join(required_storage_names))
+                    )
+        else:
+            # newer storage roots api is available in the core being
+            # bootstrapped.
+
+            # ---- verify any defined storage roots for this configuration
+
+            storage_roots = self._descriptor.storage_roots
+
+            # no required storages for this configuration
+            if not storage_roots:
+                return
+
+            if not storage_roots.required_roots:
+                # the storage roots definition file exists, but no storage
+                # defined within. might be a placeholder file. treat it as
+                # though the file does not exist.
+                return
+
+            # ---- validate the storage roots
+
+            log.debug(
+                "Detected storage roots definition file %s with roots %s" %
+                (storage_roots.roots_file, storage_roots.required_roots)
+            )
+
+            (_, unmapped_roots) = storage_roots.get_local_storages(
+                self._sg_connection)
+
+            # get a list of all defined storage roots without a corresponding SG
+            # local storage defined
+            if unmapped_roots:
+                raise TankBootstrapError(
+                    "This configuration defines one or more storage roots that "
+                    "can not be mapped to a local storage defined in Shotgun. "
+                    "Please update the roots.yml file in this configuration to "
+                    "correct this issue. Roots file: '%s'. Unmapped storage "
+                    "roots: %s." % (
+                        storage_roots.roots_file,
+                        ", ".join(unmapped_roots)
+                    )
+                )
 
         # ---- Ensure tank_name is defined for the project
 
