@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun.publish_util &mdash; tk-core v0.18.141 documentation</title>
+  <title>tank.util.shotgun.publish_util &mdash; tk-core v0.18.143 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.141 documentation" href="../../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.143 documentation" href="../../../../index.html"/>
         <link rel="up" title="Module code" href="../../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.141.<br>
+    <b>tk-core</b> v0.18.143.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -297,7 +297,7 @@
     <span class="c1"># in case of sequences, there will be more than one file</span>
     <span class="c1"># per path cache</span>
     <span class="c1"># {&lt;storage name&gt;: { path_cache: [full_path, full_path]}}</span>
-    <span class="n">storages_paths</span> <span class="o">=</span> <span class="n">group_by_storage</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">)</span>
+    <span class="n">storage_root_to_paths</span> <span class="o">=</span> <span class="n">group_by_storage</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">)</span>
 
     <span class="n">filters</span> <span class="o">=</span> <span class="n">filters</span> <span class="ow">or</span> <span class="p">[]</span>
     <span class="n">fields</span> <span class="o">=</span> <span class="n">fields</span> <span class="ow">or</span> <span class="p">[]</span>
@@ -319,17 +319,21 @@
 
     <span class="c1"># get a list of all storages that we should look up.</span>
     <span class="c1"># for 0.12 backwards compatibility, add the Tank Storage.</span>
-    <span class="n">local_storage_names</span> <span class="o">=</span> <span class="n">storages_paths</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">constants</span><span class="o">.</span><span class="n">PRIMARY_STORAGE_NAME</span> <span class="ow">in</span> <span class="n">local_storage_names</span><span class="p">:</span>
-        <span class="n">local_storage_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Tank&quot;</span><span class="p">)</span>
+    <span class="n">root_names</span> <span class="o">=</span> <span class="n">storage_root_to_paths</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">constants</span><span class="o">.</span><span class="n">PRIMARY_STORAGE_NAME</span> <span class="ow">in</span> <span class="n">root_names</span><span class="p">:</span>
+        <span class="n">root_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Tank&quot;</span><span class="p">)</span>
+
+    <span class="c1"># get a lookup of required root to local storage</span>
+    <span class="p">(</span><span class="n">mapped_roots</span><span class="p">,</span> <span class="n">unmapped_roots</span><span class="p">)</span> <span class="o">=</span> \
+        <span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_local_storage_mapping</span><span class="p">()</span>
 
     <span class="n">published_file_entity_type</span> <span class="o">=</span> <span class="n">get_published_file_entity_type</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">local_storage_name</span> <span class="ow">in</span> <span class="n">local_storage_names</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">root_name</span> <span class="ow">in</span> <span class="n">root_names</span><span class="p">:</span>
 
-        <span class="n">local_storage</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s2">&quot;LocalStorage&quot;</span><span class="p">,</span> <span class="p">[[</span><span class="s2">&quot;code&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">local_storage_name</span><span class="p">]])</span>
+        <span class="n">local_storage</span> <span class="o">=</span> <span class="n">mapped_roots</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">root_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">local_storage</span><span class="p">:</span>
             <span class="c1"># fail gracefully here - it may be a storage which has been deleted</span>
-            <span class="n">published_files</span><span class="p">[</span><span class="n">local_storage_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">published_files</span><span class="p">[</span><span class="n">root_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">continue</span>
 
         <span class="c1"># make copy</span>
@@ -339,20 +343,20 @@
         <span class="c1"># now get the list of normalized files for this storage</span>
         <span class="c1"># 0.12 backwards compatibility: if the storage name is Tank,</span>
         <span class="c1"># this is the same as the primary storage.</span>
-        <span class="k">if</span> <span class="n">local_storage_name</span> <span class="o">==</span> <span class="s2">&quot;Tank&quot;</span><span class="p">:</span>
-            <span class="n">normalized_paths</span> <span class="o">=</span> <span class="n">storages_paths</span><span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">PRIMARY_STORAGE_NAME</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">root_name</span> <span class="o">==</span> <span class="s2">&quot;Tank&quot;</span><span class="p">:</span>
+            <span class="n">normalized_paths</span> <span class="o">=</span> <span class="n">storage_root_to_paths</span><span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">PRIMARY_STORAGE_NAME</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">normalized_paths</span> <span class="o">=</span> <span class="n">storages_paths</span><span class="p">[</span><span class="n">local_storage_name</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="n">normalized_paths</span> <span class="o">=</span> <span class="n">storage_root_to_paths</span><span class="p">[</span><span class="n">root_name</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
 
         <span class="c1"># add all of those to the query filter</span>
         <span class="k">for</span> <span class="n">path_cache_path</span> <span class="ow">in</span> <span class="n">normalized_paths</span><span class="p">:</span>
             <span class="n">path_cache_filter</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path_cache_path</span><span class="p">)</span>
 
         <span class="n">sg_filters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path_cache_filter</span><span class="p">)</span>
-        <span class="n">sg_filters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="p">[</span><span class="s2">&quot;path_cache_storage&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">local_storage</span><span class="p">]</span> <span class="p">)</span>
+        <span class="n">sg_filters</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;path_cache_storage&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">local_storage</span><span class="p">])</span>
 
         <span class="c1"># organize the returned data by storage</span>
-        <span class="n">published_files</span><span class="p">[</span><span class="n">local_storage_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">published_file_entity_type</span><span class="p">,</span> <span class="n">sg_filters</span><span class="p">,</span> <span class="n">sg_fields</span><span class="p">)</span>
+        <span class="n">published_files</span><span class="p">[</span><span class="n">root_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">published_file_entity_type</span><span class="p">,</span> <span class="n">sg_filters</span><span class="p">,</span> <span class="n">sg_fields</span><span class="p">)</span>
 
     <span class="c1"># PASS 2</span>
     <span class="c1"># take the published_files structure, containing the shotgun data</span>
@@ -364,9 +368,9 @@
 
         <span class="c1"># get a dictionary which maps shotgun paths to file system paths</span>
         <span class="k">if</span> <span class="n">local_storage_name</span> <span class="o">==</span> <span class="s2">&quot;Tank&quot;</span><span class="p">:</span>
-            <span class="n">normalized_path_lookup_dict</span> <span class="o">=</span> <span class="n">storages_paths</span><span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">PRIMARY_STORAGE_NAME</span><span class="p">]</span>
+            <span class="n">normalized_path_lookup_dict</span> <span class="o">=</span> <span class="n">storage_root_to_paths</span><span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">PRIMARY_STORAGE_NAME</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">normalized_path_lookup_dict</span> <span class="o">=</span> <span class="n">storages_paths</span><span class="p">[</span><span class="n">local_storage_name</span><span class="p">]</span>
+            <span class="n">normalized_path_lookup_dict</span> <span class="o">=</span> <span class="n">storage_root_to_paths</span><span class="p">[</span><span class="n">local_storage_name</span><span class="p">]</span>
 
         <span class="c1"># now go through all publish entities found for current storage</span>
         <span class="k">for</span> <span class="n">publish</span> <span class="ow">in</span> <span class="n">publishes</span><span class="p">:</span>
@@ -493,7 +497,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'v0.18.141',
+            VERSION:'v0.18.143',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

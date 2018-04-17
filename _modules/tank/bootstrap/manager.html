@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.bootstrap.manager &mdash; tk-core v0.18.141 documentation</title>
+  <title>tank.bootstrap.manager &mdash; tk-core v0.18.143 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.141 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.143 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.141.<br>
+    <b>tk-core</b> v0.18.143.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -194,6 +194,7 @@
 <span class="kn">from</span> <span class="nn">..pipelineconfig</span> <span class="kn">import</span> <span class="n">PipelineConfiguration</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
 <span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">ShotgunPath</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -839,13 +840,45 @@
 <span class="sd">        user and project will be retrieved. Note that this method does not support</span>
 <span class="sd">        :meth:`pipeline_configuration` being an integer.</span>
 
+<span class="sd">        **Return value**</span>
+
+<span class="sd">        The data structure returned is a dictionary with several keys to</span>
+<span class="sd">        describe the configuration, for example::</span>
+
+<span class="sd">            {&#39;descriptor&#39;: &lt;CachedConfigDescriptor &lt;IODescriptorAppStore sgtk:descriptor:app_store?name=tk-config-basic&amp;version=v1.1.6&gt;&gt;,</span>
+<span class="sd">             &#39;descriptor_source_uri&#39;: &#39;sgtk:descriptor:app_store?name=tk-config-basic&#39;,</span>
+<span class="sd">             &#39;id&#39;: 500,</span>
+<span class="sd">             &#39;name&#39;: &#39;Primary&#39;,</span>
+<span class="sd">             &#39;project&#39;: {&#39;id&#39;: 123, &#39;name&#39;: &#39;Test Project&#39;, &#39;type&#39;: &#39;Project&#39;},</span>
+<span class="sd">             &#39;type&#39;: &#39;PipelineConfiguration&#39;}</span>
+
+<span class="sd">        The returned dictionary mimics the result of a Shotgun API query, including</span>
+<span class="sd">        standard fields for ``type``, ``id``, ``name`` and ``project``. In addition,</span>
+<span class="sd">        the resolved descriptor object is returned in a ``descriptor`` key.</span>
+
+<span class="sd">        For pipeline configurations which are defined in Shotgun via their **descriptor** field,</span>
+<span class="sd">        this field is returned in a ``descriptor_source_uri`` key. For pipeline configurations</span>
+<span class="sd">        defined via an uploaded attachment or explicit path fields, the ``descriptor_source_uri``</span>
+<span class="sd">        key will return ``None``.</span>
+
+<span class="sd">        .. note:: Note as per the example above how the ``descriptor_source_uri``</span>
+<span class="sd">                  value can be different than the uri of the resolved descriptor;</span>
+<span class="sd">                  this happens in the case when a descriptor uri is omitting</span>
+<span class="sd">                  the version number and tracking against the latest version</span>
+<span class="sd">                  number available.</span>
+<span class="sd">                  In that case, the ``descriptor`` key will contain the</span>
+<span class="sd">                  fully resolved descriptor object, representing the</span>
+<span class="sd">                  latest descriptor version as of right now, where as the</span>
+<span class="sd">                  ``descriptor_source_uri`` key contains the versionless descriptor</span>
+<span class="sd">                  uri string as it is defined in Shotgun.</span>
+
 <span class="sd">        :param project: Project entity link to enumerate pipeline configurations for.</span>
 <span class="sd">            If ``None``, this will enumerate the pipeline configurations</span>
 <span class="sd">            for the site configuration.</span>
 <span class="sd">        :type project: Dictionary with keys ``type`` and ``id``.</span>
 
 <span class="sd">        :returns: List of pipeline configurations.</span>
-<span class="sd">        :rtype: List of dictionaries with keys ``type``, ``id``, ``name``, ``project``, and ``descriptor``.</span>
+<span class="sd">        :rtype: List of dictionaries with syntax described above.</span>
 <span class="sd">            The pipeline configurations will always be sorted such as the primary pipeline configuration,</span>
 <span class="sd">            if available, will be first. Then the remaining pipeline configurations will be sorted by</span>
 <span class="sd">            ``name`` field (case insensitive), then the ``project`` field and finally then ``id`` field.</span>
@@ -865,13 +898,27 @@
             <span class="n">current_login</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span><span class="o">.</span><span class="n">login</span><span class="p">,</span>
             <span class="n">sg_connection</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span><span class="p">,</span>
         <span class="p">):</span>
-            <span class="n">pcs</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="n">pipeline_config_data</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">pc</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
                 <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">pc</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span>
                 <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">pc</span><span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">],</span>
                 <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="n">pc</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">],</span>
                 <span class="s2">&quot;descriptor&quot;</span><span class="p">:</span> <span class="n">pc</span><span class="p">[</span><span class="s2">&quot;config_descriptor&quot;</span><span class="p">],</span>
-            <span class="p">})</span>
+                <span class="s2">&quot;descriptor_source_uri&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+            <span class="p">}</span>
+
+            <span class="c1"># if the config is descriptor based, resolve the uri</span>
+            <span class="c1"># note: for a descriptor such as</span>
+            <span class="c1"># sgtk:descriptor:app_store?name=tk-config-basic,</span>
+            <span class="c1"># this is not the same as</span>
+            <span class="c1"># pipeline_config_data[&quot;descriptor&quot;].get_uri(), which</span>
+            <span class="c1"># will return the fully resolved descriptor URI.</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">from_shotgun_dict</span><span class="p">(</span><span class="n">pc</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">current_os</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">pc</span><span class="p">[</span><span class="s2">&quot;plugin_ids&quot;</span><span class="p">]:</span>
+                <span class="c1"># this is a descriptor based config:</span>
+                <span class="n">pipeline_config_data</span><span class="p">[</span><span class="s2">&quot;descriptor_source_uri&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pc</span><span class="p">[</span><span class="s2">&quot;descriptor&quot;</span><span class="p">]</span>
+
+            <span class="n">pcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pipeline_config_data</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">pcs</span></div>
 
@@ -1455,7 +1502,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.141',
+            VERSION:'v0.18.143',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

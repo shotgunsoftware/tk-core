@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptors &mdash; tk-core v0.18.141 documentation</title>
+  <title>Descriptors &mdash; tk-core v0.18.143 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.141 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.143 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -142,7 +142,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.141.<br>
+    <b>tk-core</b> v0.18.143.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -927,7 +927,7 @@ in the manifest or {} if not defined</td>
 <dl class="method">
 <dt id="sgtk.descriptor.AppDescriptor.copy">
 <code class="descname">copy</code><span class="sig-paren">(</span><em>target_folder</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.copy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Copy the config descriptor into the specified target location</p>
+<dd><p>Copy the config descriptor into the specified target location.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1437,7 +1437,7 @@ in the manifest or {} if not defined</td>
 <dl class="method">
 <dt id="sgtk.descriptor.EngineDescriptor.copy">
 <code class="descname">copy</code><span class="sig-paren">(</span><em>target_folder</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.copy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Copy the config descriptor into the specified target location</p>
+<dd><p>Copy the config descriptor into the specified target location.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1963,7 +1963,7 @@ in the manifest or {} if not defined</td>
 <dl class="method">
 <dt id="sgtk.descriptor.FrameworkDescriptor.copy">
 <code class="descname">copy</code><span class="sig-paren">(</span><em>target_folder</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.copy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Copy the config descriptor into the specified target location</p>
+<dd><p>Copy the config descriptor into the specified target location.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2563,7 +2563,7 @@ its current location into a new cache structure.</p>
 <dl class="method">
 <dt id="sgtk.descriptor.ConfigDescriptor.copy">
 <code class="descname">copy</code><span class="sig-paren">(</span><em>target_folder</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.copy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Copy the config descriptor into the specified target location</p>
+<dd><p>Copy the config descriptor into the specified target location.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2902,6 +2902,20 @@ min_engine, min_desktop</td>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="sgtk.descriptor.CoreDescriptor.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><em>target_folder</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_core.html#CoreDescriptor.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy the config descriptor into the specified target location.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target_folder</strong> &#8211; Folder to copy the descriptor to</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="sgtk.descriptor.CoreDescriptor.changelog">
 <code class="descname">changelog</code><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.changelog" title="Permalink to this definition">¶</a></dt>
@@ -2933,20 +2947,6 @@ its current location into a new cache structure.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_root</strong> &#8211; Root point of the cache location to copy to.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="sgtk.descriptor.CoreDescriptor.copy">
-<code class="descname">copy</code><span class="sig-paren">(</span><em>target_folder</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.copy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Copy the config descriptor into the specified target location</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target_folder</strong> &#8211; Folder to copy the descriptor to</td>
 </tr>
 </tbody>
 </table>
@@ -3333,7 +3333,7 @@ If not url has been defined, <code class="docutils literal"><span class="pre">No
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.141',
+            VERSION:'v0.18.143',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Initialization and startup &mdash; tk-core v0.18.141 documentation</title>
+  <title>Initialization and startup &mdash; tk-core v0.18.143 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.141 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.143 documentation" href="index.html"/>
         <link rel="next" title="Core" href="core.html"/>
         <link rel="prev" title="Overview" href="overview.html"/> 
 
@@ -169,7 +169,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.141.<br>
+    <b>tk-core</b> v0.18.143.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1151,6 +1151,37 @@ set to a string, it will look for pipeline configurations with that specific nam
 If it has been set to <code class="docutils literal"><span class="pre">None</span></code>, any pipeline that can be applied for the current
 user and project will be retrieved. Note that this method does not support
 <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.pipeline_configuration" title="sgtk.bootstrap.ToolkitManager.pipeline_configuration"><code class="xref py py-meth docutils literal"><span class="pre">pipeline_configuration()</span></code></a> being an integer.</p>
+<p><strong>Return value</strong></p>
+<p>The data structure returned is a dictionary with several keys to
+describe the configuration, for example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>{&#39;descriptor&#39;: &lt;CachedConfigDescriptor &lt;IODescriptorAppStore sgtk:descriptor:app_store?name=tk-config-basic&amp;version=v1.1.6&gt;&gt;,
+ &#39;descriptor_source_uri&#39;: &#39;sgtk:descriptor:app_store?name=tk-config-basic&#39;,
+ &#39;id&#39;: 500,
+ &#39;name&#39;: &#39;Primary&#39;,
+ &#39;project&#39;: {&#39;id&#39;: 123, &#39;name&#39;: &#39;Test Project&#39;, &#39;type&#39;: &#39;Project&#39;},
+ &#39;type&#39;: &#39;PipelineConfiguration&#39;}
+</pre></div>
+</div>
+<p>The returned dictionary mimics the result of a Shotgun API query, including
+standard fields for <code class="docutils literal"><span class="pre">type</span></code>, <code class="docutils literal"><span class="pre">id</span></code>, <code class="docutils literal"><span class="pre">name</span></code> and <code class="docutils literal"><span class="pre">project</span></code>. In addition,
+the resolved descriptor object is returned in a <code class="docutils literal"><span class="pre">descriptor</span></code> key.</p>
+<p>For pipeline configurations which are defined in Shotgun via their <strong>descriptor</strong> field,
+this field is returned in a <code class="docutils literal"><span class="pre">descriptor_source_uri</span></code> key. For pipeline configurations
+defined via an uploaded attachment or explicit path fields, the <code class="docutils literal"><span class="pre">descriptor_source_uri</span></code>
+key will return <code class="docutils literal"><span class="pre">None</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Note as per the example above how the <code class="docutils literal"><span class="pre">descriptor_source_uri</span></code>
+value can be different than the uri of the resolved descriptor;
+this happens in the case when a descriptor uri is omitting
+the version number and tracking against the latest version
+number available.
+In that case, the <code class="docutils literal"><span class="pre">descriptor</span></code> key will contain the
+fully resolved descriptor object, representing the
+latest descriptor version as of right now, where as the
+<code class="docutils literal"><span class="pre">descriptor_source_uri</span></code> key contains the versionless descriptor
+uri string as it is defined in Shotgun.</p>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1161,7 +1192,7 @@ for the site configuration.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of pipeline configurations.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">List of dictionaries with keys <code class="docutils literal"><span class="pre">type</span></code>, <code class="docutils literal"><span class="pre">id</span></code>, <code class="docutils literal"><span class="pre">name</span></code>, <code class="docutils literal"><span class="pre">project</span></code>, and <code class="docutils literal"><span class="pre">descriptor</span></code>.
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">List of dictionaries with syntax described above.
 The pipeline configurations will always be sorted such as the primary pipeline configuration,
 if available, will be first. Then the remaining pipeline configurations will be sorted by
 <code class="docutils literal"><span class="pre">name</span></code> field (case insensitive), then the <code class="docutils literal"><span class="pre">project</span></code> field and finally then <code class="docutils literal"><span class="pre">id</span></code> field.</td>
@@ -2140,7 +2171,7 @@ launching DCC.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.141',
+            VERSION:'v0.18.143',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.filesystem &mdash; tk-core v0.18.141 documentation</title>
+  <title>tank.util.filesystem &mdash; tk-core v0.18.143 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.141 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.143 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.141.<br>
+    <b>tk-core</b> v0.18.143.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -199,6 +199,9 @@
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># files or directories to skip if no skip_list is specified</span>
+<span class="n">SKIP_LIST_DEFAULT</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;.svn&quot;</span><span class="p">,</span> <span class="s2">&quot;.git&quot;</span><span class="p">,</span> <span class="s2">&quot;.gitignore&quot;</span><span class="p">,</span> <span class="s2">&quot;.hg&quot;</span><span class="p">,</span> <span class="s2">&quot;.hgignore&quot;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="with_cleared_umask"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.with_cleared_umask">[docs]</a><span class="k">def</span> <span class="nf">with_cleared_umask</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
@@ -382,9 +385,6 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># files or directories to always skip</span>
     <span class="n">SKIP_LIST_ALWAYS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;__MACOSX&quot;</span><span class="p">,</span> <span class="s2">&quot;.DS_Store&quot;</span><span class="p">]</span>
-
-    <span class="c1"># files or directories to skip if no skip_list is specified</span>
-    <span class="n">SKIP_LIST_DEFAULT</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;.svn&quot;</span><span class="p">,</span> <span class="s2">&quot;.git&quot;</span><span class="p">,</span> <span class="s2">&quot;.gitignore&quot;</span><span class="p">,</span> <span class="s2">&quot;.hg&quot;</span><span class="p">,</span> <span class="s2">&quot;.hgignore&quot;</span><span class="p">]</span>
 
     <span class="c1"># compute full skip list</span>
     <span class="c1"># note: we don&#39;t do</span>
@@ -702,7 +702,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.141',
+            VERSION:'v0.18.143',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

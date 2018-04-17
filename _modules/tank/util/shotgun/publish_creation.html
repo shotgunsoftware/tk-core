@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.18.141 documentation</title>
+  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.18.143 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.141 documentation" href="../../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.143 documentation" href="../../../../index.html"/>
         <link rel="up" title="Module code" href="../../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.141.<br>
+    <b>tk-core</b> v0.18.143.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -392,7 +392,7 @@
 <span class="sd">    :returns: The created entity dictionary.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-        <span class="s2">&quot;Publish: Begin register publish for context </span><span class="si">%s</span><span class="s2"> and path </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+        <span class="s2">&quot;Publish: Begin register publish for context {0} and path {1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="n">entity</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="k">try</span><span class="p">:</span>
@@ -648,12 +648,12 @@
 
         <span class="c1"># Make path platform agnostic and determine if it belongs</span>
         <span class="c1"># to a storage that is associated with this toolkit config.</span>
-        <span class="n">storage_name</span><span class="p">,</span> <span class="n">path_cache</span> <span class="o">=</span> <span class="n">_calc_path_cache</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+        <span class="n">root_name</span><span class="p">,</span> <span class="n">path_cache</span> <span class="o">=</span> <span class="n">_calc_path_cache</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">path_cache</span><span class="p">:</span>
             <span class="c1"># there is a toolkit storage mapping defined for this storage</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                <span class="s2">&quot;The path &#39;</span><span class="si">%s</span><span class="s2">&#39; is associated with config root &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">storage_name</span><span class="p">)</span>
+                <span class="s2">&quot;The path &#39;</span><span class="si">%s</span><span class="s2">&#39; is associated with config root &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">root_name</span><span class="p">)</span>
             <span class="p">)</span>
 
             <span class="c1"># check if the shotgun server supports the storage and relative_path parameters which</span>
@@ -666,8 +666,9 @@
             <span class="p">)</span>
 
             <span class="k">if</span> <span class="n">supports_specific_storage_syntax</span><span class="p">:</span>
-                <span class="c1"># explicitly pass relative path and storage to shotgun</span>
-                <span class="n">storage</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s2">&quot;LocalStorage&quot;</span><span class="p">,</span> <span class="p">[[</span><span class="s2">&quot;code&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">storage_name</span><span class="p">]])</span>
+
+                <span class="c1"># get corresponding SG local storage for the matching root name</span>
+                <span class="n">storage</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_local_storage_for_root</span><span class="p">(</span><span class="n">root_name</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">storage</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                     <span class="c1"># there is no storage in Shotgun that matches the one toolkit expects.</span>
@@ -675,10 +676,12 @@
                     <span class="c1"># magically picks up the publishes and associates with them. In this case,</span>
                     <span class="c1"># issue a warning and fall back on the server-side functionality</span>
                     <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="s2">&quot;Could not find the expected storage &#39;</span><span class="si">%s</span><span class="s2">&#39; in Shotgun to associate &quot;</span>
-                        <span class="s2">&quot;publish &#39;</span><span class="si">%s</span><span class="s2">&#39; with - falling back to Shotgun&#39;s built-in storage &quot;</span>
-                        <span class="s2">&quot;resolution logic. It is recommended that you add the &#39;</span><span class="si">%s</span><span class="s2">&#39; storage &quot;</span>
-                        <span class="s2">&quot;to Shotgun&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">storage_name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">storage_name</span><span class="p">))</span>
+                        <span class="s2">&quot;Could not find the expected storage for required root &quot;</span>
+                        <span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39; in Shotgun to associate publish &#39;</span><span class="si">%s</span><span class="s2">&#39; with. &quot;</span>
+                        <span class="s2">&quot;Falling back to Shotgun&#39;s built-in storage resolution &quot;</span>
+                        <span class="s2">&quot;logic. It is recommended that you explicitly map a &quot;</span>
+                        <span class="s2">&quot;local storage to required root &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span>
+                        <span class="p">(</span><span class="n">root_name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">root_name</span><span class="p">))</span>
                     <span class="n">data</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;local_path&quot;</span><span class="p">:</span> <span class="n">path</span><span class="p">}</span>
 
                 <span class="k">else</span><span class="p">:</span>
@@ -1000,7 +1003,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'v0.18.141',
+            VERSION:'v0.18.143',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
