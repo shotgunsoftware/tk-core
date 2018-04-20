@@ -15,7 +15,7 @@ import os
 from ..errors import TankFileDoesNotExistError
 from . import constants
 from .errors import TankInvalidInterpreterLocationError
-from .descriptor import Descriptor, create_descriptor
+from .descriptor import Descriptor
 from .. import LogManager
 from ..util import StorageRoots
 from ..util import ShotgunPath
@@ -71,6 +71,9 @@ class ConfigDescriptor(Descriptor):
         :returns: The core descriptor if :attr:`ConfigDescriptor.associated_core_descriptor` is set,
             ``None`` otherwise.
         """
+        # have to locally import this method due to cyclic deps
+        from .descriptor_factory import create_descriptor
+
         if not self.associated_core_descriptor:
             return None
 
