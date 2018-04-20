@@ -24,7 +24,7 @@ from tank_test.tank_test_base import ShotgunTestBase, setUpModule # noqa
 import sgtk
 from sgtk.descriptor import Descriptor
 from sgtk.descriptor.io_descriptor.base import IODescriptorBase
-from sgtk.descriptor.descriptor import create_descriptor
+from sgtk.descriptor import create_descriptor
 
 from tank import TankError
 from tank.platform.environment import InstalledEnvironment
