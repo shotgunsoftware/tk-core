@@ -586,8 +586,9 @@ class StorageRoots(object):
                 )
                 self._default_storage_name = root_name
 
-        # no default storage root defined explicitly
-        if not self._default_storage_name:
+        # no default storage root defined explicitly. try to identify one if
+        # there are storage roots defined
+        if self.required_roots and not self._default_storage_name:
 
             log.debug("No default storage explicitly defined...")
 
