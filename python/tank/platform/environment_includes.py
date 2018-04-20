@@ -50,7 +50,7 @@ def _resolve_includes(file_name, data, context):
     Parses the includes section and returns a list of valid paths
     """
     includes = []
-    resolved_includes = set()
+    resolved_includes = list()
     
     if constants.SINGLE_INCLUDE_SECTION in data:
         # single include section
@@ -111,10 +111,10 @@ def _resolve_includes(file_name, data, context):
         else:
             path = resolve_include(file_name, include)
 
-        if path:
-            resolved_includes.add(path)
+        if path and path not in resolved_includes:
+            resolved_includes.append(path)
 
-    return list(resolved_includes)
+    return resolved_includes
 
 
 
