@@ -155,7 +155,7 @@ and if detected, download the configuration locally and then launch. Toolkit wil
 of distribution and setup.
 
 To use this workflow, start by creating a custom file/link field on the Pipeline Configuration.
-Name it ``Uploaded Config`` - so that it's API Field Code becomes ``sg_uploaded_config``:
+Name it ``Uploaded Config`` (so that its API field code becomes ``sg_uploaded_config``):
 
 .. image:: ./resources/initializing/create_uploaded_config_field.png
     :width: 700px
