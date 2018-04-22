@@ -60,7 +60,6 @@ class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
         # Create a sandbox project for this this suite to run under.
         cls.project = cls.create_or_find_project("MultipleBootstrapAcrossCoreSwap", {})
 
-
     def _create_basic_install(self, path):
         """
         Creates a basic toolkit install that we can run setup_project from.
@@ -86,7 +85,6 @@ class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
             skip_list=[".git", "docs", "tests"]
         )
         cw.create_tank_command()
-
 
     def test_01_setup_legacy_bootstrap_core(self):
         """
