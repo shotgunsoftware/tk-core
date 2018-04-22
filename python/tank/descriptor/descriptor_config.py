@@ -15,7 +15,7 @@ import os
 from ..errors import TankFileDoesNotExistError
 from . import constants
 from .errors import TankInvalidInterpreterLocationError
-from .descriptor import Descriptor
+from .descriptor import Descriptor, create_descriptor
 from .. import LogManager
 from ..util import StorageRoots
 from ..util import ShotgunPath
@@ -30,11 +30,22 @@ class ConfigDescriptor(Descriptor):
     Descriptor that describes a Toolkit Configuration
     """
 
-    def __init__(self, sg_connection, bundle_cache_root, fallback_roots, io_descriptor):
+    def __init__(self, sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots):
+        """
+        .. note:: Use the factory method :meth:`create_descriptor` when
+                  creating new descriptor objects.
+
+        :param sg_connection: Connection to the current site.
+        :param io_descriptor: Associated IO descriptor.
+        :param bundle_cache_root_override: Override for root path to where
+            downloaded apps are cached.
+        :param fallback_roots: List of immutable fallback cache locations where
+            apps will be searched for.
+        """
         super(ConfigDescriptor, self).__init__(io_descriptor)
         self._cached_core_descriptor = None
         self._sg_connection = sg_connection
-        self._bundle_cache_root = bundle_cache_root
+        self._bundle_cache_root_override = bundle_cache_root_override
         self._fallback_roots = fallback_roots
         self._storage_roots = None
 
@@ -71,9 +82,6 @@ class ConfigDescriptor(Descriptor):
         :returns: The core descriptor if :attr:`ConfigDescriptor.associated_core_descriptor` is set,
             ``None`` otherwise.
         """
-        # have to locally import this method due to cyclic deps
-        from .descriptor_factory import create_descriptor
-
         if not self.associated_core_descriptor:
             return None
 
@@ -89,7 +97,7 @@ class ConfigDescriptor(Descriptor):
                 self._sg_connection,
                 Descriptor.CORE,
                 self.associated_core_descriptor,
-                self._bundle_cache_root,
+                self._bundle_cache_root_override,
                 [config_bundle_cache] + self._fallback_roots,
                 resolve_latest=False
             )
@@ -272,3 +280,5 @@ class ConfigDescriptor(Descriptor):
             self._storage_roots = StorageRoots.from_config(config_folder)
 
         return self._storage_roots
+
+

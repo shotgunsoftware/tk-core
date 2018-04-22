@@ -12,11 +12,11 @@ from __future__ import with_statement
 
 import os
 
-
 from tank_vendor import yaml
 
 from . import constants
 from .errors import TankDescriptorError
+from .descriptor import Descriptor
 from .descriptor_config import ConfigDescriptor
 from .. import LogManager
 
@@ -101,3 +101,9 @@ class CachedConfigDescriptor(ConfigDescriptor):
         """
         self._io_descriptor.ensure_local()
         return self._find_interpreter_location(self.get_path())
+
+
+# register the descriptor subclass with the base class factory
+# this complex process for handling the descriptor abstract factory
+# management is in order to avoid local imports in classes.
+Descriptor.register_descriptor_factory(Descriptor.CONFIG, CachedConfigDescriptor)

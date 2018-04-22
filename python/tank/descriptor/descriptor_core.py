@@ -18,12 +18,17 @@ class CoreDescriptor(Descriptor):
     Descriptor object which describes a Toolkit Core API version.
     """
 
-    def __init__(self, io_descriptor):
+    def __init__(self, sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots):
         """
-        Use the factory method :meth:`create_descriptor` when
-        creating new descriptor objects.
+        .. note:: Use the factory method :meth:`create_descriptor` when
+                  creating new descriptor objects.
 
+        :param sg_connection: Connection to the current site.
         :param io_descriptor: Associated IO descriptor.
+        :param bundle_cache_root_override: Override for root path to where
+            downloaded apps are cached.
+        :param fallback_roots: List of immutable fallback cache locations where
+            apps will be searched for.
         """
         super(CoreDescriptor, self).__init__(io_descriptor)
 
@@ -86,3 +91,9 @@ class CoreDescriptor(Descriptor):
         :param target_folder: Folder to copy the descriptor to
         """
         self._io_descriptor.copy(target_folder, skip_list=["tests", "docs"])
+
+
+# register the descriptor subclass with the base class factory
+# this complex process for handling the descriptor abstract factory
+# management is in order to avoid local imports in classes.
+Descriptor.register_descriptor_factory(Descriptor.CORE, CoreDescriptor)

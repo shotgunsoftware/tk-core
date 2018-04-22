@@ -9,10 +9,12 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
-from .descriptor import Descriptor
+from .descriptor import Descriptor, create_descriptor
 from .descriptor_core import CoreDescriptor
 from .descriptor_bundle import AppDescriptor, FrameworkDescriptor, EngineDescriptor
 from .descriptor_config import ConfigDescriptor
+from .descriptor_cached_config import CachedConfigDescriptor
+from .descriptor_installed_config import InstalledConfigDescriptor
 
 from .errors import (
     TankAppStoreConnectionError, TankAppStoreError, TankDescriptorError,
@@ -21,5 +23,4 @@ from .errors import (
     TankInvalidInterpreterLocationError, TankMissingManifestError
 )
 
-from .descriptor_factory import create_descriptor
 from .io_descriptor import descriptor_dict_to_uri, descriptor_uri_to_dict, is_descriptor_version_missing
