@@ -29,6 +29,12 @@ This test class will take care of sandboxing your test in a way that multiple co
 should be able to run in parallel without having the tests step on each other's toes. See `SgtkIntegrationTest`s
 documentation to learn more how the class can help you sandbox tests.
 
+Adding your test to continous integration
+-----------------------------------------
+For CI to run your test, you need to manually add it to `tests/run_travis.sh` 
+and `tests/run_appveyor.bat`.
+
+
 Future work
 -----------
 
