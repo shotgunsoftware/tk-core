@@ -130,7 +130,7 @@ class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
         manager.pipeline_configuration = pc["id"]
         try:
             engine = manager.bootstrap_engine("tk-shell123", project)
-        except Exception, e:
+        except Exception as e:
             # note: due to core swapping this comparison needs to happen by name
             self.assertEqual(e.__class__.__name__, sgtk.platform.TankMissingEngineError.__name__)
             engine = manager.bootstrap_engine("tk-shell", project)
