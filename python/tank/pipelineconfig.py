@@ -232,6 +232,11 @@ class PipelineConfiguration(object):
                 external_data = pickle.loads(os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA])
             except Exception as e:
                 log.warning("Could not load external config data from: %s" % e)
+            finally:
+                # The passing of state from bootstrap to core is complete.
+                # Make sure we clean up so we don't interfere any further
+                # bootstrapping or forked process bootstrapping.
+                del os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA]
 
             if "project_id" in external_data:
                 self._project_id = external_data["project_id"]
