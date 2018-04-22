@@ -136,6 +136,7 @@ class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
             engine = manager.bootstrap_engine("tk-shell", project)
 
         self.assertEqual(engine.name, "tk-shell")
+        self.assertEqual(0, 1)
 
 
 if __name__ == "__main__":
