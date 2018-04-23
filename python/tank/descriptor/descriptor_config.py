@@ -280,5 +280,3 @@ class ConfigDescriptor(Descriptor):
             self._storage_roots = StorageRoots.from_config(config_folder)
 
         return self._storage_roots
-
-

@@ -91,9 +91,3 @@ class CoreDescriptor(Descriptor):
         :param target_folder: Folder to copy the descriptor to
         """
         self._io_descriptor.copy(target_folder, skip_list=["tests", "docs"])
-
-
-# register the descriptor subclass with the base class factory
-# this complex process for handling the descriptor abstract factory
-# management is in order to avoid local imports in classes.
-Descriptor.register_descriptor_factory(Descriptor.CORE, CoreDescriptor)

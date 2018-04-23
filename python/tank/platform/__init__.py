@@ -12,7 +12,10 @@
 # Engine management
 from .engine import start_engine, current_engine, get_engine_path, find_app_settings
 from .errors import (
-    TankEngineInitError, TankContextChangeNotSupportedError, TankMissingEngineError
+    TankEngineInitError,
+    TankContextChangeNotSupportedError,
+    TankMissingEngineError,
+    TankMissingEnvironmentFile
 )
 from .software_launcher import create_engine_launcher
 

@@ -202,9 +202,3 @@ class InstalledConfigDescriptor(ConfigDescriptor):
         return ShotgunPath.get_file_name_from_template(
             os.path.join(install_root, "install", "core", "core_%s.cfg")
         )
-
-
-# register the descriptor subclass with the base class factory
-# this complex process for handling the descriptor abstract factory
-# management is in order to avoid local imports in classes.
-Descriptor.register_descriptor_factory(Descriptor.INSTALLED_CONFIG, InstalledConfigDescriptor)

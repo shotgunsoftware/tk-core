@@ -461,11 +461,3 @@ class FrameworkDescriptor(BundleDescriptor):
             # frameworks are now shared by default unless you opt out.
             shared = True
         return shared
-
-
-# register the descriptor subclass with the base class factory
-# this complex process for handling the descriptor abstract factory
-# management is in order to avoid local imports in classes.
-Descriptor.register_descriptor_factory(Descriptor.APP, AppDescriptor)
-Descriptor.register_descriptor_factory(Descriptor.ENGINE, EngineDescriptor)
-Descriptor.register_descriptor_factory(Descriptor.FRAMEWORK, FrameworkDescriptor)
