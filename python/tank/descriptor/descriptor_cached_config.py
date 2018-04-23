@@ -16,7 +16,6 @@ from tank_vendor import yaml
 
 from . import constants
 from .errors import TankDescriptorError
-from .descriptor import Descriptor
 from .descriptor_config import ConfigDescriptor
 from .. import LogManager
 

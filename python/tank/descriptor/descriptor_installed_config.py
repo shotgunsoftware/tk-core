@@ -12,7 +12,6 @@ from __future__ import with_statement
 
 import os
 
-from .descriptor import Descriptor
 from .descriptor_config import ConfigDescriptor
 from .. import pipelineconfig_utils
 from .. import LogManager
