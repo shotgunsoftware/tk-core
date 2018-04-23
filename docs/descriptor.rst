@@ -572,6 +572,7 @@ AppDescriptor
 .. autoclass:: AppDescriptor
     :inherited-members:
     :members:
+    :exclude-members: create, register_descriptor_factory
 
 EngineDescriptor
 ================================================
@@ -579,6 +580,7 @@ EngineDescriptor
 .. autoclass:: EngineDescriptor
     :inherited-members:
     :members:
+    :exclude-members: create, register_descriptor_factory
 
 FrameworkDescriptor
 ================================================
@@ -586,6 +588,7 @@ FrameworkDescriptor
 .. autoclass:: FrameworkDescriptor
     :inherited-members:
     :members:
+    :exclude-members: create, register_descriptor_factory
 
 ConfigDescriptor
 ================================================
@@ -594,7 +597,9 @@ ConfigDescriptor
     :inherited-members:
     :members:
     :exclude-members: get_config_folder,
-        resolve_core_descriptor
+        resolve_core_descriptor,
+        create,
+        register_descriptor_factory
 
 CoreDescriptor
 ================================================
@@ -602,7 +607,9 @@ CoreDescriptor
 .. autoclass:: CoreDescriptor
     :inherited-members:
     :members:
-    :exclude-members: get_features_info
+    :exclude-members: get_features_info,
+        create,
+        register_descriptor_factory
 
 Exceptions
 ================================================

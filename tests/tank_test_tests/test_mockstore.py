@@ -20,7 +20,7 @@ from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.mock_appstore import MockStore, TankMockStoreDescriptor, patch_app_store
 
 from sgtk.descriptor import Descriptor
-from sgtk.descriptor.descriptor import create_descriptor
+from sgtk.descriptor import create_descriptor
 
 
 class TestMockStore(ShotgunTestBase):

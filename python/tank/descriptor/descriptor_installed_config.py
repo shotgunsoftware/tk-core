@@ -32,17 +32,25 @@ class InstalledConfigDescriptor(ConfigDescriptor):
     environment files, a copy of core and all the bundles required by that pipeline configuration.
     It supports localized as well as shared core and as such, the interpreter files can be found
     inside the configuration folder or alongside the shared core.
-
-    :param sg_connection: Connection to the Shotgun site.
-    :type sg_connection: :class:`shotgun_api3.Shotgun`
-    :param str bundle_cache_root: Path to the global bundle cache.
-    :param list(str) fallback_roots: List of fallback locations on disk where bundles can be found.
-    :param io_descriptor: Associated IO descriptor.
     """
 
-    def __init__(self, sg_connection, bundle_cache_root, fallback_roots, io_descriptor):
+    def __init__(self, sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots):
+        """
+        .. note:: Use the factory method :meth:`create_descriptor` when
+                  creating new descriptor objects.
+
+        :param sg_connection: Connection to the current site.
+        :param io_descriptor: Associated IO descriptor.
+        :param bundle_cache_root_override: Override for root path to where
+            downloaded apps are cached.
+        :param fallback_roots: List of immutable fallback cache locations where
+            apps will be searched for.
+        """
         super(InstalledConfigDescriptor, self).__init__(
-            sg_connection, bundle_cache_root, fallback_roots, io_descriptor
+            sg_connection,
+            io_descriptor,
+            bundle_cache_root_override,
+            fallback_roots
         )
         self._io_descriptor.set_is_copiable(False)
 
