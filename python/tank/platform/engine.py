@@ -1561,7 +1561,15 @@ class Engine(TankBundle):
             if os.path.isdir(font_dir):
 
                 # iterate over the font files and attempt to load them
-                for font_file_name in os.listdir(font_dir):
+                #
+                # NOTE: We're loading the ttf files in reverse order to work around
+                # a Windows 10 oddity in Qt5/PySide2. It appears as though Windows
+                # prefers the first ttf installed for a given font weight, so when
+                # we're setting weight in qss (publish2 is a good example), if we're
+                # going for a lighter-weight font, we end up getting condensed light
+                # instead of the regular style. So...we're going to install these in
+                # reverse order so that the regular light style is preferred.
+                for font_file_name in reversed(list(os.listdir(font_dir))):
 
                     # only process actual font files. It appears as though .ttf
                     # is the most common extension for use on win/mac/linux so
