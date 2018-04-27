@@ -208,7 +208,7 @@ def validate_and_return_frameworks(descriptor, environment):
 
                 if min_version_satisfied:
                     found = True
-                    required_fw_instance_names.append(fw_instance_name)
+                    required_fw_instance_names.append((name, fw_instance_name))
                     break
         
         # backwards compatibility pass - prior to the new syntax, we also technically accepted 
@@ -223,7 +223,7 @@ def validate_and_return_frameworks(descriptor, environment):
         for (fw_instance_name, fw_instance) in fw_descriptors.items():
             if fw_instance.version == version and fw_instance.system_name == name:
                 found = True
-                required_fw_instance_names.append(fw_instance_name)
+                required_fw_instance_names.append((name, fw_instance_name))
                 break
         
         # display nicely formatted error message

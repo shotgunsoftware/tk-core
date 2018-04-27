@@ -68,6 +68,15 @@ class TestAppFrameworks(TestApplication):
     Tests for framework related operations
     """
 
+    def test_frameworks_named_after_info_yml_name(self):
+        """
+        Ensures the framework in the .frameworks dictionary is named
+        after the name of the framework in info.yml and not as the one
+        reported by framework.name, which is derived from the descriptor.
+        """
+        frameworks = self.engine.apps["test_app"].frameworks
+        self.assertEqual(["test_framework"], frameworks.keys())
+
     def test_minimum_version(self):
         """
         Tests the min required frameworks for an app
@@ -602,7 +611,7 @@ class TestBundleDataCache(TestApplication):
             ))
         )
         # Test frameworks
-        for name, fw in app.frameworks.iteritems():
+        for fw in app.frameworks.itervalues():
             fw_data_cache_path = fw.cache_location
             # We should have the project id in the path
             self.assertTrue(
@@ -613,9 +622,10 @@ class TestBundleDataCache(TestApplication):
             self.assertFalse(
                 "%sp%d" % (os.path.sep, app.context.project["id"]) in fw_data_cache_path
             )
+
             # The path should end with "/site/<bundle name>"
             self.assertTrue(
                 fw_data_cache_path.endswith("%ssite%s%s" % (
-                    os.path.sep, os.path.sep, name,
+                    os.path.sep, os.path.sep, fw.name,
                 ))
             )
