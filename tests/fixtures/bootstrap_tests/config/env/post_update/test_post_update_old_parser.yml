@@ -79,5 +79,5 @@ engines:
   test_included_engine: {apps: null, location: '@engine.location'}
 frameworks:
   test_framework_v1.x.x:
-    location: {path: '{CONFIG_FOLDER}/bundles/test_framework', type: dev, version: v1.0.0}
+    location: {path: '{CONFIG_FOLDER}/bundles/test_framework_v1', type: dev, version: v1.0.0}
 includes: [./includes/empty_config.yml, ./includes/engine_location.yml]

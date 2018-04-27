@@ -408,6 +408,7 @@ class TestRuamelParser(TankTestBase):
     def setUp(self):
         super(TestRuamelParser, self).setUp()
         self.setup_fixtures(parameters={"installed_config": True})
+        self.maxDiff=None
 
     def test_yaml(self):
 
