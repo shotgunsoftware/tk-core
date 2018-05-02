@@ -227,8 +227,14 @@ def setup_frameworks(engine_obj, parent_obj, env, parent_descriptor):
 
     # looks like all of the frameworks are valid! Load them one by one
     for fw_name, fw_inst_name in framework_instance_names:
-
-        engine_obj.log_debug("%s - loading framework %s" % (parent_obj, fw_inst_name))
+        # fw_name refers to the name of the framework as specified in the info.yml
+        # fw_inst_name refer to the name of the framework in the frameworks: section
+        # of the environment.
+        #
+        # While we load the latter from the configuration file, application code does not
+        # care about the instance name and want to access the framework using the
+        # name specified in info.yml.
+        engine_obj.logger.debug("Registering instance %s as %s in %s", fw_inst_name, fw_name, parent_obj)
 
         # load framework
         # this only occurs once per instance name for shared frameworks
