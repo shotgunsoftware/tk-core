@@ -461,6 +461,7 @@ class TestMultiRoot(TankTestBase):
 
 
 class TestCalcPathCache(TankTestBase):
+
     @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_case_difference(self, get_local_storage_roots):
         """
@@ -477,6 +478,33 @@ class TestCalcPathCache(TankTestBase):
         root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(self.tk, input_path)
         self.assertEqual("primary", root_name)
         self.assertEqual(expected, path_cache)
+
+    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    def test_slashes_win(self, get_local_storage_roots):
+        """
+        Ensures that a variety of different slash syntaxes are valid when splitting
+        a path into a storage + path cache field.
+        """
+        if sys.platform != "win32":
+            return
+
+        get_local_storage_roots.return_value = {"primary": "P:\\"}
+
+        input_paths = [
+            r"P://rnd//3d//Assets",
+            r"P:\\rnd\\3d\\Assets",
+            r"P:\rnd\3d\Assets",
+            r"P:/rnd/3d/Assets",
+        ]
+
+        for input_path in input_paths:
+            print input_path
+            root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
+                self.tk,
+                input_path
+            )
+            self.assertEqual("primary", root_name)
+            self.assertEqual("aa", path_cache)
 
 
 class TestCalcPathCacheProjectWithSlash(TankTestBase):
