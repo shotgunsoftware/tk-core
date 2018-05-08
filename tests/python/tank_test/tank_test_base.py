@@ -64,7 +64,7 @@ def only_run_on_windows(func):
     :param func: Function to be decorated.
     :returns: The decorated function.
     """
-    running_nix = os.system != "win32"
+    running_nix = sys.platform != "win32"
     return unittest.skipIf(
         running_nix,
         "Windows only test."
@@ -77,7 +77,7 @@ def only_run_on_nix(func):
     :param func: Function to be decorated.
     :returns: The decorated function.
     """
-    running_windows = os.system == "win32"
+    running_windows = sys.platform == "win32"
     return unittest.skipIf(
         running_windows,
         "Linux/Macosx only test."
