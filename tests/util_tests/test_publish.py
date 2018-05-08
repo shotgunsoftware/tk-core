@@ -198,8 +198,6 @@ class TestShotgunRegisterPublish(TankTestBase):
         if sys.platform == "win32":
             values = [
                 r"x:\tmp\win\path\to\file.txt",
-                #r"x:\\tmp\\win\\path\\to\\file.txt",
-                #r"x:/tmp/win/path/to/file.txt",
                 r"\\server\share\path\to\file.txt",
             ]
 
@@ -525,6 +523,33 @@ class TestCalcPathCache(TankTestBase):
         input_paths = [
             r"\\share\project_code\3d\Assets",
             r"//share/project_code/3d/Assets",
+        ]
+
+        for input_path in input_paths:
+            root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
+                self.tk,
+                input_path
+            )
+            self.assertEqual("primary", root_name)
+            self.assertEqual("project_code/3d/Assets", path_cache)
+
+    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    def test_path_normalization_nix(self, get_local_storage_roots):
+        """
+        Ensures that a variety of different slash syntaxes are valid when splitting
+        a path into a storage + path cache field while using linux or mac
+        """
+        if sys.platform == "win32":
+            return
+
+        # note - this return value is guaranteed to be normalized
+        # so no need to test for edge cases
+        get_local_storage_roots.return_value = {"primary": "/mnt"}
+
+        input_paths = [
+            r"/mnt\project_code\3d\Assets",
+            r"\mnt\project_code\3d\Assets",
+            r"/mnt/project_code//3d///Assets",
         ]
 
         for input_path in input_paths:
