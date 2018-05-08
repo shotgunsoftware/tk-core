@@ -16,7 +16,7 @@ from mock import patch, call
 
 import tank
 from tank import context, errors
-from tank_test.tank_test_base import TankTestBase, setUpModule
+from tank_test.tank_test_base import TankTestBase, setUpModule, only_run_on_windows, only_run_on_nix
 
 
 class TestShotgunRegisterPublish(TankTestBase):
@@ -479,15 +479,13 @@ class TestCalcPathCache(TankTestBase):
         self.assertEqual("primary", root_name)
         self.assertEqual(expected, path_cache)
 
+    @only_run_on_windows
     @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_path_normalization_win_drive_letter(self, get_local_storage_roots):
         """
         Ensures that a variety of different slash syntaxes are valid when splitting
         a path into a storage + path cache field while using a windows drive letter path.
         """
-        if sys.platform != "win32":
-            return
-
         # note - this return value is guaranteed to be normalized
         # so no need to test for edge cases
         get_local_storage_roots.return_value = {"primary": "P:\\"}
@@ -507,15 +505,13 @@ class TestCalcPathCache(TankTestBase):
             self.assertEqual("primary", root_name)
             self.assertEqual("project_code/3d/Assets", path_cache)
 
+    @only_run_on_windows
     @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_path_normalization_win_unc(self, get_local_storage_roots):
         """
         Ensures that a variety of different slash syntaxes are valid when splitting
         a path into a storage + path cache field while using a windows unc path
         """
-        if sys.platform != "win32":
-            return
-
         # note - this return value is guaranteed to be normalized
         # so no need to test for edge cases
         get_local_storage_roots.return_value = {"primary": "\\\\share"}
@@ -533,15 +529,13 @@ class TestCalcPathCache(TankTestBase):
             self.assertEqual("primary", root_name)
             self.assertEqual("project_code/3d/Assets", path_cache)
 
+    @only_run_on_nix
     @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_path_normalization_nix(self, get_local_storage_roots):
         """
         Ensures that a variety of different slash syntaxes are valid when splitting
         a path into a storage + path cache field while using linux or mac
         """
-        if sys.platform == "win32":
-            return
-
         # note - this return value is guaranteed to be normalized
         # so no need to test for edge cases
         get_local_storage_roots.return_value = {"primary": "/mnt"}
