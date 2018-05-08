@@ -58,6 +58,32 @@ def interactive(func):
     )(func)
 
 
+def only_run_on_windows(func):
+    """
+    Decorator that allows to skip a test if not running on windows.
+    :param func: Function to be decorated.
+    :returns: The decorated function.
+    """
+    running_nix = sys.platform != "win32"
+    return unittest.skipIf(
+        running_nix,
+        "Windows only test."
+    )(func)
+
+
+def only_run_on_nix(func):
+    """
+    Decorator that allows to skip a test if not running on linux/macosx.
+    :param func: Function to be decorated.
+    :returns: The decorated function.
+    """
+    running_windows = sys.platform == "win32"
+    return unittest.skipIf(
+        running_windows,
+        "Linux/Macosx only test."
+    )(func)
+
+
 def _is_git_missing():
     """
     Tests is git is available in PATH
