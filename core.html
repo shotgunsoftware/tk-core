@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Core &mdash; tk-core v0.18.143 documentation</title>
+  <title>Core &mdash; tk-core v0.18.146 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.143 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.146 documentation" href="index.html"/>
         <link rel="next" title="Apps, Engines and Frameworks" href="platform.html"/>
         <link rel="prev" title="Initialization and startup" href="initializing.html"/> 
 
@@ -150,7 +150,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.143.<br>
+    <b>tk-core</b> v0.18.146.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -699,12 +699,12 @@ path passed in via the path argument.</li>
 <dt id="sgtk.Sgtk.context_from_entity_dictionary">
 <code class="descname">context_from_entity_dictionary</code><span class="sig-paren">(</span><em>entity_dictionary</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#Sgtk.context_from_entity_dictionary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Sgtk.context_from_entity_dictionary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Derives a context from a shotgun entity dictionary. This will try to use any
-linked information available in the dictionary where possible but if it can&#8217;t 
+linked information available in the dictionary where possible but if it can&#8217;t
 determine a valid context then it will fall back to <a class="reference internal" href="#sgtk.Sgtk.context_from_entity" title="sgtk.Sgtk.context_from_entity"><code class="xref py py-meth docutils literal"><span class="pre">context_from_entity()</span></code></a> which
 may result in a Shotgun path cache query and be considerably slower.</p>
 <p>The following values for <code class="docutils literal"><span class="pre">entity_dictionary</span></code> will result in a context being
 created without falling back to a potential Shotgun query - each entity in the
-dictionary (including linked entities) must have the fields: &#8216;type&#8217;, &#8216;id&#8217; and 
+dictionary (including linked entities) must have the fields: &#8216;type&#8217;, &#8216;id&#8217; and
 &#8216;name&#8217; (or the name equivalent for specific entity types, e.g. &#8216;content&#8217; for
 Step entities, &#8216;code&#8217; for Shot entities, etc.):</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;My Project&quot;</span><span class="p">}</span>
@@ -717,6 +717,12 @@ Step entities, &#8216;code&#8217; for Shot entities, etc.):</p>
  <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;My Project&quot;</span><span class="p">}</span>
  <span class="s2">&quot;entity&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot 001&quot;</span><span class="p">}</span>
  <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Step&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">101112</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Anm&quot;</span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;PublishedFile&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span> <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;asset.ma&quot;</span><span class="p">,</span>
+ <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="s2">&quot;: &quot;</span><span class="n">Task</span><span class="s2">&quot;, &quot;</span><span class="nb">id</span><span class="s2">&quot;: 789, &quot;</span><span class="n">content</span><span class="s2">&quot;: &quot;</span><span class="n">Animation</span><span class="s2">&quot;}</span>
+ <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;My Project&quot;</span><span class="p">}</span>
+ <span class="s2">&quot;entity&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot 001&quot;</span><span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -732,6 +738,13 @@ may then result in a Shotgun query to retrieve the missing information:</p>
 <span class="c1"># missing linked project name and linked step</span>
 <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">789</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Animation&quot;</span><span class="p">,</span>
  <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">}}</span>
+ <span class="s2">&quot;entity&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot 001&quot;</span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1"># Missing publish name.</span>
+<span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;PublishedFile&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span>
+ <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="p">{</span><span class="nb">type</span><span class="s2">&quot;: &quot;</span><span class="n">Task</span><span class="s2">&quot;, &quot;</span><span class="nb">id</span><span class="s2">&quot;: 789, &quot;</span><span class="n">content</span><span class="s2">&quot;: &quot;</span><span class="n">Animation</span><span class="s2">&quot;}</span>
+ <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;My Project&quot;</span><span class="p">}</span>
  <span class="s2">&quot;entity&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">456</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Shot 001&quot;</span><span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
@@ -2945,7 +2958,7 @@ The format follows the convention of <code class="xref py py-meth docutils liter
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.143',
+            VERSION:'v0.18.146',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

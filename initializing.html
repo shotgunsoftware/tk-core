@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Initialization and startup &mdash; tk-core v0.18.143 documentation</title>
+  <title>Initialization and startup &mdash; tk-core v0.18.146 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.143 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.146 documentation" href="index.html"/>
         <link rel="next" title="Core" href="core.html"/>
         <link rel="prev" title="Overview" href="overview.html"/> 
 
@@ -169,7 +169,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.143.<br>
+    <b>tk-core</b> v0.18.146.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -342,8 +342,8 @@ are distributed in different locations or all working in the same building, is t
 to Shotgun. At startup, the Toolkit Bootstrap will automatically look for uploaded configurations
 and if detected, download the configuration locally and then launch. Toolkit will take care
 of distribution and setup.</p>
-<p>To use this workflow, start by creating a custom field on the Pipeline Configuration called
-<code class="docutils literal"><span class="pre">sg_uploaded_config</span></code>:</p>
+<p>To use this workflow, start by creating a custom file/link field on the Pipeline Configuration.
+Name it <code class="docutils literal"><span class="pre">Uploaded</span> <span class="pre">Config</span></code> (so that its API field code becomes <code class="docutils literal"><span class="pre">sg_uploaded_config</span></code>):</p>
 <a class="reference internal image-reference" href="_images/create_uploaded_config_field.png"><img alt="_images/create_uploaded_config_field.png" class="align-center" src="_images/create_uploaded_config_field.png" style="width: 700px;" /></a>
 <p>Once created, you can zip up your configuration and upload it as an attachment:</p>
 <a class="reference internal image-reference" href="_images/zip_config.png"><img alt="_images/zip_config.png" class="align-center" src="_images/zip_config.png" style="width: 700px;" /></a>
@@ -2171,7 +2171,7 @@ launching DCC.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.143',
+            VERSION:'v0.18.146',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
