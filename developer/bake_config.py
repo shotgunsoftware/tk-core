@@ -9,11 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Helper script to generate a toolkit plugin given a plugin source location.
-
-This will analyse the info.yml found in the plugin source location
-and create a plugin scaffold, complete with standard helpers and
-a primed bundle cache.
+Helper script to bake a Toolkit pipeline configuration given a descriptor uri or
+a local path.
 """
 
 # system imports
@@ -41,7 +38,8 @@ from tank.bootstrap import constants as bootstrap_constants
 from tank_vendor import yaml
 
 from utils import (
-    cache_apps, authenticate, add_authentication_options, OptionParserLineBreakingEpilog, cleanup_bundle_cache,
+    cache_apps, authenticate, add_authentication_options,
+    OptionParserLineBreakingEpilog, cleanup_bundle_cache,
     wipe_folder, automated_setup_documentation
 )
 
@@ -66,8 +64,8 @@ def _process_configuration(sg_connection, config_uri_str):
     if config_uri_dict["type"] == bootstrap_constants.BAKED_DESCRIPTOR_TYPE:
         raise ValueError("The given config is already baked")
 
-    # If the descriptor in the config contains a version number
-    # we will go into a fixed update mode.
+    # If the config descriptor does not contain a version number, get the
+    # latest.
     using_latest_config = is_descriptor_version_missing(config_uri_dict)
     if using_latest_config:
         logger.info(
@@ -94,7 +92,7 @@ def bake_config(sg_connection, config_uri, target_path, do_zip=False):
     required by the config.
 
     :param sg_connection: Shotgun connection
-    :param config_descriptor: A TK config descriptor.
+    :param config_descriptor: A TK config descriptor uri.
     :param target_path: Path to build
     """
     logger.info("Your Toolkit config '%s' will be processed." % config_uri)
@@ -111,7 +109,9 @@ def bake_config(sg_connection, config_uri, target_path, do_zip=False):
 
     # Check that target path doesn't exist
     if os.path.exists(target_path):
-        logger.info("The folder '%s' already exists on disk. Removing it" % target_path)
+        logger.info(
+            "The folder '%s' already exists on disk. Removing it" % target_path
+        )
         wipe_folder(target_path)
 
     # Create target path
@@ -142,6 +142,7 @@ def bake_config(sg_connection, config_uri, target_path, do_zip=False):
             bundle_cache_root_override=bundle_cache_root
         )
         associated_core_desc.ensure_local()
+    # Remove unwanted files, e.g. git history.
     cleanup_bundle_cache(bundle_cache_root)
 
     logger.info("")
@@ -178,26 +179,13 @@ def main():
 Details and Examples
 --------------------
 
-In its simplest form, just provide a source and target folder for the build.
+In its simplest form, just provide a local path and target folder for the build.
 
-> python bake_config.py ~/dev/tk-maya/plugins/basic /tmp/maya-plugin
+> python bake_config.py ~/dev/tk-config-myconfig /tmp/baked_configurations
 
-By default, the build script will use the latest app store core for its bootstrapping.
-If you want to use a specific core for the bootstrap, this can be specified via the
---bootstrap-core-uri option:
+Or you can specify a Toolkit config descriptor uri.
 
-> python bake_config.py
-            --bootstrap-core-uri='sgtk:descriptor:dev?path=~/dev/tk-core'
-            ~/dev/tk-maya/plugins/basic /tmp/maya-plugin
-
-By using the '--bake' option, you can build a plugin with an immutable configuration
-where every single Toolkit component is cached and frozen to the version retrieved at
-build time. This can be useful to distribute a self contained plugin to third party
-users.
-
-> python bake_config.py
-            ~/dev/tk-maya/plugins/basic /tmp/maya-plugin
-            --bake
+> python bake_config.py "sgtk:descriptor:app_store?name=tk-config-basic" /tmp/baked_configurations
 
 {automated_setup_documentation}
 
@@ -229,7 +217,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     # parse cmd line
     (options, remaining_args) = parser.parse_args()
 
-    logger.info("Welcome to the Toolkit config baker builder.")
+    logger.info("Welcome to the Toolkit config baker.")
     logger.info("")
 
     if options.debug:
@@ -254,7 +242,8 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         if os.path.isdir(path):
             logger.info("Using a dev descriptor for local path %s" % path)
             # Forge a dev descriptor, using "latest" for the version.
-            # TODO: try to retrieve a git tag from the folder.
+            # TODO: try to retrieve a valid version from the folder, e.g. with a
+            # git tag from the folder.
             config_descriptor = "sgtk:descriptor:dev?name=%s&path=%s&version=latest" % (
                 os.path.basename(path), path
             )
