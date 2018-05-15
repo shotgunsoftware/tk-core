@@ -85,7 +85,7 @@ def _process_configuration(sg_connection, config_uri_str):
     return cfg_descriptor
 
 
-def bake_config(sg_connection, config_uri, target_path, use_system_core=False):
+def bake_config(sg_connection, config_uri, target_path, do_zip=False):
     """
     Bake a Toolkit Pipeline configuration.
 
@@ -152,6 +152,14 @@ def bake_config(sg_connection, config_uri, target_path, use_system_core=False):
     logger.info("")
     logger.info("")
     logger.info("")
+    if do_zip:
+        logger.info("Zip archiving the baked configuration...")
+        archive_path = shutil.make_archive(
+            target_path,
+            "zip",
+            root_dir=target_path
+        )
+        logger.info("Zip archive available here: %s" % archive_path)
 
 
 def main():
@@ -206,6 +214,14 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         default=False,
         action="store_true",
         help="Enable debug logging"
+    )
+
+    parser.add_option(
+        "-z",
+        "--zip",
+        default=False,
+        action="store_true",
+        help="Zip archive the config"
     )
 
     add_authentication_options(parser)
@@ -264,6 +280,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         sg_connection,
         config_descriptor,
         target_path,
+        options.zip
     )
 
     # all good!
