@@ -460,7 +460,7 @@ you would simply execute:
 
 Given that the location of the configuration is known on beforehand, factory methods
 such as :meth:`sgtk.sgtk_from_path` can also be used, however when doing so you need
-to make sure you use the core assocaited with the configuration:
+to make sure you use the core associated with the configuration:
 
 .. code-block:: python
 
