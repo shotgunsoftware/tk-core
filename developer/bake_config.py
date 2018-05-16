@@ -57,6 +57,7 @@ def _process_configuration(sg_connection, config_uri_str):
     :param sg_connection: Shotgun connection.
     :param config_uri_str: Toolkit config descriptor as a string.
     :returns: Resolved config descriptor object.
+    :raises: ValueError for "baked" descriptors.
     """
     logger.info("Analyzing configuration")
 
@@ -183,7 +184,11 @@ In its simplest form, just provide a local path and target folder for the build.
 
 > python bake_config.py ~/dev/tk-config-myconfig /tmp/baked_configurations
 
-Or you can specify a Toolkit config descriptor uri.
+Or you can specify a version with a Toolkit config descriptor uri.
+
+> python bake_config.py "sgtk:descriptor:dev?version=v1.0.9&path=../tk-config-myconfig" /tmp/baked_configurations
+
+Any type of Toolkit config descriptor uri can be used, if a version is not specfied the latest for the descriptor is resolved.
 
 > python bake_config.py "sgtk:descriptor:app_store?name=tk-config-basic" /tmp/baked_configurations
 
