@@ -524,6 +524,11 @@ to launch Toolkit's default config for an Shotgun Asset:
     # the latest version will be looked up and used
     mgr.base_configuration = "sgtk:descriptor:app_store?name=tk-config-basic"
 
+    # Each bootstrap session is normally defined by a plugin id. We recommend
+    # using a 'basic.' prefix if you want your bootstrap session to pick up the
+    # standard toolkit configurations
+    mgr.plugin_id = "basic.my_toolkit_plugin"
+
     # now start up the maya engine for a given Shotgun object
     e = mgr.bootstrap_engine("tk-maya", entity={"type": "Asset", "id": 1234})
 
