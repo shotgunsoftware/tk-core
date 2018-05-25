@@ -275,7 +275,11 @@ def sanitize_url(server_url):
     # - https (scheme)
     # - test.shogunstudio.com (network location)
     # - /... (path)
-    return __sanitize_url(first_pass)
+    #
+    # We also lowercase the entire url. This will allow us to reliably compare site addresses
+    # against each other elsewhere in the code and not have to worry about STUDIO.shotgunstudio.com
+    # and studio.shotgunstudio.com not matching when they should be considered the same site.
+    return __sanitize_url(first_pass).lower()
 
 
 def get_associated_sg_base_url():
