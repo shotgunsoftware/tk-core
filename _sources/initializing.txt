@@ -460,7 +460,7 @@ you would simply execute:
 
 Given that the location of the configuration is known on beforehand, factory methods
 such as :meth:`sgtk.sgtk_from_path` can also be used, however when doing so you need
-to make sure you use the core assocaited with the configuration:
+to make sure you use the core associated with the configuration:
 
 .. code-block:: python
 
@@ -523,6 +523,11 @@ to launch Toolkit's default config for an Shotgun Asset:
     # Note that the version token is not specified, meaning that
     # the latest version will be looked up and used
     mgr.base_configuration = "sgtk:descriptor:app_store?name=tk-config-basic"
+
+    # Each bootstrap session is normally defined by a plugin id. We recommend
+    # using a 'basic.' prefix if you want your bootstrap session to pick up the
+    # standard toolkit configurations
+    mgr.plugin_id = "basic.my_toolkit_plugin"
 
     # now start up the maya engine for a given Shotgun object
     e = mgr.bootstrap_engine("tk-maya", entity={"type": "Asset", "id": 1234})
