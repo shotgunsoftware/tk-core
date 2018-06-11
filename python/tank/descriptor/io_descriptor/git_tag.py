@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
 import copy
+import re
 
 from .git import IODescriptorGit
 from ..errors import TankDescriptorError
@@ -147,8 +148,7 @@ class IODescriptorGitTag(IODescriptorGit):
         """
         try:
             # clone the repo, checkout the given tag
-            commands = ["checkout -q \"%s\"" % self._version]
-            self._clone_then_execute_git_commands(destination_path, commands)
+            self._clone_then_execute_git_commands(destination_path, [], depth=1, ref=self._version)
         except Exception as e:
             raise TankDescriptorError(
                 "Could not download %s, "
@@ -204,8 +204,14 @@ class IODescriptorGitTag(IODescriptorGit):
         try:
             # clone the repo, list all tags
             # for the repository, across all branches
-            commands = ["tag"]
-            git_tags = self._tmp_clone_then_execute_git_commands(commands).split("\n")
+            commands = ["ls-remote -q --tags %s" % self._path]
+            tags = self._tmp_clone_then_execute_git_commands(commands, depth=1).split("\n")
+            regex = re.compile('.*refs/tags/([^^]*)$')
+            git_tags = []
+            for tag in tags:
+                m = regex.match(tag)
+                if m:
+                    git_tags.append(m.group(1))
 
         except Exception as e:
             raise TankDescriptorError(
