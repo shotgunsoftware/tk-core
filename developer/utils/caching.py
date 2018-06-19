@@ -81,15 +81,14 @@ def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
 
         for eng in env.get_engines():
             desc = env.get_engine_descriptor_dict(eng)
-            if _should_skip_caching(desc):
-                continue
-            # resolve descriptor and clone cache into bundle cache
-            _cache_descriptor(
-                sg_connection,
-                Descriptor.ENGINE,
-                desc,
-                bundle_cache_root
-            )
+            if not _should_skip_caching(desc):
+                # resolve descriptor and clone cache into bundle cache
+                _cache_descriptor(
+                    sg_connection,
+                    Descriptor.ENGINE,
+                    desc,
+                    bundle_cache_root
+                )
 
             for app in env.get_apps(eng):
                 desc = env.get_app_descriptor_dict(eng, app)
