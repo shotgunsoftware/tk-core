@@ -11,11 +11,9 @@ a local path.
 
 # system imports
 from __future__ import with_statement
-import re
 import os
 import sys
 import shutil
-import datetime
 
 # add sgtk API
 this_folder = os.path.abspath(os.path.dirname(__file__))
@@ -26,12 +24,10 @@ sys.path.append(python_folder)
 from tank import LogManager
 from tank.util import filesystem
 from tank.errors import TankError
-from tank.descriptor import Descriptor, descriptor_uri_to_dict, descriptor_dict_to_uri
+from tank.descriptor import Descriptor, descriptor_uri_to_dict
 from tank.descriptor import create_descriptor, is_descriptor_version_missing
 from tank.descriptor.errors import TankDescriptorError
-from tank.bootstrap.baked_configuration import BakedConfiguration
 from tank.bootstrap import constants as bootstrap_constants
-from tank_vendor import yaml
 
 from utils import (
     caching, cache_apps, authenticate, add_authentication_options,
