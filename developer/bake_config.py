@@ -56,6 +56,7 @@ def _should_skip_caching_sparse(desc):
     app_store descriptors in sparse configs since SG Desktop will take care of downloading
     these automatically from the app store at runtime.
 
+    :param dict desc: Descriptor to check.
     :returns: ``True`` if the contents should be skipped, ``False`` otherwise.
     """
     return desc["type"] in ["dev", "path", "app_store"]
@@ -150,7 +151,30 @@ def bake_config(sg_connection, config_uri, target_path, do_zip=False, sparse_cac
             "Performing sparse caching. Will not cache standard app_store bundles."
         )
         should_skip_caching_callable = _should_skip_caching_sparse
+
     cache_apps(sg_connection, config_descriptor, bundle_cache_root, should_skip_caching_callable)
+
+    # Now analyze what core the config needs and cache it if needed.
+    core_descriptor = config_descriptor.associated_core_descriptor
+    if core_descriptor:
+        logger.info("Config defines a specific core in config/core/core_api.yml.")
+        logger.info("This will be used when the config is executing.")
+        if not sparse_caching or not _should_skip_caching_sparse(core_descriptor):
+            logger.info(
+                "Ensuring this core (%s) is cached..." % core_descriptor
+            )
+            associated_core_desc = create_descriptor(
+                sg_connection,
+                Descriptor.CORE,
+                core_descriptor,
+                bundle_cache_root_override=bundle_cache_root
+            )
+            associated_core_desc.ensure_local()
+        else:
+            logger.info(
+                "No need to cache this core (%s), it will be cached at runtime." %
+                config_descriptor.associated_core_descriptor
+            )
 
     # Remove unwanted files, e.g. git history.
     cleanup_bundle_cache(bundle_cache_root)

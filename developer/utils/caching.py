@@ -61,9 +61,9 @@ def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root, should_skip_cac
     :param sg_connection: Shotgun connection
     :param cfg_descriptor: Config descriptor
     :param bundle_cache_root: Root where to cache payload
-    :param should_skip_caching_callable: Optional callable that will check the bundle
-        type and return `True` or `False` to indicate whether it should be cached.
-        Callable must accept a the descriptor type as a single `str` parameter and
+    :param should_skip_caching_callable: Optional callable that will check the descriptor
+        and return `True` or `False` to indicate whether it should be cached.
+        Callable must accept a single parameter, the descriptor as a `dict`, and
         return a `bool`. If `None`, the default :func:`_should_skip_caching()` will be used
     """
     # introspect the config and cache everything
