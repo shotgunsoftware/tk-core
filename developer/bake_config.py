@@ -46,17 +46,15 @@ logger = LogManager.get_logger("bake_config")
 BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 
 
-def _studio_should_skip_caching(desc):
+def _should_skip_caching_sparse(desc):
     """
     Returns if a descriptor's content should not be cached.
 
-    NOTE: We are overriding this function from utils.caching in order to inject
-          "app_store" as an additional type to ignore, when the --sparse option
-          is used in order to keep our bundled configs small.
-
-    We should not attempt to cache descriptors that are path-based. Not only they don't
+    We should not attempt to cache descriptors that are path-based. Not only don't they
     need to be cached, but they might be using special tokens like CONFIG_FOLDER
-    that can't be understood outside a pipeline configuration.
+    that can't be understood outside a pipeline configuration. We also skip caching
+    app_store descriptors in sparse configs since SG Desktop will take care of downloading
+    these automatically from the app store at runtime.
 
     :returns: ``True`` if the contents should be skipped, ``False`` otherwise.
     """
@@ -97,7 +95,7 @@ def _process_configuration(sg_connection, config_uri_str):
     return cfg_descriptor
 
 
-def bake_config(sg_connection, config_uri, target_path, do_zip=False, make_sparse=False):
+def bake_config(sg_connection, config_uri, target_path, do_zip=False, sparse_caching=False):
     """
     Bake a Toolkit Pipeline configuration.
 
@@ -109,7 +107,7 @@ def bake_config(sg_connection, config_uri, target_path, do_zip=False, make_spars
     :param config_uri: A TK config descriptor uri.
     :param target_path: Path to build
     :param do_zip: Optionally zip up config once it's baked. Defaults to False.
-    :param make_sparse: Don't cache app_store bundles into the config. Defaults to False.
+    :param sparse_caching: Don't cache app_store bundles into the config. Defaults to False.
     """
     logger.info("Your Toolkit config '%s' will be processed." % config_uri)
     logger.info("Baking into '%s'" % (target_path))
@@ -143,16 +141,16 @@ def bake_config(sg_connection, config_uri, target_path, do_zip=False, make_spars
     logger.info("Downloading and caching config...")
     config_descriptor.clone_cache(bundle_cache_root)
 
-    # Monkey-patch tk-core's built-in check for whether to skip caching
-    # certain bundle types. If make_sparse is True, we add app_store
-    # descriptor types to the skip list in order to keep our bundle cache
-    # small and let Desktop handle downloading app_store bundles separately.
-    if make_sparse:
+    # If sparse_caching is True, we add app_store descriptor types to the skip
+    # list in order to keep our bundle cache small and let Desktop handle
+    # downloading app_store bundles separately.
+    should_skip_caching_callable = None
+    if sparse_caching:
         logger.info(
             "Performing sparse caching. Will not cache standard app_store bundles."
         )
-        caching._should_skip_caching = _studio_should_skip_caching
-    cache_apps(sg_connection, config_descriptor, bundle_cache_root)
+        should_skip_caching_callable = _should_skip_caching_sparse
+    cache_apps(sg_connection, config_descriptor, bundle_cache_root, should_skip_caching_callable)
 
     # Remove unwanted files, e.g. git history.
     cleanup_bundle_cache(bundle_cache_root)
