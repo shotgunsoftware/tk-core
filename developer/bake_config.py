@@ -34,7 +34,7 @@ from tank.descriptor.errors import TankDescriptorError
 from tank.bootstrap import constants as bootstrap_constants
 
 from utils import (
-    caching, cache_apps, authenticate, add_authentication_options,
+    cache_apps, authenticate, add_authentication_options,
     OptionParserLineBreakingEpilog, cleanup_bundle_cache,
     wipe_folder, automated_setup_documentation
 )
@@ -142,23 +142,21 @@ def bake_config(sg_connection, config_uri, target_path, do_zip=False, sparse_cac
     logger.info("Downloading and caching config...")
     config_descriptor.clone_cache(bundle_cache_root)
 
-    # If sparse_caching is True, we add app_store descriptor types to the skip
-    # list in order to keep our bundle cache small and let Desktop handle
-    # downloading app_store bundles separately.
-    should_skip_caching_callable = None
+    # If sparse_caching is True, we use our own descriptor filter which skips
+    # app_store descriptors to keep our bundle cache small and lets Toolkit
+    # download the bundles from the app store at runtime.
     if sparse_caching:
-        logger.info(
-            "Performing sparse caching. Will not cache standard app_store bundles."
-        )
-        should_skip_caching_callable = _should_skip_caching_sparse
-
-    cache_apps(sg_connection, config_descriptor, bundle_cache_root, should_skip_caching_callable)
+        logger.info("Performing sparse caching. Will not cache standard app_store bundles.")
+        cache_apps(sg_connection, config_descriptor, bundle_cache_root, _should_skip_caching_sparse)
+    else:
+        cache_apps(sg_connection, config_descriptor, bundle_cache_root)
 
     # Now analyze what core the config needs and cache it if needed.
     core_descriptor = config_descriptor.associated_core_descriptor
     if core_descriptor:
         logger.info("Config defines a specific core in config/core/core_api.yml.")
         logger.info("This will be used when the config is executing.")
+        # If sparse_caching is True, check if we need to cache tk-core or not
         if not sparse_caching or not _should_skip_caching_sparse(core_descriptor):
             logger.info(
                 "Ensuring this core (%s) is cached..." % core_descriptor
