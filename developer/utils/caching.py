@@ -53,7 +53,7 @@ def _should_skip_caching(desc):
     return desc["type"] in ["dev", "path"]
 
 
-def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
+def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root, should_skip_caching_callable=None):
     """
     Iterates over all environments within the given configuration descriptor
     and caches all items into the bundle cache root.
@@ -61,10 +61,20 @@ def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
     :param sg_connection: Shotgun connection
     :param cfg_descriptor: Config descriptor
     :param bundle_cache_root: Root where to cache payload
+    :param should_skip_caching_callable: Optional callable that will check the descriptor
+        and return `True` or `False` to indicate whether it should be cached.
+        Callable must accept a single parameter, the descriptor as a `dict`, and
+        return a `bool`. If `None`, the default :func:`_should_skip_caching()` will be used
     """
     # introspect the config and cache everything
     logger.info("Introspecting environments...")
     env_path = os.path.join(cfg_descriptor.get_path(), "env")
+
+    # set the function to call when checking whether to cache the bundle
+    if should_skip_caching_callable:
+        _skip_caching = should_skip_caching_callable
+    else:
+        _skip_caching = _should_skip_caching
 
     # find all environment files
     env_filenames = []
@@ -81,19 +91,18 @@ def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
 
         for eng in env.get_engines():
             desc = env.get_engine_descriptor_dict(eng)
-            if _should_skip_caching(desc):
-                continue
-            # resolve descriptor and clone cache into bundle cache
-            _cache_descriptor(
-                sg_connection,
-                Descriptor.ENGINE,
-                desc,
-                bundle_cache_root
-            )
+            if not _skip_caching(desc):
+                # resolve descriptor and clone cache into bundle cache
+                _cache_descriptor(
+                    sg_connection,
+                    Descriptor.ENGINE,
+                    desc,
+                    bundle_cache_root
+                )
 
             for app in env.get_apps(eng):
                 desc = env.get_app_descriptor_dict(eng, app)
-                if _should_skip_caching(desc):
+                if _skip_caching(desc):
                     continue
                 # resolve descriptor and clone cache into bundle cache
                 _cache_descriptor(
@@ -105,7 +114,7 @@ def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
 
         for framework in env.get_frameworks():
             desc = env.get_framework_descriptor_dict(framework)
-            if _should_skip_caching(desc):
+            if _skip_caching(desc):
                 continue
             _cache_descriptor(
                 sg_connection,
