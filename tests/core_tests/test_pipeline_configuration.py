@@ -381,3 +381,16 @@ class TestConfigLocations(TankTestBase):
             pc._get_templates_config_location(),
             os.path.join(config_files_root, "core", "templates.yml")
         )
+
+
+class TestConfigDescriptorHook(TankTestBase):
+
+    def test_get_descriptor_invokes_create_descriptor_hook(self):
+        self.setup_fixtures("descriptor_tests/with_create_descriptor_hook")
+
+        desc = self.pipeline_configuration._get_descriptor(
+            tank.descriptor.Descriptor.APP, "sgtk:descriptor:path?path=/a/b/c"
+        )
+
+        self.assertTrue(hasattr(desc, "created_through_hook"))
+        self.assertEqual(desc.parent, None)

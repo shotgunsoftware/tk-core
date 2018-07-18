@@ -31,6 +31,7 @@ from . import template_includes
 from . import LogManager
 
 from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
+from .descriptor.descriptor import get_descriptor_creation_functor
 
 log = LogManager.get_logger(__name__)
 
@@ -927,7 +928,9 @@ class PipelineConfiguration(object):
 
         descriptor_dict = self._preprocess_descriptor(descriptor_dict)
 
-        desc = create_descriptor(
+        # TODO: This is bad... we don't have access to the SGTK instance...
+        create_descriptor_functor = get_descriptor_creation_functor(self._descriptor, parent=None)
+        desc = create_descriptor_functor(
             sg_connection,
             descriptor_type,
             descriptor_dict,

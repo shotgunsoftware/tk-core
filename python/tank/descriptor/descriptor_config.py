@@ -15,7 +15,11 @@ import os
 from ..errors import TankFileDoesNotExistError
 from . import constants
 from .errors import TankInvalidInterpreterLocationError
-from .descriptor import Descriptor, create_descriptor
+from .io_descriptor import is_descriptor_version_missing
+
+from .descriptor import (
+    Descriptor, get_descriptor_creation_functor
+)
 from .. import LogManager
 from ..util import StorageRoots
 from ..util import ShotgunPath
@@ -93,13 +97,15 @@ class ConfigDescriptor(Descriptor):
         )
 
         if not self._cached_core_descriptor:
+            # We do not have a parent for the hook since there is no tank instance yet.
+            create_descriptor = get_descriptor_creation_functor(self, parent=None)
             self._cached_core_descriptor = create_descriptor(
                 self._sg_connection,
                 Descriptor.CORE,
                 self.associated_core_descriptor,
                 self._bundle_cache_root_override,
                 [config_bundle_cache] + self._fallback_roots,
-                resolve_latest=False
+                resolve_latest=is_descriptor_version_missing(self.associated_core_descriptor)
             )
 
         return self._cached_core_descriptor
