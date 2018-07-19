@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
  -----------------------------------------------------------------------------
- Copyright (c) 2009-2017, Shotgun Software Inc.
+ Copyright (c) 2009-2018, Shotgun Software Inc.
 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
@@ -92,7 +92,7 @@ except ImportError, e:
 
 # ----------------------------------------------------------------------------
 # Version
-__version__ = "3.0.36"
+__version__ = "3.0.37"
 
 # ----------------------------------------------------------------------------
 # Errors
@@ -131,6 +131,13 @@ class MissingTwoFactorAuthenticationFault(Fault):
 class UserCredentialsNotAllowedForSSOAuthenticationFault(Fault):
     """
     Exception when the server is configured to use SSO. It is not possible to use
+    a username/password pair to authenticate on such server.
+    """
+    pass
+
+class UserCredentialsNotAllowedForOxygenAuthenticationFault(Fault):
+    """
+    Exception when the server is configured to use Oxygen. It is not possible to use
     a username/password pair to authenticate on such server.
     """
     pass
@@ -2244,6 +2251,23 @@ class Shotgun(object):
         """
         # Basic validations of the file to upload.
         path = os.path.abspath(os.path.expanduser(path or ""))
+
+        # We need to check for string encodings that we aren't going to be able
+        # to support later in the upload process. If the given path wasn't already
+        # unicode, we will try to decode it as utf-8, and if that fails then we
+        # have to raise a sane exception. This will always work for ascii and utf-8
+        # encoded strings, but will fail on some others if the string includes non
+        # ascii characters.
+        if not isinstance(path, unicode):
+            try:
+                path = path.decode("utf-8")
+            except UnicodeDecodeError:
+                raise ShotgunError(
+                    "Could not upload the given file path. It is encoded as "
+                    "something other than utf-8 or ascii. To upload this file, "
+                    "it can be string encoded as utf-8, or given as unicode: %s" % path
+                )
+
         if not os.path.isfile(path):
             raise ShotgunError("Path must be a valid file, got '%s'" % path)
         if os.path.getsize(path) == 0:
@@ -2252,10 +2276,8 @@ class Shotgun(object):
         is_thumbnail = (field_name in ["thumb_image", "filmstrip_thumb_image", "image",
                                        "filmstrip_image"])
 
-        # Version.sg_uploaded_movie is handled as a special case and uploaded
-        # directly to Cloud storage
-        if self.server_info.get("s3_direct_uploads_enabled", False) \
-                and entity_type == "Version" and field_name == "sg_uploaded_movie":
+        # Supported types can be directly uploaded to Cloud storage
+        if self._requires_direct_s3_upload(entity_type, field_name):
             return self._upload_to_storage(entity_type, entity_id, path, field_name, display_name,
                                            tag_list, is_thumbnail)
         else:
@@ -2358,10 +2380,27 @@ class Shotgun(object):
 
         params.update(self._auth_params())
 
+        # If we ended up with a unicode string path, we need to encode it
+        # as a utf-8 string. If we don't, there's a chance that there will
+        # will be an attempt later on to encode it as an ascii string, and
+        # that will fail ungracefully if the path contains any non-ascii
+        # characters.
+        #
+        # On Windows, if the path contains non-ascii characters, the calls
+        # to open later in this method will fail to find the file if given
+        # a non-ascii-encoded string path. In that case, we're going to have
+        # to call open on the unicode path, but we'll use the encoded string
+        # for everything else.
+        path_to_open = path
+        if isinstance(path, unicode):
+            path = path.encode("utf-8")
+            if sys.platform != "win32":
+                path_to_open = path
+
         if is_thumbnail:
             url = urlparse.urlunparse((self.config.scheme, self.config.server,
                 "/upload/publish_thumbnail", None, None, None))
-            params["thumb_image"] = open(path, "rb")
+            params["thumb_image"] = open(path_to_open, "rb")
             if field_name == "filmstrip_thumb_image" or field_name == "filmstrip_image":
                 params["filmstrip"] = True
 
@@ -2378,7 +2417,7 @@ class Shotgun(object):
             if tag_list:
                 params["tag_list"] = tag_list
 
-            params["file"] = open(path, "rb")
+            params["file"] = open(path_to_open, "rb")
 
         result = self._send_form(url, params)
 
@@ -3031,6 +3070,27 @@ class Shotgun(object):
 
         return session_token
 
+    def preferences_read(self, prefs=None):
+        """
+        Get a subset of the site preferences.
+
+        >>> sg.preferences_read()
+        {
+            "pref_name": "pref value"
+        }
+
+        :param list prefs: An optional list of preference names to return.
+        :returns: Dictionary of preferences and their values.
+        :rtype: dict
+        """
+        if self.server_caps.version and self.server_caps.version < (7, 10, 0):
+                raise ShotgunError("preferences_read requires server version 7.10.0 or "\
+                    "higher, server is %s" % (self.server_caps.version,))
+
+        prefs = prefs or []
+
+        return self._call_rpc("preferences_read", { "prefs": prefs })
+
     def _build_opener(self, handler):
         """
         Build urllib2 opener with appropriate proxy handler.
@@ -3384,6 +3444,7 @@ class Shotgun(object):
         ERR_AUTH = 102 # error code for authentication related problems
         ERR_2FA  = 106 # error code when 2FA authentication is required but no 2FA token provided.
         ERR_SSO  = 108 # error code when SSO is activated on the site, preventing the use of username/password for authentication.
+        ERR_OXYG = 110 # error code when Oxygen is activated on the site, preventing the use of username/password for authentication.
 
         if isinstance(sg_response, dict) and sg_response.get("exception"):
             if sg_response.get("error_code") == ERR_AUTH:
@@ -3393,6 +3454,10 @@ class Shotgun(object):
             elif sg_response.get("error_code") == ERR_SSO:
                 raise UserCredentialsNotAllowedForSSOAuthenticationFault(
                     sg_response.get("message", "Authentication using username/password is not allowed for an SSO-enabled Shotgun site")
+                )
+            elif sg_response.get("error_code") == ERR_OXYG:
+                raise UserCredentialsNotAllowedForOxygenAuthenticationFault(
+                    sg_response.get("message", "Authentication using username/password is not allowed for an Autodesk Identity enabled Shotgun site")
                 )
             else:
                 # raise general Fault
@@ -3787,6 +3852,47 @@ class Shotgun(object):
         if not str(result).startswith("1"):
             raise ShotgunError("Unable get upload part link: %s" % result)
 
+    def _requires_direct_s3_upload(self, entity_type, field_name):
+        """
+        Internal function that determines if an entity_type + field_name combination
+        should be uploaded to cloud storage.
+
+        The info endpoint should return `s3_enabled_upload_types` which contains an object like the following:
+            {
+                'Version': ['sg_uploaded_movie'],
+                'Attachment': '*',
+                '*': ['this_file']
+            }
+
+        :param str entity_type: The entity type of the file being uploaded.
+        :param str field_name: The matching field name for the file being uploaded.
+
+        :returns: Whether the field + entity type combination should be uploaded to cloud storage.
+        :rtype: bool
+        """
+        supported_s3_types = self.server_info.get('s3_enabled_upload_types') or {}
+        supported_fields = supported_s3_types.get(entity_type) or []
+        supported_star_fields = supported_s3_types.get("*") or []
+        # If direct uploads are enabled
+        if self.server_info.get("s3_direct_uploads_enabled", False):
+            # If field_name is part of a supported entity_type
+            if field_name in supported_fields or field_name in supported_star_fields:
+                return True
+            # If supported_fields is a string or a list with *
+            if isinstance(supported_fields, list) and "*" in supported_fields:
+                return True
+            elif supported_fields == "*":
+                return True
+            # If supported_star_fields is a list containing * or * as a string
+            if isinstance(supported_star_fields, list) and "*" in supported_star_fields:
+                return True
+            elif supported_star_fields == "*":
+                return True
+            # Support direct upload for old versions of shotgun
+            return entity_type == "Version" and field_name == "sg_uploaded_movie"
+        else:
+            return False
+
     def _send_form(self, url, params):
         """
         Utility function to send a Form to Shotgun and process any HTTP errors that
@@ -3897,7 +4003,15 @@ class FormPostHandler(urllib2.BaseHandler):
             buffer.write('Content-Disposition: form-data; name="%s"' % key)
             buffer.write('\r\n\r\n%s\r\n' % value)
         for (key, fd) in files:
-            filename = fd.name.split('/')[-1]
+            # On Windows, it's possible that we were forced to open a file
+            # with non-ascii characters as unicode. In that case, we need to
+            # encode it as a utf-8 string to remove unicode from the equation.
+            # If we don't, the mix of unicode and strings going into the
+            # buffer can cause UnicodeEncodeErrors to be raised.
+            filename = fd.name
+            if isinstance(filename, unicode):
+                filename = filename.encode("utf-8")
+            filename = filename.split('/')[-1]
             content_type = mimetypes.guess_type(filename)[0]
             content_type = content_type or 'application/octet-stream'
             file_size = os.fstat(fd.fileno())[stat.ST_SIZE]
