@@ -742,7 +742,7 @@ The following lines of python code demonstrate how to launch Maya using the core
 
     # Use the SoftwareLauncher instance to find a list of Maya versions installed on the
     # local filesystem. A list of SoftwareVersion instances is returned.
-    software_versions = software_launcher.get_supported_software()
+    software_versions = software_launcher.scan_software()
 
     # Ask the SoftwareLauncher instance to prepare an environment to launch Maya in.
     # For simplicity, use the first version returned from the list of software_versions.
