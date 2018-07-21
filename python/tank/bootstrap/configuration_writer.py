@@ -17,10 +17,10 @@ import datetime
 from . import constants
 
 from ..descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
+from ..descriptor.descriptor_operations import DescriptorOperations
 
 from ..util import filesystem
 from ..util import StorageRoots
-from ..util import ShotgunPath
 from ..util.shotgun import connection
 from ..util.move_guard import MoveGuard
 
@@ -84,7 +84,7 @@ class ConfigurationWriter(object):
             create_placeholder_file=True
         )
 
-    def install_core(self, config_descriptor, bundle_cache_fallback_paths):
+    def install_core(self, config_descriptor, bundle_cache_fallback_paths, pipeline_config_id):
         """
         Install a core into the given configuration.
 
@@ -119,8 +119,10 @@ class ConfigurationWriter(object):
             resolve_latest=use_latest
         )
 
-        # make sure we have our core on disk
-        core_descriptor.ensure_local()
+        DescriptorOperations(
+            self._sg_connection, pipeline_config_id, config_descriptor
+        ).ensure_local(core_descriptor)
+
         config_root_path = self._path.current_os
         core_target_path = os.path.join(config_root_path, "install", "core")
 

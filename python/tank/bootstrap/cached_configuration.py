@@ -70,7 +70,7 @@ class CachedConfiguration(Configuration):
         self._pipeline_config_id = pipeline_config_id
         self._bundle_cache_fallback_paths = bundle_cache_fallback_paths
 
-        self._config_writer = ConfigurationWriter(self._path, self._sg_connection)
+        self._config_writer = ConfigurationWriter(self._path, self._sg_connection, self._descriptor_operations)
 
     def __str__(self):
         """
@@ -325,7 +325,8 @@ class CachedConfiguration(Configuration):
             # and lastly install core
             self._config_writer.install_core(
                 self._descriptor,
-                self._bundle_cache_fallback_paths
+                self._bundle_cache_fallback_paths,
+                self._pipeline_config_id
             )
 
         except Exception as e:

@@ -172,7 +172,7 @@ class BakedConfiguration(Configuration):
 
         config_writer.ensure_project_scaffold()
         config_descriptor.copy(os.path.join(path, "config"))
-        config_writer.install_core(config_descriptor, bundle_cache_fallback_paths=[])
+        config_writer.install_core(config_descriptor, bundle_cache_fallback_paths=[], pipeline_config_id=None)
 
         # write the pipeline_config.yml file but do not include the
         # source_descriptor - setting this to None indicates

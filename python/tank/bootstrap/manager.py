@@ -17,6 +17,7 @@ from .configuration import Configuration
 from .resolver import ConfigurationResolver
 from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
+from ..descriptor.descriptor_operations import DescriptorOperations
 from .. import LogManager
 from ..errors import TankError
 from ..util import ShotgunPath
@@ -1218,6 +1219,12 @@ class ToolkitManager(object):
                 descriptor = env_obj.get_framework_descriptor(framework)
                 descriptors[descriptor.get_uri()] = descriptor
 
+        desc_op = DescriptorOperations(
+            self._sg_connection,
+            pipeline_configuration.get_shotgun_id(),
+            pipeline_configuration.get_configuration_descriptor()
+        )
+
         # pass 2 - download all apps
         for idx, descriptor in enumerate(descriptors.values()):
 
@@ -1231,7 +1238,7 @@ class ToolkitManager(object):
                 self._report_progress(progress_callback, progress_value, message)
 
                 try:
-                    descriptor.download_local()
+                    desc_op.download_local(descriptor)
                 except Exception as e:
                     log.error("Downloading %r failed to complete successfully. This bundle will be skipped.", e)
                     log.exception(e)

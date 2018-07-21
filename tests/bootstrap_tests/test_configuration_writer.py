@@ -81,7 +81,7 @@ class TestCoreInstallation(TestConfigurationWriterBase):
             "type": "path"
         }
 
-        cw.install_core(descriptor, [])
+        cw.install_core(descriptor, bundle_cache_fallback_paths=[], pipeline_config_id=None)
 
         core_install_location = os.path.join(cw.path.current_os, "install", "core")
 
