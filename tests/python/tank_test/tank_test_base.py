@@ -600,8 +600,7 @@ class TankTestBase(unittest.TestCase):
                      toolkit configurations to test against. By default, the fixtures will look for
                      a `config` folder under the fixtures location, but if you for example wanted to
                      have a `vfx_config` fixture and a `games_config` fixture to run your tests against,
-                     simply specify the name parameter. You can use a path seperator if the fixture
-                     is not directly under the fixtures folder.
+                     simply specify the name parameter.
         :param parameters: Dictionary with additional parameters to control the fixtures.
                            The method currently supports the following parameters:
 
@@ -634,10 +633,11 @@ class TankTestBase(unittest.TestCase):
         """
         See doc for setup fixtures.
         """
+
         parameters = parameters or {}
 
         # figure out root point of fixtures config
-        config_root = os.path.join(self.fixtures_root, *name.replace("\\", "/").split("/"))
+        config_root = os.path.join(self.fixtures_root, name)
 
         # first figure out core location
         if "core" in parameters:

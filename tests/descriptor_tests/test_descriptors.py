@@ -938,35 +938,3 @@ class TestFeaturesApi(unittest2.TestCase):
 
         # Make sure there weren't new features introduced.
         self.assertEqual(desc.get_features_info(), features)
-
-
-class TestConfigDescriptorHook(ShotgunTestBase):
-
-    def setUp(self):
-        super(ShotgunTestBase, self).setUp()
-
-        self._bundle_cache_root = os.path.join(
-            self.tank_temp, self.short_test_name, "install"
-        )
-
-        self._cfg_descriptor = create_descriptor(
-            self.mockgun,
-            sgtk.descriptor.Descriptor.CONFIG,
-            {
-                "type": "path",
-                "path": os.path.join(
-                    self.fixtures_root,
-                    "descriptor_tests",
-                    "with_create_descriptor_hook"
-                ),
-            },
-            self._bundle_cache_root
-        )
-
-    def test_resolve_core_descriptor_invokes_create_descriptor_hook(self):
-        """
-        Ensures the create_descriptor hook is invoked when the
-        config descriptor resolves the core.
-        """
-        core_descriptor = self._cfg_descriptor.resolve_core_descriptor()
-        self.assertTrue(hasattr(core_descriptor, "created_through_hook"))

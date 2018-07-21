@@ -17,43 +17,9 @@ from .io_descriptor import create_io_descriptor
 from .errors import TankDescriptorError
 from ..util import LocalFileStorageManager
 from . import constants
-from .. import hook
 
 
 logger = LogManager.get_logger(__name__)
-
-
-def get_descriptor_creation_functor(config_descriptor, parent):
-
-    # Look in the config if there is a create_descriptor hook.
-    hook_path = os.path.join(
-        config_descriptor.get_config_folder(), "hooks", "create_descriptor.py"
-    )
-    if os.path.isfile(hook_path):
-        def create_descriptor_hook_wrapper(
-            sg_connection,
-            descriptor_type,
-            dict_or_uri,
-            bundle_cache_root_override=None,
-            fallback_roots=None,
-            resolve_latest=False,
-            constraint_pattern=None,
-            local_fallback_when_disconnected=True
-        ):
-            return hook.execute_hook_method(
-                [hook_path], parent, "create_descriptor",
-                sg_connection=sg_connection,
-                descriptor_type=descriptor_type,
-                dict_or_uri=dict_or_uri,
-                bundle_cache_root_override=bundle_cache_root_override,
-                fallback_roots=fallback_roots,
-                resolve_latest=resolve_latest,
-                constraint_pattern=constraint_pattern,
-                local_fallback_when_disconnected=local_fallback_when_disconnected
-            )
-        return create_descriptor_hook_wrapper
-    else:
-        return create_descriptor
 
 
 def create_descriptor(
