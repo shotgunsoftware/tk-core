@@ -38,12 +38,12 @@ class DescriptorOperations(object):
         """
         if self._hook_instance and hasattr(self._hook_instance, "download_local"):
             self._hook_instance.download_local(descriptor)
-            if descriptor.exists() is False:
+            if descriptor.exists_local() is False:
                 raise Exception("Something")
         else:
             descriptor.download_local()
 
     def ensure_local(self, descriptor):
         # Look in the config if there is a create_descriptor hook.
-        if descriptor.exists() is False:
+        if descriptor.exists_local() is False:
             self.download_local(descriptor)

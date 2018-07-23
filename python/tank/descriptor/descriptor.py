@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import contextlib
 import os
 import copy
 
@@ -419,6 +420,11 @@ class Descriptor(object):
         Retrieves this version to local repo.
         """
         return self._io_descriptor.download_local()
+
+    @contextlib.contextmanager
+    def external_download(self):
+        with self._io_descriptor.external_download() as external_download_location:
+            yield external_download_location
 
     def find_latest_version(self, constraint_pattern=None):
         """

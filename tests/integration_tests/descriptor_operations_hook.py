@@ -32,14 +32,14 @@ class DescriptorOperationsHooks(SgtkIntegrationTest):
 
     @classmethod
     def _zip_bundle(cls, location):
-        # Create a tempoprary zip file.
-        temp_zip_fd, temp_zip_location = tempfile.mkstemp(os.path.basename(location))
+        # Create a temporary zip file.
+        temp_zip_location = os.path.join(
+            cls._bundle_upload_folder,
+            "%s.zip" % os.path.basename(location)
+        )
 
         # Write to it.
         sgtk.util.zip.zip_file(location, temp_zip_location)
-
-        # Close it
-        os.close(temp_zip_fd)
 
         return temp_zip_location
 
@@ -83,13 +83,13 @@ class DescriptorOperationsHooks(SgtkIntegrationTest):
         return item is not None and item.get("sg_uploaded_bundle") is not None
 
     @classmethod
-    def _upload_bundle_if_missing(cls, location, descriptor):
+    def _upload_bundle_if_missing(cls, bundle_name, descriptor):
         """
         Uploads a bundle if it is missing from Shotgun.
         """
         if cls._is_bundle_uploaded(descriptor):
             return
-        cls._upload_bundle_at(os.path.join(cls.fixtures_root, "config", "bundles"), descriptor)
+        cls._upload_bundle_at(os.path.join(cls.fixtures_root, "config", "bundles", bundle_name), descriptor)
 
     @classmethod
     def _upload_core_if_missing(cls, descriptor):
@@ -98,7 +98,13 @@ class DescriptorOperationsHooks(SgtkIntegrationTest):
         """
         if cls._is_bundle_uploaded(descriptor):
             return
-        cls._upload_bundle_at(cls.tk_core_repo_root, descriptor)
+
+        # Create a temp folder into which we'll create a leaner tk-core distribution.
+        core_temp_folder = os.path.join(cls._bundle_upload_folder, "tk-core")
+        os.makedirs(core_temp_folder)
+        sgtk.util.filesystem.copy_folder(cls.tk_core_repo_root, core_temp_folder, skip_list=["doc", "tests", ".git"])
+
+        cls._upload_bundle_at(core_temp_folder, descriptor)
 
     @classmethod
     def _ensure_entity_fields_ready(cls):
@@ -119,6 +125,9 @@ class DescriptorOperationsHooks(SgtkIntegrationTest):
 
         cls._ensure_entity_fields_ready()
 
+        # Create a leaner version of tk-core.
+        cls._bundle_upload_folder = tempfile.mkdtemp()
+
         # Upload all our test data.
         cls._upload_bundle_if_missing(
             "test_engine",
@@ -126,11 +135,11 @@ class DescriptorOperationsHooks(SgtkIntegrationTest):
         )
         cls._upload_bundle_if_missing(
             "test_app",
-            "sgtk:descriptor:app_store?name=test_engine&version=v4.5.6"
+            "sgtk:descriptor:app_store?name=test_app&version=v4.5.6"
         )
         cls._upload_bundle_if_missing(
             "test_framework_v1",
-            "sgtk:descriptor:app_store?name=test_engine&version=v7.8.9"
+            "sgtk:descriptor:app_store?name=test_framework&version=v7.8.9"
         )
         cls._upload_core_if_missing("sgtk:descriptor:app_store?name=tk-core&version=v10.11.12")
 
@@ -140,7 +149,7 @@ class DescriptorOperationsHooks(SgtkIntegrationTest):
             "descriptor_hooks_configuration",
             {
                 "plugin_ids": "basic.*",
-                "descriptor": "sgtk:descriptor:path?%s" % (
+                "descriptor": "sgtk:descriptor:path?path=%s" % (
                     os.path.join(cls.fixtures_root, "descriptor_tests", "with_create_descriptor_hook")
                 ),
                 "project": cls.project
@@ -154,6 +163,7 @@ class DescriptorOperationsHooks(SgtkIntegrationTest):
         which will fail since we don't have bundles with the required names.
         """
         manager = sgtk.bootstrap.ToolkitManager(self.user)
+        manager.plugin_id = "basic.test"
         manager.pipeline_configuration = self.pipeline_configuration["id"]
         manager.bootstrap_engine("test_engine", self.project)
 

@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import contextlib
 import os
 import uuid
 
@@ -45,6 +46,17 @@ class IODescriptorDownloadable(IODescriptorBase):
     _DOWNLOAD_TRANSACTION_COMPLETE_FILE = "install_complete"
 
     def download_local(self):
+        with self.external_download() as temporary_path:
+            # attempt to download the descriptor to the temporary path.
+            log.debug("Downloading %s to temporary download path %s." % (self, temporary_path))
+            self._download_local(temporary_path)
+
+            # download completed without issue. Now create settings folder
+            metadata_folder = self._get_metadata_folder(temporary_path)
+            filesystem.ensure_folder_exists(metadata_folder)
+
+    @contextlib.contextmanager
+    def external_download(self):
         """
         Downloads the data represented by the descriptor into the primary bundle
         cache path.
@@ -77,14 +89,7 @@ class IODescriptorDownloadable(IODescriptorBase):
                 raise TankDescriptorIOError("Failed to create directory %s: %s" % (target_parent, e))
 
         try:
-            # attempt to download the descriptor to the temporary path.
-            log.debug("Downloading %s to temporary download path %s." % (self, temporary_path))
-            self._download_local(temporary_path)
-
-            # download completed without issue. Now create settings folder
-            metadata_folder = self._get_metadata_folder(temporary_path)
-            filesystem.ensure_folder_exists(metadata_folder)
-
+            yield temporary_path
         except Exception as e:
             # something went wrong during the download, remove the temporary files.
             log.error("Failed to download into path %s: %s. Attempting to remove it."

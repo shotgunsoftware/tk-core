@@ -83,13 +83,12 @@ class DescriptorOperationsHook(get_hook_baseclass()):
         :param descriptor: The descriptor that will be downloaded.
         :type descriptor: :class:`~sgtk.descriptor.Descriptor`
         """
-
         # First try to download from the local cache.
         if self._download_from_sg_cache(self.shotgun, descriptor):
             return
 
         # Then try to download the from remote cache.
-        if self._download_from_sg_cache(self._remote_sg, descriptor):
+        if self._remote_sg and self._download_from_sg_cache(self._remote_sg, descriptor):
             return
 
         # Give up, we're going to talk to the source.
@@ -112,8 +111,8 @@ class DescriptorOperationsHook(get_hook_baseclass()):
         # Get the uri form the descriptor. We'll have to make sure that descriptor values
         # after the ? are always sorted the same or this will be an issue.
         entity = shotgun.find_one(
-            "CustomEntity05",
-            [["code", "is", descriptor.get_uri()]], "sg_bundle"
+            "CustomNonProjectEntity01",
+            [["code", "is", descriptor.get_uri()]], ["sg_uploaded_bundle"]
         )
         if not entity:
             return False
@@ -124,6 +123,6 @@ class DescriptorOperationsHook(get_hook_baseclass()):
         # In an exception is raised, the files are deleted and the exception
         # bubbles upward.
         with descriptor.external_download() as external_path:
-            download_and_unpack_attachment(shotgun, entity, external_path)
+            download_and_unpack_attachment(shotgun, entity["sg_uploaded_bundle"], external_path)
 
         return True
