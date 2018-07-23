@@ -423,7 +423,7 @@ class Descriptor(object):
 
     @contextlib.contextmanager
     def external_download(self):
-        with self._io_descriptor.external_download() as external_download_location:
+        with self._io_descriptor.download_manager() as external_download_location:
             yield external_download_location
 
     def find_latest_version(self, constraint_pattern=None):

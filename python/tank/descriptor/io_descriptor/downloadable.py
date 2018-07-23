@@ -46,7 +46,7 @@ class IODescriptorDownloadable(IODescriptorBase):
     _DOWNLOAD_TRANSACTION_COMPLETE_FILE = "install_complete"
 
     def download_local(self):
-        with self.external_download() as temporary_path:
+        with self.download_manager() as temporary_path:
             # attempt to download the descriptor to the temporary path.
             log.debug("Downloading %s to temporary download path %s." % (self, temporary_path))
             self._download_local(temporary_path)
@@ -56,7 +56,7 @@ class IODescriptorDownloadable(IODescriptorBase):
             filesystem.ensure_folder_exists(metadata_folder)
 
     @contextlib.contextmanager
-    def external_download(self):
+    def download_manager(self):
         """
         Downloads the data represented by the descriptor into the primary bundle
         cache path.
