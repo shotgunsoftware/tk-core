@@ -251,6 +251,7 @@ class TestSSOClaims(TestConfigurationBase):
         # thread startup and shutdown, we only want to ensure they are invoked.
         for mocked_method in [
             "tank.bootstrap.import_handler.CoreImportHandler.swap_core",
+            "tank.bootstrap.cached_configuration.CachedConfiguration._ensure_core_local",
             "tank.bootstrap.configuration_writer.ConfigurationWriter.install_core",
             "tank.bootstrap.configuration_writer.ConfigurationWriter.create_tank_command",
         ]:

@@ -23,15 +23,7 @@ set SHOTGUN_TEST_ENTITY_SUFFIX=app_veyor
 
 :: Run these tests only if the integration tests environment variables are set.
 IF DEFINED SHOTGUN_HOST (
-    %PYTHON%\python tests\integration_tests\offline_workflow.py
-    :: FIXME: This approach does not scale...
-    if not %ERRORLEVEL% == 0 exit /b %ERRORLEVEL%
-
-    %PYTHON%\python tests\integration_tests\tank_commands.py
-    if not %ERRORLEVEL% == 0 exit /b %ERRORLEVEL%
-
-    %PYTHON%\python tests\integration_tests\multi_bootstrap.py
-    if not %ERRORLEVEL% == 0 exit /b %ERRORLEVEL%
+    %PYTHON%\python tests\integration_tests\run_integration_tests.py
 
 ) ELSE (
     ECHO "Skipping integration tests, SHOTGUN_HOST is not set."

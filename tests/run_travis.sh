@@ -52,7 +52,5 @@ python tests/python/third_party/coverage run tests/run_tests.py
 if [ -z ${SHOTGUN_HOST+x} ]; then
     echo "Skipping integration tests, SHOTGUN_HOST is not set."
 else
-    python tests/python/third_party/coverage run -a tests/integration_tests/offline_workflow.py
-    python tests/python/third_party/coverage run -a tests/integration_tests/tank_commands.py
-    python tests/python/third_party/coverage run -a tests/integration_tests/multi_bootstrap.py
+    python tests/integration_tests/run_integration_tests.py
 fi

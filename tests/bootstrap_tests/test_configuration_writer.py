@@ -75,19 +75,13 @@ class TestCoreInstallation(TestConfigurationWriterBase):
             )
         )
 
-        descriptor = MagicMock()
-        descriptor.associated_core_descriptor = {
-            "path": core_source_location,
-            "type": "path"
-        }
+        core_descriptor = sgtk.descriptor.create_descriptor(
+            self.mockgun,
+            sgtk.descriptor.Descriptor.CORE,
+            "sgtk:descriptor:path?path=%s" % self.core_repo_root
+        )
 
-        # Since we've mocked the descriptor, we'll need to mock the DescriptorOperations
-        # class as well.
-        with patch("sgtk.descriptor.descriptor_operations.DescriptorOperations.__init__") as class_init:
-            def _fake_init(self, *args, **kwargs):
-                self._hook_instance = None
-            class_init.side_effect = _fake_init
-            cw.install_core(descriptor, bundle_cache_fallback_paths=[], pipeline_config_id=None)
+        cw.install_core(core_descriptor, bundle_cache_fallback_paths=[], pipeline_config_id=None)
 
         core_install_location = os.path.join(cw.path.current_os, "install", "core")
 

@@ -14,6 +14,7 @@ import pprint
 
 from . import constants
 
+from ..descriptor import create_descriptor, Descriptor
 from ..descriptor.descriptor_operations import DescriptorOperations
 from .errors import TankBootstrapError, TankMissingTankNameError
 
@@ -279,15 +280,10 @@ class CachedConfiguration(Configuration):
             # make sure the config is locally available.
             self._descriptor.ensure_local()
 
-            # Now cache the core as well. The goal
-            DescriptorOperations(
-                self._sg_connection,
-                self._pipeline_config_id,
-                self._descriptor
-            ).ensure_local(self._descriptor.resolve_core_descriptor())
+            core_descriptor = self._ensure_core_local()
 
             # Log information about the core being setup with this config.
-            self._log_core_information()
+            self._log_core_information(core_descriptor)
 
             # compatibility checks
             self._verify_descriptor_compatible()
@@ -332,7 +328,7 @@ class CachedConfiguration(Configuration):
 
             # and lastly install core
             self._config_writer.install_core(
-                self._descriptor,
+                core_descriptor,
                 self._bundle_cache_fallback_paths,
                 self._pipeline_config_id
             )
@@ -395,6 +391,43 @@ class CachedConfiguration(Configuration):
 
         self._config_writer.end_transaction()
 
+    def _ensure_core_local(self):
+        """
+        Ensures that the core for the current config has been cached to disk.
+
+        :returns: The core descriptor for the current config.
+        :rtype: :class:`~sgtk.descriptor.CoreDescriptor`
+        """
+
+        if not self._descriptor.associated_core_descriptor:
+            log.debug(
+                "Config does not have a core/core_api.yml file to define which core to use. "
+                "Will use the latest approved core in the app store."
+            )
+            core_descriptor = create_descriptor(
+                self._sg_connection,
+                Descriptor.CORE,
+                constants.LATEST_CORE_DESCRIPTOR,
+                fallback_roots=self._bundle_cache_fallback_paths,
+                resolve_latest=True
+            )
+        else:
+            # we have an exact core descriptor. Get a descriptor for it
+            log.debug(
+                "Config has a specific core defined in core/core_api.yml: %s" %
+                self._descriptor.associated_core_descriptor
+            )
+            core_descriptor = self._descriptor.resolve_core_descriptor()
+
+        # Now cache the core.
+        DescriptorOperations(
+            self._sg_connection,
+            self._pipeline_config_id,
+            self._descriptor
+        ).ensure_local(core_descriptor)
+
+        return core_descriptor
+
     def _verify_descriptor_compatible(self):
         """
         Ensures the config we're booting into understands the newer Shotgun descriptor.
@@ -410,31 +443,25 @@ class CachedConfiguration(Configuration):
                     "core/core_api.yml file in your configuration."
                 )
 
-    def _log_core_information(self):
+    def _log_core_information(self, core_information):
         """
         Logs features from core we're about to bootstrap into. This is useful for QA.
         """
         try:
-            if not self._descriptor.associated_core_descriptor:
-                log.debug(
-                    "The core associated with '%s' is not specified. The most recent "
-                    "core from the Toolkit app store will be download.", self._descriptor
-                )
+            features = core_information.get_features_info()
+            log.debug(
+                "The core '%s' associated with '%s' has the following feature information:",
+                core_information, self._descriptor
+            )
+            if features:
+                log.debug(pprint.pformat(features))
             else:
-                features = self._descriptor.resolve_core_descriptor().get_features_info()
-                log.debug(
-                    "The core '%s' associated with '%s' has the following feature information:",
-                    self._descriptor.resolve_core_descriptor(), self._descriptor
-                )
-                if features:
-                    log.debug(pprint.pformat(features))
-                else:
-                    log.debug("This version of core can't report features.")
+                log.debug("This version of core can't report features.")
         except Exception as ex:
             # Do not let an error in here trip the bootstrap, but do report.
             log.warning(
                 "The core '%s' associated with '%s' couldn't report its features: %s.",
-                self._descriptor.resolve_core_descriptor(), self._descriptor, ex
+                core_information, self._descriptor, ex
             )
 
     @property

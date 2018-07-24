@@ -13,6 +13,7 @@ import re
 import cgi
 import urllib
 import urlparse
+import contextlib
 
 from .. import constants
 from ... import LogManager
@@ -717,6 +718,17 @@ class IODescriptorBase(object):
         :return: Path to bundle cache location
         """
         raise NotImplementedError
+
+    @contextlib.contextmanager
+    def download_manager(self):
+        """
+        When used with the ``with`` statement, this context manager will yield the
+        destination where a bundle should be downloaded. If the context is not exited successfully,
+        the files will be removed from disk.
+
+        :returns: Path to where the package should be extracted to.
+        """
+        raise TankDescriptorError("Something something.")
 
     def get_system_name(self):
         """
