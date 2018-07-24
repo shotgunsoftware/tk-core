@@ -95,7 +95,7 @@ class TestFunctionality(ShotgunTestBase):
                 mgr.get_entity_from_environment(),
                 None
             )
-            
+
     @patch("tank.authentication.ShotgunAuthenticator.get_user", return_value=Mock())
     def test_shotgun_bundle_cache(self, _):
         """
@@ -207,6 +207,34 @@ class _MockedShotgunUser(object):
         Returns the associated mockgun connection
         """
         return self._mockgun
+
+
+class TestPrepareEngine(ShotgunTestBase):
+
+    def setUp(self):
+        super(TestPrepareEngine, self).setUp({"primary_root_name": "primary"})
+
+    def test_prepare_engine(self):
+        """
+        Makes sure that prepare engine works.
+        """
+        mgr = ToolkitManager(_MockedShotgunUser(self.mockgun, "larry"))
+        mgr.do_shotgun_config_lookup = False
+        mgr.base_configuration = "sgtk:descriptor:path?path=%s" % os.path.join(
+            self.fixtures_root, "bootstrap_tests", "config"
+        )
+
+        def progress_cb(progress_value, message):
+            if message.startswith("Checking"):
+                progress_cb.nb_exists_locally += 1
+
+        progress_cb.nb_exists_locally = 0
+
+        mgr.progress_callback = progress_cb
+        path, desc = mgr.prepare_engine("test_engine", self.project)
+        self.assertEqual(desc.get_uri(), mgr.base_configuration)
+        self.assertEqual(path, os.path.join(self.tank_temp, "unit_test_mock_sg", "p1", "cfg"))
+        self.assertEqual(progress_cb.nb_exists_locally, 3)
 
 
 class TestGetPipelineConfigs(TankTestBase):

@@ -14,6 +14,7 @@ Provides a base class for integration tests.
 
 from __future__ import print_function
 
+import re
 import os
 import sys
 import tempfile
@@ -55,7 +56,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
         """
 
         # Set up logging
-        sgtk.LogManager().initialize_base_file_handler(cls.__name__.lower())
+        sgtk.LogManager().initialize_base_file_handler(cls._camel_to_snake(cls.__name__))
         sgtk.LogManager().initialize_custom_handler()
 
         # Create a temporary directory for these tests and make sure
@@ -68,6 +69,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
         else:
             cls.temp_dir = os.environ["SHOTGUN_TEST_TEMP"]
 
+        # Ensures calls to the tempfile module generate paths under the unit test temp folder.
         tempfile.tempdir = cls.temp_dir
 
         # Ensure Toolkit writes to the temporary directory
@@ -117,6 +119,14 @@ class SgtkIntegrationTest(unittest2.TestCase):
         # Ensure the local storage folder exists on disk.
         if not os.path.exists(cls.local_storage["path"]):
             os.makedirs(cls.local_storage["path"])
+
+    @staticmethod
+    def _camel_to_snake(text):
+        """
+        Converts a string from CamelCase to snake_case.
+        """
+        str1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', text)
+        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', str1).lower()
 
     @classmethod
     def _cleanup_temp_dir(cls):
@@ -190,7 +200,11 @@ class SgtkIntegrationTest(unittest2.TestCase):
     @classmethod
     def ensure_pipeline_configuration_exists(cls, name, entity_data):
         """
-        Ensures a pipeline configuration with the given fields exists.
+        Ensures a pipeline configuration with the given name exists.
+
+        :param name: Name of the configuration to look for.
+        :param entity_data: Data for the pipeline configuration that will be
+            created or updated.
         """
 
         # Ensures only the requested fields are set

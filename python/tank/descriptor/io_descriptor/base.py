@@ -531,7 +531,9 @@ class IODescriptorBase(object):
         uri = constants.DESCRIPTOR_URI_SEPARATOR.join(uri_chunks)
 
         qs_chunks = []
-        # Sort keys so that the uri is the same across invocations.
+        # Sort keys so that the uri is the same across invocations. This is very important
+        # because tests may start failing with different implementations of Python (like pypy)
+        # or code using this was as a key might get different uri's with different invocations.
         for param in sorted(descriptor_dict):
             if param == "type":
                 continue

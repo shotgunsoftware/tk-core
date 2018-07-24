@@ -17,7 +17,6 @@ from .configuration import Configuration
 from .resolver import ConfigurationResolver
 from ..authentication import ShotgunAuthenticator
 from ..pipelineconfig import PipelineConfiguration
-from ..descriptor.descriptor_operations import DescriptorOperations
 from .. import LogManager
 from ..errors import TankError
 from ..util import ShotgunPath
@@ -625,18 +624,37 @@ class ToolkitManager(object):
         except TankError as e:
             raise TankBootstrapError("Unexpected error while caching configuration: %s" % str(e))
 
-        if config.requires_dynamic_bundle_caching:
-            # make sure we have all the apps locally downloaded
-            # this check is quick, so always perform the check, except for installed config, which are
-            # self contained, even when the config is up to date - someone may have deleted their
-            # bundle cache
-            self._cache_bundles(pc, engine_name, self.progress_callback)
-        else:
-            log.debug("Configuration has local bundle cache, skipping bundle caching.")
-
+        self._cache_bundles(config, pc, self._sg_connection, engine_name, self.progress_callback)
         self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Preparations complete.")
 
         return path, config.descriptor
+
+    def _cache_bundles(self, config, pc, connection, engine_name, progress_callback):
+        """
+        Caches the bundles required by the configuration.
+
+        :param config: The Configuration we're bootstrapping into.
+        :param pc: The PipelineConfiguration instantiated from the configuration.
+        :param connection: Connection to the Shotgun site.
+        :param engine_name: Name of the engine we're bootstrapping into.
+        :param
+        """
+        def report_bundle_progress(message, idx, nb_descriptors):
+            # Scale the progress step 0.8 between this value 0.15 and the next one 0.95
+            # to compute a value progressing while looping over the indexes.
+            step_size = float(self._END_DOWNLOADING_APPS_RATE - self._START_DOWNLOADING_APPS_RATE) / nb_descriptors
+            progress_value = self._START_DOWNLOADING_APPS_RATE + int(idx * step_size)
+
+            self._report_progress(progress_callback, progress_value, message)
+
+        config.cache_bundles(
+            pc,
+            self._sg_connection,
+            # If we're going to do a sparse cache, only cache for the engine
+            # we're bootstrapping into.
+            engine_name if self._caching_policy == self.CACHE_SPARSE else None,
+            report_bundle_progress
+        )
 
     def get_pipeline_configurations(self, project):
         """
@@ -1033,20 +1051,14 @@ class ToolkitManager(object):
         # Assign the post core-swap user so the rest of the bootstrap uses the new user object.
         self._sg_user = user
 
-        if config.requires_dynamic_bundle_caching:
-            # make sure we have all the apps locally downloaded
-            # this check is quick, so always perform the check, except for installed config, which are
-            # self contained, even when the config is up to date - someone may have deleted their
-            # bundle cache
-            self._cache_bundles(
-                tk.pipeline_configuration,
-                engine_name,
-                progress_callback
-            )
-        else:
-            log.debug("Configuration has local bundle cache, skipping bundle caching.")
+        self._cache_bundles(
+            config,
+            tk.pipeline_configuration,
+            tk.shotgun,
+            engine_name,
+            self.progress_callback
+        )
 
-        log.debug("Initialized core %s" % tk)
         return tk
 
     def _start_engine(self, tk, engine_name, entity, progress_callback=None):
@@ -1178,74 +1190,6 @@ class ToolkitManager(object):
         except TypeError:
             # Call the old style progress callback with signature (message, current_index, maximum_index).
             progress_callback(message, None, None)
-
-    def _cache_bundles(self, pipeline_configuration, config_engine_name, progress_callback):
-        """
-        Caches all bundles associated with the given toolkit instance.
-
-        :param pipeline_configuration: :class:`stgk.PipelineConfiguration` to process configuration for
-        :param pc: Pipeline configuration instance.
-        :type pc: :class:`~sgtk.pipelineconfig.PipelineConfiguration`
-        :param config_engine_name: Name of the engine that was used to resolve the configuration.
-        :param progress_callback: Callback function that reports back on the engine startup progress.
-        """
-        log.debug("Checking that all bundles are cached locally...")
-
-        if self._caching_policy == self.CACHE_SPARSE:
-            # Download and cache the sole config dependencies needed to run the engine being started,
-            log.debug("caching_policy is CACHE_SPARSE - only check items associated with %s" % config_engine_name)
-            engine_constraint = config_engine_name
-
-        elif self._caching_policy == self.CACHE_FULL:
-            # download and cache the entire config
-            log.debug("caching_policy is CACHE_FULL - will download all items defined in the config")
-            engine_constraint = None
-        else:
-            raise TankBootstrapError("Unsupported caching_policy setting %s" % self._caching_policy)
-
-        descriptors = {}
-        # pass 1 - populate list of all descriptors
-        for env_name in pipeline_configuration.get_environments():
-            env_obj = pipeline_configuration.get_environment(env_name)
-            for engine in env_obj.get_engines():
-                if engine_constraint is None or engine == engine_constraint:
-                    descriptor = env_obj.get_engine_descriptor(engine)
-                    descriptors[descriptor.get_uri()] = descriptor
-                    for app in env_obj.get_apps(engine):
-                        descriptor = env_obj.get_app_descriptor(engine, app)
-                        descriptors[descriptor.get_uri()] = descriptor
-
-            for framework in env_obj.get_frameworks():
-                descriptor = env_obj.get_framework_descriptor(framework)
-                descriptors[descriptor.get_uri()] = descriptor
-
-        desc_op = DescriptorOperations(
-            self._sg_connection,
-            pipeline_configuration.get_shotgun_id(),
-            pipeline_configuration.get_configuration_descriptor()
-        )
-
-        # pass 2 - download all apps
-        for idx, descriptor in enumerate(descriptors.values()):
-
-            # Scale the progress step 0.8 between this value 0.15 and the next one 0.95
-            # to compute a value progressing while looping over the indexes.
-            step_size = (self._END_DOWNLOADING_APPS_RATE - self._START_DOWNLOADING_APPS_RATE) / len(descriptors)
-            progress_value = self._START_DOWNLOADING_APPS_RATE + idx * step_size
-
-            if not descriptor.exists_local():
-                message = "Downloading %s (%s of %s)..." % (descriptor, idx + 1, len(descriptors))
-                self._report_progress(progress_callback, progress_value, message)
-
-                try:
-                    desc_op.download_local(descriptor)
-                except Exception as e:
-                    log.error("Downloading %r failed to complete successfully. This bundle will be skipped.", e)
-                    log.exception(e)
-            else:
-                message = "Checking %s (%s of %s)." % (descriptor, idx + 1, len(descriptors))
-                log.debug("%s exists locally at '%s'.", descriptor, descriptor.get_path())
-                self._report_progress(progress_callback, progress_value, message)
 
     def _default_progress_callback(self, progress_value, message):
         """

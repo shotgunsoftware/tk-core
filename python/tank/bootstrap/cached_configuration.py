@@ -14,8 +14,8 @@ import pprint
 
 from . import constants
 
+from .. import hook
 from ..descriptor import create_descriptor, Descriptor
-from ..descriptor.descriptor_operations import DescriptorOperations
 from .errors import TankBootstrapError, TankMissingTankNameError
 
 from ..util import filesystem
@@ -280,6 +280,10 @@ class CachedConfiguration(Configuration):
             # make sure the config is locally available.
             self._descriptor.ensure_local()
 
+            # Make sure that the descriptor hook instance is instantiated so we
+            # can start caching bundles with it.
+            self._initialize_descriptor_hook_instance()
+
             core_descriptor = self._ensure_core_local()
 
             # Log information about the core being setup with this config.
@@ -415,12 +419,9 @@ class CachedConfiguration(Configuration):
             )
             core_descriptor = self._descriptor.resolve_core_descriptor()
 
-        # Now cache the core.
-        DescriptorOperations(
-            self._sg_connection,
-            self._pipeline_config_id,
-            self._descriptor
-        ).ensure_local(core_descriptor)
+        # Look in the config if there is a create_descriptor hook.
+        if core_descriptor.exists_local() is False:
+            self._download_local(core_descriptor)
 
         return core_descriptor
 
@@ -460,15 +461,59 @@ class CachedConfiguration(Configuration):
                 core_information, self._descriptor, ex
             )
 
-    @property
-    def requires_dynamic_bundle_caching(self):
+    def cache_bundles(self, pipeline_configuration, shotgun, engine_constraint, progress_cb):
         """
-        If True, indicates that pipeline configuration relies on dynamic caching
-        of bundles to operate. If False, the configuration has its own bundle
-        cache.
+        Caches bundles from the configuration.
+
+        If ``engine_constraint`` is set, only the bundles for that engine instance will be cached.
+
+        :param pipeline_configuration: PipelineConfiguration we're bootstrapping into.
+        :param shotgun: Connection to Shotgun.
+        :param engine_constraint: Name of the engine to constrain the caching to.
+        :param progress_cb: Callback to invoke to report progress on bundle caching. The expected
+            signature is: ``def progress_cb(message, current_bundle_idx, nb_total_bundles)``
+
         """
-        # CachedConfiguration always depend on the global bundle cache.
-        return True
+        log.debug("Checking that all bundles are cached locally...")
+
+        if engine_constraint:
+            # Download and cache the sole config dependencies needed to run the engine being started,
+            log.debug("caching_policy is CACHE_SPARSE - only check items associated with %s" % engine_constraint)
+        else:
+            # download and cache the entire config
+            log.debug("caching_policy is CACHE_FULL - will download all items defined in the config")
+
+        descriptors = {}
+        # pass 1 - populate list of all descriptors
+        for env_name in pipeline_configuration.get_environments():
+            env_obj = pipeline_configuration.get_environment(env_name)
+            for engine in env_obj.get_engines():
+                if engine_constraint is None or engine == engine_constraint:
+                    descriptor = env_obj.get_engine_descriptor(engine)
+                    descriptors[descriptor.get_uri()] = descriptor
+                    for app in env_obj.get_apps(engine):
+                        descriptor = env_obj.get_app_descriptor(engine, app)
+                        descriptors[descriptor.get_uri()] = descriptor
+
+            for framework in env_obj.get_frameworks():
+                descriptor = env_obj.get_framework_descriptor(framework)
+                descriptors[descriptor.get_uri()] = descriptor
+
+        # pass 2 - download all apps
+        for idx, descriptor in enumerate(descriptors.values()):
+            if not descriptor.exists_local():
+                message = "Downloading %s (%s of %s)..." % (descriptor, idx + 1, len(descriptors))
+                progress_cb(message, idx, len(descriptors))
+
+                try:
+                    self._download_local(descriptor)
+                except Exception as e:
+                    log.error("Downloading %r failed to complete successfully. This bundle will be skipped.", e)
+                    log.exception(e)
+            else:
+                message = "Checking %s (%s of %s)." % (descriptor, idx + 1, len(descriptors))
+                log.debug("%s exists locally at '%s'.", descriptor, descriptor.get_path())
+                progress_cb(message, idx, len(descriptors))
 
     def _cleanup_backup_folders(self, config_backup_folder_path, core_backup_folder_path):
         """
@@ -485,3 +530,32 @@ class CachedConfiguration(Configuration):
                     log.debug("Deleted backup folder: %s", path)
                 except Exception as e:
                     log.warning("Failed to clean up temporary backup folder '%s': %s" % (path, e))
+
+    def _initialize_descriptor_hook_instance(self):
+        # Figure out if there is a core hook for descriptors.
+        hook_path = os.path.join(
+            self._descriptor.get_config_folder(), "core", "hooks", "descriptor_operations.py"
+        )
+        # If there is one, we'll create a hook instance so clients can share state between
+        # calls
+        if os.path.isfile(hook_path):
+            self._hook_instance = hook.create_hook_instance([hook_path], parent=None)
+            self._hook_instance.shotgun = self._sg_connection
+            self._hook_instance.pipeline_configuration_id = self._pipeline_config_id
+            self._hook_instance.config_descriptor = self._descriptor
+            if hasattr(self._hook_instance, "init"):
+                self._hook_instance.init()
+        else:
+            self._hook_instance = None
+
+    def _download_local(self, descriptor):
+        """
+        Downloads the descriptor's content locally.
+
+        If there is a descriptor hook in the config and it implements the download_local method, the
+        bundle will be downloaded through it.
+        """
+        if self._hook_instance and hasattr(self._hook_instance, "download_local"):
+            self._hook_instance.download_local(descriptor)
+        else:
+            descriptor.download_local()
