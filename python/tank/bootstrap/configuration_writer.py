@@ -17,7 +17,6 @@ import datetime
 from . import constants
 
 from ..descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
-from ..descriptor.descriptor_operations import DescriptorOperations
 
 from ..util import filesystem
 from ..util import StorageRoots
@@ -118,10 +117,6 @@ class ConfigurationWriter(object):
             fallback_roots=bundle_cache_fallback_paths,
             resolve_latest=use_latest
         )
-
-        DescriptorOperations(
-            self._sg_connection, pipeline_config_id, config_descriptor
-        ).ensure_local(core_descriptor)
 
         config_root_path = self._path.current_os
         core_target_path = os.path.join(config_root_path, "install", "core")

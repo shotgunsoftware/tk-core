@@ -13,8 +13,8 @@ import traceback
 import pprint
 
 from . import constants
-from ..descriptor.descriptor_operations import DescriptorOperations
 
+from ..descriptor.descriptor_operations import DescriptorOperations
 from .errors import TankBootstrapError, TankMissingTankNameError
 
 from ..util import filesystem
@@ -279,6 +279,13 @@ class CachedConfiguration(Configuration):
             # make sure the config is locally available.
             self._descriptor.ensure_local()
 
+            # Now cache the core as well. The goal
+            DescriptorOperations(
+                self._sg_connection,
+                self._pipeline_config_id,
+                self._descriptor
+            ).ensure_local(self._descriptor.resolve_core_descriptor())
+
             # Log information about the core being setup with this config.
             self._log_core_information()
 
@@ -414,16 +421,6 @@ class CachedConfiguration(Configuration):
                     "core from the Toolkit app store will be download.", self._descriptor
                 )
             else:
-                # FIXME: This line below pretty much shows the limitation of the current design.
-                # get_features_info wants to read info.yml, which trigers a download. Before the download
-                # code lives outside the descriptor we now have to think about downloading the bundle
-                # before using some of its methods and that's a shame.
-                DescriptorOperations(
-                    self._sg_connection,
-                    self._pipeline_config_id,
-                    self._descriptor
-                ).ensure_local(self._descriptor.resolve_core_descriptor())
-
                 features = self._descriptor.resolve_core_descriptor().get_features_info()
                 log.debug(
                     "The core '%s' associated with '%s' has the following feature information:",
