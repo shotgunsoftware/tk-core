@@ -78,7 +78,7 @@ class TestCoreInstallation(TestConfigurationWriterBase):
         core_descriptor = sgtk.descriptor.create_descriptor(
             self.mockgun,
             sgtk.descriptor.Descriptor.CORE,
-            "sgtk:descriptor:path?path=%s" % self.core_repo_root
+            "sgtk:descriptor:path?path=%s" % self.tk_core_repo_root
         )
 
         cw.install_core(core_descriptor)
