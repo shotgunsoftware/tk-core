@@ -35,11 +35,13 @@ class DescriptorOperations(object):
 
     def download_local(self, descriptor):
         """
+        Downloads the descriptor's content locally.
+
+        If there is a descriptor hook in the config and it implements the download_local method, the
+        bundle will be downloaded through it.
         """
         if self._hook_instance and hasattr(self._hook_instance, "download_local"):
             self._hook_instance.download_local(descriptor)
-            if descriptor.exists_local() is False:
-                raise Exception("Something")
         else:
             descriptor.download_local()
 
