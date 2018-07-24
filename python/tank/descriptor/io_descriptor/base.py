@@ -720,7 +720,7 @@ class IODescriptorBase(object):
         raise NotImplementedError
 
     @contextlib.contextmanager
-    def download_manager(self):
+    def open_write_location(self):
         """
         When used with the ``with`` statement, this context manager will yield the
         destination where a bundle should be downloaded. If the context is not exited successfully,
@@ -728,7 +728,10 @@ class IODescriptorBase(object):
 
         :returns: Path to where the package should be extracted to.
         """
-        raise TankDescriptorError("Something something.")
+        raise TankDescriptorError(
+            "open_write_location is not supported on the '%s' descriptor type." %
+            self.get_dict()["type"]
+        )
 
     def get_system_name(self):
         """

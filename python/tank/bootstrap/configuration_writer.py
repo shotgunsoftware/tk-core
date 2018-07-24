@@ -83,7 +83,7 @@ class ConfigurationWriter(object):
             create_placeholder_file=True
         )
 
-    def install_core(self, core_descriptor, bundle_cache_fallback_paths, pipeline_config_id):
+    def install_core(self, core_descriptor):
         """
         Install a core into the given configuration.
 
@@ -91,7 +91,6 @@ class ConfigurationWriter(object):
         the configuration, effectively mimicing a localized setup.
 
         :param core_descriptor: Core descriptor to use to determine core version
-        :param bundle_cache_fallback_paths: bundle cache search path
         """
         config_root_path = self._path.current_os
         core_target_path = os.path.join(config_root_path, "install", "core")

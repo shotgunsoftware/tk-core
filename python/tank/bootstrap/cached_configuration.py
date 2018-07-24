@@ -327,11 +327,7 @@ class CachedConfiguration(Configuration):
             self._config_writer.update_roots_file(self._descriptor)
 
             # and lastly install core
-            self._config_writer.install_core(
-                core_descriptor,
-                self._bundle_cache_fallback_paths,
-                self._pipeline_config_id
-            )
+            self._config_writer.install_core(core_descriptor)
 
         except Exception as e:
 

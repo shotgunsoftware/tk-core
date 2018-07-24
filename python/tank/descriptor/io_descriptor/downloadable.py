@@ -46,32 +46,37 @@ class IODescriptorDownloadable(IODescriptorBase):
     _DOWNLOAD_TRANSACTION_COMPLETE_FILE = "install_complete"
 
     def download_local(self):
-        with self.download_manager() as temporary_path:
-            # attempt to download the descriptor to the temporary path.
-            log.debug("Downloading %s to temporary download path %s." % (self, temporary_path))
-            self._download_local(temporary_path)
-
-            # download completed without issue. Now create settings folder
-            metadata_folder = self._get_metadata_folder(temporary_path)
-            filesystem.ensure_folder_exists(metadata_folder)
-
-    @contextlib.contextmanager
-    def download_manager(self):
         """
         Downloads the data represented by the descriptor into the primary bundle
         cache path.
-
-        It does so in a two step process. First, by downloading it to
-        a temporary bundle cache path (typically in a 'tmp/<uuid>' directory
-        in the bundle cache path), then, by moving the data to the primary bundle
-        cache path for that descriptor. This helps to guard against multiple
-        processes attempting to download the same descriptor simultaneously.
         """
-
         # Return if the descriptor exists locally.
         if self.exists_local():
             return
 
+        with self.open_write_location() as temporary_path:
+            # attempt to download the descriptor to the temporary path.
+            log.debug("Downloading %s to temporary download path %s." % (self, temporary_path))
+            self._download_local(temporary_path)
+
+    @contextlib.contextmanager
+    def open_write_location(self):
+        """
+        Writes a bundle to the primary bundle cache.
+
+        It does so in a two step process. First, it yields a temporary location
+        where the caller should write the bundle (typically in a 'tmp/<uuid>' directory
+        in the bundle cache path), then, by moving the data to the primary bundle
+        cache path for that descriptor. This helps to guard against multiple
+        processes attempting to download the same descriptor simultaneously.
+
+        This method should be used with the ``with`` statement:
+
+            with desc.open_write_location() as tmp_dir:
+                # Write the bundle information into tmp_dir.
+
+        :returns: Yields the path where the bundle should be written.
+        """
         # download it into a unique temporary location
         temporary_path = self._get_temporary_cache_path()
 
@@ -90,6 +95,10 @@ class IODescriptorDownloadable(IODescriptorBase):
 
         try:
             yield temporary_path
+
+            # download completed without issue. Now create settings folder
+            metadata_folder = self._get_metadata_folder(temporary_path)
+            filesystem.ensure_folder_exists(metadata_folder)
         except Exception as e:
             # something went wrong during the download, remove the temporary files.
             log.error("Failed to download into path %s: %s. Attempting to remove it."

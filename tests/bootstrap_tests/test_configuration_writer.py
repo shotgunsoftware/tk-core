@@ -81,7 +81,7 @@ class TestCoreInstallation(TestConfigurationWriterBase):
             "sgtk:descriptor:path?path=%s" % self.core_repo_root
         )
 
-        cw.install_core(core_descriptor, bundle_cache_fallback_paths=[], pipeline_config_id=None)
+        cw.install_core(core_descriptor)
 
         core_install_location = os.path.join(cw.path.current_os, "install", "core")
 
