@@ -9,7 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-This test makes sure that various tank command operations do not fail.
+Ensures the bootstrap hook can be used to download bundles in lieu of the
+default implementation.
 """
 
 from __future__ import print_function
