@@ -421,7 +421,7 @@ class CachedConfiguration(Configuration):
 
         # Look in the config if there is a create_descriptor hook.
         if core_descriptor.exists_local() is False:
-            self._download_local(core_descriptor)
+            self._hook_instance.download_bundle(core_descriptor)
 
         return core_descriptor
 
@@ -506,7 +506,7 @@ class CachedConfiguration(Configuration):
                 progress_cb(message, idx, len(descriptors))
 
                 try:
-                    self._download_local(descriptor)
+                    self._hook_instance.download_bundle(descriptor)
                 except Exception as e:
                     log.error("Downloading %r failed to complete successfully. This bundle will be skipped.", e)
                     log.exception(e)
@@ -532,30 +532,34 @@ class CachedConfiguration(Configuration):
                     log.warning("Failed to clean up temporary backup folder '%s': %s" % (path, e))
 
     def _initialize_descriptor_hook_instance(self):
-        # Figure out if there is a core hook for descriptors.
-        hook_path = os.path.join(
-            self._descriptor.get_config_folder(), "core", "hooks", "descriptor_operations.py"
+        """
+        Creates a core hook that can download bundles.
+
+        If the configuration does not contain a hook override, then the base
+        class hook in the core's hooks folder will be used as the default
+        implementation.
+        """
+        # First put our base hook implementation into the array.
+        base_class_path = os.path.normpath(
+            os.path.join(
+                os.path.dirname(__file__), # ./python/tank/bootstrap
+                "..",                      # ./python/tank
+                "..",                      # ./python
+                "..",                      # ./
+                "hooks",                   # ./hooks
+                "bootstrap.py"             # ./hooks/bootstrap.py
+            )
         )
-        # If there is one, we'll create a hook instance so clients can share state between
-        # calls
+        hook_inheritance = [base_class_path]
+
+        # Then, check if there is a config-level override.
+        hook_path = os.path.join(
+            self._descriptor.get_config_folder(), "core", "hooks", "bootstrap.py"
+        )
         if os.path.isfile(hook_path):
-            self._hook_instance = hook.create_hook_instance([hook_path], parent=None)
-            self._hook_instance.shotgun = self._sg_connection
-            self._hook_instance.pipeline_configuration_id = self._pipeline_config_id
-            self._hook_instance.config_descriptor = self._descriptor
-            if hasattr(self._hook_instance, "init"):
-                self._hook_instance.init()
-        else:
-            self._hook_instance = None
+            hook_inheritance.append(hook_path)
 
-    def _download_local(self, descriptor):
-        """
-        Downloads the descriptor's content locally.
-
-        If there is a descriptor hook in the config and it implements the download_local method, the
-        bundle will be downloaded through it.
-        """
-        if self._hook_instance and hasattr(self._hook_instance, "download_local"):
-            self._hook_instance.download_local(descriptor)
-        else:
-            descriptor.download_local()
+        self._hook_instance = hook.create_hook_instance(hook_inheritance, parent=None)
+        self._hook_instance.init(
+            self._sg_connection, self._pipeline_config_id, self._descriptor
+        )

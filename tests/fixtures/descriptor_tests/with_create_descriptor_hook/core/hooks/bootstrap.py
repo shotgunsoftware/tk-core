@@ -13,45 +13,15 @@ from sgtk import get_hook_baseclass
 from sgtk.util.shotgun import download_and_unpack_attachment
 
 
-class DescriptorOperationsHook(get_hook_baseclass()):
+class BootstrapHook(get_hook_baseclass()):
     """
     This is an example of a descriptor operations hook. It downloads a bundle
     from the local site if it is found there and from a remote location if
     credentials are found on the pipeline configuration object.
-
-    The descriptor operations hook will be instantiated at least once during
-    bootstrap, which means it can retain state between calls.
-
-    The following list of attributes are always available on the hook.
-
-    :attribute shotgun: Connection to the Shotgun site.
-    :type shotgun: :class:`shotgun_api3.Shotgun`
-
-    :attribute pipeline_configuration_id: Id of the pipeline configuration we're bootstrapping into.
-        If None, the ToolkitManager is bootstrapping into the base configuration.
-    :type pipeline_configuration_id: int
-
-    :attribute configuration_descriptor: Configuration the manager is bootstrapping into.
-    :type configuration_descriptor: :class:`sgtk.descriptor.ConfigDescriptor`
     """
 
-    def init(self):
-        """
-        This method is invoked when the hook is instantiated.
-
-        It can be used to cache information so it can be reused for each
-        operations.
-        """
-
-        # - shotgun: connection to the Shotgun site.
-        # - pipeline_configuration_id: If set, this is the id of the pipeline configuration
-        #                              that we're bootstrapping into
-        # - configuration_descriptor: The descriptor for the configuration we're bootstrapping
-        #                             into.
-
-        # Let's pretend someone wants a local cache and a remote cache and they've
-        # decided to store the remote credentials on the pipeline configuration
-        # object.
+    def init(self, shotgun, pipeline_configuration, configuration_descriptor):
+        super(BootstrapHook, self).init(shotgun, pipeline_configuration, configuration_descriptor)
 
         # Grab the external site credentials from the pipeline configuration.
         pc = self.shotgun.find_one(
@@ -67,22 +37,7 @@ class DescriptorOperationsHook(get_hook_baseclass()):
         else:
             self._remote_sg = None
 
-    def download_local(self, descriptor):
-        """
-        This method is invoked during bootstrapping when downloading the core or
-        the bundles in the environment from the configuration.
-
-        Your method must download the descriptor's content before the method
-        ends of the bootstrap manager will report an error.
-
-        The safest way to download a bundle into the bundle cache is by using the
-        :meth:`sgtk.descriptor.Descriptor.external_download` context manager.
-
-        Any exception raised by this code will abort the bootstrap process.
-
-        :param descriptor: The descriptor that will be downloaded.
-        :type descriptor: :class:`~sgtk.descriptor.Descriptor`
-        """
+    def download_bundle(self, descriptor):
         # First try to download from the local cache.
         if self._download_from_sg_cache(self.shotgun, descriptor):
             return
