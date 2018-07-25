@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import contextlib
+
 from sgtk import get_hook_baseclass
 
 
@@ -52,7 +54,11 @@ class BootstrapHook(get_hook_baseclass()):
         ends or the bundle cache will be left in an inconsistent state.
 
         The safest way to download a bundle into the bundle cache is by using the
-        :meth:`sgtk.descriptor.Descriptor.open_write_location` context manager.
+        :meth:`_open_write_location` method with the `with` statement.
+
+        .. example::
+            with self._open_write_location(descriptor) as write_location:
+                # Put code that writes the bundle at write_location here.
 
         Any exception raised in this method will abort the bootstrap process.
 
@@ -63,3 +69,16 @@ class BootstrapHook(get_hook_baseclass()):
         :type descriptor: :class:`~sgtk.descriptor.Descriptor`
         """
         descriptor.download_local()
+
+    @contextlib.contextmanager
+    def _open_write_location(self, descriptor):
+        """
+        Allows to write a bundle to the primary bundle cache location.
+
+        If an exception is raised during the process, the files will be deleted
+        and the bundle cache will be left intact. Be careful to properly copy
+        all the files during the duration of the ``_open_write_location`` method
+        or the bundle cache will be left in an inconsistent state.
+        """
+        with descriptor._io_descriptor.open_write_location() as write_location:
+            yield write_location

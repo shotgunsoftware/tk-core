@@ -550,16 +550,18 @@ class CachedConfiguration(Configuration):
                 "bootstrap.py"             # ./hooks/bootstrap.py
             )
         )
-        hook_inheritance = [base_class_path]
+        hook_inheritance_chain = [base_class_path]
 
         # Then, check if there is a config-level override.
         hook_path = os.path.join(
             self._descriptor.get_config_folder(), "core", "hooks", "bootstrap.py"
         )
         if os.path.isfile(hook_path):
-            hook_inheritance.append(hook_path)
+            hook_inheritance_chain.append(hook_path)
 
-        self._hook_instance = hook.create_hook_instance(hook_inheritance, parent=None)
+        self._hook_instance = hook.create_hook_instance(
+            hook_inheritance_chain, parent=None
+        )
         self._hook_instance.init(
             self._sg_connection, self._pipeline_config_id, self._descriptor
         )

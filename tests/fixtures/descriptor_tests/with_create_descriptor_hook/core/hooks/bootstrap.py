@@ -77,7 +77,7 @@ class BootstrapHook(get_hook_baseclass()):
         # with ends normally, the files are copied into the cache.
         # In an exception is raised, the files are deleted and the exception
         # bubbles upward.
-        with descriptor.external_download() as external_path:
-            download_and_unpack_attachment(shotgun, entity["sg_uploaded_bundle"], external_path)
+        with self._open_write_location(descriptor) as write_location:
+            download_and_unpack_attachment(shotgun, entity["sg_uploaded_bundle"], write_location)
 
         return True
