@@ -220,9 +220,12 @@ class TestPrepareEngine(ShotgunTestBase):
         """
         mgr = ToolkitManager(_MockedShotgunUser(self.mockgun, "larry"))
         mgr.do_shotgun_config_lookup = False
-        mgr.base_configuration = "sgtk:descriptor:path?path=%s" % os.path.join(
-            self.fixtures_root, "bootstrap_tests", "config"
-        )
+        mgr.base_configuration = {
+            "type": "path",
+            "path": os.path.join(
+                self.fixtures_root, "bootstrap_tests", "config"
+            )
+        }
 
         def progress_cb(progress_value, message):
             if message.startswith("Checking"):
@@ -232,7 +235,7 @@ class TestPrepareEngine(ShotgunTestBase):
 
         mgr.progress_callback = progress_cb
         path, desc = mgr.prepare_engine("test_engine", self.project)
-        self.assertEqual(desc.get_uri(), mgr.base_configuration)
+        self.assertEqual(desc.get_dict(), mgr.base_configuration)
         self.assertEqual(path, os.path.join(self.tank_temp, "unit_test_mock_sg", "p1", "cfg"))
         self.assertEqual(progress_cb.nb_exists_locally, 3)
 
