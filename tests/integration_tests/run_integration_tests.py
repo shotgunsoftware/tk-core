@@ -65,11 +65,11 @@ def main():
             print()
     except Exception:
         print("=" * 79)
-        print("Tests failed in %.2f" % (time.time() - before))
+        print("Integration tests failed in %.2f" % (time.time() - before))
         raise
     else:
         print("=" * 79)
-        print("Tests passed in %.2f" % (time.time() - before))
+        print("Integration tests passed in %.2f" % (time.time() - before))
 
 
 if __name__ == "__main__":
