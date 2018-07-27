@@ -25,11 +25,14 @@ class BootstrapHook(get_hook_baseclass()):
     applications, frameworks and engines will be downloaded through the hook.
     """
 
-    def init(self, shotgun, pipeline_configuration_id, configuration_descriptor):
+    def init(self, shotgun, pipeline_configuration_id, configuration_descriptor, **kwargs):
         """
         This method is invoked when the hook is instantiated.
 
-        It can be used to cache information so it can be reused.
+        It can be used to cache information so it can be reused, for example a
+        shotgun connection to external site.
+
+        The ``kwargs`` is there for forward compatibility with future versions of Toolkit.
 
         :param shotgun: Connection to the Shotgun site.
         :type shotgun: :class:`shotgun_api3.Shotgun`
@@ -45,7 +48,7 @@ class BootstrapHook(get_hook_baseclass()):
         self.pipeline_configuration_id = pipeline_configuration_id
         self.configuration_descriptor = configuration_descriptor
 
-    def download_bundle(self, descriptor):
+    def download_bundle(self, descriptor, **kwargs):
         """
         This method is invoked during bootstrapping when downloading the core or
         the bundles used by a configuration.
@@ -54,7 +57,7 @@ class BootstrapHook(get_hook_baseclass()):
         ends or the bundle cache will be left in an inconsistent state.
 
         The safest way to download a bundle into the bundle cache is by using the
-        :meth:`_open_write_location` method with the `with` statement.
+        :meth:`BootstrapHook._open_write_location` method with the `with` statement.
 
         .. example::
             with self._open_write_location(descriptor) as write_location:
@@ -64,6 +67,8 @@ class BootstrapHook(get_hook_baseclass()):
 
         The default implementation will download the descriptor's content from
         its source.
+
+        The ``kwargs`` is there for forward compatibility with future versions of Toolkit.
 
         :param descriptor: The descriptor that will be downloaded.
         :type descriptor: :class:`~sgtk.descriptor.Descriptor`
@@ -75,10 +80,12 @@ class BootstrapHook(get_hook_baseclass()):
         """
         Allows to write a bundle to the primary bundle cache location.
 
-        If an exception is raised during the process, the files will be deleted
+        This method should be invoked with the ``with`` statement. It yields the
+        path where the bundle information needs to be written. If an exception
+        is raised inside the ``with`` block, the files will be deleted
         and the bundle cache will be left intact. Be careful to properly copy
-        all the files during the duration of the ``_open_write_location`` method
-        or the bundle cache will be left in an inconsistent state.
+        all the files while invoking ``_open_write_location`` or the cache for
+        this bundle will be left in an inconsistent state.
         """
         with descriptor._io_descriptor.open_write_location() as write_location:
             yield write_location

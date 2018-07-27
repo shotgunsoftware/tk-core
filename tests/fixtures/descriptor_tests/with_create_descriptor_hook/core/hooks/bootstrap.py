@@ -17,7 +17,7 @@ class BootstrapHook(get_hook_baseclass()):
     This is an example of a descriptor operations hook. It downloads a bundle
     from the local site if it is found.
     """
-    def download_bundle(self, descriptor):
+    def download_bundle(self, descriptor, **kwargs):
         """
         Downloads a bundle from a Shotgun site.
 
