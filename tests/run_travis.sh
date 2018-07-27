@@ -44,7 +44,11 @@ fi
 # Insert the event type and python version, since we can be running multiple builds at the same time.
 export SHOTGUN_TEST_ENTITY_SUFFIX="travis_${TRAVIS_EVENT_TYPE}_${TRAVIS_PYTHON_VERSION}"
 
-python tests/run_tests.py --with-coverage
+# Do not launch the coverage for our unit tests with --with-coverage. If you do, run_tests will
+# generate all the coverage in memory and not leave a .coverage file to be uploaded.
+export PYTHONPATH="tests/python/third_party"
+python tests/python/third_party/coverage run tests/run_tests.py
+
 
 # Run these tests only if the integration tests environment variables are set.
 if [ -z ${SHOTGUN_HOST+x} ]; then
