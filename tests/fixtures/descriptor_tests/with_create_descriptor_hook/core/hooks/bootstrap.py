@@ -23,9 +23,6 @@ class BootstrapHook(get_hook_baseclass()):
 
         :param descriptor: Descriptor that needs to be downloaded.
         :type descriptor: :class:`~sgtk.descriptor.Descriptor`
-
-        :returns: Returns ``True`` is something was downloaded.
-        :rtype: bool
         """
 
         # Get the uri form the descriptor.

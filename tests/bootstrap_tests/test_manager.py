@@ -228,10 +228,13 @@ class TestPrepareEngine(ShotgunTestBase):
         }
 
         def progress_cb(progress_value, message):
+            self.assertLess(progress_cb.previous_progress, progress_value)
+            progress_cb.previous_progress = progress_value
             if message.startswith("Checking"):
                 progress_cb.nb_exists_locally += 1
 
         progress_cb.nb_exists_locally = 0
+        progress_cb.previous_progress = -1
 
         mgr.progress_callback = progress_cb
         path, desc = mgr.prepare_engine("test_engine", self.project)

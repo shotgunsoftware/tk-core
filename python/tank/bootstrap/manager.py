@@ -643,7 +643,7 @@ class ToolkitManager(object):
             # Scale the progress step 0.8 between this value 0.15 and the next one 0.95
             # to compute a value progressing while looping over the indexes.
             step_size = float(self._END_DOWNLOADING_APPS_RATE - self._START_DOWNLOADING_APPS_RATE) / nb_descriptors
-            progress_value = self._START_DOWNLOADING_APPS_RATE + int(idx * step_size)
+            progress_value = self._START_DOWNLOADING_APPS_RATE + (idx * step_size)
 
             self._report_progress(progress_callback, progress_value, message)
 
