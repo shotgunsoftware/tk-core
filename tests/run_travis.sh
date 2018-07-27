@@ -41,12 +41,10 @@ if [[ $TRAVIS = true ]]; then
     export QT_QPA_PLATFORM=offscreen
 fi
 
-export PYTHONPATH=tests/python/third_party:tests/python:python
-
 # Insert the event type and python version, since we can be running multiple builds at the same time.
 export SHOTGUN_TEST_ENTITY_SUFFIX="travis_${TRAVIS_EVENT_TYPE}_${TRAVIS_PYTHON_VERSION}"
 
-python tests/python/third_party/coverage run tests/run_tests.py
+python tests/run_tests.py --with-coverage
 
 # Run these tests only if the integration tests environment variables are set.
 if [ -z ${SHOTGUN_HOST+x} ]; then

@@ -25,6 +25,21 @@ import subprocess
 
 def main():
 
+    current_folder = os.path.dirname(__file__)
+
+    # Set up the environment variables so the test can be run simply by running
+    # the test script.
+    environ = {
+        "PYTHONPATH": os.path.pathsep.join([
+            os.path.join(current_folder, "..", "python"),
+            os.path.join(current_folder, "..", "python", "third_party"),
+            os.path.join(current_folder, "..", "..", "python"),
+        ]),
+        "SHOTGUN_SCRIPT_NAME": os.environ.get("SHOTGUN_SCRIPT_NAME"),
+        "SHOTGUN_SCRIPT_KEY": os.environ.get("SHOTGUN_SCRIPT_KEY"),
+        "SHOTGUN_HOST": os.environ.get("SHOTGUN_HOST")
+    }
+
     current_folder, current_file = os.path.split(__file__)
 
     # Ensures code coverage will be generated
@@ -59,7 +74,7 @@ def main():
                     filename
                 ]
 
-            subprocess.check_call(args)
+            subprocess.check_call(args, env=environ)
 
             print()
             print()

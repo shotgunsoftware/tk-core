@@ -12,7 +12,6 @@
 :: This file is run by the appveyor builds.
 ::
 
-set PYTHONPATH=tests/python/third_party;tests/python;python
 %PYTHON%\python tests/run_tests.py
 
 :: FIXME: This approach does not scale...
