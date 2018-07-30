@@ -164,6 +164,10 @@ To use this workflow, simply zip up your configuration and upload it as an attac
 .. note:: For backwards compatibility, configurations uploaded to the custom ``sg_uploaded_config`` field 
     are also supported.
 
+    Older versions of Shotgun may not have an **Uploaded Config** field enabled by
+    default, and in this case it may be necessary to create a custom field. Naming it **Uploaded Config**
+    will generate a field with the API name ``sg_uploaded_config`` and thus will be regconized by Toolkit.
+
 Once a configuration is uploaded, it will be detected and used at bootstrap.
 If a new configuration is uploaded to Shotgun, users will pick it up the
 next time they start up.
