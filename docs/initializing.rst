@@ -154,18 +154,21 @@ to Shotgun. At startup, the Toolkit Bootstrap will automatically look for upload
 and if detected, download the configuration locally and then launch. Toolkit will take care
 of distribution and setup.
 
+To use this workflow, start by creating a custom file/link field on the Pipeline Configuration.
+Name it ``Uploaded Config`` (so that its API field code becomes ``sg_uploaded_config``):
 
-To use this workflow, simply zip up your configuration and upload it as an attachment:
+.. image:: ./resources/initializing/create_uploaded_config_field.png
+    :width: 700px
+    :align: center
+
+Once created, you can zip up your configuration and upload it as an attachment:
 
 .. image:: ./resources/initializing/zip_config.png
     :width: 700px
     :align: center
 
-.. note:: For backwards compatibility, configurations uploaded to the custom ``sg_uploaded_config`` field 
-    are also supported.
-
-Once a configuration is uploaded, it will be detected and used at bootstrap.
-If a new configuration is uploaded to Shotgun, users will pick it up the
+Once a configuration is uploaded, it will be detected and used at boostrap.
+If a new configuration is uploaded to Shotgun, users will pick that up the
 next time they start up.
 
 .. note:: As an example, you can download one of the default configurations from
