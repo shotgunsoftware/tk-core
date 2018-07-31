@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptors &mdash; tk-core v0.18.148 documentation</title>
+  <title>Descriptors &mdash; tk-core v0.18.151 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.148 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.151 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -142,7 +142,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.148.<br>
+    <b>tk-core</b> v0.18.151.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -569,9 +569,8 @@ to Shotgun and then reference it with a descriptor.</p>
 or other items to your distributed users - regardless of network or file access.
 All they need is a connection to Shotgun.</p>
 <p>A practical application of this is Toolkit&#8217;s cloud based configurations;
-Create a custom file/link field named <code class="docutils literal"><span class="pre">PipelineConfiguration.sg_uploaded_config</span></code>
-and upload a zipped up toolkit configuration to your this field on your pipeline configuration.
-The <a class="reference internal" href="initializing.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a> boostrapping interface will automatically detect
+Upload a zipped toolkit configuration to the <code class="docutils literal"><span class="pre">PipelineConfiguration.uploaded_config</span></code> field on your pipeline configuration.
+The <a class="reference internal" href="initializing.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a> bootstrapping interface will automatically detect
 this, download the configuration locally and use this when launching.
 This allows for a powerful workflow where a configuration is simply
 uploaded to Shotgun and it gets automatically picked up by all
@@ -583,13 +582,13 @@ field in Shotgun and expects a zip file to be uploaded to the field.</p>
 one implicit which uses the name in shotgun to resolve a record. With the
 id based syntax you specify the Shotgun entity type and field name you want
 to look for and the entity id to inspect. For example, if your attachment field is called
-<code class="docutils literal"><span class="pre">PipelineConfiguration.sg_uploaded_config</span></code> and you want to access the uploaded payload for
+<code class="docutils literal"><span class="pre">PipelineConfiguration.uploaded_config</span></code> and you want to access the uploaded payload for
 the Pipeline Configuration entity with id 111, use the following descriptor:</p>
 <div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
     <span class="nv">type</span><span class="p p-Indicator">:</span> <span class="nv">shotgun</span><span class="p p-Indicator">,</span>
     <span class="nv">entity_type</span><span class="p p-Indicator">:</span> <span class="nv">PipelineConfiguration</span><span class="p p-Indicator">,</span>  <span class="c1"># entity type</span>
     <span class="nv">id</span><span class="p p-Indicator">:</span> <span class="nv">111</span><span class="p p-Indicator">,</span>                             <span class="c1"># shotgun entity id</span>
-    <span class="nv">field</span><span class="p p-Indicator">:</span> <span class="nv">sg_uploaded_config</span><span class="p p-Indicator">,</span>           <span class="c1"># attachment field where payload can be found</span>
+    <span class="nv">field</span><span class="p p-Indicator">:</span> <span class="nv">uploaded_config</span><span class="p p-Indicator">,</span>              <span class="c1"># attachment field where payload can be found</span>
     <span class="nv">version</span><span class="p p-Indicator">:</span> <span class="nv">222</span>                         <span class="c1"># attachment id of particular attachment</span>
 <span class="p p-Indicator">}</span>
 </pre></div>
@@ -609,7 +608,7 @@ following syntax can be useful:</p>
     <span class="nv">entity_type</span><span class="p p-Indicator">:</span> <span class="nv">PipelineConfiguration</span><span class="p p-Indicator">,</span>  <span class="c1"># entity type</span>
     <span class="nv">name</span><span class="p p-Indicator">:</span> <span class="nv">Primary</span><span class="p p-Indicator">,</span>                       <span class="c1"># name of the record in shotgun (e.g. &#39;code&#39; field)</span>
     <span class="nv">project_id</span><span class="p p-Indicator">:</span> <span class="nv">123</span><span class="p p-Indicator">,</span>                     <span class="c1"># optional project id. If omitted, name is assumed to be unique.</span>
-    <span class="nv">field</span><span class="p p-Indicator">:</span> <span class="nv">sg_uploaded_config</span><span class="p p-Indicator">,</span>           <span class="c1"># attachment field where payload can be found</span>
+    <span class="nv">field</span><span class="p p-Indicator">:</span> <span class="nv">uploaded_config</span><span class="p p-Indicator">,</span>              <span class="c1"># attachment field where payload can be found</span>
     <span class="nv">version</span><span class="p p-Indicator">:</span> <span class="nv">456</span>                         <span class="c1"># attachment id of particular attachment</span>
 <span class="p p-Indicator">}</span>
 </pre></div>
@@ -878,9 +877,9 @@ to indicate that no changelog exists.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) &#8211; Core version. If None, current core version will be used.</li>
+<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Core version. If None, current core version will be used.</li>
 <li><strong>engine_descriptor</strong> (<code class="xref py py-class docutils literal"><span class="pre">DescriptorBundle</span></code>) &#8211; Descriptor of the engine this bundle will run under. None by default.</li>
-<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) &#8211; Version of the Shotgun Desktop. None by default.</li>
+<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Version of the Shotgun Desktop. None by default.</li>
 </ul>
 </td>
 </tr>
@@ -1395,9 +1394,9 @@ to indicate that no changelog exists.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) &#8211; Core version. If None, current core version will be used.</li>
+<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Core version. If None, current core version will be used.</li>
 <li><strong>engine_descriptor</strong> (<code class="xref py py-class docutils literal"><span class="pre">DescriptorBundle</span></code>) &#8211; Descriptor of the engine this bundle will run under. None by default.</li>
-<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) &#8211; Version of the Shotgun Desktop. None by default.</li>
+<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Version of the Shotgun Desktop. None by default.</li>
 </ul>
 </td>
 </tr>
@@ -1928,9 +1927,9 @@ to indicate that no changelog exists.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) &#8211; Core version. If None, current core version will be used.</li>
+<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Core version. If None, current core version will be used.</li>
 <li><strong>engine_descriptor</strong> (<code class="xref py py-class docutils literal"><span class="pre">DescriptorBundle</span></code>) &#8211; Descriptor of the engine this bundle will run under. None by default.</li>
-<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) &#8211; Version of the Shotgun Desktop. None by default.</li>
+<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Version of the Shotgun Desktop. None by default.</li>
 </ul>
 </td>
 </tr>
@@ -2479,8 +2478,8 @@ an explicit interpreter associated.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>feature_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) &#8211; Name of the feature to retrieve from the manifest.</li>
-<li><strong>default_value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><em>object</em></a>) &#8211; Value to return if the feature is missing.</li>
+<li><strong>feature_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Name of the feature to retrieve from the manifest.</li>
+<li><strong>default_value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><em>object</em></a>) &#8211; Value to return if the feature is missing.</li>
 </ul>
 </td>
 </tr>
@@ -2943,8 +2942,8 @@ min_engine, min_desktop</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>feature_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.6)"><em>str</em></a>) &#8211; Name of the feature to retrieve from the manifest.</li>
-<li><strong>default_value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><em>object</em></a>) &#8211; Value to return if the feature is missing.</li>
+<li><strong>feature_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Name of the feature to retrieve from the manifest.</li>
+<li><strong>default_value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><em>object</em></a>) &#8211; Value to return if the feature is missing.</li>
 </ul>
 </td>
 </tr>
@@ -3386,7 +3385,7 @@ If not url has been defined, <code class="docutils literal"><span class="pre">No
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.148',
+            VERSION:'v0.18.151',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

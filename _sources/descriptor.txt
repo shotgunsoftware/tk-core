@@ -440,9 +440,8 @@ or other items to your distributed users - regardless of network or file access.
 All they need is a connection to Shotgun.
 
 A practical application of this is Toolkit's cloud based configurations;
-Create a custom file/link field named ``PipelineConfiguration.sg_uploaded_config``
-and upload a zipped up toolkit configuration to your this field on your pipeline configuration.
-The :class:`~sgtk.bootstrap.ToolkitManager` boostrapping interface will automatically detect
+Upload a zipped toolkit configuration to the ``PipelineConfiguration.uploaded_config`` field on your pipeline configuration.
+The :class:`~sgtk.bootstrap.ToolkitManager` bootstrapping interface will automatically detect
 this, download the configuration locally and use this when launching.
 This allows for a powerful workflow where a configuration is simply
 uploaded to Shotgun and it gets automatically picked up by all
@@ -456,7 +455,7 @@ Two formats are supported, one explicit based on a shotgun entity id and
 one implicit which uses the name in shotgun to resolve a record. With the
 id based syntax you specify the Shotgun entity type and field name you want
 to look for and the entity id to inspect. For example, if your attachment field is called
-``PipelineConfiguration.sg_uploaded_config`` and you want to access the uploaded payload for
+``PipelineConfiguration.uploaded_config`` and you want to access the uploaded payload for
 the Pipeline Configuration entity with id 111, use the following descriptor:
 
 .. code-block:: yaml
@@ -465,7 +464,7 @@ the Pipeline Configuration entity with id 111, use the following descriptor:
         type: shotgun,
         entity_type: PipelineConfiguration,  # entity type
         id: 111,                             # shotgun entity id
-        field: sg_uploaded_config,           # attachment field where payload can be found
+        field: uploaded_config,              # attachment field where payload can be found
         version: 222                         # attachment id of particular attachment
     }
 
@@ -490,7 +489,7 @@ following syntax can be useful:
         entity_type: PipelineConfiguration,  # entity type
         name: Primary,                       # name of the record in shotgun (e.g. 'code' field)
         project_id: 123,                     # optional project id. If omitted, name is assumed to be unique.
-        field: sg_uploaded_config,           # attachment field where payload can be found
+        field: uploaded_config,              # attachment field where payload can be found
         version: 456                         # attachment id of particular attachment
     }
 

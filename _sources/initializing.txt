@@ -154,21 +154,22 @@ to Shotgun. At startup, the Toolkit Bootstrap will automatically look for upload
 and if detected, download the configuration locally and then launch. Toolkit will take care
 of distribution and setup.
 
-To use this workflow, start by creating a custom file/link field on the Pipeline Configuration.
-Name it ``Uploaded Config`` (so that its API field code becomes ``sg_uploaded_config``):
 
-.. image:: ./resources/initializing/create_uploaded_config_field.png
-    :width: 700px
-    :align: center
-
-Once created, you can zip up your configuration and upload it as an attachment:
+To use this workflow, simply zip up your configuration and upload it as an attachment:
 
 .. image:: ./resources/initializing/zip_config.png
     :width: 700px
     :align: center
 
-Once a configuration is uploaded, it will be detected and used at boostrap.
-If a new configuration is uploaded to Shotgun, users will pick that up the
+.. note:: For backwards compatibility, configurations uploaded to the custom ``sg_uploaded_config`` field 
+    are also supported.
+
+    Older versions of Shotgun may not have an **Uploaded Config** field enabled by
+    default, and in this case it may be necessary to create a custom field. Naming it **Uploaded Config**
+    will generate a field with the API name ``sg_uploaded_config`` and thus will be recognized by Toolkit.
+
+Once a configuration is uploaded, it will be detected and used at bootstrap.
+If a new configuration is uploaded to Shotgun, users will pick it up the
 next time they start up.
 
 .. note:: As an example, you can download one of the default configurations from
@@ -745,7 +746,7 @@ The following lines of python code demonstrate how to launch Maya using the core
 
     # Use the SoftwareLauncher instance to find a list of Maya versions installed on the
     # local filesystem. A list of SoftwareVersion instances is returned.
-    software_versions = software_launcher.get_supported_software()
+    software_versions = software_launcher.scan_software()
 
     # Ask the SoftwareLauncher instance to prepare an environment to launch Maya in.
     # For simplicity, use the first version returned from the list of software_versions.
