@@ -15,6 +15,8 @@
 
   
   
+  
+  
 
   
 
@@ -24,25 +26,21 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="tk-core v0.18.151 documentation" href="index.html"/>
-        <link rel="next" title="Initialization and startup" href="initializing.html"/>
-        <link rel="prev" title="Shotgun pipeline toolkit core platform, v0.18.151" href="index.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Initialization and startup" href="initializing.html" />
+    <link rel="prev" title="Shotgun pipeline toolkit core platform, v0.18.151" href="index.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -89,7 +87,10 @@
     
             
             
-                <ul class="current">
+              
+            
+            
+              <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Overview</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#what-is-the-toolkit-platform">What is the Toolkit Platform?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#who-is-this-documentation-for">Who is this documentation for?</a></li>
@@ -145,32 +146,52 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">tk-core</a>
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">tk-core</a>
+        
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Overview</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Overview</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
+            
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -218,7 +239,7 @@ and will always remain backwards compatible.</p>
 full public interface. This is to provide a cleaner interface and
 make refactoring easier. We therefore recommend importing from the
 package level whenever possible:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># recommended and documented API access</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># recommended and documented API access</span>
 <span class="kn">from</span> <span class="nn">sgtk.authentication</span> <span class="k">import</span> <span class="n">ShotgunAuthenticator</span>
 
 <span class="c1"># we recommend *avoiding* deeper, module level imports</span>
@@ -230,15 +251,16 @@ package level whenever possible:</p>
 
 
            </div>
+           
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="initializing.html" class="btn btn-neutral float-right" title="Initialization and startup" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="initializing.html" class="btn btn-neutral float-right" title="Initialization and startup" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="Shotgun pipeline toolkit core platform, v0.18.151" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral" title="Shotgun pipeline toolkit core platform, v0.18.151" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -269,9 +291,11 @@ package level whenever possible:</p>
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
             VERSION:'v0.18.151',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>
@@ -280,19 +304,13 @@ package level whenever possible:</p>
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
-  
  
 
 <script>

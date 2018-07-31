@@ -15,6 +15,8 @@
 
   
   
+  
+  
 
   
 
@@ -24,24 +26,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="tk-core v0.18.151 documentation" href="../../../index.html"/>
-        <link rel="up" title="Module code" href="../../index.html"/> 
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -88,7 +85,10 @@
     
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core</a></li>
@@ -139,34 +139,52 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../index.html">tk-core</a>
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">tk-core</a>
+        
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../../index.html">Module code</a> &raquo;</li>
-      
-    <li>tank.util.filesystem</li>
+        
+      <li>tank.util.filesystem</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-        
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -194,9 +212,9 @@
 <span class="kn">import</span> <span class="nn">shutil</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">functools</span>
-<span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">contextmanager</span>
+<span class="kn">from</span> <span class="nn">contextlib</span> <span class="k">import</span> <span class="n">contextmanager</span>
 
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">LogManager</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -238,7 +256,7 @@
 <span class="sd">            log.debug(&quot;Creating folder %s...&quot; % path)</span>
 <span class="sd">            os.makedirs(path, permissions)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nd">@functools.wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1"># set umask to zero, store old umask</span>
         <span class="n">old_umask</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">umask</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -266,8 +284,8 @@
     <span class="k">return</span> <span class="n">total_size</span></div>
 
 
-<span class="nd">@with_cleared_umask</span>
-<div class="viewcode-block" id="touch_file"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.touch_file">[docs]</a><span class="k">def</span> <span class="nf">touch_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mi">0</span><span class="n">o666</span><span class="p">):</span>
+<div class="viewcode-block" id="touch_file"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.touch_file">[docs]</a><span class="nd">@with_cleared_umask</span>
+<span class="k">def</span> <span class="nf">touch_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mo">0o666</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Touch a file and optionally set its permissions.</span>
 
@@ -290,8 +308,8 @@
                 <span class="k">raise</span></div>
 
 
-<span class="nd">@with_cleared_umask</span>
-<div class="viewcode-block" id="ensure_folder_exists"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.ensure_folder_exists">[docs]</a><span class="k">def</span> <span class="nf">ensure_folder_exists</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mi">0</span><span class="n">o775</span><span class="p">,</span> <span class="n">create_placeholder_file</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="ensure_folder_exists"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.ensure_folder_exists">[docs]</a><span class="nd">@with_cleared_umask</span>
+<span class="k">def</span> <span class="nf">ensure_folder_exists</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mo">0o775</span><span class="p">,</span> <span class="n">create_placeholder_file</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper method - creates a folder and parent folders if such do not already exist.</span>
 
@@ -325,8 +343,8 @@
                 <span class="k">raise</span></div>
 
 
-<span class="nd">@with_cleared_umask</span>
-<div class="viewcode-block" id="copy_file"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.copy_file">[docs]</a><span class="k">def</span> <span class="nf">copy_file</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mi">0</span><span class="n">o666</span><span class="p">):</span>
+<div class="viewcode-block" id="copy_file"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.copy_file">[docs]</a><span class="nd">@with_cleared_umask</span>
+<span class="k">def</span> <span class="nf">copy_file</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mo">0o666</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Copy file and sets its permissions.</span>
 
@@ -363,8 +381,8 @@
         <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;File &#39;</span><span class="si">%s</span><span class="s2">&#39; could not be deleted, skipping: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span></div>
 
 
-<span class="nd">@with_cleared_umask</span>
-<div class="viewcode-block" id="copy_folder"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.copy_folder">[docs]</a><span class="k">def</span> <span class="nf">copy_folder</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">folder_permissions</span><span class="o">=</span><span class="mi">0</span><span class="n">o775</span><span class="p">,</span> <span class="n">skip_list</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="copy_folder"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.copy_folder">[docs]</a><span class="nd">@with_cleared_umask</span>
+<span class="k">def</span> <span class="nf">copy_folder</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">folder_permissions</span><span class="o">=</span><span class="mo">0o775</span><span class="p">,</span> <span class="n">skip_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Alternative implementation to ``shutil.copytree``</span>
 
@@ -391,7 +409,7 @@
     <span class="c1"># actual_skip_list = skip_list or SKIP_LIST_DEFAULT</span>
     <span class="c1"># because we want users to be able to pass in</span>
     <span class="c1"># skip_list=[] in order to clear the default skip list.</span>
-    <span class="k">if</span> <span class="n">skip_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">skip_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">actual_skip_list</span> <span class="o">=</span> <span class="n">SKIP_LIST_DEFAULT</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">actual_skip_list</span> <span class="o">=</span> <span class="n">skip_list</span>
@@ -424,7 +442,7 @@
                 <span class="k">if</span> <span class="n">dstname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.sh&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">dstname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.bat&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">dstname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.exe&quot;</span><span class="p">):</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="c1"># make it readable and executable for everybody</span>
-                        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">dstname</span><span class="p">,</span> <span class="mi">0</span><span class="n">o775</span><span class="p">)</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">dstname</span><span class="p">,</span> <span class="mo">0o775</span><span class="p">)</span>
                     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                         <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Can&#39;t set executable permissions on </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dstname</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
 
@@ -434,8 +452,8 @@
     <span class="k">return</span> <span class="n">files</span></div>
 
 
-<span class="nd">@with_cleared_umask</span>
-<div class="viewcode-block" id="move_folder"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.move_folder">[docs]</a><span class="k">def</span> <span class="nf">move_folder</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">folder_permissions</span><span class="o">=</span><span class="mi">0</span><span class="n">o775</span><span class="p">):</span>
+<div class="viewcode-block" id="move_folder"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.move_folder">[docs]</a><span class="nd">@with_cleared_umask</span>
+<span class="k">def</span> <span class="nf">move_folder</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">folder_permissions</span><span class="o">=</span><span class="mo">0o775</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Moves a directory.</span>
 
@@ -475,8 +493,8 @@
                 <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Could not delete file </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span></div>
 
 
-<span class="nd">@with_cleared_umask</span>
-<div class="viewcode-block" id="backup_folder"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.backup_folder">[docs]</a><span class="k">def</span> <span class="nf">backup_folder</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="backup_folder"><a class="viewcode-back" href="../../../utils.html#sgtk.util.filesystem.backup_folder">[docs]</a><span class="nd">@with_cleared_umask</span>
+<span class="k">def</span> <span class="nf">backup_folder</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Moves the given directory into a backup location.</span>
 
@@ -492,7 +510,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">src</span><span class="p">):</span>
         <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">_%H%M%S&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">dst</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">dst</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">backup_path</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">backup_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">src</span><span class="p">),</span> <span class="n">timestamp</span><span class="p">))</span>
@@ -517,7 +535,7 @@
     <span class="c1"># strip trailing whitespace</span>
     <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">unicode</span><span class="p">):</span>
         <span class="c1"># src is unicode, so return unicode</span>
         <span class="k">return</span> <span class="n">exp</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -618,7 +636,7 @@
     <span class="c1"># two entries.</span>
     <span class="n">base_parts</span> <span class="o">=</span> <span class="n">basename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span>
     <span class="n">numbering</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">numbering</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%d%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="n">base_parts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">numbering</span><span class="p">,</span> <span class="s2">&quot;.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">base_parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">base_parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
@@ -673,6 +691,7 @@
 </pre></div>
 
            </div>
+           
           </div>
           <footer>
   
@@ -703,9 +722,11 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
             VERSION:'v0.18.151',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../../_static/jquery.js"></script>
@@ -714,19 +735,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
-  
  
 
 <script>

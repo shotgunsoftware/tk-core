@@ -15,6 +15,8 @@
 
   
   
+  
+  
 
   
 
@@ -24,24 +26,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="tk-core v0.18.151 documentation" href="../../../index.html"/>
-        <link rel="up" title="Module code" href="../../index.html"/> 
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -88,7 +85,10 @@
     
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core</a></li>
@@ -139,34 +139,52 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../index.html">tk-core</a>
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">tk-core</a>
+        
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../../index.html">Module code</a> &raquo;</li>
-      
-    <li>tank.platform.engine</li>
+        
+      <li>tank.platform.engine</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-        
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -187,7 +205,7 @@
 <span class="sd">Defines the base class for all Tank Engines.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">with_statement</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">with_statement</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
@@ -199,31 +217,31 @@
 <span class="kn">import</span> <span class="nn">weakref</span>
 <span class="kn">import</span> <span class="nn">threading</span>
 
-<span class="kn">from</span> <span class="nn">..util.qt_importer</span> <span class="kn">import</span> <span class="n">QtImporter</span>
-<span class="kn">from</span> <span class="nn">..util.loader</span> <span class="kn">import</span> <span class="n">load_plugin</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">hook</span>
+<span class="kn">from</span> <span class="nn">..util.qt_importer</span> <span class="k">import</span> <span class="n">QtImporter</span>
+<span class="kn">from</span> <span class="nn">..util.loader</span> <span class="k">import</span> <span class="n">load_plugin</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">hook</span>
 
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span> <span class="nn">..errors</span> <span class="k">import</span> <span class="n">TankError</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="k">import</span> <span class="p">(</span>
     <span class="n">TankEngineInitError</span><span class="p">,</span>
     <span class="n">TankContextChangeNotSupportedError</span><span class="p">,</span>
     <span class="n">TankEngineEventError</span><span class="p">,</span>
     <span class="n">TankMissingEngineError</span>
 <span class="p">)</span>
 
-<span class="kn">from</span> <span class="nn">..util.metrics</span> <span class="kn">import</span> <span class="n">EventMetric</span>
-<span class="kn">from</span> <span class="nn">..util.metrics</span> <span class="kn">import</span> <span class="n">MetricsDispatcher</span>
-<span class="kn">from</span> <span class="nn">..log</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">..util.metrics</span> <span class="k">import</span> <span class="n">EventMetric</span>
+<span class="kn">from</span> <span class="nn">..util.metrics</span> <span class="k">import</span> <span class="n">MetricsDispatcher</span>
+<span class="kn">from</span> <span class="nn">..log</span> <span class="k">import</span> <span class="n">LogManager</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">application</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">validation</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">events</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">qt</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">qt5</span>
-<span class="kn">from</span> <span class="nn">.bundle</span> <span class="kn">import</span> <span class="n">TankBundle</span>
-<span class="kn">from</span> <span class="nn">.framework</span> <span class="kn">import</span> <span class="n">setup_frameworks</span>
-<span class="kn">from</span> <span class="nn">.engine_logging</span> <span class="kn">import</span> <span class="n">ToolkitEngineHandler</span><span class="p">,</span> <span class="n">ToolkitEngineLegacyHandler</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">application</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">validation</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">events</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">qt</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">qt5</span>
+<span class="kn">from</span> <span class="nn">.bundle</span> <span class="k">import</span> <span class="n">TankBundle</span>
+<span class="kn">from</span> <span class="nn">.framework</span> <span class="k">import</span> <span class="n">setup_frameworks</span>
+<span class="kn">from</span> <span class="nn">.engine_logging</span> <span class="k">import</span> <span class="n">ToolkitEngineHandler</span><span class="p">,</span> <span class="n">ToolkitEngineLegacyHandler</span>
 
 <span class="c1"># std core level logger</span>
 <span class="n">core_logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -237,7 +255,7 @@
 
     <span class="n">_ASYNC_INVOKER</span><span class="p">,</span> <span class="n">_SYNC_INVOKER</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">engine_instance_name</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">engine_instance_name</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Engine instances are constructed by the toolkit launch process</span>
 <span class="sd">        and various factory methods such as :meth:`start_engine`.</span>
@@ -258,25 +276,25 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__commands</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__command_pool</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__panels</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__currently_initializing_app</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__currently_initializing_app</span> <span class="o">=</span> <span class="kc">None</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">__qt_widget_trash</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__created_qt_dialogs</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__qt_debug_info</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__has_qt5</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__has_qt5</span> <span class="o">=</span> <span class="kc">False</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">__commands_that_need_prefixing</span> <span class="o">=</span> <span class="p">[]</span>
         
-        <span class="bp">self</span><span class="o">.</span><span class="n">__global_progress_widget</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__global_progress_widget</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">__fonts_loaded</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fonts_loaded</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_metrics_dispatcher</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_metrics_dispatcher</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># Initialize these early on so that methods implemented in the derived class and trying</span>
         <span class="c1"># to access the invoker don&#39;t trip on undefined variables.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_invoker</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_async_invoker</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_invoker</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_async_invoker</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># get the engine settings</span>
         <span class="n">settings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__env</span><span class="o">.</span><span class="n">get_engine_settings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__engine_instance_name</span><span class="p">)</span>
@@ -297,8 +315,8 @@
 
         <span class="c1"># check general debug log setting and if this flag is turned on,</span>
         <span class="c1"># adjust the global setting</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;debug_logging&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
-            <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">global_debug</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s2">&quot;debug_logging&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">global_debug</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span>
                 <span class="s2">&quot;Detected setting &#39;config/env/</span><span class="si">%s</span><span class="s2">.yml:</span><span class="si">%s</span><span class="s2">.debug_logging: true&#39; &quot;</span>
                 <span class="s2">&quot;in your environment configuration. Turning on debug output.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">engine_instance_name</span><span class="p">)</span>
@@ -356,7 +374,7 @@
 
         <span class="c1"># Update the authentication module to use the engine&#39;s Qt.</span>
         <span class="c1"># @todo: can this import be untangled? Code references internal part of the auth module</span>
-        <span class="kn">from</span> <span class="nn">..authentication.ui</span> <span class="kn">import</span> <span class="n">qt_abstraction</span>
+        <span class="kn">from</span> <span class="nn">..authentication.ui</span> <span class="k">import</span> <span class="n">qt_abstraction</span>
         <span class="n">qt_abstraction</span><span class="o">.</span><span class="n">QtCore</span> <span class="o">=</span> <span class="n">qt</span><span class="o">.</span><span class="n">QtCore</span>
         <span class="n">qt_abstraction</span><span class="o">.</span><span class="n">QtGui</span> <span class="o">=</span> <span class="n">qt</span><span class="o">.</span><span class="n">QtGui</span>
 
@@ -452,7 +470,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Init complete: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;Sgtk Engine 0x</span><span class="si">%08x</span><span class="s2">: </span><span class="si">%s</span><span class="s2">, env: </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span>  
                                                       <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> 
                                                       <span class="bp">self</span><span class="o">.</span><span class="n">__env</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -485,7 +503,7 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ui</span><span class="p">:</span>
             <span class="c1"># only import QT if we have a UI</span>
-            <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
+            <span class="kn">from</span> <span class="nn">.qt</span> <span class="k">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
             <span class="n">url</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QUrl</span><span class="o">.</span><span class="n">fromLocalFile</span><span class="p">(</span>
                 <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">log_folder</span>
             <span class="p">)</span>
@@ -508,16 +526,16 @@
 
         <span class="c1"># now determine if the runtime implementation</span>
         <span class="c1"># is the base class implementation or not</span>
-        <span class="n">subclassed</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">subclassed</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">6</span><span class="p">):</span>
             <span class="c1"># older pythons use im_func rather than __func__</span>
             <span class="k">if</span> <span class="n">running_method</span><span class="o">.</span><span class="vm">__func__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">base_method</span><span class="o">.</span><span class="vm">__func__</span><span class="p">:</span>
-                <span class="n">subclassed</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">subclassed</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># pyton 2.6 and above use __func__</span>
             <span class="k">if</span> <span class="n">running_method</span><span class="o">.</span><span class="vm">__func__</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">base_method</span><span class="o">.</span><span class="vm">__func__</span><span class="p">:</span>
-                <span class="n">subclassed</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">subclassed</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="k">return</span> <span class="n">subclassed</span>
 
@@ -590,8 +608,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ui</span><span class="p">:</span>
             <span class="c1"># we cannot import QT until here as non-ui engines don&#39;t have QT defined.</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="kn">from</span> <span class="nn">.qt.busy_dialog</span> <span class="kn">import</span> <span class="n">BusyDialog</span> 
-                <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
+                <span class="kn">from</span> <span class="nn">.qt.busy_dialog</span> <span class="k">import</span> <span class="n">BusyDialog</span> 
+                <span class="kn">from</span> <span class="nn">.qt</span> <span class="k">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
                 
             <span class="k">except</span><span class="p">:</span>
                 <span class="c1"># QT import failed. This may be because someone has upgraded the core</span>
@@ -644,9 +662,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__global_progress_widget</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__global_progress_widget</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__global_progress_widget</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__global_progress_widget</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">log_user_attribute_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr_value</span><span class="p">,</span> <span class="n">log_once</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">log_user_attribute_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr_value</span><span class="p">,</span> <span class="n">log_once</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This method is deprecated and shouldn&#39;t be used anymore.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -788,7 +806,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># default implementation is to assume a UI exists</span>
         <span class="c1"># this is since most engines are supporting a graphical application</span>
-        <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">has_qt5</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -821,7 +839,7 @@
 <span class="sd">        :returns: boolean value indicating that the engine allows user metrics</span>
 <span class="sd">            to be forwarded to SG.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">created_qt_dialogs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -859,7 +877,7 @@
 
 <span class="sd">        :rtype: bool</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="kc">True</span>
 
     <span class="c1">##########################################################################################</span>
     <span class="c1"># init and destroy</span>
@@ -891,7 +909,7 @@
 <span class="sd">        .. note:: This method should not be subclassed. Instead, implement :meth:`destroy_engine()`.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="n">_CoreContextChangeHookGuard</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sgtk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">_CoreContextChangeHookGuard</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sgtk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">context</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__destroy_frameworks</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__destroy_apps</span><span class="p">()</span>
 
@@ -899,7 +917,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">destroy_engine</span><span class="p">()</span>
 
             <span class="c1"># finally remove the current engine reference</span>
-            <span class="n">set_current_engine</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+            <span class="n">set_current_engine</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
 
             <span class="c1"># now clear the hooks cache to make sure fresh hooks are loaded the</span>
             <span class="c1"># next time an engine is initialized</span>
@@ -907,8 +925,8 @@
 
             <span class="c1"># clean up the main thread invoker - it&#39;s a QObject so it&#39;s important we</span>
             <span class="c1"># explicitly set the value to None!</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_invoker</span> <span class="o">=</span> <span class="bp">None</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_async_invoker</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_invoker</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_async_invoker</span> <span class="o">=</span> <span class="kc">None</span>
 
             <span class="c1"># halt metrics dispatching</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metrics_dispatcher</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metrics_dispatcher</span><span class="o">.</span><span class="n">dispatching</span><span class="p">:</span>
@@ -918,7 +936,7 @@
 
         <span class="c1"># kill log handler</span>
         <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">root_logger</span><span class="o">.</span><span class="n">removeHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__log_handler</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__log_handler</span> <span class="o">=</span> <span class="bp">None</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__log_handler</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Engine.destroy_engine"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.destroy_engine">[docs]</a>    <span class="k">def</span> <span class="nf">destroy_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1013,7 +1031,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__env</span> <span class="o">=</span> <span class="n">new_env</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_context</span><span class="p">(</span><span class="n">new_context</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_settings</span><span class="p">(</span><span class="n">new_engine_settings</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__load_apps</span><span class="p">(</span><span class="n">reuse_existing_apps</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">old_context</span><span class="o">=</span><span class="n">old_context</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__load_apps</span><span class="p">(</span><span class="n">reuse_existing_apps</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">old_context</span><span class="o">=</span><span class="n">old_context</span><span class="p">)</span>
 
             <span class="c1"># Call the post_context_change method to allow for any engine</span>
             <span class="c1"># specific post-change logic to be run.</span>
@@ -1075,7 +1093,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__global_progress_widget</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">execute_in_main_thread</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__clear_busy</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Engine.register_command"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.register_command">[docs]</a>    <span class="k">def</span> <span class="nf">register_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.register_command"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.register_command">[docs]</a>    <span class="k">def</span> <span class="nf">register_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Register a ``command`` with a name and a callback function.</span>
 
@@ -1178,14 +1196,14 @@
 <span class="sd">        :param callback: Callback to call upon command execution</span>
 <span class="sd">        :param properties: Dictionary with command properties.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">properties</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">properties</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">properties</span> <span class="o">=</span> <span class="p">{}</span>
         
         <span class="c1"># uniqueness prefix, populated when there are several instances of the same app</span>
-        <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;prefix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;prefix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         
         <span class="c1"># try to add an app key to the dict with the app requesting the command</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__currently_initializing_app</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__currently_initializing_app</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># track which apps this request came from</span>
             <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;app&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__currently_initializing_app</span>
         
@@ -1242,7 +1260,7 @@
 
         <span class="k">if</span> <span class="s2">&quot;entity_type&quot;</span> <span class="ow">in</span> <span class="n">arg_list</span> <span class="ow">and</span> <span class="s2">&quot;entity_ids&quot;</span> <span class="ow">in</span> <span class="n">arg_list</span><span class="p">:</span>
             <span class="c1"># add property flag</span>
-            <span class="n">properties</span><span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">LEGACY_MULTI_SELECT_ACTION_FLAG</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">properties</span><span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">LEGACY_MULTI_SELECT_ACTION_FLAG</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="c1"># define a generic callback wrapper for metrics logging</span>
         <span class="k">def</span> <span class="nf">callback_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1268,7 +1286,7 @@
         <span class="p">}</span></div>
 
 
-<div class="viewcode-block" id="Engine.register_panel"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.register_panel">[docs]</a>    <span class="k">def</span> <span class="nf">register_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">panel_name</span><span class="o">=</span><span class="s2">&quot;main&quot;</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Engine.register_panel"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine.register_panel">[docs]</a>    <span class="k">def</span> <span class="nf">register_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">panel_name</span><span class="o">=</span><span class="s2">&quot;main&quot;</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Similar to :meth:`register_command()`, but instead of registering a menu item in the form of a</span>
 <span class="sd">        command, this method registers a UI panel. A register_panel call should</span>
@@ -1297,7 +1315,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">properties</span> <span class="o">=</span> <span class="n">properties</span> <span class="ow">or</span> <span class="p">{}</span>
         
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__currently_initializing_app</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__currently_initializing_app</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># register_panel is called from outside of init_app</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;register_panel must be called from inside of the init_app() method!&quot;</span><span class="p">)</span>
         
@@ -1380,7 +1398,7 @@
         <span class="c1"># thread.</span>
         <span class="n">invoker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_invoker</span> <span class="k">if</span> <span class="n">invoker_id</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_SYNC_INVOKER</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_async_invoker</span>
         <span class="k">if</span> <span class="n">invoker</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
+            <span class="kn">from</span> <span class="nn">.qt</span> <span class="k">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
                 <span class="ow">and</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">QThread</span><span class="o">.</span><span class="n">currentThread</span><span class="p">()</span> <span class="o">!=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">thread</span><span class="p">()):</span>
                 <span class="c1"># invoke the function on the thread that the QtGui.QApplication was created on.</span>
@@ -1427,7 +1445,7 @@
         <span class="n">commands_by_instance</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
             <span class="n">app_instance</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;app&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">app_instance</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">app_instance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="n">instance_name</span> <span class="o">=</span> <span class="n">app_instance</span><span class="o">.</span><span class="n">instance_name</span>
             <span class="n">commands_by_instance</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">instance_name</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -1710,7 +1728,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ui</span><span class="p">:</span>
             <span class="k">return</span>
 
-        <span class="kn">from</span> <span class="nn">sgtk.platform.qt</span> <span class="kn">import</span> <span class="n">QtGui</span>
+        <span class="kn">from</span> <span class="nn">sgtk.platform.qt</span> <span class="k">import</span> <span class="n">QtGui</span>
 
         <span class="c1"># if the fonts have been loaded, no need to do anything else</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fonts_loaded</span><span class="p">:</span>
@@ -1762,7 +1780,7 @@
                     <span class="k">else</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Loaded font file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">font_file</span><span class="p">,))</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">__fonts_loaded</span> <span class="o">=</span> <span class="bp">True</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fonts_loaded</span> <span class="o">=</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="Engine._get_dialog_parent"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._get_dialog_parent">[docs]</a>    <span class="k">def</span> <span class="nf">_get_dialog_parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1774,7 +1792,7 @@
 <span class="sd">        :return: QT Parent window (:class:`PySide.QtGui.QWidget`)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># By default, this will return the QApplication&#39;s active window:</span>
-        <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">QtGui</span>
+        <span class="kn">from</span> <span class="nn">.qt</span> <span class="k">import</span> <span class="n">QtGui</span>
         <span class="k">return</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">activeWindow</span><span class="p">()</span></div>
                 
 <div class="viewcode-block" id="Engine._create_dialog"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Engine._create_dialog">[docs]</a>    <span class="k">def</span> <span class="nf">_create_dialog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
@@ -1789,7 +1807,7 @@
 <span class="sd">        :param widget: A QWidget instance to be embedded in the newly created dialog.</span>
 <span class="sd">        :type widget: :class:`PySide.QtGui.QWidget`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">tankqdialog</span>
+        <span class="kn">from</span> <span class="nn">.qt</span> <span class="k">import</span> <span class="n">tankqdialog</span>
 
         <span class="c1"># TankQDialog uses the bundled core font. Make sure they are loaded</span>
         <span class="c1"># since know we have a QApplication at this point.</span>
@@ -1826,7 +1844,7 @@
 <span class="sd">            </span>
 <span class="sd">        Additional parameters specified will be passed through to the widget_class constructor.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">tankqdialog</span>
+        <span class="kn">from</span> <span class="nn">.qt</span> <span class="k">import</span> <span class="n">tankqdialog</span>
 
         <span class="c1"># construct the widget object</span>
         <span class="n">derived_widget_class</span> <span class="o">=</span> <span class="n">tankqdialog</span><span class="o">.</span><span class="n">TankQDialog</span><span class="o">.</span><span class="n">wrap_widget_class</span><span class="p">(</span><span class="n">widget_class</span><span class="p">)</span>
@@ -1894,8 +1912,8 @@
         <span class="n">dlg</span><span class="o">.</span><span class="n">dialog_closed</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_dialog_closed</span><span class="p">)</span>
         
         <span class="c1"># clear temps</span>
-        <span class="n">dlg</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">widget</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">dlg</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">widget</span> <span class="o">=</span> <span class="kc">None</span>
         
         <span class="c1"># finally, clean up the widget trash:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__cleanup_widget_trash</span><span class="p">()</span></div>
@@ -1991,7 +2009,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ui</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log_error</span><span class="p">(</span><span class="s2">&quot;Sorry, this environment does not support UI display! Cannot show &quot;</span>
                            <span class="s2">&quot;the requested window &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="n">title</span><span class="p">)</span>
-            <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">return</span> <span class="kc">None</span>
         
         <span class="c1"># create the dialog:</span>
         <span class="n">dialog</span><span class="p">,</span> <span class="n">widget</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_dialog_with_widget</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -2031,7 +2049,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ui</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log_error</span><span class="p">(</span><span class="s2">&quot;Sorry, this environment does not support UI display! Cannot show &quot;</span>
                            <span class="s2">&quot;the requested window &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="n">title</span><span class="p">)</span>
-            <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">return</span> <span class="kc">None</span>
         
         <span class="c1"># create the dialog:</span>
         <span class="n">dialog</span><span class="p">,</span> <span class="n">widget</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_dialog_with_widget</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">bundle</span><span class="p">,</span> <span class="n">widget_class</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -2131,7 +2149,7 @@
         <span class="c1"># Set a style sheet file watcher which can be used for interactive styling.</span>
         <span class="c1"># File watchers can cause problems in production when accessing shared</span>
         <span class="c1"># storage, so we only set it if explicitly asked to do so.</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;SHOTGUN_QSS_FILE_WATCHER&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;SHOTGUN_QSS_FILE_WATCHER&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_add_stylesheet_file_watcher</span><span class="p">(</span><span class="n">qss_file</span><span class="p">,</span> <span class="n">widget</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -2177,7 +2195,7 @@
 <span class="sd">        :param qss_file: Full path to the style sheet file.</span>
 <span class="sd">        :param widget: A QWidget to apply the stylesheet to.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">QtCore</span>
+        <span class="kn">from</span> <span class="nn">.qt</span> <span class="k">import</span> <span class="n">QtCore</span>
         <span class="c1"># We don&#39;t keep any reference to the watcher to let it be deleted with</span>
         <span class="c1"># the widget it is parented under.</span>
         <span class="c1"># Please note that QWidgets/QFileSystemWatcher don&#39;t seem to be actually</span>
@@ -2235,7 +2253,7 @@
 
 <span class="sd">        :returns: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">base</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;qt_core&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> <span class="s2">&quot;qt_gui&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span> <span class="s2">&quot;dialog_base&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">}</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;qt_core&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;qt_gui&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;dialog_base&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">importer</span> <span class="o">=</span> <span class="n">QtImporter</span><span class="p">()</span>
             <span class="n">base</span><span class="p">[</span><span class="s2">&quot;qt_core&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">importer</span><span class="o">.</span><span class="n">QtCore</span>
@@ -2243,7 +2261,7 @@
             <span class="k">if</span> <span class="n">importer</span><span class="o">.</span><span class="n">QtGui</span><span class="p">:</span>
                 <span class="n">base</span><span class="p">[</span><span class="s2">&quot;dialog_base&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">importer</span><span class="o">.</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QDialog</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">base</span><span class="p">[</span><span class="s2">&quot;dialog_base&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="n">base</span><span class="p">[</span><span class="s2">&quot;dialog_base&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">base</span><span class="p">[</span><span class="s2">&quot;wrapper&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">importer</span><span class="o">.</span><span class="n">binding</span>
         <span class="k">except</span><span class="p">:</span>
 
@@ -2307,7 +2325,7 @@
 <span class="sd">        at the application level, and then constructs and applies a custom palette</span>
 <span class="sd">        that emulates Maya 2017&#39;s color scheme.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">QtGui</span>
+        <span class="kn">from</span> <span class="nn">.qt</span> <span class="k">import</span> <span class="n">QtGui</span>
         <span class="n">app</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
 
         <span class="c1"># Set the fusion style, which gives us a good base to build on. With</span>
@@ -2393,7 +2411,7 @@
 <span class="sd">        to give a consistent dark theme to all widgets owned by the current</span>
 <span class="sd">        application. Lastly, a stylesheet is read from disk and applied.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
+        <span class="kn">from</span> <span class="nn">.qt</span> <span class="k">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
 
         <span class="c1"># Since know we have a QApplication at this point, go ahead and make</span>
         <span class="c1"># sure the bundled fonts are loaded</span>
@@ -2510,17 +2528,17 @@
 <span class="sd">        :param instance_name: Name of framework instance, as defined in the</span>
 <span class="sd">                              environment. For example &#39;tk-framework-widget_v1.x.x&#39;        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__shared_frameworks</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">instance_name</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__shared_frameworks</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">instance_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__create_invokers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create the object used to invoke function calls on the main thread when</span>
 <span class="sd">        called from a different thread.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">invoker</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">async_invoker</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">invoker</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">async_invoker</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ui</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">.qt</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
+            <span class="kn">from</span> <span class="nn">.qt</span> <span class="k">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
             <span class="c1"># Classes are defined locally since Qt might not be available.</span>
             <span class="k">if</span> <span class="n">QtGui</span> <span class="ow">and</span> <span class="n">QtCore</span><span class="p">:</span>
                 <span class="k">class</span> <span class="nc">Invoker</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span><span class="p">):</span>
@@ -2528,14 +2546,14 @@
 <span class="sd">                    Invoker class - implements a mechanism to execute a function with arbitrary</span>
 <span class="sd">                    args in the main thread.</span>
 <span class="sd">                    &quot;&quot;&quot;</span>
-                    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                        Construction</span>
 <span class="sd">                        &quot;&quot;&quot;</span>
                         <span class="n">QtCore</span><span class="o">.</span><span class="n">QObject</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span> <span class="o">=</span> <span class="bp">None</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_res</span> <span class="o">=</span> <span class="bp">None</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span> <span class="o">=</span> <span class="kc">None</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_res</span> <span class="o">=</span> <span class="kc">None</span>
 
                     <span class="k">def</span> <span class="nf">invoke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
                         <span class="sd">&quot;&quot;&quot;</span>
@@ -2551,7 +2569,7 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span>
                         <span class="k">try</span><span class="p">:</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">_fn</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">_res</span> <span class="o">=</span> <span class="bp">None</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_res</span> <span class="o">=</span> <span class="kc">None</span>
 
                             <span class="c1"># invoke the internal _do_invoke method that will actually run the function.  Note that</span>
                             <span class="c1"># we are unable to pass/return arguments through invokeMethod as this isn&#39;t properly</span>
@@ -2562,7 +2580,7 @@
                         <span class="k">finally</span><span class="p">:</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
 
-                    <span class="nd">@qt.QtCore.Slot</span><span class="p">()</span>
+                    <span class="nd">@qt</span><span class="o">.</span><span class="n">QtCore</span><span class="o">.</span><span class="n">Slot</span><span class="p">()</span>
                     <span class="k">def</span> <span class="nf">_do_invoke</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                        Execute the function</span>
@@ -2576,7 +2594,7 @@
 <span class="sd">                    &quot;&quot;&quot;</span>
                     <span class="n">__signal</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Signal</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
 
-                    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">                        Construction</span>
 <span class="sd">                        &quot;&quot;&quot;</span>
@@ -2610,7 +2628,7 @@
     <span class="c1">##########################################################################################</span>
     <span class="c1"># private         </span>
         
-    <span class="k">def</span> <span class="nf">__load_apps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reuse_existing_apps</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">old_context</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__load_apps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reuse_existing_apps</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">old_context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Populate the __applications dictionary, skip over apps that fail to initialize.</span>
 
@@ -2706,7 +2724,7 @@
                 <span class="c1"># If we were given an &quot;old&quot; context that&#39;s being switched away</span>
                 <span class="c1"># from, we can run the post change method and do a bit of</span>
                 <span class="c1"># reinitialization of certain portions of the app.</span>
-                <span class="k">if</span> <span class="n">old_context</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">app_instance_name</span> <span class="ow">in</span> <span class="n">app_pool</span><span class="p">[</span><span class="n">install_path</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">old_context</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">app_instance_name</span> <span class="ow">in</span> <span class="n">app_pool</span><span class="p">[</span><span class="n">install_path</span><span class="p">]:</span>
                     <span class="n">app</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__application_pool</span><span class="p">[</span><span class="n">install_path</span><span class="p">][</span><span class="n">app_instance_name</span><span class="p">]</span>
 
                     <span class="k">try</span><span class="p">:</span>
@@ -2772,7 +2790,7 @@
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">app</span><span class="o">.</span><span class="n">init_app</span><span class="p">()</span>
                 <span class="k">finally</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">__currently_initializing_app</span> <span class="o">=</span> <span class="bp">None</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__currently_initializing_app</span> <span class="o">=</span> <span class="kc">None</span>
             
             <span class="k">except</span> <span class="n">TankError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log_error</span><span class="p">(</span><span class="s2">&quot;App </span><span class="si">%s</span><span class="s2"> failed to initialize. It will not be loaded: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app_dir</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
@@ -2852,7 +2870,7 @@
             <span class="k">if</span> <span class="n">app</span><span class="o">.</span><span class="n">descriptor</span><span class="o">.</span><span class="n">is_dev</span><span class="p">():</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;App </span><span class="si">%s</span><span class="s2"> is registered via a dev descriptor. Will add a reload &quot;</span>
                                <span class="s2">&quot;button to the actions listings.&quot;</span> <span class="o">%</span> <span class="n">app</span><span class="p">)</span>
-                <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">restart</span>
+                <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">restart</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">register_command</span><span class="p">(</span>
                     <span class="s2">&quot;Reload and Restart&quot;</span><span class="p">,</span>
                     <span class="n">restart</span><span class="p">,</span>
@@ -2891,7 +2909,7 @@
 <span class="c1">##########################################################################################</span>
 <span class="c1"># Engine management</span>
 
-<span class="n">g_current_engine</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="n">g_current_engine</span> <span class="o">=</span> <span class="kc">None</span>
 
 <span class="k">def</span> <span class="nf">set_current_engine</span><span class="p">(</span><span class="n">eng</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -2939,7 +2957,7 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="p">)</span> <span class="o">=</span> <span class="n">get_env_and_descriptor_for_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">TankEngineInitError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="kc">None</span>
 
     <span class="c1"># return path to engine code</span>
     <span class="n">engine_path</span> <span class="o">=</span> <span class="n">engine_descriptor</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span>
@@ -2969,7 +2987,7 @@
 <span class="sd">    :raises: :class:`TankEngineInitError` if an engine could not be started</span>
 <span class="sd">             for the passed context.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">_start_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_start_engine</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span></div>
 
 
 <span class="k">def</span> <span class="nf">_restart_engine</span><span class="p">(</span><span class="n">new_context</span><span class="p">):</span>
@@ -3009,7 +3027,7 @@
 
     <span class="n">_depth</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">old_context</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">old_context</span><span class="p">,</span> <span class="n">new_context</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructor.</span>
 
@@ -3021,7 +3039,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_old_context</span> <span class="o">=</span> <span class="n">old_context</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_new_context</span> <span class="o">=</span> <span class="n">new_context</span>
 
-    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes the pre context change hook if we&#39;re the first guard instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -3047,7 +3065,7 @@
             <span class="n">next_context</span><span class="o">=</span><span class="n">new_context</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ex_type</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ex_type</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Executes the post context change hook if we&#39;re the last guard instance.</span>
 
@@ -3098,7 +3116,7 @@
 
     <span class="c1"># begin writing log to disk, associated with the engine</span>
     <span class="c1"># only do this if a logger hasn&#39;t been previously set up.</span>
-    <span class="k">if</span> <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">base_file_handler</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">base_file_handler</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">initialize_base_file_handler</span><span class="p">(</span><span class="n">engine_name</span><span class="p">)</span>
 
     <span class="c1"># get environment and engine location</span>
@@ -3123,7 +3141,7 @@
     <span class="k">return</span> <span class="n">engine</span>
 
 
-<div class="viewcode-block" id="find_app_settings"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.find_app_settings">[docs]</a><span class="k">def</span> <span class="nf">find_app_settings</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">app_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">engine_instance_name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="find_app_settings"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.find_app_settings">[docs]</a><span class="k">def</span> <span class="nf">find_app_settings</span><span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">app_name</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">engine_instance_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Utility method to find the settings for an app in an engine in the</span>
 <span class="sd">    environment determined for the context by pick environment hook.</span>
@@ -3185,7 +3203,7 @@
                 <span class="c1"># Note: context is set to None as we don&#39;t </span>
                 <span class="c1"># want to fail validation because of an </span>
                 <span class="c1"># incomplete context at this stage!</span>
-                <span class="n">validation</span><span class="o">.</span><span class="n">validate_settings</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
+                <span class="n">validation</span><span class="o">.</span><span class="n">validate_settings</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
             <span class="k">except</span> <span class="n">TankError</span><span class="p">:</span>
                 <span class="c1"># ignore any Tank exceptions to skip invalid apps</span>
                 <span class="k">continue</span>
@@ -3213,7 +3231,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># begin writing log to disk, associated with the engine</span>
-    <span class="k">if</span> <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">base_file_handler</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">base_file_handler</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">initialize_base_file_handler</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_ENGINE_NAME</span><span class="p">)</span>
 
     <span class="c1"># bypass the get_environment hook and use a fixed set of environments</span>
@@ -3254,8 +3272,8 @@
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Could not resolve an environment for context &#39;</span><span class="si">%s</span><span class="s2">&#39;. The pick &quot;</span>
                         <span class="s2">&quot;environment hook reported the following error: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
     
-    <span class="k">if</span> <span class="n">env_name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">env_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
     
     <span class="k">return</span> <span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_environment</span><span class="p">(</span><span class="n">env_name</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
 
@@ -3330,7 +3348,7 @@
         <span class="k">raise</span> <span class="n">TankEngineInitError</span><span class="p">(</span><span class="s2">&quot;Engine </span><span class="si">%s</span><span class="s2"> cannot initialize - the pick environment hook &quot;</span>
                                  <span class="s2">&quot;reported the following error: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
 
-    <span class="k">if</span> <span class="n">env_name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">env_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># the pick_environment hook could not determine an environment</span>
         <span class="c1"># this may be because an incomplete Context was passed.</span>
         <span class="c1"># without an environment, engine creation cannot succeed.</span>
@@ -3363,6 +3381,7 @@
 </pre></div>
 
            </div>
+           
           </div>
           <footer>
   
@@ -3393,9 +3412,11 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
             VERSION:'v0.18.151',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../../_static/jquery.js"></script>
@@ -3404,19 +3425,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
-  
  
 
 <script>

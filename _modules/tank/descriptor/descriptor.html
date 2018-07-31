@@ -15,6 +15,8 @@
 
   
   
+  
+  
 
   
 
@@ -24,24 +26,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="tk-core v0.18.151 documentation" href="../../../index.html"/>
-        <link rel="up" title="Module code" href="../../index.html"/> 
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -88,7 +85,10 @@
     
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core</a></li>
@@ -139,34 +139,52 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../index.html">tk-core</a>
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">tk-core</a>
+        
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../../index.html">Module code</a> &raquo;</li>
-      
-    <li>tank.descriptor.descriptor</li>
+        
+      <li>tank.descriptor.descriptor</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-        
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -186,12 +204,12 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 
-<span class="kn">from</span> <span class="nn">..log</span> <span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">filesystem</span>
-<span class="kn">from</span> <span class="nn">.io_descriptor</span> <span class="kn">import</span> <span class="n">create_io_descriptor</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankDescriptorError</span>
-<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">LocalFileStorageManager</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">..log</span> <span class="k">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="k">import</span> <span class="n">filesystem</span>
+<span class="kn">from</span> <span class="nn">.io_descriptor</span> <span class="k">import</span> <span class="n">create_io_descriptor</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="k">import</span> <span class="n">TankDescriptorError</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="k">import</span> <span class="n">LocalFileStorageManager</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">constants</span>
 
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -201,11 +219,11 @@
         <span class="n">sg_connection</span><span class="p">,</span>
         <span class="n">descriptor_type</span><span class="p">,</span>
         <span class="n">dict_or_uri</span><span class="p">,</span>
-        <span class="n">bundle_cache_root_override</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-        <span class="n">fallback_roots</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-        <span class="n">resolve_latest</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-        <span class="n">constraint_pattern</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-        <span class="n">local_fallback_when_disconnected</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="n">bundle_cache_root_override</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">fallback_roots</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">resolve_latest</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">constraint_pattern</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">local_fallback_when_disconnected</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Factory method. Use this when creating descriptor objects.</span>
 
@@ -258,7 +276,7 @@
         <span class="n">bundle_cache_root_override</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span>
             <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">BUNDLE_CACHE_PATH_ENV_VAR</span><span class="p">))</span>
         <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">bundle_cache_root_override</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">bundle_cache_root_override</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">bundle_cache_root_override</span> <span class="o">=</span> <span class="n">_get_default_bundle_cache_root</span><span class="p">()</span>
         <span class="n">filesystem</span><span class="o">.</span><span class="n">ensure_folder_exists</span><span class="p">(</span><span class="n">bundle_cache_root_override</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -353,7 +371,7 @@
         <span class="n">class_obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_factory</span><span class="p">[</span><span class="n">descriptor_type</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">class_obj</span><span class="p">(</span><span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        .. note:: Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">                  creating new descriptor objects.</span>
@@ -363,25 +381,25 @@
         <span class="c1"># construct a suitable IO descriptor for this descriptor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span> <span class="o">=</span> <span class="n">io_descriptor</span>
 
-    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="c1"># By default, we can assume equality if the path to the data</span>
         <span class="c1"># on disk is equivalent.</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
-    <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span> <span class="o">==</span> <span class="n">other</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Used for debug logging</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">class_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%r</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">class_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Used for pretty printing</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -452,7 +470,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">display_name</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;display_name&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">display_name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">display_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">display_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">system_name</span>
         <span class="k">return</span> <span class="n">display_name</span>
 
@@ -484,7 +502,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">desc</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">desc</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">desc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">desc</span> <span class="o">=</span> <span class="s2">&quot;No description available.&quot;</span>
         <span class="k">return</span> <span class="n">desc</span>
 
@@ -513,7 +531,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">support_url</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;support_url&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">support_url</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">support_url</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">support_url</span> <span class="o">=</span> <span class="s2">&quot;https://support.shotgunsoftware.com&quot;</span>
         <span class="k">return</span> <span class="n">support_url</span>
 
@@ -525,7 +543,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">doc_url</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;documentation_url&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">doc_url</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">doc_url</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">doc_url</span> <span class="o">=</span> <span class="s2">&quot;https://support.shotgunsoftware.com/hc/en-us/articles/115000068574-User-Guide&quot;</span>
         <span class="k">return</span> <span class="n">doc_url</span>
 
@@ -595,7 +613,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">download_local</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">find_latest_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint_pattern</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">find_latest_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint_pattern</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a descriptor object that represents the latest version.</span>
 
@@ -622,7 +640,7 @@
         <span class="n">latest</span><span class="o">.</span><span class="n">_io_descriptor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_latest_version</span><span class="p">(</span><span class="n">constraint_pattern</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">latest</span>
 
-    <span class="k">def</span> <span class="nf">find_latest_cached_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint_pattern</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">find_latest_cached_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint_pattern</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a descriptor object that represents the latest version</span>
 <span class="sd">        that can be found in the local bundle caches.</span>
@@ -646,8 +664,8 @@
 <span class="sd">                  is available.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">io_desc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_latest_cached_version</span><span class="p">(</span><span class="n">constraint_pattern</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">io_desc</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">io_desc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
 
         <span class="c1"># make a copy of the descriptor</span>
         <span class="n">latest</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -698,6 +716,7 @@
 </pre></div>
 
            </div>
+           
           </div>
           <footer>
   
@@ -728,9 +747,11 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
             VERSION:'v0.18.151',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../../_static/jquery.js"></script>
@@ -739,19 +760,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
-  
  
 
 <script>

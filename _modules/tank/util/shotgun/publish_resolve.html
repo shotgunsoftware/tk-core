@@ -15,6 +15,8 @@
 
   
   
+  
+  
 
   
 
@@ -24,24 +26,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="tk-core v0.18.151 documentation" href="../../../../index.html"/>
-        <link rel="up" title="Module code" href="../../../index.html"/> 
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
 
   
   <script src="../../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -88,7 +85,10 @@
     
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../core.html">Core</a></li>
@@ -139,34 +139,52 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../../index.html">tk-core</a>
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">tk-core</a>
+        
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../../../index.html">Module code</a> &raquo;</li>
-      
-    <li>tank.util.shotgun.publish_resolve</li>
+        
+      <li>tank.util.shotgun.publish_resolve</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-        
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -187,7 +205,7 @@
 <span class="sd">Methods for resolving publish data into local representations</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">with_statement</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">with_statement</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
@@ -196,10 +214,10 @@
 <span class="kn">import</span> <span class="nn">urllib</span>
 <span class="kn">import</span> <span class="nn">pprint</span>
 
-<span class="kn">from</span> <span class="nn">.publish_util</span> <span class="kn">import</span> <span class="n">get_cached_local_storages</span>
-<span class="kn">from</span> <span class="nn">...log</span> <span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">..shotgun_path</span> <span class="kn">import</span> <span class="n">ShotgunPath</span>
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">PublishPathNotDefinedError</span><span class="p">,</span> <span class="n">PublishPathNotSupported</span>
+<span class="kn">from</span> <span class="nn">.publish_util</span> <span class="k">import</span> <span class="n">get_cached_local_storages</span>
+<span class="kn">from</span> <span class="nn">...log</span> <span class="k">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">..shotgun_path</span> <span class="k">import</span> <span class="n">ShotgunPath</span>
+<span class="kn">from</span> <span class="nn">..errors</span> <span class="k">import</span> <span class="n">PublishPathNotDefinedError</span><span class="p">,</span> <span class="n">PublishPathNotSupported</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -261,7 +279,7 @@
         <span class="k">return</span> <span class="n">custom_path</span>
 
     <span class="c1"># core hook did not pick it up - apply default logic</span>
-    <span class="k">if</span> <span class="n">path_field</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">path_field</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># no path defined for publish</span>
         <span class="k">raise</span> <span class="n">PublishPathNotDefinedError</span><span class="p">(</span>
             <span class="s2">&quot;Publish </span><span class="si">%s</span><span class="s2"> (id </span><span class="si">%s</span><span class="s2">) does not have a path set&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">],</span> <span class="n">sg_publish_data</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
@@ -270,7 +288,7 @@
     <span class="k">elif</span> <span class="n">path_field</span><span class="p">[</span><span class="s2">&quot;link_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;local&quot;</span><span class="p">:</span>
         <span class="c1"># local file link</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">__resolve_local_file_link</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path_field</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
 
             <span class="k">raise</span> <span class="n">PublishPathNotDefinedError</span><span class="p">(</span>
                 <span class="s2">&quot;Publish </span><span class="si">%s</span><span class="s2"> (id </span><span class="si">%s</span><span class="s2">) has a local file link that could not be resolved &quot;</span>
@@ -557,7 +575,7 @@
         <span class="c1"># go through each storage, see if any of the os</span>
         <span class="c1"># path defs for the storage matches the beginning of the</span>
         <span class="c1"># url path. Compare lower case (most file systems are case preserving).</span>
-        <span class="n">adjusted_path</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">adjusted_path</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">sg_path</span><span class="o">.</span><span class="n">windows</span> <span class="ow">and</span> <span class="n">resolved_path</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">sg_path</span><span class="o">.</span><span class="n">windows</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
             <span class="n">adjusted_path</span> <span class="o">=</span> <span class="n">sg_path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">resolved_path</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">sg_path</span><span class="o">.</span><span class="n">windows</span><span class="p">):])</span><span class="o">.</span><span class="n">current_os</span>
 
@@ -586,6 +604,7 @@
 </pre></div>
 
            </div>
+           
           </div>
           <footer>
   
@@ -616,9 +635,11 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
             VERSION:'v0.18.151',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../../../_static/jquery.js"></script>
@@ -627,19 +648,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
-  
  
 
 <script>

@@ -15,6 +15,8 @@
 
   
   
+  
+  
 
   
 
@@ -24,25 +26,21 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="tk-core v0.18.151 documentation" href="index.html"/>
-        <link rel="next" title="Descriptors" href="descriptor.html"/>
-        <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Descriptors" href="descriptor.html" />
+    <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -89,7 +87,10 @@
     
             
             
-                <ul class="current">
+              
+            
+            
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core</a></li>
@@ -170,32 +171,52 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">tk-core</a>
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">tk-core</a>
+        
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Utilities</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Utilities</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
+            
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -206,27 +227,27 @@
 <div class="section" id="logging">
 <span id="id1"></span><h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-sgtk.log"></span><p>Toolkit uses the standard python logging for its
-log management. The <a class="reference internal" href="#sgtk.log.LogManager" title="sgtk.log.LogManager"><code class="xref py py-class docutils literal"><span class="pre">LogManager</span></code></a> class below
+log management. The <a class="reference internal" href="#sgtk.log.LogManager" title="sgtk.log.LogManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogManager</span></code></a> class below
 acts as an interface that helps make it easy to access
 and manage Toolkit logging.</p>
 <div class="section" id="logging-hierarchy">
 <h3>Logging hierarchy<a class="headerlink" href="#logging-hierarchy" title="Permalink to this headline">¶</a></h3>
-<p>All Toolkit logging is written into a <code class="docutils literal"><span class="pre">sgtk.*</span></code> logging
-namespace. This has been &#8220;sealed&#8221; so that log messages
+<p>All Toolkit logging is written into a <code class="docutils literal notranslate"><span class="pre">sgtk.*</span></code> logging
+namespace. This has been “sealed” so that log messages
 from Toolkit do not propagate up to the root logger. This
-is to ensure that Toolkit doesn&#8217;t interfere with other logging
+is to ensure that Toolkit doesn’t interfere with other logging
 that has been already configured.</p>
 <p>The following sub-hierarchies exist:</p>
 <ul class="simple">
 <li>Each app, engine and bundle provides access to logging and
 these log streams are collected and organized under the
-<code class="docutils literal"><span class="pre">sgtk.env</span></code> logging namespace. Below this level, messages
+<code class="docutils literal notranslate"><span class="pre">sgtk.env</span></code> logging namespace. Below this level, messages
 are broken down further by environment, engine, etc.</li>
-<li>Logging from external tools and scripts is written to <code class="docutils literal"><span class="pre">sgtk.ext</span></code>.</li>
-<li>All core logging is written to the <code class="docutils literal"><span class="pre">sgtk.core</span></code> logger.</li>
+<li>Logging from external tools and scripts is written to <code class="docutils literal notranslate"><span class="pre">sgtk.ext</span></code>.</li>
+<li>All core logging is written to the <code class="docutils literal notranslate"><span class="pre">sgtk.core</span></code> logger.</li>
 </ul>
 <p>Below is a simple log hierarchy to illustrate what this might look like in practice.</p>
-<div class="highlight-text"><div class="highlight"><pre><span></span>sgtk                                              Root point for all Toolkit logging
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>sgtk                                              Root point for all Toolkit logging
  |
  |- core                                          Root point for the Core API
  |   |
@@ -270,14 +291,14 @@ Below are a series of examples and best practice recipes explaining how to best
 apply logging to different scenarios.</p>
 <div class="section" id="logging-from-within-your-app-engine-or-framework">
 <h4>Logging from within your App, Engine or Framework<a class="headerlink" href="#logging-from-within-your-app-engine-or-framework" title="Permalink to this headline">¶</a></h4>
-<p>Inside your app, a logger is available via <a class="reference internal" href="platform.html#sgtk.platform.Application.logger" title="sgtk.platform.Application.logger"><code class="xref py py-meth docutils literal"><span class="pre">logger()</span></code></a>.
+<p>Inside your app, a logger is available via <a class="reference internal" href="platform.html#sgtk.platform.Application.logger" title="sgtk.platform.Application.logger"><code class="xref py py-meth docutils literal notranslate"><span class="pre">logger()</span></code></a>.
 Alternatively, you can also
-use the legacy methods <code class="docutils literal"><span class="pre">log_debug|error|info|...()</span></code>. This provides
+use the legacy methods <code class="docutils literal notranslate"><span class="pre">log_debug|error|info|...()</span></code>. This provides
 a basic level of general logging.</p>
-<p>For code inside the <code class="docutils literal"><span class="pre">python</span></code> folder, which has been imported via
-Toolkit&#8217;s <a class="reference internal" href="platform.html#sgtk.platform.Application.import_module" title="sgtk.platform.Application.import_module"><code class="xref py py-meth docutils literal"><span class="pre">import_module()</span></code></a> method,
+<p>For code inside the <code class="docutils literal notranslate"><span class="pre">python</span></code> folder, which has been imported via
+Toolkit’s <a class="reference internal" href="platform.html#sgtk.platform.Application.import_module" title="sgtk.platform.Application.import_module"><code class="xref py py-meth docutils literal notranslate"><span class="pre">import_module()</span></code></a> method,
 we recommend that you access a logger using the following method:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># at the top of the file, include the following</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># at the top of the file, include the following</span>
 <span class="kn">import</span> <span class="nn">sgtk</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -306,7 +327,7 @@ app UI dialog.</p>
 <h4>Logging from scripts and other external locations<a class="headerlink" href="#logging-from-scripts-and-other-external-locations" title="Permalink to this headline">¶</a></h4>
 <p>If you want to add standard Toolkit logging to a script, simply
 use the following recipe:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># at the top of the file, include the following</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># at the top of the file, include the following</span>
 <span class="kn">import</span> <span class="nn">sgtk</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -314,12 +335,12 @@ use the following recipe:</p>
     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;inside my code, i can log like this&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>All this logging will appear below the <code class="docutils literal"><span class="pre">sgtk.ext</span></code> logger.</p>
+<p>All this logging will appear below the <code class="docutils literal notranslate"><span class="pre">sgtk.ext</span></code> logger.</p>
 </div>
 <div class="section" id="logging-from-inside-the-core-api">
 <h4>Logging from inside the Core API<a class="headerlink" href="#logging-from-inside-the-core-api" title="Permalink to this headline">¶</a></h4>
 <p>To emit log messages from inside the Toolkit Core API, use the following pattern:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># at the top of the file, include the following</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># at the top of the file, include the following</span>
 <span class="kn">import</span> <span class="nn">sgtk</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -334,24 +355,24 @@ use the following recipe:</p>
 <p>Toolkit provides several ways to access the log information generated by
 the various methods and recipes shown above.</p>
 <p>The general approach is to attach one or several log handlers to the root
-logging point of the hierarchy (<code class="docutils literal"><span class="pre">sgtk</span></code>). Each handler controls its own
+logging point of the hierarchy (<code class="docutils literal notranslate"><span class="pre">sgtk</span></code>). Each handler controls its own
 logging resolution, e.g. how much log information to display. The toolkit
 logging hierarchy itself is set to DEBUG resolution.</p>
-<p>The Toolkit <a class="reference internal" href="#sgtk.log.LogManager" title="sgtk.log.LogManager"><code class="xref py py-class docutils literal"><span class="pre">LogManager</span></code></a> provides a default set of logging methods
+<p>The Toolkit <a class="reference internal" href="#sgtk.log.LogManager" title="sgtk.log.LogManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogManager</span></code></a> provides a default set of logging methods
 to help access log information.</p>
 <div class="section" id="global-debug">
 <h4>Global debug<a class="headerlink" href="#global-debug" title="Permalink to this headline">¶</a></h4>
 <p>Toolkit has a concept of a global debug flag. This flag can be
-enabled by setting the <code class="docutils literal"><span class="pre">TK_DEBUG</span></code> environment variable or
-alternatively setting the <a class="reference internal" href="#sgtk.log.LogManager.global_debug" title="sgtk.log.LogManager.global_debug"><code class="xref py py-meth docutils literal"><span class="pre">LogManager.global_debug()</span></code></a> property.</p>
-<p>All log handlers that have been created using the <a class="reference internal" href="#sgtk.log.LogManager" title="sgtk.log.LogManager"><code class="xref py py-class docutils literal"><span class="pre">LogManager</span></code></a>
+enabled by setting the <code class="docutils literal notranslate"><span class="pre">TK_DEBUG</span></code> environment variable or
+alternatively setting the <a class="reference internal" href="#sgtk.log.LogManager.global_debug" title="sgtk.log.LogManager.global_debug"><code class="xref py py-meth docutils literal notranslate"><span class="pre">LogManager.global_debug()</span></code></a> property.</p>
+<p>All log handlers that have been created using the <a class="reference internal" href="#sgtk.log.LogManager" title="sgtk.log.LogManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogManager</span></code></a>
 will be affected by the flag.</p>
 </div>
 <div class="section" id="backend-file-logging">
 <h4>Backend file logging<a class="headerlink" href="#backend-file-logging" title="Permalink to this headline">¶</a></h4>
-<p>Log information is automatically written to disk by the <a class="reference internal" href="#sgtk.log.LogManager" title="sgtk.log.LogManager"><code class="xref py py-class docutils literal"><span class="pre">LogManager</span></code></a>.
+<p>Log information is automatically written to disk by the <a class="reference internal" href="#sgtk.log.LogManager" title="sgtk.log.LogManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogManager</span></code></a>.
 The location to which log files are written can be accessed via the
-<a class="reference internal" href="#sgtk.log.LogManager.log_folder" title="sgtk.log.LogManager.log_folder"><code class="xref py py-meth docutils literal"><span class="pre">LogManager.log_folder()</span></code></a> property. Backend file logging is normally
+<a class="reference internal" href="#sgtk.log.LogManager.log_folder" title="sgtk.log.LogManager.log_folder"><code class="xref py py-meth docutils literal notranslate"><span class="pre">LogManager.log_folder()</span></code></a> property. Backend file logging is normally
 automatically enabled and end users do not need to worry about this.
 If you want debug logging to be written to these files, enable the
 global debug flag.</p>
@@ -360,7 +381,7 @@ global debug flag.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">If you are writing a toolkit plugin, we recommend
 that you initialize logging early on in your code by
-calling <a class="reference internal" href="#sgtk.log.LogManager.initialize_base_file_handler" title="sgtk.log.LogManager.initialize_base_file_handler"><code class="xref py py-meth docutils literal"><span class="pre">LogManager.initialize_base_file_handler()</span></code></a>.
+calling <a class="reference internal" href="#sgtk.log.LogManager.initialize_base_file_handler" title="sgtk.log.LogManager.initialize_base_file_handler"><code class="xref py py-meth docutils literal notranslate"><span class="pre">LogManager.initialize_base_file_handler()</span></code></a>.
 This will ensure that all your logs are written to disk.
 If you omit this call, logging will automatically be
 started up as the engine is launched.</p>
@@ -373,16 +394,16 @@ started up as the engine is launched.</p>
 Maya, Nuke or houdini traditionally have a console of some sort where
 logging information typically should be dispatched.</p>
 <p>Engine log output has traditionally been implemented by subclassing
-the <code class="docutils literal"><span class="pre">log_info</span></code>, <code class="docutils literal"><span class="pre">log_error</span></code> methods. In Core v0.18, a new and
+the <code class="docutils literal notranslate"><span class="pre">log_info</span></code>, <code class="docutils literal notranslate"><span class="pre">log_error</span></code> methods. In Core v0.18, a new and
 improved logging platform is introduced and we recommend that engines
-<em>do not</em> implement the <code class="docutils literal"><span class="pre">log_xxx</span></code> methods at all but instead implement
-a single <a class="reference internal" href="platform.html#sgtk.platform.Engine._emit_log_message" title="sgtk.platform.Engine._emit_log_message"><code class="xref py py-meth docutils literal"><span class="pre">_emit_log_message()</span></code></a> method.</p>
+<em>do not</em> implement the <code class="docutils literal notranslate"><span class="pre">log_xxx</span></code> methods at all but instead implement
+a single <a class="reference internal" href="platform.html#sgtk.platform.Engine._emit_log_message" title="sgtk.platform.Engine._emit_log_message"><code class="xref py py-meth docutils literal notranslate"><span class="pre">_emit_log_message()</span></code></a> method.</p>
 </div>
 <div class="section" id="standard-logging">
 <h4>Standard Logging<a class="headerlink" href="#standard-logging" title="Permalink to this headline">¶</a></h4>
 <p>If you want some sort of log output in addition to the logging an
 engine provides, you can add standard toolkit handlers. These handlers
-are created via the <a class="reference internal" href="#sgtk.log.LogManager.initialize_custom_handler" title="sgtk.log.LogManager.initialize_custom_handler"><code class="xref py py-meth docutils literal"><span class="pre">LogManager.initialize_custom_handler()</span></code></a> method.</p>
+are created via the <a class="reference internal" href="#sgtk.log.LogManager.initialize_custom_handler" title="sgtk.log.LogManager.initialize_custom_handler"><code class="xref py py-meth docutils literal notranslate"><span class="pre">LogManager.initialize_custom_handler()</span></code></a> method.</p>
 <p>All log handlers created or registered via this method will respond
 to the global debug flag.</p>
 <blockquote>
@@ -391,7 +412,7 @@ to the global debug flag.</p>
 <p class="last">If you want a raw log output that is not affected
 by any changes to the global debug flag, we recommend that
 you manually create your log handler and attach it to
-the <code class="docutils literal"><span class="pre">sgtk</span></code> root logger.</p>
+the <code class="docutils literal notranslate"><span class="pre">sgtk</span></code> root logger.</p>
 </div>
 </div></blockquote>
 <p>Python provides a large number of log handlers as part of its standard library.
@@ -419,7 +440,7 @@ the same object is returned.</p>
 <p>If you want to add standard toolkit logging to your code,
 the easiest way is to include the following at the top of
 your python file:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -429,22 +450,22 @@ parent it under the standard Toolkit logger.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">This method is useful if you are writing scripts, tools or wrappers.
 If you are developing a Toolkit app, framework or engine,
-you typically want to use <a class="reference internal" href="platform.html#sgtk.platform.get_logger" title="sgtk.platform.get_logger"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.platform.get_logger()</span></code></a>
+you typically want to use <a class="reference internal" href="platform.html#sgtk.platform.get_logger" title="sgtk.platform.get_logger"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sgtk.platform.get_logger()</span></code></a>
 for your logging.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">To output logging to screen or to a console,
-we recommend using the <a class="reference internal" href="#sgtk.log.LogManager.initialize_custom_handler" title="sgtk.log.LogManager.initialize_custom_handler"><code class="xref py py-meth docutils literal"><span class="pre">initialize_custom_handler()</span></code></a>
+we recommend using the <a class="reference internal" href="#sgtk.log.LogManager.initialize_custom_handler" title="sgtk.log.LogManager.initialize_custom_handler"><code class="xref py py-meth docutils literal notranslate"><span class="pre">initialize_custom_handler()</span></code></a>
 convenience method.</p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>log_name</strong> &#8211; Name of logger to create. This name will be parented under
-the sgtk namespace. If the name begins with <code class="docutils literal"><span class="pre">tank.</span></code>, it will
-be automatically replaced with <code class="docutils literal"><span class="pre">sgtk.</span></code>.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>log_name</strong> – Name of logger to create. This name will be parented under
+the sgtk namespace. If the name begins with <code class="docutils literal notranslate"><span class="pre">tank.</span></code>, it will
+be automatically replaced with <code class="docutils literal notranslate"><span class="pre">sgtk.</span></code>.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Standard python logger.</td>
 </tr>
@@ -462,7 +483,7 @@ case of Toolkit, it is particularly helpful when debugging
 issues to do with I/O or cloud connectivity.</p>
 <p>If you have a method that for example connects to Shotgun to
 retrieve data, you can decorate it:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@sgtk</span><span class="o">.</span><span class="n">LogManager</span><span class="o">.</span><span class="n">log_timing</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@sgtk</span><span class="o">.</span><span class="n">LogManager</span><span class="o">.</span><span class="n">log_timing</span>
 <span class="k">def</span> <span class="nf">my_shotgun_publish_method</span><span class="p">():</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Publishes lots of files to Shotgun</span>
@@ -471,8 +492,8 @@ retrieve data, you can decorate it:</p>
 </pre></div>
 </div>
 <p>In the debug logs, timings will be written to the
-<code class="docutils literal"><span class="pre">sgtk.stopwatch</span></code> logger:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">DEBUG</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">stopwatch</span><span class="o">.</span><span class="n">module</span><span class="p">]</span> <span class="n">my_shotgun_publish_method</span><span class="p">:</span> <span class="mf">0.633</span><span class="n">s</span>
+<code class="docutils literal notranslate"><span class="pre">sgtk.stopwatch</span></code> logger:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">DEBUG</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">stopwatch</span><span class="o">.</span><span class="n">module</span><span class="p">]</span> <span class="n">my_shotgun_publish_method</span><span class="p">:</span> <span class="mf">0.633</span><span class="n">s</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -482,12 +503,12 @@ retrieve data, you can decorate it:</p>
 <code class="descname">global_debug</code><a class="headerlink" href="#sgtk.log.LogManager.global_debug" title="Permalink to this definition">¶</a></dt>
 <dd><p>Controls the global debug flag in toolkit. Toggling this
 flag will affect all log handlers that have been created
-via <a class="reference internal" href="#sgtk.log.LogManager.initialize_custom_handler" title="sgtk.log.LogManager.initialize_custom_handler"><code class="xref py py-meth docutils literal"><span class="pre">initialize_custom_handler()</span></code></a>.</p>
+via <a class="reference internal" href="#sgtk.log.LogManager.initialize_custom_handler" title="sgtk.log.LogManager.initialize_custom_handler"><code class="xref py py-meth docutils literal notranslate"><span class="pre">initialize_custom_handler()</span></code></a>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Debug logging is off by default.
 If you want to permanently enable debug logging,
-set the environment variable <code class="docutils literal"><span class="pre">TK_DEBUG</span></code>.</p>
+set the environment variable <code class="docutils literal notranslate"><span class="pre">TK_DEBUG</span></code>.</p>
 </div>
 </dd></dl>
 
@@ -500,7 +521,7 @@ set the environment variable <code class="docutils literal"><span class="pre">TK
 <dl class="attribute">
 <dt id="sgtk.log.LogManager.log_folder">
 <code class="descname">log_folder</code><a class="headerlink" href="#sgtk.log.LogManager.log_folder" title="Permalink to this definition">¶</a></dt>
-<dd><p>The folder where log files generated by <a class="reference internal" href="#sgtk.log.LogManager.initialize_base_file_handler" title="sgtk.log.LogManager.initialize_base_file_handler"><code class="xref py py-meth docutils literal"><span class="pre">initialize_base_file_handler()</span></code></a> are stored.</p>
+<dd><p>The folder where log files generated by <a class="reference internal" href="#sgtk.log.LogManager.initialize_base_file_handler" title="sgtk.log.LogManager.initialize_base_file_handler"><code class="xref py py-meth docutils literal notranslate"><span class="pre">initialize_base_file_handler()</span></code></a> are stored.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -510,7 +531,7 @@ set the environment variable <code class="docutils literal"><span class="pre">TK
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">If you want to add a custom logging handler to the root logger,
-we recommend using the <a class="reference internal" href="#sgtk.log.LogManager.initialize_custom_handler" title="sgtk.log.LogManager.initialize_custom_handler"><code class="xref py py-meth docutils literal"><span class="pre">initialize_custom_handler()</span></code></a> method.</p>
+we recommend using the <a class="reference internal" href="#sgtk.log.LogManager.initialize_custom_handler" title="sgtk.log.LogManager.initialize_custom_handler"><code class="xref py py-meth docutils literal notranslate"><span class="pre">initialize_custom_handler()</span></code></a> method.</p>
 </div>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -545,25 +566,25 @@ and attaches it to the toolkit logging root.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">If you want to display log messages inside a DCC,
-implement <a class="reference internal" href="platform.html#sgtk.platform.Engine._emit_log_message" title="sgtk.platform.Engine._emit_log_message"><code class="xref py py-meth docutils literal"><span class="pre">_emit_log_message()</span></code></a>.</p>
+implement <a class="reference internal" href="platform.html#sgtk.platform.Engine._emit_log_message" title="sgtk.platform.Engine._emit_log_message"><code class="xref py py-meth docutils literal notranslate"><span class="pre">_emit_log_message()</span></code></a>.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">If <a class="reference internal" href="#sgtk.log.LogManager.global_debug" title="sgtk.log.LogManager.global_debug"><code class="xref py py-meth docutils literal"><span class="pre">global_debug()</span></code></a> is set to True, the handler created
+<p class="last">If <a class="reference internal" href="#sgtk.log.LogManager.global_debug" title="sgtk.log.LogManager.global_debug"><code class="xref py py-meth docutils literal notranslate"><span class="pre">global_debug()</span></code></a> is set to True, the handler created
 will be set to debug level, otherwise it will be set to info level.
 Furthermore, the log handler will automatically adjust its log
 level whenever the global debug flag changes its state.</p>
 </div>
 <p>Calling this without parameters will generate a standard
 stream based logging handler that logs to stderr:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># start logging to stderr</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># start logging to stderr</span>
 <span class="kn">import</span> <span class="nn">sgtk.LogManager</span>
 <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">initialize_custom_handler</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>If you want to log to a file instead, create a log handler
 and pass that to the method:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s2">&quot;/tmp/toolkit.log)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s2">&quot;/tmp/toolkit.log)</span>
 <span class="n">LogManager</span><span class="p">()</span><span class="o">.</span><span class="n">initialize_custom_handler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -573,7 +594,7 @@ in a standard fashion.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>handler</strong> &#8211; Logging handler to connect with the toolkit logger.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>handler</strong> – Logging handler to connect with the toolkit logger.
 If not passed, a standard stream handler will be created.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The configured log handler.</td>
@@ -585,7 +606,7 @@ If not passed, a standard stream handler will be created.</td>
 <dl class="method">
 <dt id="sgtk.log.LogManager.uninitialize_base_file_handler">
 <code class="descname">uninitialize_base_file_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/log.html#LogManager.uninitialize_base_file_handler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.log.LogManager.uninitialize_base_file_handler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Uninitialize base file handler created with <a class="reference internal" href="#sgtk.log.LogManager.initialize_base_file_handler" title="sgtk.log.LogManager.initialize_base_file_handler"><code class="xref py py-meth docutils literal"><span class="pre">initialize_base_file_handler()</span></code></a>.</p>
+<dd><p>Uninitialize base file handler created with <a class="reference internal" href="#sgtk.log.LogManager.initialize_base_file_handler" title="sgtk.log.LogManager.initialize_base_file_handler"><code class="xref py py-meth docutils literal notranslate"><span class="pre">initialize_base_file_handler()</span></code></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -607,10 +628,10 @@ the log hierarchy.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Files will be written into the location on disk
-defined by <a class="reference internal" href="#sgtk.log.LogManager.log_folder" title="sgtk.log.LogManager.log_folder"><code class="xref py py-meth docutils literal"><span class="pre">log_folder()</span></code></a>.</p>
+defined by <a class="reference internal" href="#sgtk.log.LogManager.log_folder" title="sgtk.log.LogManager.log_folder"><code class="xref py py-meth docutils literal notranslate"><span class="pre">log_folder()</span></code></a>.</p>
 </div>
-<p>When you start an engine via the <a class="reference internal" href="platform.html#sgtk.platform.start_engine" title="sgtk.platform.start_engine"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.platform.start_engine()</span></code></a> method,
-a file handler will automatically be created if one doesn&#8217;t already exist.</p>
+<p>When you start an engine via the <a class="reference internal" href="platform.html#sgtk.platform.start_engine" title="sgtk.platform.start_engine"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sgtk.platform.start_engine()</span></code></a> method,
+a file handler will automatically be created if one doesn’t already exist.</p>
 <p>If you are manually launching toolkit, we recommend that you call
 this method to initialize logging to file early on in your setup.
 Calling it multiple times will not result in the information being
@@ -620,8 +641,8 @@ exist per session.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>log_name</strong> &#8211; Name of logger to create. This will form the
-filename of the log file. The <code class="docutils literal"><span class="pre">.log</span></code> will be suffixed.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>log_name</strong> – Name of logger to create. This will form the
+filename of the log file. The <code class="docutils literal notranslate"><span class="pre">.log</span></code> will be suffixed.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The path to the previous log file that is being switched away from,
 None if no base logger was previously active.</td>
@@ -634,13 +655,13 @@ None if no base logger was previously active.</td>
 <dt id="sgtk.log.LogManager.initialize_base_file_handler_from_path">
 <code class="descname">initialize_base_file_handler_from_path</code><span class="sig-paren">(</span><em>log_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/log.html#LogManager.initialize_base_file_handler_from_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.log.LogManager.initialize_base_file_handler_from_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a file handler and attach it to the sgtk base logger.</p>
-<p>This method is there for legacy Toolkit applications and shouldn&#8217;t be used. Use
-<code class="docutils literal"><span class="pre">initialize_base_file_handler</span></code> instead.</p>
+<p>This method is there for legacy Toolkit applications and shouldn’t be used. Use
+<code class="docutils literal notranslate"><span class="pre">initialize_base_file_handler</span></code> instead.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>log_file</strong> &#8211; Path of the file to write the logs to.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>log_file</strong> – Path of the file to write the logs to.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The path to the previous log file that is being switched away from,
 None if no base logger was previously active.</td>
@@ -657,10 +678,10 @@ None if no base logger was previously active.</td>
 <span id="centralizing-settings"></span><h2>Centralizing your settings<a class="headerlink" href="#centralizing-your-settings" title="Permalink to this headline">¶</a></h2>
 <p>Instead of customizing your proxy settings on each of your project, it is possible to configure them once in a file
 and have your projects inherit these values, unless the project overrides itself the setting
-inside <code class="docutils literal"><span class="pre">shotgun.yml</span></code>.</p>
-<p>Here&#8217;s an example:</p>
+inside <code class="docutils literal notranslate"><span class="pre">shotgun.yml</span></code>.</p>
+<p>Here’s an example:</p>
 <blockquote>
-<div><div class="highlight-ini"><div class="highlight"><pre><span></span><span class="c1"># Login related settings</span>
+<div><div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="c1"># Login related settings</span>
 <span class="c1">#</span>
 <span class="k">[Login]</span>
 
@@ -700,8 +721,8 @@ inside <code class="docutils literal"><span class="pre">shotgun.yml</span></code
 <p>This file can be configured through multiple means and Toolkit will try to resolve the file in the
 following order:</p>
 <ol class="arabic simple">
-<li>The <code class="docutils literal"><span class="pre">SGTK_PREFERENCES_LOCATION</span></code> environment variable,</li>
-<li>The <code class="docutils literal"><span class="pre">SGTK_DESKTOP_CONFIG_LOCATION</span></code> environment variable, for compatibility with the Shotgun Desktop. (deprecated)</li>
+<li>The <code class="docutils literal notranslate"><span class="pre">SGTK_PREFERENCES_LOCATION</span></code> environment variable,</li>
+<li>The <code class="docutils literal notranslate"><span class="pre">SGTK_DESKTOP_CONFIG_LOCATION</span></code> environment variable, for compatibility with the Shotgun Desktop. (deprecated)</li>
 <li>Inside the Shotgun Toolkit preferences file</li>
 <li>Inside the Shotgun Desktop preferences file, for compatibility with the Shotgun Desktop. (deprecated)</li>
 </ol>
@@ -709,24 +730,24 @@ following order:</p>
 <p class="first admonition-title">Note</p>
 <p>The Shotgun Toolkit preferences file is located at:</p>
 <ul class="simple">
-<li>Windows: <code class="docutils literal"><span class="pre">%APPDATA%\Shotgun\Preferences\toolkit.ini</span></code></li>
-<li>macOS: <code class="docutils literal"><span class="pre">~/Library/Preferences/Shotgun/toolkit.ini</span></code></li>
-<li>Linux: <code class="docutils literal"><span class="pre">~/.shotgun/preferences/toolkit.ini</span></code></li>
+<li>Windows: <code class="docutils literal notranslate"><span class="pre">%APPDATA%\Shotgun\Preferences\toolkit.ini</span></code></li>
+<li>macOS: <code class="docutils literal notranslate"><span class="pre">~/Library/Preferences/Shotgun/toolkit.ini</span></code></li>
+<li>Linux: <code class="docutils literal notranslate"><span class="pre">~/.shotgun/preferences/toolkit.ini</span></code></li>
 </ul>
 <p>The Shotgun Desktop preferences file is located at:</p>
 <ul class="simple">
-<li>Windows: <code class="docutils literal"><span class="pre">%APPDATA%\Shotgun\desktop\config\config.ini</span></code></li>
-<li>macOS: <code class="docutils literal"><span class="pre">~/Library/Caches/Shotgun/desktop/config/config.ini</span></code></li>
-<li>Linux: <code class="docutils literal"><span class="pre">~/shotgun/desktop/config/config.ini</span></code></li>
+<li>Windows: <code class="docutils literal notranslate"><span class="pre">%APPDATA%\Shotgun\desktop\config\config.ini</span></code></li>
+<li>macOS: <code class="docutils literal notranslate"><span class="pre">~/Library/Caches/Shotgun/desktop/config/config.ini</span></code></li>
+<li>Linux: <code class="docutils literal notranslate"><span class="pre">~/shotgun/desktop/config/config.ini</span></code></li>
 </ul>
-<p class="last">Note that the <code class="docutils literal"><span class="pre">SHOTGUN_HOME</span></code> environment variable can impact the location
+<p class="last">Note that the <code class="docutils literal notranslate"><span class="pre">SHOTGUN_HOME</span></code> environment variable can impact the location
 of the Shotgun Toolkit preferences file.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p>When the http proxy is not specified in this file, the Shotgun Toolkit will try to retrieve
 the operating system http proxy.</p>
-<p>First, the environment will be scanned for variables named <code class="docutils literal"><span class="pre">http_proxy</span></code>, in case insensitive way.
+<p>First, the environment will be scanned for variables named <code class="docutils literal notranslate"><span class="pre">http_proxy</span></code>, in case insensitive way.
 If both lowercase and uppercase environment variables exist (and disagree), lowercase will be preferred.</p>
 <p>When such environment variables cannot be found:</p>
 <ul class="simple">
@@ -735,7 +756,7 @@ If both lowercase and uppercase environment variables exist (and disagree), lowe
 </ul>
 <p>There is a restriction in these latter cases: the use of proxies which require
 authentication (username and password) is not supported.</p>
-<p>Internally, the Shotgun Toolkit uses Python function <code class="docutils literal"><span class="pre">urllib.getproxies()</span></code> to retrieve
+<p>Internally, the Shotgun Toolkit uses Python function <code class="docutils literal notranslate"><span class="pre">urllib.getproxies()</span></code> to retrieve
 the operating system http proxy. More information about this function can be found here:</p>
 <blockquote class="last">
 <div><a class="reference external" href="https://docs.python.org/2/library/urllib.html#urllib.getproxies">https://docs.python.org/2/library/urllib.html#urllib.getproxies</a></div></blockquote>
@@ -746,34 +767,34 @@ the operating system http proxy. More information about this function can be fou
 <em class="property">class </em><code class="descclassname">sgtk.util.</code><code class="descname">UserSettings</code><a class="reference internal" href="_modules/tank/util/user_settings.html#UserSettings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.UserSettings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Handles finding and loading the user settings for Toolkit. The settings are cached in memory
 so the user settings object can be instantiated multiple times without any issue.</p>
-<p>All the settings are returned as strings. If a setting is missing from the file, <code class="docutils literal"><span class="pre">None</span></code> will
+<p>All the settings are returned as strings. If a setting is missing from the file, <code class="docutils literal notranslate"><span class="pre">None</span></code> will
 be returned. If the setting is present but has no value, an empty string will be returned.</p>
-<p>As of this writing, settings can only be updated by editing the <code class="docutils literal"><span class="pre">ini</span></code> file manually.</p>
-<p>Create the singleton instance if it hasn&#8217;t been created already. Once instantiated,
+<p>As of this writing, settings can only be updated by editing the <code class="docutils literal notranslate"><span class="pre">ini</span></code> file manually.</p>
+<p>Create the singleton instance if it hasn’t been created already. Once instantiated,
 the object will be cached and never be instantiated again for performance
 reasons.</p>
 <dl class="attribute">
 <dt id="sgtk.util.UserSettings.shotgun_proxy">
 <code class="descname">shotgun_proxy</code><a class="headerlink" href="#sgtk.util.UserSettings.shotgun_proxy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves the value from the <code class="docutils literal"><span class="pre">http_proxy</span></code> setting.</p>
+<dd><p>Retrieves the value from the <code class="docutils literal notranslate"><span class="pre">http_proxy</span></code> setting.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="sgtk.util.UserSettings.app_store_proxy">
 <code class="descname">app_store_proxy</code><a class="headerlink" href="#sgtk.util.UserSettings.app_store_proxy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves the value from the <code class="docutils literal"><span class="pre">app_store_http_proxy</span></code> setting.</p>
+<dd><p>Retrieves the value from the <code class="docutils literal notranslate"><span class="pre">app_store_http_proxy</span></code> setting.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="sgtk.util.UserSettings.default_site">
 <code class="descname">default_site</code><a class="headerlink" href="#sgtk.util.UserSettings.default_site" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves the value from the <code class="docutils literal"><span class="pre">default_site</span></code> setting.</p>
+<dd><p>Retrieves the value from the <code class="docutils literal notranslate"><span class="pre">default_site</span></code> setting.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="sgtk.util.UserSettings.default_login">
 <code class="descname">default_login</code><a class="headerlink" href="#sgtk.util.UserSettings.default_login" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves the value from the <code class="docutils literal"><span class="pre">default_login</span></code> setting.</p>
+<dd><p>Retrieves the value from the <code class="docutils literal notranslate"><span class="pre">default_login</span></code> setting.</p>
 </dd></dl>
 
 <dl class="method">
@@ -784,10 +805,10 @@ reasons.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>section</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Name of the section of the settings to retrieve.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>section</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Name of the section of the settings to retrieve.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list of setting&#8217;s name. If the section is missing, returns
-<code class="docutils literal"><span class="pre">None</span></code>.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list of setting’s name. If the section is missing, returns
+<code class="docutils literal notranslate"><span class="pre">None</span></code>.</td>
 </tr>
 </tbody>
 </table>
@@ -802,12 +823,12 @@ reasons.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>section</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Name of the section to retrieve the setting from. Do not include the brackets.</li>
-<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Name of the setting under the provided section.</li>
+<li><strong>section</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Name of the section to retrieve the setting from. Do not include the brackets.</li>
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Name of the setting under the provided section.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The setting&#8217;s value if found, <code class="docutils literal"><span class="pre">None</span></code> if the setting is missing from the file or
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The setting’s value if found, <code class="docutils literal notranslate"><span class="pre">None</span></code> if the setting is missing from the file or
 an empty string if the setting is present but has no value associated.</p>
 </td>
 </tr>
@@ -823,15 +844,15 @@ an empty string if the setting is present but has no value associated.</p>
 <code class="descname">get_boolean_setting</code><span class="sig-paren">(</span><em>section</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/user_settings.html#UserSettings.get_boolean_setting"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.UserSettings.get_boolean_setting" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provides access to any setting, including ones in user defined sections, and casts it
 into a boolean.</p>
-<p>Values <code class="docutils literal"><span class="pre">1</span></code>, <code class="docutils literal"><span class="pre">yes</span></code>, <code class="docutils literal"><span class="pre">true</span></code> and <code class="docutils literal"><span class="pre">on</span></code> are converted to <code class="docutils literal"><span class="pre">True</span></code> while <code class="docutils literal"><span class="pre">0</span></code>, <code class="docutils literal"><span class="pre">no</span></code>,
-<code class="docutils literal"><span class="pre">false``and</span> <span class="pre">``off</span></code> are converted to false. Case is insensitive.</p>
+<p>Values <code class="docutils literal notranslate"><span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">yes</span></code>, <code class="docutils literal notranslate"><span class="pre">true</span></code> and <code class="docutils literal notranslate"><span class="pre">on</span></code> are converted to <code class="docutils literal notranslate"><span class="pre">True</span></code> while <code class="docutils literal notranslate"><span class="pre">0</span></code>, <code class="docutils literal notranslate"><span class="pre">no</span></code>,
+<code class="docutils literal notranslate"><span class="pre">false``and</span> <span class="pre">``off</span></code> are converted to false. Case is insensitive.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>section</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Name of the section to retrieve the setting from. Do not include the brackets.</li>
-<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Name of the setting under the provided section.</li>
+<li><strong>section</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Name of the section to retrieve the setting from. Do not include the brackets.</li>
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Name of the setting under the provided section.</li>
 </ul>
 </td>
 </tr>
@@ -841,7 +862,7 @@ into a boolean.</p>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)">bool</a></p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><strong>TankError</strong> &#8211; Raised if the value is not one of the accepted values.</p>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference internal" href="core.html#sgtk.TankError" title="sgtk.TankError"><strong>TankError</strong></a> – Raised if the value is not one of the accepted values.</p>
 </td>
 </tr>
 </tbody>
@@ -858,8 +879,8 @@ into an integer.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>section</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Name of the section to retrieve the setting from. Do not include the brackets.</li>
-<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Name of the setting under the provided section.</li>
+<li><strong>section</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Name of the section to retrieve the setting from. Do not include the brackets.</li>
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Name of the setting under the provided section.</li>
 </ul>
 </td>
 </tr>
@@ -869,7 +890,7 @@ into an integer.</p>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)">bool</a></p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><strong>TankError</strong> &#8211; Raised if the value is not one of the accepted values.</p>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference internal" href="core.html#sgtk.TankError" title="sgtk.TankError"><strong>TankError</strong></a> – Raised if the value is not one of the accepted values.</p>
 </td>
 </tr>
 </tbody>
@@ -889,7 +910,7 @@ fashion.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">These methods are not configurable or overridable
 by hooks. If you are developing apps or engines, we
-recommend using <a class="reference internal" href="platform.html#sgtk.platform.Application.ensure_folder_exists" title="sgtk.platform.Application.ensure_folder_exists"><code class="xref py py-meth docutils literal"><span class="pre">ensure_folder_exists()</span></code></a>
+recommend using <a class="reference internal" href="platform.html#sgtk.platform.Application.ensure_folder_exists" title="sgtk.platform.Application.ensure_folder_exists"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ensure_folder_exists()</span></code></a>
 as this method calls out to a customizable hook implementation.</p>
 </div>
 <div class="section" id="sgtk-util-filesystem">
@@ -903,7 +924,7 @@ whenever new files or folders are created. For I/O methods
 that have a permissions parameter, it is important that the
 umask is cleared prior to execution, otherwise the default
 umask may alter the resulting permissions, for example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">create_folders</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mi">0777</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">create_folders</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mi">0777</span><span class="p">):</span>
     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Creating folder </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
     <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="p">)</span>
 </pre></div>
@@ -919,7 +940,7 @@ by create folders will be 0, despite passing in 0777 permissions.</p>
 the umask to 0, thereby giving full control to
 any permissions operation to take place without any restriction
 by the umask:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nd">@with_cleared_umask</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@with_cleared_umask</span>
 <span class="k">def</span> <span class="nf">create_folders</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="mi">0777</span><span class="p">):</span>
     <span class="c1"># Creates folders with the given permissions,</span>
     <span class="c1"># regardless of umask setting.</span>
@@ -937,7 +958,7 @@ by the umask:</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> &#8211; folder to compute size for</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> – folder to compute size for</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">size in bytes</td>
 </tr>
@@ -954,8 +975,8 @@ by the umask:</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>path</strong> &#8211; path to touch</li>
-<li><strong>permissions</strong> &#8211; Optional permissions to set on the file. Default value is 0666,
+<li><strong>path</strong> – path to touch</li>
+<li><strong>permissions</strong> – Optional permissions to set on the file. Default value is 0666,
 creating a file that is readable and writable for all users.</li>
 </ul>
 </td>
@@ -976,9 +997,9 @@ creating a file that is readable and writable for all users.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>path</strong> &#8211; path to create</li>
-<li><strong>permissions</strong> &#8211; Permissions to use when folder is created</li>
-<li><strong>create_placeholder_file</strong> &#8211; If true, a placeholder file will be generated.</li>
+<li><strong>path</strong> – path to create</li>
+<li><strong>permissions</strong> – Permissions to use when folder is created</li>
+<li><strong>create_placeholder_file</strong> – If true, a placeholder file will be generated.</li>
 </ul>
 </td>
 </tr>
@@ -998,9 +1019,9 @@ creating a file that is readable and writable for all users.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>src</strong> &#8211; Source file</li>
-<li><strong>dst</strong> &#8211; Target destination</li>
-<li><strong>permissions</strong> &#8211; Permissions to use for target file. Default permissions will
+<li><strong>src</strong> – Source file</li>
+<li><strong>dst</strong> – Target destination</li>
+<li><strong>permissions</strong> – Permissions to use for target file. Default permissions will
 be readable and writable for all users.</li>
 </ul>
 </td>
@@ -1021,7 +1042,7 @@ be skipped over.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> &#8211; Full path to file to remove</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> – Full path to file to remove</td>
 </tr>
 </tbody>
 </table>
@@ -1042,7 +1063,7 @@ deleting as much as it can.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> &#8211; File system path to location to the folder to be deleted</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> – File system path to location to the folder to be deleted</td>
 </tr>
 </tbody>
 </table>
@@ -1051,10 +1072,10 @@ deleting as much as it can.</p>
 <dl class="function">
 <dt id="sgtk.util.filesystem.copy_folder">
 <code class="descclassname">sgtk.util.filesystem.</code><code class="descname">copy_folder</code><span class="sig-paren">(</span><em>src</em>, <em>dst</em>, <em>folder_permissions=0775</em>, <em>skip_list=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#copy_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.copy_folder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alternative implementation to <code class="docutils literal"><span class="pre">shutil.copytree</span></code></p>
-<p>Copies recursively and creates folders if they don&#8217;t already exist.
-Always skips system files such as <code class="docutils literal"><span class="pre">&quot;__MACOSX&quot;</span></code>, <code class="docutils literal"><span class="pre">&quot;.DS_Store&quot;</span></code>, etc.
-Files will the extension <code class="docutils literal"><span class="pre">.sh</span></code>, <code class="docutils literal"><span class="pre">.bat</span></code> or <code class="docutils literal"><span class="pre">.exe</span></code> will be given
+<dd><p>Alternative implementation to <code class="docutils literal notranslate"><span class="pre">shutil.copytree</span></code></p>
+<p>Copies recursively and creates folders if they don’t already exist.
+Always skips system files such as <code class="docutils literal notranslate"><span class="pre">&quot;__MACOSX&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;.DS_Store&quot;</span></code>, etc.
+Files will the extension <code class="docutils literal notranslate"><span class="pre">.sh</span></code>, <code class="docutils literal notranslate"><span class="pre">.bat</span></code> or <code class="docutils literal notranslate"><span class="pre">.exe</span></code> will be given
 executable permissions.</p>
 <p>Returns a list of files that were copied.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1062,12 +1083,12 @@ executable permissions.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>src</strong> &#8211; Source path to copy from</li>
-<li><strong>dst</strong> &#8211; Destination to copy to</li>
-<li><strong>folder_permissions</strong> &#8211; permissions to use for new folders</li>
-<li><strong>skip_list</strong> &#8211; List of file names to skip. If this parameter is
-omitted or set to None, common files such as <code class="docutils literal"><span class="pre">.git</span></code>,
-<code class="docutils literal"><span class="pre">.gitignore</span></code> etc will be ignored.</li>
+<li><strong>src</strong> – Source path to copy from</li>
+<li><strong>dst</strong> – Destination to copy to</li>
+<li><strong>folder_permissions</strong> – permissions to use for new folders</li>
+<li><strong>skip_list</strong> – List of file names to skip. If this parameter is
+omitted or set to None, common files such as <code class="docutils literal notranslate"><span class="pre">.git</span></code>,
+<code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> etc will be ignored.</li>
 </ul>
 </td>
 </tr>
@@ -1083,7 +1104,7 @@ omitted or set to None, common files such as <code class="docutils literal"><spa
 <code class="descclassname">sgtk.util.filesystem.</code><code class="descname">move_folder</code><span class="sig-paren">(</span><em>src</em>, <em>dst</em>, <em>folder_permissions=0775</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#move_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.move_folder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Moves a directory.</p>
 <p>First copies all content into target. Then deletes
-all content from sources. Skips files that won&#8217;t delete.</p>
+all content from sources. Skips files that won’t delete.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The source folder itself is not deleted, it is just emptied, if possible.</p>
@@ -1093,9 +1114,9 @@ all content from sources. Skips files that won&#8217;t delete.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>src</strong> &#8211; Source path to copy from</li>
-<li><strong>dst</strong> &#8211; Destination to copy to</li>
-<li><strong>folder_permissions</strong> &#8211; permissions to use for new folders</li>
+<li><strong>src</strong> – Source path to copy from</li>
+<li><strong>dst</strong> – Destination to copy to</li>
+<li><strong>folder_permissions</strong> – permissions to use for new folders</li>
 </ul>
 </td>
 </tr>
@@ -1111,16 +1132,16 @@ all content from sources. Skips files that won&#8217;t delete.</p>
 timestamp based suffix. Optionally, it can be moved into a different
 location.</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">backup_folder(&quot;/foo/bar&quot;)</span></code> will move <code class="docutils literal"><span class="pre">/foo/bar</span></code> to <code class="docutils literal"><span class="pre">/foo/bar.20160912_200426</span></code></li>
-<li><code class="docutils literal"><span class="pre">backup_folder(&quot;/foo/bar&quot;,</span> <span class="pre">&quot;/tmp&quot;)</span></code> will move <code class="docutils literal"><span class="pre">/foo/bar</span></code> to <code class="docutils literal"><span class="pre">/tmp/bar.20160912_200426</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">backup_folder(&quot;/foo/bar&quot;)</span></code> will move <code class="docutils literal notranslate"><span class="pre">/foo/bar</span></code> to <code class="docutils literal notranslate"><span class="pre">/foo/bar.20160912_200426</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">backup_folder(&quot;/foo/bar&quot;,</span> <span class="pre">&quot;/tmp&quot;)</span></code> will move <code class="docutils literal notranslate"><span class="pre">/foo/bar</span></code> to <code class="docutils literal notranslate"><span class="pre">/tmp/bar.20160912_200426</span></code></li>
 </ul>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>src</strong> &#8211; Folder to move</li>
-<li><strong>dst</strong> &#8211; Optional backup folder</li>
+<li><strong>src</strong> – Folder to move</li>
+<li><strong>dst</strong> – Optional backup folder</li>
 </ul>
 </td>
 </tr>
@@ -1133,12 +1154,12 @@ location.</p>
 <code class="descclassname">sgtk.util.filesystem.</code><code class="descname">create_valid_filename</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#create_valid_filename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.create_valid_filename" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a sanitized file name given a string.
 Replaces spaces and other characters with underscores</p>
-<p>&#8216;my lovely name &#8216; -&gt; &#8216;my_lovely_name&#8217;</p>
+<p>‘my lovely name ‘ -&gt; ‘my_lovely_name’</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> &#8211; String value to sanitize</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> – String value to sanitize</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">sanitized string</td>
 </tr>
@@ -1150,9 +1171,9 @@ Replaces spaces and other characters with underscores</p>
 <dt id="sgtk.util.filesystem.get_unused_path">
 <code class="descclassname">sgtk.util.filesystem.</code><code class="descname">get_unused_path</code><span class="sig-paren">(</span><em>base_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/filesystem.html#get_unused_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.filesystem.get_unused_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return an unused file path from the given base path by appending if needed
-a number at the end of the basename of the path, right before the first &#8221;.&#8221;,
+a number at the end of the basename of the path, right before the first “.”,
 if any.</p>
-<p>For example, <code class="docutils literal"><span class="pre">/tmp/foo_1.bar.blah</span></code> would be returned for <code class="docutils literal"><span class="pre">/tmp/foo.bar.blah</span></code>
+<p>For example, <code class="docutils literal notranslate"><span class="pre">/tmp/foo_1.bar.blah</span></code> would be returned for <code class="docutils literal notranslate"><span class="pre">/tmp/foo.bar.blah</span></code>
 if it already exists.</p>
 <p>If the given path does not exist, the original path is returned.</p>
 <div class="admonition note">
@@ -1164,7 +1185,7 @@ could create the returned path before it is used by the caller.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>base_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Target path.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>base_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Target path.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A string.</td>
 </tr>
@@ -1182,11 +1203,11 @@ could create the returned path before it is used by the caller.</p>
 <p>Contains methods to easily cast multi-os path between shotgun and os representations
 and mappings. The ShotgunPath object automatically sanitizes any path that it is given.
 When working with local storages in Shotgun, roots are keyed by the tokens
-<code class="docutils literal"><span class="pre">windows_path</span></code>, <code class="docutils literal"><span class="pre">linux_path</span></code> and <code class="docutils literal"><span class="pre">mac_path</span></code>. When using <code class="docutils literal"><span class="pre">sys.platform</span></code> in python,
-you get back <code class="docutils literal"><span class="pre">win32</span></code>, <code class="docutils literal"><span class="pre">darwin</span></code> and <code class="docutils literal"><span class="pre">linux2</span></code> depending on platform. This class makes
+<code class="docutils literal notranslate"><span class="pre">windows_path</span></code>, <code class="docutils literal notranslate"><span class="pre">linux_path</span></code> and <code class="docutils literal notranslate"><span class="pre">mac_path</span></code>. When using <code class="docutils literal notranslate"><span class="pre">sys.platform</span></code> in python,
+you get back <code class="docutils literal notranslate"><span class="pre">win32</span></code>, <code class="docutils literal notranslate"><span class="pre">darwin</span></code> and <code class="docutils literal notranslate"><span class="pre">linux2</span></code> depending on platform. This class makes
 it easy to perform operations and cast between representations and platforms.</p>
 <p>Usage example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ShotgunPath</span><span class="o">.</span><span class="n">SHOTGUN_PATH_FIELDS</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ShotgunPath</span><span class="o">.</span><span class="n">SHOTGUN_PATH_FIELDS</span>
 <span class="go">[&quot;windows_path&quot;, &quot;linux_path&quot;, &quot;mac_path&quot;]</span>
 
 <span class="go"># construction</span>
@@ -1222,9 +1243,9 @@ it easy to perform operations and cast between representations and platforms.</p
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>windows_path</strong> &#8211; Path on windows to associate with this path object</li>
-<li><strong>linux_path</strong> &#8211; Path on linux to associate with this path object</li>
-<li><strong>macosx_path</strong> &#8211; Path on macosx to associate with this path object</li>
+<li><strong>windows_path</strong> – Path on windows to associate with this path object</li>
+<li><strong>linux_path</strong> – Path on linux to associate with this path object</li>
+<li><strong>macosx_path</strong> – Path on macosx to associate with this path object</li>
 </ul>
 </td>
 </tr>
@@ -1238,14 +1259,14 @@ it easy to perform operations and cast between representations and platforms.</p
 
 <dl class="staticmethod">
 <dt id="sgtk.util.ShotgunPath.get_file_name_from_template">
-<em class="property">static </em><code class="descname">get_file_name_from_template</code><span class="sig-paren">(</span><em>template</em>, <em>platform='linux2'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.get_file_name_from_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.get_file_name_from_template" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">get_file_name_from_template</code><span class="sig-paren">(</span><em>template</em>, <em>platform='darwin'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.get_file_name_from_template"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.get_file_name_from_template" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the complete file name for the current platform based on
 file name template passed in.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>template</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Template for a file name with a <code class="docutils literal"><span class="pre">%s</span></code> to indicate
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>template</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Template for a file name with a <code class="docutils literal notranslate"><span class="pre">%s</span></code> to indicate
 where the platform name should be inserted.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Path with the OS name substituted in.</td>
@@ -1256,14 +1277,14 @@ where the platform name should be inserted.</td>
 
 <dl class="staticmethod">
 <dt id="sgtk.util.ShotgunPath.get_shotgun_storage_key">
-<em class="property">static </em><code class="descname">get_shotgun_storage_key</code><span class="sig-paren">(</span><em>platform='linux2'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.get_shotgun_storage_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.get_shotgun_storage_key" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a <code class="docutils literal"><span class="pre">sys.platform</span></code> constant, resolve a Shotgun storage key</p>
+<em class="property">static </em><code class="descname">get_shotgun_storage_key</code><span class="sig-paren">(</span><em>platform='darwin'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.get_shotgun_storage_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.get_shotgun_storage_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a <code class="docutils literal notranslate"><span class="pre">sys.platform</span></code> constant, resolve a Shotgun storage key</p>
 <p>Shotgun local storages handle operating systems using
-the three keys &#8216;windows_path, &#8216;mac_path&#8217; and &#8216;linux_path&#8217;,
-also defined as <code class="docutils literal"><span class="pre">ShotgunPath.SHOTGUN_PATH_FIELDS</span></code></p>
+the three keys ‘windows_path, ‘mac_path’ and ‘linux_path’,
+also defined as <code class="docutils literal notranslate"><span class="pre">ShotgunPath.SHOTGUN_PATH_FIELDS</span></code></p>
 <p>This method resolves the right key given a std. python
 sys.platform:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">get_shotgun_storage_key</span><span class="p">(</span><span class="s1">&#39;win32&#39;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">get_shotgun_storage_key</span><span class="p">(</span><span class="s1">&#39;win32&#39;</span><span class="p">)</span>
 <span class="go">&#39;windows_path&#39;</span>
 
 <span class="go"># if running on a mac</span>
@@ -1275,8 +1296,8 @@ sys.platform:</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>platform</strong> &#8211; sys.platform style string, e.g &#8216;linux2&#8217;,
-&#8216;win32&#8217; or &#8216;darwin&#8217;.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>platform</strong> – sys.platform style string, e.g ‘linux2’,
+‘win32’ or ‘darwin’.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Shotgun storage path as string.</td>
 </tr>
@@ -1293,10 +1314,10 @@ containing the paths windows_path, mac_path and linux_path</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sg_dict</strong> &#8211; Shotgun query resultset with possible keys
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sg_dict</strong> – Shotgun query resultset with possible keys
 windows_path, mac_path and linux_path.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">ShotgunPath</span></code> instance</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sgtk.util.ShotgunPath" title="sgtk.util.ShotgunPath"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunPath</span></code></a> instance</td>
 </tr>
 </tbody>
 </table>
@@ -1311,10 +1332,10 @@ sys.platform constants.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>system_dict</strong> &#8211; Dictionary with possible keys
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>system_dict</strong> – Dictionary with possible keys
 win32, darwin and linux2.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">ShotgunPath</span></code> instance</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sgtk.util.ShotgunPath" title="sgtk.util.ShotgunPath"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunPath</span></code></a> instance</td>
 </tr>
 </tbody>
 </table>
@@ -1328,9 +1349,9 @@ win32, darwin and linux2.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> &#8211; Path on the current os platform.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> – Path on the current os platform.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">ShotgunPath</span></code> instance</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sgtk.util.ShotgunPath" title="sgtk.util.ShotgunPath"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunPath</span></code></a> instance</td>
 </tr>
 </tbody>
 </table>
@@ -1340,9 +1361,9 @@ win32, darwin and linux2.</td>
 <dt id="sgtk.util.ShotgunPath.normalize">
 <em class="property">classmethod </em><code class="descname">normalize</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.normalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.normalize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convenience method that normalizes the given path
-by running it through the <code class="xref py py-class docutils literal"><span class="pre">ShotgunPath</span></code> normalization
-logic. <code class="docutils literal"><span class="pre">ShotgunPath.normalize(path)</span></code> is equivalent
-to executing <code class="docutils literal"><span class="pre">ShotgunPath.from_current_os_path(path).current_os</span></code>.</p>
+by running it through the <a class="reference internal" href="#sgtk.util.ShotgunPath" title="sgtk.util.ShotgunPath"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunPath</span></code></a> normalization
+logic. <code class="docutils literal notranslate"><span class="pre">ShotgunPath.normalize(path)</span></code> is equivalent
+to executing <code class="docutils literal notranslate"><span class="pre">ShotgunPath.from_current_os_path(path).current_os</span></code>.</p>
 <p>Normalization include checking that separators are matching the
 current operating system, removal of trailing separators
 and removal of double separators. This is done automatically
@@ -1352,7 +1373,7 @@ to just perform the normalization quickly on a local path.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Local operating system path to normalize</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Local operating system path to normalize</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Normalized path string.</td>
 </tr>
@@ -1387,19 +1408,19 @@ to just perform the normalization quickly on a local path.</p>
 <dl class="method">
 <dt id="sgtk.util.ShotgunPath.as_shotgun_dict">
 <code class="descname">as_shotgun_dict</code><span class="sig-paren">(</span><em>include_empty=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.as_shotgun_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.as_shotgun_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>The path as a shotgun dictionary. With <code class="docutils literal"><span class="pre">include_empty</span></code> set to True:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;windows_path&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;mac_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;linux_path&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">}</span>
+<dd><p>The path as a shotgun dictionary. With <code class="docutils literal notranslate"><span class="pre">include_empty</span></code> set to True:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;windows_path&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;mac_path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;linux_path&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
-<p>With <code class="docutils literal"><span class="pre">include_empty</span></code> set to False:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;windows_path&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;linux_path&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">}</span>
+<p>With <code class="docutils literal notranslate"><span class="pre">include_empty</span></code> set to False:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;windows_path&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;linux_path&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>include_empty</strong> &#8211; Controls whether keys should be included for empty path values</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>include_empty</strong> – Controls whether keys should be included for empty path values</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary of paths keyed by standard shotgun keys.</td>
 </tr>
@@ -1411,19 +1432,19 @@ to just perform the normalization quickly on a local path.</p>
 <dt id="sgtk.util.ShotgunPath.as_system_dict">
 <code class="descname">as_system_dict</code><span class="sig-paren">(</span><em>include_empty=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.as_system_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.as_system_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>The path as a dictionary keyed by sys.platform.</p>
-<p>With <code class="docutils literal"><span class="pre">include_empty</span></code> set to True:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">}</span>
+<p>With <code class="docutils literal notranslate"><span class="pre">include_empty</span></code> set to True:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
-<p>With <code class="docutils literal"><span class="pre">include_empty</span></code> set to False:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">}</span>
+<p>With <code class="docutils literal notranslate"><span class="pre">include_empty</span></code> set to False:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span> <span class="s2">&quot;C:</span><span class="se">\t</span><span class="s2">emp&quot;</span><span class="p">,</span> <span class="s2">&quot;linux2&quot;</span><span class="p">:</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>include_empty</strong> &#8211; Controls whether keys should be included for empty path values</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>include_empty</strong> – Controls whether keys should be included for empty path values</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary of paths keyed by sys.platform.</td>
 </tr>
@@ -1439,9 +1460,9 @@ to just perform the normalization quickly on a local path.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>folder</strong> &#8211; folder name as sting</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>folder</strong> – folder name as sting</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">ShotgunPath</span></code> object containing the new path</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="#sgtk.util.ShotgunPath" title="sgtk.util.ShotgunPath"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunPath</span></code></a> object containing the new path</td>
 </tr>
 </tbody>
 </table>
@@ -1465,15 +1486,15 @@ standards if and when these change between releases.</p>
 <p class="first admonition-title">Note</p>
 <p>All paths returned by this class are local to the currently running
 user and typically private or with limited access settings for other users.</p>
-<p>If the current user&#8217;s home directory is not an appropriate location to store
-your user files, you can use the <code class="docutils literal"><span class="pre">SHOTGUN_HOME</span></code> environment variable to
+<p>If the current user’s home directory is not an appropriate location to store
+your user files, you can use the <code class="docutils literal notranslate"><span class="pre">SHOTGUN_HOME</span></code> environment variable to
 override the root location of the files. In that case, the location for the
 user files on each platform will be:</p>
 <ul class="last simple">
-<li>Logging:     <code class="docutils literal"><span class="pre">$SHOTGUN_HOME/logs</span></code></li>
-<li>Cache:       <code class="docutils literal"><span class="pre">$SHOTGUN_HOME</span></code></li>
-<li>Persistent:  <code class="docutils literal"><span class="pre">$SHOTGUN_HOME/data</span></code></li>
-<li>Preferences: <code class="docutils literal"><span class="pre">$SHOTGUN_HOME/preferences</span></code></li>
+<li>Logging:     <code class="docutils literal notranslate"><span class="pre">$SHOTGUN_HOME/logs</span></code></li>
+<li>Cache:       <code class="docutils literal notranslate"><span class="pre">$SHOTGUN_HOME</span></code></li>
+<li>Persistent:  <code class="docutils literal notranslate"><span class="pre">$SHOTGUN_HOME/data</span></code></li>
+<li>Preferences: <code class="docutils literal notranslate"><span class="pre">$SHOTGUN_HOME/preferences</span></code></li>
 </ul>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1481,23 +1502,23 @@ user files on each platform will be:</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name" colspan="2">Constant CORE_V17:</th></tr>
-<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">Indicates compatibility with Core 0.17 or earlier</td>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">Indicates compatibility with Core 0.17 or earlier</td>
 </tr>
 <tr class="field-even field"><th class="field-name" colspan="2">Constant CORE_V18:</th></tr>
-<tr class="field-even field"><td>&nbsp;</td><td class="field-body">Indicates compatibility with Core 0.18 or later</td>
+<tr class="field-even field"><td>&#160;</td><td class="field-body">Indicates compatibility with Core 0.18 or later</td>
 </tr>
 <tr class="field-odd field"><th class="field-name" colspan="2">Constant LOGGING:</th></tr>
-<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">Indicates a path suitable for storing logs, useful for debugging</td>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">Indicates a path suitable for storing logs, useful for debugging</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Constant CACHE:</th><td class="field-body">Indicates a path suitable for storing cache data that can be deleted
 without any loss of functionality or state.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name" colspan="2">Constant PERSISTENT:</th></tr>
-<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">Indicates a path suitable for storing data that needs
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">Indicates a path suitable for storing data that needs
 to be retained between sessions.</td>
 </tr>
 <tr class="field-even field"><th class="field-name" colspan="2">Constant PREFERENCES:</th></tr>
-<tr class="field-even field"><td>&nbsp;</td><td class="field-body">Indicates a path that suitable for storing settings files and preferences.</td>
+<tr class="field-even field"><td>&#160;</td><td class="field-body">Indicates a path that suitable for storing settings files and preferences.</td>
 </tr>
 </tbody>
 </table>
@@ -1508,10 +1529,10 @@ to be retained between sessions.</td>
 <p>The following paths will be used:</p>
 <blockquote>
 <div><ul class="simple">
-<li>On the mac, paths will point into <code class="docutils literal"><span class="pre">~/Library/PATH_TYPE/Shotgun</span></code>, where PATH_TYPE
+<li>On the mac, paths will point into <code class="docutils literal notranslate"><span class="pre">~/Library/PATH_TYPE/Shotgun</span></code>, where PATH_TYPE
 is controlled by the path_type property.</li>
-<li>On Windows, paths will created below a <code class="docutils literal"><span class="pre">%APPDATA%/Shotgun</span></code> root point.</li>
-<li>On Linux, paths will be created below a <code class="docutils literal"><span class="pre">~/.shotgun</span></code> root point.</li>
+<li>On Windows, paths will created below a <code class="docutils literal notranslate"><span class="pre">%APPDATA%/Shotgun</span></code> root point.</li>
+<li>On Linux, paths will be created below a <code class="docutils literal notranslate"><span class="pre">~/.shotgun</span></code> root point.</li>
 </ul>
 </div></blockquote>
 <div class="admonition note">
@@ -1523,14 +1544,14 @@ is controlled by the path_type property.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>path_type</strong> &#8211; Type of path to return. One of <code class="docutils literal"><span class="pre">LocalFileStorageManager.LOGGING</span></code>,
-<code class="docutils literal"><span class="pre">LocalFileStorageManager.CACHE</span></code>, <code class="docutils literal"><span class="pre">LocalFileStorageManager.PERSISTENT</span></code>, where
+<li><strong>path_type</strong> – Type of path to return. One of <code class="docutils literal notranslate"><span class="pre">LocalFileStorageManager.LOGGING</span></code>,
+<code class="docutils literal notranslate"><span class="pre">LocalFileStorageManager.CACHE</span></code>, <code class="docutils literal notranslate"><span class="pre">LocalFileStorageManager.PERSISTENT</span></code>, where
 logging is a path where log- and debug related data should be stored,
 cache is a location intended for cache data, e.g. data that can be deleted
 without affecting the state of execution, and persistent is a location intended
 for data that is meant to be persist. This includes things like settings and
 preferences.</li>
-<li><strong>generation</strong> &#8211; Path standard generation to use. Defaults to <code class="docutils literal"><span class="pre">LocalFileStorageManager.CORE_V18</span></code>,
+<li><strong>generation</strong> – Path standard generation to use. Defaults to <code class="docutils literal notranslate"><span class="pre">LocalFileStorageManager.CORE_V18</span></code>,
 which is the current generation of paths.</li>
 </ul>
 </td>
@@ -1546,7 +1567,7 @@ which is the current generation of paths.</li>
 <dt id="sgtk.util.LocalFileStorageManager.get_site_root">
 <em class="property">classmethod </em><code class="descname">get_site_root</code><span class="sig-paren">(</span><em>hostname</em>, <em>path_type</em>, <em>generation=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/local_file_storage.html#LocalFileStorageManager.get_site_root"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.LocalFileStorageManager.get_site_root" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a cache root where items can be stored on a per site basis.</p>
-<p>For more details, see <code class="xref py py-meth docutils literal"><span class="pre">LocalFileStorageManager.get_global_root()</span></code>.</p>
+<p>For more details, see <a class="reference internal" href="#sgtk.util.LocalFileStorageManager.get_global_root" title="sgtk.util.LocalFileStorageManager.get_global_root"><code class="xref py py-meth docutils literal notranslate"><span class="pre">LocalFileStorageManager.get_global_root()</span></code></a>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This method does not ensure that the folder exists.</p>
@@ -1556,15 +1577,15 @@ which is the current generation of paths.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>hostname</strong> &#8211; Shotgun hostname as string, e.g. &#8216;<a class="reference external" href="https://foo.shotgunstudio.com">https://foo.shotgunstudio.com</a>&#8216;</li>
-<li><strong>path_type</strong> &#8211; Type of path to return. One of <code class="docutils literal"><span class="pre">LocalFileStorageManager.LOGGING</span></code>,
-<code class="docutils literal"><span class="pre">LocalFileStorageManager.CACHE</span></code>, <code class="docutils literal"><span class="pre">LocalFileStorageManager.PERSISTENT</span></code>, where
+<li><strong>hostname</strong> – Shotgun hostname as string, e.g. ‘<a class="reference external" href="https://foo.shotgunstudio.com">https://foo.shotgunstudio.com</a>’</li>
+<li><strong>path_type</strong> – Type of path to return. One of <code class="docutils literal notranslate"><span class="pre">LocalFileStorageManager.LOGGING</span></code>,
+<code class="docutils literal notranslate"><span class="pre">LocalFileStorageManager.CACHE</span></code>, <code class="docutils literal notranslate"><span class="pre">LocalFileStorageManager.PERSISTENT</span></code>, where
 logging is a path where log- and debug related data should be stored,
 cache is a location intended for cache data, e.g. data that can be deleted
 without affecting the state of execution, and persistent is a location intended
 for data that is meant to be persist. This includes things like settings and
 preferences.</li>
-<li><strong>generation</strong> &#8211; Path standard generation to use. Defaults to <code class="docutils literal"><span class="pre">LocalFileStorageManager.CORE_V18</span></code>,
+<li><strong>generation</strong> – Path standard generation to use. Defaults to <code class="docutils literal notranslate"><span class="pre">LocalFileStorageManager.CORE_V18</span></code>,
 which is the current generation of paths.</li>
 </ul>
 </td>
@@ -1590,12 +1611,12 @@ in Shotgun, this value should be None.</li>
 <li>If the configuration has been bootstrapped or has a known plugin id, this
 should be specified via the plugin id parameter.</li>
 </ul>
-<p>For more details, see <code class="xref py py-meth docutils literal"><span class="pre">LocalFileStorageManager.get_global_root()</span></code>.</p>
+<p>For more details, see <a class="reference internal" href="#sgtk.util.LocalFileStorageManager.get_global_root" title="sgtk.util.LocalFileStorageManager.get_global_root"><code class="xref py py-meth docutils literal notranslate"><span class="pre">LocalFileStorageManager.get_global_root()</span></code></a>.</p>
 <p>Examples of paths that will be generated:</p>
 <ul class="simple">
-<li>Site config: <code class="docutils literal"><span class="pre">ROOT/shotgunsite/p0</span></code></li>
-<li>Project 123, config 33: <code class="docutils literal"><span class="pre">ROOT/shotgunsite/p123c33</span></code></li>
-<li>project 123, no config, plugin id review.rv: <code class="docutils literal"><span class="pre">ROOT/shotgunsite/p123.review.rv</span></code></li>
+<li>Site config: <code class="docutils literal notranslate"><span class="pre">ROOT/shotgunsite/p0</span></code></li>
+<li>Project 123, config 33: <code class="docutils literal notranslate"><span class="pre">ROOT/shotgunsite/p123c33</span></code></li>
+<li>project 123, no config, plugin id review.rv: <code class="docutils literal notranslate"><span class="pre">ROOT/shotgunsite/p123.review.rv</span></code></li>
 </ul>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -1606,21 +1627,21 @@ should be specified via the plugin id parameter.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>hostname</strong> &#8211; Shotgun hostname as string, e.g. &#8216;<a class="reference external" href="https://foo.shotgunstudio.com">https://foo.shotgunstudio.com</a>&#8216;</li>
-<li><strong>project_id</strong> &#8211; Shotgun project id as integer. For the site config, this should be None.</li>
-<li><strong>plugin_id</strong> &#8211; Plugin id string to identify the scope for a particular plugin
+<li><strong>hostname</strong> – Shotgun hostname as string, e.g. ‘<a class="reference external" href="https://foo.shotgunstudio.com">https://foo.shotgunstudio.com</a>’</li>
+<li><strong>project_id</strong> – Shotgun project id as integer. For the site config, this should be None.</li>
+<li><strong>plugin_id</strong> – Plugin id string to identify the scope for a particular plugin
 or integration. For more information,
-see <a class="reference internal" href="initializing.html#sgtk.bootstrap.ToolkitManager.plugin_id" title="sgtk.bootstrap.ToolkitManager.plugin_id"><code class="xref py py-meth docutils literal"><span class="pre">plugin_id()</span></code></a>. For
+see <a class="reference internal" href="initializing.html#sgtk.bootstrap.ToolkitManager.plugin_id" title="sgtk.bootstrap.ToolkitManager.plugin_id"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plugin_id()</span></code></a>. For
 non-plugin based toolkit projects, this value is None.</li>
-<li><strong>pipeline_config_id</strong> &#8211; Shotgun pipeline config id. None for bootstraped configs.</li>
-<li><strong>path_type</strong> &#8211; Type of path to return. One of <code class="docutils literal"><span class="pre">LocalFileStorageManager.LOGGING</span></code>,
-<code class="docutils literal"><span class="pre">LocalFileStorageManager.CACHE</span></code>, <code class="docutils literal"><span class="pre">LocalFileStorageManager.PERSISTENT</span></code>, where
+<li><strong>pipeline_config_id</strong> – Shotgun pipeline config id. None for bootstraped configs.</li>
+<li><strong>path_type</strong> – Type of path to return. One of <code class="docutils literal notranslate"><span class="pre">LocalFileStorageManager.LOGGING</span></code>,
+<code class="docutils literal notranslate"><span class="pre">LocalFileStorageManager.CACHE</span></code>, <code class="docutils literal notranslate"><span class="pre">LocalFileStorageManager.PERSISTENT</span></code>, where
 logging is a path where log- and debug related data should be stored,
 cache is a location intended for cache data, e.g. data that can be deleted
 without affecting the state of execution, and persistent is a location intended
 for data that is meant to be persist. This includes things like settings and
 preferences.</li>
-<li><strong>generation</strong> &#8211; Path standard generation to use. Defaults to <code class="docutils literal"><span class="pre">LocalFileStorageManager.CORE_V18</span></code>,
+<li><strong>generation</strong> – Path standard generation to use. Defaults to <code class="docutils literal notranslate"><span class="pre">LocalFileStorageManager.CORE_V18</span></code>,
 which is the current generation of paths.</li>
 </ul>
 </td>
@@ -1648,7 +1669,7 @@ and convenience methods:</p>
 <p>The publish will be associated with the current context and point
 at the given file. The method will attempt to add the publish to
 Shotgun as a local file link, and failing that it will generate
-a <code class="docutils literal"><span class="pre">file://</span></code> url to represent the path.</p>
+a <code class="docutils literal notranslate"><span class="pre">file://</span></code> url to represent the path.</p>
 <p>In addition to the path, a version number and a name needs to be provided.
 The version number should reflect the iteration or revision of the publish
 and will be used to populate the number field of the publish that is created
@@ -1659,7 +1680,7 @@ integrations.</p>
 it will be uploaded as a local file link to Shotgun. If not matching roots
 are found, the method will retrieve the list of local storages from Shotgun
 and try to locate a suitable storage. Failing that, it will fall back on a
-register the path as a <code class="docutils literal"><span class="pre">file://</span></code> url. For more information on
+register the path as a <code class="docutils literal notranslate"><span class="pre">file://</span></code> url. For more information on
 this resolution logic, see our
 <a class="reference external" href="https://support.shotgunsoftware.com/hc/en-us/articles/115000067493#Configuring%20published%20file%20path%20resolution">Admin Guide</a>.</p>
 <div class="admonition note">
@@ -1667,30 +1688,30 @@ this resolution logic, see our
 <p>Shotgun follows a convention where the name passed to the register publish method is used
 to control how things are grouped together. When Shotgun and Toolkit groups things together,
 things are typically grouped first by project/entity/task and then by publish name and version.</p>
-<p>If you create three publishes in Shotgun, all having the name &#8216;foreground.ma&#8217; and version numbers
+<p>If you create three publishes in Shotgun, all having the name ‘foreground.ma’ and version numbers
 1, 2 and 3, Shotgun will assume that these are three revisions of the same content and will
-group them together in a group called &#8216;foreground.ma&#8217;.</p>
-<p>We recommend a convention where the <code class="docutils literal"><span class="pre">name</span></code> parameter reflects the filename passed in via
-the <code class="docutils literal"><span class="pre">file_path</span></code> parameter, but with the version number removed. For example:</p>
+group them together in a group called ‘foreground.ma’.</p>
+<p>We recommend a convention where the <code class="docutils literal notranslate"><span class="pre">name</span></code> parameter reflects the filename passed in via
+the <code class="docutils literal notranslate"><span class="pre">file_path</span></code> parameter, but with the version number removed. For example:</p>
 <ul class="last simple">
-<li><code class="docutils literal"><span class="pre">file_path:</span> <span class="pre">/tmp/layout.v027.ma,</span> <span class="pre">name:</span> <span class="pre">layout.ma,</span> <span class="pre">version_number:</span> <span class="pre">27</span></code></li>
-<li><code class="docutils literal"><span class="pre">file_path:</span> <span class="pre">/tmp/foreground_v002.%04d.exr,</span> <span class="pre">name:</span> <span class="pre">foreground.exr,</span> <span class="pre">version_number:</span> <span class="pre">2</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">file_path:</span> <span class="pre">/tmp/layout.v027.ma,</span> <span class="pre">name:</span> <span class="pre">layout.ma,</span> <span class="pre">version_number:</span> <span class="pre">27</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">file_path:</span> <span class="pre">/tmp/foreground_v002.%04d.exr,</span> <span class="pre">name:</span> <span class="pre">foreground.exr,</span> <span class="pre">version_number:</span> <span class="pre">2</span></code></li>
 </ul>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">When publishing file sequences, the method will try to normalize your path based on the
-current template configuration. For example, if you supply the path <code class="docutils literal"><span class="pre">render.$F4.dpx</span></code>,
-it will translated to <code class="docutils literal"><span class="pre">render.%04d.dpx</span></code> automatically, assuming there is a matching
+current template configuration. For example, if you supply the path <code class="docutils literal notranslate"><span class="pre">render.$F4.dpx</span></code>,
+it will translated to <code class="docutils literal notranslate"><span class="pre">render.%04d.dpx</span></code> automatically, assuming there is a matching
 template defined. If you are not using templates or publishing files that do not match
-any configured templates, always provide sequences on a <code class="docutils literal"><span class="pre">%0xd</span></code> or
-<code class="docutils literal"><span class="pre">%xd</span></code> <a class="reference external" href="https://en.wikipedia.org/wiki/Printf_format_string">printf</a> style
+any configured templates, always provide sequences on a <code class="docutils literal notranslate"><span class="pre">%0xd</span></code> or
+<code class="docutils literal notranslate"><span class="pre">%xd</span></code> <a class="reference external" href="https://en.wikipedia.org/wiki/Printf_format_string">printf</a> style
 pattern.</p>
 </div>
 <p><strong>Examples</strong></p>
 <p>The example below shows a basic publish. In addition to the required parameters, it is
 recommended to supply at least a comment and a Publish Type:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">file_path</span> <span class="o">=</span> <span class="s1">&#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">file_path</span> <span class="o">=</span> <span class="s1">&#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;layout.ma&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">version_number</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="go">&gt;&gt;&gt;</span>
@@ -1728,8 +1749,8 @@ recommended to supply at least a comment and a Publish Type:</p>
 <span class="go"> &#39;version_number&#39;: 1}</span>
 </pre></div>
 </div>
-<p>When using the <code class="docutils literal"><span class="pre">dry_run</span></code> option, the returned data will look something like this:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">file_path</span> <span class="o">=</span> <span class="s1">&#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;</span>
+<p>When using the <code class="docutils literal notranslate"><span class="pre">dry_run</span></code> option, the returned data will look something like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">file_path</span> <span class="o">=</span> <span class="s1">&#39;/studio/demo_project/sequences/Sequence-1/shot_010/Anm/publish/layout.v001.ma&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;layout&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">version_number</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="go">&gt;&gt;&gt;</span>
@@ -1754,7 +1775,7 @@ recommended to supply at least a comment and a Publish Type:</p>
 <span class="go"> &#39;version_number&#39;: 1}</span>
 </pre></div>
 </div>
-<p>Be aware that the data may be different if the <code class="docutils literal"><span class="pre">before_register_publish</span></code>
+<p>Be aware that the data may be different if the <code class="docutils literal notranslate"><span class="pre">before_register_publish</span></code>
 hook has been overridden.</p>
 <p><strong>Parameters</strong></p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1762,21 +1783,21 @@ hook has been overridden.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance</li>
-<li><strong>context</strong> &#8211; A <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> to associate with the publish. This will
-populate the <code class="docutils literal"><span class="pre">task</span></code> and <code class="docutils literal"><span class="pre">entity</span></code> link in Shotgun.</li>
-<li><strong>path</strong> &#8211; The path to the file or sequence we want to publish. If the
+<li><strong>tk</strong> – <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> instance</li>
+<li><strong>context</strong> – A <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></a> to associate with the publish. This will
+populate the <code class="docutils literal notranslate"><span class="pre">task</span></code> and <code class="docutils literal notranslate"><span class="pre">entity</span></code> link in Shotgun.</li>
+<li><strong>path</strong> – The path to the file or sequence we want to publish. If the
 path is a sequence path it will be abstracted so that
 any sequence keys are replaced with their default values.</li>
-<li><strong>name</strong> &#8211; A name, without version number, which helps distinguish
+<li><strong>name</strong> – A name, without version number, which helps distinguish
 this publish from other publishes. This is typically
 used for grouping inside of Shotgun so that all the
-versions of the same &#8220;file&#8221; can be grouped into a cluster.
+versions of the same “file” can be grouped into a cluster.
 For example, for a Maya publish, where we track only
 the scene name, the name would simply be that: the scene
 name. For something like a render, it could be the scene
 name, the name of the AOV and the name of the render layer.</li>
-<li><strong>version_number</strong> &#8211; The version number of the item we are publishing.</li>
+<li><strong>version_number</strong> – The version number of the item we are publishing.</li>
 </ul>
 </td>
 </tr>
@@ -1785,46 +1806,46 @@ name, the name of the AOV and the name of the render layer.</li>
 <p>In addition to the above, the following optional arguments exist:</p>
 <blockquote>
 <div><ul>
-<li><p class="first"><code class="docutils literal"><span class="pre">task</span></code> - A shotgun entity dictionary with keys <code class="docutils literal"><span class="pre">id</span></code> and <code class="docutils literal"><span class="pre">type</span></code> (where type should always be <code class="docutils literal"><span class="pre">Task</span></code>).
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">task</span></code> - A shotgun entity dictionary with keys <code class="docutils literal notranslate"><span class="pre">id</span></code> and <code class="docutils literal notranslate"><span class="pre">type</span></code> (where type should always be <code class="docutils literal notranslate"><span class="pre">Task</span></code>).
 This value will be used to populate the task field for the created Shotgun publish record.
 If no value is specified, the task will be determined based on the context parameter.</p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">comment</span></code> - A string containing a description of what is being published.</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">comment</span></code> - A string containing a description of what is being published.</p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">thumbnail_path</span></code> - A path to a thumbnail (png or jpeg) which will be uploaded to shotgun
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">thumbnail_path</span></code> - A path to a thumbnail (png or jpeg) which will be uploaded to shotgun
 and associated with the publish.</p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">dependency_paths</span></code> - A list of file system paths that should be attempted to be registered
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">dependency_paths</span></code> - A list of file system paths that should be attempted to be registered
 as dependencies. Files in this listing that do not appear as publishes in shotgun will be ignored.</p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">dependency_ids</span></code> - A list of publish ids which should be registered as dependencies.</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">dependency_ids</span></code> - A list of publish ids which should be registered as dependencies.</p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">published_file_type</span></code> - A publish type in the form of a string. If the publish type does not
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">published_file_type</span></code> - A publish type in the form of a string. If the publish type does not
 already exist in Shotgun, it will be created.</p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">update_entity_thumbnail</span></code> - Push thumbnail up to the associated entity</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">update_entity_thumbnail</span></code> - Push thumbnail up to the associated entity</p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">update_task_thumbnail</span></code> - Push thumbnail up to the associated task</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">update_task_thumbnail</span></code> - Push thumbnail up to the associated task</p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">created_by</span></code> - Override for the user that will be marked as creating the publish.  This should
-be in the form of shotgun entity, e.g. {&#8220;type&#8221;:&#8221;HumanUser&#8221;, &#8220;id&#8221;:7}. If not set, the user will
-be determined using <a class="reference internal" href="#sgtk.util.get_current_user" title="sgtk.util.get_current_user"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.util.get_current_user()</span></code></a>.</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">created_by</span></code> - Override for the user that will be marked as creating the publish.  This should
+be in the form of shotgun entity, e.g. {“type”:”HumanUser”, “id”:7}. If not set, the user will
+be determined using <a class="reference internal" href="#sgtk.util.get_current_user" title="sgtk.util.get_current_user"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sgtk.util.get_current_user()</span></code></a>.</p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">created_at</span></code> - Override for the date the publish is created at.  This should be a python
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">created_at</span></code> - Override for the date the publish is created at.  This should be a python
 datetime object</p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">version_entity</span></code> - The Shotgun review version that the publish should be linked to. This
-should be a dictionary of keys <code class="docutils literal"><span class="pre">id</span></code> and <code class="docutils literal"><span class="pre">type</span></code> (where type should always be <code class="docutils literal"><span class="pre">Version</span></code>).
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">version_entity</span></code> - The Shotgun review version that the publish should be linked to. This
+should be a dictionary of keys <code class="docutils literal notranslate"><span class="pre">id</span></code> and <code class="docutils literal notranslate"><span class="pre">type</span></code> (where type should always be <code class="docutils literal notranslate"><span class="pre">Version</span></code>).
 This parameter is useful for workflows where a Shotgun Version has already been created for review
 purposes and you want to associate the publish created by this method.</p>
 <p>Note: For workflows where you have an existing review version and want to create a series of associated
-publishes, you may want to extract a <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> from the Version entity and pass that
-to the <a class="reference internal" href="#sgtk.util.register_publish" title="sgtk.util.register_publish"><code class="xref py py-meth docutils literal"><span class="pre">register_publish()</span></code></a> method in order to ensure consistency in how objects are associated
+publishes, you may want to extract a <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></a> from the Version entity and pass that
+to the <a class="reference internal" href="#sgtk.util.register_publish" title="sgtk.util.register_publish"><code class="xref py py-meth docutils literal notranslate"><span class="pre">register_publish()</span></code></a> method in order to ensure consistency in how objects are associated
 in Shotgun.</p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">sg_fields</span></code> - Some additional Shotgun fields as a dict (e.g. <code class="docutils literal"><span class="pre">{'sg_custom_field':</span> <span class="pre">'hello'}</span></code>)</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">sg_fields</span></code> - Some additional Shotgun fields as a dict (e.g. <code class="docutils literal notranslate"><span class="pre">{'sg_custom_field':</span> <span class="pre">'hello'}</span></code>)</p>
 </li>
-<li><p class="first"><code class="docutils literal"><span class="pre">dry_run</span></code> - Boolean. If set, do not actually create a database entry. Return the
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">dry_run</span></code> - Boolean. If set, do not actually create a database entry. Return the
 dictionary of data that would be supplied to Shotgun to create the PublishedFile entity.</p>
 </li>
 </ul>
@@ -1833,7 +1854,7 @@ dictionary of data that would be supplied to Shotgun to create the PublishedFile
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="#sgtk.util.ShotgunPublishError" title="sgtk.util.ShotgunPublishError"><code class="xref py py-class docutils literal"><span class="pre">ShotgunPublishError</span></code></a> on failure.</td>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="#sgtk.util.ShotgunPublishError" title="sgtk.util.ShotgunPublishError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunPublishError</span></code></a> on failure.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The created entity dictionary.</td>
 </tr>
@@ -1845,16 +1866,16 @@ dictionary of data that would be supplied to Shotgun to create the PublishedFile
 <dt id="sgtk.util.resolve_publish_path">
 <code class="descclassname">sgtk.util.</code><code class="descname">resolve_publish_path</code><span class="sig-paren">(</span><em>tk</em>, <em>sg_publish_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun/publish_resolve.html#resolve_publish_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.resolve_publish_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a local path on disk given a dictionary of Shotgun publish data.</p>
-<p>This acts as the inverse of <a class="reference internal" href="#sgtk.util.register_publish" title="sgtk.util.register_publish"><code class="xref py py-meth docutils literal"><span class="pre">register_publish()</span></code></a> and
+<p>This acts as the inverse of <a class="reference internal" href="#sgtk.util.register_publish" title="sgtk.util.register_publish"><code class="xref py py-meth docutils literal notranslate"><span class="pre">register_publish()</span></code></a> and
 resolves a local path on disk given some Shotgun publish data,
-typically obtained by a Shotgun API <code class="docutils literal"><span class="pre">find()</span></code> call.</p>
+typically obtained by a Shotgun API <code class="docutils literal notranslate"><span class="pre">find()</span></code> call.</p>
 <p>Complex logic is applied in order to turn a publish into a
 valid local path. Several exception types are raised to indicate
 the reason why a path could not be resolved, allowing for workflows
 where the logic can be overridden.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This method is also called by <a class="reference internal" href="core.html#sgtk.Hook.get_publish_path" title="sgtk.Hook.get_publish_path"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.Hook.get_publish_path()</span></code></a>
+<p class="last">This method is also called by <a class="reference internal" href="core.html#sgtk.Hook.get_publish_path" title="sgtk.Hook.get_publish_path"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sgtk.Hook.get_publish_path()</span></code></a>
 which is a common method Toolkit apps use to resolve publishes
 into paths.</p>
 </div>
@@ -1866,8 +1887,8 @@ into paths.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance</li>
-<li><strong>sg_publish_data</strong> &#8211; Dictionary containing Shotgun publish data.
+<li><strong>tk</strong> – <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> instance</li>
+<li><strong>sg_publish_data</strong> – Dictionary containing Shotgun publish data.
 Needs to at least contain a code, type, id and a path key.</li>
 </ul>
 </td>
@@ -1875,10 +1896,10 @@ Needs to at least contain a code, type, id and a path key.</li>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A local path to file or file sequence.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference internal" href="#sgtk.util.PublishPathNotDefinedError" title="sgtk.util.PublishPathNotDefinedError"><code class="xref py py-class docutils literal"><span class="pre">PublishPathNotDefinedError</span></code></a> if the path isn&#8217;t defined.</p>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><a class="reference internal" href="#sgtk.util.PublishPathNotDefinedError" title="sgtk.util.PublishPathNotDefinedError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PublishPathNotDefinedError</span></code></a> if the path isn’t defined.</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.util.PublishPathNotSupported" title="sgtk.util.PublishPathNotSupported"><code class="xref py py-class docutils literal"><span class="pre">PublishPathNotSupported</span></code></a> if the path cannot be resolved.</p>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.util.PublishPathNotSupported" title="sgtk.util.PublishPathNotSupported"><code class="xref py py-class docutils literal notranslate"><span class="pre">PublishPathNotSupported</span></code></a> if the path cannot be resolved.</p>
 </td>
 </tr>
 </tbody>
@@ -1900,7 +1921,7 @@ If you want to retrieve additional fields, you can specify these using
 the fields parameter.</p>
 <p>The method will return a dictionary, keyed by path. The value will be
 a standard shotgun query result dictionary, for example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;/foo/bar&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">234</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;TankPublishedFile&quot;</span><span class="p">,</span> <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;some data&quot;</span> <span class="p">},</span>
     <span class="s2">&quot;/foo/baz&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">23</span><span class="p">,</span>  <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;TankPublishedFile&quot;</span><span class="p">,</span> <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="s2">&quot;some more data&quot;</span> <span class="p">}</span>
 <span class="p">}</span>
@@ -1913,10 +1934,10 @@ are not returned in the dictionary.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance</li>
-<li><strong>list_of_paths</strong> &#8211; List of full paths for which information should be retrieved</li>
-<li><strong>filters</strong> &#8211; Optional list of shotgun filters to apply.</li>
-<li><strong>fields</strong> &#8211; Optional list of fields from the matched entities to
+<li><strong>tk</strong> – <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> instance</li>
+<li><strong>list_of_paths</strong> – List of full paths for which information should be retrieved</li>
+<li><strong>filters</strong> – Optional list of shotgun filters to apply.</li>
+<li><strong>fields</strong> – Optional list of fields from the matched entities to
 return. Defaults to id and type.</li>
 </ul>
 </td>
@@ -1935,28 +1956,28 @@ return. Defaults to id and type.</li>
 This method will take into account any proxy settings which have
 been defined in the Shotgun connection parameters.</p>
 <p>In some cases, the target content of the url is not known beforehand.
-For example, the url <code class="docutils literal"><span class="pre">https://my-site.shotgunstudio.com/thumbnail/full/Asset/1227</span></code>
-may redirect into <code class="docutils literal"><span class="pre">https://some-site/path/to/a/thumbnail.png</span></code>. In
+For example, the url <code class="docutils literal notranslate"><span class="pre">https://my-site.shotgunstudio.com/thumbnail/full/Asset/1227</span></code>
+may redirect into <code class="docutils literal notranslate"><span class="pre">https://some-site/path/to/a/thumbnail.png</span></code>. In
 such cases, you can set the optional use_url_extension parameter to True - this
 will cause the method to append the file extension of the resolved url to
 the filename passed in via the location parameter. So for the urls given
 above, you would get the following results:</p>
 <ul class="simple">
-<li>location=&#8221;/path/to/file&#8221; and use_url_extension=False would return &#8220;/path/to/file&#8221;</li>
-<li>location=&#8221;/path/to/file&#8221; and use_url_extension=True would return &#8220;/path/to/file.png&#8221;</li>
+<li>location=”/path/to/file” and use_url_extension=False would return “/path/to/file”</li>
+<li>location=”/path/to/file” and use_url_extension=True would return “/path/to/file.png”</li>
 </ul>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>sg</strong> &#8211; Shotgun API instance to get proxy connection settings from</li>
-<li><strong>url</strong> &#8211; url to download</li>
-<li><strong>location</strong> &#8211; path on disk where the payload should be written.
+<li><strong>sg</strong> – Shotgun API instance to get proxy connection settings from</li>
+<li><strong>url</strong> – url to download</li>
+<li><strong>location</strong> – path on disk where the payload should be written.
 this path needs to exists and the current user needs
 to have write permissions</li>
-<li><strong>use_url_extension</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) &#8211; Optionally append the file extension of the
-resolved URL&#8217;s path to the input <code class="docutils literal"><span class="pre">location</span></code>
+<li><strong>use_url_extension</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Optionally append the file extension of the
+resolved URL’s path to the input <code class="docutils literal notranslate"><span class="pre">location</span></code>
 to construct the full path name to the downloaded
 contents. The newly constructed full path name
 will be returned.</li>
@@ -1964,11 +1985,11 @@ will be returned.</li>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Full filepath to the downloaded file. This may have been altered from
-the input <code class="docutils literal"><span class="pre">location</span></code> if <code class="docutils literal"><span class="pre">use_url_extension</span></code> is True and a file extension
+the input <code class="docutils literal notranslate"><span class="pre">location</span></code> if <code class="docutils literal notranslate"><span class="pre">use_url_extension</span></code> is True and a file extension
 could be determined from the resolved url.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">TankError</span></code> on failure.</p>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankError</span></code> on failure.</p>
 </td>
 </tr>
 </tbody>
@@ -1985,18 +2006,18 @@ Event log entries can be handy if you want to track a process or a sequence of e
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance</li>
-<li><strong>context</strong> &#8211; A <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> to associate with the event log entry.</li>
-<li><strong>event_type</strong> &#8211; <p>String which defines the event type. The Shotgun standard suggests
+<li><strong>tk</strong> – <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> instance</li>
+<li><strong>context</strong> – A <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></a> to associate with the event log entry.</li>
+<li><strong>event_type</strong> – <p>String which defines the event type. The Shotgun standard suggests
 that this should be of the form Company_Item_Action. Examples include:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Shotgun_Asset_New</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Shotgun_Asset_New</span>
 <span class="n">Shotgun_Asset_Change</span>
 <span class="n">Shotgun_User_Login</span>
 </pre></div>
 </div>
 </li>
-<li><strong>description</strong> &#8211; A verbose description explaining the meaning of this event.</li>
-<li><strong>metadata</strong> &#8211; A dictionary of metadata information which will be attached to the event
+<li><strong>description</strong> – A verbose description explaining the meaning of this event.</li>
+<li><strong>metadata</strong> – A dictionary of metadata information which will be attached to the event
 log record in Shotgun. This dictionary may only contain simple data types
 such as ints, strings etc.</li>
 </ul>
@@ -2013,10 +2034,10 @@ such as ints, strings etc.</li>
 <dt id="sgtk.util.get_entity_type_display_name">
 <code class="descclassname">sgtk.util.</code><code class="descname">get_entity_type_display_name</code><span class="sig-paren">(</span><em>tk</em>, <em>entity_type_code</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun/publish_util.html#get_entity_type_display_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.get_entity_type_display_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the display name for an entity type given its type name.
-For example, if a custom entity is named &#8220;Workspace&#8221; in the
-Shotgun preferences, but is addressed as &#8220;CustomEntity03&#8221; in the
+For example, if a custom entity is named “Workspace” in the
+Shotgun preferences, but is addressed as “CustomEntity03” in the
 Shotgun API, this method will resolve the display name:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">get_entity_type_display_name</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="s2">&quot;CustomEntity03&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">get_entity_type_display_name</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="s2">&quot;CustomEntity03&quot;</span><span class="p">)</span>
 <span class="go">&#39;Workspace&#39;</span>
 </pre></div>
 </div>
@@ -2031,8 +2052,8 @@ see <a class="reference external" href="http://developer.shotgunsoftware.com/tk-
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance</li>
-<li><strong>entity_type_code</strong> &#8211; API entity type name</li>
+<li><strong>tk</strong> – <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> instance</li>
+<li><strong>entity_type_code</strong> – API entity type name</li>
 </ul>
 </td>
 </tr>
@@ -2051,15 +2072,15 @@ see <a class="reference external" href="http://developer.shotgunsoftware.com/tk-
 <p class="first admonition-title">Note</p>
 <p class="last">This is for backwards compatibility situations only.
 Code targeting new installations can assume that
-the published file type in Shotgun is always <code class="docutils literal"><span class="pre">PublishedFile</span></code>.</p>
+the published file type in Shotgun is always <code class="docutils literal notranslate"><span class="pre">PublishedFile</span></code>.</p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> – <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> instance</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">&#8220;PublishedFile&#8221; or &#8220;TankPublishedFile&#8221;</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">“PublishedFile” or “TankPublishedFile”</td>
 </tr>
 </tbody>
 </table>
@@ -2073,7 +2094,7 @@ the published file type in Shotgun is always <code class="docutils literal"><spa
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>entity_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; The entity type to get the name field for.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>entity_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The entity type to get the name field for.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The name field for the specified entity type.</td>
 </tr>
@@ -2088,7 +2109,7 @@ the published file type in Shotgun is always <code class="docutils literal"><spa
 <dt id="sgtk.util.append_path_to_env_var">
 <code class="descclassname">sgtk.util.</code><code class="descname">append_path_to_env_var</code><span class="sig-paren">(</span><em>env_var_name</em>, <em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/environment.html#append_path_to_env_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.append_path_to_env_var" title="Permalink to this definition">¶</a></dt>
 <dd><p>Append the path to the given environment variable.
-Creates the env var if it doesn&#8217;t exist already.
+Creates the env var if it doesn’t exist already.
 will concatenate paths using : on linux and ; on windows</p>
 </dd></dl>
 
@@ -2096,7 +2117,7 @@ will concatenate paths using : on linux and ; on windows</p>
 <dt id="sgtk.util.prepend_path_to_env_var">
 <code class="descclassname">sgtk.util.</code><code class="descname">prepend_path_to_env_var</code><span class="sig-paren">(</span><em>env_var_name</em>, <em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/environment.html#prepend_path_to_env_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.prepend_path_to_env_var" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prepend the path to the given environment variable.
-Creates the env var if it doesn&#8217;t exist already.
+Creates the env var if it doesn’t exist already.
 will concatenate paths using : on linux and ; on windows</p>
 </dd></dl>
 
@@ -2126,16 +2147,16 @@ with the following fields: id, type, email, login, name, image, firstname, lastn
 <dl class="class">
 <dt id="sgtk.util.EnvironmentVariableFileLookupError">
 <em class="property">class </em><code class="descclassname">sgtk.util.</code><code class="descname">EnvironmentVariableFileLookupError</code><span class="sig-paren">(</span><em>var_name</em>, <em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/errors.html#EnvironmentVariableFileLookupError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.EnvironmentVariableFileLookupError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.errors.TankError</span></code></p>
 <p>Raised when an environment variable specifying a location points to configuration
-file that doesn&#8217;t exist.</p>
+file that doesn’t exist.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>var_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Name of the environment variable used.</li>
-<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Path to the configuration file that doesn&#8217;t exist.</li>
+<li><strong>var_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Name of the environment variable used.</li>
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Path to the configuration file that doesn’t exist.</li>
 </ul>
 </td>
 </tr>
@@ -2146,18 +2167,18 @@ file that doesn&#8217;t exist.</p>
 <dl class="class">
 <dt id="sgtk.util.ShotgunPublishError">
 <em class="property">class </em><code class="descclassname">sgtk.util.</code><code class="descname">ShotgunPublishError</code><span class="sig-paren">(</span><em>error_message</em>, <em>entity=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/errors.html#ShotgunPublishError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPublishError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.errors.TankError</span></code></p>
 <p>Raised when Toolkit is not able to register a published file in Shotgun.</p>
-<p>The original message for the reported error is available in the &#8216;error_message&#8217; property.</p>
+<p>The original message for the reported error is available in the ‘error_message’ property.</p>
 <p>If a published file entity was created before the error happened, it will be
-available in the &#8216;entity&#8217; property.</p>
+available in the ‘entity’ property.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>error_message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; An error message, typically coming from a caught exception.</li>
-<li><strong>entity</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) &#8211; The Shotgun entity which was created, if any.</li>
+<li><strong>error_message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – An error message, typically coming from a caught exception.</li>
+<li><strong>entity</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) – The Shotgun entity which was created, if any.</li>
 </ul>
 </td>
 </tr>
@@ -2168,14 +2189,14 @@ available in the &#8216;entity&#8217; property.</p>
 <dl class="class">
 <dt id="sgtk.util.PublishResolveError">
 <em class="property">class </em><code class="descclassname">sgtk.util.</code><code class="descname">PublishResolveError</code><a class="reference internal" href="_modules/tank/util/errors.html#PublishResolveError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.PublishResolveError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.errors.TankError</span></code></p>
 <p>Base class for all errors relating to resolution of paths from publishes.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sgtk.util.PublishPathNotDefinedError">
 <em class="property">class </em><code class="descclassname">sgtk.util.</code><code class="descname">PublishPathNotDefinedError</code><a class="reference internal" href="_modules/tank/util/errors.html#PublishPathNotDefinedError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.PublishPathNotDefinedError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.util.errors.PublishResolveError</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.util.errors.PublishResolveError</span></code></p>
 <p>Exception raised when a publish does not have a path
 defined for the current operating system platform. It
 may or may not have publish paths defined on other
@@ -2185,7 +2206,7 @@ platforms.</p>
 <dl class="class">
 <dt id="sgtk.util.PublishPathNotSupported">
 <em class="property">class </em><code class="descclassname">sgtk.util.</code><code class="descname">PublishPathNotSupported</code><a class="reference internal" href="_modules/tank/util/errors.html#PublishPathNotSupported"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.PublishPathNotSupported" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.util.errors.PublishResolveError</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.util.errors.PublishResolveError</span></code></p>
 <p>Exception raised when a publish has a path defined but it is using a path
 definition that cannot be resolved into a local path. This includes for
 example unsupported url schemes.</p>
@@ -2196,15 +2217,16 @@ example unsupported url schemes.</p>
 
 
            </div>
+           
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="descriptor.html" class="btn btn-neutral float-right" title="Descriptors" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="descriptor.html" class="btn btn-neutral float-right" title="Descriptors" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="platform.html" class="btn btn-neutral" title="Apps, Engines and Frameworks" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="platform.html" class="btn btn-neutral" title="Apps, Engines and Frameworks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -2235,9 +2257,11 @@ example unsupported url schemes.</p>
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
             VERSION:'v0.18.151',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>
@@ -2246,19 +2270,13 @@ example unsupported url schemes.</p>
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
-  
  
 
 <script>

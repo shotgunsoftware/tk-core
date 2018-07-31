@@ -15,6 +15,8 @@
 
   
   
+  
+  
 
   
 
@@ -24,24 +26,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="tk-core v0.18.151 documentation" href="../../../../index.html"/>
-        <link rel="up" title="Module code" href="../../../index.html"/> 
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
 
   
   <script src="../../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -88,7 +85,10 @@
     
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../core.html">Core</a></li>
@@ -139,34 +139,52 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../../index.html">tk-core</a>
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">tk-core</a>
+        
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../../../index.html">Module code</a> &raquo;</li>
-      
-    <li>tank.descriptor.io_descriptor.factory</li>
+        
+      <li>tank.descriptor.io_descriptor.factory</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-        
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -185,9 +203,9 @@
 
 <span class="kn">import</span> <span class="nn">copy</span>
 
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankDescriptorError</span>
+<span class="kn">from</span> <span class="nn">..errors</span> <span class="k">import</span> <span class="n">TankDescriptorError</span>
 
-<span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">...</span> <span class="k">import</span> <span class="n">LogManager</span>
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
@@ -198,8 +216,8 @@
         <span class="n">bundle_cache_root</span><span class="p">,</span>
         <span class="n">fallback_roots</span><span class="p">,</span>
         <span class="n">resolve_latest</span><span class="p">,</span>
-        <span class="n">constraint_pattern</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-        <span class="n">local_fallback_when_disconnected</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="n">constraint_pattern</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">local_fallback_when_disconnected</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Factory method. Use this method to construct all DescriptorIO instances.</span>
 
@@ -243,17 +261,17 @@
 <span class="sd">    :returns: Descriptor object</span>
 <span class="sd">    :raises: :class:`TankDescriptorError`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">IODescriptorBase</span>
-    <span class="kn">from</span> <span class="nn">.appstore</span> <span class="kn">import</span> <span class="n">IODescriptorAppStore</span>
-    <span class="kn">from</span> <span class="nn">.dev</span> <span class="kn">import</span> <span class="n">IODescriptorDev</span>
-    <span class="kn">from</span> <span class="nn">.path</span> <span class="kn">import</span> <span class="n">IODescriptorPath</span>
-    <span class="kn">from</span> <span class="nn">.shotgun_entity</span> <span class="kn">import</span> <span class="n">IODescriptorShotgunEntity</span>
-    <span class="kn">from</span> <span class="nn">.git_tag</span> <span class="kn">import</span> <span class="n">IODescriptorGitTag</span>
-    <span class="kn">from</span> <span class="nn">.git_branch</span> <span class="kn">import</span> <span class="n">IODescriptorGitBranch</span>
-    <span class="kn">from</span> <span class="nn">.manual</span> <span class="kn">import</span> <span class="n">IODescriptorManual</span>
+    <span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">IODescriptorBase</span>
+    <span class="kn">from</span> <span class="nn">.appstore</span> <span class="k">import</span> <span class="n">IODescriptorAppStore</span>
+    <span class="kn">from</span> <span class="nn">.dev</span> <span class="k">import</span> <span class="n">IODescriptorDev</span>
+    <span class="kn">from</span> <span class="nn">.path</span> <span class="k">import</span> <span class="n">IODescriptorPath</span>
+    <span class="kn">from</span> <span class="nn">.shotgun_entity</span> <span class="k">import</span> <span class="n">IODescriptorShotgunEntity</span>
+    <span class="kn">from</span> <span class="nn">.git_tag</span> <span class="k">import</span> <span class="n">IODescriptorGitTag</span>
+    <span class="kn">from</span> <span class="nn">.git_branch</span> <span class="k">import</span> <span class="n">IODescriptorGitBranch</span>
+    <span class="kn">from</span> <span class="nn">.manual</span> <span class="k">import</span> <span class="n">IODescriptorManual</span>
 
     <span class="c1"># resolve into both dict and uri form</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
         <span class="n">descriptor_dict</span> <span class="o">=</span> <span class="n">IODescriptorBase</span><span class="o">.</span><span class="n">dict_from_uri</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># make a copy to make sure the original object is never altered</span>
@@ -312,7 +330,7 @@
                     <span class="s2">&quot;the latest locally cached version of </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="n">descriptor</span>
                 <span class="p">)</span>
                 <span class="n">latest_cached_descriptor</span> <span class="o">=</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get_latest_cached_version</span><span class="p">(</span><span class="n">constraint_pattern</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">latest_cached_descriptor</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">latest_cached_descriptor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No locally cached versions of </span><span class="si">%r</span><span class="s2"> available.&quot;</span> <span class="o">%</span> <span class="n">descriptor</span><span class="p">)</span>
                     <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span>
                         <span class="s2">&quot;Could not get latest version of </span><span class="si">%s</span><span class="s2">. &quot;</span>
@@ -372,7 +390,7 @@
 <span class="sd">    :return: Boolean to indicate if a required version token is missing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># resolve into both dict and uri form</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
         <span class="n">descriptor_dict</span> <span class="o">=</span> <span class="n">descriptor_uri_to_dict</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># make a copy to make sure the original object is never altered</span>
@@ -382,9 +400,9 @@
     <span class="n">descriptors_using_version</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;app_store&quot;</span><span class="p">,</span> <span class="s2">&quot;shotgun&quot;</span><span class="p">,</span> <span class="s2">&quot;manual&quot;</span><span class="p">,</span> <span class="s2">&quot;git&quot;</span><span class="p">,</span> <span class="s2">&quot;git_branch&quot;</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="s2">&quot;version&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">descriptor_dict</span> <span class="ow">and</span> <span class="n">descriptor_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">descriptors_using_version</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="kc">True</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">False</span></div>
+        <span class="k">return</span> <span class="kc">False</span></div>
 
 
 <div class="viewcode-block" id="descriptor_uri_to_dict"><a class="viewcode-back" href="../../../../descriptor.html#sgtk.descriptor.descriptor_uri_to_dict">[docs]</a><span class="k">def</span> <span class="nf">descriptor_uri_to_dict</span><span class="p">(</span><span class="n">uri</span><span class="p">):</span>
@@ -394,7 +412,7 @@
 <span class="sd">    :param uri: descriptor string uri</span>
 <span class="sd">    :returns: descriptor dictionary</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">IODescriptorBase</span>
+    <span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">IODescriptorBase</span>
     <span class="k">return</span> <span class="n">IODescriptorBase</span><span class="o">.</span><span class="n">dict_from_uri</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span></div>
 
 
@@ -405,11 +423,12 @@
 <span class="sd">    :param ddict: descriptor dictionary</span>
 <span class="sd">    :returns: descriptor uri</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">IODescriptorBase</span>
+    <span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">IODescriptorBase</span>
     <span class="k">return</span> <span class="n">IODescriptorBase</span><span class="o">.</span><span class="n">uri_from_dict</span><span class="p">(</span><span class="n">ddict</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
+           
           </div>
           <footer>
   
@@ -440,9 +459,11 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
             VERSION:'v0.18.151',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../../../_static/jquery.js"></script>
@@ -451,19 +472,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
-  
  
 
 <script>

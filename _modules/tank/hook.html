@@ -15,6 +15,8 @@
 
   
   
+  
+  
 
   
 
@@ -24,24 +26,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="tk-core v0.18.151 documentation" href="../../index.html"/>
-        <link rel="up" title="Module code" href="../index.html"/> 
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
 
   
   <script src="../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -88,7 +85,10 @@
     
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../core.html">Core</a></li>
@@ -139,34 +139,52 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../index.html">tk-core</a>
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">tk-core</a>
+        
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../index.html">Module code</a> &raquo;</li>
-      
-    <li>tank.hook</li>
+        
+      <li>tank.hook</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-        
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -192,9 +210,9 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">threading</span>
-<span class="kn">from</span> <span class="nn">.util.loader</span> <span class="kn">import</span> <span class="n">load_plugin</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span> <span class="nn">.util.loader</span> <span class="k">import</span> <span class="n">load_plugin</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="k">import</span> <span class="p">(</span>
     <span class="n">TankError</span><span class="p">,</span>
     <span class="n">TankFileDoesNotExistError</span><span class="p">,</span>
     <span class="n">TankHookMethodDoesNotExistError</span><span class="p">,</span>
@@ -371,7 +389,7 @@
     <span class="c1"># default method to execute on hooks</span>
     <span class="n">DEFAULT_HOOK_METHOD</span> <span class="o">=</span> <span class="s2">&quot;execute&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__parent</span> <span class="o">=</span> <span class="n">parent</span>
 
     <span class="nd">@property</span>
@@ -388,11 +406,11 @@
 <span class="sd">                  such cases, ``None`` is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># local import to avoid cycles</span>
-        <span class="kn">from</span> <span class="nn">.api</span> <span class="kn">import</span> <span class="n">Sgtk</span>
+        <span class="kn">from</span> <span class="nn">.api</span> <span class="k">import</span> <span class="n">Sgtk</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># system hook</span>
-            <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">return</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">Sgtk</span><span class="p">):</span>
             <span class="c1"># core hook</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span>
@@ -401,7 +419,7 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">sgtk</span>
             <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">None</span>
+                <span class="k">return</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">tank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -443,7 +461,7 @@
 <span class="sd">        :raises: :class:`~sgtk.util.PublishPathNotSupported` if the path cannot be resolved.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># avoid cyclic refs</span>
-        <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">resolve_publish_path</span>
+        <span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">resolve_publish_path</span>
         <span class="k">return</span> <span class="n">resolve_publish_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sgtk</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">get_publish_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data_list</span><span class="p">):</span>
@@ -467,7 +485,7 @@
 <span class="sd">        :raises: :class:`~sgtk.util.PublishPathNotSupported` if any of the paths cannot be resolved.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># avoid cyclic refs</span>
-        <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">resolve_publish_path</span>
+        <span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">resolve_publish_path</span>
         <span class="n">paths</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">sg_publish_data</span> <span class="ow">in</span> <span class="n">sg_publish_data_list</span><span class="p">:</span>
             <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">resolve_publish_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sgtk</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">))</span>
@@ -510,7 +528,7 @@
         <span class="c1"># relative to self. Self represents the leaf in the</span>
         <span class="c1"># inheritance tree.</span>
         <span class="c1">#</span>
-        <span class="n">path_to_file</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">path_to_file</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="n">current_frame</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span>
         <span class="n">all_frames</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getouterframes</span><span class="p">(</span><span class="n">current_frame</span><span class="p">)</span>
@@ -525,7 +543,7 @@
 
         <span class="c1"># first check failed. fall back on computing</span>
         <span class="c1"># the location relative to self</span>
-        <span class="k">if</span> <span class="n">path_to_file</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">path_to_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">path_to_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="vm">__module__</span><span class="p">]</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">)</span>
@@ -617,7 +635,7 @@
 <span class="sd">        :param framework_instance_name: Name of the framework instance to load from the environment.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># avoid circular refs</span>
-        <span class="kn">from</span> <span class="nn">.platform</span> <span class="kn">import</span> <span class="n">framework</span>
+        <span class="kn">from</span> <span class="nn">.platform</span> <span class="k">import</span> <span class="n">framework</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parent</span><span class="o">.</span><span class="n">engine</span>
         <span class="k">except</span><span class="p">:</span>
@@ -630,7 +648,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Legacy support for old style hooks</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">None</span></div>
+        <span class="k">return</span> <span class="kc">None</span></div>
 
 <span class="k">class</span> <span class="nc">_HooksCache</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -638,7 +656,7 @@
 <span class="sd">    and base class as the key to cache all hooks loaded by Toolkit in</span>
 <span class="sd">    the current session.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Construction</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -685,7 +703,7 @@
         <span class="c1"># The unique cache key is a tuple of the path and the base class to allow</span>
         <span class="c1"># loading of classes with different bases from the same file</span>
         <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">hook_path</span><span class="p">,</span> <span class="n">hook_base_class</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="nd">@thread_exclusive</span>
     <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook_path</span><span class="p">,</span> <span class="n">hook_base_class</span><span class="p">,</span> <span class="n">hook_class</span><span class="p">):</span>
@@ -703,7 +721,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">hook_class</span>
 
     <span class="nd">@thread_exclusive</span>
-    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the number of items currently in the hook cache</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -736,10 +754,10 @@
 <span class="sd">                   app, engine or core object.</span>
 <span class="sd">    :returns: Whatever the hook returns.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">execute_hook_method</span><span class="p">([</span><span class="n">hook_path</span><span class="p">],</span> <span class="n">parent</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">execute_hook_method</span><span class="p">([</span><span class="n">hook_path</span><span class="p">],</span> <span class="n">parent</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">execute_hook_method</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">execute_hook_method</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    New style hook execution, with method arguments and support for inheritance.</span>
 
@@ -795,7 +813,7 @@
     <span class="k">return</span> <span class="n">ret_val</span>
 
 
-<span class="k">def</span> <span class="nf">create_hook_instance</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">create_hook_instance</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    New style hook execution, with method arguments and support for inheritance.</span>
 
@@ -895,6 +913,7 @@
 </pre></div>
 
            </div>
+           
           </div>
           <footer>
   
@@ -925,9 +944,11 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
             VERSION:'v0.18.151',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../_static/jquery.js"></script>
@@ -936,19 +957,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
-  
  
 
 <script>

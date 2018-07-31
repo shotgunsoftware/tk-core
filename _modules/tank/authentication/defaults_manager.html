@@ -15,6 +15,8 @@
 
   
   
+  
+  
 
   
 
@@ -24,24 +26,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="tk-core v0.18.151 documentation" href="../../../index.html"/>
-        <link rel="up" title="Module code" href="../../index.html"/> 
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -88,7 +85,10 @@
     
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core</a></li>
@@ -139,34 +139,52 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../index.html">tk-core</a>
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">tk-core</a>
+        
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../../index.html">Module code</a> &raquo;</li>
-      
-    <li>tank.authentication.defaults_manager</li>
+        
+      <li>tank.authentication.defaults_manager</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-        
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -183,9 +201,9 @@
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">session_cache</span>
-<span class="kn">from</span> <span class="nn">..util.user_settings</span> <span class="kn">import</span> <span class="n">UserSettings</span>
-<span class="kn">from</span> <span class="nn">..util.system_settings</span> <span class="kn">import</span> <span class="n">SystemSettings</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">session_cache</span>
+<span class="kn">from</span> <span class="nn">..util.user_settings</span> <span class="k">import</span> <span class="n">UserSettings</span>
+<span class="kn">from</span> <span class="nn">..util.system_settings</span> <span class="k">import</span> <span class="n">SystemSettings</span>
 
 
 <div class="viewcode-block" id="DefaultsManager"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager">[docs]</a><span class="k">class</span> <span class="nc">DefaultsManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -210,7 +228,7 @@
 <span class="sd">        Defaults to ``None``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fixed_host</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fixed_host</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_user_settings</span> <span class="o">=</span> <span class="n">UserSettings</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_system_settings</span> <span class="o">=</span> <span class="n">SystemSettings</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_fixed_host</span> <span class="o">=</span> <span class="n">fixed_host</span>
@@ -233,7 +251,7 @@
 <span class="sd">                  to log in to, True if the host is already predetermined and cannot</span>
 <span class="sd">                  be changed by the user.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fixed_host</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fixed_host</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="DefaultsManager.get_host"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.get_host">[docs]</a>    <span class="k">def</span> <span class="nf">get_host</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -285,7 +303,7 @@
 
 <span class="sd">        :returns: String containing the default http proxy, None by default.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_settings</span><span class="o">.</span><span class="n">shotgun_proxy</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_settings</span><span class="o">.</span><span class="n">shotgun_proxy</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system_settings</span><span class="o">.</span><span class="n">http_proxy</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_settings</span><span class="o">.</span><span class="n">shotgun_proxy</span></div>
@@ -332,7 +350,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_host</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_login</span><span class="p">():</span>
             <span class="k">return</span> <span class="n">session_cache</span><span class="o">.</span><span class="n">get_session_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_host</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_login</span><span class="p">())</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">None</span></div>
+            <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="DefaultsManager.set_login"><a class="viewcode-back" href="../../../authentication.html#sgtk.authentication.DefaultsManager.set_login">[docs]</a>    <span class="k">def</span> <span class="nf">set_login</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">login</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -349,6 +367,7 @@
 </pre></div>
 
            </div>
+           
           </div>
           <footer>
   
@@ -379,9 +398,11 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
             VERSION:'v0.18.151',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../../_static/jquery.js"></script>
@@ -390,19 +411,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
-  
  
 
 <script>

@@ -15,6 +15,8 @@
 
   
   
+  
+  
 
   
 
@@ -24,24 +26,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="tk-core v0.18.151 documentation" href="../../../index.html"/>
-        <link rel="up" title="Module code" href="../../index.html"/> 
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -88,7 +85,10 @@
     
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core</a></li>
@@ -139,34 +139,52 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../index.html">tk-core</a>
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">tk-core</a>
+        
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../../index.html">Module code</a> &raquo;</li>
-      
-    <li>tank.bootstrap.manager</li>
+        
+      <li>tank.bootstrap.manager</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-        
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -186,15 +204,15 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankBootstrapError</span>
-<span class="kn">from</span> <span class="nn">.configuration</span> <span class="kn">import</span> <span class="n">Configuration</span>
-<span class="kn">from</span> <span class="nn">.resolver</span> <span class="kn">import</span> <span class="n">ConfigurationResolver</span>
-<span class="kn">from</span> <span class="nn">..authentication</span> <span class="kn">import</span> <span class="n">ShotgunAuthenticator</span>
-<span class="kn">from</span> <span class="nn">..pipelineconfig</span> <span class="kn">import</span> <span class="n">PipelineConfiguration</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
-<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">ShotgunPath</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="k">import</span> <span class="n">TankBootstrapError</span>
+<span class="kn">from</span> <span class="nn">.configuration</span> <span class="k">import</span> <span class="n">Configuration</span>
+<span class="kn">from</span> <span class="nn">.resolver</span> <span class="k">import</span> <span class="n">ConfigurationResolver</span>
+<span class="kn">from</span> <span class="nn">..authentication</span> <span class="k">import</span> <span class="n">ShotgunAuthenticator</span>
+<span class="kn">from</span> <span class="nn">..pipelineconfig</span> <span class="k">import</span> <span class="n">PipelineConfiguration</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">..errors</span> <span class="k">import</span> <span class="n">TankError</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="k">import</span> <span class="n">ShotgunPath</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -227,7 +245,7 @@
     <span class="n">_LAUNCHING_ENGINE_RATE</span> <span class="o">=</span> <span class="mf">0.97</span>
     <span class="n">_BOOTSTRAP_COMPLETED</span> <span class="o">=</span> <span class="mi">1</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_user</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_user</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param sg_user: Authenticated Shotgun User object. If you pass in None,</span>
 <span class="sd">                        the manager will provide a standard authentication for you</span>
@@ -237,7 +255,7 @@
 <span class="sd">                        and pass it in.</span>
 <span class="sd">        :type sg_user: :class:`~sgtk.authentication.ShotgunUser`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">sg_user</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sg_user</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># request a user from the auth module</span>
             <span class="n">sg_auth</span> <span class="o">=</span> <span class="n">ShotgunAuthenticator</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span> <span class="o">=</span> <span class="n">sg_auth</span><span class="o">.</span><span class="n">get_user</span><span class="p">()</span>
@@ -247,17 +265,17 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span><span class="o">.</span><span class="n">create_sg_connection</span><span class="p">()</span>
 
         <span class="c1"># defaults</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pre_engine_start_callback</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_progress_cb</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pre_engine_start_callback</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_progress_cb</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># These are serializable parameters from the class.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_user_bundle_cache_fallback_paths</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_caching_policy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CACHE_SPARSE</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_identifier</span> <span class="o">=</span> <span class="bp">None</span> <span class="c1"># name or id</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_do_shotgun_config_lookup</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_plugin_id</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_allow_config_overrides</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_identifier</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># name or id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_do_shotgun_config_lookup</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plugin_id</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_allow_config_overrides</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="c1"># look for the standard env var SHOTGUN_PIPELINE_CONFIGURATION_ID</span>
         <span class="c1"># and in case this is set, use it as a default</span>
@@ -286,8 +304,8 @@
 
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> instantiated&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_identifier</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_identifier</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">identifier_type</span> <span class="o">=</span> <span class="s2">&quot;is&quot;</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_identifier</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="n">identifier_type</span> <span class="o">=</span> <span class="s2">&quot;id&quot;</span>
@@ -620,7 +638,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">progress_callback</span> <span class="o">=</span> <span class="n">progress_callback</span>
 
-<div class="viewcode-block" id="ToolkitManager.bootstrap_engine"><a class="viewcode-back" href="../../../initializing.html#sgtk.bootstrap.ToolkitManager.bootstrap_engine">[docs]</a>    <span class="k">def</span> <span class="nf">bootstrap_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="ToolkitManager.bootstrap_engine"><a class="viewcode-back" href="../../../initializing.html#sgtk.bootstrap.ToolkitManager.bootstrap_engine">[docs]</a>    <span class="k">def</span> <span class="nf">bootstrap_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create an :class:`~sgtk.Sgtk` instance for the given engine and entity,</span>
 <span class="sd">        then launch into the given engine.</span>
@@ -655,9 +673,9 @@
 
 <div class="viewcode-block" id="ToolkitManager.bootstrap_engine_async"><a class="viewcode-back" href="../../../initializing.html#sgtk.bootstrap.ToolkitManager.bootstrap_engine_async">[docs]</a>    <span class="k">def</span> <span class="nf">bootstrap_engine_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                <span class="n">engine_name</span><span class="p">,</span>
-                               <span class="n">entity</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                               <span class="n">completed_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                               <span class="n">failed_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                               <span class="n">entity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                               <span class="n">completed_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                               <span class="n">failed_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Asynchronous version of :meth:`bootstrap_engine`.</span>
 
@@ -721,16 +739,16 @@
 
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Will attempt to start up asynchronously.&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">completed_callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">completed_callback</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">completed_callback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_completed_callback</span>
 
-        <span class="k">if</span> <span class="n">failed_callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">failed_callback</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">failed_callback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_failed_callback</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">.async_bootstrap</span> <span class="kn">import</span> <span class="n">AsyncBootstrapWrapper</span>
+            <span class="kn">from</span> <span class="nn">.async_bootstrap</span> <span class="k">import</span> <span class="n">AsyncBootstrapWrapper</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-            <span class="n">AsyncBootstrapWrapper</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">AsyncBootstrapWrapper</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Cannot bootstrap asynchronously in a background thread;&quot;</span>
                         <span class="s2">&quot; falling back on synchronous startup.&quot;</span><span class="p">)</span>
 
@@ -888,13 +906,13 @@
 
         <span class="n">resolver</span> <span class="o">=</span> <span class="n">ConfigurationResolver</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">plugin_id</span><span class="p">,</span>
-            <span class="n">project</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">project</span> <span class="k">else</span> <span class="bp">None</span>
+            <span class="n">project</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">project</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="p">)</span>
 
         <span class="c1"># Only return id, type and code fields.</span>
         <span class="n">pcs</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">pc</span> <span class="ow">in</span> <span class="n">resolver</span><span class="o">.</span><span class="n">find_matching_pipeline_configurations</span><span class="p">(</span>
-            <span class="n">pipeline_config_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+            <span class="n">pipeline_config_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">current_login</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sg_user</span><span class="o">.</span><span class="n">login</span><span class="p">,</span>
             <span class="n">sg_connection</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span><span class="p">,</span>
         <span class="p">):</span>
@@ -904,7 +922,7 @@
                 <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">pc</span><span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">],</span>
                 <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="n">pc</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">],</span>
                 <span class="s2">&quot;descriptor&quot;</span><span class="p">:</span> <span class="n">pc</span><span class="p">[</span><span class="s2">&quot;config_descriptor&quot;</span><span class="p">],</span>
-                <span class="s2">&quot;descriptor_source_uri&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                <span class="s2">&quot;descriptor_source_uri&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
             <span class="p">}</span>
 
             <span class="c1"># if the config is descriptor based, resolve the uri</span>
@@ -914,7 +932,7 @@
             <span class="c1"># pipeline_config_data[&quot;descriptor&quot;].get_uri(), which</span>
             <span class="c1"># will return the fully resolved descriptor URI.</span>
             <span class="n">path</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">from_shotgun_dict</span><span class="p">(</span><span class="n">pc</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">current_os</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">pc</span><span class="p">[</span><span class="s2">&quot;plugin_ids&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">current_os</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">pc</span><span class="p">[</span><span class="s2">&quot;plugin_ids&quot;</span><span class="p">]:</span>
                 <span class="c1"># this is a descriptor based config:</span>
                 <span class="n">pipeline_config_data</span><span class="p">[</span><span class="s2">&quot;descriptor_source_uri&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pc</span><span class="p">[</span><span class="s2">&quot;descriptor&quot;</span><span class="p">]</span>
 
@@ -954,8 +972,8 @@
                     <span class="n">shotgun_site</span>
                 <span class="p">)</span>
             <span class="p">)</span>
-            <span class="n">entity_type</span> <span class="o">=</span> <span class="bp">None</span>
-            <span class="n">entity_id</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">entity_type</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">entity_id</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="p">(</span><span class="n">entity_type</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">entity_id</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">entity_type</span> <span class="ow">and</span> <span class="n">entity_id</span><span class="p">):</span>
             <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
@@ -972,15 +990,15 @@
                     <span class="s2">&quot;The environment variable SHOTGUN_ENTITY_ID value &#39;</span><span class="si">%s</span><span class="s2">&#39; &quot;</span>
                     <span class="s2">&quot;is not an integer and will be ignored.&quot;</span> <span class="o">%</span> <span class="n">entity_id</span>
                 <span class="p">)</span>
-                <span class="n">entity_type</span> <span class="o">=</span> <span class="bp">None</span>
-                <span class="n">entity_id</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="n">entity_type</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">entity_id</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="n">entity_type</span> <span class="ow">and</span> <span class="n">entity_id</span><span class="p">:</span>
             <span class="c1"># Set the entity to launch the engine for.</span>
             <span class="n">entity</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">entity_type</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">entity_id</span><span class="p">}</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Set the entity to launch the engine in site context.</span>
-            <span class="n">entity</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">entity</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">return</span> <span class="n">entity</span></div>
 
@@ -990,9 +1008,9 @@
 
 <span class="sd">        :param dict project: The project entity, or None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">project</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">project</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_configuration</span><span class="p">(</span>
-                <span class="bp">None</span><span class="p">,</span>
+                <span class="kc">None</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">progress_callback</span><span class="p">,</span>
             <span class="p">)</span><span class="o">.</span><span class="n">descriptor</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1016,7 +1034,7 @@
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Will connect to Shotgun to look for overrides.&quot;</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;If no overrides found, this config will be used: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base_config_descriptor</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_identifier</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_identifier</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">]:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Potential config overrides will be pulled &quot;</span><span class="p">)</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;from pipeline config &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipeline_configuration_identifier</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1044,8 +1062,8 @@
 <span class="sd">        :returns: A :class:`sgtk.bootstrap.configuration.Configuration` instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="n">progress_callback</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_RESOLVING_PROJECT_RATE</span><span class="p">,</span> <span class="s2">&quot;Resolving project...&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">project_id</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">project_id</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">elif</span> <span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;Project&quot;</span><span class="p">:</span>
             <span class="n">project_id</span> <span class="o">=</span> <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
@@ -1172,7 +1190,7 @@
 
         <span class="k">return</span> <span class="n">config</span>
 
-    <span class="k">def</span> <span class="nf">_bootstrap_sgtk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">progress_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_bootstrap_sgtk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">progress_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create an :class:`~sgtk.Sgtk` instance for the given entity and caches all applications.</span>
 
@@ -1195,7 +1213,7 @@
 <span class="sd">        :returns: Bootstrapped :class:`~sgtk.Sgtk` instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="n">progress_callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">progress_callback</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">progress_callback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress_callback</span>
 
         <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_updated_configuration</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">)</span>
@@ -1223,7 +1241,7 @@
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Initialized core </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tk</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">tk</span>
 
-    <span class="k">def</span> <span class="nf">_start_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">progress_callback</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_start_engine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">progress_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Launch into the given engine.</span>
 
@@ -1244,11 +1262,11 @@
 
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Begin starting up engine </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">engine_name</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">progress_callback</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">progress_callback</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">progress_callback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">progress_callback</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_report_progress</span><span class="p">(</span><span class="n">progress_callback</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_RESOLVING_CONTEXT_RATE</span><span class="p">,</span> <span class="s2">&quot;Resolving context...&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_empty</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ctx</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_entity_dictionary</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
@@ -1324,14 +1342,14 @@
             <span class="s2">&quot;Target core version is </span><span class="si">%s</span><span class="s2">. Starting shotgun engine via legacy pathway.&quot;</span> <span class="o">%</span> <span class="n">tk</span><span class="o">.</span><span class="n">version</span>
         <span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankBootstrapError</span><span class="p">(</span>
                 <span class="s2">&quot;Legacy shotgun environments do not support bootstrapping into a site context.&quot;</span>
             <span class="p">)</span>
 
         <span class="c1"># start engine via legacy pathway</span>
         <span class="c1"># note the local import due to core swapping.</span>
-        <span class="kn">from</span> <span class="nn">tank.platform</span> <span class="kn">import</span> <span class="n">engine</span>
+        <span class="kn">from</span> <span class="nn">tank.platform</span> <span class="k">import</span> <span class="n">engine</span>
         <span class="k">return</span> <span class="n">engine</span><span class="o">.</span><span class="n">start_shotgun_engine</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span> <span class="n">ctx</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_report_progress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">,</span> <span class="n">progress_value</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
@@ -1351,7 +1369,7 @@
             <span class="n">progress_callback</span><span class="p">(</span><span class="n">progress_value</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
             <span class="c1"># Call the old style progress callback with signature (message, current_index, maximum_index).</span>
-            <span class="n">progress_callback</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="n">progress_callback</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_cache_bundles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pipeline_configuration</span><span class="p">,</span> <span class="n">config_engine_name</span><span class="p">,</span> <span class="n">progress_callback</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1373,7 +1391,7 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_caching_policy</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">CACHE_FULL</span><span class="p">:</span>
             <span class="c1"># download and cache the entire config</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;caching_policy is CACHE_FULL - will download all items defined in the config&quot;</span><span class="p">)</span>
-            <span class="n">engine_constraint</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">engine_constraint</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankBootstrapError</span><span class="p">(</span><span class="s2">&quot;Unsupported caching_policy setting </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_caching_policy</span><span class="p">)</span>
 
@@ -1382,7 +1400,7 @@
         <span class="k">for</span> <span class="n">env_name</span> <span class="ow">in</span> <span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_environments</span><span class="p">():</span>
             <span class="n">env_obj</span> <span class="o">=</span> <span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_environment</span><span class="p">(</span><span class="n">env_name</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">engine</span> <span class="ow">in</span> <span class="n">env_obj</span><span class="o">.</span><span class="n">get_engines</span><span class="p">():</span>
-                <span class="k">if</span> <span class="n">engine_constraint</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">engine</span> <span class="o">==</span> <span class="n">engine_constraint</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">engine_constraint</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">engine</span> <span class="o">==</span> <span class="n">engine_constraint</span><span class="p">:</span>
                     <span class="n">descriptor</span> <span class="o">=</span> <span class="n">env_obj</span><span class="o">.</span><span class="n">get_engine_descriptor</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
                     <span class="n">descriptors</span><span class="p">[</span><span class="n">descriptor</span><span class="o">.</span><span class="n">get_uri</span><span class="p">()]</span> <span class="o">=</span> <span class="n">descriptor</span>
                     <span class="k">for</span> <span class="n">app</span> <span class="ow">in</span> <span class="n">env_obj</span><span class="o">.</span><span class="n">get_apps</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
@@ -1447,8 +1465,8 @@
 
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Default failed callback (</span><span class="si">%s</span><span class="s2">): </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">exception</span><span class="p">))</span>
 
-    <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="ToolkitManager.get_core_python_path"><a class="viewcode-back" href="../../../initializing.html#sgtk.bootstrap.ToolkitManager.get_core_python_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_core_python_path</span><span class="p">():</span>
+<div class="viewcode-block" id="ToolkitManager.get_core_python_path"><a class="viewcode-back" href="../../../initializing.html#sgtk.bootstrap.ToolkitManager.get_core_python_path">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_core_python_path</span><span class="p">():</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Computes the path to the current Toolkit core.</span>
 
@@ -1473,6 +1491,7 @@
 </pre></div>
 
            </div>
+           
           </div>
           <footer>
   
@@ -1503,9 +1522,11 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
             VERSION:'v0.18.151',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../../_static/jquery.js"></script>
@@ -1514,19 +1535,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
-  
  
 
 <script>

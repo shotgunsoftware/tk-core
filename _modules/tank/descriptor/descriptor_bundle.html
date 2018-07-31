@@ -15,6 +15,8 @@
 
   
   
+  
+  
 
   
 
@@ -24,24 +26,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="tk-core v0.18.151 documentation" href="../../../index.html"/>
-        <link rel="up" title="Module code" href="../../index.html"/> 
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -88,7 +85,10 @@
     
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core</a></li>
@@ -139,34 +139,52 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../index.html">tk-core</a>
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">tk-core</a>
+        
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../../index.html">Module code</a> &raquo;</li>
-      
-    <li>tank.descriptor.descriptor_bundle</li>
+        
+      <li>tank.descriptor.descriptor_bundle</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-        
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -183,13 +201,13 @@
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="kn">from</span> <span class="nn">.descriptor</span> <span class="kn">import</span> <span class="n">Descriptor</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankDescriptorError</span><span class="p">,</span> <span class="n">CheckVersionConstraintsError</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">..util.version</span> <span class="kn">import</span> <span class="n">is_version_older</span>
-<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">shotgun</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">pipelineconfig_utils</span>
+<span class="kn">from</span> <span class="nn">.descriptor</span> <span class="k">import</span> <span class="n">Descriptor</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="k">import</span> <span class="n">TankDescriptorError</span><span class="p">,</span> <span class="n">CheckVersionConstraintsError</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">..util.version</span> <span class="k">import</span> <span class="n">is_version_older</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="k">import</span> <span class="n">shotgun</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">pipelineconfig_utils</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -199,7 +217,7 @@
 <span class="sd">    Descriptor that describes a Toolkit Bundle (App/Engine/Framework)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">        creating new descriptor objects.</span>
@@ -226,13 +244,13 @@
 
         <span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;min_sg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_shotgun_version&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">constants</span><span class="o">.</span><span class="n">LOWEST_SHOTGUN_VERSION</span>
 
-        <span class="k">if</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_core_version&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_core_version&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;min_core&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_core_version&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_engine_version&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_engine_version&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;min_engine&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_engine_version&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_desktop_version&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_desktop_version&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;min_desktop&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_desktop_version&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">constraints</span>
@@ -280,9 +298,9 @@
 
     <span class="k">def</span> <span class="nf">check_version_constraints</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">core_version</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-        <span class="n">engine_descriptor</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-        <span class="n">desktop_version</span><span class="o">=</span><span class="bp">None</span>
+        <span class="n">core_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">engine_descriptor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">desktop_version</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks if there are constraints blocking an upgrade or install.</span>
@@ -309,7 +327,7 @@
         <span class="n">constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">version_constraints</span>
 
         <span class="k">if</span> <span class="s2">&quot;min_engine&quot;</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">engine_descriptor</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">engine_descriptor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Requires a minimal engine version but no engine was specified.&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">curr_engine_version</span> <span class="o">=</span> <span class="n">engine_descriptor</span><span class="o">.</span><span class="n">version</span>
@@ -323,8 +341,8 @@
 
         <span class="c1"># for multi engine apps, validate the supported_engines list</span>
         <span class="n">supported_engines</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supported_engines</span>
-        <span class="k">if</span> <span class="n">supported_engines</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">engine_descriptor</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">supported_engines</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">engine_descriptor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Bundle is compatible with a subset of engines but no engine was specified.&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># this is a multi engine app!</span>
@@ -352,7 +370,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">rc</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;required_context&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">rc</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">rc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">rc</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">return</span> <span class="n">rc</span>
 
@@ -370,7 +388,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">sp</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;supported_platforms&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">sp</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">sp</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">return</span> <span class="n">sp</span>
 
@@ -386,7 +404,7 @@
         <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">cfg</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;configuration&quot;</span><span class="p">)</span>
         <span class="c1"># always return a dict</span>
-        <span class="k">if</span> <span class="n">cfg</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cfg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">cfg</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">return</span> <span class="n">cfg</span>
 
@@ -418,7 +436,7 @@
         <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">frameworks</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;frameworks&quot;</span><span class="p">)</span>
         <span class="c1"># always return a list</span>
-        <span class="k">if</span> <span class="n">frameworks</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">frameworks</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">frameworks</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">return</span> <span class="n">frameworks</span>
 
@@ -447,7 +465,7 @@
     <span class="c1">###############################################################################################</span>
     <span class="c1"># helper methods</span>
 
-    <span class="k">def</span> <span class="nf">ensure_shotgun_fields_exist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">ensure_shotgun_fields_exist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Ensures that any shotgun fields a particular descriptor requires</span>
 <span class="sd">        exists in shotgun. In the metadata (``info.yml``) for an app or an engine,</span>
@@ -472,7 +490,7 @@
         <span class="c1"># with earlier versions of the desktop startup framework (which never used</span>
         <span class="c1"># any post install functionality, so the fact that we don&#39;t execute anything</span>
         <span class="c1"># in that case should&#39;t affect the behavior).</span>
-        <span class="k">if</span> <span class="n">tk</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">tk</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
 
         <span class="c1"># first fetch metadata</span>
@@ -529,7 +547,7 @@
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Field </span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2"> already exists in Shotgun.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sg_entity_type</span><span class="p">,</span> <span class="n">sg_field_name</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">run_post_install</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">run_post_install</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        If a post install hook exists in a descriptor, execute it. In the</span>
 <span class="sd">        hooks directory for an app or engine, if a &#39;post_install.py&#39; hook</span>
@@ -551,7 +569,7 @@
         <span class="c1"># with earlier versions of the desktop startup framework (which never used</span>
         <span class="c1"># any post install functionality, so the fact that we don&#39;t execute anything</span>
         <span class="c1"># in that case should&#39;t affect the behavior).</span>
-        <span class="k">if</span> <span class="n">tk</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">tk</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
 
         <span class="k">try</span><span class="p">:</span>
@@ -567,7 +585,7 @@
 <span class="sd">    Descriptor that describes a Toolkit Engine</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        .. note:: Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">                  creating new descriptor objects.</span>
@@ -587,7 +605,7 @@
 <span class="sd">    Descriptor that describes a Toolkit App</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        .. note:: Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">                  creating new descriptor objects.</span>
@@ -607,7 +625,7 @@
 <span class="sd">    Descriptor that describes a Toolkit Framework</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        .. note:: Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">                  creating new descriptor objects.</span>
@@ -632,13 +650,14 @@
         <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
         <span class="n">shared</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;shared&quot;</span><span class="p">)</span>
         <span class="c1"># always return a bool</span>
-        <span class="k">if</span> <span class="n">shared</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">shared</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># frameworks are now shared by default unless you opt out.</span>
-            <span class="n">shared</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">shared</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="n">shared</span></div></div>
 </pre></div>
 
            </div>
+           
           </div>
           <footer>
   
@@ -669,9 +688,11 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
             VERSION:'v0.18.151',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../../_static/jquery.js"></script>
@@ -680,19 +701,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
-  
  
 
 <script>

@@ -15,6 +15,8 @@
 
   
   
+  
+  
 
   
 
@@ -24,24 +26,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="tk-core v0.18.151 documentation" href="../../../index.html"/>
-        <link rel="up" title="Module code" href="../../index.html"/> 
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -88,7 +85,10 @@
     
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core</a></li>
@@ -139,34 +139,52 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../index.html">tk-core</a>
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">tk-core</a>
+        
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../../index.html">Module code</a> &raquo;</li>
-      
-    <li>tank.platform.bundle</li>
+        
+      <li>tank.platform.bundle</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-        
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -194,13 +212,13 @@
 <span class="kn">import</span> <span class="nn">imp</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
 
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">hook</span>
-<span class="kn">from</span> <span class="nn">..util.metrics</span> <span class="kn">import</span> <span class="n">EventMetric</span>
-<span class="kn">from</span> <span class="nn">..log</span> <span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span><span class="p">,</span> <span class="n">TankNoDefaultValueError</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankContextChangeNotSupportedError</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">.import_stack</span> <span class="kn">import</span> <span class="n">ImportStack</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">hook</span>
+<span class="kn">from</span> <span class="nn">..util.metrics</span> <span class="k">import</span> <span class="n">EventMetric</span>
+<span class="kn">from</span> <span class="nn">..log</span> <span class="k">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">..errors</span> <span class="k">import</span> <span class="n">TankError</span><span class="p">,</span> <span class="n">TankNoDefaultValueError</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="k">import</span> <span class="n">TankContextChangeNotSupportedError</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">.import_stack</span> <span class="k">import</span> <span class="n">ImportStack</span>
 
 <span class="n">core_logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -209,7 +227,7 @@
 <span class="sd">    Abstract Base class for any engine, framework app etc in tank</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">log</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">log</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructor.</span>
 
@@ -224,9 +242,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span> <span class="o">=</span> <span class="n">tk</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__context</span> <span class="o">=</span> <span class="n">context</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__settings</span> <span class="o">=</span> <span class="n">settings</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__sg</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__sg</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__module_uid</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__module_uid</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__descriptor</span> <span class="o">=</span> <span class="n">descriptor</span>    
         <span class="bp">self</span><span class="o">.</span><span class="n">__frameworks</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__environment</span> <span class="o">=</span> <span class="n">env</span>
@@ -238,7 +256,7 @@
     <span class="c1">##########################################################################################</span>
     <span class="c1"># internal API</span>
 
-    <span class="k">def</span> <span class="nf">log_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">log_version</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">log_once</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">command_name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">log_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">log_version</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">log_once</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">command_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Log metrics for this bundle and the given action.</span>
 
@@ -289,7 +307,7 @@
     <span class="c1">##########################################################################################</span>
     <span class="c1"># methods used by internal classes, not part of the public interface</span>
 
-    <span class="k">def</span> <span class="nf">get_setting_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other_settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_setting_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other_settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Internal method - not part of Tank&#39;s public interface.</span>
 <span class="sd">        </span>
@@ -457,14 +475,14 @@
 <span class="sd">            stored_query_data_path = os.path.join(self.site_cache_location, &quot;query.dat&quot;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># this method is memoized for performance since it is being called a lot!</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;site&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span><span class="p">[</span><span class="s2">&quot;site&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">execute_core_hook_method</span><span class="p">(</span>
                 <span class="n">constants</span><span class="o">.</span><span class="n">CACHE_LOCATION_HOOK_NAME</span><span class="p">,</span>
                 <span class="s2">&quot;get_bundle_data_cache_path&quot;</span><span class="p">,</span>
-                <span class="n">project_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                <span class="n">plugin_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                <span class="n">pipeline_configuration_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                <span class="n">project_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">plugin_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">pipeline_configuration_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">bundle</span><span class="o">=</span><span class="bp">self</span>
             <span class="p">)</span>
 
@@ -488,7 +506,7 @@
 
 <span class="sd">        :returns: bool</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="kc">False</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">tank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -623,11 +641,11 @@
                 <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Cannot import - folder </span><span class="si">%s</span><span class="s2"> does not exist!&quot;</span> <span class="o">%</span> <span class="n">python_folder</span><span class="p">)</span>
             
             <span class="c1"># and import</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__module_uid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__module_uid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Importing python modules in </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="n">python_folder</span><span class="p">)</span>
                 <span class="c1"># alias the python folder with a UID to ensure it is unique every time it is imported</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__module_uid</span> <span class="o">=</span> <span class="s2">&quot;tkimp</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span>
-                <span class="n">imp</span><span class="o">.</span><span class="n">load_module</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__module_uid</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">python_folder</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">imp</span><span class="o">.</span><span class="n">PKG_DIRECTORY</span><span class="p">)</span> <span class="p">)</span>
+                <span class="n">imp</span><span class="o">.</span><span class="n">load_module</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__module_uid</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">python_folder</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">imp</span><span class="o">.</span><span class="n">PKG_DIRECTORY</span><span class="p">)</span> <span class="p">)</span>
             
             <span class="c1"># we can now find our actual module in sys.modules as GUID.module_name</span>
             <span class="n">mod_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__module_uid</span><span class="p">,</span> <span class="n">module_name</span><span class="p">)</span>
@@ -655,7 +673,7 @@
 <span class="sd">        :rtype str:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># this method is memoized for performance since it is being called a lot!</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">project_id</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">project_id</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span><span class="p">[</span><span class="n">project_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">execute_core_hook_method</span><span class="p">(</span>
                 <span class="n">constants</span><span class="o">.</span><span class="n">CACHE_LOCATION_HOOK_NAME</span><span class="p">,</span>
@@ -668,7 +686,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cache_location</span><span class="p">[</span><span class="n">project_id</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_setting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get a value from the item&#39;s settings::</span>
 
@@ -713,7 +731,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tank</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">template_name</span><span class="p">)</span>
                         
-    <span class="k">def</span> <span class="nf">execute_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Execute a hook that is part of the environment configuration for the current bundle.</span>
 
@@ -745,12 +763,12 @@
         <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">execute_hook_method</span><span class="p">(</span>
             <span class="n">resolved_hook_paths</span><span class="p">,</span>
             <span class="bp">self</span><span class="p">,</span>
-            <span class="bp">None</span><span class="p">,</span>
+            <span class="kc">None</span><span class="p">,</span>
             <span class="n">base_class</span><span class="o">=</span><span class="n">base_class</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span>
         <span class="p">)</span>
         
-    <span class="k">def</span> <span class="nf">execute_hook_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute_hook_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Execute a specific method in a hook that is part of the </span>
 <span class="sd">        environment configuration for the current bundle.</span>
@@ -800,7 +818,7 @@
             <span class="o">**</span><span class="n">kwargs</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">execute_hook_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook_expression</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">execute_hook_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook_expression</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Execute an arbitrary hook via an expression. While the methods execute_hook</span>
 <span class="sd">        and execute_hook_method allows you to execute a particular hook setting as</span>
@@ -826,7 +844,7 @@
 <span class="sd">            hook. This will override the default hook base class, ``Hook``.</span>
 <span class="sd">        :returns: The return value from the hook</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">resolved_hook_paths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__resolve_hook_expression</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">hook_expression</span><span class="p">)</span>
+        <span class="n">resolved_hook_paths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__resolve_hook_expression</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">hook_expression</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">execute_hook_method</span><span class="p">(</span>
             <span class="n">resolved_hook_paths</span><span class="p">,</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -858,7 +876,7 @@
         <span class="n">hook_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">hook_folder</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.py&quot;</span> <span class="o">%</span> <span class="n">hook_name</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">execute_hook</span><span class="p">(</span><span class="n">hook_path</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">create_hook_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook_expression</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">create_hook_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook_expression</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the instance of a hook object given an expression.</span>
 
@@ -889,7 +907,7 @@
 <span class="sd">            hook. This will override the default hook base class, ``Hook``.</span>
 <span class="sd">        :returns: :class:`Hook` instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">resolved_hook_paths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__resolve_hook_expression</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">hook_expression</span><span class="p">)</span>
+        <span class="n">resolved_hook_paths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__resolve_hook_expression</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">hook_expression</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">hook</span><span class="o">.</span><span class="n">create_hook_instance</span><span class="p">(</span>
             <span class="n">resolved_hook_paths</span><span class="p">,</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -959,10 +977,10 @@
 <span class="sd">        :returns: A full path to a hook file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="n">hook_expression</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">hook_expression</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> config setting </span><span class="si">%s</span><span class="s2">: Configuration value cannot be None!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings_name</span><span class="p">))</span>
         
-        <span class="n">path</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># make sure to replace the `{engine_name}` token if it exists.</span>
         <span class="k">if</span> <span class="n">constants</span><span class="o">.</span><span class="n">TANK_HOOK_ENGINE_REFERENCE_TOKEN</span> <span class="ow">in</span> <span class="n">hook_expression</span><span class="p">:</span>
@@ -996,11 +1014,11 @@
                 <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">settings_name</span><span class="p">),</span> <span class="n">engine_name</span><span class="o">=</span><span class="n">engine_name</span><span class="p">)</span>
 
             <span class="c1"># get the full path for the resolved hook name:</span>
-            <span class="k">if</span> <span class="n">resolved_hook_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;{self}&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">resolved_hook_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{self}</span><span class="s2">&quot;</span><span class="p">):</span>
                 <span class="c1"># new format hook: </span>
                 <span class="c1">#  default_value: &#39;{self}/my_hook.py&#39;</span>
                 <span class="n">hooks_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">&quot;hooks&quot;</span><span class="p">)</span>
-                <span class="n">path</span> <span class="o">=</span> <span class="n">resolved_hook_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;{self}&quot;</span><span class="p">,</span> <span class="n">hooks_folder</span><span class="p">)</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">resolved_hook_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{self}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">hooks_folder</span><span class="p">)</span>
                 <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># old style hook: </span>
@@ -1017,19 +1035,19 @@
                                 <span class="s2">&quot;custom hook implementation. Please contact support for more &quot;</span>
                                 <span class="s2">&quot;information&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings_name</span><span class="p">,</span> <span class="n">resolved_hook_name</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">))</span>
             
-        <span class="k">elif</span> <span class="n">hook_expression</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;{self}&quot;</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">hook_expression</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{self}</span><span class="s2">&quot;</span><span class="p">):</span>
             <span class="c1"># bundle local reference</span>
             <span class="n">hooks_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">&quot;hooks&quot;</span><span class="p">)</span>
-            <span class="n">path</span> <span class="o">=</span> <span class="n">hook_expression</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;{self}&quot;</span><span class="p">,</span> <span class="n">hooks_folder</span><span class="p">)</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">hook_expression</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{self}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">hooks_folder</span><span class="p">)</span>
             <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
         
-        <span class="k">elif</span> <span class="n">hook_expression</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;{config}&quot;</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">hook_expression</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{config}</span><span class="s2">&quot;</span><span class="p">):</span>
             <span class="c1"># config hook </span>
             <span class="n">hooks_folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tank</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_hooks_location</span><span class="p">()</span>
-            <span class="n">path</span> <span class="o">=</span> <span class="n">hook_expression</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;{config}&quot;</span><span class="p">,</span> <span class="n">hooks_folder</span><span class="p">)</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">hook_expression</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{config}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">hooks_folder</span><span class="p">)</span>
             <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
 
-        <span class="k">elif</span> <span class="n">hook_expression</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;{engine}&quot;</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">hook_expression</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{engine}</span><span class="s2">&quot;</span><span class="p">):</span>
             <span class="c1"># look for the hook in the currently running engine</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span>
@@ -1041,7 +1059,7 @@
                 <span class="p">)</span>
 
             <span class="n">hooks_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">&quot;hooks&quot;</span><span class="p">)</span>
-            <span class="n">path</span> <span class="o">=</span> <span class="n">hook_expression</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;{engine}&quot;</span><span class="p">,</span> <span class="n">hooks_folder</span><span class="p">)</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">hook_expression</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{engine}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">hooks_folder</span><span class="p">)</span>
             <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>
         
         <span class="k">elif</span> <span class="n">hook_expression</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;{$&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;}&quot;</span> <span class="ow">in</span> <span class="n">hook_expression</span><span class="p">:</span>
@@ -1140,12 +1158,12 @@
         <span class="c1"># hook_paths: [&quot;{self}/foo_tk-maya.py&quot;, &quot;{config}/my_custom_hook.py&quot; ]</span>
         <span class="c1">#</span>
         <span class="c1"># Check only new-style hooks. All new style hooks start with a {</span>
-        <span class="k">if</span> <span class="n">unresolved_hook_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">unresolved_hook_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;{self}&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">unresolved_hook_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">unresolved_hook_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{self}</span><span class="s2">&quot;</span><span class="p">):</span>
             <span class="c1"># this is a new style hook that is not the default hook value.</span>
             <span class="c1"># now prepend the default hook first in the list</span>
             <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__descriptor</span><span class="o">.</span><span class="n">configuration_schema</span>
 
-            <span class="n">default_value</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">default_value</span> <span class="o">=</span> <span class="kc">None</span>
 
             <span class="k">if</span> <span class="n">settings_name</span><span class="p">:</span>
                 <span class="n">default_value</span> <span class="o">=</span> <span class="n">resolve_default_value</span><span class="p">(</span>
@@ -1158,8 +1176,8 @@
                 <span class="c1"># expand the default value to be referenced from {self} and with the .py suffix</span>
                 <span class="c1"># for backwards compatibility with the old syntax where the default value could</span>
                 <span class="c1"># just be &#39;hook_name&#39; with implicit &#39;{self}&#39; and no suffix!</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">default_value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;{self}&quot;</span><span class="p">):</span>
-                    <span class="n">default_value</span> <span class="o">=</span> <span class="s2">&quot;{self}/</span><span class="si">%s</span><span class="s2">.py&quot;</span> <span class="o">%</span> <span class="n">default_value</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">default_value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{self}</span><span class="s2">&quot;</span><span class="p">):</span>
+                    <span class="n">default_value</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{self}</span><span class="s2">/</span><span class="si">%s</span><span class="s2">.py&quot;</span> <span class="o">%</span> <span class="n">default_value</span>
 
                 <span class="c1"># so now we have a path to a potential default hook inside the app or engine</span>
                 <span class="c1"># There is however one possibility when there may not be a hook, and this is</span>
@@ -1196,7 +1214,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># An old use case exists whereby the key does not exist in the</span>
         <span class="c1"># config schema so we need to account for that.</span>
-        <span class="n">schema</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__descriptor</span><span class="o">.</span><span class="n">configuration_schema</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">schema</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__descriptor</span><span class="o">.</span><span class="n">configuration_schema</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">resolve_setting_value</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_engine_name</span><span class="p">(),</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="bp">self</span>
         <span class="p">)</span>
@@ -1216,12 +1234,12 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">engine_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">name</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="n">engine_name</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">engine_name</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">return</span> <span class="n">engine_name</span>
 
 
-<span class="k">def</span> <span class="nf">_post_process_settings_r</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">bundle</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_post_process_settings_r</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">bundle</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Recursive post-processing of settings values</span>
 
@@ -1240,7 +1258,7 @@
     <span class="c1"># first check for procedural overrides where instead of getting a value,</span>
     <span class="c1"># directly from the config, we call a hook to evaluate a config value</span>
     <span class="c1"># at runtime:</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;hook:&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">basestring</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;hook:&quot;</span><span class="p">):</span>
         <span class="c1"># handle the special form where the value is computed in a hook.</span>
         <span class="c1">#</span>
         <span class="c1"># if the template parameter is on the form</span>
@@ -1302,7 +1320,7 @@
     <span class="k">return</span> <span class="n">processed_val</span>
 
 
-<span class="k">def</span> <span class="nf">resolve_setting_value</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">bundle</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">resolve_setting_value</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">bundle</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Resolve a setting value.  Exposed to allow values to be resolved for</span>
 <span class="sd">    settings derived outside of the app.</span>
@@ -1343,7 +1361,7 @@
     <span class="k">return</span> <span class="n">value</span>
 
 <span class="k">def</span> <span class="nf">resolve_default_value</span><span class="p">(</span>
-        <span class="n">schema</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">engine_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">raise_if_missing</span><span class="o">=</span><span class="bp">False</span>
+        <span class="n">schema</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">engine_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">raise_if_missing</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Extract a default value from the supplied schema.</span>
@@ -1358,12 +1376,12 @@
 <span class="sd">        default value is found.</span>
 <span class="sd">    :return: The resolved default value</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">default_missing</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">default_missing</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="c1"># Engine-specific default value keys are allowed (ex:</span>
     <span class="c1"># &quot;default_value_tk-maya&quot;). If an engine name was supplied,</span>
     <span class="c1"># build the corresponding engine-specific default value key.</span>
-    <span class="n">engine_default_key</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">engine_default_key</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">engine_name</span><span class="p">:</span>
         <span class="n">engine_default_key</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
             <span class="n">constants</span><span class="o">.</span><span class="n">TANK_SCHEMA_DEFAULT_VALUE_KEY</span><span class="p">,</span>
@@ -1379,7 +1397,7 @@
         <span class="n">value</span> <span class="o">=</span> <span class="n">schema</span><span class="p">[</span><span class="n">constants</span><span class="o">.</span><span class="n">TANK_SCHEMA_DEFAULT_VALUE_KEY</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># No default value found, fall back on the supplied default.</span>
-        <span class="n">default_missing</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">default_missing</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">value</span> <span class="o">=</span> <span class="n">default</span>
 
     <span class="c1"># ---- type specific checks</span>
@@ -1388,24 +1406,24 @@
 
     <span class="c1"># special case handling for list params - check if</span>
     <span class="c1"># allows_empty is True, in that case set default value to []</span>
-    <span class="k">if</span> <span class="n">setting_type</span> <span class="o">==</span> <span class="s2">&quot;list&quot;</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">schema</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;allows_empty&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">setting_type</span> <span class="o">==</span> <span class="s2">&quot;list&quot;</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">schema</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;allows_empty&quot;</span><span class="p">):</span>
         <span class="n">value</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="c1"># special case handling for dict params - check if</span>
     <span class="c1"># allows_empty is True, in that case set default value to {}</span>
-    <span class="k">if</span> <span class="n">setting_type</span> <span class="o">==</span> <span class="s2">&quot;dict&quot;</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">schema</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;allows_empty&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">setting_type</span> <span class="o">==</span> <span class="s2">&quot;dict&quot;</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">schema</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;allows_empty&quot;</span><span class="p">):</span>
         <span class="n">value</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="c1"># special case for template params. if allows_empty is True, then we allow</span>
     <span class="c1"># a value of None. make sure we don&#39;t raise in the &quot;raise_if_missing&quot; case.</span>
-    <span class="k">if</span> <span class="n">setting_type</span> <span class="o">==</span> <span class="s2">&quot;template&quot;</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">schema</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;allows_empty&quot;</span><span class="p">):</span>
-        <span class="n">value</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">default_missing</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">if</span> <span class="n">setting_type</span> <span class="o">==</span> <span class="s2">&quot;template&quot;</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">schema</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;allows_empty&quot;</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">default_missing</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="k">if</span> <span class="n">setting_type</span> <span class="o">==</span> <span class="s2">&quot;hook&quot;</span><span class="p">:</span>
         <span class="n">value</span> <span class="o">=</span> <span class="n">_resolve_default_hook_value</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">default_missing</span> <span class="ow">and</span> <span class="n">raise_if_missing</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">default_missing</span> <span class="ow">and</span> <span class="n">raise_if_missing</span><span class="p">:</span>
         <span class="c1"># calling code requested an exception if no default value exists.</span>
         <span class="c1"># the value may have been overridden by one of the special cases above,</span>
         <span class="c1"># so only raise if the value is None.</span>
@@ -1414,7 +1432,7 @@
     <span class="k">return</span> <span class="n">value</span>
 
 
-<span class="k">def</span> <span class="nf">_resolve_default_hook_value</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">engine_name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_resolve_default_hook_value</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">engine_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a hook value, evaluate any special keys or legacy values.</span>
 
@@ -1438,7 +1456,7 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">):</span>
         <span class="c1"># This is an old-style hook. In order to maintain backward</span>
         <span class="c1">#  compatibility, return the value in the new style.</span>
-        <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;{self}/</span><span class="si">%s</span><span class="s2">.py&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{self}</span><span class="s2">/</span><span class="si">%s</span><span class="s2">.py&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="p">,)</span>
 
     <span class="c1"># the remaining tokens ({self}, {config}, {tk-framework-...}) will be</span>
     <span class="c1"># resolved at runtime just before the hook is executed.</span>
@@ -1447,6 +1465,7 @@
 </pre></div>
 
            </div>
+           
           </div>
           <footer>
   
@@ -1477,9 +1496,11 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
             VERSION:'v0.18.151',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../../_static/jquery.js"></script>
@@ -1488,19 +1509,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
-  
  
 
 <script>

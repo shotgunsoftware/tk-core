@@ -15,6 +15,8 @@
 
   
   
+  
+  
 
   
 
@@ -24,24 +26,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="tk-core v0.18.151 documentation" href="../../../../index.html"/>
-        <link rel="up" title="Module code" href="../../../index.html"/> 
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
 
   
   <script src="../../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -88,7 +85,10 @@
     
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../core.html">Core</a></li>
@@ -139,34 +139,52 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../../../../index.html">tk-core</a>
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">tk-core</a>
+        
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="../../../index.html">Module code</a> &raquo;</li>
-      
-    <li>tank.util.shotgun.download</li>
+        
+      <li>tank.util.shotgun.download</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-        
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -186,7 +204,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Methods for downloading things from Shotgun</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">with_statement</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">with_statement</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
@@ -197,17 +215,17 @@
 <span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">import</span> <span class="nn">zipfile</span>
 
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">ShotgunAttachmentDownloadError</span>
-<span class="kn">from</span> <span class="nn">...errors</span> <span class="kn">import</span> <span class="n">TankError</span>
-<span class="kn">from</span> <span class="nn">...log</span> <span class="kn">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">..zip</span> <span class="kn">import</span> <span class="n">unzip_file</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">filesystem</span>
+<span class="kn">from</span> <span class="nn">..errors</span> <span class="k">import</span> <span class="n">ShotgunAttachmentDownloadError</span>
+<span class="kn">from</span> <span class="nn">...errors</span> <span class="k">import</span> <span class="n">TankError</span>
+<span class="kn">from</span> <span class="nn">...log</span> <span class="k">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">..zip</span> <span class="k">import</span> <span class="n">unzip_file</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">filesystem</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<span class="nd">@LogManager.log_timing</span>
-<div class="viewcode-block" id="download_url"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.download_url">[docs]</a><span class="k">def</span> <span class="nf">download_url</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">use_url_extension</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="download_url"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.download_url">[docs]</a><span class="nd">@LogManager</span><span class="o">.</span><span class="n">log_timing</span>
+<span class="k">def</span> <span class="nf">download_url</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">use_url_extension</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convenience method that downloads a file from a given url.</span>
 <span class="sd">    This method will take into account any proxy settings which have</span>
@@ -302,9 +320,9 @@
 
     <span class="n">sid</span> <span class="o">=</span> <span class="n">sg</span><span class="o">.</span><span class="n">get_session_token</span><span class="p">()</span>
     <span class="n">cj</span> <span class="o">=</span> <span class="n">cookielib</span><span class="o">.</span><span class="n">LWPCookieJar</span><span class="p">()</span>
-    <span class="n">c</span> <span class="o">=</span> <span class="n">cookielib</span><span class="o">.</span><span class="n">Cookie</span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;_session_id&#39;</span><span class="p">,</span> <span class="n">sid</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>
-        <span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">server</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span>
-        <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">cookielib</span><span class="o">.</span><span class="n">Cookie</span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;_session_id&#39;</span><span class="p">,</span> <span class="n">sid</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">server</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">{})</span>
     <span class="n">cj</span><span class="o">.</span><span class="n">set_cookie</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
     <span class="n">cookie_handler</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">HTTPCookieProcessor</span><span class="p">(</span><span class="n">cj</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">proxy_handler</span><span class="p">:</span>
@@ -314,8 +332,8 @@
     <span class="n">urllib2</span><span class="o">.</span><span class="n">install_opener</span><span class="p">(</span><span class="n">opener</span><span class="p">)</span>
 
 
-<span class="nd">@LogManager.log_timing</span>
-<span class="k">def</span> <span class="nf">download_and_unpack_attachment</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">attachment_id</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<span class="nd">@LogManager</span><span class="o">.</span><span class="n">log_timing</span>
+<span class="k">def</span> <span class="nf">download_and_unpack_attachment</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">attachment_id</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Downloads the given attachment from Shotgun, assumes it is a zip file</span>
 <span class="sd">    and attempts to unpack it into the given location.</span>
@@ -335,8 +353,8 @@
     <span class="c1"># sometimes people report that this download fails (because of flaky connections etc)</span>
     <span class="c1"># engines can often be 30-50MiB - as a quick fix, just retry the download if it fails</span>
     <span class="n">attempt</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">done</span> <span class="o">=</span> <span class="bp">False</span>
-    <span class="n">invalid_zip_file</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">done</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">invalid_zip_file</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="k">while</span> <span class="ow">not</span> <span class="n">invalid_zip_file</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">done</span> <span class="ow">and</span> <span class="n">attempt</span> <span class="o">&lt;</span> <span class="n">retries</span><span class="p">:</span>
 
@@ -363,7 +381,7 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">unzip_file</span><span class="p">(</span><span class="n">zip_tmp</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="p">)</span>
             <span class="k">except</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">BadZipfile</span><span class="p">:</span>
-                <span class="n">invalid_zip_file</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">invalid_zip_file</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
@@ -373,7 +391,7 @@
             <span class="c1"># sleep 500ms before we retry</span>
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">done</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">done</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">finally</span><span class="p">:</span>
             <span class="c1"># remove zip file</span>
             <span class="n">filesystem</span><span class="o">.</span><span class="n">safe_delete_file</span><span class="p">(</span><span class="n">zip_tmp</span><span class="p">)</span>
@@ -393,6 +411,7 @@
 </pre></div>
 
            </div>
+           
           </div>
           <footer>
   
@@ -423,9 +442,11 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
             VERSION:'v0.18.151',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../../../../_static/jquery.js"></script>
@@ -434,19 +455,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
-  
  
 
 <script>
