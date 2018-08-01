@@ -76,6 +76,7 @@ def create_io_descriptor(
     from .git_tag import IODescriptorGitTag
     from .git_branch import IODescriptorGitBranch
     from .manual import IODescriptorManual
+    from .rez import IODescriptorRez
 
     # resolve into both dict and uri form
     if isinstance(dict_or_uri, basestring):
@@ -112,6 +113,9 @@ def create_io_descriptor(
 
     elif descriptor_dict.get("type") == "path":
         descriptor = IODescriptorPath(descriptor_dict)
+    
+    elif descriptor_dict.get("type") == "rez":
+        descriptor = IODescriptorRez(descriptor_dict)
 
     else:
         raise TankDescriptorError("Unknown descriptor type for '%s'" % descriptor_dict)
