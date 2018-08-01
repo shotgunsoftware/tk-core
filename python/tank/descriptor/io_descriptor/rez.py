@@ -59,10 +59,13 @@ class IODescriptorRez(IODescriptorBase):
 
         self._name = descriptor_dict["name"]
 
-        # Shotgun expect version number to be prefixed with "v".
-        # REZ don't, we'll support both but never pass the letter to rez.
-        # todo: validate name?
-        self._version = descriptor_dict.get("version").strip("v")
+        
+        self._version = descriptor_dict.get("version")
+        
+        if self._version:
+            # Shotgun expect version number to be prefixed with "v".
+            # REZ don't, we'll support both but never pass the letter to rez.
+            self._version = self._version.strip("v")
 
         # Resolve location
         self._path = self._get_rez_pkg_location()
