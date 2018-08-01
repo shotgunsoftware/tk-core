@@ -114,7 +114,7 @@ def create_io_descriptor(
     elif descriptor_dict.get("type") == "path":
         descriptor = IODescriptorPath(descriptor_dict)
     
-    elif descriptor_dict.get("type") == "dev":
+    elif descriptor_dict.get("type") == "rez":
         descriptor = IODescriptorRez(descriptor_dict)
 
     else:
