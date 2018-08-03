@@ -73,25 +73,26 @@ class IODescriptorRez(IODescriptorBase):
     def _get_rez_pkg_location(self):
         
         request = "{0}-{1}".format(self._name, self._version) if self._version is not None else self._name
-        log.info("Searching location for the following package using rez: {0}".format(request))
+        log.debug("Resolved rez request is: {0}".format(request))
         
         if sys.platform == "win32":
             cmd = 'rez-env {pkg} -- echo %REZ_{NAME}_ROOT%'.format(pkg=request, NAME=self._name.upper())
         else:
             cmd = 'rez-env {pkg} -- printenv REZ_{NAME}_ROOT'.format(pkg=request, NAME=self._name.upper())
             
-        log.info("Executing command: {0}".format(cmd))
+        log.debug("Executing command: {0}".format(cmd))
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
         stdout, stderr = process.communicate()
         
-        log.info("stdout:\n{0}".format(stdout))
-        log.info("stderr:\n{0}".format(stderr))
+        log.debug("stdout:\n{0}".format(stdout))
+        log.debug("stderr:\n{0}".format(stderr))
 
         if stderr or not stdout:
             log.error(stdout)
             raise ImportError("Failed resolve request for {0}".format(request))
 
         path = stdout.strip()
+        log.debug("Resulting path is: {0}".format(path))
         return path
 
     def _get_bundle_cache_path(self, bundle_cache_root):
