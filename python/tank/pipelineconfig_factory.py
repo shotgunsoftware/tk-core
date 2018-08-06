@@ -361,7 +361,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
             # incorrectly re-using the same paths.
 
             raise TankInitError(
-                "%s is associated with more than one Primary pipeline "
+                "%s is associated with more than one centralized Primary pipeline "
                 "configuration. This can happen if there is ambiguity in your project setup, where "
                 "projects store their data in an overlapping fashion, for example if a project is "
                 "named the same as a local storage root. In this case, try creating "
@@ -383,8 +383,8 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
                 # configuration which is maintained by bootstrap.
                 raise TankInitError(
                     "The pipeline configuration with id %s, associated with %s, "
-                    "cannot be instantiated because it does not have an absolute path "
-                    "definition in Shotgun. To launch this kind of configuration, use "
+                    "cannot be instantiated because it is a distributed config. "
+                    "To launch this kind of configuration, use "
                     "the Bootstrap API instead." % (sg_config_data["id"], source)
                 )
 
@@ -397,8 +397,8 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
             # this time around.
             if not os.path.exists(sg_config_data["path"]):
                 raise TankInitError(
-                    "The pipeline configuration %s does not exist on disk. This can happen if the "
-                    "pipeline configuration has been moved to another location or deleted from "
+                    "The centralized pipeline configuration %s does not exist on disk. "
+                    "This can happen if it has been moved to another location or deleted from "
                     "disk." % sg_config_data["path"]
                 )
 
