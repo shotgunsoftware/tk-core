@@ -234,7 +234,7 @@ class TestTankFromPathDuplicatePcPaths(TankTestBase):
         Test primary dupes
         """
         self.assertRaisesRegexp(TankInitError,
-                                ".* is associated with more than one Primary pipeline configuration",
+                                ".* is associated with more than one centralized Primary pipeline configuration",
                                 sgtk.sgtk_from_path,
                                 self.project_root)
 
@@ -243,7 +243,7 @@ class TestTankFromPathDuplicatePcPaths(TankTestBase):
         Test primary dupes
         """
         self.assertRaisesRegexp(TankInitError,
-                                ".* is associated with more than one Primary pipeline configuration",
+                                ".* is associated with more than one centralized Primary pipeline configuration",
                                 sgtk.sgtk_from_entity,
                                 "Project",
                                 self.project["id"])
@@ -295,7 +295,8 @@ class TestSharedCoreWithSiteWideConfigs(TankTestBase):
         # We do not support site-wide pipeline configurations from shared cores.
         with self.assertRaisesRegexp(
             TankInitError,
-            "cannot be instantiated because it does not have an absolute path"
+            "cannot be instantiated because it is a distributed config. "
+            "To launch this kind of configuration, use the Bootstrap API instead."
         ):
             sgtk.sgtk_from_path(self.project_root)
 
@@ -796,7 +797,7 @@ class TestTankFromPathOverlapStorage(TankTestBase):
             os.makedirs(test_path_dir)
 
         self.assertRaisesRegexp(TankInitError,
-                                ".* is associated with more than one Primary pipeline configuration",
+                                ".* is associated with more than one centralized Primary pipeline configuration",
                                 sgtk.sgtk_from_path,
                                 test_path)
 
