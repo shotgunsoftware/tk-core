@@ -49,15 +49,15 @@ class InstalledConfiguration(Configuration):
 
         :returns: LOCAL_CFG_UP_TO_DATE
         """
-        log.debug("Checking that classic config has got all the required files.")
+        log.debug("Checking that centralized config has got all the required files.")
         # check that the path we have been given actually points at
-        # a classic configuration.
+        # a centralized configuration.
         config_path = self._path.current_os
         pipe_cfg_path = os.path.join(config_path, "config", "core", "pipeline_configuration.yml")
         if not os.path.exists(pipe_cfg_path):
 
             log.warning(
-                "Your classic/installed pipeline configuration is missing the file %s. "
+                "Your centralized pipeline configuration is missing the file %s. "
                 "Pipeline configurations using the fields windows_path, mac_path "
                 "or linux_path need to be created via the Toolkit "
                 "project setup process." % pipe_cfg_path

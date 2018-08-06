@@ -834,7 +834,7 @@ class TestTankFromPathOverlapStorage(TankTestBase):
 
 class TestTankFromPathPCWithProjectWithoutTankName(TankTestBase):
     """
-    Tests edge case where getting path for classic/installed project and another
+    Tests edge case where getting path for centralized project and another
     project exists without a tank name.
     """
 
