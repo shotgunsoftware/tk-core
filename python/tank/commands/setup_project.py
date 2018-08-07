@@ -104,7 +104,8 @@ class SetupProjectAction(Action):
         
         # Special setting used by the shotgun desktop app to handle the current form of distributed
         # configs
-        self.parameters["auto_path"] = { "description": ("Expert setting. Setting this to true means that a blank "
+        self.parameters["auto_path"] = { "description": ("Deprecated. Do not use this! --- "
+                                                         "Expert setting. Setting this to true means that a blank "
                                                          "path entry is written to the shotgun site pipeline "
                                                          "configuration. This can be used in conjunction with "
                                                          "a localized core to create a site configuration which "
