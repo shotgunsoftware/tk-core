@@ -40,7 +40,7 @@ class SsoSaml2(object):
         qt_modules = qt_modules or {}
         self._core = SsoSaml2Core(window_title=window_title, qt_modules=qt_modules)
 
-    def login_attempt(self, host, cookies=None, product=None, http_proxy=None, use_watchdog=False):
+    def login_attempt(self, host, cookies=None, product=None, http_proxy=None, use_watchdog=False, oxygen_mode=False):
         """
         Called to attempt a login process.
 
@@ -65,7 +65,7 @@ class SsoSaml2(object):
             "http_proxy": http_proxy,
             "cookies": cookies,
             "product": product,
-        }, use_watchdog)
+        }, use_watchdog, oxygen_mode=oxygen_mode)
         return success == 1
 
     def is_automatic_claims_renewal_active(self):
