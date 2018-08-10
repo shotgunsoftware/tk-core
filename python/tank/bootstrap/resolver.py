@@ -315,10 +315,10 @@ class ConfigurationResolver(object):
 
             # see if the pipeline configuration we are looking at is relevant. Either of:
             # - Be a match against the resolver's associated plugin id
-            # - Be a classic config associated with the resolver's associated project
+            # - Be a centralized config associated with the resolver's associated project
 
             if self._matches_current_plugin_id(pipeline_config) or \
-                    self._is_classic_pc_for_current_project(pipeline_config):
+                    self._is_centralized_pc_for_current_project(pipeline_config):
 
                 # extract the location information and place in special 'config_descriptor'
                 # field. Note that this may be None if for example the pipeline configuration
@@ -365,10 +365,10 @@ class ConfigurationResolver(object):
         sg_descriptor_uri = shotgun_pc_data.get("descriptor") or shotgun_pc_data.get("sg_descriptor")
         sg_uploaded_config = shotgun_pc_data.get("uploaded_config") or shotgun_pc_data.get("sg_uploaded_config")
 
-        # classic configs are defined by having their plugin_ids field set to None
-        # classic configs only support the path fields
+        # centralized configs are defined by having their plugin_ids field set to None
+        # centralized configs only support the path fields
         plugin_ids = shotgun_pc_data.get("plugin_ids") or shotgun_pc_data.get("sg_plugin_ids")
-        is_classic_config = plugin_ids is None
+        is_centralized_config = plugin_ids is None
 
         cfg_descriptor = None
 
@@ -395,7 +395,7 @@ class ConfigurationResolver(object):
                     fallback_roots=self._bundle_cache_fallback_paths,
                 )
 
-        elif sg_descriptor_uri and not is_classic_config:
+        elif sg_descriptor_uri and not is_centralized_config:
 
             if sg_uploaded_config:
                 log.debug(
@@ -417,7 +417,7 @@ class ConfigurationResolver(object):
                 resolve_latest=is_descriptor_version_missing(sg_descriptor_uri)
             )
 
-        elif sg_uploaded_config and not is_classic_config:
+        elif sg_uploaded_config and not is_centralized_config:
 
             if shotgun_pc_data.get("uploaded_config") and shotgun_pc_data.get("sg_uploaded_config"):
                 log.debug(
@@ -470,11 +470,11 @@ class ConfigurationResolver(object):
                 msg = ("Pipeline Configuration %s does not have a "
                        "plugin_ids pattern specified." % shotgun_pc_data["id"])
 
-            elif is_classic_config:
+            elif is_centralized_config:
                 # plugin_ids is None and no descriptor/uploaded config field set.
-                # assume this is a classic config
-                msg = ("Pipeline Configuration %s does not have "
-                       "a path field specified." % shotgun_pc_data["id"])
+                # assume this is a centralized config
+                msg = ("Centralized Pipeline Configuration %s does not have "
+                       "a mac/windows/linux_path field specified." % shotgun_pc_data["id"])
 
             else:
                 # plugin ids is set but nothing else.
@@ -498,9 +498,9 @@ class ConfigurationResolver(object):
         """
         Picks a primary pipeline configuration and logs warnings if where are any extra ones.
 
-        If there is a Toolkit classic pipeline configuration, it is picked over any plugin-id based
-        pipeline configurations. If there are multiple Toolkit Classic pipeline configurations, the one with
-        the lowest id is picked.
+        If there is a Toolkit centralized pipeline configuration, it is picked over any plugin-id based
+        pipeline configurations. If there are multiple Toolkit centralized pipeline configurations,
+        the one with the lowest id is picked.
 
         :param list configs: Pipeline configurations entities sorted by id from lowest to highest.
         :param str level_name: Name of the scope for the pipeline configurations.
@@ -508,7 +508,7 @@ class ConfigurationResolver(object):
         :returns: The first pipeline configuration from ``configs`` or ``None`` if it was empty.
         """
 
-        # Sorts all pipeline configurations, putting all classic pipeline configurations in the
+        # Sorts all pipeline configurations, putting all centralized pipeline configurations in the
         # front and then all the plugin based at the back. In each group, pipelines are sorted
         # by id.
         def make_pc_key(pc):
@@ -806,14 +806,14 @@ class ConfigurationResolver(object):
 
             return self._create_configuration_from_descriptor(config_descriptor, sg_connection, pc_id)
 
-    def _is_classic_pc_for_current_project(self, shotgun_pc_data):
+    def _is_centralized_pc_for_current_project(self, shotgun_pc_data):
         """
-        Checks if a pipeline configuration is a classic pipeline configuration, for the requested
-        project.
+        Checks if a pipeline configuration is a centralized pipeline configuration,
+        for the requested project.
 
         :param dict shotgun_pc_data: Pipeline Configuration entity with
             fields ``plugin_ids``, ``sg_plugin_ids``, ``project`` and ``project.id``.
-        :returns: True if the pipeline is a classic pipeline configuration, False otherwise.
+        :returns: True if the pipeline is a centralized pipeline configuration, False otherwise.
         """
         if shotgun_pc_data.get("plugin_ids") or shotgun_pc_data.get("sg_plugin_ids"):
             return False

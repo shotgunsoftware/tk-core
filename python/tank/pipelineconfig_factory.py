@@ -223,7 +223,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
     Given a set of pipeline configuration, validate that the currently running code
     is compliant and construct and return a suitable pipeline configuration instance.
 
-    This method takes into account complex new and old logic, including classic
+    This method takes into account complex new and old logic, including centralized
     setups, shared cores and bootstrap workflows.
 
     The associated_pipeline_configs parameter contains a list of potential pipeline
@@ -299,7 +299,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
             )
 
             log.debug(
-                "This error can occur if you have moved a classic toolkit configuration "
+                "This error can occur if you have moved a centralized toolkit configuration "
                 "manually rather than using the 'tank move_configuration command'. "
                 "It can also occur if you are trying to use a tank command associated "
                 "with one Project to try to operate on a Shot or Asset "
@@ -331,11 +331,11 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
         # a core which is located outside a pipeline configuration.
         # in this case, find the primary pipeline config and use that.
         #
-        # note: This kind of setup is not compatible with non-classic setups, where
-        #       all configurations are always localized
+        # note: This kind of setup is not compatible with distributed setups, where
+        #       all configurations are effectively always localized.
         #
 
-        # We're running with a classic pipeline configuration with shared core, which means we can
+        # We're running with a centralized pipeline configuration with shared core, which means we can
         # ignore site-wide pipeline configurations as they are not compatible with this way of doing
         # configs. Strip them all out so only project based pipeline configurations remain. This is
         # important otherwise more than one primary might match a centralized core.
@@ -361,7 +361,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
             # incorrectly re-using the same paths.
 
             raise TankInitError(
-                "%s is associated with more than one Primary pipeline "
+                "%s is associated with more than one centralized Primary pipeline "
                 "configuration. This can happen if there is ambiguity in your project setup, where "
                 "projects store their data in an overlapping fashion, for example if a project is "
                 "named the same as a local storage root. In this case, try creating "
@@ -377,14 +377,15 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
             sg_config_data = primary_pc_data[0]
 
             # with direct access from shared cores, we don't support bootstrap workflows.
-            # For this case, you HAVE to use the 'classic' fields windows|mac|linux_path.
+            # For this case, you HAVE to use the centralized config fields windows|mac|linux_path.
             if sg_config_data["path"] is None:
                 # will not end up here unless someone tries to run shared_core on a
                 # configuration which is maintained by bootstrap.
                 raise TankInitError(
                     "The pipeline configuration with id %s, associated with %s, "
-                    "cannot be instantiated because it does not have an absolute path "
-                    "definition in Shotgun." % (sg_config_data["id"], source)
+                    "cannot be instantiated because it is a distributed config. "
+                    "To launch this kind of configuration, use "
+                    "the Bootstrap API instead." % (sg_config_data["id"], source)
                 )
 
             # This checks for a very subtle bug. If the toolkit_init.cache contains a path to a
@@ -396,8 +397,8 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
             # this time around.
             if not os.path.exists(sg_config_data["path"]):
                 raise TankInitError(
-                    "The pipeline configuration %s does not exist on disk. This can happen if the "
-                    "pipeline configuration has been moved to another location or deleted from "
+                    "The centralized pipeline configuration %s does not exist on disk. "
+                    "This can happen if it has been moved to another location or deleted from "
                     "disk." % sg_config_data["path"]
                 )
 
@@ -564,7 +565,7 @@ def _get_pipeline_configs_for_path(path, data):
                         _add_to_project_paths(project_paths, project["tank_name"], storage, pc)
 
             else:
-                # installed/classic pipeline configurations are associated with a
+                # centralized pipeline configurations are associated with a
                 # project which has a tank_name set. this key should always exist,
                 # but the value may be None for projects not using the
                 # templates/schema system. for safety, call 'get' as we've seen

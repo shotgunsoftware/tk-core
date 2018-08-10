@@ -833,53 +833,31 @@ class Sgtk(object):
 def sgtk_from_path(path):
     """
     Creates a Toolkit Core API instance based on a path to a configuration
-    or a path to any file inside a project root location.
+    or a path to any file inside a project root location. This factory
+    method will do the following two things:
 
-    This factory method will do the following:
+    **When the path points at a configuration**
 
-    - If the given path is determined to be pointing at a pipeline configuration,
-      checks will be made to determine that the currently imported ``sgtk`` module is
-      associated with the configuration. There are two ways this can be valid:
+    If the given path is determined to be pointing at a pipeline configuration,
+    checks will be made to determine that the currently imported ``sgtk`` module
+    is the same version that the configuration requires.
 
-        - Either the configuration is localized, meaning that has it's
-          own ``sgtk`` core module. In that case, it is validated that the ``sgtk``
-          module currently running is exactly that core API belonging to the configuration.
+    **When the path points at a project file**
 
-        - ...or the configuration is sharing an ``sgtk`` core with other configurations.
-          in this case, is is validated that the currently imported ``sgtk`` module
-          is that shared core that the configuration requires.
+    If the given path is to a file (e.g. a maya file for example), the method will
+    retrieve all projects from Shotgun, including their ``Project.tank_name``
+    project root folder fields and associated pipeline configurations. It will then
+    walk up the path hierarchy of the given path until one of the project roots are
+    matching the path. For that project, all pipeline configurations are then retrieved.
 
-    - If the given path is to a file (e.g. a maya file for example), the method will
-      do the following:
+    .. note:: If more than one configuration is matching, the
+              primary one will take precendence.
 
-       - Retrieve all projects from Shotgun, including project their `Project.tank_name`
-         project root folder fields, and associated pipeline configurations.
+    **Shared cores and localized cores**
 
-       - Walk up the path hierarchy of the given path until one of the project roots are
-         matching the path.
-
-       - Get a list of matching pipeline configurations for that project.
-
-       - Ensure that the currently imported ``sgtk`` module is a valid configuration for
-         the matching configurations. If more than one configuration is matching, the
-         primary will take precendence.
-
-    This method can be used if you have a toolkit project installed in a particular location and
-    want to write a script that initializes it. For example, if a Toolkit configuration
-    is set up in ``/mnt/projects/hidden_forest/tk_config``, you could initialize it like this::
-
-        # add the core of the project to the pythonpath
-        import sys
-        sys.path.append("/mnt/projects/hidden_forest/tk_config/install/core/python")
-
-        # now import the API
-        import sgtk
-
-        # import the configuration
-        tk = sgtk.sgtk_from_path("/mnt/projects/hidden_forest/tk_config")
-
-    If you have a shared core for all your projects, you could pass a file path to this
-    method and toolkit would automatically figure out which configuration would be suitable::
+    If you have a shared core for all your projects, you can follow a pattern where
+    you add this shared core to the ``PYTHONPATH`` and you can launch Toolkit for any
+    project file on disk (or Shotgun entity) on your entire site easily::
 
         # add the shared core to the pythonpath
         import sys
@@ -891,6 +869,8 @@ def sgtk_from_path(path):
         # request that the API produced a tk instance suitable for a given file
         tk = sgtk.sgtk_from_path("/mnt/projects/hidden_forest/shots/aa/aa_001/lighting/foreground.v002.ma")
 
+    .. note:: The :ref:`bootstrap_api` is now the recommended solution
+              for building a pattern that can launch an engine for any given entity on a site.
 
     :param path: Path to pipeline configuration or to a folder associated with a project.
     :returns: :class:`Sgtk` instance
@@ -902,11 +882,9 @@ def sgtk_from_entity(entity_type, entity_id):
     Creates a Toolkit Core API instance given an entity in Shotgun.
 
     The given object will be looked up in Shotgun, its associated pipeline configurations
-    will be determined, and compared against the currently imported ``sgtk`` module.
-
+    will be determined, and compared against the currently imported :class:`sgtk` module.
     The logic is identical to the one outlined in :meth:`sgtk_from_path`, but for
-    a Shotgun entity rather than a path. For more details, see the documentation for
-    that method.
+    a Shotgun entity rather than a path. For more details, see :meth:`sgtk_from_path`.
 
     :param entity_type: Shotgun entity type, e.g. ``Shot``
     :param entity_id: Shotgun entity id

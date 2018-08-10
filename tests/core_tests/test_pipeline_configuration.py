@@ -213,17 +213,17 @@ class TestConfigLocations(TankTestBase):
                     desc.get_path(), os.path.join(self.fixtures_root, "config", "bundles", "test_app")
                 )
 
-    def test_classic_config_with_studio_core(self):
+    def test_centralized_config_with_studio_core(self):
         """
-        Tests the paths for a classic configuration with a studio core.
+        Tests the paths for a centralized configuration with a studio core.
         """
         pc, config_root, core_root = self._setup_project(is_localized=False)
         self._test_core_locations(pc, core_root, is_localized=False)
         self._test_config_locations(pc, config_root, os.path.join(config_root, "config"))
 
-    def test_classic_config_with_local_core(self):
+    def test_centralized_config_with_local_core(self):
         """
-        Tests the paths for a classic configuration with a localized core.
+        Tests the paths for a centralized configuration with a localized core.
         """
         pc, config_root, core_root = self._setup_project(is_localized=True)
         self._test_core_locations(pc, config_root, is_localized=True)
@@ -263,7 +263,7 @@ class TestConfigLocations(TankTestBase):
 
     def _setup_project(self, is_localized):
         """
-        Setups a Toolkit classic pipeline configuration with a localized or not core.
+        Setups a Toolkit centralized pipeline configuration with a localized or not core.
         """
 
         # Create the project's destination folder.

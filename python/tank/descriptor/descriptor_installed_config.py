@@ -27,7 +27,7 @@ log = LogManager.get_logger(__name__)
 class InstalledConfigDescriptor(ConfigDescriptor):
     """
     Descriptor that describes an installed Toolkit Configuration. An installed configuration
-    is what we otherwise refer to as a classic pipeline configuration, which is a pipeline
+    is what we otherwise refer to as a centralized pipeline configuration, which is a pipeline
     configuration is that installed in a folder on the network, which contains a copy of the
     environment files, a copy of core and all the bundles required by that pipeline configuration.
     It supports localized as well as shared core and as such, the interpreter files can be found
