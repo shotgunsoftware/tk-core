@@ -45,14 +45,14 @@ HTTP_CANT_AUTHENTICATE_SSO_TIMEOUT = "Time out attempting to authenticate to SSO
 HTTP_CANT_AUTHENTICATE_SSO_NO_ACCESS = "You have not been granted access to the Shotgun site."
 
 # Paths for bootstrap the login/renewal process.
-URL_SAML_RENEW_PATH = "/saml/saml_renew"
-URL_SAML_RENEW_LANDING_PATH = "/saml/saml_renew_landing"
+URL_SAML_INIT_PATH = "/saml/saml_renew"
+URL_SAML_COMPLETE_PATH = "/saml/saml_renew_landing"
 
 # Old login path, which is not used for SSO.
 URL_LOGIN_PATH = "/user/login"
 
-URL_ULF_START_PATH = "/auth/renew"
-URL_ULF_END_PATH = "/auth/landing"
+URL_WEBVIEW_INIT_PATH = "/auth/renew"
+URL_WEBVIEW_COMPLETE_PATH = "/auth/landing"
 
 # Timer related values.
 # @TODO: parametrize these and add environment variable overload.
@@ -258,7 +258,7 @@ class SsoSaml2Core(object):
         content = {
             "session_expiration": get_saml_claims_expiration(encoded_cookies),
             "session_id": get_session_id(encoded_cookies),
-            "user_id": get_saml_user_name(encoded_cookies) if not self._oxygen_mode else urllib.unquote(cookies['shotgun_current_user_login'].value),
+            "user_id": get_saml_user_name(encoded_cookies) if not self._webview_mode else urllib.unquote(cookies['shotgun_current_user_login'].value),
             "csrf_key": get_csrf_key(encoded_cookies),
             "csrf_value": get_csrf_token(encoded_cookies),
         }
@@ -425,7 +425,7 @@ class SsoSaml2Core(object):
 
         # We do not update the page cookies, assuming that they have already
         # have been cleared/updated before.
-        self._view.page().mainFrame().load(self._session.host + URL_SAML_RENEW_PATH)
+        self._view.page().mainFrame().load(self._session.host + URL_SAML_INIT_PATH)
 
     def on_renew_sso_session_timeout(self):
         """
@@ -460,10 +460,10 @@ class SsoSaml2Core(object):
         url = self._view.page().mainFrame().url().toString().encode("utf-8")
         if (
                 self._session is not None and
-                url.startswith(self._session.host + URL_SAML_RENEW_LANDING_PATH if not self._oxygen_mode else self._session.host + URL_ULF_END_PATH)
+                url.startswith(self._session.host + URL_SAML_COMPLETE_PATH if not self._webview_mode else self._session.host + URL_WEBVIEW_COMPLETE_PATH)
         ):
             self.update_session_from_browser()
-            if self._session_renewal_active and not self._oxygen_mode:
+            if self._session_renewal_active and not self._webview_mode:
                 self.start_sso_renewal()
 
             self._dialog.accept()
@@ -487,7 +487,7 @@ class SsoSaml2Core(object):
             if error is QtNetwork.QNetworkReply.NetworkError.HostNotFoundError:
                 session.error = HTTP_CANT_CONNECT_TO_SHOTGUN
             elif error is QtNetwork.QNetworkReply.NetworkError.ContentNotFoundError:
-                if url.startswith(session.host + URL_SAML_RENEW_PATH if not self._oxygen_mode else session.host + URL_ULF_START_PATH):
+                if url.startswith(session.host + URL_SAML_INIT_PATH if not self._webview_mode else session.host + URL_WEBVIEW_INIT_PATH):
                     # This is likely because the subdomain is not valid.
                     # e.g. https://foobar.shotgunstudio.com
                     # Here the domain (shotgunstudio.com) is valid, but not
@@ -515,7 +515,7 @@ class SsoSaml2Core(object):
                     session.error = None
             else:
                 session.error = reply.attribute(QtNetwork.QNetworkRequest.HttpReasonPhraseAttribute)
-        elif url.startswith(session.host + URL_LOGIN_PATH) and not self._oxygen_mode:
+        elif url.startswith(session.host + URL_LOGIN_PATH) and not self._webview_mode:
             # If we are being redirected to the login page, then SSO is not
             # enabled on that site.
             session.error = HTTP_AUTHENTICATE_SSO_NOT_UPPORTED
@@ -545,7 +545,7 @@ class SsoSaml2Core(object):
     #
     ############################################################################
 
-    def on_sso_login_attempt(self, event_data=None, use_watchdog=False, oxygen_mode=False):
+    def on_sso_login_attempt(self, event_data=None, use_watchdog=False, webview_mode=False):
         """
         Called to attempt a login process with user interaction.
 
@@ -554,11 +554,11 @@ class SsoSaml2Core(object):
 
         :returns: 1 if successful, 0 otherwise.
         """
-        self._oxygen_mode = oxygen_mode
+        self._webview_mode = webview_mode
         self._logger.debug("SSO login attempt")
         QtCore = self._QtCore  # noqa
 
-        self._dialog.setWindowTitle("SSO Login" if not oxygen_mode else "Web Login")
+        self._dialog.setWindowTitle("SSO Login" if not webview_mode else "Web Login")
         if event_data is not None:
             self.handle_event(event_data)
 
@@ -568,7 +568,7 @@ class SsoSaml2Core(object):
 
         # If we do have session cookies, let's attempt a session renewal
         # without presenting any GUI.
-        if self._session.cookies and not oxygen_mode:
+        if self._session.cookies and not webview_mode:
             self._logger.debug("Attempting a GUI-less renewal")
             loop = QtCore.QEventLoop(self._dialog)
             self._dialog.finished.connect(loop.exit)
@@ -582,7 +582,7 @@ class SsoSaml2Core(object):
             self._view.raise_()
 
             # We append the product code to the GET request.
-            url = self._session.host + URL_SAML_RENEW_PATH + "?product=%s" % self._session.product if not oxygen_mode else self._session.host + URL_ULF_START_PATH
+            url = self._session.host + URL_SAML_INIT_PATH + "?product=%s" % self._session.product if not webview_mode else self._session.host + URL_WEBVIEW_INIT_PATH
             self._view.page().mainFrame().load(url)
 
             self._dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)

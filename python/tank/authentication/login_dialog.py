@@ -70,7 +70,7 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         return self._site_info.get("user_authentication_method") == "oxygen"
 
     @property
-    def ulf_enabled(self):
+    def unified_login_flow_enabled(self):
         return bool(self._site_info.get("unified_login_flow_enabled"))
 
     @property
@@ -135,7 +135,7 @@ class LoginDialog(QtGui.QDialog):
 
         self._is_session_renewal = is_session_renewal
         self._session_metadata = session_metadata
-        self._no_credentials_mode = False
+        self._use_webview = False
 
         # setup the gui
         self.ui = login_dialog.Ui_LoginDialog()
@@ -333,23 +333,23 @@ class LoginDialog(QtGui.QDialog):
 
     def _toggle_webview(self):
         """
-        Sets up the dialog GUI according to the use of SSO/UFL or not.
+        Sets up the dialog GUI according to the use of SSO/Unified Login Flow or not.
         """
         # We only update the GUI if there was a change between to mode we
         # are showing and what was detected on the potential target site.
         qt = self._query_task
-        use_webview = qt.sso_enabled or qt.oxygen_enabled and qt.ulf_enabled
-        if self._no_credentials_mode == use_webview:
+        use_webview = qt.sso_enabled or qt.oxygen_enabled and qt.unified_login_flow_enabled
+        if self._use_webview == use_webview:
             return
 
         # Toggle value
-        self._no_credentials_mode ^= 1
+        self._use_webview ^= 1
 
         # Update UI
-        self.ui.message.setText("Please enter your credentials." if not self._no_credentials_mode else "Sign in using your identity account.")
-        self.ui.login.setVisible(not self._no_credentials_mode)
-        self.ui.password.setVisible(not self._no_credentials_mode)
-        if self._no_credentials_mode:
+        self.ui.message.setText("Please enter your credentials." if not self._use_webview else "Sign in using your identity account.")
+        self.ui.login.setVisible(not self._use_webview)
+        self.ui.password.setVisible(not self._use_webview)
+        if self._use_webview:
             self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
 
     def _current_page_changed(self, index):
@@ -417,7 +417,7 @@ class LoginDialog(QtGui.QDialog):
                 cookies=self._session_metadata,
                 product=PRODUCT_IDENTIFIER,
                 use_watchdog=True,
-                oxygen_mode=self._query_task.oxygen_enabled and self._query_task.ulf_enabled
+                webview_mode=self._query_task.oxygen_enabled and self._query_task.unified_login_flow_enabled
             )
             # If the offscreen session renewal failed, show the GUI as a failsafe
             if res == QtGui.QDialog.Accepted:
@@ -473,7 +473,7 @@ class LoginDialog(QtGui.QDialog):
             site = "https" + site[4:]
         self.ui.site.setEditText(site)
 
-        if not self._no_credentials_mode:
+        if not self._use_webview:
             if len(login) == 0:
                 self._set_error_message(self.ui.message, "Please enter your login name.")
                 self.ui.login.setFocus(QtCore.Qt.OtherFocusReason)
@@ -506,13 +506,13 @@ class LoginDialog(QtGui.QDialog):
         """
         success = False
         try:
-            if self._no_credentials_mode and self._sso_saml2:
+            if self._use_webview and self._sso_saml2:
                 res = self._sso_saml2.login_attempt(
                     host=site,
                     http_proxy=self._http_proxy,
                     cookies=self._session_metadata,
                     product=PRODUCT_IDENTIFIER,
-                    oxygen_mode=self._query_task.oxygen_enabled and self._query_task.ulf_enabled
+                    webview_mode=self._query_task.oxygen_enabled and self._query_task.unified_login_flow_enabled
                 )
                 if res == QtGui.QDialog.Accepted:
                     self._new_session_token = self._sso_saml2.session_id
