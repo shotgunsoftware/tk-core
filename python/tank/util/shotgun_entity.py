@@ -26,6 +26,7 @@ SG_ENTITY_SPECIAL_NAME_FIELDS = {
     "Note": "subject",
     "Department": "name",
     "Delivery": "title",
+    "Tag": "name",
 }
 
 
