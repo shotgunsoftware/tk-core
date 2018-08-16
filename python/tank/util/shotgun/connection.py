@@ -47,15 +47,21 @@ def __get_api_core_config_location():
        \- Config
              \- Core
     """
+    # [Squeeze] Again, this part assume that the that installed pipeline configuration location can be resolved from
+    # the tk-core location which might not be true of the tk-core is not installed in a pipeline configuration.
+    # For this reason we'll give priority to our environment variable. 
+    if 'SQ_TK_INSTALLED_CONFIG_PATH' in os.environ:
+        return os.path.join(os.environ['SQ_TK_INSTALLED_CONFIG_PATH'], 'config', 'core')
+
     # local import to avoid cyclic references
     from ...pipelineconfig_utils import get_path_to_current_core
     core_api_root = get_path_to_current_core()
     core_cfg = os.path.join(core_api_root, "config", "core")
 
     if not os.path.exists(core_cfg):
-        path_to_file = os.path.abspath(os.path.dirname(__file__))
-        path_to_core = os.path.abspath(os.path.join(path_to_file, "..", ".."))
-        raise UnresolvableCoreConfigurationError(path_to_core)
+        # path_to_file = os.path.abspath(os.path.dirname(__file__))
+        # path_to_core = os.path.abspath(os.path.join(path_to_file, "..", ".."))
+        raise UnresolvableCoreConfigurationError(core_cfg)
 
     return core_cfg
 

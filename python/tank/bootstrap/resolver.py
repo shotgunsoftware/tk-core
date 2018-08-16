@@ -19,7 +19,7 @@ import fnmatch
 import pprint
 
 from ..descriptor import (
-    Descriptor, create_descriptor,
+    Descriptor, create_descriptor, 
     descriptor_uri_to_dict, is_descriptor_version_missing
 )
 from .errors import TankBootstrapError, TankBootstrapInvalidPipelineConfigurationError
@@ -32,6 +32,7 @@ from ..util import ShotgunPath
 from ..util import LocalFileStorageManager
 from .. import LogManager
 from . import constants
+
 
 log = LogManager.get_logger(__name__)
 
@@ -54,7 +55,9 @@ class ConfigurationResolver(object):
         "sg_descriptor",
         "descriptor",
         "uploaded_config",
-        "sg_uploaded_config"
+        "sg_uploaded_config",
+        "sg_installed_config_descriptor",  # added by Squeeze,
+        "project.Project.tank_name",  # added by Squeeze,
     ]
 
     def __init__(
@@ -364,6 +367,7 @@ class ConfigurationResolver(object):
         path = ShotgunPath.from_shotgun_dict(shotgun_pc_data)
         sg_descriptor_uri = shotgun_pc_data.get("descriptor") or shotgun_pc_data.get("sg_descriptor")
         sg_uploaded_config = shotgun_pc_data.get("uploaded_config") or shotgun_pc_data.get("sg_uploaded_config")
+        sg_installed_config_descriptor = shotgun_pc_data.get("sg_installed_config_descriptor")
 
         # classic configs are defined by having their plugin_ids field set to None
         # classic configs only support the path fields
@@ -394,6 +398,81 @@ class ConfigurationResolver(object):
                     descriptor_dict,
                     fallback_roots=self._bundle_cache_fallback_paths,
                 )
+
+        # [Squeeze]
+        # There's a big issue with CachedConfiguration.
+        # If you look into tk-core/python/tank/bootstrap/cached_configuration.py in the update_configuration method,
+        # you can see that the tk-core is copied from it's location (generally in the bundle-cache) to the install/core
+        # directory of the installed pipeline configuration.
+        # This result in toolkit crashing pretty badly, often corrupting the installed configuration.
+        # see: https://www.youtube.com/watch?v=t6JF6m-tcsE
+        # The obvious solution would be to access tk-core from the bundle_cache instead of copying it to an installed location.
+        # We've contacted Shotgun about this issue and they said that that the changes needed to be able to access
+        # tk-core from any location are too big and they might implement a mutex instead.
+        # see: https://support.shotgunsoftware.com/hc/en-us/requests/88148
+        # As long as I would love to fix Toolkit, with the time available, it was not possible.
+        # For this reason, until this this issue is resolved correctly upstream, we CANNOT use CachedConfiguration.
+        # As an ugly workaround to an ugly issue, if we detect that the PipelineConfiguration have access to a generic
+        # installed configuration, we will use it instead. This will provide us with a InstalledConfiguration which
+        # don't have the issues CachedConfiguration have. This generic installed configuration will point to the original
+        # configuration descriptor.
+        # This make the workaround easy to de-activate by simply clearning the sg_installed_config_descriptor of a PipelineConfiguration.
+        elif sg_installed_config_descriptor and sg_descriptor_uri:
+            log.info("[Squeeze] PipelineConfiguration #{0} have an sg_installed_config_descriptor set. Will force the configure to an InstalledConfiguration.")
+
+            # Resolve the core location using CachedConfig mecanism.
+            cfg_descriptor = create_descriptor(
+                sg_connection,
+                Descriptor.CONFIG,
+                sg_descriptor_uri,
+                fallback_roots=self._bundle_cache_fallback_paths
+            )
+            cfg_descriptor.ensure_local()
+
+            # Resolve location of the tk-core to use.
+            # Normally, classical configuration (InstalledConfiguration) have their core vendored into their install/core directory.
+            # Shotgun call this a "localized" core.
+            # There's also a mechanism where an InstalledConfiguration can take it's tk-core from another configuration.
+            # Shotgun call this a "shared" core.
+            # However the disadvantage of a shared core is that it still have to reside in an installed pipeline configuration.
+            # Shotgun call this a "studio" configuration.
+            # Since our goal is to satisfy the CachedConfiguration mechanism (which determine the core from the "core_api.yml" file,
+            # we don't want to the tk-core to be part of any installed configuration.
+            # This is not possible in vanilla Toolkit, however we modified the tk-core so that it is possible.
+            core_descriptor_dict = cfg_descriptor.associated_core_descriptor
+            core_descriptor = create_descriptor(
+                sg_connection,
+                Descriptor.CORE,
+                core_descriptor_dict,
+                fallback_roots=self._bundle_cache_fallback_paths
+            )
+            core_descriptor.ensure_local()
+            core_path = core_descriptor.get_path()
+
+            log.info("Found an installed config descriptor.")
+            cfg_installed_descriptor = create_descriptor(
+                sg_connection,
+                Descriptor.INSTALLED_CONFIG,
+                sg_installed_config_descriptor,
+                fallback_roots=self._bundle_cache_fallback_paths
+            )
+
+            # Provide all the necessary environment variables so that our generic InstalledConfiguration is able
+            # to use the correct project, configuration and tk-core informations.
+            env_to_patch = {
+                'SQ_TK_CORE_LOCATION': core_path,
+                'SQ_TK_PROJECT_ID': str(shotgun_pc_data['project']['id']),
+                'SQ_TK_PROJECT_NAME': shotgun_pc_data["project.Project.tank_name"],
+                'SQ_TK_PIPELINE_CONFIGURATION_ID': str(shotgun_pc_data['id']),
+                'SQ_TK_INSTALLED_CONFIG_PATH': cfg_installed_descriptor.get_path(),
+                'SQ_TK_CONFIGURATION_DESCRIPTOR': sg_descriptor_uri,
+            }
+            for key, val in env_to_patch.iteritems():
+                log.info("[Squeeze] Setting '{0}' to {1}".format(key, val))
+                os.environ[key] = val
+
+            # Disguise our CachedConfiguration as a InstalledConfiguration.
+            cfg_descriptor = cfg_installed_descriptor
 
         elif sg_descriptor_uri and not is_classic_config:
 

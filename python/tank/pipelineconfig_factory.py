@@ -175,9 +175,13 @@ def _from_path(path, force_reread_shotgun_cache):
 
         log.debug("The path %s points at a pipeline configuration." % path)
 
-        # resolve the "real" location that is stored in Shotgun and
-        # cached in the file system
-        pc_registered_path = pipelineconfig_utils.get_config_install_location(path)
+        # [Squeeze] Normally there's an "install_location.yml" that point to the location of the installed config.
+        # However since our pipeline configuration is generic, it will always have the same path which we cannot predict.
+        # For this reason, we'll fallback on what was defined at resolve time if possible.
+        if "SQ_TK_INSTALLED_CONFIG_PATH" in os.environ:
+            pc_registered_path = os.environ["SQ_TK_INSTALLED_CONFIG_PATH"]
+        else:
+            pc_registered_path = pipelineconfig_utils.get_config_install_location(path)
 
         log.debug("Resolved the official path registered in Shotgun to be %s." % pc_registered_path)
 
@@ -407,6 +411,13 @@ def _get_configuration_context():
     """
     # default for studio level tank command/API
     val = None
+
+    # The default implementation resolve the pipeline configuration location and store it in TANK_CURRENT_PC.
+    # Sadly the location is resolved from the tk-core location and assume that the core is installed into the configuration.
+    # This is not necessarily true (ex: if the tk-core is read from the bundle_cache).
+    # For this reason, we cannot trust TANK_CURRENT_PC (facepalm) and will give priority to another env variable.
+    if 'SQ_TK_INSTALLED_CONFIG_PATH' in os.environ:
+        return os.environ['SQ_TK_INSTALLED_CONFIG_PATH']
 
     if "TANK_CURRENT_PC" in os.environ:
         # config level tank command/API

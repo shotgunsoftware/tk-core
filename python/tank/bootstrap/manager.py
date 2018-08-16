@@ -858,35 +858,36 @@ class ToolkitManager(object):
         # this object represents a configuration that may or may not
         # exist on disk. We can use the config object to check if the
         # object needs installation, updating etc.
-        if constants.CONFIG_OVERRIDE_ENV_VAR in os.environ and self._allow_config_overrides:
-            # an override environment variable has been set. This takes precedence over
-            # all other methods and is useful when you do development. For example,
-            # if you are developing an app and want to test it with an existing plugin
-            # without wanting to rebuild the plugin, simply set this environment variable
-            # to point at a local config on disk:
-            #
-            # TK_BOOTSTRAP_CONFIG_OVERRIDE=/path/to/dev_config
-            #
-            log.info("Detected a %s environment variable." % constants.CONFIG_OVERRIDE_ENV_VAR)
-            config_override_path = os.environ[constants.CONFIG_OVERRIDE_ENV_VAR]
-            # resolve env vars and tildes
-            config_override_path = os.path.expanduser(os.path.expandvars(config_override_path))
-            log.info("Config override set to '%s'" % config_override_path)
-
-            if not os.path.exists(config_override_path):
-                raise TankBootstrapError(
-                    "Cannot find config '%s' defined by override env var %s." % (
-                        config_override_path,
-                        constants.CONFIG_OVERRIDE_ENV_VAR
-                    )
-                )
-
-            config = resolver.resolve_configuration(
-                {"type": "dev", "path": config_override_path},
-                self._sg_connection,
-            )
-
-        elif self._do_shotgun_config_lookup:
+        # if constants.CONFIG_OVERRIDE_ENV_VAR in os.environ and self._allow_config_overrides:
+        #     # an override environment variable has been set. This takes precedence over
+        #     # all other methods and is useful when you do development. For example,
+        #     # if you are developing an app and want to test it with an existing plugin
+        #     # without wanting to rebuild the plugin, simply set this environment variable
+        #     # to point at a local config on disk:
+        #     #
+        #     # TK_BOOTSTRAP_CONFIG_OVERRIDE=/path/to/dev_config
+        #     #
+        #     log.info("Detected a %s environment variable." % constants.CONFIG_OVERRIDE_ENV_VAR)
+        #     config_override_path = os.environ[constants.CONFIG_OVERRIDE_ENV_VAR]
+        #     # resolve env vars and tildes
+        #     config_override_path = os.path.expanduser(os.path.expandvars(config_override_path))
+        #     log.info("Config override set to '%s'" % config_override_path)
+        # 
+        #     if not os.path.exists(config_override_path):
+        #         raise TankBootstrapError(
+        #             "Cannot find config '%s' defined by override env var %s." % (
+        #                 config_override_path,
+        #                 constants.CONFIG_OVERRIDE_ENV_VAR
+        #             )
+        #         )
+        # 
+        #     config = resolver.resolve_configuration(
+        #         {"type": "dev", "path": config_override_path},
+        #         self._sg_connection,
+        #     )
+        # 
+        # elif
+        if self._do_shotgun_config_lookup:
             # do the full resolve where we connect to shotgun etc.
             log.debug("Checking for pipeline configuration overrides in Shotgun.")
             log.debug("In order to turn this off, set do_shotgun_config_lookup to False")
