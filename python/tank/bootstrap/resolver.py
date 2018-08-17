@@ -418,9 +418,10 @@ class ConfigurationResolver(object):
         # configuration descriptor.
         # This make the workaround easy to de-activate by simply clearning the sg_installed_config_descriptor of a PipelineConfiguration.
         elif sg_installed_config_descriptor and sg_descriptor_uri:
-            log.info("[Squeeze] PipelineConfiguration #{0} have an sg_installed_config_descriptor set. Will force the configure to an InstalledConfiguration.")
+            log.info("[Squeeze] PipelineConfiguration #{0} have an sg_installed_config_descriptor set. Will force the configure to an InstalledConfiguration.".format(shotgun_pc_data['id']))
 
             # Resolve the core location using CachedConfig mecanism.
+            log.info("[Squeeze] Original configuration descriptor uri is: {0}".format(sg_descriptor_uri))
             cfg_descriptor = create_descriptor(
                 sg_connection,
                 Descriptor.CONFIG,
@@ -428,6 +429,8 @@ class ConfigurationResolver(object):
                 fallback_roots=self._bundle_cache_fallback_paths
             )
             cfg_descriptor.ensure_local()
+            cfg_path = cfg_descriptor.get_path()
+            log.info("[Squeeze] Resolved configuration location is: {0}".format(cfg_path))
 
             # Resolve location of the tk-core to use.
             # Normally, classical configuration (InstalledConfiguration) have their core vendored into their install/core directory.
@@ -440,6 +443,7 @@ class ConfigurationResolver(object):
             # we don't want to the tk-core to be part of any installed configuration.
             # This is not possible in vanilla Toolkit, however we modified the tk-core so that it is possible.
             core_descriptor_dict = cfg_descriptor.associated_core_descriptor
+            log.info("[Squeeze] Original configuration associated tk-core descriptor is: {0}".format(core_descriptor_dict))
             core_descriptor = create_descriptor(
                 sg_connection,
                 Descriptor.CORE,
@@ -448,14 +452,18 @@ class ConfigurationResolver(object):
             )
             core_descriptor.ensure_local()
             core_path = core_descriptor.get_path()
+            log.info("[Squeeze] Resolve tk-core location is: {0}".format(core_descriptor_dict))
 
-            log.info("Found an installed config descriptor.")
+            log.info("[Squeeze] Installed config descriptor is: {0}".format(sg_installed_config_descriptor))
             cfg_installed_descriptor = create_descriptor(
                 sg_connection,
                 Descriptor.INSTALLED_CONFIG,
                 sg_installed_config_descriptor,
                 fallback_roots=self._bundle_cache_fallback_paths
             )
+            cfg_installed_descriptor.ensure_local()
+            cfg_installed_path = cfg_installed_descriptor.get_path()
+            log.info("[Squeeze] Resolved installed config descriptor is: {0}".format(cfg_installed_path))
 
             # Provide all the necessary environment variables so that our generic InstalledConfiguration is able
             # to use the correct project, configuration and tk-core informations.
