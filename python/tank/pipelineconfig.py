@@ -127,6 +127,10 @@ class PipelineConfiguration(object):
 
         if pipeline_config_metadata.get("bundle_cache_fallback_roots"):
             self._bundle_cache_fallback_paths = pipeline_config_metadata.get("bundle_cache_fallback_roots")
+
+            # [Squeeze] Allow the bundle_cache fallback to be defined via an environment variable.
+            # This is defined in our tk_shared_bundlecache rez packages.
+            self._bundle_cache_fallback_paths = os.path.expandvars(self._bundle_cache_fallback_paths)
         else:
             self._bundle_cache_fallback_paths = []
 
@@ -148,6 +152,17 @@ class PipelineConfiguration(object):
         # the arguments. We can however ignore that argument in favor of the descriptor on disk.
 
         descriptor_dict = pipeline_config_metadata.get("source_descriptor")
+
+        # [Squeeze] Support environment variables for the source_descriptor.
+        # This allow a generic installed configuration to use any configuration.
+        # Since environment variables are string, we expect the string to be a descriptor uri.
+        # ex: "sgtk:descriptor:rez?name=tk_config_squeeze&version=3.3"
+        if isinstance(descriptor_dict, basestring):
+            descriptor_uri = os.path.expandvars(descriptor_dict)
+            new_descriptor_dict = descriptor_uri_to_dict(descriptor_uri)
+            log.info("[Squeeze] Exanded {0} to {1}".format(descriptor_dict, new_descriptor_dict))
+            descriptor_dict = new_descriptor_dict
+
         # We'll first assume the pipeline configuration is not installed.
         is_installed = False
 

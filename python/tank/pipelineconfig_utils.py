@@ -180,6 +180,12 @@ def get_path_to_current_core():
     
     :returns: string with path
     """
+    # Again, this logic determine the tk-core location from the installed configuration schema.
+    # This is wrong if the tk-core is not installed in the configuration.
+    # For this reason we'll always trust our environment variable first.
+    if 'SQ_TK_CORE_LOCATION' in os.environ:
+        return os.environ['SQ_TK_CORE_LOCATION']
+    
     curr_os_core_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
     if not os.path.exists(curr_os_core_root):
         full_path_to_file = os.path.abspath(os.path.dirname(__file__))

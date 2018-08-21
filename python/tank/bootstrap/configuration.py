@@ -7,7 +7,7 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-
+import os
 import inspect
 
 from .import_handler import CoreImportHandler
@@ -92,7 +92,15 @@ class Configuration(object):
             the new current user and the Toolkit instance.
         """
         path = self._path.current_os
-        core_path = pipelineconfig_utils.get_core_python_path_for_config(path)
+
+        # [Squeeze]
+        # Default Toolkit logic is to resolve the tk-core location by analysing the installed configuration schema.
+        # However if we really want to read the core from somewhere else (ex: the bundle_cache), we need a more efficient
+        # way of determining it's location. Environment variable is the go-to solution for this.
+        if 'SQ_TK_CORE_LOCATION' in os.environ:
+            core_path = os.path.join(os.environ['SQ_TK_CORE_LOCATION'], "python")
+        else:
+            core_path = pipelineconfig_utils.get_core_python_path_for_config(path)
 
         # Get the user before the core swapping and serialize it.
         from ..authentication import serialize_user, ShotgunSamlUser
