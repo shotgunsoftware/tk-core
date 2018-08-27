@@ -151,7 +151,7 @@ class PipelineConfiguration(object):
 
         # There are five ways this initializer can be invoked.
         #
-        # 1) Classic: We're instantiated from sgtk_from_path with a single path.
+        # 1) Centralized: We're instantiated from sgtk_from_path with a single path.
         # 2) Bootstrap: path is set, descriptor is unset and no descriptor inside
         #    pipeline_configuration.yml
         # 3) Bootstrap: path is set, descriptor is set and no descriptor inside
@@ -159,7 +159,7 @@ class PipelineConfiguration(object):
         # 4) Bootstrap, path is set, descriptor is set and descriptor inside
         #    pipeline_configuration.yml
         # 5) Baked configs via bootstrap, path is set, the rest is None. A baked
-        #    config has got the same layout as a classic installation.
+        #    config has got the same layout as a centralized installation.
         #
         # The correct way to handle all of this is to go from a descriptor string or dictionary and
         # instantiate the correct descriptor type.

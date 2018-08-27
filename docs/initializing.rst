@@ -164,6 +164,10 @@ To use this workflow, simply zip up your configuration and upload it as an attac
 .. note:: For backwards compatibility, configurations uploaded to the custom ``sg_uploaded_config`` field 
     are also supported.
 
+    Older versions of Shotgun may not have an **Uploaded Config** field enabled by
+    default, and in this case it may be necessary to create a custom field. Naming it **Uploaded Config**
+    will generate a field with the API name ``sg_uploaded_config`` and thus will be recognized by Toolkit.
+
 Once a configuration is uploaded, it will be detected and used at bootstrap.
 If a new configuration is uploaded to Shotgun, users will pick it up the
 next time they start up.
@@ -437,11 +441,44 @@ Starting a Toolkit engine from a centralized project
 ============================================================
 
 In this case, when a known location exists for your core API, you are not required to use the
-bootstrap API, however you still can. In order to launch a maya engine using the bootrap API,
-you would simply execute:
+bootstrap API. Given that the location of the configuration is known on beforehand, factory methods
+such as :meth:`sgtk.sgtk_from_path` can also be used, however when doing so you need
+to make sure you always use the core associated with the configuration:
 
 .. code-block:: python
 
+    # for our hidden forest project the configuration is
+    # installed in /mnt/toolkit/configs/hidden_forest
+    # add the tk-core of the project to the pythonpath
+    import sys
+    sys.path.append("/mnt/toolkit/configs/hidden_forest/install/core/python")
+
+    # now import the API associated with config
+    import sgtk
+
+    # and create a tk instance by passing in the path to the
+    # configuration or a path to any file associated with the
+    # project
+    tk = sgtk.sgtk_from_path("/mnt/toolkit/configs/hidden_forest")
+
+    # create a context for a Shotgun entity associated with the project
+    ctx = tk.context_from_entity("Project", 122)
+
+    # finally, launch the engine
+    engine = sgtk.platform.start_engine("tk-maya", tk, ctx)
+
+If you want, you can also use the bootstrap API to launch a centralized configuration:
+
+.. code-block:: python
+
+    # here, we can use any tk-core we want - it doesn't even have to be connected
+    # to a project - the bootstrap API will swap out the core for the right version
+    # as it starts things up.
+    #
+    # here you could also pip install the tk-core for a fully automated workflow.
+    #
+    import sys
+    sys.path.append("/my/python/stuff")
     import sgtk
 
     # Start up a Toolkit Manager
@@ -450,39 +487,22 @@ you would simply execute:
     # now start up the maya engine for a given Shotgun object
     e = mgr.bootstrap_engine("tk-maya", entity={"type": "Project", "id": 122})
 
+
 .. note:: When using boostrap, any ``tk-core`` API can be used for the initial ``import sgtk``.
     The bootstrap API will automatically determine which version is required for the project
     we are bootstrapping into, and potentially swap the core at runtime if the project
     requires a more recent version than the one used to bootstrap with.
 
-Given that the location of the configuration is known on beforehand, factory methods
-such as :meth:`sgtk.sgtk_from_path` can also be used, however when doing so you need
-to make sure you use the core associated with the configuration:
+Factory methods
+========================================
 
-.. code-block:: python
+.. currentmodule:: sgtk
 
-    # our configuration is installed in /mnt/toolkit/configs/hidden_forest
+Two main methods exist if you want to start a centralized configuration and not utilize the
+bootstrap API:
 
-    # add the core of the project to the pythonpath
-    import sys
-    sys.path.append("/mnt/toolkit/configs/hidden_forest/install/core/python")
-
-    # now import the API associated with config
-    import sgtk
-
-    # and start up the main tk API
-    tk = sgtk.sgtk_from_path("/mnt/toolkit/configs/hidden_forest")
-
-    # create a context
-    ctx = tk.context_from_entity("Project", 122)
-
-    # launch the engine
-    engine = sgtk.platform.start_engine("tk-maya", tk, ctx)
-
-
-
-
-
+.. autofunction:: sgtk_from_path
+.. autofunction:: sgtk_from_entity
 
 
 
@@ -630,30 +650,6 @@ Exception Classes
     :show-inheritance:
     :inherited-members:
     :members:
-
-
-Factory methods
-========================================
-
-.. currentmodule:: sgtk
-
-For setups where the configuration resides in a specific location on disk, you can use
-the following factory methods to create a :class:`sgtk.Sgtk` instance:
-
-.. note::
-
-    These methods were designed to initialize Toolkit in workflows where the location of configuration
-    is pre-determined, typically via the ``tank setup_project`` command (or via Shotgun Desktop's
-    project setup wizard).
-
-    Modern toolkit workflows handle the configuration management automatically, driven by the
-    configuration information in Shotgun and via the :class:`~sgtk.bootstrap.ToolkitManager` API.
-    For these workflows, there is no need to use these commands.
-    Instead, launch your toolkit engine directly using the :class:`~sgtk.bootstrap.ToolkitManager`
-    methods.
-
-.. autofunction:: sgtk_from_path
-.. autofunction:: sgtk_from_entity
 
 
 

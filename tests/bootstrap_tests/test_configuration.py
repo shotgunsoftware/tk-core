@@ -355,7 +355,7 @@ class TestInvalidInstalledConfiguration(TankTestBase):
         """
         Makes sure an installed configuration is resolved.
         """
-        # note: this is using the classic config that is part of the
+        # note: this is using the centralized config that is part of the
         #       std test fixtures.
         config = self._resolver.resolve_shotgun_configuration(
             self.sg_pc_entity["id"],

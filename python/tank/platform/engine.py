@@ -2164,6 +2164,16 @@ class Engine(TankBundle):
             QtGui.QPalette.Text,
             palette.color(QtGui.QPalette.Disabled, QtGui.QPalette.Base).lighter(250)
         )
+        palette.setBrush(
+            QtGui.QPalette.Disabled,
+            QtGui.QPalette.Link,
+            palette.color(QtGui.QPalette.Disabled, QtGui.QPalette.Base).lighter(250)
+        )
+        palette.setBrush(
+            QtGui.QPalette.Disabled,
+            QtGui.QPalette.LinkVisited,
+            palette.color(QtGui.QPalette.Disabled, QtGui.QPalette.Base).lighter(110)
+        )
 
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.WindowText, QtGui.QColor(200, 200, 200))
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Button, QtGui.QColor(75, 75, 75))
@@ -2173,6 +2183,8 @@ class Engine(TankBundle):
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Dark, QtGui.QColor(37, 37, 37))
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Mid, QtGui.QColor(45, 45, 45))
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Text, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Link, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.LinkVisited, QtGui.QColor(97, 97, 97))
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.BrightText, QtGui.QColor(37, 37, 37))
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Base, QtGui.QColor(42, 42, 42))
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Window, QtGui.QColor(68, 68, 68))
@@ -2191,6 +2203,8 @@ class Engine(TankBundle):
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Dark, QtGui.QColor(37, 37, 37))
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Mid, QtGui.QColor(45, 45, 45))
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Text, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Link, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.LinkVisited, QtGui.QColor(97, 97, 97))
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.BrightText, QtGui.QColor(37, 37, 37))
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Base, QtGui.QColor(42, 42, 42))
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Window, QtGui.QColor(68, 68, 68))
