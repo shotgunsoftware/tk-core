@@ -376,6 +376,24 @@ class ConfigurationResolver(object):
 
         cfg_descriptor = None
 
+        # [Squeeze]
+        # If we encounter a sg_installed_configuration field, we will set environment variables.
+        # However if we resolve another project in the same python session that don't have sg_installed_configuration set,
+        # we don't want those variables to be leaked.
+        # This really feel like this workaround should not be in the resolve step but in the bootstrap step.
+        env_to_unset = (
+            'SQ_TK_CORE_LOCATION',
+            'SQ_TK_PROJECT_ID',
+            'SQ_TK_PROJECT_NAME',
+            'SQ_TK_PIPELINE_CONFIGURATION_ID',
+            'SQ_TK_INSTALLED_CONFIG_PATH',
+            'SQ_TK_CONFIGURATION_DESCRIPTOR',
+        )
+        for key in env_to_unset:
+            log.info("[Squeeze] Unsetting '{0}'".format(key))
+            if key in os.environ:
+                del os.environ[key]
+
         if path:
 
             if sg_descriptor_uri or sg_uploaded_config:
