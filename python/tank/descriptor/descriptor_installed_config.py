@@ -64,6 +64,17 @@ class InstalledConfigDescriptor(ConfigDescriptor):
         """
         pipeline_config_path = self._get_pipeline_config_path()
 
+        # [Squeeze] Resolve the pipeline configuration from the monkey-patched configuration object.
+        # This allow us to have the core refered from it's bundle_cache without vendoring it into
+        # an installed configuration.
+        # Without this check, Shotgun will think that our configuration is using a shared core which
+        # is not the same thing. A shared core reside in an installed configuration.
+        # What we wanted anyway is to use the python_interpreter from the current
+        # installed configuration.
+        if hasattr(self, '_sq_bootstrap_env'):
+            pipeline_config_path = self._sq_bootstrap_env.get('SQ_TK_INSTALLED_CONFIG_PATH')
+            return self._find_interpreter_location(os.path.join(pipeline_config_path, "config"))
+
         # Config is localized, we're supposed to find an interpreter file in it.
         if pipelineconfig_utils.is_localized(pipeline_config_path):
             return self._find_interpreter_location(os.path.join(pipeline_config_path, "config"))
@@ -81,6 +92,17 @@ class InstalledConfigDescriptor(ConfigDescriptor):
 
         :returns: Core descriptor dict.
         """
+        # [Squeeze] Resolve the tk-core location from the monkey-patched configuration object.
+        # This allow us to have the core refered from it's bundle_cache without vendoring it into
+        # an installed configuration.
+        if hasattr(self, '_sq_bootstrap_env'):
+            core_path = self._sq_bootstrap_env.get('SQ_TK_CORE_LOCATION')
+            if core_path:
+                return {
+                    "type": "path",
+                    "path": core_path,
+                }
+
         pipeline_config_path = self._get_pipeline_config_path()
         return {
             "type": "path",

@@ -376,24 +376,6 @@ class ConfigurationResolver(object):
 
         cfg_descriptor = None
 
-        # [Squeeze]
-        # If we encounter a sg_installed_configuration field, we will set environment variables.
-        # However if we resolve another project in the same python session that don't have sg_installed_configuration set,
-        # we don't want those variables to be leaked.
-        # This really feel like this workaround should not be in the resolve step but in the bootstrap step.
-        env_to_unset = (
-            'SQ_TK_CORE_LOCATION',
-            'SQ_TK_PROJECT_ID',
-            'SQ_TK_PROJECT_NAME',
-            'SQ_TK_PIPELINE_CONFIGURATION_ID',
-            'SQ_TK_INSTALLED_CONFIG_PATH',
-            'SQ_TK_CONFIGURATION_DESCRIPTOR',
-        )
-        for key in env_to_unset:
-            log.info("[Squeeze] Unsetting '{0}'".format(key))
-            if key in os.environ:
-                del os.environ[key]
-
         if path:
 
             if sg_descriptor_uri or sg_uploaded_config:
@@ -447,6 +429,7 @@ class ConfigurationResolver(object):
                 fallback_roots=self._bundle_cache_fallback_paths
             )
             cfg_descriptor.ensure_local()
+
             cfg_path = cfg_descriptor.get_path()
             log.info("[Squeeze] Resolved configuration location is: {0}".format(cfg_path))
 
@@ -493,12 +476,10 @@ class ConfigurationResolver(object):
                 'SQ_TK_INSTALLED_CONFIG_PATH': cfg_installed_descriptor.get_path(),
                 'SQ_TK_CONFIGURATION_DESCRIPTOR': sg_descriptor_uri,
             }
-            for key, val in env_to_patch.iteritems():
-                log.info("[Squeeze] Setting '{0}' to {1}".format(key, val))
-                os.environ[key] = val
 
             # Disguise our CachedConfiguration as a InstalledConfiguration.
             cfg_descriptor = cfg_installed_descriptor
+            cfg_descriptor._sq_bootstrap_env = env_to_patch
 
         elif sg_descriptor_uri and not is_classic_config:
 

@@ -979,6 +979,35 @@ class ToolkitManager(object):
 
         config = self._get_updated_configuration(entity, progress_callback)
 
+        # [Squeeze]
+        # To bypass an issue with CachedConfiguration, we use a generic InstalledConfiguration that 
+        # rely on environment variables. Off course these environment variable need to be set at bootstrap time.
+        # A lot of these variables can only be known during the resolve process.
+        # However they need to be set during the bootstrap, especially because the Shotgun Desktop will do a lot of 
+        # resolve in the same Python process.
+        # To prevent us from maintaining our own Configuration class, we monkey-patched the environment variable
+        # to set into the configuration object.
+        # If the monkey-patched property don't exist, we need to remove these variables in case the bootstrap is 
+        # done in the same process than another.
+        config_descriptor = config.descriptor
+        if hasattr(config_descriptor, '_sq_bootstrap_env'):
+            for key, val in config_descriptor._sq_bootstrap_env.iteritems():
+                log.info("[Squeeze] Setting {0} to {1}".format(key, val))
+                os.environ[key] = val
+        else:
+            env_to_unset = (
+                'SQ_TK_CORE_LOCATION',
+                'SQ_TK_PROJECT_ID',
+                'SQ_TK_PROJECT_NAME',
+                'SQ_TK_PIPELINE_CONFIGURATION_ID',
+                'SQ_TK_INSTALLED_CONFIG_PATH',
+                'SQ_TK_CONFIGURATION_DESCRIPTOR',
+            )
+            for key in env_to_unset:
+                log.info("[Squeeze] Unsetting '{0}'".format(key))
+                if key in os.environ:
+                    del os.environ[key]
+
         # we can now boot up this config.
         self._report_progress(progress_callback, self._STARTING_TOOLKIT_RATE, "Starting up Toolkit...")
         tk, user = config.get_tk_instance(self._sg_user)
