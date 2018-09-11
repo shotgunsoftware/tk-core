@@ -16,7 +16,7 @@ from sgtk import get_hook_baseclass
 class BootstrapHook(get_hook_baseclass()):
     """
     The bootstrap hook can be added to a configuration's core hooks folder
-    (``config/core/hooks``) in order to override some of the functionality of
+    (``core/hooks``) in order to override some of the functionality of
     the ToolkitManager's bootstrapping process.
 
     The hook will be instantiated only after a configuration has been selected
@@ -75,6 +75,42 @@ class BootstrapHook(get_hook_baseclass()):
         """
         descriptor.download_local()
 
+    # This is an example of a download_bundle implementation. To try it out,
+    # simply copy the following commented out code in a hook inside your
+    # configuration at core/hooks/bootstrap.py.
+
+    # def download_bundle(self, descriptor, **kwargs):
+    #     """
+    #     Downloads a bundle from a Shotgun site.
+
+    #     :param descriptor: Descriptor that needs to be downloaded.
+    #     :type descriptor: :class:`~sgtk.descriptor.Descriptor`
+    #     """
+    #     # You should set CUSTOM_ENTITY to the custom non project entity you
+    #     # wish to use in Shotgun to cache bundle.
+    #     CUSTOM_ENTITY = "CustomNonProjectEntity01"
+    #     entity = self.shotgun.find_one(
+    #         CUSTOM_ENTITY,
+    #         [["code", "is", descriptor.get_uri()]], ["sg_uploaded_bundle"]
+    #     )
+    #     if not entity:
+    #         self.logger.info("Bundle %s was not found in the site cache for %s." % (
+    #             descriptor.get_uri(), self.shotgun.base_url)
+    #         )
+    #         descriptor.download_local()
+    #         return
+
+    #     # When calling _open_write_location, the method yields to us
+    #     # a path that needs to be filled with the files. If the
+    #     # "with" ends normally, the files are copied into the cache.
+    #     # In an exception is raised, the files are deleted and the exception
+    #     # bubbles upward.
+    #     from sgtk.util.shotgun import download_and_unpack_attachment
+    #     with self._open_write_location(descriptor) as write_location:
+    #         download_and_unpack_attachment(self.shotgun, entity["sg_uploaded_bundle"], write_location)
+
+    #     self.logger.info("Bundle %s was downloaded from %s." % (descriptor.get_uri(), self.shotgun.base_url))
+
     @contextlib.contextmanager
     def _open_write_location(self, descriptor):
         """
@@ -89,3 +125,4 @@ class BootstrapHook(get_hook_baseclass()):
         """
         with descriptor._io_descriptor.open_write_location() as write_location:
             yield write_location
+
