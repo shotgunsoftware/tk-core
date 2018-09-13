@@ -664,12 +664,12 @@ potentially even including a different version of the core API than you are usin
 In order to fully automate this process programatically, you need an ``sgtk`` instance to begin with.
 One way to accomplish this is to use ``pip`` (see https://pip.pypa.io/). Use the following syntax::
 
-    pip install git+https://github.com/shotgunsoftware/tk-core@v0.18.35
+    pip install git+https://github.com/shotgunsoftware/tk-core@VERSION
 
-
+Where you swap the ``VERSION`` text with the latest version in the format of ``vx.x.x``.
 If you want to add an sgtk core to a ``requirements.txt`` file, use the following syntax::
 
-    git+https://github.com/shotgunsoftware/tk-core@v0.18.35
+    git+https://github.com/shotgunsoftware/tk-core@VERSION
 
 .. warning:: In order to use ``pip``, you currently need to have the git executable installed
              on the system that you are deploying to.
