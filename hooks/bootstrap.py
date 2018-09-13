@@ -8,8 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import contextlib
-
 from sgtk import get_hook_baseclass
 
 
@@ -20,9 +18,9 @@ class BootstrapHook(get_hook_baseclass()):
     the ToolkitManager's bootstrapping process.
 
     The hook will be instantiated only after a configuration has been selected
-    by the ``ToolkitManager``. Therefore, the ``download_bundle`` method
-    will not be invoked to download a configuration. However, the Toolkit Core,
-    applications, frameworks and engines will be downloaded through the hook.
+    by the ``ToolkitManager``. Therefore, this hook will not be invoked to download
+    a configuration. However, the Toolkit Core, applications, frameworks and
+    engines will be downloaded through the hook.
     """
 
     def init(self, shotgun, pipeline_configuration_id, configuration_descriptor, **kwargs):
@@ -48,81 +46,76 @@ class BootstrapHook(get_hook_baseclass()):
         self.pipeline_configuration_id = pipeline_configuration_id
         self.configuration_descriptor = configuration_descriptor
 
-    def download_bundle(self, descriptor, **kwargs):
+    def can_cache_bundle(self, descriptor):
         """
-        This method is invoked during bootstrapping when downloading the core or
-        the bundles used by a configuration.
+        Indicates if a bundle can be cached by the ``populate_bundle_cache_entry`` method.
 
-        Your override must download the descriptor's content before the method
-        ends or the bundle cache will be left in an inconsistent state.
+        This method is invoked when the bootstrap manager wants to a bundle used by a configuration.
 
-        The safest way to download a bundle into the bundle cache is by using the
-        :meth:`BootstrapHook._open_write_location` method with the `with` statement.
+        :param descriptor: Descriptor of the bundle that needs to be cached.
+        :type descriptor: :class:`~sgtk.descriptor.Descriptor`
 
-        .. example::
-            with self._open_write_location(descriptor) as write_location:
-                # Put code that writes the bundle at write_location here.
+        :returns: ``True`` if the bundle cache be cached, ``False`` if not.
+        :rtype: bool
+        """
+        return False
 
-        Any exception raised in this method will abort the bootstrap process.
+    def populate_bundle_cache_entry(self, destination, descriptor, **kwargs):
+        """
+        Populates an entry from the bundle cache.
 
-        The default implementation will download the descriptor's content from
-        its source.
+        This method will be invoked for every bundle for which the method ``can_cache_bundle``
+        returned ``True``.
 
-        The ``kwargs`` is there for forward compatibility with future versions of Toolkit.
+        :param destination: Folder where the bundle needs to be written. Note that this is not
+            the final destination folder inside the bundle cache.
 
-        :param descriptor: The descriptor that will be downloaded.
+        :param descriptor: Descriptor of the bundle that needs to be cached.
         :type descriptor: :class:`~sgtk.descriptor.Descriptor`
         """
-        descriptor.download_local()
+        raise NotImplementedError("BootstrapHook.populate_bundle_cache_entry is not implemented.")
 
-    # This is an example of a download_bundle implementation. To try it out,
-    # simply copy the following commented out code in a hook inside your
-    # configuration at core/hooks/bootstrap.py.
+# The following is an example of how you can use this hook to download
+# applications that are uploaded to a custom entity in Shotgun. Copy this
+# file into your core/hooks folder and
 
-    # def download_bundle(self, descriptor, **kwargs):
-    #     """
-    #     Downloads a bundle from a Shotgun site.
-
-    #     :param descriptor: Descriptor that needs to be downloaded.
-    #     :type descriptor: :class:`~sgtk.descriptor.Descriptor`
-    #     """
-    #     # You should set CUSTOM_ENTITY to the custom non project entity you
-    #     # wish to use in Shotgun to cache bundle.
-    #     CUSTOM_ENTITY = "CustomNonProjectEntity01"
-    #     entity = self.shotgun.find_one(
-    #         CUSTOM_ENTITY,
-    #         [["code", "is", descriptor.get_uri()]], ["sg_uploaded_bundle"]
-    #     )
-    #     if not entity:
-    #         self.logger.info("Bundle %s was not found in the site cache for %s." % (
-    #             descriptor.get_uri(), self.shotgun.base_url)
-    #         )
-    #         descriptor.download_local()
-    #         return
-
-    #     # When calling _open_write_location, the method yields to us
-    #     # a path that needs to be filled with the files. If the
-    #     # "with" ends normally, the files are copied into the cache.
-    #     # In an exception is raised, the files are deleted and the exception
-    #     # bubbles upward.
-    #     from sgtk.util.shotgun import download_and_unpack_attachment
-    #     with self._open_write_location(descriptor) as write_location:
-    #         download_and_unpack_attachment(self.shotgun, entity["sg_uploaded_bundle"], write_location)
-
-    #     self.logger.info("Bundle %s was downloaded from %s." % (descriptor.get_uri(), self.shotgun.base_url))
-
-    @contextlib.contextmanager
-    def _open_write_location(self, descriptor):
-        """
-        Allows to write a bundle to the primary bundle cache location.
-
-        This method should be invoked with the ``with`` statement. It yields the
-        path where the bundle information needs to be written. If an exception
-        is raised inside the ``with`` block, the files will be deleted
-        and the bundle cache will be left intact. Be careful to properly copy
-        all the files while invoking ``_open_write_location`` or the cache for
-        this bundle will be left in an inconsistent state.
-        """
-        with descriptor._io_descriptor.open_write_location() as write_location:
-            yield write_location
-
+# class BootstrapHook(get_hook_baseclass()):
+#     """
+#     This is an example of a descriptor operations hook. It downloads a bundle
+#     from the local site if it is found.
+#     """
+#
+#     def can_cache_bundle(self, descriptor):
+#         # Returns true if the descriptor has been cached in Shotgun.
+#         return True if self._get_bundle_attachment(descriptor) else False
+#
+#     def _get_bundle_attachment(self, descriptor):
+#         # Finds the bundle in Shotgun, if available.
+#         # This method gets invoked twice by the bootstrap hook, but will only be
+#         # invoked if the bundle is missing from disk so its not worth putting a
+#         # caching system in place for the method.
+#         entity = self.shotgun.find_one(
+#             "CustomNonProjectEntity01",
+#             [["code", "is", descriptor.get_uri()]], ["sg_uploaded_bundle"]
+#         )
+#         if not entity:
+#             return None
+#         else:
+#             return entity["sg_uploaded_bundle"]
+#
+#     def populate_bundle_cache_entry(self, destination, descriptor, **kwargs):
+#         """
+#         Populates an entry from the bundle cache.
+#
+#         This method will be invoked for every bundle for which the method ``can_cache_bundle``
+#         returned ``True``.
+#
+#         :param destination: Folder where the bundle needs to be written. Note that this is not
+#             the final destination folder inside the bundle cache.
+#
+#         :param descriptor: Descriptor of the bundle that needs to be cached.
+#         :type descriptor: :class:`~sgtk.descriptor.Descriptor`
+#         """
+#         attachment = self._get_bundle_attachment(descriptor)
+#         download_and_unpack_attachment(self.shotgun, attachment, destination)
+#         self.logger.info("Bundle %s was downloaded from %s." % (descriptor.get_uri(), self.shotgun.base_url))

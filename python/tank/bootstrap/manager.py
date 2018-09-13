@@ -624,18 +624,17 @@ class ToolkitManager(object):
         except TankError as e:
             raise TankBootstrapError("Unexpected error while caching configuration: %s" % str(e))
 
-        self._cache_bundles(config, pc, self._sg_connection, engine_name, self.progress_callback)
+        self._cache_bundles(config, pc, engine_name, self.progress_callback)
         self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Preparations complete.")
 
         return path, config.descriptor
 
-    def _cache_bundles(self, config, pc, connection, engine_name, progress_callback):
+    def _cache_bundles(self, config, pc, engine_name, progress_callback):
         """
         Caches the bundles required by the configuration.
 
         :param config: The Configuration we're bootstrapping into.
         :param pc: The PipelineConfiguration instantiated from the configuration.
-        :param connection: Connection to the Shotgun site.
         :param engine_name: Name of the engine we're bootstrapping into.
         :param
         """
@@ -649,7 +648,6 @@ class ToolkitManager(object):
 
         config.cache_bundles(
             pc,
-            self._sg_connection,
             # If we're going to do a sparse cache, only cache for the engine
             # we're bootstrapping into.
             engine_name if self._caching_policy == self.CACHE_SPARSE else None,
@@ -1054,7 +1052,6 @@ class ToolkitManager(object):
         self._cache_bundles(
             config,
             tk.pipeline_configuration,
-            tk.shotgun,
             engine_name,
             self.progress_callback
         )

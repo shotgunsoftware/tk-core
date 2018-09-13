@@ -14,7 +14,6 @@ import pprint
 
 from . import constants
 
-from .. import hook
 from ..descriptor import create_descriptor, Descriptor
 from .errors import TankBootstrapError, TankMissingTankNameError
 
@@ -23,7 +22,6 @@ from ..util import filesystem
 from tank_vendor import yaml
 from .configuration import Configuration
 from .configuration_writer import ConfigurationWriter
-
 from .. import LogManager
 
 log = LogManager.get_logger(__name__)
@@ -37,14 +35,14 @@ class CachedConfiguration(Configuration):
     """
 
     def __init__(
-            self,
-            path,
-            sg,
-            descriptor,
-            project_id,
-            plugin_id,
-            pipeline_config_id,
-            bundle_cache_fallback_paths
+        self,
+        path,
+        sg,
+        descriptor,
+        project_id,
+        plugin_id,
+        pipeline_config_id,
+        bundle_cache_fallback_paths
     ):
         """
         :param path: ShotgunPath object describing the path to this configuration
@@ -278,12 +276,14 @@ class CachedConfiguration(Configuration):
         try:
 
             # make sure the config is locally available.
+
+            # Do not separate these three lines of code or reorder them.
+            # In order to make sure the bootstrap hook is invoked ASAP, we should
+            # first make sure the config is local, then automatically instantiate
+            # the bootstrap hook and finally download the core with that hook if
+            # possible.
             self._descriptor.ensure_local()
-
-            # Make sure that the descriptor hook instance is instantiated so we
-            # can start caching bundles with it.
-            self._initialize_descriptor_hook_instance()
-
+            self._try_initialize_configuration_cacher()
             core_descriptor = self._ensure_core_local()
 
             # Log information about the core being setup with this config.
@@ -421,7 +421,7 @@ class CachedConfiguration(Configuration):
 
         # Look in the config if there is a create_descriptor hook.
         if core_descriptor.exists_local() is False:
-            self._hook_instance.download_bundle(core_descriptor)
+            self._download_bundle(core_descriptor)
 
         return core_descriptor
 
@@ -461,14 +461,13 @@ class CachedConfiguration(Configuration):
                 core_information, self._descriptor, ex
             )
 
-    def cache_bundles(self, pipeline_configuration, shotgun, engine_constraint, progress_cb):
+    def cache_bundles(self, pipeline_configuration, engine_constraint, progress_cb):
         """
         Caches bundles from the configuration.
 
         If ``engine_constraint`` is set, only the bundles for that engine instance will be cached.
 
         :param pipeline_configuration: PipelineConfiguration we're bootstrapping into.
-        :param shotgun: Connection to Shotgun.
         :param engine_constraint: Name of the engine to constrain the caching to.
         :param progress_cb: Callback to invoke to report progress on bundle caching. The expected
             signature is: ``def progress_cb(message, current_bundle_idx, nb_total_bundles)``
@@ -482,6 +481,9 @@ class CachedConfiguration(Configuration):
         else:
             # download and cache the entire config
             log.debug("caching_policy is CACHE_FULL - will download all items defined in the config")
+
+        # Reinitialize the configuration cacher so we use the new swapped core's.
+        self._try_initialize_configuration_cacher()
 
         descriptors = {}
         # pass 1 - populate list of all descriptors
@@ -504,9 +506,8 @@ class CachedConfiguration(Configuration):
             if not descriptor.exists_local():
                 message = "Downloading %s (%s of %s)..." % (descriptor, idx + 1, len(descriptors))
                 progress_cb(message, idx, len(descriptors))
-
                 try:
-                    self._hook_instance.download_bundle(descriptor)
+                    self._download_bundle(descriptor)
                 except Exception as e:
                     log.error("Downloading %r failed to complete successfully. This bundle will be skipped.", e)
                     log.exception(e)
@@ -531,37 +532,30 @@ class CachedConfiguration(Configuration):
                 except Exception as e:
                     log.warning("Failed to clean up temporary backup folder '%s': %s" % (path, e))
 
-    def _initialize_descriptor_hook_instance(self):
+    def _try_initialize_configuration_cacher(self):
         """
-        Creates a core hook that can download bundles.
+        Try to import the configuration cacher.
 
-        If the configuration does not contain a hook override, then the base
-        class hook in the core's hooks folder will be used as the default
-        implementation.
+        This will import the one available with the currently in use Toolkit core, if one is
+        available.
         """
-        # First put our base hook implementation into the array.
-        base_class_path = os.path.normpath(
-            os.path.join(
-                os.path.dirname(__file__), # ./python/tank/bootstrap
-                "..",                      # ./python/tank
-                "..",                      # ./python
-                "..",                      # ./
-                "hooks",                   # ./hooks
-                "bootstrap.py"             # ./hooks/bootstrap.py
+        try:
+            from sgtk.bootstrap.bundle_downloader import BundleDownloader
+            self._bundle_downloader = BundleDownloader(
+                self._sg_connection, self._pipeline_config_id, self._descriptor
             )
-        )
-        hook_inheritance_chain = [base_class_path]
+        except ImportError:
+            self._bundle_downloader = None
 
-        # Then, check if there is a config-level override.
-        hook_path = os.path.join(
-            self._descriptor.get_config_folder(), "core", "hooks", "bootstrap.py"
-        )
-        if os.path.isfile(hook_path):
-            hook_inheritance_chain.append(hook_path)
+    def _download_bundle(self, descriptor):
+        """
+        Downloads the bundle through the BundleDownloader if available.
 
-        self._hook_instance = hook.create_hook_instance(
-            hook_inheritance_chain, parent=None
-        )
-        self._hook_instance.init(
-            self._sg_connection, self._pipeline_config_id, self._descriptor
-        )
+        :param descriptor: Descriptor of the bundle to download.
+        """
+        # If we don't have any cacher, this is because we're using an older core.
+        # In that case, use the download_local method directly on the descriptor.
+        if self._bundle_downloader:
+            self._bundle_downloader.download_bundle(descriptor)
+        else:
+            descriptor.download_local()

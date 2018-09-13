@@ -17,32 +17,38 @@ class BootstrapHook(get_hook_baseclass()):
     This is an example of a descriptor operations hook. It downloads a bundle
     from the local site if it is found.
     """
-    def download_bundle(self, descriptor, **kwargs):
-        """
-        Downloads a bundle from a Shotgun site.
 
-        :param descriptor: Descriptor that needs to be downloaded.
-        :type descriptor: :class:`~sgtk.descriptor.Descriptor`
-        """
+    def can_cache_bundle(self, descriptor):
+        # Returns true if the descriptor has been cached in Shotgun.
+        return True if self._get_bundle_attachment(descriptor) else False
 
-        # Get the uri form the descriptor.
+    def _get_bundle_attachment(self, descriptor):
+        # Finds the bundle in Shotgun, if available.
+        # This method gets invoked twice by the bootstrap hook, but will only be
+        # invoked if the bundle is missing from disk so its not worth putting a
+        # caching system in place for the method.
         entity = self.shotgun.find_one(
             "CustomNonProjectEntity01",
             [["code", "is", descriptor.get_uri()]], ["sg_uploaded_bundle"]
         )
-        if not entity:
-            self.logger.info("Bundle %s was not found in the site cache for %s." % (
-                descriptor.get_uri(), self.shotgun.base_url)
-            )
-            return descriptor.download_local()
+        if entity:
+            return entity["sg_uploaded_bundle"]
+        else:
+            return None
 
-        # When calling _open_write_location, the method yields to us
-        # a path that needs to be filled with the files. If the
-        # with ends normally, the files are copied into the cache.
-        # In an exception is raised, the files are deleted and the exception
-        # bubbles upward.
-        with self._open_write_location(descriptor) as write_location:
-            download_and_unpack_attachment(self.shotgun, entity["sg_uploaded_bundle"], write_location)
+    def populate_bundle_cache_entry(self, destination, descriptor, **kwargs):
+        """
+        Populates an entry from the bundle cache.
 
+        This method will be invoked for every bundle for which the method ``can_cache_bundle``
+        returned ``True``.
+
+        :param destination: Folder where the bundle needs to be written. Note that this is not
+            the final destination folder inside the bundle cache.
+
+        :param descriptor: Descriptor of the bundle that needs to be cached.
+        :type descriptor: :class:`~sgtk.descriptor.Descriptor`
+        """
+        attachment = self._get_bundle_attachment(descriptor)
+        download_and_unpack_attachment(self.shotgun, attachment, destination)
         self.logger.info("Bundle %s was downloaded from %s." % (descriptor.get_uri(), self.shotgun.base_url))
-        return True

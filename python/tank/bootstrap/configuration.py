@@ -132,7 +132,7 @@ class Configuration(object):
 
         return self._tank_from_path(path), sg_user
 
-    def cache_bundles(self, pipeline_configuration, shotgun, engine_constraint, progress_cb):
+    def cache_bundles(self, pipeline_configuration, engine_constraint, progress_cb):
         """
         Caches bundles for the configuration.
 
