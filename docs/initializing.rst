@@ -560,27 +560,30 @@ Distributing application code from your site
 
 When it's not convenient to provide `git` or `AppStore` access to your users, it might be simpler to
 use another distribution mechanism for your application code. This can be achieved through the
-bootstrap's hook method named `download_local`. This hook method is invoked during the bootstrap
-process every time an application bundle needs to be downloaded. It allows a developer to take over
-the download process for an existing descriptor type and provide Toolkit will the application code
-that needs to be copied to the bundle cache. Toolkit does not care where the information comes from.
-It could come from a Perforce depot that mirrors the data from git, a custom entity from the
-appstore, or simply a copy cached on your local network.
+bootstrap hook. 
+
+The bootstrap hook is a core level hook that can assist the :class:`ToolkitManager`. It allows a
+developer to take over the population of the bundle cache for a given bundle and provide Toolkit will
+the application code that needs to be copied to the bundle cache. Toolkit does not care where the
+information comes from. It could come from a Perforce depot that mirrors the data from git, a custom
+entity from the appstore, or simply a copy cached on your local network.
 
 Since the hook is part of a configuration, it means the hook will not be used to download a
-configuration itself. However, it the Toolkit core, the engines, frameworks and applications of the
+configuration itself. However, the Toolkit core, the engines, frameworks and applications of the
 configuration will be.
 
-For example, let's pretend you have a application stored in `git` repository on your local network and
-are planning to hire freelancers who will be working remotely. These outsiders still need access to your
+For example, let's pretend you have an application stored in a `git` repository and are planning to
+hire freelancers who will be working remotely. These outsiders still need access to your
 pipeline. You will probably as a first step upload the configuration to a Shotgun Pipeline Configuration,
-but then you might not wish to poke a hole in your network security to expose those `git` repository.
+but then you might not wish to expose your `git` repositories to the Internet or might not wish to
+distribute authorization keys to access private repos on GitHub.
 
-Instead, you can now create a zip file of the contents of the repository and upload it to a custom
-non project entity in Shotgun and write a `download_local` hook. This hook's role would be to
-catch any git-based descriptors and download the associated zip file from a custom non-project entity.
+Instead, you can create a zip file of the contents of the repository and upload it to a custom
+non project entity in Shotgun and implement ``can_cache_bundle`` and ``populate_bundle_cache_entry``.
+This hook's role would be to catch any git-based descriptors and download the associated zip file
+from a custom non-project entity.
 
-For an example of this, you can take a look at the hook inside the `hooks` folder of tk-core.
+For an example of this, you can take a look at ``hooks/bootstrap.py`` inside the tk-core repository.
 
 .. _environment_variables:
 
