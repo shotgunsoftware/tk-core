@@ -677,7 +677,7 @@ class SetupProjectWizard(object):
             # core being used is localized (as returned via `get_core_settings`),
             # then localize the new core with it.
             if (pipelineconfig_utils.has_core_descriptor(config_path) or
-                core_settings["localize"]):
+                    core_settings["localize"]):
                 core_localize.do_localize(
                     self._log,
                     self._sg,

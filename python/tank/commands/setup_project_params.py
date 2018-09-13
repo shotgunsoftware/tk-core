@@ -1113,7 +1113,7 @@ class TemplateConfiguration(object):
                 local_fallback_when_disconnected=False
             )
             descriptor.ensure_local()
-            return descriptor.get_path(), descriptor.version,  "app_store"
+            return descriptor.get_path(), descriptor.version, "app_store"
 
         else:
             raise TankError("Don't know how to handle config '%s'" % config_uri)
