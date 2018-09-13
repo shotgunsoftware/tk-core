@@ -106,16 +106,16 @@ class SetupProjectAction(Action):
         # configs
         self.parameters["auto_path"] = {
             "description": "Deprecated. Do not use this! --- "
-                "Expert setting. Setting this to true means that a blank "
-                "path entry is written to the shotgun site pipeline "
-                "configuration. This can be used in conjunction with "
-                "a localized core to create a site configuration which "
-                "can have different locations on different machines. It "
-                "is then up to the bootstrap logic of the code that "
-                "starts up toolkit to determine where to go look for the "
-                "configuration. When setting this to true, you typically "
-                "only need to specify the path to the current operating "
-                "system configuration.",
+                           "Expert setting. Setting this to true means that a blank "
+                           "path entry is written to the shotgun site pipeline "
+                           "configuration. This can be used in conjunction with "
+                           "a localized core to create a site configuration which "
+                           "can have different locations on different machines. It "
+                           "is then up to the bootstrap logic of the code that "
+                           "starts up toolkit to determine where to go look for the "
+                           "configuration. When setting this to true, you typically "
+                           "only need to specify the path to the current operating "
+                           "system configuration.",
              "default": False,
              "type": "bool"
         }
