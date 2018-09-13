@@ -26,7 +26,7 @@ from mock import patch
 
 class TestSetupProject(TankTestBase):
     """
-    Tests related to a classic (centralized) toolkit project setup
+    Tests related to a toolkit project setup
     """
 
     def setUp(self):
