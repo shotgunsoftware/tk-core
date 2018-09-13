@@ -436,6 +436,9 @@ class ProjectSetupParameters(object):
             storage_roots = StorageRoots.from_metadata(roots_data)
             storage_roots.write(self._sg, temp_config, storage_roots)
 
+            # clean up some system files (todo - can we do this better?)
+            filesystem.safe_delete_folder(os.path.join(temp_config, "tk-metadata"))
+
             # zip up
             zip_file(temp_config, temp_zip)
 
