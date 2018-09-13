@@ -169,9 +169,9 @@ class TestSetupProject(TankTestBase):
         # - uploaded zip file
         data = self.mockgun.find(
             "PipelineConfiguration",
-            [["project", "is", {"type":"Project", "id": new_project["id"]}]],
+            [["project", "is", {"type": "Project", "id": new_project["id"]}]],
             ["code", "plugin_ids", "uploaded_config", "windows_path", "linux_path", "mac_path"]
-            )
+        )
         self.assertEquals(len(data), 1)
         pc_data = data[0]
         self.assertEquals(pc_data["type"], "PipelineConfiguration")
