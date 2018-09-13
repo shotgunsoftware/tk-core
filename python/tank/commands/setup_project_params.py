@@ -391,27 +391,39 @@ class ProjectSetupParameters(object):
         """
         Zips up and then uploads the configuration to Shotgun.
 
-        :param pipeline_config_id: Pipeline configuration id to upload to.
+        :param int pipeline_config_id: Pipeline configuration id to upload to.
         """
         if self._config_template is None:
             raise TankError("Please specify a configuration template!")
 
+        # compose a filename for the zip file that will be uploaded to SG
+        # this will also be the name that is displayed on the attachment in SG
         zip_filename = "%s.zip" % (self._config_template.version or "config")
+
+        # create a folder name which will be the folder which everything is
+        # contained inside if you unzip the configuration
         folder_name = "config_%s" % (self._config_template.version or "unversioned")
 
+        # create a temp area where we can do our zipping
         temp_root = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
         filesystem.ensure_folder_exists(temp_root)
         temp_zip = os.path.join(tempfile.gettempdir(), temp_root, zip_filename)
         temp_config = os.path.join(tempfile.gettempdir(), temp_root, folder_name)
+
+        self._log.debug("Packaging up configuration...")
 
         try:
             # copy the configuration to the temp folder so we can update it.
             self._config_template.copy_configuration(temp_config)
 
             # update the roots.yml file in the config to
-            # match our storage settings
+            # match the storage selections we have made in the wizard
+            # e.g. link up a storage name e.g. 'primary' in the config
+            # against a local storage id in Shotgun.
+            #
+            # Note: We don't write any paths to the roots.yml -
+            # these are resolved at bootstrap time.
             roots_data = {}
-            default_storage_name = self.default_storage_name
             for storage_name in self.get_required_storages():
 
                 # for distributed configs, we don't include any paths
@@ -423,7 +435,7 @@ class ProjectSetupParameters(object):
 
                 # if this is the default storage,
                 # ensure it is explicitly marked in the roots file
-                if default_storage_name and storage_name == default_storage_name:
+                if self.default_storage_name and storage_name == self.default_storage_name:
                     roots_data[storage_name]["default"] = True
 
                 # if there is a SG local storage associated with this root, make sure
@@ -436,12 +448,13 @@ class ProjectSetupParameters(object):
             storage_roots = StorageRoots.from_metadata(roots_data)
             storage_roots.write(self._sg, temp_config, storage_roots)
 
-            # clean up some system files (todo - can we do this better?)
+            # clean up some system files
             filesystem.safe_delete_folder(os.path.join(temp_config, "tk-metadata"))
 
             # zip up
             zip_file(temp_config, temp_zip)
 
+            self._log.debug("Uploading confguration to Shotgun...")
             self._sg.upload(
                 constants.PIPELINE_CONFIGURATION_ENTITY,
                 pipeline_config_id,
