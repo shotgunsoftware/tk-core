@@ -151,7 +151,12 @@ def _finalize_coverage(cov):
     Stops covering code and writes out reports.
     """
     cov.stop()
+
+    # Print report to stdout
     cov.report()
+
+    # Save report to the .coverage file
+    cov.save()
 
     try:
         # seems to be some CI issues with html coverage so
