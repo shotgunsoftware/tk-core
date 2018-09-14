@@ -151,7 +151,7 @@ class PipelineConfiguration(object):
 
         # There are five ways this initializer can be invoked.
         #
-        # 1) Classic: We're instantiated from sgtk_from_path with a single path.
+        # 1) Centralized: We're instantiated from sgtk_from_path with a single path.
         # 2) Bootstrap: path is set, descriptor is unset and no descriptor inside
         #    pipeline_configuration.yml
         # 3) Bootstrap: path is set, descriptor is set and no descriptor inside
@@ -159,7 +159,7 @@ class PipelineConfiguration(object):
         # 4) Bootstrap, path is set, descriptor is set and descriptor inside
         #    pipeline_configuration.yml
         # 5) Baked configs via bootstrap, path is set, the rest is None. A baked
-        #    config has got the same layout as a classic installation.
+        #    config has got the same layout as a centralized installation.
         #
         # The correct way to handle all of this is to go from a descriptor string or dictionary and
         # instantiate the correct descriptor type.
@@ -232,6 +232,11 @@ class PipelineConfiguration(object):
                 external_data = pickle.loads(os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA])
             except Exception as e:
                 log.warning("Could not load external config data from: %s" % e)
+            finally:
+                # The passing of state from bootstrap to core is complete.
+                # Make sure we clean up so we don't interfere any further
+                # bootstrapping or forked process bootstrapping.
+                del os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA]
 
             if "project_id" in external_data:
                 self._project_id = external_data["project_id"]

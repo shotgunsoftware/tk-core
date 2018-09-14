@@ -156,6 +156,12 @@ class TestGetSgConfigData(ShotgunTestBase):
             sanitize_url("no.scheme.com")
         )
 
+        # Ensure that we lowercase the URL.
+        self.assertEquals(
+            "https://caps.site.com",
+            sanitize_url("https://CAPS.site.com")
+        )
+
         # Ensure https is not modified if specified.
         self.assertEquals(
             "https://no.scheme.com",

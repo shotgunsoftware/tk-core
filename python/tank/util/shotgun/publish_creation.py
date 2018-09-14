@@ -711,8 +711,11 @@ def _calc_path_cache(tk, path):
     """
     # Note: paths may be c:/foo in Maya on Windows - don't rely on os.sep here!
 
-    # normalize input path first c:\foo -> c:/foo
-    norm_path = path.replace(os.sep, "/")
+    # normalize input path to remove double slashes etc.
+    norm_path = ShotgunPath.normalize(path)
+
+    # normalize to only use forward slashes
+    norm_path = norm_path.replace("\\", "/")
 
     # get roots - dict keyed by storage name
     storage_roots = tk.pipeline_configuration.get_local_storage_roots()
@@ -722,10 +725,14 @@ def _calc_path_cache(tk, path):
     project_disk_name = tk.pipeline_configuration.get_project_disk_name()
 
     for root_name, root_path in storage_roots.items():
-        norm_root_path = root_path.replace(os.sep, "/")
 
-        # append the project name to the root path
-        proj_path = "%s/%s" % (norm_root_path, project_disk_name)
+        root_path_obj = ShotgunPath.from_current_os_path(root_path)
+        # normalize the root path
+        norm_root_path = root_path_obj.current_os.replace(os.sep, "/")
+
+        # append project and normalize
+        proj_path = root_path_obj.join(project_disk_name).current_os
+        proj_path = proj_path.replace(os.sep, "/")
 
         if norm_path.lower().startswith(proj_path.lower()):
             # our path matches this storage!

@@ -54,4 +54,5 @@ if [ -z ${SHOTGUN_HOST+x} ]; then
 else
     python tests/python/third_party/coverage run -a tests/integration_tests/offline_workflow.py
     python tests/python/third_party/coverage run -a tests/integration_tests/tank_commands.py
+    python tests/python/third_party/coverage run -a tests/integration_tests/multi_bootstrap.py
 fi

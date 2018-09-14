@@ -7,7 +7,7 @@ frameworks:
   test_framework_v1.x.x:
     location:
       type: dev
-      path: '{CONFIG_FOLDER}/bundles/test_framework'
+      path: '{CONFIG_FOLDER}/bundles/test_framework_v1'
       version: v1.0.0
 
 engines:

@@ -649,7 +649,7 @@ class ToolkitManager(object):
              primary is not available.
            - If there are multiple site level or multiple project level primaries,
              only the one with the lowest id is available, unless one or more of them is a Toolkit
-             Classic Primary, in which case the Toolkit Classic Primary with the lowest id will
+             Centralized Primary, in which case the Toolkit Centralized Primary with the lowest id will
              be returned.
            - A :class:`~sgtk.descriptor.Descriptor` object must be able to be created from the
              pipeline configuration.
