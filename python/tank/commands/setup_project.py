@@ -64,7 +64,10 @@ class SetupProjectAction(Action):
                                                      "projects which have already been previously set up. "),
                                      "default": False,
                                      "type": "bool" }
-        
+
+
+
+
         self.parameters["project_id"] = { "description": "Shotgun id for the project you want to set up.",
                                           "default": None,
                                           "type": "int" }
@@ -83,6 +86,12 @@ class SetupProjectAction(Action):
                 "which ends with .git) or '%s' to fetch the default config "
                 "from the toolkit app store." % (constants.DEFAULT_CFG,),
             "default": constants.DEFAULT_CFG,
+            "type": "str"
+        }
+
+        self.parameters["install_mode"] = {
+            "description": "The type of installation to perform. Either 'centralized' or 'distributed'",
+            "default": "centralized",
             "type": "str"
         }
 
@@ -149,15 +158,25 @@ class SetupProjectAction(Action):
         
         # set expert auto path setting
         params.set_auto_path_mode(computed_params["auto_path"])
+
+        # set mode
+        if computed_params["install_mode"] == "centralized":
+            params.set_distribution_mode(ProjectSetupParameters.CENTRALIZED_CONFIG)
+        elif computed_params["install_mode"] == "distributed":
+            params.set_distribution_mode(ProjectSetupParameters.DISTRIBUTED_CONFIG)
+        else:
+            raise ValueError("Invalid install_mode parameter specified.")
         
         # set the project
         params.set_project_id(computed_params["project_id"], computed_params["force"])
         params.set_project_disk_name(computed_params["project_folder_name"])
         
         # set the config path
-        params.set_configuration_location(computed_params["config_path_linux"], 
-                                          computed_params["config_path_win"], 
-                                          computed_params["config_path_mac"])        
+        if params.get_distribution_mode() == ProjectSetupParameters.CENTRALIZED_CONFIG:
+            # specify paths
+            params.set_configuration_location(computed_params["config_path_linux"],
+                                              computed_params["config_path_win"],
+                                              computed_params["config_path_mac"])
         
         # run overall validation of the project setup
         params.pre_setup_validation()
@@ -165,21 +184,23 @@ class SetupProjectAction(Action):
         # and finally carry out the setup
         run_project_setup(log, sg, params)
 
-        config_path = params.get_configuration_location(sys.platform)
+        if params.get_distribution_mode() == ProjectSetupParameters.CENTRALIZED_CONFIG:
 
-        # if the new project's config has a core descriptor, then we should
-        # localize it to use that version of core. alternatively, if the current
-        # core being used is localized, then localize the new config with it.
-        if (pipelineconfig_utils.has_core_descriptor(config_path) or
-            pipelineconfig_utils.is_localized(curr_core_path)):
+            config_path = params.get_configuration_location(sys.platform)
 
-            log.info("Localizing Core...")
-            core_localize.do_localize(
-                log,
-                self._shotgun_connect(log),
-                config_path,
-                suppress_prompts=True
-            )
+            # if the new project's config has a core descriptor, then we should
+            # localize it to use that version of core. alternatively, if the current
+            # core being used is localized, then localize the new config with it.
+            if (pipelineconfig_utils.has_core_descriptor(config_path) or
+                pipelineconfig_utils.is_localized(curr_core_path)):
+
+                log.info("Localizing Core...")
+                core_localize.do_localize(
+                    log,
+                    self._shotgun_connect(log),
+                    config_path,
+                    suppress_prompts=True
+                )
 
     def run_interactive(self, log, args):
         """

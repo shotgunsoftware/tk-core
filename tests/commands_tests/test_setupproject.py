@@ -122,7 +122,7 @@ class TestSetupProject(TankTestBase):
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload")
     @patch("tank.pipelineconfig_utils.resolve_all_os_paths_to_core")
-    def test_setup_distrivutred_project(self, resolve_all_os_paths_to_core_mock, upload_mock):
+    def test_setup_distributed_project(self, resolve_all_os_paths_to_core_mock, upload_mock):
         """
         Test setting up a Project.
         """
