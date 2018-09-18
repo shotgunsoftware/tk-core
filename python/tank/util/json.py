@@ -35,11 +35,10 @@ def _convert_unicode_keys_to_string(input_value):
         return [_convert_unicode_keys_to_string(item) for item in input_value]
 
     if isinstance(input_value, dict):
-        return {
-            _convert_unicode_keys_to_string(k):
-            _convert_unicode_keys_to_string(v)
+        return dict(
+            (_convert_unicode_keys_to_string(k), _convert_unicode_keys_to_string(v))
             for k, v in input_value.iteritems()
-        }
+        )
 
     return input_value
 

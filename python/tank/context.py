@@ -819,7 +819,7 @@ class Context(object):
         # Create a context with the items in data, but only if there is an argument
         # of the same name.
         return Context(
-            **{k: v for k, v in data.iteritems() if k in argument_names}
+            **dict((k, v) for k, v in data.iteritems() if k in argument_names)
         )
 
     ################################################################################################
