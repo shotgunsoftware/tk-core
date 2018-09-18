@@ -754,10 +754,11 @@ class Context(object):
 
         # create a Sgtk API instance.
         tk = Tank(pipeline_config_path)
+        data["tk"] = tk
 
         # add it to the constructor instance
         # and lastly make the obejct
-        return cls._from_dict(tk, data)
+        return cls._from_dict(data)
 
     def to_dict(self):
         """
@@ -796,20 +797,28 @@ class Context(object):
 
         :returns: A newly created :class:`Context` object.
         """
-        return cls._from_dict(tk, data)
+        data = copy.deepcopy(data)
+        data["tk"] = tk
+        return cls._from_dict(data)
 
     @classmethod
-    def _from_dict(cls, tk, data):
+    def _from_dict(cls, data):
         """
-        Creates a Context object based on the arguments found in data, but only the ones
-        that the __init__ method understands.
+        Creates a Context object based on the arguments found in a dictionary, but
+        only the ones that the Context understands.
+
+        This ensures that if a more recent version of Toolkit serializes a context
+        and this API reads it that it won't blow-up.
+
+        :param dict data: Data for the context.
+
+        :returns: :class:`Context`
         """
         # Get all argument names except for self.
         argument_names = inspect.getargspec(Context.__init__).args[1:]
         # Create a context with the items in data, but only if there is an argument
         # of the same name.
         return Context(
-            tk,
             **{k: v for k, v in data.iteritems() if k in argument_names}
         )
 
@@ -1197,7 +1206,7 @@ def _from_entity_type_and_id(tk, entity, source_entity=None):
     # the same as the entity property.
     context["source_entity"] = context["source_entity"] or context["entity"]
 
-    return Context(**context)
+    return Context._from_dict(context)
 
 def from_entity_dictionary(tk, entity_dictionary):
     """
@@ -1369,7 +1378,7 @@ def _from_entity_dictionary(tk, entity_dictionary, source_entity=None):
             task_context = _task_from_sg(tk, task["id"], additional_fields)
             context.update(task_context)
 
-    return Context(**context)
+    return Context._from_dict(context)
 
 def from_path(tk, path, previous_context=None):
     """
@@ -1507,7 +1516,7 @@ def from_path(tk, path, previous_context=None):
         # remove double entry!
         context["entity"] = None
 
-    return Context(**context)
+    return Context._from_dict(context)
 
 
 ################################################################################################
@@ -1579,9 +1588,9 @@ def context_yaml_constructor(loader, node):
 
     # create a Sgtk API instance.
     tk = Tank(pipeline_config_path)
-
-    # and lastly make the obejct
-    return Context._from_dict(tk, context_constructor_dict)
+    context_constructor_dict["tk"] = tk
+    # and lastly make the object
+    return Context._from_dict(context_constructor_dict)
 
 yaml.add_representer(Context, context_yaml_representer)
 yaml.add_constructor(u'!TankContext', context_yaml_constructor)

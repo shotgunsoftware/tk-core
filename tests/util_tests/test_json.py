@@ -62,6 +62,9 @@ class JSONTests(TestCase):
             raise Exception("unicode string found in %r" % value)
 
     def test_repr_generates_u_strings(self):
+        """
+        Ensures the unicode detection method actually works.
+        """
         self._assert_no_unicode({})
         self._assert_no_unicode(1)
         self._assert_no_unicode(False)
