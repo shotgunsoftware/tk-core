@@ -1083,8 +1083,9 @@ class TestSerialize(TestContext):
         self.kws["entity"] = self.shot
         self.kws["step"] = self.step
         self.kws["task"] = {"id": 45, "type": "Task"}
+        self.kws["additional_entities"] = [{"id": 42, "type": "Sequence"}]
 
-        self._user =  ShotgunAuthenticator().create_script_user(
+        self._user = ShotgunAuthenticator().create_script_user(
             "script_user", "script_key", "https://abc.shotgunstudio.com"
         )
 
@@ -1139,6 +1140,15 @@ class TestSerialize(TestContext):
         # The unserialized context shouldn't have changed the current user.
         tank.Context.deserialize(ctx_str)
         self._assert_same_user(tank.get_authenticated_user(), other_user)
+
+    def test_serialize_to_dict(self):
+        """
+        Make sure a context serialized to a dictionary can be unserialized.
+        """
+        ctx = context.Context(**self.kws)
+        ctx_dict = ctx.to_dict()
+        new_ctx = tank.Context.from_dict(ctx_dict, ctx.sgtk)
+        self.assertTrue(new_ctx == ctx)
 
     def test_deserialized_invalid_data(self):
         """

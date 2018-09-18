@@ -701,16 +701,8 @@ class Context(object):
         # Avoids cyclic imports
         from .api import get_authenticated_user
 
-        data = {
-            "project": self.project,
-            "entity": self.entity,
-            "user": self.user,
-            "step": self.step,
-            "task": self.task,
-            "additional_entities": self.additional_entities,
-            "source_entity": self.source_entity,
-            "_pc_path": self.tank.pipeline_configuration.get_path()
-        }
+        data = self.to_dict()
+        data["_pc_path"] = self.tank.pipeline_configuration.get_path()
 
         if with_user_credentials:
             # If there is an authenticated user.
@@ -767,6 +759,45 @@ class Context(object):
 
         # and lastly make the obejct
         return cls(**data)
+
+    def to_dict(self):
+        """
+        Converts the context into a dictionary with keys ``project``,
+            ``entity``, ``user``, ``step``, ``task``, ``additional_entities`` and
+            ``source_entity``.
+
+        ..note::
+            Contrary to :meth:`Context.serialize`, this method discards information
+            about the Toolkit instance associated with the context or the currently
+            authenticated user.
+
+        :returns: A dictionary representing the context.
+        """
+        return {
+            "project": self.project,
+            "entity": self.entity,
+            "user": self.user,
+            "step": self.step,
+            "task": self.task,
+            "additional_entities": self.additional_entities,
+            "source_entity": self.source_entity
+        }
+
+    @classmethod
+    def from_dict(cls, data, tk):
+        """
+        Converts a dictionary into a :class:`Context` object.
+
+        You should only pass in a dictionary that was created with the :meth:`Context.to_dict`
+        method.
+
+        :param dict data: A dictionary generated from :meth:`Context.to_dict`.
+        :param tk: Toolkit instance to associate with the context.
+        :type tk: :class:`Sgtk`
+
+        :returns: A newly created :class:`Context` object.
+        """
+        return cls(tk=tk, **data)
 
     ################################################################################################
     # private methods
@@ -1511,7 +1542,7 @@ def context_yaml_representer(dumper, context):
         "task": context.task,
         "additional_entities": context.additional_entities
     }
-    
+
     # now we also need to pass a TK instance to the constructor when we 
     # are deserializing the object. For this purpose, pass a 
     # pipeline config path as part of the dict
@@ -1531,14 +1562,14 @@ def context_yaml_constructor(loader, node):
     """
     # lazy load this to avoid cyclic dependencies
     from .api import Tank
-    
+
     # get the dict from yaml
-    context_constructor_dict = loader.construct_mapping(node)
-    
+    context_constructor_dict = loader.construct_mapping(node, deep=True)
+
     # first get the pipeline config path out of the dict
-    pipeline_config_path = context_constructor_dict["_pc_path"] 
+    pipeline_config_path = context_constructor_dict["_pc_path"]
     del context_constructor_dict["_pc_path"]
-    
+
     # create a Sgtk API instance.
     tk = Tank(pipeline_config_path)
 
