@@ -13,6 +13,7 @@ Management of the current context, e.g. the current shotgun entity/step/task.
 
 """
 
+import inspect
 import os
 import pickle
 import copy
@@ -755,10 +756,8 @@ class Context(object):
         tk = Tank(pipeline_config_path)
 
         # add it to the constructor instance
-        data["tk"] = tk
-
         # and lastly make the obejct
-        return cls(**data)
+        return cls._from_dict(tk, data)
 
     def to_dict(self):
         """
@@ -784,7 +783,7 @@ class Context(object):
         }
 
     @classmethod
-    def from_dict(cls, data, tk):
+    def from_dict(cls, tk, data):
         """
         Converts a dictionary into a :class:`Context` object.
 
@@ -797,7 +796,22 @@ class Context(object):
 
         :returns: A newly created :class:`Context` object.
         """
-        return cls(tk=tk, **data)
+        return cls._from_dict(tk, data)
+
+    @classmethod
+    def _from_dict(cls, tk, data):
+        """
+        Creates a Context object based on the arguments found in data, but only the ones
+        that the __init__ method understands.
+        """
+        # Get all argument names except for self.
+        argument_names = inspect.getargspec(Context.__init__).args[1:]
+        # Create a context with the items in data, but only if there is an argument
+        # of the same name.
+        return Context(
+            tk,
+            **{k: v for k, v in data.iteritems() if k in argument_names}
+        )
 
     ################################################################################################
     # private methods
@@ -1534,14 +1548,7 @@ def context_yaml_representer(dumper, context):
     
     # first get the stuff which represents all the Context() 
     # constructor parameters
-    context_dict = {
-        "project": context.project,
-        "entity": context.entity,
-        "user": context.user,
-        "step": context.step,
-        "task": context.task,
-        "additional_entities": context.additional_entities
-    }
+    context_dict = context.to_dict()
 
     # now we also need to pass a TK instance to the constructor when we 
     # are deserializing the object. For this purpose, pass a 
@@ -1573,11 +1580,8 @@ def context_yaml_constructor(loader, node):
     # create a Sgtk API instance.
     tk = Tank(pipeline_config_path)
 
-    # add it to the constructor instance
-    context_constructor_dict["tk"] = tk
-
     # and lastly make the obejct
-    return Context(**context_constructor_dict)
+    return Context._from_dict(tk, context_constructor_dict)
 
 yaml.add_representer(Context, context_yaml_representer)
 yaml.add_constructor(u'!TankContext', context_yaml_constructor)

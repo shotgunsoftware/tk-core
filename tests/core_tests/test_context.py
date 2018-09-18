@@ -1084,22 +1084,36 @@ class TestSerialize(TestContext):
         self.kws["step"] = self.step
         self.kws["task"] = {"id": 45, "type": "Task"}
         self.kws["additional_entities"] = [{"id": 42, "type": "Sequence"}]
+        self.kws["source_entity"] = {"id": 12, "type": "Version"}
 
         self._user = ShotgunAuthenticator().create_script_user(
             "script_user", "script_key", "https://abc.shotgunstudio.com"
+        )
+
+    def test_from_dict(self):
+        """
+        Ensures that Toolkit is forward compatible with newer versions of Toolkit
+        which may have more items in the serialized dictionary.
+        """
+        context.Context.from_dict(
+            self.tk,
+            {
+                "project": {"type": "Project", "id": 1},
+                "unknown_entity_parameter": {"type": "CustomEntity01", "id": 1}
+            }
         )
 
     def test_equal_yml(self):
         context_1 = context.Context(**self.kws)
         serialized = yaml.dump(context_1)
         context_2 = yaml.load(serialized)
-        self.assertTrue(context_1 == context_2)
+        self._assert_equal_contexts(context_1, context_2)
 
     def test_equal_custom(self):
         context_1 = context.Context(**self.kws)
         serialized = context_1.serialize(context_1)
         context_2 = tank.Context.deserialize(serialized)
-        self.assertTrue(context_1 == context_2)
+        self._assert_equal_contexts(context_1, context_2)
 
     def _assert_same_user(self, user_1, user_2):
         """
@@ -1147,8 +1161,18 @@ class TestSerialize(TestContext):
         """
         ctx = context.Context(**self.kws)
         ctx_dict = ctx.to_dict()
-        new_ctx = tank.Context.from_dict(ctx_dict, ctx.sgtk)
-        self.assertTrue(new_ctx == ctx)
+        new_ctx = tank.Context.from_dict(ctx.sgtk, ctx_dict)
+        self._assert_equal_contexts(new_ctx, ctx)
+
+    def _assert_equal_contexts(self, ctx_1, ctx_2):
+        """
+        Ensures two contexts are equal.
+        Note that source_entity is not part of the equality comparison,
+        but since we're interested into making sure everything gets serialized
+        property we'll add the value there.
+        """
+        self.assertTrue(ctx_1 == ctx_2)
+        self.assertTrue(ctx_1.source_entity == ctx_2.source_entity)
 
     def test_deserialized_invalid_data(self):
         """
