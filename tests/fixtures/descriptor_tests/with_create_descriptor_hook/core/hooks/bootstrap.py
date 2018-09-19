@@ -8,6 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+# This file is included in the sphinx documentation as an example. Keep this in mind
+# when editing it.
+
+# Everything after this line will be part of the documentation. #documentationStart
 from sgtk import get_hook_baseclass
 from sgtk.util.shotgun import download_and_unpack_attachment
 
@@ -82,3 +86,4 @@ class BootstrapHook(get_hook_baseclass()):
             "Bundle %s was downloaded from %s.",
             descriptor.get_uri(), self.shotgun.base_url
         )
+# Everything after this line will not be part of the documentation. #documentationEnd

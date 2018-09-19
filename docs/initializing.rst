@@ -576,7 +576,8 @@ Once the bundles have been uploaded, you can implement the ``core/bootstrap.py``
 
 .. literalinclude:: ../tests/fixtures/descriptor_tests/with_create_descriptor_hook/core/hooks/bootstrap.py
    :language: python
-   :lines: 11-
+   :start-after: #documentationStart
+   :end-before: #documentationEnd
 
 Once you are done, you can zip your configuration and its custom bootstrap and upload it to a
 ``PipelineConfiguration`` entity in Shotgun. Now everytime a user bootstraps into this pipeline
