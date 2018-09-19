@@ -482,7 +482,8 @@ class ToolkitManager(object):
                                engine_name,
                                entity=None,
                                completed_callback=None,
-                               failed_callback=None):
+                               failed_callback=None,
+                               parent=None):
         """
         Asynchronous version of :meth:`bootstrap_engine`.
 
@@ -541,6 +542,7 @@ class ToolkitManager(object):
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
         :param completed_callback: Callback function that handles cleanup after successful completion of the bootstrap.
         :param failed_callback: Callback function that handles cleanup after failed completion of the bootstrap.
+        :param parent: The parent object used for the async bootstrapper.
         """
         self._log_startup_message(engine_name, entity)
 
@@ -564,7 +566,14 @@ class ToolkitManager(object):
             # Bootstrap an Sgtk instance asynchronously in a background thread,
             # followed by launching the engine synchronously in the main application thread.
 
-            self._bootstrapper = AsyncBootstrapWrapper(self, engine_name, entity, completed_callback, failed_callback)
+            self._bootstrapper = AsyncBootstrapWrapper(
+                self,
+                engine_name,
+                entity,
+                completed_callback,
+                failed_callback,
+                parent,
+            )
             self._bootstrapper.bootstrap()
 
         else:
