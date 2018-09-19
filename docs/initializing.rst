@@ -574,81 +574,9 @@ to determine if a bundle is available in Shotgun or not.
 
 Once the bundles have been uploaded, you can implement the ``core/bootstrap.py`` hook.
 
-.. code-block:: python
-
-    from sgtk import get_hook_baseclass
-    from sgtk.util.shotgun import download_and_unpack_attachment
-
-    class BootstrapHook(get_hook_baseclass()):
-        """
-        This hook allows to download certain bundles from Shotgun instead of
-        official source for the bundle.
-        """
-        def can_cache_bundle(self, descriptor):
-            """
-            Returns true if the descriptor has been cached in Shotgun.
-
-            :param descriptor: Descriptor of the bundle that needs to be cached.
-            :type descriptor: :class:`~sgtk.descriptor.Descriptor`
-
-            :returns: ``True`` if the bundle is cached in Shotgun, ``False`` otherwise.
-            """
-            return bool(
-                descriptor.get_dict()["type"] in ["app_store", "git"] and
-                self._get_bundle_attachment(descriptor)
-            )
-
-        def _get_bundle_attachment(self, descriptor):
-            """
-            Retrieves the attachment associated to this descriptor in Shotgun.
-
-            :param descriptor: Descriptor of the bundle that needs to be cached.
-            :type descriptor: :class:`~sgtk.descriptor.Descriptor`
-
-            :returns: The attachment entity dict.
-            :rtype: dict
-            """
-            # This method gets invoked twice by the bootstrap hook, but will only be
-            # invoked if the bundle is missing from disk so it is not worth putting a
-            # caching system in place for the method.
-
-            # We're using the descriptor uri, i.e.
-            # sgtk:descriptor:app_store?name=tk-core&version=v0.18.150,
-            # as the code for the entity. If an entry is found and there is an
-            # attachment, the bundle can be downloaded from Shotgun.
-            #
-            # You could write a script that introspects a configuration,
-            # extracts all bundles that need to be cached into Shotgun and pushes
-            # them to Shotgun. Part of this workflow can be automated with the
-            # ``developer/populate_bundle_cache.py`` script, which will download
-            # locally every single bundle for a given config.
-            entity = self.shotgun.find_one(
-                "CustomNonProjectEntity01",
-                [["sg_descriptor", "is", descriptor.get_uri()]], ["sg_content"]
-            )
-            if entity:
-                return entity["sg_content"]
-            else:
-                return None
-
-        def populate_bundle_cache_entry(self, destination, descriptor, **kwargs):
-            """
-            This method will retrieve the bundle from the Shotgun site and unpack it
-            in the destination folder.
-
-            :param destination: Folder where the bundle needs to be written. Note
-                that this is not the final destination folder inside the bundle
-                cache.
-
-            :param descriptor: Descriptor of the bundle that needs to be cached.
-            :type descriptor: :class:`~sgtk.descriptor.Descriptor`
-            """
-            attachment = self._get_bundle_attachment(descriptor)
-            download_and_unpack_attachment(self.shotgun, attachment, destination)
-            self.logger.info(
-                "Bundle %s was downloaded from %s.",
-                descriptor.get_uri(), self.shotgun.base_url)
-            )
+.. literalinclude:: ../tests/fixtures/descriptor_tests/with_create_descriptor_hook/core/hooks/bootstrap.py
+   :language: python
+   :lines: 11-
 
 Once you are done, you can zip your configuration and its custom bootstrap and upload it to a
 ``PipelineConfiguration`` entity in Shotgun. Now everytime a user bootstraps into this pipeline

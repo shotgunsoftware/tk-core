@@ -65,17 +65,17 @@ class BootstrapHookTests(SgtkIntegrationTest):
         # If we didn't find the record, create it. We're being fault tolerant here and assuming that
         # maybe a run might have created the record but failed at uploading the bundle.
         if not item:
-            item = cls.sg.create("CustomNonProjectEntity01", {"code": descriptor})
+            item = cls.sg.create("CustomNonProjectEntity01", {"sg_descriptor": descriptor})
 
         # Upload the bundle to Shotgun.
-        cls.sg.upload("CustomNonProjectEntity01", item["id"], temp_zipfile, "sg_uploaded_bundle")
+        cls.sg.upload("CustomNonProjectEntity01", item["id"], temp_zipfile, "sg_content")
 
     @classmethod
     def _find_bundle_in_sg(cls, descriptor):
         """
         Finds for a bundle in Shotgun.
         """
-        return cls.sg.find_one("CustomNonProjectEntity01", [["code", "is", descriptor]], ["sg_uploaded_bundle"])
+        return cls.sg.find_one("CustomNonProjectEntity01", [["sg_descriptor", "is", descriptor]], ["sg_content"])
 
     @classmethod
     def _upload_bundle(cls, bundle_name, descriptor):
@@ -108,12 +108,19 @@ class BootstrapHookTests(SgtkIntegrationTest):
         Ensures the sg_uploaded_bundle field exists in Shotgun.
         """
         try:
-            cls.sg.schema_field_read("CustomNonProjectEntity01", "sg_uploaded_bundle")
+            cls.sg.schema_field_read("CustomNonProjectEntity01", "sg_descriptor")
         except Exception as e:
-            if "sg_uploaded_bundle doesn't exist" not in str(e):
+            if "sg_descriptor doesn't exist" not in str(e):
                 raise
             # If the field doesn't exist, create it.
-            cls.sg.schema_field_create("CustomNonProjectEntity01", "url", "Uploaded Bundle")
+            cls.sg.schema_field_create("CustomNonProjectEntity01", "text", "Descriptor")
+        try:
+            cls.sg.schema_field_read("CustomNonProjectEntity01", "sg_content")
+        except Exception as e:
+            if "sg_content doesn't exist" not in str(e):
+                raise
+            # If the field doesn't exist, create it.
+            cls.sg.schema_field_create("CustomNonProjectEntity01", "url", "Content")
 
     @classmethod
     def setUpClass(cls):
@@ -151,6 +158,7 @@ class BootstrapHookTests(SgtkIntegrationTest):
                 "project": cls.project
             }
         )
+        cls.asset = cls.create_or_find_entity("Asset", "TestAsset", {"project": cls.project})
 
     def test_bootstrap_with_descriptor_hooks(self):
         """
@@ -161,7 +169,7 @@ class BootstrapHookTests(SgtkIntegrationTest):
         manager = sgtk.bootstrap.ToolkitManager(self.user)
         manager.plugin_id = "basic.test"
         manager.pipeline_configuration = self.pipeline_configuration["id"]
-        manager.bootstrap_engine("test_engine", self.project)
+        manager.bootstrap_engine("test_engine", self.asset)
 
 
 if __name__ == "__main__":

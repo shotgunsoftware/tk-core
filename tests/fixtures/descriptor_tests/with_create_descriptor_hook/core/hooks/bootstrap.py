@@ -14,14 +14,9 @@ from sgtk.util.shotgun import download_and_unpack_attachment
 
 class BootstrapHook(get_hook_baseclass()):
     """
-    This is an example bootstrap hook. If allows to download certain bundles from
-    Shotgun instead of official source for the bundle.
+    This hook allows to download certain bundles from Shotgun instead of
+    official source for the bundle.
     """
-
-    # Change this entity name to one that is unused on your Shotgun site. This custom
-    # non project entity type will be used to upload bundles to Shotgun.
-    CUSTOM_ENTITY  = "CustomNonProjectEntity01"
-
     def can_cache_bundle(self, descriptor):
         """
         Returns true if the descriptor has been cached in Shotgun.
@@ -31,10 +26,10 @@ class BootstrapHook(get_hook_baseclass()):
 
         :returns: ``True`` if the bundle is cached in Shotgun, ``False`` otherwise.
         """
-        if descriptor.get_dict()["type"] in ["app_store", "git"] and self._get_bundle_attachment(descriptor):
-            return True
-        else:
-            return False
+        return bool(
+            descriptor.get_dict()["type"] in ["app_store", "git"] and
+            self._get_bundle_attachment(descriptor)
+        )
 
     def _get_bundle_attachment(self, descriptor):
         """
@@ -50,21 +45,22 @@ class BootstrapHook(get_hook_baseclass()):
         # invoked if the bundle is missing from disk so it is not worth putting a
         # caching system in place for the method.
 
-        # We're using the descriptor uri, i.e. sgtk:descriptor:app_store?name=tk-core&version=v0.18.150,
-        # as the code for the entity. If an entry is found and there is an attachment,
-        # the bundle can be downloaded from Shotgun.
+        # We're using the descriptor uri, i.e.
+        # sgtk:descriptor:app_store?name=tk-core&version=v0.18.150,
+        # as the code for the entity. If an entry is found and there is an
+        # attachment, the bundle can be downloaded from Shotgun.
         #
-        # Ideally, you would write a script that introspects a configuration, extracts
-        # all bundles that need to be cached into Shotgun and pushes them to
-        # Shotgun. Part of this workflow can be automated with the developer/populate_bundle_cache.py
-        # script, which will download locally every single bundle for a given config.
-
+        # You could write a script that introspects a configuration,
+        # extracts all bundles that need to be cached into Shotgun and pushes
+        # them to Shotgun. Part of this workflow can be automated with the
+        # ``developer/populate_bundle_cache.py`` script, which will download
+        # locally every single bundle for a given config.
         entity = self.shotgun.find_one(
-            self.CUSTOM_ENTITY,
-            [["code", "is", descriptor.get_uri()]], ["sg_uploaded_bundle"]
+            "CustomNonProjectEntity01",
+            [["sg_descriptor", "is", descriptor.get_uri()]], ["sg_content"]
         )
         if entity:
-            return entity["sg_uploaded_bundle"]
+            return entity["sg_content"]
         else:
             return None
 
@@ -73,12 +69,16 @@ class BootstrapHook(get_hook_baseclass()):
         This method will retrieve the bundle from the Shotgun site and unpack it
         in the destination folder.
 
-        :param destination: Folder where the bundle needs to be written. Note that this is not
-            the final destination folder inside the bundle cache.
+        :param destination: Folder where the bundle needs to be written. Note
+            that this is not the final destination folder inside the bundle
+            cache.
 
         :param descriptor: Descriptor of the bundle that needs to be cached.
         :type descriptor: :class:`~sgtk.descriptor.Descriptor`
         """
         attachment = self._get_bundle_attachment(descriptor)
         download_and_unpack_attachment(self.shotgun, attachment, destination)
-        self.logger.info("Bundle %s was downloaded from %s." % (descriptor.get_uri(), self.shotgun.base_url))
+        self.logger.info(
+            "Bundle %s was downloaded from %s.",
+            descriptor.get_uri(), self.shotgun.base_url
+        )
