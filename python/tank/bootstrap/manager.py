@@ -542,7 +542,12 @@ class ToolkitManager(object):
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
         :param completed_callback: Callback function that handles cleanup after successful completion of the bootstrap.
         :param failed_callback: Callback function that handles cleanup after failed completion of the bootstrap.
-        :param parent: The parent object used for the async bootstrapper.
+        :param parent: The parent object used for the async bootstrapper. This will be necessary
+            in some environments, as it will prevent the thread used to bootstrap from being
+            garbage collected before it completes its work. An example input for this argument would
+            be to provide a reference to the main window of the parent application being integrated
+            with (ie: Maya, Nuke, etc), which is guaranteed to remain in memory for the duration of
+            bootstrap process.
         """
         self._log_startup_message(engine_name, entity)
 
