@@ -13,7 +13,6 @@ Management of the current context, e.g. the current shotgun entity/step/task.
 
 """
 
-import inspect
 import os
 import pickle
 import copy
@@ -815,11 +814,15 @@ class Context(object):
         :returns: :class:`Context`
         """
         # Get all argument names except for self.
-        argument_names = inspect.getargspec(Context.__init__).args[1:]
-        # Create a context with the items in data, but only if there is an argument
-        # of the same name.
         return Context(
-            **dict((k, v) for k, v in data.iteritems() if k in argument_names)
+            tk=data.get("tk"),
+            project=data.get("project"),
+            entity=data.get("entity"),
+            step=data.get("step"),
+            task=data.get("task"),
+            user=data.get("user"),
+            additional_entities=data.get("additional_entities"),
+            source_entity=data.get("source_entity")
         )
 
     ################################################################################################
