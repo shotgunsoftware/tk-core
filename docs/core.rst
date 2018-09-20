@@ -117,7 +117,7 @@ Core Hooks
 =========================================
 
 The Toolkit core comes with a set of hooks that can help you tweak how the core behaves. If you
-want to take over a certain behavior, copy the hook found inside the core's ``hooks`` folder
+want to take over a certain behavior, copy the hook found inside the core's `hooks <https://github.com/shotgunsoftware/tk-core/tree/master/hooks>`_ folder
 and copy it to your configuration's ``core/hooks`` folder.
 
 Here is the list of hooks that be taken over in the Toolkit core.
