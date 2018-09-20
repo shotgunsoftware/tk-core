@@ -67,7 +67,7 @@ def load(
 
 # This is the Python 2.6 signature. 2.7 has an extra object_hook_pairs argument.
 def loads(
-    fp, encoding=None, cls=None, object_hook=None, parse_float=None,
+    s, encoding=None, cls=None, object_hook=None, parse_float=None,
     parse_int=None, parse_constant=None, **kw
 ):
     """
@@ -80,7 +80,7 @@ def loads(
     See the documentation for :func:`json.loads` to learn more about this method.
     """
     loaded_value = json.loads(
-        fp, encoding, cls, object_hook, parse_float,
+        s, encoding, cls, object_hook, parse_float,
         parse_int, parse_constant, **kw
     )
 

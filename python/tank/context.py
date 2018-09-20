@@ -762,10 +762,10 @@ class Context(object):
     def to_dict(self):
         """
         Converts the context into a dictionary with keys ``project``,
-            ``entity``, ``user``, ``step``, ``task``, ``additional_entities`` and
-            ``source_entity``.
+        ``entity``, ``user``, ``step``, ``task``, ``additional_entities`` and
+        ``source_entity``.
 
-        ..note::
+        .. note ::
             Contrary to :meth:`Context.serialize`, this method discards information
             about the Toolkit instance associated with the context or the currently
             authenticated user.
