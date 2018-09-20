@@ -114,6 +114,19 @@ get_hook_baseclass
 .. autofunction:: get_hook_baseclass
 
 
+Core Hooks
+==========
+
+bootstrap.py
+~~~~~~~~~~~~~
+
+.. automodule:: bootstrap
+.. autoclass:: bootstrap.Bootstrap
+    :members:
+
+.. currentmodule:: sgtk
+
+
 Templates
 -----------------------------------------
 
