@@ -233,7 +233,7 @@ class Hook(object):
         """
         The sgtk core API instance associated with the Hook parent.
 
-        .. deprecated::
+        .. deprecated:: v0.18.70
            Use :meth:`sgtk` instead.
         """
         return self.sgtk
