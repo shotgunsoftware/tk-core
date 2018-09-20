@@ -114,7 +114,7 @@ get_hook_baseclass
 .. autofunction:: get_hook_baseclass
 
 Core Hooks
-=========================================
+==========
 
 The Toolkit core comes with a set of hooks that can help you tweak how the core behaves. If you
 want to take over a certain behavior, copy the hook found inside the core's `hooks <https://github.com/shotgunsoftware/tk-core/tree/master/hooks>`_ folder
@@ -222,7 +222,7 @@ tank_init.py
     :members:
 
 Template Hooks
-=============
+==============
 
 .. automodule:: example_template_hook
 .. autoclass:: example_template_hook.ExampleTemplateHook
