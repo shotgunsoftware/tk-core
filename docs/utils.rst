@@ -148,6 +148,16 @@ sgtk.util.filesystem
 .. autofunction:: create_valid_filename
 .. autofunction:: get_unused_path
 
+.. currentmodule:: sgtk.util.json
+
+
+sgtk.util.json
+-----------------------------------
+
+.. autofunction:: load
+.. autofunction:: loads
+
+
 ShotgunPath
 -----------------------------------
 

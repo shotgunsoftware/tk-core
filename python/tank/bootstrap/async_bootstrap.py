@@ -25,7 +25,7 @@ class AsyncBootstrapWrapper(QtCore.QObject):
     of an :class:`~sgtk.platform.Engine` instance in the main application thread.
     """
 
-    def __init__(self, toolkit_manager, engine_name, entity, completed_callback, failed_callback):
+    def __init__(self, toolkit_manager, engine_name, entity, completed_callback, failed_callback, parent=None):
         """
         Initializes an instance of the asynchronous bootstrap wrapper.
 
@@ -52,9 +52,10 @@ class AsyncBootstrapWrapper(QtCore.QObject):
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
         :param completed_callback: Callback function that handles cleanup after successful completion of the bootstrap.
         :param failed_callback: Callback function that handles cleanup after failed completion of the bootstrap.
+        :param parent: The parent object that will be used for for the bootstrapper.
         """
 
-        super(AsyncBootstrapWrapper, self).__init__()
+        super(AsyncBootstrapWrapper, self).__init__(parent=parent)
 
         self._toolkit_manager = toolkit_manager
         self._engine_name = engine_name
@@ -66,7 +67,7 @@ class AsyncBootstrapWrapper(QtCore.QObject):
         self._worker = _BootstrapToolkitWorker(self._toolkit_manager, engine_name, entity)
 
         # This QThread object will live in the main thread, not in the new thread it will manage.
-        self._thread = QtCore.QThread()
+        self._thread = QtCore.QThread(parent=self)
 
         # Make the worker operate with the new thread affinity and use the QThread object event loop.
         self._worker.moveToThread(self._thread)
@@ -173,7 +174,7 @@ class _BootstrapToolkitWorker(QtCore.QObject):
     # Qt signal emitted when the bootstrap toolkit worker has done its work in the background.
     done = QtCore.Signal()
 
-    def __init__(self, toolkit_manager, engine_name, entity):
+    def __init__(self, toolkit_manager, engine_name, entity, parent=None):
         """
         Initializes an instance of the bootstrap toolkit worker.
 
@@ -181,9 +182,10 @@ class _BootstrapToolkitWorker(QtCore.QObject):
         :param engine_name: Name of the engine used to resolve a configuration.
         :param entity: Shotgun entity used to resolve a project context.
         :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
+        :param parent: The parent object that will be used for the worker.
         """
 
-        super(_BootstrapToolkitWorker, self).__init__()
+        super(_BootstrapToolkitWorker, self).__init__(parent=parent)
 
         self._toolkit_manager = toolkit_manager
         self._engine_name = engine_name
@@ -229,7 +231,11 @@ class _BootstrapToolkitWorker(QtCore.QObject):
         # Make the worker operate with the main thread affinity
         # where the main event loop can handle its deletion.
         # Only the worker can push itself to the main thread.
-        self.moveToThread(QtCore.QCoreApplication.instance().thread())
+        #
+        # This is NOT good if we're in a PySide2/Qt5 environment. It causes an
+        # immediate crash.
+        if QtCore.__version__.startswith("4."):
+            self.moveToThread(QtCore.QCoreApplication.instance().thread())
 
         # Signal that the work is done.
         self.done.emit()
