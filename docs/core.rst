@@ -126,7 +126,6 @@ before_register_publish.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: before_register_publish
-
 .. autoclass:: before_register_publish.BeforeRegisterPublish
     :members:
 
@@ -134,7 +133,6 @@ bundle_init.py
 ~~~~~~~~~~~~~~
 
 .. automodule:: bundle_init
-
 .. autoclass:: bundle_init.BundleInit
     :members:
 
@@ -142,23 +140,13 @@ cache_location.py
 ~~~~~~~~~~~~~~~~~
 
 .. automodule:: cache_location
-
 .. autoclass:: cache_location.CacheLocation
-    :members:
-
-context_additional_entities.py
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: context_additional_entities
-
-.. autoclass:: context_additional_entities.ContextAdditionalEntities
     :members:
 
 context_change.py
 ~~~~~~~~~~~~~~~~~
 
 .. automodule:: context_change
-
 .. autoclass:: context_change.ContextChange
     :members:
 
@@ -166,7 +154,6 @@ engine_init.py
 ~~~~~~~~~~~~~~
 
 .. automodule:: engine_init
-
 .. autoclass:: engine_init.EngineInit
     :members:
 
@@ -174,23 +161,13 @@ ensure_folder_exists.py
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: ensure_folder_exists
-
 .. autoclass:: ensure_folder_exists.EnsureFolderExists
-    :members:
-
-example_template_hook.py
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: example_template_hook
-
-.. autoclass:: example_template_hook.ExampleTemplateHook
     :members:
 
 get_current_login.py
 ~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: get_current_login
-
 .. autoclass:: get_current_login.GetCurrentLogin
     :members:
 
@@ -198,7 +175,6 @@ log_metrics.py
 ~~~~~~~~~~~~~~
 
 .. automodule:: log_metrics
-
 .. autoclass:: log_metrics.LogMetrics
     :members:
     :exclude-members: execute
@@ -207,7 +183,6 @@ pick_environment.py
 ~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: pick_environment
-
 .. autoclass:: pick_environment.PickEnvironment
     :members:
 
@@ -215,7 +190,6 @@ pipeline_configuration_init.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: pipeline_configuration_init
-
 .. autoclass:: pipeline_configuration_init.PipelineConfigurationInit
     :members:
 
@@ -223,7 +197,6 @@ process_folder_creation.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: process_folder_creation
-
 .. autoclass:: process_folder_creation.ProcessFolderCreation
     :members:
 
@@ -231,7 +204,6 @@ process_folder_name.py
 ~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: process_folder_name
-
 .. autoclass:: process_folder_name.ProcessFolderName
     :members:
 
@@ -239,7 +211,6 @@ resolve_publish.py
 ~~~~~~~~~~~~~~~~~~
 
 .. automodule:: resolve_publish
-
 .. autoclass:: resolve_publish.ResolvePublish
     :members:
 
@@ -247,8 +218,14 @@ tank_init.py
 ~~~~~~~~~~~~
 
 .. automodule:: tank_init
-
 .. autoclass:: tank_init.TankInit
+    :members:
+
+Template Hooks
+=============
+
+.. automodule:: example_template_hook
+.. autoclass:: example_template_hook.ExampleTemplateHook
     :members:
 
 .. currentmodule:: sgtk

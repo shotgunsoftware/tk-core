@@ -21,7 +21,7 @@ class EngineInit(Hook):
         """
         Executed when a Toolkit engine has been fully initialized.
 
-        At this point, all applications and frameworks have been loaded,
+        At this point, all apps and frameworks have been loaded,
         and the engine is fully operational.
 
         The default implementation does nothing.

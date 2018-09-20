@@ -11,7 +11,7 @@
 """
 Hook that gets executed before a publish record is created in Shotgun.
 This hook makes it possible to add custom fields to a publish before it gets created
-as well as modifying the content that is being pushed to shotgun.
+as well as modifying the content that is being pushed to Shotgun.
 """
 
 from tank import Hook
@@ -25,7 +25,7 @@ class BeforeRegisterPublish(Hook):
 
         The default implementation returns ``shotgun_data`` untouched.
 
-        :param dict shotgun_data: All the data which will be passed to the shotgun create call
+        :param dict shotgun_data: All the data which will be passed to the Shotgun create call
         :param context: The context of the publish
         :type context: :class:`~sgtk.Context`
 

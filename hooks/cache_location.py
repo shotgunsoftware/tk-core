@@ -37,13 +37,13 @@ class CacheLocation(HookBaseClass):
         The default implementation will create a folder inside the user's home folder or
         under ``SHOTGUN_HOME``.
 
-        :param int project_id: The shotgun id of the project to store caches for. None if
+        :param int project_id: The Shotgun id of the project to store caches for. None if
                                the configuration is a site configuration.
         :param str plugin_id: Unique string to identify the scope for a particular plugin
                               or integration. For more information,
                               see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
                               non-plugin based toolkit projects, this value is None.
-        :param int pipeline_configuration_id: The shotgun pipeline configuration id to store caches
+        :param int pipeline_configuration_id: The Shotgun pipeline configuration id to store caches
                                               for. If the pipeline configuration is unmanaged, it
                                               will be ``None``
         :returns: The path to a path cache file. This file should exist when this method returns.
@@ -112,17 +112,17 @@ class CacheLocation(HookBaseClass):
 
     def get_bundle_data_cache_path(self, project_id, plugin_id, pipeline_configuration_id, bundle):
         """
-        Establish a cache folder for an application, engine or framework.
+        Establish a cache folder for an app, engine or framework.
 
         This hook method was introduced in Toolkit v0.18 and replaces the previous ``bundle_cache``
         method. If you already have implemented ``bundle_cache``, this will be detected and called
         instead, however we strongly recommend that you tweak your hook.
 
-        Applications, Engines or Frameworks commonly cache data on disk. This can be
-        small files, shotgun queries, thumbnails, etc. This method implements the
+        Apps, Engines or Frameworks commonly cache data on disk. This can be
+        small files, Shotgun queries, thumbnails, etc. This method implements the
         logic which defines this location on disk. The cache should be organized in
-        a way so that all instances of the app can re-use the same data. Applications
-        which needs to cache things per-instance can implement this using a sub
+        a way so that all instances of the app can re-use the same data. Bundles
+        which need to cache things per-instance can implement this using a sub
         folder inside the bundle cache location.
 
         It is possible to omit some components of the path by explicitly passing
@@ -135,14 +135,14 @@ class CacheLocation(HookBaseClass):
         The default implementation will create a folder inside the user's home folder or
         under ``SHOTGUN_HOME``.
 
-        :param int project_id: The shotgun id of the project to store caches for, or None.
+        :param int project_id: The Shotgun id of the project to store caches for, or None.
         :param str plugin_id: Unique string to identify the scope for a particular plugin
                               or integration, or None. For more information,
                               see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
                               non-plugin based toolkit projects, this value is None.
-        :param int pipeline_configuration_id: The shotgun pipeline config id to store caches for
+        :param int pipeline_configuration_id: The Shotgun pipeline config id to store caches for
                                               or ``None`` if the pipeline configuration is unmanaged.
-        :param bundle: The application, engine or framework object which is requesting the cache folder.
+        :param bundle: The app, engine or framework object which is requesting the cache folder.
         :type bundle: :class:`~sgtk.platform.Engine`, :class:`~sgtk.platform.Framework` or
                       :class:`~sgtk.platform.Application`
         :returns: The path to a folder which should exist on disk.

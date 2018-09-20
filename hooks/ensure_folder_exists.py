@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-This hook is called when an engine, application or framework's
+This hook is called when an engine, app or framework's
 :class:`~sgtk.platform.Application.ensure_folder_exists` method is called.
 """
 

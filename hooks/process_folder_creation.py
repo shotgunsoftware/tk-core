@@ -44,7 +44,7 @@ class ProcessFolderCreation(Hook):
         **Entity Folder**
 
         This represents a folder in the file system which is associated with a
-        shotgun entity. It contains the following keys:
+        Shotgun entity. It contains the following keys:
 
         - **action** (:class:`str`) - ``entity_folder``
         - **metadata** (:class:`dict`) - The configuration yaml data for this item

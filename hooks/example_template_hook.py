@@ -34,15 +34,13 @@ class ExampleTemplateHook(Hook):
 
     def execute(self, setting, bundle_obj, extra_params, **kwargs):
         """
-        Example pass-through implementation. One option is expected in extra_params,
-        and this will be returned.
+        Example pass-through implementation. One option is expected in ``extra_params``
+        and it will be returned.
 
         So the following two things will evaluate to the same thing:
 
         > template_snapshot: maya_shot_publish
         > template_snapshot: hook:example_template_hook:maya_shot_publish
-
-
 
         :param setting: The name of the setting for which we are evaluating
                         In our example above, it would be template_snapshot.

@@ -9,10 +9,10 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Core hook which handles conversion of shotgun field data into strings.
+Core hook which handles conversion of Shotgun field data into strings.
 
 This hook can be used to control how folders are named on disk given
-a field in shotgun. Should for example spaces be replaced by underscores
+a field in Shotgun. Should for example spaces be replaced by underscores
 or periods when folders are created?
 
 This hook can also be used to raise an exception if an invalid naming convention
