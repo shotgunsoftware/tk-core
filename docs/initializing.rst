@@ -563,7 +563,7 @@ If you want to distribute custom application code that may only be accessible fo
 users on your local network or from developers who have access keys to the Git
 repositories, you can upload  individual bundles to Shotgun and then take over the
 ``populate_bundle_cache_entry`` and ``can_cache_bundle`` methods of the
-``core/bootstrap.py`` hook.
+:class:`~bootstrap.Bootstrap` hook.
 
 .. note::
     This workflow isn't limited to custom applications stored in git. You can also use it
@@ -590,8 +590,6 @@ Once you are done, you can zip your configuration and its custom bootstrap and u
 configuration, they will download the configuration and cache the Toolkit core and all application
 bundles through the hook.
 
-Click `here <https://github.com/shotgunsoftware/tk-core/blob/master/hooks/bootstrap.py>`_ to learn more
-about the bootstrap hook.
 
 .. _environment_variables:
 

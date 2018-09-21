@@ -16,6 +16,8 @@ from sgtk import get_hook_baseclass
 from sgtk.util.shotgun import download_and_unpack_attachment
 
 
+# By using sgtk.get_hook_baseclass instead of deriving from sgtk.Hook, we'll be
+# getting the default hook's init method for free.
 class Bootstrap(get_hook_baseclass()):
     """
     This hook allows to download certain bundles from Shotgun instead of
