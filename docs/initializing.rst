@@ -238,6 +238,7 @@ but is shared between all pipeline configurations.
         :align: center
 
     |
+
     The structure of this folder is identical to the global ``bundle_cache``
     folder found in the locations listed above and can contain all of the
     apps, engines, and frameworks required by your configuration.
@@ -553,6 +554,41 @@ In this example, there is no need to construct any :class:`sgtk.Sgtk`
 instance or run a ``tank`` command - the :class:`ToolkitManager` instead becomes the entry
 point into the system. It will handle the setup and initialization of the configuration behind the scenes
 and start up a Toolkit session once all the required pieces have been initialized and set up.
+
+
+Distributing application code from your site
+============================================
+
+If you want to cache custom application code that may only be accessible for
+users on your local network or from developers who have access keys to the Git
+repositories, you can upload  individual bundles to Shotgun and then take over the
+``populate_bundle_cache_entry`` and ``can_cache_bundle`` methods of the
+:class:`~bootstrap.Bootstrap` hook.
+
+.. note::
+    This workflow isn't limited to custom applications stored in git. You can also use it
+    to distribute applications downloaded from the Toolkit AppStore if your users do not
+    have access to the Internet.
+
+Here's a suggested setup:
+
+.. image:: ./resources/initializing/bundle_custom_entity.png
+
+As you can see, a non project custom entity has been configured to cache Toolkit bundles. The
+most important column here is Descriptor, which is the field the bootstrap hook will use
+to determine if a bundle is available in Shotgun or not.
+
+Once the bundles have been uploaded, you can implement the ``core/bootstrap.py`` hook.
+
+.. literalinclude:: examples/bootstrap_hook.py
+   :language: python
+   :start-after: #documentationStart
+   :end-before: #documentationEnd
+
+Once you are done, you can zip your configuration and its custom bootstrap and upload it to a
+``PipelineConfiguration`` entity in Shotgun. Now every time a user bootstraps into this pipeline
+configuration, they will download the configuration and cache the Toolkit core and all application
+bundles through the hook.
 
 
 .. _environment_variables:

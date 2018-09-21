@@ -13,6 +13,7 @@ import re
 import cgi
 import urllib
 import urlparse
+import contextlib
 
 from .. import constants
 from ... import LogManager
@@ -530,7 +531,9 @@ class IODescriptorBase(object):
         uri = constants.DESCRIPTOR_URI_SEPARATOR.join(uri_chunks)
 
         qs_chunks = []
-        # Sort keys so that the uri is the same across invocations.
+        # Sort keys so that the uri is the same across invocations. This is very important
+        # because tests may start failing with different implementations of Python (like pypy)
+        # or code using this value as a key in a dict.
         for param in sorted(descriptor_dict):
             if param == "type":
                 continue
@@ -717,6 +720,20 @@ class IODescriptorBase(object):
         :return: Path to bundle cache location
         """
         raise NotImplementedError
+
+    @contextlib.contextmanager
+    def open_write_location(self):
+        """
+        When used with the ``with`` statement, this context manager will yield the
+        destination where a bundle should be downloaded. If the context is not exited successfully,
+        the files will be removed from disk.
+
+        :returns: Path to where the package should be extracted to.
+        """
+        raise TankDescriptorError(
+            "open_write_location is not supported on the '%s' descriptor type." %
+            self.get_dict()["type"]
+        )
 
     def get_system_name(self):
         """

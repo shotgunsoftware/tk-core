@@ -14,6 +14,7 @@ Provides a base class for integration tests.
 
 from __future__ import print_function
 
+import re
 import os
 import sys
 import tempfile
@@ -55,7 +56,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
         """
 
         # Set up logging
-        sgtk.LogManager().initialize_base_file_handler(cls.__name__.lower())
+        sgtk.LogManager().initialize_base_file_handler(cls._camel_to_snake(cls.__name__))
         sgtk.LogManager().initialize_custom_handler()
 
         # Create a temporary directory for these tests and make sure
@@ -67,6 +68,9 @@ class SgtkIntegrationTest(unittest2.TestCase):
             atexit.register(cls._cleanup_temp_dir)
         else:
             cls.temp_dir = os.environ["SHOTGUN_TEST_TEMP"]
+
+        # Ensures calls to the tempfile module generate paths under the unit test temp folder.
+        tempfile.tempdir = cls.temp_dir
 
         # Ensure Toolkit writes to the temporary directory
         os.environ["SHOTGUN_HOME"] = os.path.join(
@@ -93,6 +97,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
         )
         # Set it also as an environment variable so it can be used by subprocess or a configuration.
         os.environ["TK_CORE_REPO_ROOT"] = cls.tk_core_repo_root
+        cls.fixtures_root = os.path.join(cls.tk_core_repo_root, "tests", "fixtures")
 
         # Create or update the integration_tests local storage with the current test run
         # temp folder location.
@@ -114,6 +119,14 @@ class SgtkIntegrationTest(unittest2.TestCase):
         # Ensure the local storage folder exists on disk.
         if not os.path.exists(cls.local_storage["path"]):
             os.makedirs(cls.local_storage["path"])
+
+    @staticmethod
+    def _camel_to_snake(text):
+        """
+        Converts a string from CamelCase to snake_case.
+        """
+        str1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', text)
+        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', str1).lower()
 
     @classmethod
     def _cleanup_temp_dir(cls):
@@ -144,21 +157,71 @@ class SgtkIntegrationTest(unittest2.TestCase):
         :param dict entity: Entity dictionary for the project if it needs to be created.
 
         .. note:
-            The actual name of the project might be different than the name passed in if you
+            The actual name of the project will be different than the name passed in. As such,
+            always use the name returned from the entity.
+
+        :returns: Entity dictionary of the project.
+        """
+        return cls.create_or_find_entity("Project", "Testing: %s" % name, entity)
+
+    @classmethod
+    def create_or_find_entity(cls, entity_type, name, entity_fields=None):
+        """
+        Creates of finds an entity with a given name
+
+        :param str name: Name of the project to find or create.
+        :param dict entity: Entity dictionary for the project if it needs to be created.
+
+        .. note:
+            The actual name of the entity might be different than the name passed in if you
             are in a CI environment. As such, always use the name returned from the entity.
 
         :returns: Entity dictionary of the project.
         """
-        entity = entity or {}
+        entity_fields = entity_fields or {}
 
+        # Create a unique name across CI servers if required.
         name = cls._create_unique_name(name)
 
-        project = cls.sg.find_one("Project", [["name", "is", name]])
-        if not project:
-            entity["name"] = name
-            project = cls.sg.create("Project", entity)
+        entity_name_field = sgtk.util.get_sg_entity_name_field(entity_type)
 
-        return project
+        # Find the entity by this name in Shotgun.
+        entity = cls.sg.find_one(
+            entity_type,
+            [[entity_name_field, "is", name]]
+        )
+        # If it doesn't exist, create it!
+        if not entity:
+            entity_fields[entity_name_field] = name
+            entity = cls.sg.create(entity_type, entity_fields)
+
+        return entity
+
+    @classmethod
+    def ensure_pipeline_configuration_exists(cls, name, entity_data):
+        """
+        Ensures a pipeline configuration with the given name exists.
+
+        :param name: Name of the configuration to look for.
+        :param entity_data: Data for the pipeline configuration that will be
+            created or updated.
+        """
+
+        # Ensures only the requested fields are set
+        complete_pc_data = {
+            "mac_path": "",
+            "windows_path": "",
+            "linux_path": "",
+            "descriptor": "",
+            "plugin_ids": "",
+            # Turn on the associated feature pref if this field is giving out errors.
+            "uploaded_config": None,
+            "project": None
+        }
+        complete_pc_data.update(entity_data)
+
+        pc = cls.create_or_find_entity("PipelineConfiguration", name)
+        return cls.sg.update(pc["type"], pc["id"], complete_pc_data)
 
     def run_tank_cmd(self, location, user_args=None, user_input=None, timeout=120):
         """

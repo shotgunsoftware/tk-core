@@ -305,7 +305,7 @@ def get_python_interpreter_for_config(pipeline_config_path):
     :returns: Path to the Python interpreter for that configuration.
     :rtype: str
 
-    :raises TankInvalidInterpreterLocationError: Raised if the interpreter in the interpreter file doesn't
+    :raises ~sgtk.descriptor.TankInvalidInterpreterLocationError: Raised if the interpreter in the interpreter file doesn't
         exist.
     :raises TankFileDoesNotExistError: Raised if the interpreter file can't be found.
     :raises TankNotPipelineConfigurationError: Raised if the pipeline configuration path is not
