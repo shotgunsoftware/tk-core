@@ -559,7 +559,7 @@ and start up a Toolkit session once all the required pieces have been initialize
 Distributing application code from your site
 ============================================
 
-If you want to distribute custom application code that may only be accessible for
+If you want to cache custom application code that may only be accessible for
 users on your local network or from developers who have access keys to the Git
 repositories, you can upload  individual bundles to Shotgun and then take over the
 ``populate_bundle_cache_entry`` and ``can_cache_bundle`` methods of the
@@ -574,7 +574,7 @@ Here's a suggested setup:
 
 .. image:: ./resources/initializing/bundle_custom_entity.png
 
-As you can see, a non project custom entity has been configured to store Toolkit bundles. The
+As you can see, a non project custom entity has been configured to cache Toolkit bundles. The
 most important column here is Descriptor, which is the field the bootstrap hook will use
 to determine if a bundle is available in Shotgun or not.
 
