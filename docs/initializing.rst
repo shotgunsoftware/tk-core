@@ -561,8 +561,14 @@ Distributing application code from your site
 
 If you want to distribute custom application code that may only be accessible for
 users on your local network or from developers who have access keys to the Git
-repositories, you can upload individual bundles to Shotgun and then take over the ``populate_bundle_cache_entry`` and ``can_cache_bundle`` methods of the
+repositories, you can upload  individual bundles to Shotgun and then take over the
+``populate_bundle_cache_entry`` and ``can_cache_bundle`` methods of the
 ``core/bootstrap.py`` hook.
+
+.. note::
+    This workflow isn't limited to custom applications stored in git. You can also use it
+    to distribute applications downloaded from the Toolkit AppStore if your users do not
+    have access to the Internet.
 
 Here's a suggested setup:
 
@@ -574,23 +580,18 @@ to determine if a bundle is available in Shotgun or not.
 
 Once the bundles have been uploaded, you can implement the ``core/bootstrap.py`` hook.
 
-.. literalinclude:: ../tests/fixtures/descriptor_tests/with_create_descriptor_hook/core/hooks/bootstrap.py
+.. literalinclude:: examples/bootstrap_hook.py
    :language: python
    :start-after: #documentationStart
    :end-before: #documentationEnd
 
 Once you are done, you can zip your configuration and its custom bootstrap and upload it to a
-``PipelineConfiguration`` entity in Shotgun. Now everytime a user bootstraps into this pipeline
+``PipelineConfiguration`` entity in Shotgun. Now every time a user bootstraps into this pipeline
 configuration, they will download the configuration and cache the Toolkit core and all application
 bundles through the hook.
 
 Click `here <https://github.com/shotgunsoftware/tk-core/blob/master/hooks/bootstrap.py>`_ to learn more
 about the bootstrap hook.
-
-.. note::
-    This workflow isn't limited to custom applications stored in git. You can also use it
-    to distribute applications downloaded from the Toolkit AppStore if your users do not
-    have access to the Internet.
 
 .. _environment_variables:
 

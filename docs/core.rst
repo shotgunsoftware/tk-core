@@ -129,6 +129,13 @@ before_register_publish.py
 .. autoclass:: before_register_publish.BeforeRegisterPublish
     :members:
 
+bootstrap.py
+~~~~~~~~~~~~
+
+.. automodule:: bootstrap
+.. autoclass:: bootstrap.Bootstrap
+    :members:
+
 bundle_init.py
 ~~~~~~~~~~~~~~
 
@@ -226,18 +233,6 @@ Template Hooks
 
 .. automodule:: example_template_hook
 .. autoclass:: example_template_hook.ExampleTemplateHook
-    :members:
-
-.. currentmodule:: sgtk
-
-Core Hooks
-==========
-
-bootstrap.py
-~~~~~~~~~~~~~
-
-.. automodule:: bootstrap
-.. autoclass:: bootstrap.Bootstrap
     :members:
 
 .. currentmodule:: sgtk

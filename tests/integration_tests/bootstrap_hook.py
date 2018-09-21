@@ -153,7 +153,7 @@ class BootstrapHookTests(SgtkIntegrationTest):
             {
                 "plugin_ids": "basic.*",
                 "descriptor": "sgtk:descriptor:path?path=%s" % (
-                    os.path.join(cls.fixtures_root, "descriptor_tests", "with_create_descriptor_hook")
+                    os.path.join(cls.fixtures_root, "descriptor_tests", "with_bootstrap_hook")
                 ),
                 "project": cls.project
             }

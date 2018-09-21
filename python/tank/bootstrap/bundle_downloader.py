@@ -5,11 +5,19 @@ from sgtk import LogManager
 log = LogManager.get_logger(__name__)
 
 
-# FIXME: This class has a terrible name, we need to rename it.
-
 class BundleDownloader(object):
-    """docstring for BundleDownloader"""
+    """
+    Utility class that allows to download a bundle through the bootstrap hook.
+
+    It is written as a separate file that cab be reimported by the bootstrapper
+    after the core swap.
+    """
     def __init__(self, connection, pipeline_config_id, descriptor):
+        """
+        :param connection: Connection to Shotgun.
+        :param pipeline_config_id: Id of the pipeline configuration that was selected.
+        :param descriptor: Descriptor of the configuration that we're running.
+        """
         super(BundleDownloader, self).__init__()
 
         # First put our base hook implementation into the array.
@@ -40,8 +48,12 @@ class BundleDownloader(object):
 
     def download_bundle(self, descriptor):
         """
-        Downloads a bundle referenced by a descriptor. If the populate_bundle_cache_entry
-        method is implemented on the bootstrap hook, it will be invoked.
+        Downloads a bundle referenced by a descriptor.
+
+        If the bootstrap hook's ``can_cache_bundle`` method returns True, the bundle will be
+        downloaded through the hook.
+
+        :param descriptor: Descriptor of the bundle to download.
         """
         if self._hook_instance.can_cache_bundle(descriptor):
             with descriptor._io_descriptor.open_write_location() as temporary_folder:

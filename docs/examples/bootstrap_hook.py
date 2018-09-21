@@ -16,7 +16,7 @@ from sgtk import get_hook_baseclass
 from sgtk.util.shotgun import download_and_unpack_attachment
 
 
-class BootstrapHook(get_hook_baseclass()):
+class Bootstrap(get_hook_baseclass()):
     """
     This hook allows to download certain bundles from Shotgun instead of
     official source for the bundle.
