@@ -25,6 +25,7 @@ Bootstrap = imp.load_source(
 class Foo(object):
     pass
 
+
 # Trick Toolkit's load_plugin method into thinking Bootstrap is actually from this
-# module
+# module.
 Bootstrap.__module__ = Foo.__module__
