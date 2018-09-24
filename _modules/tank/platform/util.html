@@ -10,11 +10,9 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.util &mdash; tk-core v0.18.151 documentation</title>
+  <title>tank.platform.util &mdash; tk-core v0.18.152 documentation</title>
   
 
-  
-  
   
   
 
@@ -26,19 +24,24 @@
 
   
 
-  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" /> 
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.152 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav" role="document">
 
-   
   <div class="wy-grid-for-nav">
 
     
@@ -85,10 +88,7 @@
     
             
             
-              
-            
-            
-              <ul>
+                <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core</a></li>
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.151.<br>
+    <b>tk-core</b> v0.18.152.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -139,52 +139,34 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../index.html">tk-core</a>
-        
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">tk-core</a>
       </nav>
 
 
+      
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
           
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
 <div role="navigation" aria-label="breadcrumbs navigation">
-
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../../../index.html">Docs</a> &raquo;</li>
-        
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
           <li><a href="../../index.html">Module code</a> &raquo;</li>
-        
-      <li>tank.platform.util</li>
-    
-    
+      
+    <li>tank.platform.util</li>
       <li class="wy-breadcrumbs-aside">
         
+          
+        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -203,11 +185,11 @@
 
 <span class="kn">import</span> <span class="nn">logging</span>
 
-<span class="kn">from</span> <span class="nn">.import_stack</span> <span class="k">import</span> <span class="n">ImportStack</span>
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="k">import</span> <span class="n">TankError</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="k">import</span> <span class="n">TankContextChangeNotSupportedError</span><span class="p">,</span> <span class="n">TankCurrentModuleNotFoundError</span>
-<span class="kn">from</span> <span class="nn">.engine</span> <span class="k">import</span> <span class="n">current_engine</span><span class="p">,</span> <span class="n">_restart_engine</span>
-<span class="kn">from</span> <span class="nn">..log</span> <span class="k">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">.import_stack</span> <span class="kn">import</span> <span class="n">ImportStack</span>
+<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankContextChangeNotSupportedError</span><span class="p">,</span> <span class="n">TankCurrentModuleNotFoundError</span>
+<span class="kn">from</span> <span class="nn">.engine</span> <span class="kn">import</span> <span class="n">current_engine</span><span class="p">,</span> <span class="n">_restart_engine</span>
+<span class="kn">from</span> <span class="nn">..log</span> <span class="kn">import</span> <span class="n">LogManager</span>
 
 
 <span class="k">def</span> <span class="nf">_get_current_bundle</span><span class="p">():</span>
@@ -298,7 +280,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">engine</span> <span class="o">=</span> <span class="n">current_engine</span><span class="p">()</span>
 
-    <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;No engine is currently running! Run start_engine instead.&quot;</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
@@ -311,7 +293,7 @@
         <span class="n">restart</span><span class="p">(</span><span class="n">new_context</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="restart"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.restart">[docs]</a><span class="k">def</span> <span class="nf">restart</span><span class="p">(</span><span class="n">new_context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="restart"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.restart">[docs]</a><span class="k">def</span> <span class="nf">restart</span><span class="p">(</span><span class="n">new_context</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Restarts the currently running Toolkit platform. This includes reloading all</span>
 <span class="sd">    configuration files as well as reloading the code for all apps and engines.</span>
@@ -329,7 +311,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">engine</span> <span class="o">=</span> <span class="n">current_engine</span><span class="p">()</span>
 
-    <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;No engine is currently running! Run start_engine instead.&quot;</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
@@ -463,7 +445,6 @@
 </pre></div>
 
            </div>
-           
           </div>
           <footer>
   
@@ -493,12 +474,10 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.151',
-            LANGUAGE:'None',
+            VERSION:'v0.18.152',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
+            HAS_SOURCE:  true
         };
     </script>
       <script type="text/javascript" src="../../../_static/jquery.js"></script>
@@ -507,13 +486,19 @@
 
   
 
-  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
 
+  
+  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
+          SphinxRtdTheme.StickyNav.enable();
       });
   </script>
+  
  
 
 <script>

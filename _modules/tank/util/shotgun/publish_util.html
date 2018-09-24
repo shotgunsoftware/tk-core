@@ -10,11 +10,9 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun.publish_util &mdash; tk-core v0.18.151 documentation</title>
+  <title>tank.util.shotgun.publish_util &mdash; tk-core v0.18.152 documentation</title>
   
 
-  
-  
   
   
 
@@ -26,19 +24,24 @@
 
   
 
-  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <link rel="index" title="Index" href="../../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../../search.html" /> 
+  
+  
+    <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.152 documentation" href="../../../../index.html"/>
+        <link rel="up" title="Module code" href="../../../index.html"/> 
 
   
   <script src="../../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav" role="document">
 
-   
   <div class="wy-grid-for-nav">
 
     
@@ -85,10 +88,7 @@
     
             
             
-              
-            
-            
-              <ul>
+                <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../core.html">Core</a></li>
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.151.<br>
+    <b>tk-core</b> v0.18.152.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -139,52 +139,34 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../../index.html">tk-core</a>
-        
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../../index.html">tk-core</a>
       </nav>
 
 
+      
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
           
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
 <div role="navigation" aria-label="breadcrumbs navigation">
-
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
-        
+    <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      
           <li><a href="../../../index.html">Module code</a> &raquo;</li>
-        
-      <li>tank.util.shotgun.publish_util</li>
-    
-    
+      
+    <li>tank.util.shotgun.publish_util</li>
       <li class="wy-breadcrumbs-aside">
         
+          
+        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -205,12 +187,12 @@
 <span class="sd">Utility methods related to Published Files in Shotgun</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">with_statement</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">with_statement</span>
 
-<span class="kn">from</span> <span class="nn">...log</span> <span class="k">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">..shotgun_path</span> <span class="k">import</span> <span class="n">ShotgunPath</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">login</span>
+<span class="kn">from</span> <span class="nn">...log</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">..shotgun_path</span> <span class="kn">import</span> <span class="n">ShotgunPath</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">login</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -234,7 +216,7 @@
 <span class="sd">    :returns: display name</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">schema_data</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">get_cache_item</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_SCHEMA_CACHE_KEY</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">schema_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">schema_data</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="c1"># now resolve the entity types into display names using the schema_entity_read method.</span>
         <span class="n">schema_data</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">schema_entity_read</span><span class="p">()</span>
         <span class="c1"># returns a dictionary on the following form:</span>
@@ -261,7 +243,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">storage_data</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">get_cache_item</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">SHOTGUN_LOCAL_STORAGES_CACHE_KEY</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">storage_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">storage_data</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Caching shotgun local storages...&quot;</span><span class="p">)</span>
         <span class="n">storage_data</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
             <span class="s2">&quot;LocalStorage&quot;</span><span class="p">,</span>
@@ -274,8 +256,8 @@
     <span class="k">return</span> <span class="n">storage_data</span>
 
 
-<div class="viewcode-block" id="find_publish"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.find_publish">[docs]</a><span class="nd">@LogManager</span><span class="o">.</span><span class="n">log_timing</span>
-<span class="k">def</span> <span class="nf">find_publish</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="nd">@LogManager.log_timing</span>
+<div class="viewcode-block" id="find_publish"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.find_publish">[docs]</a><span class="k">def</span> <span class="nf">find_publish</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Finds publishes in Shotgun given paths on disk.</span>
 <span class="sd">    This method is similar to the find method in the Shotgun API,</span>
@@ -309,7 +291,7 @@
 <span class="sd">    :returns: dictionary keyed by path</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># avoid cyclic references</span>
-    <span class="kn">from</span> <span class="nn">.publish_creation</span> <span class="k">import</span> <span class="n">group_by_storage</span>
+    <span class="kn">from</span> <span class="nn">.publish_creation</span> <span class="kn">import</span> <span class="n">group_by_storage</span>
 
     <span class="c1"># Map path caches to full paths, grouped by storage</span>
     <span class="c1"># in case of sequences, there will be more than one file</span>
@@ -429,8 +411,8 @@
 
     <span class="k">return</span> <span class="n">matches</span></div>
 
-<div class="viewcode-block" id="create_event_log_entry"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.create_event_log_entry">[docs]</a><span class="nd">@LogManager</span><span class="o">.</span><span class="n">log_timing</span>
-<span class="k">def</span> <span class="nf">create_event_log_entry</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">event_type</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="nd">@LogManager.log_timing</span>
+<div class="viewcode-block" id="create_event_log_entry"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.create_event_log_entry">[docs]</a><span class="k">def</span> <span class="nf">create_event_log_entry</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">event_type</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates an event log entry inside of Shotgun.</span>
 <span class="sd">    Event log entries can be handy if you want to track a process or a sequence of events.</span>
@@ -486,7 +468,6 @@
 </pre></div>
 
            </div>
-           
           </div>
           <footer>
   
@@ -516,12 +497,10 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'v0.18.151',
-            LANGUAGE:'None',
+            VERSION:'v0.18.152',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
+            HAS_SOURCE:  true
         };
     </script>
       <script type="text/javascript" src="../../../../_static/jquery.js"></script>
@@ -530,13 +509,19 @@
 
   
 
-  <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
+  
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+  
 
+  
+  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
+          SphinxRtdTheme.StickyNav.enable();
       });
   </script>
+  
  
 
 <script>

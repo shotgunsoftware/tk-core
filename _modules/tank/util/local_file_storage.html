@@ -10,11 +10,9 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.local_file_storage &mdash; tk-core v0.18.151 documentation</title>
+  <title>tank.util.local_file_storage &mdash; tk-core v0.18.152 documentation</title>
   
 
-  
-  
   
   
 
@@ -26,19 +24,24 @@
 
   
 
-  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" /> 
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.152 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav" role="document">
 
-   
   <div class="wy-grid-for-nav">
 
     
@@ -85,10 +88,7 @@
     
             
             
-              
-            
-            
-              <ul>
+                <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core</a></li>
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.151.<br>
+    <b>tk-core</b> v0.18.152.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -139,52 +139,34 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../index.html">tk-core</a>
-        
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">tk-core</a>
       </nav>
 
 
+      
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
           
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
 <div role="navigation" aria-label="breadcrumbs navigation">
-
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../../../index.html">Docs</a> &raquo;</li>
-        
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
           <li><a href="../../index.html">Module code</a> &raquo;</li>
-        
-      <li>tank.util.local_file_storage</li>
-    
-    
+      
+    <li>tank.util.local_file_storage</li>
       <li class="wy-breadcrumbs-aside">
         
+          
+        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -204,9 +186,9 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">urlparse</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">filesystem</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="k">import</span> <span class="n">TankError</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">filesystem</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -252,8 +234,8 @@
     <span class="c1"># supported types of paths</span>
     <span class="p">(</span><span class="n">LOGGING</span><span class="p">,</span> <span class="n">CACHE</span><span class="p">,</span> <span class="n">PERSISTENT</span><span class="p">,</span> <span class="n">PREFERENCES</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
 
-<div class="viewcode-block" id="LocalFileStorageManager.get_global_root"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager.get_global_root">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_global_root</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="o">=</span><span class="n">CORE_V18</span><span class="p">):</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="LocalFileStorageManager.get_global_root"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager.get_global_root">[docs]</a>    <span class="k">def</span> <span class="nf">get_global_root</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="o">=</span><span class="n">CORE_V18</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a generic Shotgun storage root.</span>
 
@@ -383,8 +365,8 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown platform: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="LocalFileStorageManager.get_site_root"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager.get_site_root">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_site_root</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="o">=</span><span class="n">CORE_V18</span><span class="p">):</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="LocalFileStorageManager.get_site_root"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager.get_site_root">[docs]</a>    <span class="k">def</span> <span class="nf">get_site_root</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="o">=</span><span class="n">CORE_V18</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a cache root where items can be stored on a per site basis.</span>
 
@@ -404,7 +386,7 @@
 <span class="sd">                           which is the current generation of paths.</span>
 <span class="sd">        :return: Path as string</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">hostname</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">hostname</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
                 <span class="s2">&quot;Cannot compute path for local site specific storage - no shotgun hostname specified!&quot;</span>
             <span class="p">)</span>
@@ -427,8 +409,8 @@
             <span class="n">base_url</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="LocalFileStorageManager.get_configuration_root"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager.get_configuration_root">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_configuration_root</span><span class="p">(</span>
+    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="LocalFileStorageManager.get_configuration_root"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager.get_configuration_root">[docs]</a>    <span class="k">def</span> <span class="nf">get_configuration_root</span><span class="p">(</span>
             <span class="bp">cls</span><span class="p">,</span>
             <span class="n">hostname</span><span class="p">,</span>
             <span class="n">project_id</span><span class="p">,</span>
@@ -482,7 +464,7 @@
             <span class="c1"># in order to be backwards compatible with pre-0.18 cache locations,</span>
             <span class="c1"># handle the site configuration (e.g. when project id is None)</span>
             <span class="c1"># as project id zero.</span>
-            <span class="k">if</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">project_id</span> <span class="o">=</span> <span class="mi">0</span>
 
             <span class="c1"># older paths are of the form root/mysite.shotgunstudio.com/project_123/config_123</span>
@@ -513,7 +495,7 @@
                 <span class="c1"># at the site level.</span>
                 <span class="n">pc_suffix</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
-            <span class="k">if</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="c1"># site config</span>
                 <span class="n">project_config_folder</span> <span class="o">=</span> <span class="s2">&quot;site</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pc_suffix</span>
             <span class="k">else</span><span class="p">:</span>
@@ -526,7 +508,6 @@
 </pre></div>
 
            </div>
-           
           </div>
           <footer>
   
@@ -556,12 +537,10 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.151',
-            LANGUAGE:'None',
+            VERSION:'v0.18.152',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
+            HAS_SOURCE:  true
         };
     </script>
       <script type="text/javascript" src="../../../_static/jquery.js"></script>
@@ -570,13 +549,19 @@
 
   
 
-  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
 
+  
+  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
+          SphinxRtdTheme.StickyNav.enable();
       });
   </script>
+  
  
 
 <script>

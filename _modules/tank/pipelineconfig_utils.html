@@ -10,11 +10,9 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.pipelineconfig_utils &mdash; tk-core v0.18.151 documentation</title>
+  <title>tank.pipelineconfig_utils &mdash; tk-core v0.18.152 documentation</title>
   
 
-  
-  
   
   
 
@@ -26,19 +24,24 @@
 
   
 
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" /> 
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.152 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
 
   
   <script src="../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav" role="document">
 
-   
   <div class="wy-grid-for-nav">
 
     
@@ -85,10 +88,7 @@
     
             
             
-              
-            
-            
-              <ul>
+                <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../core.html">Core</a></li>
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.151.<br>
+    <b>tk-core</b> v0.18.152.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -139,52 +139,34 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../index.html">tk-core</a>
-        
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">tk-core</a>
       </nav>
 
 
+      
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
           
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
 <div role="navigation" aria-label="breadcrumbs navigation">
-
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
-        
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
           <li><a href="../index.html">Module code</a> &raquo;</li>
-        
-      <li>tank.pipelineconfig_utils</li>
-    
-    
+      
+    <li>tank.pipelineconfig_utils</li>
       <li class="wy-breadcrumbs-aside">
         
+          
+        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -206,21 +188,21 @@
 <span class="sd">across storages, configurations etc.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">with_statement</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">with_statement</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
 
-<span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="k">import</span> <span class="n">yaml</span>
+<span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">yaml</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">LogManager</span>
 
-<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">yaml_cache</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">StorageRoots</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">ShotgunPath</span>
-<span class="kn">from</span> <span class="nn">.util.shotgun</span> <span class="k">import</span> <span class="n">get_deferred_sg_connection</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">yaml_cache</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">StorageRoots</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">ShotgunPath</span>
+<span class="kn">from</span> <span class="nn">.util.shotgun</span> <span class="kn">import</span> <span class="n">get_deferred_sg_connection</span>
 
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="k">import</span> <span class="n">TankError</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankError</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -247,7 +229,7 @@
     <span class="c1"># first, make sure that this path is actually a pipeline configuration</span>
     <span class="c1"># path. otherwise, it cannot be localized :)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">is_pipeline_config</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">):</span>
-        <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="bp">False</span>
 
     <span class="c1"># look for a localized API by searching for a _core_upgrader.py file</span>
     <span class="n">api_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">,</span> <span class="s2">&quot;install&quot;</span><span class="p">,</span> <span class="s2">&quot;core&quot;</span><span class="p">,</span> <span class="s2">&quot;_core_upgrader.py&quot;</span><span class="p">)</span>
@@ -283,8 +265,8 @@
     <span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">yaml_cache</span><span class="o">.</span><span class="n">g_yaml_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cfg_yml</span><span class="p">,</span> <span class="n">deepcopy_data</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">yaml_cache</span><span class="o">.</span><span class="n">g_yaml_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cfg_yml</span><span class="p">,</span> <span class="n">deepcopy_data</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;File contains no data!&quot;</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Looks like a config file is corrupt. Please contact &quot;</span>
@@ -295,7 +277,7 @@
 <span class="c1">####################################################################################################################</span>
 <span class="c1"># Core API resolve utils</span>
 
-<span class="k">def</span> <span class="nf">get_core_descriptor</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">,</span> <span class="n">shotgun_connection</span><span class="p">,</span> <span class="n">bundle_cache_fallback_paths</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">get_core_descriptor</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">,</span> <span class="n">shotgun_connection</span><span class="p">,</span> <span class="n">bundle_cache_fallback_paths</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a descriptor object for the uri/dict defined in the config&#39;s</span>
 <span class="sd">    ``core_api.yml`` file (if it exists).</span>
@@ -311,7 +293,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># avoid circular dependencies</span>
-    <span class="kn">from</span> <span class="nn">.descriptor</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="kn">from</span> <span class="nn">.descriptor</span> <span class="kn">import</span> <span class="p">(</span>
         <span class="n">Descriptor</span><span class="p">,</span>
         <span class="n">create_descriptor</span><span class="p">,</span>
         <span class="n">is_descriptor_version_missing</span>
@@ -320,7 +302,7 @@
     <span class="n">descriptor_file_path</span> <span class="o">=</span> <span class="n">_get_core_descriptor_file</span><span class="p">(</span><span class="n">pipeline_config_path</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">descriptor_file_path</span><span class="p">):</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">None</span>
 
     <span class="c1"># the core_api.yml contains info about the core:</span>
     <span class="c1">#</span>
@@ -396,7 +378,7 @@
     <span class="c1"># Do a local import to avoid circular imports. This happens because descriptor_installed_config</span>
     <span class="c1"># and pipelineconfig_utils import each other. At some point we will refactor the functionality from</span>
     <span class="c1"># this file on the ConfigDescriptor objects and these circular includes won&#39;t be necessary anymore.</span>
-    <span class="kn">from</span> <span class="nn">.descriptor</span> <span class="k">import</span> <span class="n">Descriptor</span><span class="p">,</span> <span class="n">create_descriptor</span>
+    <span class="kn">from</span> <span class="nn">.descriptor</span> <span class="kn">import</span> <span class="n">Descriptor</span><span class="p">,</span> <span class="n">create_descriptor</span>
     <span class="k">return</span> <span class="n">create_descriptor</span><span class="p">(</span>
         <span class="n">get_deferred_sg_connection</span><span class="p">(),</span>
         <span class="n">Descriptor</span><span class="o">.</span><span class="n">INSTALLED_CONFIG</span><span class="p">,</span>
@@ -444,7 +426,7 @@
         <span class="n">studio_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">studio_folder</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">studio_folder</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">None</span>
 
 
 <div class="viewcode-block" id="get_sgtk_module_path"><a class="viewcode-back" href="../../core.html#sgtk.get_sgtk_module_path">[docs]</a><span class="k">def</span> <span class="nf">get_sgtk_module_path</span><span class="p">():</span>
@@ -566,7 +548,7 @@
 
     <span class="c1"># load the config file</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">location_data</span> <span class="o">=</span> <span class="n">yaml_cache</span><span class="o">.</span><span class="n">g_yaml_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">location_file</span><span class="p">,</span> <span class="n">deepcopy_data</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="n">location_data</span> <span class="o">=</span> <span class="n">yaml_cache</span><span class="o">.</span><span class="n">g_yaml_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">location_file</span><span class="p">,</span> <span class="n">deepcopy_data</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Cannot load core config file &#39;</span><span class="si">%s</span><span class="s2">&#39;. Error: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">location_file</span><span class="p">,</span> <span class="n">error</span><span class="p">))</span>
 
@@ -587,11 +569,11 @@
     <span class="c1"># lastly, sanity check the paths - sometimes these files contain non-path</span>
     <span class="c1"># values such as &quot;None&quot; or &quot;unknown&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">linux_path</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">linux_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
-        <span class="n">linux_path</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">linux_path</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">macosx_path</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">macosx_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
-        <span class="n">macosx_path</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">macosx_path</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">win_path</span> <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="n">win_path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">win_path</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;:&quot;</span><span class="p">):</span>
-        <span class="n">win_path</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">win_path</span> <span class="o">=</span> <span class="bp">None</span>
 
     <span class="c1"># sanitize data into a ShotgunPath and return data</span>
     <span class="k">return</span> <span class="n">ShotgunPath</span><span class="p">(</span><span class="n">win_path</span><span class="p">,</span> <span class="n">linux_path</span><span class="p">,</span> <span class="n">macosx_path</span><span class="p">)</span>
@@ -636,7 +618,7 @@
 <span class="sd">    :returns: Always a string, &#39;unknown&#39; if data cannot be found</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">yaml_cache</span><span class="o">.</span><span class="n">g_yaml_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">info_yml_path</span><span class="p">,</span> <span class="n">deepcopy_data</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">yaml_cache</span><span class="o">.</span><span class="n">g_yaml_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">info_yml_path</span><span class="p">,</span> <span class="n">deepcopy_data</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="n">data</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;version&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">))</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="s2">&quot;unknown&quot;</span>
@@ -661,7 +643,6 @@
 </pre></div>
 
            </div>
-           
           </div>
           <footer>
   
@@ -691,12 +672,10 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.151',
-            LANGUAGE:'None',
+            VERSION:'v0.18.152',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
+            HAS_SOURCE:  true
         };
     </script>
       <script type="text/javascript" src="../../_static/jquery.js"></script>
@@ -705,13 +684,19 @@
 
   
 
-  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
 
+  
+  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
+          SphinxRtdTheme.StickyNav.enable();
       });
   </script>
+  
  
 
 <script>

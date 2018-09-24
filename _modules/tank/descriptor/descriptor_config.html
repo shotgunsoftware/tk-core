@@ -10,11 +10,9 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor_config &mdash; tk-core v0.18.151 documentation</title>
+  <title>tank.descriptor.descriptor_config &mdash; tk-core v0.18.152 documentation</title>
   
 
-  
-  
   
   
 
@@ -26,19 +24,24 @@
 
   
 
-  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" /> 
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.152 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav" role="document">
 
-   
   <div class="wy-grid-for-nav">
 
     
@@ -85,10 +88,7 @@
     
             
             
-              
-            
-            
-              <ul>
+                <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core</a></li>
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.151.<br>
+    <b>tk-core</b> v0.18.152.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -139,52 +139,34 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../index.html">tk-core</a>
-        
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">tk-core</a>
       </nav>
 
 
+      
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
           
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
 <div role="navigation" aria-label="breadcrumbs navigation">
-
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../../../index.html">Docs</a> &raquo;</li>
-        
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
           <li><a href="../../index.html">Module code</a> &raquo;</li>
-        
-      <li>tank.descriptor.descriptor_config</li>
-    
-    
+      
+    <li>tank.descriptor.descriptor_config</li>
       <li class="wy-breadcrumbs-aside">
         
+          
+        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -201,19 +183,19 @@
 <span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">with_statement</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">with_statement</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
 
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="k">import</span> <span class="n">TankFileDoesNotExistError</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">.errors</span> <span class="k">import</span> <span class="n">TankInvalidInterpreterLocationError</span>
-<span class="kn">from</span> <span class="nn">.descriptor</span> <span class="k">import</span> <span class="n">Descriptor</span><span class="p">,</span> <span class="n">create_descriptor</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">LogManager</span>
-<span class="kn">from</span> <span class="nn">..util</span> <span class="k">import</span> <span class="n">StorageRoots</span>
-<span class="kn">from</span> <span class="nn">..util</span> <span class="k">import</span> <span class="n">ShotgunPath</span>
-<span class="kn">from</span> <span class="nn">..util.version</span> <span class="k">import</span> <span class="n">is_version_older</span>
-<span class="kn">from</span> <span class="nn">.io_descriptor</span> <span class="k">import</span> <span class="n">descriptor_uri_to_dict</span>
+<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankFileDoesNotExistError</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">.errors</span> <span class="kn">import</span> <span class="n">TankInvalidInterpreterLocationError</span>
+<span class="kn">from</span> <span class="nn">.descriptor</span> <span class="kn">import</span> <span class="n">Descriptor</span><span class="p">,</span> <span class="n">create_descriptor</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">StorageRoots</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">ShotgunPath</span>
+<span class="kn">from</span> <span class="nn">..util.version</span> <span class="kn">import</span> <span class="n">is_version_older</span>
+<span class="kn">from</span> <span class="nn">.io_descriptor</span> <span class="kn">import</span> <span class="n">descriptor_uri_to_dict</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -223,7 +205,7 @@
 <span class="sd">    Descriptor that describes a Toolkit Configuration</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        .. note:: Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">                  creating new descriptor objects.</span>
@@ -236,11 +218,11 @@
 <span class="sd">            apps will be searched for.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ConfigDescriptor</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">io_descriptor</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_core_descriptor</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_core_descriptor</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span> <span class="o">=</span> <span class="n">sg_connection</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_root_override</span> <span class="o">=</span> <span class="n">bundle_cache_root_override</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_fallback_roots</span> <span class="o">=</span> <span class="n">fallback_roots</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_storage_roots</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_storage_roots</span> <span class="o">=</span> <span class="bp">None</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">associated_core_descriptor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -276,7 +258,7 @@
 <span class="sd">            ``None`` otherwise.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">associated_core_descriptor</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="bp">None</span>
 
         <span class="c1"># When resolving the descriptor, we need to take into account that the config folder may be</span>
         <span class="c1"># holding a bundle cache with the core in it, so we&#39;re adding it to the list of fallback</span>
@@ -292,12 +274,12 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">associated_core_descriptor</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_bundle_cache_root_override</span><span class="p">,</span>
                 <span class="p">[</span><span class="n">config_bundle_cache</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fallback_roots</span><span class="p">,</span>
-                <span class="n">resolve_latest</span><span class="o">=</span><span class="kc">False</span>
+                <span class="n">resolve_latest</span><span class="o">=</span><span class="bp">False</span>
             <span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_core_descriptor</span>
 
-<div class="viewcode-block" id="ConfigDescriptor.get_associated_core_feature_info"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.ConfigDescriptor.get_associated_core_feature_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_associated_core_feature_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_name</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="ConfigDescriptor.get_associated_core_feature_info"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.ConfigDescriptor.get_associated_core_feature_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_associated_core_feature_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_name</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieves information for a given feature in the manifest of the core.</span>
 
@@ -330,10 +312,10 @@
 
         <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_shotgun_version&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_shotgun_version&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;min_sg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_shotgun_version&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_core_version&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_core_version&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;min_core&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_core_version&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">constraints</span>
@@ -372,7 +354,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">core_desc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">associated_core_descriptor</span>
 
-        <span class="n">result</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="k">if</span> <span class="n">core_desc</span><span class="p">:</span>
             <span class="c1"># (note: returning None means we are tracking latest version)</span>
 
@@ -382,7 +364,7 @@
 
             <span class="k">if</span> <span class="n">core_desc</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;app_store&quot;</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">is_version_older</span><span class="p">(</span><span class="n">core_desc</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">],</span> <span class="n">version_str</span><span class="p">):</span>
-                    <span class="n">result</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="bp">True</span>
 
         <span class="k">return</span> <span class="n">result</span></div>
 
@@ -476,7 +458,6 @@
 </pre></div>
 
            </div>
-           
           </div>
           <footer>
   
@@ -506,12 +487,10 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.151',
-            LANGUAGE:'None',
+            VERSION:'v0.18.152',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
+            HAS_SOURCE:  true
         };
     </script>
       <script type="text/javascript" src="../../../_static/jquery.js"></script>
@@ -520,13 +499,19 @@
 
   
 
-  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
 
+  
+  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
+          SphinxRtdTheme.StickyNav.enable();
       });
   </script>
+  
  
 
 <script>

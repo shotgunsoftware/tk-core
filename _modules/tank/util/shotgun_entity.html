@@ -10,11 +10,9 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun_entity &mdash; tk-core v0.18.151 documentation</title>
+  <title>tank.util.shotgun_entity &mdash; tk-core v0.18.152 documentation</title>
   
 
-  
-  
   
   
 
@@ -26,19 +24,24 @@
 
   
 
-  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" /> 
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.152 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
 
   
   <script src="../../../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav" role="document">
 
-   
   <div class="wy-grid-for-nav">
 
     
@@ -85,10 +88,7 @@
     
             
             
-              
-            
-            
-              <ul>
+                <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core</a></li>
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.151.<br>
+    <b>tk-core</b> v0.18.152.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -139,52 +139,34 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../index.html">tk-core</a>
-        
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">tk-core</a>
       </nav>
 
 
+      
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
           
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
 <div role="navigation" aria-label="breadcrumbs navigation">
-
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../../../index.html">Docs</a> &raquo;</li>
-        
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
           <li><a href="../../index.html">Module code</a> &raquo;</li>
-        
-      <li>tank.util.shotgun_entity</li>
-    
-    
+      
+    <li>tank.util.shotgun_entity</li>
       <li class="wy-breadcrumbs-aside">
         
+          
+        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -207,8 +189,8 @@
 
 <span class="kn">import</span> <span class="nn">re</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">..errors</span> <span class="k">import</span> <span class="n">TankError</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
 
 <span class="c1"># A dictionary for Shotgun entities which do not store their name</span>
 <span class="c1"># in the standard &quot;code&quot; field.</span>
@@ -283,7 +265,7 @@
 <span class="sd">    the fields need to be Shotgun fields that exists for that entity type.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">field_name_expr</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">field_name_expr</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param str entity_type: Associated Shotgun entity type.</span>
 <span class="sd">        :param str field_name_expr: Expression, e.g. &#39;{code}/foo&#39;</span>
@@ -301,7 +283,7 @@
         <span class="n">expr_variations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_expression_variations</span><span class="p">(</span><span class="n">field_name_expr</span><span class="p">)</span>
 
         <span class="c1"># We want them most inclusive(longest) version first</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_sorted_exprs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">expr_variations</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sorted_exprs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">expr_variations</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
         <span class="c1"># Extract and store a bunch of data for each variation.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_variations</span> <span class="o">=</span> <span class="p">{}</span>
@@ -336,9 +318,9 @@
 
             <span class="n">resolved_fields</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">field_token_expression</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
-                <span class="n">full_field_name</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="n">link_field_name</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="n">regex_obj</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">full_field_name</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="n">link_field_name</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="n">regex_obj</span> <span class="o">=</span> <span class="bp">None</span>
 
                 <span class="k">if</span> <span class="s2">&quot;:&quot;</span> <span class="ow">in</span> <span class="n">field_token_expression</span><span class="p">:</span>
                     <span class="p">(</span><span class="n">full_field_name</span><span class="p">,</span> <span class="n">regex</span><span class="p">)</span> <span class="o">=</span> <span class="n">field_token_expression</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -431,7 +413,7 @@
         <span class="n">longest_expr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sorted_exprs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">field_defs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variations</span><span class="p">[</span><span class="n">longest_expr</span><span class="p">]</span>
         <span class="n">link_names</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">field</span><span class="p">[</span><span class="s2">&quot;link_field_name&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">field_defs</span> <span class="k">if</span> <span class="n">field</span><span class="p">[</span><span class="s2">&quot;link_field_name&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="n">field</span><span class="p">[</span><span class="s2">&quot;link_field_name&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">field_defs</span> <span class="k">if</span> <span class="n">field</span><span class="p">[</span><span class="s2">&quot;link_field_name&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
         <span class="p">]</span>
         <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">link_names</span><span class="p">)</span>
 
@@ -459,11 +441,11 @@
         <span class="c1"># the values, starting with the longest expression first.</span>
         <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sorted_exprs</span><span class="p">:</span>
             <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_name</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="c1"># name generation worked! - do not try alternative (shorter) expressions</span>
                 <span class="k">break</span>
         
-        <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="c1"># completely failed to generate a name because of missing fields.</span>
             
             <span class="c1"># try to make a nice descriptive name if possible</span>
@@ -506,9 +488,9 @@
 
             <span class="c1"># get value from Shotgun data dict</span>
             <span class="n">raw_val</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">full_sg_field_name</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">raw_val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">raw_val</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="c1"># cannot resolve this!</span>
-                <span class="k">return</span> <span class="kc">None</span>
+                <span class="k">return</span> <span class="bp">None</span>
 
             <span class="c1"># now cast the value to a string</span>
             <span class="n">str_value</span> <span class="o">=</span> <span class="n">sg_entity_to_string</span><span class="p">(</span>
@@ -559,21 +541,21 @@
 
         <span class="c1"># split into sub-segments based on slash</span>
         <span class="c1"># and validate each one separately</span>
-        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
 
         <span class="c1"># iterate over all tokens and validate</span>
         <span class="k">for</span> <span class="n">folder_subgroup</span> <span class="ow">in</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">folder_subgroup</span><span class="p">,</span> <span class="n">unicode</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">folder_subgroup</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">):</span>
                 <span class="n">u_name</span> <span class="o">=</span> <span class="n">folder_subgroup</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># try decoding from utf-8:</span>
                 <span class="n">u_name</span> <span class="o">=</span> <span class="n">folder_subgroup</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">exp</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">u_name</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">exp</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">u_name</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">False</span>
 
-        <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="bp">True</span>
 
     <span class="k">def</span> <span class="nf">_process_regex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">regex_obj</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -584,20 +566,20 @@
 <span class="sd">        :return: Processed value, same type as value input parameter.</span>
 <span class="sd">            If input is None, an empty string is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">&quot;&quot;</span>
 
         <span class="c1"># perform the regex calculation in unicode space</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">unicode</span><span class="p">):</span>
-            <span class="n">input_is_utf8</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">):</span>
+            <span class="n">input_is_utf8</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="n">value_to_convert</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">input_is_utf8</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">input_is_utf8</span> <span class="o">=</span> <span class="bp">False</span>
             <span class="n">value_to_convert</span> <span class="o">=</span> <span class="n">value</span>
 
         <span class="c1"># now perform extraction</span>
         <span class="n">match</span> <span class="o">=</span> <span class="n">regex_obj</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">value_to_convert</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="c1"># no match. return empty string</span>
             <span class="n">resolved_value</span> <span class="o">=</span> <span class="sa">u</span><span class="s2">&quot;&quot;</span>
         <span class="k">else</span><span class="p">:</span>
@@ -606,7 +588,7 @@
 
         <span class="c1"># resolved value is now unicode. Convert it</span>
         <span class="c1"># so that it is consistent with input</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">resolved_value</span><span class="p">,</span> <span class="n">unicode</span><span class="p">)</span> <span class="ow">and</span> <span class="n">input_is_utf8</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">resolved_value</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">)</span> <span class="ow">and</span> <span class="n">input_is_utf8</span><span class="p">:</span>
             <span class="c1"># input was utf-8, regex result is unicode, cast it back</span>
             <span class="k">return</span> <span class="n">resolved_value</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -614,7 +596,6 @@
 </pre></div>
 
            </div>
-           
           </div>
           <footer>
   
@@ -644,12 +625,10 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.151',
-            LANGUAGE:'None',
+            VERSION:'v0.18.152',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
+            HAS_SOURCE:  true
         };
     </script>
       <script type="text/javascript" src="../../../_static/jquery.js"></script>
@@ -658,13 +637,19 @@
 
   
 
-  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
 
+  
+  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
+          SphinxRtdTheme.StickyNav.enable();
       });
   </script>
+  
  
 
 <script>
