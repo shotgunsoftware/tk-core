@@ -132,6 +132,15 @@ class Configuration(object):
 
         return self._tank_from_path(path), sg_user
 
+    def cache_bundles(self, pipeline_configuration, engine_constraint, progress_cb):
+        """
+        Caches bundles for the configuration.
+
+        Default implementation is valid for a configuration which has an already pre-populated
+        local bundle cache.
+        """
+        log.debug("Configuration has local bundle cache, skipping bundle caching.")
+
     def _tank_from_path(self, path):
         """
         Perform a tank_from_path for the given pipeline config path.

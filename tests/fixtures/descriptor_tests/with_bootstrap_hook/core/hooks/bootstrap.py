@@ -8,19 +8,24 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
-Hook that gets executed every time a new PipelineConfiguration instance is created.
-"""
+import os
+import imp
 
-from tank import Hook
+Bootstrap = imp.load_source(
+    "bootstrap_unit_test",
+    os.path.join(
+        os.environ["TK_CORE_REPO_ROOT"],
+        "docs",
+        "examples",
+        "bootstrap_hook.py"
+    )
+).Bootstrap
 
 
-class PipelineConfigurationInit(Hook):
+class Foo(object):
+    pass
 
-    def execute(self, **kwargs):
-        """
-        Executed when a new PipelineConfiguration instance is initialized.
 
-        The default implementation does nothing.
-        """
-        pass
+# Trick Toolkit's load_plugin method into thinking Bootstrap is actually from this
+# module.
+Bootstrap.__module__ = Foo.__module__

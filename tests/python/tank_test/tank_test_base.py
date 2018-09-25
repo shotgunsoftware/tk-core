@@ -288,6 +288,11 @@ class TankTestBase(unittest.TestCase):
         # path to the tk-core repo root point
         self.tank_source_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
+        self.tk_core_repo_root = os.path.normpath(
+            os.path.join(os.path.dirname(__file__), "..", "..", "..")
+        )
+        os.environ["SHOTGUN_TKCORE_REPO_ROOT"] = self.tk_core_repo_root
+
         # where to go for test data
         self.fixtures_root = os.environ["TK_TEST_FIXTURES"]
 

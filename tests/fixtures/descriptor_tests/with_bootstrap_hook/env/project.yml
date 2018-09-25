@@ -1,0 +1,19 @@
+engines:
+  test_engine:
+    location:
+      type: app_store
+      name: test_engine
+      version: v1.2.3
+    apps:
+      test_app:
+        location:
+          type: app_store
+          name: test_app
+          version: v4.5.6
+
+frameworks:
+  test_framework_v1.x.x:
+    location:
+      type: app_store
+      name: test_framework
+      version: v7.8.9

@@ -113,6 +113,130 @@ get_hook_baseclass
 
 .. autofunction:: get_hook_baseclass
 
+Core Hooks
+==========
+
+The Toolkit core comes with a set of hooks that can help you tweak how the core behaves. If you
+want to take over a certain behavior, copy the hook found inside the core's `hooks <https://github.com/shotgunsoftware/tk-core/tree/master/hooks>`_ folder
+and copy it to your configuration's ``core/hooks`` folder.
+
+Here is the list of hooks that be taken over in the Toolkit core.
+
+before_register_publish.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: before_register_publish
+.. autoclass:: before_register_publish.BeforeRegisterPublish
+    :members:
+
+bootstrap.py
+~~~~~~~~~~~~
+
+.. automodule:: bootstrap
+.. autoclass:: bootstrap.Bootstrap
+    :members:
+
+bundle_init.py
+~~~~~~~~~~~~~~
+
+.. automodule:: bundle_init
+.. autoclass:: bundle_init.BundleInit
+    :members:
+
+cache_location.py
+~~~~~~~~~~~~~~~~~
+
+.. automodule:: cache_location
+.. autoclass:: cache_location.CacheLocation
+    :members:
+
+context_change.py
+~~~~~~~~~~~~~~~~~
+
+.. automodule:: context_change
+.. autoclass:: context_change.ContextChange
+    :members:
+
+engine_init.py
+~~~~~~~~~~~~~~
+
+.. automodule:: engine_init
+.. autoclass:: engine_init.EngineInit
+    :members:
+
+ensure_folder_exists.py
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: ensure_folder_exists
+.. autoclass:: ensure_folder_exists.EnsureFolderExists
+    :members:
+
+get_current_login.py
+~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: get_current_login
+.. autoclass:: get_current_login.GetCurrentLogin
+    :members:
+
+log_metrics.py
+~~~~~~~~~~~~~~
+
+.. automodule:: log_metrics
+.. autoclass:: log_metrics.LogMetrics
+    :members:
+    :exclude-members: execute
+
+pick_environment.py
+~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: pick_environment
+.. autoclass:: pick_environment.PickEnvironment
+    :members:
+
+pipeline_configuration_init.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: pipeline_configuration_init
+.. autoclass:: pipeline_configuration_init.PipelineConfigurationInit
+    :members:
+
+process_folder_creation.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: process_folder_creation
+.. autoclass:: process_folder_creation.ProcessFolderCreation
+    :members:
+
+process_folder_name.py
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: process_folder_name
+.. autoclass:: process_folder_name.ProcessFolderName
+    :members:
+
+resolve_publish.py
+~~~~~~~~~~~~~~~~~~
+
+.. automodule:: resolve_publish
+.. autoclass:: resolve_publish.ResolvePublish
+    :members:
+
+tank_init.py
+~~~~~~~~~~~~
+
+.. automodule:: tank_init
+.. autoclass:: tank_init.TankInit
+    :members:
+
+Template Hooks
+==============
+
+.. automodule:: example_template_hook
+.. autoclass:: example_template_hook.ExampleTemplateHook
+    :members:
+
+.. currentmodule:: sgtk
+
 
 Templates
 -----------------------------------------

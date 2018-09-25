@@ -101,7 +101,7 @@ class TankTestRunner(object):
 
             # If a test name looks like a file name, turn the slashes into . and remove the
             # extension.
-            test_name = test_name.replace("/", ".").replace(".py", "")
+            test_name = test_name.replace("/", ".").replace("\\", ".").replace(".py", "")
 
             # If we have a simple module name, no sub-module, then, run all the tests in that
             # module.
@@ -151,7 +151,12 @@ def _finalize_coverage(cov):
     Stops covering code and writes out reports.
     """
     cov.stop()
+
+    # Print report to stdout
     cov.report()
+
+    # Save report to the .coverage file
+    cov.save()
 
     try:
         # seems to be some CI issues with html coverage so

@@ -41,18 +41,18 @@ if [[ $TRAVIS = true ]]; then
     export QT_QPA_PLATFORM=offscreen
 fi
 
-export PYTHONPATH=tests/python/third_party:tests/python:python
-
 # Insert the event type and python version, since we can be running multiple builds at the same time.
 export SHOTGUN_TEST_ENTITY_SUFFIX="travis_${TRAVIS_EVENT_TYPE}_${TRAVIS_PYTHON_VERSION}"
 
+# Do not launch the coverage for our unit tests with --with-coverage. If you do, run_tests will
+# generate all the coverage in memory and not leave a .coverage file to be uploaded.
+export PYTHONPATH="tests/python/third_party"
 python tests/python/third_party/coverage run tests/run_tests.py
+
 
 # Run these tests only if the integration tests environment variables are set.
 if [ -z ${SHOTGUN_HOST+x} ]; then
     echo "Skipping integration tests, SHOTGUN_HOST is not set."
 else
-    python tests/python/third_party/coverage run -a tests/integration_tests/offline_workflow.py
-    python tests/python/third_party/coverage run -a tests/integration_tests/tank_commands.py
-    python tests/python/third_party/coverage run -a tests/integration_tests/multi_bootstrap.py
+    python tests/integration_tests/run_integration_tests.py --with-coverage
 fi
