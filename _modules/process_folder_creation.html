@@ -1,0 +1,443 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>process_folder_creation &mdash; tk-core v0.18.153 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.153 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../initializing.html">Initialization and startup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../descriptor.html">Descriptors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+
+    <a href='genindex.html'>Alphabetic Index</a>
+
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.153.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Module code</a> &raquo;</li>
+      
+    <li>process_folder_creation</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for process_folder_creation</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2018 Shotgun Software Inc.</span>
+<span class="c1">#</span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1">#</span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This hook is invoked during folder creation when :meth:`sgtk.Sgtk.create_filesystem_structure` is</span>
+<span class="sd">called.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">tank</span> <span class="kn">import</span> <span class="n">Hook</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+
+
+<div class="viewcode-block" id="ProcessFolderCreation"><a class="viewcode-back" href="../core.html#process_folder_creation.ProcessFolderCreation">[docs]</a><span class="k">class</span> <span class="nc">ProcessFolderCreation</span><span class="p">(</span><span class="n">Hook</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ProcessFolderCreation.execute"><a class="viewcode-back" href="../core.html#process_folder_creation.ProcessFolderCreation.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">items</span><span class="p">,</span> <span class="n">preview_mode</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a list of files and folders.</span>
+
+<span class="sd">        The default implementation creates files and folders recursively using</span>
+<span class="sd">        open permissions.</span>
+
+<span class="sd">        :param list(dict): List of actions that needs to take place.</span>
+
+<span class="sd">        Six different types of actions are supported.</span>
+
+<span class="sd">        **Standard Folder**</span>
+
+<span class="sd">        This represents a standard folder in the file system which is not associated</span>
+<span class="sd">        with anything in Shotgun. It contains the following keys:</span>
+
+<span class="sd">        - **action** (:class:`str`) - ``folder``</span>
+<span class="sd">        - **metadata** (:class:`dict`) - The configuration yaml data for this item</span>
+<span class="sd">        - **path** (:class:`str`) - path on disk to the item</span>
+
+<span class="sd">        **Entity Folder**</span>
+
+<span class="sd">        This represents a folder in the file system which is associated with a</span>
+<span class="sd">        Shotgun entity. It contains the following keys:</span>
+
+<span class="sd">        - **action** (:class:`str`) - ``entity_folder``</span>
+<span class="sd">        - **metadata** (:class:`dict`) - The configuration yaml data for this item</span>
+<span class="sd">        - **path** (:class:`str`) - path on disk to the item</span>
+<span class="sd">        - **entity** (:class:`dict`) - Shotgun entity link with keys ``type``, ``id`` and ``name``.</span>
+
+<span class="sd">        **Remote Entity Folder**</span>
+
+<span class="sd">        This is the same as an entity folder, except that it was originally</span>
+<span class="sd">        created in another location. A remote folder request means that your</span>
+<span class="sd">        local toolkit instance has detected that folders have been created by</span>
+<span class="sd">        a different file system setup. It contains the following keys:</span>
+
+<span class="sd">        - **action** (:class:`str`) - ``remote_entity_folder``</span>
+<span class="sd">        - **metadata** (:class:`dict`) - The configuration yaml data for this item</span>
+<span class="sd">        - **path** (:class:`str`) - path on disk to the item</span>
+<span class="sd">        - **entity** (:class:`dict`) - Shotgun entity link with keys ``type``, ``id`` and ``name``.</span>
+
+<span class="sd">        **File Copy**</span>
+
+<span class="sd">        This represents a file copy operation which should be carried out.</span>
+<span class="sd">        It contains the following keys:</span>
+
+<span class="sd">        - **action** (:class:`str`) - ``copy``</span>
+<span class="sd">        - **metadata** (:class:`dict`) - The configuration yaml data associated with the directory level</span>
+<span class="sd">          on which this object exists.</span>
+<span class="sd">        - **source_path** (:class:`str`) - location of the file that should be copied</span>
+<span class="sd">        - **target_path** (:class:`str`) - target location to where the file should be copied.</span>
+
+<span class="sd">        **File Creation**</span>
+
+<span class="sd">        This is similar to the file copy, but instead of a source path, a chunk</span>
+<span class="sd">        of data is specified. It contains the following keys:</span>
+
+<span class="sd">        - **action** (:class:`str`) - ``create_file``</span>
+<span class="sd">        - **metadata** (:class:`dict`) - The configuration yaml data associated with the directory level</span>
+<span class="sd">          on which this object exists.</span>
+<span class="sd">        - **content** (:class:`str`) -- file content</span>
+<span class="sd">        - **target_path** (:class:`str`) -- target location to where the file should be copied.</span>
+
+<span class="sd">        **Symbolic Links**</span>
+
+<span class="sd">        This represents a request that a symbolic link is created. Note that symbolic links are not</span>
+<span class="sd">        supported in the same way on all operating systems. The default hook therefore does not</span>
+<span class="sd">        implement symbolic link support on Windows systems. If you want to add symbolic link support</span>
+<span class="sd">        on windows, simply copy this hook to your project configuration and make the necessary</span>
+<span class="sd">        modifications.</span>
+
+<span class="sd">        - **action** (:class:`str`) - ``symlink``</span>
+<span class="sd">        - **metadata** (:class:`dict`) - The raw configuration yaml data associated with symlink yml config file.</span>
+<span class="sd">        - **path** (:class:`str`) - the path to the symbolic link</span>
+<span class="sd">        - **target** (:class:`str`) - the target to which the symbolic link should point</span>
+
+<span class="sd">        :returns: List of files and folders that have been created.</span>
+<span class="sd">        :rtype: list(str)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># set the umask so that we get true permissions</span>
+        <span class="n">old_umask</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">umask</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">locations</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+
+            <span class="c1"># loop through our list of items</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+
+                <span class="n">action</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;action&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">action</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;entity_folder&quot;</span><span class="p">,</span> <span class="s2">&quot;folder&quot;</span><span class="p">]:</span>
+                    <span class="c1"># folder creation</span>
+                    <span class="n">path</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">preview_mode</span><span class="p">:</span>
+                            <span class="c1"># create the folder using open permissions</span>
+                            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="mo">0777</span><span class="p">)</span>
+                        <span class="n">locations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+                <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;remote_entity_folder&quot;</span><span class="p">:</span>
+                    <span class="c1"># Remote folder creation</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># NOTE! This action happens when another user has created</span>
+                    <span class="c1"># a folder on their machine and we are syncing our local path</span>
+                    <span class="c1"># cache to be aware of this folder&#39;s existance.</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># For a traditional setup, where the project storage is shared,</span>
+                    <span class="c1"># there is no need to do I/O for remote folders - these folders</span>
+                    <span class="c1"># have already been created on the remote storage so you have access</span>
+                    <span class="c1"># to them already.</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># On a setup where each user or group of users is attached to</span>
+                    <span class="c1"># different, independendent file storages, which are synced,</span>
+                    <span class="c1"># it may be meaningful to &quot;replay&quot; the remote folder creation</span>
+                    <span class="c1"># on the local system. This would result in the same folder</span>
+                    <span class="c1"># scaffold on each disk which is storing project data.</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># path = i.get(&quot;path&quot;)</span>
+                    <span class="c1"># if not os.path.exists(path):</span>
+                    <span class="c1">#     if not preview_mode:</span>
+                    <span class="c1">#         # create the folder using open permissions</span>
+                    <span class="c1">#         os.makedirs(path, 0777)</span>
+                    <span class="c1">#     locations.append(path)</span>
+                    <span class="k">pass</span>
+
+                <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;symlink&quot;</span><span class="p">:</span>
+                    <span class="c1"># symbolic link</span>
+                    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
+                        <span class="c1"># no windows support</span>
+                        <span class="k">continue</span>
+                    <span class="n">path</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">)</span>
+                    <span class="n">target</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;target&quot;</span><span class="p">)</span>
+                    <span class="c1"># note use of lexists to check existance of symlink</span>
+                    <span class="c1"># rather than what symlink is pointing at</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">lexists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">preview_mode</span><span class="p">:</span>
+                            <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+                        <span class="n">locations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+                <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;copy&quot;</span><span class="p">:</span>
+                    <span class="c1"># a file copy</span>
+                    <span class="n">source_path</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;source_path&quot;</span><span class="p">)</span>
+                    <span class="n">target_path</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;target_path&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">target_path</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">preview_mode</span><span class="p">:</span>
+                            <span class="c1"># do a standard file copy</span>
+                            <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">target_path</span><span class="p">)</span>
+                            <span class="c1"># set permissions to open</span>
+                            <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">target_path</span><span class="p">,</span> <span class="mo">0666</span><span class="p">)</span>
+                        <span class="n">locations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">target_path</span><span class="p">)</span>
+
+                <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;create_file&quot;</span><span class="p">:</span>
+                    <span class="c1"># create a new file based on content</span>
+                    <span class="n">path</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">)</span>
+                    <span class="n">parent_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                    <span class="n">content</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">parent_folder</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">preview_mode</span><span class="p">:</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">parent_folder</span><span class="p">,</span> <span class="mo">0777</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">preview_mode</span><span class="p">:</span>
+                            <span class="c1"># create the file</span>
+                            <span class="n">fp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+                            <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+                            <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                            <span class="c1"># and set permissions to open</span>
+                            <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="mo">0666</span><span class="p">)</span>
+                        <span class="n">locations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="c1"># reset umask</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">umask</span><span class="p">(</span><span class="n">old_umask</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">locations</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'v0.18.153',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+  
+ 
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-2114792-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+</body>
+</html>

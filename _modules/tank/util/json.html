@@ -1,0 +1,334 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tank.util.json &mdash; tk-core v0.18.153 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.153 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../../../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../../../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../initializing.html">Initialization and startup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../descriptor.html">Descriptors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+
+    <a href='genindex.html'>Alphabetic Index</a>
+
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.153.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>tank.util.json</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tank.util.json</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2018 Shotgun Software Inc.</span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1">#</span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utility methods for unserializing JSON documents.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># We need to add this to the file or the import json will reimport this</span>
+<span class="c1"># module instead of importing the global json module.</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+
+
+<span class="k">def</span> <span class="nf">_convert_unicode_keys_to_string</span><span class="p">(</span><span class="n">input_value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts any :class:`unicode` instances in the input value into a utf-8</span>
+<span class="sd">    encoded :class`str` instance.</span>
+
+<span class="sd">    :param input_value: Value to convert. Can be a scalar, list or dictionary.</span>
+
+<span class="sd">    :returns: A value with utf-8 encoded :class:`str` instances.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_value</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">input_value</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">_convert_unicode_keys_to_string</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">input_value</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">_convert_unicode_keys_to_string</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">_convert_unicode_keys_to_string</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">input_value</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">input_value</span>
+
+
+<span class="c1"># This is the Python 2.6 signature. 2.7 has an extra object_hook_pairs argument.</span>
+<div class="viewcode-block" id="load"><a class="viewcode-back" href="../../../utils.html#sgtk.util.json.load">[docs]</a><span class="k">def</span> <span class="nf">load</span><span class="p">(</span>
+    <span class="n">fp</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">object_hook</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parse_float</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="n">parse_int</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parse_constant</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Deserialize ``fp`` (a ``.read()``-supporting file-like object containing</span>
+<span class="sd">    a JSON document) to a Python object.</span>
+
+<span class="sd">    This method is a simple thin wrapper around :func:`json.load` that</span>
+<span class="sd">    ensures unserialized strings are utf-8 encoded :class:`str` objects.</span>
+
+<span class="sd">    See the documentation for :func:`json.load` to learn more about this method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">loaded_value</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+        <span class="n">fp</span><span class="p">,</span> <span class="n">encoding</span><span class="p">,</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">object_hook</span><span class="p">,</span> <span class="n">parse_float</span><span class="p">,</span>
+        <span class="n">parse_int</span><span class="p">,</span> <span class="n">parse_constant</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_convert_unicode_keys_to_string</span><span class="p">(</span><span class="n">loaded_value</span><span class="p">)</span></div>
+
+
+<span class="c1"># This is the Python 2.6 signature. 2.7 has an extra object_hook_pairs argument.</span>
+<div class="viewcode-block" id="loads"><a class="viewcode-back" href="../../../utils.html#sgtk.util.json.loads">[docs]</a><span class="k">def</span> <span class="nf">loads</span><span class="p">(</span>
+    <span class="n">s</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">object_hook</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parse_float</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="n">parse_int</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parse_constant</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Deserialize ``s`` (a ``str`` or ``unicode`` instance containing a JSON</span>
+<span class="sd">    document) to a Python object.</span>
+
+<span class="sd">    This method is a simple thin wrapper around :func:`json.loads` that</span>
+<span class="sd">    ensures unserialized strings are utf-8 encoded :class:`str` objects.</span>
+
+<span class="sd">    See the documentation for :func:`json.loads` to learn more about this method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">loaded_value</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span>
+        <span class="n">s</span><span class="p">,</span> <span class="n">encoding</span><span class="p">,</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">object_hook</span><span class="p">,</span> <span class="n">parse_float</span><span class="p">,</span>
+        <span class="n">parse_int</span><span class="p">,</span> <span class="n">parse_constant</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_convert_unicode_keys_to_string</span><span class="p">(</span><span class="n">loaded_value</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'v0.18.153',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+  
+ 
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-2114792-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+</body>
+</html>

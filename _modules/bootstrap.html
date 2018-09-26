@@ -1,0 +1,329 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>bootstrap &mdash; tk-core v0.18.153 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.153 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../initializing.html">Initialization and startup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../descriptor.html">Descriptors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+
+    <a href='genindex.html'>Alphabetic Index</a>
+
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.153.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Module code</a> &raquo;</li>
+      
+    <li>bootstrap</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for bootstrap</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2018 Shotgun Software Inc.</span>
+<span class="c1">#</span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1">#</span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This hook is used override some of the functionality of the :class:`~sgtk.bootstrap.ToolkitManager`.</span>
+
+<span class="sd">It will be instantiated only after a configuration has been selected by the :class:`~sgtk.bootstrap.ToolkitManager`.</span>
+<span class="sd">Therefore, this hook will not be invoked to download a configuration. However, the Toolkit Core,</span>
+<span class="sd">applications, frameworks and engines can be downloaded through the hook.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">sgtk</span> <span class="kn">import</span> <span class="n">get_hook_baseclass</span>
+
+
+<div class="viewcode-block" id="Bootstrap"><a class="viewcode-back" href="../core.html#bootstrap.Bootstrap">[docs]</a><span class="k">class</span> <span class="nc">Bootstrap</span><span class="p">(</span><span class="n">get_hook_baseclass</span><span class="p">()):</span>
+
+<div class="viewcode-block" id="Bootstrap.init"><a class="viewcode-back" href="../core.html#bootstrap.Bootstrap.init">[docs]</a>    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shotgun</span><span class="p">,</span> <span class="n">pipeline_configuration_id</span><span class="p">,</span> <span class="n">configuration_descriptor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the hook.</span>
+
+<span class="sd">        This method is called right after the bootstrap manager reads this hook and passes in</span>
+<span class="sd">        information about the pipeline configuration that will be used.</span>
+
+<span class="sd">        The default implementation copies the arguments into the attributes named ``shotgun``,</span>
+<span class="sd">        ``pipeline_configuration_id`` and ``configuration_descriptor``.</span>
+
+<span class="sd">        :param shotgun: Connection to the Shotgun site.</span>
+<span class="sd">        :type shotgun: :class:`~shotgun_api3.Shotgun`</span>
+
+<span class="sd">        :param int pipeline_configuration_id: Id of the pipeline configuration we&#39;re bootstrapping into.</span>
+<span class="sd">            If None, the ToolkitManager is bootstrapping into the base configuration.</span>
+
+<span class="sd">        :param configuration_descriptor: Configuration the manager is bootstrapping into.</span>
+<span class="sd">        :type configuration_descriptor: :class:`~sgtk.descriptor.ConfigDescriptor`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shotgun</span> <span class="o">=</span> <span class="n">shotgun</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline_configuration_id</span> <span class="o">=</span> <span class="n">pipeline_configuration_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">configuration_descriptor</span> <span class="o">=</span> <span class="n">configuration_descriptor</span></div>
+
+<div class="viewcode-block" id="Bootstrap.can_cache_bundle"><a class="viewcode-back" href="../core.html#bootstrap.Bootstrap.can_cache_bundle">[docs]</a>    <span class="k">def</span> <span class="nf">can_cache_bundle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Indicates if a bundle can be cached by the :meth:`populate_bundle_cache_entry` method.</span>
+
+<span class="sd">        This method is invoked when the bootstrap manager wants to a bundle used by a configuration.</span>
+
+<span class="sd">        The default implementation returns ``False``.</span>
+
+<span class="sd">        :param descriptor: Descriptor of the bundle that needs to be cached.</span>
+
+<span class="sd">        :returns: ``True`` if the bundle cache be cached with this hook, ``False``</span>
+<span class="sd">                  if not.</span>
+<span class="sd">        :rtype: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">False</span></div>
+
+<div class="viewcode-block" id="Bootstrap.populate_bundle_cache_entry"><a class="viewcode-back" href="../core.html#bootstrap.Bootstrap.populate_bundle_cache_entry">[docs]</a>    <span class="k">def</span> <span class="nf">populate_bundle_cache_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Populates an entry from the bundle cache.</span>
+
+<span class="sd">        This method will be invoked for every bundle for which :meth:`can_cache_bundle`</span>
+<span class="sd">        returned ``True``. The hook is responsible for writing the bundle inside</span>
+<span class="sd">        the destination folder. If an exception is raised by this method, the files</span>
+<span class="sd">        will be deleted from disk and the bundle cache will be left intact.</span>
+
+<span class="sd">        Be careful to properly copy all the files or the cache for this bundle</span>
+<span class="sd">        will be left in an inconsistent state.</span>
+
+<span class="sd">        The default implementation does nothing.</span>
+
+<span class="sd">        :param str destination: Folder where the bundle needs to be written. Note</span>
+<span class="sd">            that this is not the final destination folder inside the bundle cache.</span>
+
+<span class="sd">        :param descriptor: Descriptor of the bundle that needs to be cached.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'v0.18.153',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+  
+ 
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-2114792-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+</body>
+</html>

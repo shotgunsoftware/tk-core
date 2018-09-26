@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Core &mdash; tk-core v0.18.152 documentation</title>
+  <title>Core &mdash; tk-core v0.18.153 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.152 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.153 documentation" href="index.html"/>
         <link rel="next" title="Apps, Engines and Frameworks" href="platform.html"/>
         <link rel="prev" title="Initialization and startup" href="initializing.html"/> 
 
@@ -107,6 +107,25 @@
 <li class="toctree-l2"><a class="reference internal" href="#hooks">Hooks</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#hook">Hook</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#get-hook-baseclass">get_hook_baseclass</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#core-hooks">Core Hooks</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-before_register_publish">before_register_publish.py</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-bootstrap">bootstrap.py</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-bundle_init">bundle_init.py</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-cache_location">cache_location.py</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-context_change">context_change.py</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-engine_init">engine_init.py</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ensure_folder_exists">ensure_folder_exists.py</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-get_current_login">get_current_login.py</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-log_metrics">log_metrics.py</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-pick_environment">pick_environment.py</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-pipeline_configuration_init">pipeline_configuration_init.py</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-process_folder_creation">process_folder_creation.py</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-process_folder_name">process_folder_name.py</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-resolve_publish">resolve_publish.py</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-tank_init">tank_init.py</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-example_template_hook">Template Hooks</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#templates">Templates</a><ul>
@@ -150,7 +169,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.152.<br>
+    <b>tk-core</b> v0.18.153.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -975,7 +994,7 @@ through the <code class="xref py py-meth docutils literal"><span class="pre">Con
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
-<li><strong>TankInvalidInterpreterLocationError</strong> &#8211; Raised if the interpreter in the interpreter file doesn&#8217;t
+<li><strong>~sgtk.descriptor.TankInvalidInterpreterLocationError</strong> &#8211; Raised if the interpreter in the interpreter file doesn&#8217;t
 exist.</li>
 <li><strong>TankFileDoesNotExistError</strong> &#8211; Raised if the interpreter file can&#8217;t be found.</li>
 <li><strong>TankNotPipelineConfigurationError</strong> &#8211; Raised if the pipeline configuration path is not
@@ -1427,6 +1446,51 @@ user will be updated with these credentials.</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="sgtk.Context.to_dict">
+<code class="descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/context.html#Context.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Context.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts the context into a dictionary with keys <code class="docutils literal"><span class="pre">project</span></code>,
+<code class="docutils literal"><span class="pre">entity</span></code>, <code class="docutils literal"><span class="pre">user</span></code>, <code class="docutils literal"><span class="pre">step</span></code>, <code class="docutils literal"><span class="pre">task</span></code>, <code class="docutils literal"><span class="pre">additional_entities</span></code> and
+<code class="docutils literal"><span class="pre">source_entity</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Contrary to <a class="reference internal" href="#sgtk.Context.serialize" title="sgtk.Context.serialize"><code class="xref py py-meth docutils literal"><span class="pre">Context.serialize()</span></code></a>, this method discards information
+about the Toolkit instance associated with the context or the currently
+authenticated user.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A dictionary representing the context.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="sgtk.Context.from_dict">
+<em class="property">classmethod </em><code class="descname">from_dict</code><span class="sig-paren">(</span><em>tk</em>, <em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/context.html#Context.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.Context.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a dictionary into a <a class="reference internal" href="#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> object.</p>
+<p>You should only pass in a dictionary that was created with the <a class="reference internal" href="#sgtk.Context.to_dict" title="sgtk.Context.to_dict"><code class="xref py py-meth docutils literal"><span class="pre">Context.to_dict()</span></code></a>
+method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) &#8211; A dictionary generated from <a class="reference internal" href="#sgtk.Context.to_dict" title="sgtk.Context.to_dict"><code class="xref py py-meth docutils literal"><span class="pre">Context.to_dict()</span></code></a>.</li>
+<li><strong>tk</strong> (<a class="reference internal" href="#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a>) &#8211; Toolkit instance to associate with the context.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A newly created <a class="reference internal" href="#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> object.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -1800,7 +1864,7 @@ such cases, <code class="docutils literal"><span class="pre">None</span></code> 
 <code class="descname">tank</code><a class="headerlink" href="#sgtk.Hook.tank" title="Permalink to this definition">¶</a></dt>
 <dd><p>The sgtk core API instance associated with the Hook parent.</p>
 <div class="deprecated">
-<p><span class="versionmodified">Deprecated since version Use: </span><a class="reference internal" href="#sgtk.Hook.sgtk" title="sgtk.Hook.sgtk"><code class="xref py py-meth docutils literal"><span class="pre">sgtk()</span></code></a> instead.</p>
+<p><span class="versionmodified">Deprecated since version v0.18.70: </span>Use <a class="reference internal" href="#sgtk.Hook.sgtk" title="sgtk.Hook.sgtk"><code class="xref py py-meth docutils literal"><span class="pre">sgtk()</span></code></a> instead.</p>
 </div>
 </dd></dl>
 
@@ -1930,6 +1994,752 @@ This needs to be defined in the currently running environment, as part of the <c
 <code class="descclassname">sgtk.</code><code class="descname">get_hook_baseclass</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.get_hook_baseclass" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the base class to use for the hook currently
 being loaded. For more details and examples, see the <a class="reference internal" href="#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a> documentation.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="core-hooks">
+<h3>Core Hooks<a class="headerlink" href="#core-hooks" title="Permalink to this headline">¶</a></h3>
+<p>The Toolkit core comes with a set of hooks that can help you tweak how the core behaves. If you
+want to take over a certain behavior, copy the hook found inside the core&#8217;s <a class="reference external" href="https://github.com/shotgunsoftware/tk-core/tree/master/hooks">hooks</a> folder
+and copy it to your configuration&#8217;s <code class="docutils literal"><span class="pre">core/hooks</span></code> folder.</p>
+<p>Here is the list of hooks that be taken over in the Toolkit core.</p>
+<div class="section" id="module-before_register_publish">
+<span id="before-register-publish-py"></span><h4>before_register_publish.py<a class="headerlink" href="#module-before_register_publish" title="Permalink to this headline">¶</a></h4>
+<p>Hook that gets executed before a publish record is created in Shotgun.
+This hook makes it possible to add custom fields to a publish before it gets created
+as well as modifying the content that is being pushed to Shotgun.</p>
+<dl class="class">
+<dt id="before_register_publish.BeforeRegisterPublish">
+<em class="property">class </em><code class="descclassname">before_register_publish.</code><code class="descname">BeforeRegisterPublish</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/before_register_publish.html#BeforeRegisterPublish"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#before_register_publish.BeforeRegisterPublish" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="before_register_publish.BeforeRegisterPublish.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>shotgun_data</em>, <em>context</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/before_register_publish.html#BeforeRegisterPublish.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#before_register_publish.BeforeRegisterPublish.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executed just before a new publish entity is created in Shotgun.</p>
+<p>The default implementation returns <code class="docutils literal"><span class="pre">shotgun_data</span></code> untouched.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>shotgun_data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) &#8211; All the data which will be passed to the Shotgun create call</li>
+<li><strong>context</strong> (<a class="reference internal" href="#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a>) &#8211; The context of the publish</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">return (potentially) modified data dictionary</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)">dict</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-bootstrap">
+<span id="bootstrap-py"></span><h4>bootstrap.py<a class="headerlink" href="#module-bootstrap" title="Permalink to this headline">¶</a></h4>
+<p>This hook is used override some of the functionality of the <a class="reference internal" href="initializing.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a>.</p>
+<p>It will be instantiated only after a configuration has been selected by the <a class="reference internal" href="initializing.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a>.
+Therefore, this hook will not be invoked to download a configuration. However, the Toolkit Core,
+applications, frameworks and engines can be downloaded through the hook.</p>
+<dl class="class">
+<dt id="bootstrap.Bootstrap">
+<em class="property">class </em><code class="descclassname">bootstrap.</code><code class="descname">Bootstrap</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bootstrap.html#Bootstrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bootstrap.Bootstrap" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="bootstrap.Bootstrap.init">
+<code class="descname">init</code><span class="sig-paren">(</span><em>shotgun</em>, <em>pipeline_configuration_id</em>, <em>configuration_descriptor</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bootstrap.html#Bootstrap.init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bootstrap.Bootstrap.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the hook.</p>
+<p>This method is called right after the bootstrap manager reads this hook and passes in
+information about the pipeline configuration that will be used.</p>
+<p>The default implementation copies the arguments into the attributes named <code class="docutils literal"><span class="pre">shotgun</span></code>,
+<code class="docutils literal"><span class="pre">pipeline_configuration_id</span></code> and <code class="docutils literal"><span class="pre">configuration_descriptor</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>shotgun</strong> (<code class="xref py py-class docutils literal"><span class="pre">Shotgun</span></code>) &#8211; Connection to the Shotgun site.</li>
+<li><strong>pipeline_configuration_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; Id of the pipeline configuration we&#8217;re bootstrapping into.
+If None, the ToolkitManager is bootstrapping into the base configuration.</li>
+<li><strong>configuration_descriptor</strong> (<a class="reference internal" href="descriptor.html#sgtk.descriptor.ConfigDescriptor" title="sgtk.descriptor.ConfigDescriptor"><code class="xref py py-class docutils literal"><span class="pre">ConfigDescriptor</span></code></a>) &#8211; Configuration the manager is bootstrapping into.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bootstrap.Bootstrap.can_cache_bundle">
+<code class="descname">can_cache_bundle</code><span class="sig-paren">(</span><em>descriptor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bootstrap.html#Bootstrap.can_cache_bundle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bootstrap.Bootstrap.can_cache_bundle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates if a bundle can be cached by the <a class="reference internal" href="#bootstrap.Bootstrap.populate_bundle_cache_entry" title="bootstrap.Bootstrap.populate_bundle_cache_entry"><code class="xref py py-meth docutils literal"><span class="pre">populate_bundle_cache_entry()</span></code></a> method.</p>
+<p>This method is invoked when the bootstrap manager wants to a bundle used by a configuration.</p>
+<p>The default implementation returns <code class="docutils literal"><span class="pre">False</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>descriptor</strong> &#8211; Descriptor of the bundle that needs to be cached.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="docutils literal"><span class="pre">True</span></code> if the bundle cache be cached with this hook, <code class="docutils literal"><span class="pre">False</span></code>
+if not.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)">bool</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bootstrap.Bootstrap.populate_bundle_cache_entry">
+<code class="descname">populate_bundle_cache_entry</code><span class="sig-paren">(</span><em>destination</em>, <em>descriptor</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bootstrap.html#Bootstrap.populate_bundle_cache_entry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bootstrap.Bootstrap.populate_bundle_cache_entry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Populates an entry from the bundle cache.</p>
+<p>This method will be invoked for every bundle for which <a class="reference internal" href="#bootstrap.Bootstrap.can_cache_bundle" title="bootstrap.Bootstrap.can_cache_bundle"><code class="xref py py-meth docutils literal"><span class="pre">can_cache_bundle()</span></code></a>
+returned <code class="docutils literal"><span class="pre">True</span></code>. The hook is responsible for writing the bundle inside
+the destination folder. If an exception is raised by this method, the files
+will be deleted from disk and the bundle cache will be left intact.</p>
+<p>Be careful to properly copy all the files or the cache for this bundle
+will be left in an inconsistent state.</p>
+<p>The default implementation does nothing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>destination</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Folder where the bundle needs to be written. Note
+that this is not the final destination folder inside the bundle cache.</li>
+<li><strong>descriptor</strong> &#8211; Descriptor of the bundle that needs to be cached.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-bundle_init">
+<span id="bundle-init-py"></span><h4>bundle_init.py<a class="headerlink" href="#module-bundle_init" title="Permalink to this headline">¶</a></h4>
+<p>Hook that gets executed every time a bundle is fully initialized.</p>
+<dl class="class">
+<dt id="bundle_init.BundleInit">
+<em class="property">class </em><code class="descclassname">bundle_init.</code><code class="descname">BundleInit</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bundle_init.html#BundleInit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bundle_init.BundleInit" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="bundle_init.BundleInit.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>bundle</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bundle_init.html#BundleInit.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bundle_init.BundleInit.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executed when the Toolkit bundle is fully initialized.</p>
+<p>The default implementation does nothing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>bundle</strong> (<a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal"><span class="pre">Engine</span></code></a>, <a class="reference internal" href="platform.html#sgtk.platform.Framework" title="sgtk.platform.Framework"><code class="xref py py-class docutils literal"><span class="pre">Framework</span></code></a>
+or <a class="reference internal" href="platform.html#sgtk.platform.Application" title="sgtk.platform.Application"><code class="xref py py-class docutils literal"><span class="pre">Application</span></code></a>) &#8211; The Toolkit bundle that has been initialized.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-cache_location">
+<span id="cache-location-py"></span><h4>cache_location.py<a class="headerlink" href="#module-cache_location" title="Permalink to this headline">¶</a></h4>
+<p>Hook to control path cache and bundle cache folder creation.</p>
+<dl class="class">
+<dt id="cache_location.CacheLocation">
+<em class="property">class </em><code class="descclassname">cache_location.</code><code class="descname">CacheLocation</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cache_location.html#CacheLocation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cache_location.CacheLocation" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="cache_location.CacheLocation.get_path_cache_path">
+<code class="descname">get_path_cache_path</code><span class="sig-paren">(</span><em>project_id</em>, <em>plugin_id</em>, <em>pipeline_configuration_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cache_location.html#CacheLocation.get_path_cache_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cache_location.CacheLocation.get_path_cache_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Establish a location for the path cache database file.</p>
+<p>This hook method was introduced in Toolkit v0.18 and replaces the previous
+<code class="docutils literal"><span class="pre">path_cache</span></code> method. If you already have implemented <code class="docutils literal"><span class="pre">path_cache</span></code>,
+this will be detected and called instead, however we strongly recommend
+that you tweak your hook.</p>
+<p>Overriding this method in a hook allows a user to change the location on disk where
+the path cache file is located. The path cache file holds a temporary cache representation
+of the <code class="docutils literal"><span class="pre">FilesystemLocation</span></code> entities stored in Shotgun for a project.</p>
+<p>The default implementation will create a folder inside the user&#8217;s home folder or
+under <code class="docutils literal"><span class="pre">SHOTGUN_HOME</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>project_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; The Shotgun id of the project to store caches for. None if
+the configuration is a site configuration.</li>
+<li><strong>plugin_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Unique string to identify the scope for a particular plugin
+or integration. For more information,
+see <a class="reference internal" href="initializing.html#sgtk.bootstrap.ToolkitManager.plugin_id" title="sgtk.bootstrap.ToolkitManager.plugin_id"><code class="xref py py-meth docutils literal"><span class="pre">plugin_id()</span></code></a>. For
+non-plugin based toolkit projects, this value is None.</li>
+<li><strong>pipeline_configuration_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; The Shotgun pipeline configuration id to store caches
+for. If the pipeline configuration is unmanaged, it
+will be <code class="docutils literal"><span class="pre">None</span></code></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The path to a path cache file. This file should exist when this method returns.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cache_location.CacheLocation.get_bundle_data_cache_path">
+<code class="descname">get_bundle_data_cache_path</code><span class="sig-paren">(</span><em>project_id</em>, <em>plugin_id</em>, <em>pipeline_configuration_id</em>, <em>bundle</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cache_location.html#CacheLocation.get_bundle_data_cache_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cache_location.CacheLocation.get_bundle_data_cache_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Establish a cache folder for an app, engine or framework.</p>
+<p>This hook method was introduced in Toolkit v0.18 and replaces the previous <code class="docutils literal"><span class="pre">bundle_cache</span></code>
+method. If you already have implemented <code class="docutils literal"><span class="pre">bundle_cache</span></code>, this will be detected and called
+instead, however we strongly recommend that you tweak your hook.</p>
+<p>Apps, Engines or Frameworks commonly cache data on disk. This can be
+small files, Shotgun queries, thumbnails, etc. This method implements the
+logic which defines this location on disk. The cache should be organized in
+a way so that all instances of the app can re-use the same data. Bundles
+which need to cache things per-instance can implement this using a sub
+folder inside the bundle cache location.</p>
+<p>It is possible to omit some components of the path by explicitly passing
+a <code class="docutils literal"><span class="pre">None</span></code> value for them. Only the bundle name is required. For example,
+with <code class="docutils literal"><span class="pre">project_id=None</span></code>, a site level cache path will be returned.
+Omitting the <code class="docutils literal"><span class="pre">project_id</span></code> can be used to cache data for the site
+configuration, or to share data accross all projects belonging to a
+common site.</p>
+<p>The default implementation will create a folder inside the user&#8217;s home folder or
+under <code class="docutils literal"><span class="pre">SHOTGUN_HOME</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>project_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; The Shotgun id of the project to store caches for, or None.</li>
+<li><strong>plugin_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Unique string to identify the scope for a particular plugin
+or integration, or None. For more information,
+see <a class="reference internal" href="initializing.html#sgtk.bootstrap.ToolkitManager.plugin_id" title="sgtk.bootstrap.ToolkitManager.plugin_id"><code class="xref py py-meth docutils literal"><span class="pre">plugin_id()</span></code></a>. For
+non-plugin based toolkit projects, this value is None.</li>
+<li><strong>pipeline_configuration_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; The Shotgun pipeline config id to store caches for
+or <code class="docutils literal"><span class="pre">None</span></code> if the pipeline configuration is unmanaged.</li>
+<li><strong>bundle</strong> (<a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal"><span class="pre">Engine</span></code></a>, <a class="reference internal" href="platform.html#sgtk.platform.Framework" title="sgtk.platform.Framework"><code class="xref py py-class docutils literal"><span class="pre">Framework</span></code></a> or
+<a class="reference internal" href="platform.html#sgtk.platform.Application" title="sgtk.platform.Application"><code class="xref py py-class docutils literal"><span class="pre">Application</span></code></a>) &#8211; The app, engine or framework object which is requesting the cache folder.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The path to a folder which should exist on disk.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-context_change">
+<span id="context-change-py"></span><h4>context_change.py<a class="headerlink" href="#module-context_change" title="Permalink to this headline">¶</a></h4>
+<p>This hook gets executed before and after the context changes in Toolkit.</p>
+<dl class="class">
+<dt id="context_change.ContextChange">
+<em class="property">class </em><code class="descclassname">context_change.</code><code class="descname">ContextChange</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/context_change.html#ContextChange"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#context_change.ContextChange" title="Permalink to this definition">¶</a></dt>
+<dd><ul class="simple">
+<li>If an engine <strong>starts up</strong>, the <code class="docutils literal"><span class="pre">current_context</span></code> passed to the hook
+methods will be <code class="docutils literal"><span class="pre">None</span></code> and the <code class="docutils literal"><span class="pre">next_context</span></code> parameter will be set
+to the context that the engine is starting in.</li>
+<li>If an engine is being <strong>reloaded</strong>, in the context of an engine restart
+for example, the <code class="docutils literal"><span class="pre">current_context</span></code> and <code class="docutils literal"><span class="pre">next_context</span></code> will usually be
+the same.</li>
+<li>If a <strong>context switch</strong> is requested, for example when a user switches
+from project to shot mode in Nuke Studio, <code class="docutils literal"><span class="pre">current_context</span></code> and <code class="docutils literal"><span class="pre">next_context</span></code>
+will contain two different context.</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">These hooks are called whenever the context is being set in Toolkit. It is
+possible that the new context will be the same as the old context. If
+you want to trigger some behavior only when the new one is different
+from the old one, you&#8217;ll need to compare the two arguments using the
+<code class="docutils literal"><span class="pre">!=</span></code> operator.</p>
+</div>
+<dl class="method">
+<dt id="context_change.ContextChange.pre_context_change">
+<code class="descname">pre_context_change</code><span class="sig-paren">(</span><em>current_context</em>, <em>next_context</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/context_change.html#ContextChange.pre_context_change"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#context_change.ContextChange.pre_context_change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executed before the context has changed.</p>
+<p>The default implementation does nothing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>current_context</strong> (<a class="reference internal" href="#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a>) &#8211; The context of the engine.</li>
+<li><strong>next_context</strong> (<a class="reference internal" href="#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a>) &#8211; The context the engine is switching to.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="context_change.ContextChange.post_context_change">
+<code class="descname">post_context_change</code><span class="sig-paren">(</span><em>previous_context</em>, <em>current_context</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/context_change.html#ContextChange.post_context_change"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#context_change.ContextChange.post_context_change" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executed after the context has changed.</p>
+<p>The default implementation does nothing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>previous_context</strong> (<a class="reference internal" href="#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a>) &#8211; The previous context of the engine.</li>
+<li><strong>current_context</strong> (<a class="reference internal" href="#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a>) &#8211; The current context of the engine.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-engine_init">
+<span id="engine-init-py"></span><h4>engine_init.py<a class="headerlink" href="#module-engine_init" title="Permalink to this headline">¶</a></h4>
+<p>Hook that gets executed every time an engine has been fully initialized.</p>
+<dl class="class">
+<dt id="engine_init.EngineInit">
+<em class="property">class </em><code class="descclassname">engine_init.</code><code class="descname">EngineInit</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/engine_init.html#EngineInit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#engine_init.EngineInit" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="engine_init.EngineInit.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>engine</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/engine_init.html#EngineInit.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#engine_init.EngineInit.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executed when a Toolkit engine has been fully initialized.</p>
+<p>At this point, all apps and frameworks have been loaded,
+and the engine is fully operational.</p>
+<p>The default implementation does nothing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>engine</strong> (<a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal"><span class="pre">Engine</span></code></a>) &#8211; Engine that has been initialized.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-ensure_folder_exists">
+<span id="ensure-folder-exists-py"></span><h4>ensure_folder_exists.py<a class="headerlink" href="#module-ensure_folder_exists" title="Permalink to this headline">¶</a></h4>
+<p>This hook is called when an engine, app or framework&#8217;s
+<a class="reference internal" href="platform.html#sgtk.platform.Application.ensure_folder_exists" title="sgtk.platform.Application.ensure_folder_exists"><code class="xref py py-class docutils literal"><span class="pre">ensure_folder_exists</span></code></a> method is called.</p>
+<dl class="class">
+<dt id="ensure_folder_exists.EnsureFolderExists">
+<em class="property">class </em><code class="descclassname">ensure_folder_exists.</code><code class="descname">EnsureFolderExists</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ensure_folder_exists.html#EnsureFolderExists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ensure_folder_exists.EnsureFolderExists" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="ensure_folder_exists.EnsureFolderExists.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>path</em>, <em>bundle_obj</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ensure_folder_exists.html#EnsureFolderExists.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ensure_folder_exists.EnsureFolderExists.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates folders on disk.</p>
+<p>Toolkit bundles call this method when they want to ensure that
+a leaf-level folder structure exists on disk. In the case where customization
+is required, the hook is passed the bundle that issued the original request.
+This should allow for some sophisticated introspection inside the hook.</p>
+<p>The default implementation creates these folders with read/write
+permissions for everyone.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; path to create</li>
+<li><strong>bundle_object</strong> (<a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal"><span class="pre">Engine</span></code></a>, <a class="reference internal" href="platform.html#sgtk.platform.Framework" title="sgtk.platform.Framework"><code class="xref py py-class docutils literal"><span class="pre">Framework</span></code></a>
+or <a class="reference internal" href="platform.html#sgtk.platform.Application" title="sgtk.platform.Application"><code class="xref py py-class docutils literal"><span class="pre">Application</span></code></a>) &#8211; Object requesting the creation. This is a legacy
+parameter and we recommend using self.parent instead.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-get_current_login">
+<span id="get-current-login-py"></span><h4>get_current_login.py<a class="headerlink" href="#module-get_current_login" title="Permalink to this headline">¶</a></h4>
+<p>Hook that gets executed when the current user is being retrieved.</p>
+<p>Please note that this hook will only be called whenever Toolkit doesn&#8217;t
+have an authenticated user present. In releases prior to v0.16, this was the case
+for all users and projects. However, as of Core v0.16 and above, projects are set
+up to require users to log in by default, meaning that there already is a well
+established notion of who the current user is.</p>
+<p>Even with such projects, there are environments, e.g. render farms, where a user
+cannot easily log in, and a Shotgun script user typically is being used for
+&#8220;headless&#8221; operation of Toolkit. In these cases, Toolkit doesn&#8217;t know which
+Shotgun user is associated with the operation and this hook will be called.</p>
+<p>The return value from this hook will then be compared with the available logins
+for all users in Shotgun and if a match is found, this is deemed to be the
+current user.</p>
+<dl class="class">
+<dt id="get_current_login.GetCurrentLogin">
+<em class="property">class </em><code class="descclassname">get_current_login.</code><code class="descname">GetCurrentLogin</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/get_current_login.html#GetCurrentLogin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#get_current_login.GetCurrentLogin" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="get_current_login.GetCurrentLogin.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/get_current_login.html#GetCurrentLogin.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#get_current_login.GetCurrentLogin.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the login name for the Shotgun user.</p>
+<p>This is used by Toolkit to resolve against the <code class="docutils literal"><span class="pre">login</span></code> field in the
+Shotgun users table in order to extract further metadata.</p>
+<p>The default implementation will return the OS user&#8217;s login name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A name that matches the user&#8217;s <code class="docutils literal"><span class="pre">login</span></code> field in Shotgun.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-log_metrics">
+<span id="log-metrics-py"></span><h4>log_metrics.py<a class="headerlink" href="#module-log_metrics" title="Permalink to this headline">¶</a></h4>
+<p>Hook that gets executed every time Toolkit logs user metrics.</p>
+<dl class="class">
+<dt id="log_metrics.LogMetrics">
+<em class="property">class </em><code class="descclassname">log_metrics.</code><code class="descname">LogMetrics</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/log_metrics.html#LogMetrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#log_metrics.LogMetrics" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="log_metrics.LogMetrics.log_metrics">
+<code class="descname">log_metrics</code><span class="sig-paren">(</span><em>metrics</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/log_metrics.html#LogMetrics.log_metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#log_metrics.LogMetrics.log_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when Toolkit logs a list of metrics.</p>
+<p>A metric is a dictionary with three items:</p>
+<ul class="simple">
+<li><strong>event_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - Name of the event group.</li>
+<li><strong>event_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - Name of the event.</li>
+<li><strong>event_properties</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">list</span></code></a>) - List of properties for the event.</li>
+</ul>
+<p>The default implementation does nothing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>metrics</strong> (<em>list(dict)</em>) &#8211; List of metrics.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This hook will be executed within one or more dedicated metrics logging
+worker threads and not in the main thread. Overriding this hook may
+require additional care to avoid issues related to accessing shared
+resources across multiple threads.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pick_environment">
+<span id="pick-environment-py"></span><h4>pick_environment.py<a class="headerlink" href="#module-pick_environment" title="Permalink to this headline">¶</a></h4>
+<p>Hook which chooses an environment file to use based on the current context.
+This file is almost always overridden by a configuration.</p>
+<dl class="class">
+<dt id="pick_environment.PickEnvironment">
+<em class="property">class </em><code class="descclassname">pick_environment.</code><code class="descname">PickEnvironment</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pick_environment.html#PickEnvironment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pick_environment.PickEnvironment" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="pick_environment.PickEnvironment.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>context</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pick_environment.html#PickEnvironment.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pick_environment.PickEnvironment.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executed when Toolkit needs to pick an environment file.</p>
+<p>The default implementation will return <code class="docutils literal"><span class="pre">shot</span></code> or <code class="docutils literal"><span class="pre">asset</span></code> based
+on the type of the entity in <a class="reference internal" href="#sgtk.Context.entity" title="sgtk.Context.entity"><code class="xref py py-attr docutils literal"><span class="pre">sgtk.Context.entity</span></code></a>. If the type
+does not match <code class="docutils literal"><span class="pre">Shot</span></code> or <code class="docutils literal"><span class="pre">Asset</span></code>, <code class="docutils literal"><span class="pre">None</span></code> will be returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Params context:</th><td class="field-body">The context for which an environment will be picked.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Name of the environment to use or <code class="docutils literal"><span class="pre">None</span></code> is there was no match.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pipeline_configuration_init">
+<span id="pipeline-configuration-init-py"></span><h4>pipeline_configuration_init.py<a class="headerlink" href="#module-pipeline_configuration_init" title="Permalink to this headline">¶</a></h4>
+<p>Hook that gets executed every time a new PipelineConfiguration instance is created.</p>
+<dl class="class">
+<dt id="pipeline_configuration_init.PipelineConfigurationInit">
+<em class="property">class </em><code class="descclassname">pipeline_configuration_init.</code><code class="descname">PipelineConfigurationInit</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_configuration_init.html#PipelineConfigurationInit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline_configuration_init.PipelineConfigurationInit" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="pipeline_configuration_init.PipelineConfigurationInit.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pipeline_configuration_init.html#PipelineConfigurationInit.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pipeline_configuration_init.PipelineConfigurationInit.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executed when a new PipelineConfiguration instance is initialized.</p>
+<p>The default implementation does nothing.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-process_folder_creation">
+<span id="process-folder-creation-py"></span><h4>process_folder_creation.py<a class="headerlink" href="#module-process_folder_creation" title="Permalink to this headline">¶</a></h4>
+<p>This hook is invoked during folder creation when <a class="reference internal" href="#sgtk.Sgtk.create_filesystem_structure" title="sgtk.Sgtk.create_filesystem_structure"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.Sgtk.create_filesystem_structure()</span></code></a> is
+called.</p>
+<dl class="class">
+<dt id="process_folder_creation.ProcessFolderCreation">
+<em class="property">class </em><code class="descclassname">process_folder_creation.</code><code class="descname">ProcessFolderCreation</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/process_folder_creation.html#ProcessFolderCreation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#process_folder_creation.ProcessFolderCreation" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="process_folder_creation.ProcessFolderCreation.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>items</em>, <em>preview_mode</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/process_folder_creation.html#ProcessFolderCreation.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#process_folder_creation.ProcessFolderCreation.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a list of files and folders.</p>
+<p>The default implementation creates files and folders recursively using
+open permissions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>list(dict)</strong> &#8211; List of actions that needs to take place.</td>
+</tr>
+</tbody>
+</table>
+<p>Six different types of actions are supported.</p>
+<p><strong>Standard Folder</strong></p>
+<p>This represents a standard folder in the file system which is not associated
+with anything in Shotgun. It contains the following keys:</p>
+<ul class="simple">
+<li><strong>action</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - <code class="docutils literal"><span class="pre">folder</span></code></li>
+<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - The configuration yaml data for this item</li>
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - path on disk to the item</li>
+</ul>
+<p><strong>Entity Folder</strong></p>
+<p>This represents a folder in the file system which is associated with a
+Shotgun entity. It contains the following keys:</p>
+<ul class="simple">
+<li><strong>action</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - <code class="docutils literal"><span class="pre">entity_folder</span></code></li>
+<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - The configuration yaml data for this item</li>
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - path on disk to the item</li>
+<li><strong>entity</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - Shotgun entity link with keys <code class="docutils literal"><span class="pre">type</span></code>, <code class="docutils literal"><span class="pre">id</span></code> and <code class="docutils literal"><span class="pre">name</span></code>.</li>
+</ul>
+<p><strong>Remote Entity Folder</strong></p>
+<p>This is the same as an entity folder, except that it was originally
+created in another location. A remote folder request means that your
+local toolkit instance has detected that folders have been created by
+a different file system setup. It contains the following keys:</p>
+<ul class="simple">
+<li><strong>action</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - <code class="docutils literal"><span class="pre">remote_entity_folder</span></code></li>
+<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - The configuration yaml data for this item</li>
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - path on disk to the item</li>
+<li><strong>entity</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - Shotgun entity link with keys <code class="docutils literal"><span class="pre">type</span></code>, <code class="docutils literal"><span class="pre">id</span></code> and <code class="docutils literal"><span class="pre">name</span></code>.</li>
+</ul>
+<p><strong>File Copy</strong></p>
+<p>This represents a file copy operation which should be carried out.
+It contains the following keys:</p>
+<ul class="simple">
+<li><strong>action</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - <code class="docutils literal"><span class="pre">copy</span></code></li>
+<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - The configuration yaml data associated with the directory level
+on which this object exists.</li>
+<li><strong>source_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - location of the file that should be copied</li>
+<li><strong>target_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - target location to where the file should be copied.</li>
+</ul>
+<p><strong>File Creation</strong></p>
+<p>This is similar to the file copy, but instead of a source path, a chunk
+of data is specified. It contains the following keys:</p>
+<ul class="simple">
+<li><strong>action</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - <code class="docutils literal"><span class="pre">create_file</span></code></li>
+<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - The configuration yaml data associated with the directory level
+on which this object exists.</li>
+<li><strong>content</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) &#8211; file content</li>
+<li><strong>target_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) &#8211; target location to where the file should be copied.</li>
+</ul>
+<p><strong>Symbolic Links</strong></p>
+<p>This represents a request that a symbolic link is created. Note that symbolic links are not
+supported in the same way on all operating systems. The default hook therefore does not
+implement symbolic link support on Windows systems. If you want to add symbolic link support
+on windows, simply copy this hook to your project configuration and make the necessary
+modifications.</p>
+<ul class="simple">
+<li><strong>action</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - <code class="docutils literal"><span class="pre">symlink</span></code></li>
+<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - The raw configuration yaml data associated with symlink yml config file.</li>
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - the path to the symbolic link</li>
+<li><strong>target</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - the target to which the symbolic link should point</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of files and folders that have been created.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list(str)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-process_folder_name">
+<span id="process-folder-name-py"></span><h4>process_folder_name.py<a class="headerlink" href="#module-process_folder_name" title="Permalink to this headline">¶</a></h4>
+<p>Core hook which handles conversion of Shotgun field data into strings.</p>
+<p>This hook can be used to control how folders are named on disk given
+a field in Shotgun. Should for example spaces be replaced by underscores
+or periods when folders are created?</p>
+<p>This hook can also be used to raise an exception if an invalid naming convention
+is being used, for example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">entity_type</span> <span class="o">==</span> <span class="s2">&quot;Shot&quot;</span> <span class="ow">and</span> <span class="n">str_value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;AA&quot;</span><span class="p">):</span>
+   <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Shot names cannot start with AA!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="class">
+<dt id="process_folder_name.ProcessFolderName">
+<em class="property">class </em><code class="descclassname">process_folder_name.</code><code class="descname">ProcessFolderName</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/process_folder_name.html#ProcessFolderName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#process_folder_name.ProcessFolderName" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="process_folder_name.ProcessFolderName.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>entity_type</em>, <em>entity_id</em>, <em>field_name</em>, <em>value</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/process_folder_name.html#ProcessFolderName.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#process_folder_name.ProcessFolderName.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executed when an entity needs to be turned into a string token during folder
+creation.</p>
+<p>The default implementation will turn non-ascii characters into hyphens and
+replace spaces with underscores.</p>
+<p>For example, <code class="docutils literal"><span class="pre">{&quot;type&quot;:&quot;Shot&quot;,</span> <span class="pre">&quot;id&quot;:123,</span> <span class="pre">&quot;name&quot;:&quot;Pont</span> <span class="pre">de</span> <span class="pre">Lévis&quot;}</span></code> would
+be converted to <code class="docutils literal"><span class="pre">Pont_de_L-vis</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>entity_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; The Shotgun entity type for which the value is taken.</li>
+<li><strong>entity_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; The entity id representing the data.</li>
+<li><strong>field_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; The Shotgun field associated with the value.</li>
+<li><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><em>object</em></a>) &#8211; The actual value in some form, as returned by the Shotgun API.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A string repsenting the entity.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-resolve_publish">
+<span id="resolve-publish-py"></span><h4>resolve_publish.py<a class="headerlink" href="#module-resolve_publish" title="Permalink to this headline">¶</a></h4>
+<p>Hook used to resolve publish records in Shotgun into local form on a machine during
+a call to <a class="reference internal" href="utils.html#sgtk.util.resolve_publish_path" title="sgtk.util.resolve_publish_path"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.util.resolve_publish_path()</span></code></a>.</p>
+<dl class="class">
+<dt id="resolve_publish.ResolvePublish">
+<em class="property">class </em><code class="descclassname">resolve_publish.</code><code class="descname">ResolvePublish</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/resolve_publish.html#ResolvePublish"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#resolve_publish.ResolvePublish" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="resolve_publish.ResolvePublish.resolve_path">
+<code class="descname">resolve_path</code><span class="sig-paren">(</span><em>sg_publish_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/resolve_publish.html#ResolvePublish.resolve_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#resolve_publish.ResolvePublish.resolve_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resolves a Shotgun publish record into a local file on disk.</p>
+<p>If this method returns <code class="docutils literal"><span class="pre">None</span></code>, it indicates to Toolkit that the default
+publish resolution logic should be used.</p>
+<p>The default implementation of this hook returns <code class="docutils literal"><span class="pre">None</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sg_publish_data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) &#8211; Dictionary containing Shotgun publish data.
+Contains at minimum a code, type, id and a path key.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Path to the local file or <code class="docutils literal"><span class="pre">None</span></code>.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Rtype str:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-tank_init">
+<span id="tank-init-py"></span><h4>tank_init.py<a class="headerlink" href="#module-tank_init" title="Permalink to this headline">¶</a></h4>
+<p>Hook that gets executed every time a new Toolkit API instance is created.</p>
+<dl class="class">
+<dt id="tank_init.TankInit">
+<em class="property">class </em><code class="descclassname">tank_init.</code><code class="descname">TankInit</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank_init.html#TankInit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tank_init.TankInit" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="tank_init.TankInit.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank_init.html#TankInit.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tank_init.TankInit.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executed when a new Toolkit API instance is initialized.</p>
+<p>You can access the Toolkit API instance through <code class="docutils literal"><span class="pre">self.parent</span></code>.</p>
+<p>The default implementation does nothing.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-example_template_hook">
+<span id="template-hooks"></span><h3>Template Hooks<a class="headerlink" href="#module-example_template_hook" title="Permalink to this headline">¶</a></h3>
+<p>This hook is a simple example to illustrate how template settings in an app
+can be evaluated at runtime based on complex conditions.</p>
+<p>If you have an app which has a template parameter, you would typically use a setting
+which points to one of your templates. So in the environment config, you would have:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">template_snapshot</span><span class="p">:</span> <span class="n">maya_shot_publish</span>
+</pre></div>
+</div>
+<p>However if you want more complex behavior, it is possible to specify that a hook
+should be used to evaluate the setting at runtime rather than just set it.
+For example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">template_snapshot</span><span class="p">:</span> <span class="s2">&quot;hook:example_template_hook:maya_shot_publish&quot;</span>
+</pre></div>
+</div>
+<p>This setting would look for a core hook named <code class="docutils literal"><span class="pre">example_template_hook</span></code> and execute it.
+See below for an example implementation and parameter descriptions.</p>
+<dl class="class">
+<dt id="example_template_hook.ExampleTemplateHook">
+<em class="property">class </em><code class="descclassname">example_template_hook.</code><code class="descname">ExampleTemplateHook</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/example_template_hook.html#ExampleTemplateHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#example_template_hook.ExampleTemplateHook" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="example_template_hook.ExampleTemplateHook.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>setting</em>, <em>bundle_obj</em>, <em>extra_params</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/example_template_hook.html#ExampleTemplateHook.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#example_template_hook.ExampleTemplateHook.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Example pass-through implementation. One option is expected in <code class="docutils literal"><span class="pre">extra_params</span></code>
+and it will be returned.</p>
+<p>So the following two things will evaluate to the same thing:</p>
+<p>&gt; template_snapshot: maya_shot_publish
+&gt; template_snapshot: hook:example_template_hook:maya_shot_publish</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>setting</strong> &#8211; The name of the setting for which we are evaluating
+In our example above, it would be template_snapshot.</li>
+<li><strong>bundle_obj</strong> &#8211; The app, engine or framework object that the setting
+is associated with.</li>
+<li><strong>extra_params</strong> &#8211; List of options passed from the setting. If the settings
+string is &#8220;hook:hook_name:foo:bar&#8221;, extra_params would
+be [&#8216;foo&#8217;, &#8216;bar&#8217;]</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>returns: needs to return the name of a template, as a string.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -2958,7 +3768,7 @@ The format follows the convention of <code class="xref py py-meth docutils liter
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.152',
+            VERSION:'v0.18.153',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

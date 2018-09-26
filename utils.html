@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.18.152 documentation</title>
+  <title>Utilities &mdash; tk-core v0.18.153 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.152 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.153 documentation" href="index.html"/>
         <link rel="next" title="Descriptors" href="descriptor.html"/>
         <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
 
@@ -116,6 +116,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#centralizing-your-settings">Centralizing your settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#file-system-utilities">File System Utilities</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk-util-filesystem">sgtk.util.filesystem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sgtk-util-json">sgtk.util.json</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#shotgunpath">ShotgunPath</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#localfilestoragemanager">LocalFileStorageManager</a></li>
 </ul>
@@ -150,7 +151,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.152.<br>
+    <b>tk-core</b> v0.18.153.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1170,6 +1171,29 @@ could create the returned path before it is used by the caller.</p>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+</div>
+<div class="section" id="sgtk-util-json">
+<h3>sgtk.util.json<a class="headerlink" href="#sgtk-util-json" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="sgtk.util.json.load">
+<code class="descclassname">sgtk.util.json.</code><code class="descname">load</code><span class="sig-paren">(</span><em>fp</em>, <em>encoding=None</em>, <em>cls=None</em>, <em>object_hook=None</em>, <em>parse_float=None</em>, <em>parse_int=None</em>, <em>parse_constant=None</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/json.html#load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.json.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deserialize <code class="docutils literal"><span class="pre">fp</span></code> (a <code class="docutils literal"><span class="pre">.read()</span></code>-supporting file-like object containing
+a JSON document) to a Python object.</p>
+<p>This method is a simple thin wrapper around <a class="reference external" href="https://docs.python.org/3/library/json.html#json.load" title="(in Python v3.7)"><code class="xref py py-func docutils literal"><span class="pre">json.load()</span></code></a> that
+ensures unserialized strings are utf-8 encoded <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a> objects.</p>
+<p>See the documentation for <a class="reference external" href="https://docs.python.org/3/library/json.html#json.load" title="(in Python v3.7)"><code class="xref py py-func docutils literal"><span class="pre">json.load()</span></code></a> to learn more about this method.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.json.loads">
+<code class="descclassname">sgtk.util.json.</code><code class="descname">loads</code><span class="sig-paren">(</span><em>s</em>, <em>encoding=None</em>, <em>cls=None</em>, <em>object_hook=None</em>, <em>parse_float=None</em>, <em>parse_int=None</em>, <em>parse_constant=None</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/json.html#loads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.json.loads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deserialize <code class="docutils literal"><span class="pre">s</span></code> (a <code class="docutils literal"><span class="pre">str</span></code> or <code class="docutils literal"><span class="pre">unicode</span></code> instance containing a JSON
+document) to a Python object.</p>
+<p>This method is a simple thin wrapper around <a class="reference external" href="https://docs.python.org/3/library/json.html#json.loads" title="(in Python v3.7)"><code class="xref py py-func docutils literal"><span class="pre">json.loads()</span></code></a> that
+ensures unserialized strings are utf-8 encoded <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a> objects.</p>
+<p>See the documentation for <a class="reference external" href="https://docs.python.org/3/library/json.html#json.loads" title="(in Python v3.7)"><code class="xref py py-func docutils literal"><span class="pre">json.loads()</span></code></a> to learn more about this method.</p>
 </dd></dl>
 
 </div>
@@ -2234,7 +2258,7 @@ example unsupported url schemes.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.152',
+            VERSION:'v0.18.153',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

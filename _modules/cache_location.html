@@ -1,0 +1,463 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cache_location &mdash; tk-core v0.18.153 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.153 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../initializing.html">Initialization and startup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../descriptor.html">Descriptors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+
+    <a href='genindex.html'>Alphabetic Index</a>
+
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.153.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Module code</a> &raquo;</li>
+      
+    <li>cache_location</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cache_location</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2018 Shotgun Software Inc.</span>
+<span class="c1">#</span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1">#</span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Hook to control path cache and bundle cache folder creation.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sgtk</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">sgtk.util</span> <span class="kn">import</span> <span class="n">filesystem</span><span class="p">,</span> <span class="n">LocalFileStorageManager</span>
+
+<span class="n">HookBaseClass</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">get_hook_baseclass</span><span class="p">()</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="CacheLocation"><a class="viewcode-back" href="../core.html#cache_location.CacheLocation">[docs]</a><span class="k">class</span> <span class="nc">CacheLocation</span><span class="p">(</span><span class="n">HookBaseClass</span><span class="p">):</span>
+<div class="viewcode-block" id="CacheLocation.get_path_cache_path"><a class="viewcode-back" href="../core.html#cache_location.CacheLocation.get_path_cache_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_path_cache_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">plugin_id</span><span class="p">,</span> <span class="n">pipeline_configuration_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Establish a location for the path cache database file.</span>
+
+<span class="sd">        This hook method was introduced in Toolkit v0.18 and replaces the previous</span>
+<span class="sd">        ``path_cache`` method. If you already have implemented ``path_cache``,</span>
+<span class="sd">        this will be detected and called instead, however we strongly recommend</span>
+<span class="sd">        that you tweak your hook.</span>
+
+<span class="sd">        Overriding this method in a hook allows a user to change the location on disk where</span>
+<span class="sd">        the path cache file is located. The path cache file holds a temporary cache representation</span>
+<span class="sd">        of the ``FilesystemLocation`` entities stored in Shotgun for a project.</span>
+
+<span class="sd">        The default implementation will create a folder inside the user&#39;s home folder or</span>
+<span class="sd">        under ``SHOTGUN_HOME``.</span>
+
+<span class="sd">        :param int project_id: The Shotgun id of the project to store caches for. None if</span>
+<span class="sd">                               the configuration is a site configuration.</span>
+<span class="sd">        :param str plugin_id: Unique string to identify the scope for a particular plugin</span>
+<span class="sd">                              or integration. For more information,</span>
+<span class="sd">                              see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For</span>
+<span class="sd">                              non-plugin based toolkit projects, this value is None.</span>
+<span class="sd">        :param int pipeline_configuration_id: The Shotgun pipeline configuration id to store caches</span>
+<span class="sd">                                              for. If the pipeline configuration is unmanaged, it</span>
+<span class="sd">                                              will be ``None``</span>
+<span class="sd">        :returns: The path to a path cache file. This file should exist when this method returns.</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># backwards compatibility with custom hooks created before 0.18</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;path_cache&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;path_cache&quot;</span><span class="p">)):</span>
+            <span class="c1"># there is a custom version of the legacy hook path_cache</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;Detected old core cache hook implementation. &quot;</span>
+                <span class="s2">&quot;It is strongly recommended that this is upgraded.&quot;</span>
+            <span class="p">)</span>
+
+            <span class="c1"># call legacy hook to make sure we call the custom</span>
+            <span class="c1"># implementation that is provided by the user.</span>
+            <span class="c1"># this implementation expects project id 0 for</span>
+            <span class="c1"># the site config, so ensure that&#39;s the case too</span>
+            <span class="k">if</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">project_id</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_cache</span><span class="p">(</span><span class="n">project_id</span><span class="p">,</span> <span class="n">pipeline_configuration_id</span><span class="p">)</span>
+
+        <span class="n">cache_filename</span> <span class="o">=</span> <span class="s2">&quot;path_cache.db&quot;</span>
+
+        <span class="n">tk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span>
+
+        <span class="n">cache_root</span> <span class="o">=</span> <span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">get_configuration_root</span><span class="p">(</span>
+            <span class="n">tk</span><span class="o">.</span><span class="n">shotgun_url</span><span class="p">,</span>
+            <span class="n">project_id</span><span class="p">,</span>
+            <span class="n">plugin_id</span><span class="p">,</span>
+            <span class="n">pipeline_configuration_id</span><span class="p">,</span>
+            <span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">CACHE</span>
+        <span class="p">)</span>
+
+        <span class="n">target_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_root</span><span class="p">,</span> <span class="n">cache_filename</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">target_path</span><span class="p">):</span>
+            <span class="c1"># new style path cache file exists, return it</span>
+            <span class="k">return</span> <span class="n">target_path</span>
+
+        <span class="c1"># The target path does not exist. This could be because it just hasn&#39;t</span>
+        <span class="c1"># been created yet, or it could be because of a core upgrade where the</span>
+        <span class="c1"># cache root directory structure has changed (such is the case with</span>
+        <span class="c1"># v0.17.x -&gt; v0.18.x). To account for this scenario, see if the target</span>
+        <span class="c1"># exists in an old location first, and if so, return that path instead.</span>
+        <span class="n">legacy_cache_root</span> <span class="o">=</span> <span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">get_configuration_root</span><span class="p">(</span>
+            <span class="n">tk</span><span class="o">.</span><span class="n">shotgun_url</span><span class="p">,</span>
+            <span class="n">project_id</span><span class="p">,</span>
+            <span class="n">plugin_id</span><span class="p">,</span>
+            <span class="n">pipeline_configuration_id</span><span class="p">,</span>
+            <span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">CACHE</span><span class="p">,</span>
+            <span class="n">generation</span><span class="o">=</span><span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">CORE_V17</span>
+        <span class="p">)</span>
+
+        <span class="n">legacy_target_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">legacy_cache_root</span><span class="p">,</span> <span class="n">cache_filename</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">legacy_target_path</span><span class="p">):</span>
+            <span class="c1"># legacy path cache file exists, return it</span>
+            <span class="k">return</span> <span class="n">legacy_target_path</span>
+
+        <span class="c1"># neither new style or legacy path cache exists. use the new style</span>
+        <span class="n">filesystem</span><span class="o">.</span><span class="n">ensure_folder_exists</span><span class="p">(</span><span class="n">cache_root</span><span class="p">)</span>
+        <span class="n">filesystem</span><span class="o">.</span><span class="n">touch_file</span><span class="p">(</span><span class="n">target_path</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">target_path</span></div>
+
+<div class="viewcode-block" id="CacheLocation.get_bundle_data_cache_path"><a class="viewcode-back" href="../core.html#cache_location.CacheLocation.get_bundle_data_cache_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_bundle_data_cache_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">plugin_id</span><span class="p">,</span> <span class="n">pipeline_configuration_id</span><span class="p">,</span> <span class="n">bundle</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Establish a cache folder for an app, engine or framework.</span>
+
+<span class="sd">        This hook method was introduced in Toolkit v0.18 and replaces the previous ``bundle_cache``</span>
+<span class="sd">        method. If you already have implemented ``bundle_cache``, this will be detected and called</span>
+<span class="sd">        instead, however we strongly recommend that you tweak your hook.</span>
+
+<span class="sd">        Apps, Engines or Frameworks commonly cache data on disk. This can be</span>
+<span class="sd">        small files, Shotgun queries, thumbnails, etc. This method implements the</span>
+<span class="sd">        logic which defines this location on disk. The cache should be organized in</span>
+<span class="sd">        a way so that all instances of the app can re-use the same data. Bundles</span>
+<span class="sd">        which need to cache things per-instance can implement this using a sub</span>
+<span class="sd">        folder inside the bundle cache location.</span>
+
+<span class="sd">        It is possible to omit some components of the path by explicitly passing</span>
+<span class="sd">        a ``None`` value for them. Only the bundle name is required. For example,</span>
+<span class="sd">        with ``project_id=None``, a site level cache path will be returned.</span>
+<span class="sd">        Omitting the ``project_id`` can be used to cache data for the site</span>
+<span class="sd">        configuration, or to share data accross all projects belonging to a</span>
+<span class="sd">        common site.</span>
+
+<span class="sd">        The default implementation will create a folder inside the user&#39;s home folder or</span>
+<span class="sd">        under ``SHOTGUN_HOME``.</span>
+
+<span class="sd">        :param int project_id: The Shotgun id of the project to store caches for, or None.</span>
+<span class="sd">        :param str plugin_id: Unique string to identify the scope for a particular plugin</span>
+<span class="sd">                              or integration, or None. For more information,</span>
+<span class="sd">                              see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For</span>
+<span class="sd">                              non-plugin based toolkit projects, this value is None.</span>
+<span class="sd">        :param int pipeline_configuration_id: The Shotgun pipeline config id to store caches for</span>
+<span class="sd">                                              or ``None`` if the pipeline configuration is unmanaged.</span>
+<span class="sd">        :param bundle: The app, engine or framework object which is requesting the cache folder.</span>
+<span class="sd">        :type bundle: :class:`~sgtk.platform.Engine`, :class:`~sgtk.platform.Framework` or</span>
+<span class="sd">                      :class:`~sgtk.platform.Application`</span>
+<span class="sd">        :returns: The path to a folder which should exist on disk.</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># backwards compatibility with custom hooks created before 0.18</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;bundle_cache&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;bundle_cache&quot;</span><span class="p">)):</span>
+            <span class="c1"># there is a custom version of the legacy hook path_cache</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;Detected old core cache hook implementation. &quot;</span>
+                <span class="s2">&quot;It is strongly recommended that this is upgraded.&quot;</span>
+            <span class="p">)</span>
+
+            <span class="c1"># call legacy hook to make sure we call the custom</span>
+            <span class="c1"># implementation that is provided by the user.</span>
+            <span class="c1"># this implementation expects project id 0 for</span>
+            <span class="c1"># the site config, so ensure that&#39;s the case too</span>
+            <span class="k">if</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">project_id</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bundle_cache</span><span class="p">(</span><span class="n">project_id</span><span class="p">,</span> <span class="n">pipeline_configuration_id</span><span class="p">,</span> <span class="n">bundle</span><span class="p">)</span>
+
+        <span class="n">tk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span>
+        <span class="n">cache_root</span> <span class="o">=</span> <span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">get_configuration_root</span><span class="p">(</span>
+            <span class="n">tk</span><span class="o">.</span><span class="n">shotgun_url</span><span class="p">,</span>
+            <span class="n">project_id</span><span class="p">,</span>
+            <span class="n">plugin_id</span><span class="p">,</span>
+            <span class="n">pipeline_configuration_id</span><span class="p">,</span>
+            <span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">CACHE</span>
+        <span class="p">)</span>
+
+        <span class="c1"># in the interest of trying to minimize path lengths (to avoid</span>
+        <span class="c1"># the MAX_PATH limit on windows, we apply some shortcuts</span>
+
+        <span class="c1"># if the bundle is a framework, we shorten it:</span>
+        <span class="c1"># tk-framework-shotgunutils --&gt; fw-shotgunutils</span>
+        <span class="c1"># if the bundle is a multi-app, we shorten it:</span>
+        <span class="c1"># tk-multi-workfiles2 --&gt; tm-workfiles2</span>
+        <span class="n">bundle_name</span> <span class="o">=</span> <span class="n">bundle</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">bundle_name</span> <span class="o">=</span> <span class="n">bundle_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;tk-framework-&quot;</span><span class="p">,</span> <span class="s2">&quot;fw-&quot;</span><span class="p">)</span>
+        <span class="n">bundle_name</span> <span class="o">=</span> <span class="n">bundle_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;tk-multi-&quot;</span><span class="p">,</span> <span class="s2">&quot;tm-&quot;</span><span class="p">)</span>
+
+        <span class="n">target_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_root</span><span class="p">,</span> <span class="n">bundle_name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">target_path</span><span class="p">):</span>
+            <span class="c1"># new style cache bundle folder exists, return it</span>
+            <span class="k">return</span> <span class="n">target_path</span>
+
+        <span class="c1"># The target path does not exist. This could be because it just hasn&#39;t</span>
+        <span class="c1"># been created yet, or it could be because of a core upgrade where the</span>
+        <span class="c1"># cache root directory structure has changed (such is the case with</span>
+        <span class="c1"># v0.17.x -&gt; v0.18.x). To account for this scenario, see if the target</span>
+        <span class="c1"># exists in an old location first, and if so, return that path instead.</span>
+        <span class="n">legacy_cache_root</span> <span class="o">=</span> <span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">get_configuration_root</span><span class="p">(</span>
+            <span class="n">tk</span><span class="o">.</span><span class="n">shotgun_url</span><span class="p">,</span>
+            <span class="n">project_id</span><span class="p">,</span>
+            <span class="n">plugin_id</span><span class="p">,</span>
+            <span class="n">pipeline_configuration_id</span><span class="p">,</span>
+            <span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">CACHE</span><span class="p">,</span>
+            <span class="n">generation</span><span class="o">=</span><span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">CORE_V17</span>
+        <span class="p">)</span>
+        <span class="n">legacy_target_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">legacy_cache_root</span><span class="p">,</span> <span class="n">bundle</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">legacy_target_path</span><span class="p">):</span>
+            <span class="c1"># legacy cache bundle folder exists, return it</span>
+            <span class="k">return</span> <span class="n">legacy_target_path</span>
+
+        <span class="c1"># neither new style or legacy path cache exists. use the new style</span>
+        <span class="n">filesystem</span><span class="o">.</span><span class="n">ensure_folder_exists</span><span class="p">(</span><span class="n">target_path</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">target_path</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'v0.18.153',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+  
+ 
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-2114792-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+</body>
+</html>

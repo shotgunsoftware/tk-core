@@ -1,0 +1,367 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>process_folder_name &mdash; tk-core v0.18.153 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.18.153 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../initializing.html">Initialization and startup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../descriptor.html">Descriptors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+
+    <a href='genindex.html'>Alphabetic Index</a>
+
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.18.153.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Module code</a> &raquo;</li>
+      
+    <li>process_folder_name</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for process_folder_name</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2018 Shotgun Software Inc.</span>
+<span class="c1">#</span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1">#</span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Core hook which handles conversion of Shotgun field data into strings.</span>
+
+<span class="sd">This hook can be used to control how folders are named on disk given</span>
+<span class="sd">a field in Shotgun. Should for example spaces be replaced by underscores</span>
+<span class="sd">or periods when folders are created?</span>
+
+<span class="sd">This hook can also be used to raise an exception if an invalid naming convention</span>
+<span class="sd">is being used, for example:</span>
+
+<span class="sd">.. code-block:: python</span>
+
+<span class="sd">    if entity_type == &quot;Shot&quot; and str_value.startswith(&quot;AA&quot;):</span>
+<span class="sd">       raise TankError(&quot;Shot names cannot start with AA!&quot;)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">tank</span> <span class="kn">import</span> <span class="n">Hook</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+
+<div class="viewcode-block" id="ProcessFolderName"><a class="viewcode-back" href="../core.html#process_folder_name.ProcessFolderName">[docs]</a><span class="k">class</span> <span class="nc">ProcessFolderName</span><span class="p">(</span><span class="n">Hook</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ProcessFolderName.execute"><a class="viewcode-back" href="../core.html#process_folder_name.ProcessFolderName.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executed when an entity needs to be turned into a string token during folder</span>
+<span class="sd">        creation.</span>
+
+<span class="sd">        The default implementation will turn non-ascii characters into hyphens and</span>
+<span class="sd">        replace spaces with underscores.</span>
+
+<span class="sd">        For example, ``{&quot;type&quot;:&quot;Shot&quot;, &quot;id&quot;:123, &quot;name&quot;:&quot;Pont de L\xc3\xa9vis&quot;}`` would</span>
+<span class="sd">        be converted to ``Pont_de_L-vis``.</span>
+
+<span class="sd">        :param str entity_type: The Shotgun entity type for which the value is taken.</span>
+<span class="sd">        :param int entity_id: The entity id representing the data.</span>
+<span class="sd">        :param str field_name: The Shotgun field associated with the value.</span>
+<span class="sd">        :param object value: The actual value in some form, as returned by the Shotgun API.</span>
+
+<span class="sd">        :returns: A string repsenting the entity.</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">==</span> <span class="nb">dict</span> <span class="ow">and</span> <span class="s2">&quot;name&quot;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+            <span class="c1"># it is a dictionary with a name key - assume this is what we want</span>
+            <span class="c1"># this is normally an entity link</span>
+            <span class="c1">#</span>
+            <span class="c1"># {&quot;type&quot;:&quot;Shot&quot;, &quot;id&quot;:123, &quot;name&quot;:&quot;foo&quot;} ==&gt; &quot;foo&quot;</span>
+            <span class="c1">#</span>
+            <span class="n">str_value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
+
+        <span class="k">elif</span> <span class="n">value</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">==</span> <span class="nb">list</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># this an empty list.</span>
+            <span class="c1">#</span>
+            <span class="c1"># [] ==&gt; &quot;&quot;</span>
+            <span class="c1">#</span>
+            <span class="n">str_value</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">elif</span> <span class="n">value</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">==</span> <span class="nb">list</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># this is a multi entity link with at least one element</span>
+            <span class="c1"># that element is a dict with a name field</span>
+            <span class="c1"># e.g. this is a multi entity link field</span>
+            <span class="c1"># make a string by concatenating all names with _</span>
+            <span class="c1">#</span>
+            <span class="c1"># [{&quot;name&quot;:&quot;foo&quot;}, {&quot;name&quot;:&quot;bar&quot;}] ==&gt; &quot;foo_bar&quot;</span>
+            <span class="c1">#</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">str_value</span> <span class="o">=</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">value</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">str_value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="c1"># no conversion required</span>
+            <span class="n">str_value</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># assume all other value types convert to</span>
+            <span class="c1"># a string</span>
+            <span class="n">str_value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="c1"># replace all non-alphanumeric characters with dashes,</span>
+        <span class="c1"># except for the project entity, where here are special rules</span>
+        <span class="n">is_project_name</span> <span class="o">=</span> <span class="p">(</span><span class="n">entity_type</span> <span class="o">==</span> <span class="s2">&quot;Project&quot;</span><span class="p">)</span>
+        <span class="n">str_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace_non_alphanumeric</span><span class="p">(</span><span class="n">str_value</span><span class="p">,</span> <span class="n">is_project_name</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">str_value</span></div>
+
+    <span class="k">def</span> <span class="nf">_replace_non_alphanumeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">is_project_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Safely replace all non-alphanumeric characters</span>
+<span class="sd">        with dashes (-).</span>
+
+<span class="sd">        Note, this handles non-ascii characters correctly</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">is_project_name</span><span class="p">:</span>
+            <span class="c1"># regex to find non-word characters, except slashes and periods, which are preserved</span>
+            <span class="n">exp</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;[^\w/\.]&quot;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">UNICODE</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># regex to find non-word characters - in ascii land, that is [^A-Za-z0-9_]</span>
+            <span class="c1"># note that we use a unicode expression, meaning that it will include other</span>
+            <span class="c1"># &quot;word&quot; characters, not just A-Z.</span>
+            <span class="n">exp</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;\W&quot;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">UNICODE</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">):</span>
+            <span class="c1"># src is unicode so we don&#39;t need to convert!</span>
+            <span class="k">return</span> <span class="n">exp</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">src</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># assume utf-8 encoding so decode, replace</span>
+            <span class="c1"># and re-encode the returned result</span>
+            <span class="n">u_src</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">exp</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">u_src</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'v0.18.153',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+  
+ 
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-2114792-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+</body>
+</html>

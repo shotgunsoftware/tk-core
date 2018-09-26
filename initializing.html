@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Initialization and startup &mdash; tk-core v0.18.152 documentation</title>
+  <title>Initialization and startup &mdash; tk-core v0.18.153 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.152 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.153 documentation" href="index.html"/>
         <link rel="next" title="Core" href="core.html"/>
         <link rel="prev" title="Overview" href="overview.html"/> 
 
@@ -109,6 +109,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#plugins-and-plugin-ids">Plugins and plugin ids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#self-contained-configurations">Self contained configurations</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#configurations-with-filesystem-templates">Configurations with filesystem templates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#distributing-application-code-from-your-site">Distributing application code from your site</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#managing-centralized-configurations">Managing centralized configurations</a><ul>
@@ -169,7 +170,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.152.<br>
+    <b>tk-core</b> v0.18.153.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -563,10 +564,119 @@ to the root folder on disk when the folder structure starts getting populated. T
 is defined in a field named <code class="docutils literal"><span class="pre">tank_name</span></code> on the Shotgun Project entity.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">When using a  <a class="reference internal" href="#centralized-configs"><span class="std std-ref">centralized configuraion</span></a>, this process
+<p class="last">When using a  <a class="reference internal" href="#centralized-configs"><span class="std std-ref">centralized configuration</span></a>, this process
 is automatically handled by the project setup wizard. In this case, you have to
 do it manually.</p>
 </div>
+</div>
+<div class="section" id="distributing-application-code-from-your-site">
+<h3>Distributing application code from your site<a class="headerlink" href="#distributing-application-code-from-your-site" title="Permalink to this headline">¶</a></h3>
+<p>If you want to cache custom application code that may only be accessible for
+users on your local network or from developers who have access keys to the Git
+repositories, you can upload  individual bundles to Shotgun and then take over the
+<a class="reference internal" href="core.html#bootstrap.Bootstrap.populate_bundle_cache_entry" title="bootstrap.Bootstrap.populate_bundle_cache_entry"><code class="xref py py-meth docutils literal"><span class="pre">populate_bundle_cache_entry()</span></code></a> and
+<a class="reference internal" href="core.html#bootstrap.Bootstrap.can_cache_bundle" title="bootstrap.Bootstrap.can_cache_bundle"><code class="xref py py-meth docutils literal"><span class="pre">can_cache_bundle()</span></code></a> methods of the
+<a class="reference internal" href="core.html#bootstrap.Bootstrap" title="bootstrap.Bootstrap"><code class="xref py py-class docutils literal"><span class="pre">Bootstrap</span></code></a> hook.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This workflow isn&#8217;t limited to custom applications stored in git. You can also use it
+to distribute applications downloaded from the Toolkit AppStore if your users do not
+have access to the Internet.</p>
+</div>
+<p>Here&#8217;s a suggested setup:</p>
+<img alt="_images/bundle_custom_entity.png" src="_images/bundle_custom_entity.png" />
+<p>As you can see, a non project custom entity has been configured to cache Toolkit bundles. The
+most important column here is Descriptor, which is the field the bootstrap hook will use
+to determine if a bundle is available in Shotgun or not.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">You should never upload a new bundle to an existing Toolkit Bundle entity. Toolkit caches
+items locally based on the version number inside the descriptor URI. For every change to
+a bundle, always create a new version number.</p>
+</div>
+<p>Once the bundles have been uploaded, you can implement the <code class="docutils literal"><span class="pre">core/bootstrap.py</span></code> hook.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sgtk</span> <span class="kn">import</span> <span class="n">get_hook_baseclass</span>
+<span class="kn">from</span> <span class="nn">sgtk.util.shotgun</span> <span class="kn">import</span> <span class="n">download_and_unpack_attachment</span>
+
+
+<span class="c1"># By using sgtk.get_hook_baseclass instead of deriving from sgtk.Hook, we&#39;ll be</span>
+<span class="c1"># getting the default hook&#39;s init method for free.</span>
+<span class="k">class</span> <span class="nc">Bootstrap</span><span class="p">(</span><span class="n">get_hook_baseclass</span><span class="p">()):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This hook allows to download certain bundles from Shotgun instead of</span>
+<span class="sd">    official source for the bundle.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">can_cache_bundle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns true if the descriptor has been cached in Shotgun.</span>
+
+<span class="sd">        :param descriptor: Descriptor of the bundle that needs to be cached.</span>
+<span class="sd">        :type descriptor: :class:`~sgtk.descriptor.Descriptor`</span>
+
+<span class="sd">        :returns: ``True`` if the bundle is cached in Shotgun, ``False`` otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span>
+            <span class="n">descriptor</span><span class="o">.</span><span class="n">get_dict</span><span class="p">()[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;app_store&quot;</span><span class="p">,</span> <span class="s2">&quot;git&quot;</span><span class="p">]</span> <span class="ow">and</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_bundle_attachment</span><span class="p">(</span><span class="n">descriptor</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_bundle_attachment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves the attachment associated to this descriptor in Shotgun.</span>
+
+<span class="sd">        :param descriptor: Descriptor of the bundle that needs to be cached.</span>
+<span class="sd">        :type descriptor: :class:`~sgtk.descriptor.Descriptor`</span>
+
+<span class="sd">        :returns: The attachment entity dict.</span>
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># This method gets invoked twice by the bootstrap hook, but will only be</span>
+        <span class="c1"># invoked if the bundle is missing from disk so it is not worth putting a</span>
+        <span class="c1"># caching system in place for the method.</span>
+
+        <span class="c1"># We&#39;re using the descriptor uri, i.e.</span>
+        <span class="c1"># sgtk:descriptor:app_store?name=tk-core&amp;version=v0.18.150,</span>
+        <span class="c1"># as the code for the entity. If an entry is found and there is an</span>
+        <span class="c1"># attachment, the bundle can be downloaded from Shotgun.</span>
+        <span class="c1">#</span>
+        <span class="c1"># You could write a script that introspects a configuration,</span>
+        <span class="c1"># extracts all bundles that need to be cached into Shotgun and pushes</span>
+        <span class="c1"># them to Shotgun. Part of this workflow can be automated with the</span>
+        <span class="c1"># ``developer/populate_bundle_cache.py`` script, which will download</span>
+        <span class="c1"># locally every single bundle for a given config.</span>
+        <span class="n">entity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+            <span class="s2">&quot;CustomNonProjectEntity01&quot;</span><span class="p">,</span>
+            <span class="p">[[</span><span class="s2">&quot;sg_descriptor&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get_uri</span><span class="p">()]],</span> <span class="p">[</span><span class="s2">&quot;sg_content&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">entity</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;sg_content&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">populate_bundle_cache_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method will retrieve the bundle from the Shotgun site and unpack it</span>
+<span class="sd">        in the destination folder.</span>
+
+<span class="sd">        :param destination: Folder where the bundle needs to be written. Note</span>
+<span class="sd">            that this is not the final destination folder inside the bundle</span>
+<span class="sd">            cache.</span>
+
+<span class="sd">        :param descriptor: Descriptor of the bundle that needs to be cached.</span>
+<span class="sd">        :type descriptor: :class:`~sgtk.descriptor.Descriptor`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">attachment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_bundle_attachment</span><span class="p">(</span><span class="n">descriptor</span><span class="p">)</span>
+        <span class="n">download_and_unpack_attachment</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shotgun</span><span class="p">,</span> <span class="n">attachment</span><span class="p">,</span> <span class="n">destination</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;Bundle </span><span class="si">%s</span><span class="s2"> was downloaded from </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span>
+            <span class="n">descriptor</span><span class="o">.</span><span class="n">get_uri</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">base_url</span>
+        <span class="p">)</span>
+</pre></div>
+</div>
+<p>Once you are done, you can zip your configuration and its custom bootstrap and upload it to a
+<code class="docutils literal"><span class="pre">PipelineConfiguration</span></code> entity in Shotgun. Now every time a user bootstraps into this pipeline
+configuration, they will download the configuration and cache the Toolkit core and all application
+bundles through the hook.</p>
 </div>
 </div>
 <div class="section" id="managing-centralized-configurations">
@@ -2162,7 +2272,7 @@ launching DCC.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.152',
+            VERSION:'v0.18.153',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
