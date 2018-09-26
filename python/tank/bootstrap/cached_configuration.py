@@ -182,13 +182,11 @@ class CachedConfiguration(Configuration):
 
         # Pass 1:
         # first check if there is any config at all
-        # probe for info.yaml manifest file
-        sg_config_file = os.path.join(
+        sg_config_folder = os.path.join(
             self._path.current_os,
-            "config",
-            constants.BUNDLE_METADATA_FILE
+            "config"
         )
-        if not os.path.exists(sg_config_file):
+        if not os.path.exists(sg_config_folder):
             return self.LOCAL_CFG_MISSING
 
         if self._config_writer.is_transaction_pending():
@@ -203,17 +201,15 @@ class CachedConfiguration(Configuration):
             # not sure what version this is.
             return self.LOCAL_CFG_INVALID
 
-        fh = open(config_info_file, "rt")
         try:
-            data = yaml.load(fh)
-            deploy_generation = data["deploy_generation"]
-            descriptor_dict = data["config_descriptor"]
+            with open(config_info_file, "rt") as fh:
+                data = yaml.load(fh)
+                deploy_generation = data["deploy_generation"]
+                descriptor_dict = data["config_descriptor"]
         except Exception as e:
             # yaml info not valid.
             log.warning("Cannot parse file '%s' - ignoring. Error: %s" % (config_info_file, e))
             return self.LOCAL_CFG_INVALID
-        finally:
-            fh.close()
 
         if deploy_generation != constants.BOOTSTRAP_LOGIC_GENERATION:
             # different format or logic of the deploy itself.
