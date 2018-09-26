@@ -449,12 +449,7 @@ class TestCachedConfiguration(ShotgunTestBase):
 
         # Reset the tank_name and create a storage named after the one in the config.
         self.mockgun.update("Project", self.project["id"], {"tank_name": None})
-        self.mockgun.create("LocalStorage", {
-            "code": "primary",
-            "mac_path": "/shotgun/primary",
-            "linux_path": "/shotgun/primary",
-            "windows_path": "C:\\shotgun\\primary"
-        })
+        self.mockgun.create("LocalStorage", {"code": "primary"})
 
         # Initialize a cached configuration pointing to the config.
         config_root = os.path.join(self.fixtures_root, "bootstrap_tests", "config")
@@ -480,6 +475,9 @@ class TestCachedConfiguration(ShotgunTestBase):
         # we are indeed in the up to date state, which means everything is ready to do, is
         # to cheat and make the descriptor immutable by monkey-patching it.
         self._cached_config._descriptor.is_immutable = lambda: True
+        # Seems up the test tremendously since installing core becomes a noop.
+        self._cached_config._config_writer.install_core = lambda _: None
+        self._cached_config._config_writer.create_tank_command = lambda: None
 
     def test_verifies_tank_name(self):
         """
