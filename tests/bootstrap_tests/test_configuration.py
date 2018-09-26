@@ -409,7 +409,8 @@ class TestBakedConfiguration(TestConfigurationBase):
 
     @patch("tank.authentication.ShotgunAuthenticator.get_user")
     @patch("sgtk.bootstrap.configuration_writer.ConfigurationWriter.install_core")
-    def test_build_and_use(self, core_install_mock, get_user_mock):
+    @patch("sgtk.bootstrap.configuration_writer.ConfigurationWriter.create_tank_command")
+    def test_build_and_use(self, core_install_mock, get_user_mock, create_tank_command_mock):
         """
         Test baking a plugin and bootstrapping it with current tk-core.
         """
