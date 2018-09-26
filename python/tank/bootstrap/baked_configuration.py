@@ -171,6 +171,11 @@ class BakedConfiguration(Configuration):
         )
 
         config_writer.ensure_project_scaffold()
+        # The install_location.yml file isn't really needed for the baked config itself,
+        # but we have logic in tk-core that is used to introspect the current config
+        # for some actions, like the setup project wizard and core localization. Those
+        # commands fail if we don't have this additional config content in place.
+        config_writer.write_install_location_file()
         config_descriptor.copy(os.path.join(path, "config"))
         config_writer.install_core(config_descriptor.resolve_core_descriptor())
 
@@ -184,6 +189,11 @@ class BakedConfiguration(Configuration):
             bundle_cache_fallback_paths=[],
             source_descriptor=None
         )
+
+        # Same thing here as above for the install_location file. We don't really
+        # need the tank command and interpreter_*.cfg files for the config itself,
+        # but other logic in tk-core relies on them existing.
+        config_writer.create_tank_command()
 
     @property
     def requires_dynamic_bundle_caching(self):
