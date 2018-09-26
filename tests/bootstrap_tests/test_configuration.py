@@ -573,7 +573,7 @@ class TestCachedConfiguration(ShotgunTestBase):
         """
         path = self._cached_config._config_writer.get_descriptor_metadata_file()
         if corrupt:
-            data ="corrupted"
+            data = "corrupted"
         else:
             with open(path, "rt") as fh:
                 data = yaml.load(fh)
