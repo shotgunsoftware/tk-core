@@ -552,7 +552,7 @@ class SetupProjectWizard(object):
         
         return_data = { "localize": True,
                         "using_runtime": True,
-                        "core_path" : core_path_object, 
+                        "core_path": core_path_object, 
                         "pipeline_config": None
                       }
         
