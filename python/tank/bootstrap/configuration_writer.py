@@ -310,8 +310,9 @@ class ConfigurationWriter(object):
         )
 
         if os.path.exists(sg_code_location):
-            # warn if this file already exists
-            log.warning(
+            # We want to log that we're overwriting an existing file, but this file
+            # is almost exclusively auto generated, so we can do it as a debug.
+            log.debug(
                 "The file 'core/install_location.yml' exists in the configuration "
                 "but will be overwritten with an auto generated file."
             )
