@@ -890,7 +890,7 @@ Software Launch APIs
 ============================
 
 This section contains the techincal documentation for the core classes and methods described in the
-:ref:`Launching Software` section above.
+:ref:`launching_software` section above.
 
 .. autofunction:: create_engine_launcher
 

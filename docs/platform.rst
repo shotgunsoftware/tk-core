@@ -93,7 +93,7 @@ The typical things an engine needs to handle are:
 
 - An interface to startup DCC applications that centralizes the business logic of discovering executable
   paths, setting a proper environment for launch, and initializing toolkit integration during the launch
-  phase. This is described in detail in the :ref:`Launching Software` section.
+  phase. This is described in detail in the :ref:`launching_software` section.
 
 
 Engine Events
