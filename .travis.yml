@@ -11,6 +11,7 @@
 # travis-ci.org CI unit tests integration configuration file.
 
 language: python
+sudo: required
 
 matrix:
   include:

@@ -185,6 +185,11 @@ class BakedConfiguration(Configuration):
             source_descriptor=None
         )
 
+        # Same thing here as above for the install_location file. We don't really
+        # need the tank command and interpreter_*.cfg files for the config itself,
+        # but other logic in tk-core relies on them existing.
+        config_writer.create_tank_command()
+
     @property
     def requires_dynamic_bundle_caching(self):
         """

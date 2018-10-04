@@ -540,10 +540,37 @@ class SetupProjectWizard(object):
 
         # the defaults is to localize and pick up current core API
         curr_core_path = pipelineconfig_utils.get_path_to_current_core()
+
+        try:
+            core_path_object = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
+        except TankError:
+            self._log.debug(
+                "Unable to resolve all OS paths for the current tk-core path. Forging ahead with "
+                "only the current OS's core location."
+            )
+
+            # We really only the current OS path to continue with the project setup
+            # anyway, so we'll fall back on that if we're in a situation where the
+            # config doesn't contain an install_locations.yml file, which is the
+            # most likely situation we'd be in here. That's an intentional omission
+            # from baked configurations, as an example, and we don't want to stop
+            # project setups if the process is being run from an environment running
+            # from a baked config.
+            if sys.platform.startswith("linux"):
+                path_args = [None, os.path.expandvars(curr_core_path), None]
+            elif sys.platform == "darwin":
+                path_args = [None, None, os.path.expandvars(curr_core_path)]
+            elif sys.platform == "win32":
+                path_args = [os.path.expandvars(curr_core_path), None, None]
+            else:
+                msg = "Unsupported OS detected: %s" % sys.platform
+                raise TankError(msg)
+
+            core_path_object = ShotgunPath(*path_args).as_system_dict()
         
         return_data = { "localize": True,
                         "using_runtime": True,
-                        "core_path" : pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path), 
+                        "core_path": core_path_object, 
                         "pipeline_config": None
                       }
         

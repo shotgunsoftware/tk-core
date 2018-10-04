@@ -25,7 +25,10 @@ class Configuration(object):
     An abstraction representation around a toolkit configuration.
     """
 
-    (LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_MISSING, LOCAL_CFG_DIFFERENT, LOCAL_CFG_INVALID) = range(4)
+    LOCAL_CFG_UP_TO_DATE = "LOCAL_CFG_UP_TO_DATE"
+    LOCAL_CFG_MISSING = "LOCAL_CFG_MISSING"
+    LOCAL_CFG_DIFFERENT = "LOCAL_CFG_DIFFERENT"
+    LOCAL_CFG_INVALID = "LOCAL_CFG_INVALID"
 
     def __init__(self, path, descriptor):
         """
