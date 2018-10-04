@@ -64,7 +64,10 @@ class SetupProjectAction(Action):
                                                      "projects which have already been previously set up. "),
                                      "default": False,
                                      "type": "bool" }
-        
+
+
+
+
         self.parameters["project_id"] = { "description": "Shotgun id for the project you want to set up.",
                                           "default": None,
                                           "type": "int" }
@@ -86,6 +89,12 @@ class SetupProjectAction(Action):
             "type": "str"
         }
 
+        self.parameters["install_mode"] = {
+            "description": "The type of installation to perform. Either 'centralized' or 'distributed'",
+            "default": "centralized",
+            "type": "str"
+        }
+
         # note how the current platform's default value is None in order to make that required
         self.parameters["config_path_mac"] = { "description": ("The path on disk where the configuration should be "
                                                                "installed on Macosx."),
@@ -102,22 +111,23 @@ class SetupProjectAction(Action):
                                                "default": ( None if sys.platform == "linux2" else "" ),
                                                "type": "str" }
         
-        # Special setting used by the shotgun desktop app to handle the current form of distributed
-        # configs
-        self.parameters["auto_path"] = { "description": ("Expert setting. Setting this to true means that a blank "
-                                                         "path entry is written to the shotgun site pipeline "
-                                                         "configuration. This can be used in conjunction with "
-                                                         "a localized core to create a site configuration which "
-                                                         "can have different locations on different machines. It "
-                                                         "is then up to the bootstrap logic of the code that "
-                                                         "starts up toolkit to determine where to go look for the "
-                                                         "configuration. When setting this to true, you typically "
-                                                         "only need to specify the path to the current operating "
-                                                         "system configuration."),
-                                     "default": False,
-                                     "type": "bool" }
-        
-        
+        # Special setting used by older versins of shotgun desktop app
+        # to handle auto-installing the site configuration at startup.
+        self.parameters["auto_path"] = {
+            "description": "Deprecated. Do not use this! --- "
+                           "Expert setting. Setting this to true means that a blank "
+                           "path entry is written to the shotgun site pipeline "
+                           "configuration. This can be used in conjunction with "
+                           "a localized core to create a site configuration which "
+                           "can have different locations on different machines. It "
+                           "is then up to the bootstrap logic of the code that "
+                           "starts up toolkit to determine where to go look for the "
+                           "configuration. When setting this to true, you typically "
+                           "only need to specify the path to the current operating "
+                           "system configuration.",
+             "default": False,
+             "type": "bool"
+        }
 
         
     def run_noninteractive(self, log, parameters):
@@ -148,15 +158,25 @@ class SetupProjectAction(Action):
         
         # set expert auto path setting
         params.set_auto_path_mode(computed_params["auto_path"])
+
+        # set mode
+        if computed_params["install_mode"] == "centralized":
+            params.set_distribution_mode(ProjectSetupParameters.CENTRALIZED_CONFIG)
+        elif computed_params["install_mode"] == "distributed":
+            params.set_distribution_mode(ProjectSetupParameters.DISTRIBUTED_CONFIG)
+        else:
+            raise ValueError("Invalid install_mode parameter specified.")
         
         # set the project
         params.set_project_id(computed_params["project_id"], computed_params["force"])
         params.set_project_disk_name(computed_params["project_folder_name"])
         
         # set the config path
-        params.set_configuration_location(computed_params["config_path_linux"], 
-                                          computed_params["config_path_win"], 
-                                          computed_params["config_path_mac"])        
+        if params.get_distribution_mode() == ProjectSetupParameters.CENTRALIZED_CONFIG:
+            # specify paths
+            params.set_configuration_location(computed_params["config_path_linux"],
+                                              computed_params["config_path_win"],
+                                              computed_params["config_path_mac"])
         
         # run overall validation of the project setup
         params.pre_setup_validation()
@@ -164,21 +184,23 @@ class SetupProjectAction(Action):
         # and finally carry out the setup
         run_project_setup(log, sg, params)
 
-        config_path = params.get_configuration_location(sys.platform)
+        if params.get_distribution_mode() == ProjectSetupParameters.CENTRALIZED_CONFIG:
 
-        # if the new project's config has a core descriptor, then we should
-        # localize it to use that version of core. alternatively, if the current
-        # core being used is localized, then localize the new config with it.
-        if (pipelineconfig_utils.has_core_descriptor(config_path) or
-            pipelineconfig_utils.is_localized(curr_core_path)):
+            config_path = params.get_configuration_location(sys.platform)
 
-            log.info("Localizing Core...")
-            core_localize.do_localize(
-                log,
-                self._shotgun_connect(log),
-                config_path,
-                suppress_prompts=True
-            )
+            # if the new project's config has a core descriptor, then we should
+            # localize it to use that version of core. alternatively, if the current
+            # core being used is localized, then localize the new config with it.
+            if (pipelineconfig_utils.has_core_descriptor(config_path) or
+                pipelineconfig_utils.is_localized(curr_core_path)):
+
+                log.info("Localizing Core...")
+                core_localize.do_localize(
+                    log,
+                    self._shotgun_connect(log),
+                    config_path,
+                    suppress_prompts=True
+                )
 
     def run_interactive(self, log, args):
         """

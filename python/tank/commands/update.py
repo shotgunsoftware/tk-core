@@ -38,29 +38,44 @@ class AppUpdatesAction(Action):
         
         self.parameters = {}
         
-        self.parameters["environment_filter"] = { "description": "Name of environment to check.",
-                                                  "default": "ALL",
-                                                  "type": "str" }
+        self.parameters["environment_filter"] = {
+            "description": "Name of environment to check.",
+            "default": "ALL",
+            "type": "str"
+        }
         
-        self.parameters["engine_filter"] = { "description": "Name of engine to check.",
-                                             "default": "ALL",
-                                             "type": "str" }
+        self.parameters["engine_filter"] = {
+            "description": "Name of engine to check.",
+            "default": "ALL",
+            "type": "str"
+        }
         
-        self.parameters["app_filter"] = { "description": "Name of app to check.",
-                                          "default": "ALL",
-                                          "type": "str" }
+        self.parameters["app_filter"] = {
+            "description": "Name of app to check.",
+            "default": "ALL",
+            "type": "str"
+        }
         
-        self.parameters["external"] = { "description": "Specify an external config to update.",
-                                        "default": None,
-                                        "type": "str" }
+        self.parameters["suppress_prompts"] = {
+            "description": ("Should y/n prompts be supressed. "
+                            "If set to True, all questions will be answered with 'Y'"),
+            "default": True,
+            "type": "bool"
+        }
+
+        self.parameters["external"] = {
+            "description": "Specify an external config to update.",
+            "default": None,
+            "type": "str"
+        }
         
-        self.parameters["preserve_yaml"] = { "description": ("Enable alternative yaml parser that better preserves "
-                                                             "yaml structure and comments"),
-                                            "default": True,
-                                            "type": "bool" }      
-        
-        
-        
+        self.parameters["preserve_yaml"] = {
+            "description": ("Enable alternative yaml parser that better preserves "
+                            "yaml structure and comments"),
+            "default": True,
+            "type": "bool"
+        }
+
         
     def run_noninteractive(self, log, parameters):
         """
@@ -80,14 +95,16 @@ class AppUpdatesAction(Action):
         if computed_params["app_filter"] == "ALL":
             computed_params["app_filter"] = None
 
-        return check_for_updates(log,
-                                 self.tk,
-                                 computed_params["environment_filter"], 
-                                 computed_params["engine_filter"],
-                                 computed_params["app_filter"],
-                                 computed_params["external"],
-                                 computed_params["preserve_yaml"],
-                                 suppress_prompts=True )
+        return check_for_updates(
+            log,
+            self.tk,
+            computed_params["environment_filter"],
+            computed_params["engine_filter"],
+            computed_params["app_filter"],
+            computed_params["external"],
+            computed_params["preserve_yaml"],
+            suppress_prompts=computed_params["suppress_prompts"]
+        )
 
 
     def run_interactive(self, log, args):

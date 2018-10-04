@@ -14,6 +14,9 @@ import os
 from tank_test.tank_test_base import TankTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 import tank.util.filesystem as fs
+
+from mock import patch
+import subprocess # noqa
 import shutil
 import stat
 import sys
@@ -116,3 +119,111 @@ class TestFileSystem(TankTestBase):
 
         # Clean up
         fs.safe_delete_folder(test_folder)
+
+
+class TestOpenInFileBrowser(TankTestBase):
+    """
+    Tests the open_file_browser functionality
+    """
+
+    def setUp(self):
+        super(TestOpenInFileBrowser, self).setUp()
+        self.test_folder = os.path.join(self.tank_temp, "foo")
+        self.test_file = os.path.join(self.test_folder, "bar.txt")
+        self.test_sequence = os.path.join(self.test_folder, "render.%04d.exr")
+        if not os.path.exists(self.test_folder):
+            os.mkdir(self.test_folder)
+        if not os.path.exists(self.test_file):
+            with open(self.test_file, "wt") as fh:
+                fh.write("hello test file!\n")
+
+    def test_bad_path(self):
+        """
+        Tests opening a folder via the open_file_browser method.
+        """
+        self.assertRaises(ValueError, fs.open_file_browser, "/some/bad/bad_path")
+        self.assertRaises(ValueError, fs.open_file_browser, "X:\\some\\bad\\bad_path")
+        self.assertRaises(ValueError, fs.open_file_browser, "bad_path")
+        self.assertRaises(ValueError, fs.open_file_browser, "")
+
+    @patch("subprocess.call", return_value=0)
+    def test_folder(self, subprocess_mock):
+        """
+        Tests opening a folder
+        """
+        fs.open_file_browser(self.test_folder)
+        args, kwargs = subprocess_mock.call_args
+
+        if sys.platform.startswith("linux"):
+            self.assertEquals(args[0], ["xdg-open", self.test_folder])
+
+        elif sys.platform == "darwin":
+            self.assertEquals(args[0], ["open", self.test_folder])
+
+        elif sys.platform == "win32":
+            self.assertEquals(args[0], ["cmd.exe", "/C", "start", self.test_folder])
+
+    @patch("subprocess.call", return_value=1234)
+    def test_failed_folder(self, _):
+        """
+        Test failing opening folder
+        """
+        self.assertRaises(
+            RuntimeError,
+            fs.open_file_browser,
+            self.test_folder
+        )
+
+    @patch("subprocess.call", return_value=0)
+    def test_file(self, subprocess_mock):
+        """
+        Tests opening a file
+        """
+        fs.open_file_browser(self.test_file)
+        args, kwargs = subprocess_mock.call_args
+
+        if sys.platform.startswith("linux"):
+            self.assertEquals(args[0], ["xdg-open", os.path.dirname(self.test_file)])
+
+        elif sys.platform == "darwin":
+            self.assertEquals(args[0], ["open", "-R", self.test_file])
+
+        elif sys.platform == "win32":
+            self.assertEquals(args[0], ["explorer", "/select,", self.test_file])
+
+    @patch("subprocess.call", return_value=1234)
+    def test_failed_file(self, _):
+        """
+        Test failing opening folder on mac/linux
+        """
+        if sys.platform != "win32":
+            self.assertRaises(
+                RuntimeError,
+                fs.open_file_browser,
+                self.test_file
+            )
+
+    @patch("subprocess.call", return_value=0)
+    def test_sequence(self, subprocess_mock):
+        """
+        Tests opening a folder
+        """
+        fs.open_file_browser(self.test_sequence)
+        args, kwargs = subprocess_mock.call_args
+
+        if sys.platform.startswith("linux"):
+            self.assertEquals(
+                args[0], ["xdg-open", os.path.dirname(self.test_sequence)]
+            )
+
+        elif sys.platform == "darwin":
+            self.assertEquals(
+                args[0],
+                ["open", os.path.dirname(self.test_sequence)]
+            )
+
+        elif sys.platform == "win32":
+            self.assertEquals(
+                args[0],
+                ["cmd.exe", "/C", "start", os.path.dirname(self.test_sequence)]
+            )

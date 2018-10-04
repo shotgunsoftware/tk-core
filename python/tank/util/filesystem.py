@@ -19,6 +19,7 @@ import stat
 import shutil
 import datetime
 import functools
+import subprocess
 from contextlib import contextmanager
 
 from .. import LogManager
@@ -495,3 +496,120 @@ def auto_created_yml(path):
         # on exiting the context
         fh.write("\n")
         fh.write("# End of file.\n")
+
+
+def open_file_browser(path):
+    """
+    Opens the given path in the operating system file browser such as
+    Windows explorer or Macosx Finder.
+
+    If the path points at a file, the method will attempt to highlight
+    the file.
+
+    :param path: A path to a file or folder.
+    :raises: RuntimeError: If the Platform is not supported or if
+        the file browser couldn't be launched.
+    :raises: ValueError: If the path is not a valid directory.
+    """
+
+    if os.path.isfile(path):
+        # open the file, attempt to select in finder/explorer
+        _open_file_browser_for_file(path)
+    elif os.path.isdir(path):
+        # open the folder in finder/explorer
+        _open_file_browser_for_folder(path)
+    else:
+        # possibly we have an image sequence and therefore its a symbolic path,
+        # instead check to see if the parent folder of the path is valid and
+        # try opening that.
+        #
+        # TODO: The issue with this logic is that possibly it was a directory
+        # that just didn't exist, so we would just be gathering the next
+        # directory up.
+        parent_dir = os.path.dirname(path)
+        _open_file_browser_for_folder(parent_dir)
+
+
+def _open_file_browser_for_folder(path):
+    """
+    This method will take a path to a folder and open it in
+    an OS's file browser.
+
+    :param path: A folder path
+    :raises: RuntimeError: If the Platform is not supported or if
+        the file browser couldn't be launched.
+    :raises: ValueError: If the path is not a valid directory.
+    """
+    log.debug("Launching file system browser for folder %s" % path)
+
+    # Check that we don't have a file path.
+    if not os.path.isdir(path):
+        raise ValueError(
+            "The path \"%s\" is not a valid directory." % path
+        )
+
+    # get the setting
+    system = sys.platform
+
+    # build the commands for opening the folder on the various OS's
+    if system.startswith("linux"):
+        cmd_args = ["xdg-open", path]
+    elif system == "darwin":
+        cmd_args = ["open", path]
+    elif system == "win32":
+        cmd_args = ["cmd.exe", "/C", "start", path]
+    else:
+        raise RuntimeError("Platform '%s' is not supported." % system)
+
+    log.debug("Executing command '%s'" % cmd_args)
+    exit_code = subprocess.call(cmd_args)
+    if exit_code != 0:
+        raise RuntimeError(
+            "Failed to launch a file browser for folder '%s'. "
+            "Error code %s" % (path, exit_code)
+        )
+
+
+def _open_file_browser_for_file(path):
+    """
+    This method will take a path to a file and open it in
+    an OS's file browser and attempt to highlight it.
+
+    :param path: A file path
+    :raises: RuntimeError: If the Platform is not supported or if
+        the file browser couldn't be launched.
+    :raises: ValueError: If the path is not a valid file path.
+    """
+    log.debug("Launching file system browser for file %s" % path)
+
+    if not os.path.isfile(path):
+        raise ValueError(
+            "The path \"%s\" is not a valid file path." % path
+        )
+
+    # get the setting
+    system = sys.platform
+
+    if system.startswith("linux"):
+        # note: there isn't a straight forward way to do
+        # this on linux, so just open the directory instead.
+        cmd_args = ["xdg-open", os.path.dirname(path)]
+    elif system == "darwin":
+        cmd_args = ["open", "-R", path]
+    elif system == "win32":
+        # /select makes windows select the file within the explorer window
+        # The problem with this approach is that it always returns back an error code of 1 even if it
+        # does behave correctly.
+        cmd_args = ["explorer", "/select,", path]
+    else:
+        raise Exception("Platform '%s' is not supported." % system)
+
+    log.debug("Executing command '%s'" % cmd_args)
+    exit_code = subprocess.call(cmd_args)
+
+    # cannot trust exit code from windows, see above
+    if system != "win32" and exit_code != 0:
+        raise RuntimeError(
+            "Failed to launch a file browser for file '%s'. "
+            "Error code %s" % (path, exit_code)
+        )

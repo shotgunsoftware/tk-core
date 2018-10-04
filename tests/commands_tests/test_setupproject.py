@@ -26,7 +26,7 @@ from mock import patch
 
 class TestSetupProject(TankTestBase):
     """
-    Makes sure environment code works with the app store mocker.
+    Tests related to a toolkit project setup
     """
 
     def setUp(self):
@@ -69,7 +69,7 @@ class TestSetupProject(TankTestBase):
 
 
     @patch("tank.pipelineconfig_utils.resolve_all_os_paths_to_core")
-    def test_setup_project(self, mocked=None):
+    def test_setup_centralized_project(self, mocked=None):
         """
         Test setting up a Project.
         """
@@ -119,6 +119,68 @@ class TestSetupProject(TankTestBase):
         self.assertTrue(os.path.exists(
             os.path.join(new_config_root, "install", "core", "core_Darwin.cfg")
         ))
+
+    @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.upload")
+    @patch("tank.pipelineconfig_utils.resolve_all_os_paths_to_core")
+    def test_setup_distributed_project(self, resolve_all_os_paths_to_core_mock, upload_mock):
+        """
+        Test setting up a Project.
+        """
+        def mocked_resolve_core_path(core_path):
+            return {
+                "linux2": core_path,
+                "darwin": core_path,
+                "win32": core_path,
+            }
+
+        self.upload_associated_pipeline_config_id = None
+
+        def mocked_upload(*args, **kwargs):
+            # capture which pipeline config id we uploaded to
+            self.upload_associated_pipeline_config_id = args[1]
+            zip_file = args[2]
+            self.assertTrue(zip_file.endswith("config.zip"))
+
+        resolve_all_os_paths_to_core_mock.side_effect = mocked_resolve_core_path
+        upload_mock.side_effect = mocked_upload
+
+        # create new project
+        new_project = {
+            "type": "Project",
+            "id": 1678,
+            "code": "distributed_proj",
+        }
+        self.add_to_sg_mock_db(new_project)
+        # location where the data will be installed
+        os.makedirs(os.path.join(self.tank_temp, "distributed_proj"))
+
+        command = self.tk.get_command("setup_project")
+        command.set_logger(logging.getLogger("/dev/null"))
+        # Test we can setup a new project and it does not fail.
+        command.execute({
+            "project_id": new_project["id"],
+            "project_folder_name": "distributed_proj",
+            "install_mode": "distributed",
+            "config_uri": self.project_config,
+        })
+
+        # now test the expected outputs:
+        # - pipeline configuration
+        # - uploaded zip file
+        data = self.mockgun.find(
+            "PipelineConfiguration",
+            [["project", "is", {"type": "Project", "id": new_project["id"]}]],
+            ["code", "plugin_ids", "uploaded_config", "windows_path", "linux_path", "mac_path"]
+        )
+        self.assertEquals(len(data), 1)
+        pc_data = data[0]
+        self.assertEquals(pc_data["type"], "PipelineConfiguration")
+        self.assertEquals(pc_data["plugin_ids"], "basic.*")
+        self.assertEquals(pc_data["code"], "Primary")
+        self.assertEquals(pc_data["windows_path"], None)
+        self.assertEquals(pc_data["linux_path"], None)
+        self.assertEquals(pc_data["mac_path"], None)
+        self.assertEquals(pc_data["id"], self.upload_associated_pipeline_config_id)
 
     @patch("tank.pipelineconfig.PipelineConfiguration.get_install_location")
     @patch("tank.pipelineconfig_utils.resolve_all_os_paths_to_core")
