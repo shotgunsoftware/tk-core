@@ -56,7 +56,7 @@ class AppUpdatesAction(Action):
             "type": "str"
         }
         
-        self.parameters["supress_prompts"] = {
+        self.parameters["suppress_prompts"] = {
             "description": ("Should y/n prompts be supressed. "
                             "If set to True, all questions will be answered with 'Y'"),
             "default": True,
@@ -103,7 +103,7 @@ class AppUpdatesAction(Action):
             computed_params["app_filter"],
             computed_params["external"],
             computed_params["preserve_yaml"],
-            suppress_prompts=computed_params["supress_prompts"]
+            suppress_prompts=computed_params["suppress_prompts"]
         )
 
 

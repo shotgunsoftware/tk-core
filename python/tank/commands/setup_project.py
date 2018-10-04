@@ -111,8 +111,8 @@ class SetupProjectAction(Action):
                                                "default": ( None if sys.platform == "linux2" else "" ),
                                                "type": "str" }
         
-        # Special setting used by the shotgun desktop app to handle the current form of distributed
-        # configs
+        # Special setting used by older versins of shotgun desktop app
+        # to handle auto-installing the site configuration at startup.
         self.parameters["auto_path"] = {
             "description": "Deprecated. Do not use this! --- "
                            "Expert setting. Setting this to true means that a blank "
