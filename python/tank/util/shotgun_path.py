@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import sys
+import urllib
 
 
 class ShotgunPath(object):
@@ -43,11 +44,21 @@ class ShotgunPath(object):
         >>> p.current_os
         '/tmp'
 
+        # boolean operations
+        >>> if p: print "a path value defined for windows, linux or mac"
+
+        # equality
+        >>> if p1 == p2: print "paths are same"
+
         # multi-platform access
         >>> p.as_shotgun_dict()
         { "windows_path": "C:\\temp", "mac_path": None, "linux_path": "/tmp"}
         >>> p.as_system_dict()
         { "win32": "C:\\temp", "darwin": None, "linux2": "/tmp"}
+
+        # descriptor uri conversion
+        >>> p.as_descriptor_uri()
+        'sgtk:descriptor:path?linux_path=/tmp/foo'
 
         # path manipulation
         >>> p2 = p.join('foo')
@@ -431,6 +442,36 @@ class ShotgunPath(object):
         if self._linux_path or include_empty:
             d["linux2"] = self._linux_path
         return d
+
+    def as_descriptor_uri(self, for_development=False):
+        """
+        Translates the path to a descriptor uri. For more information
+        about descriptors, see the :ref:`reference documentation<descriptor>`.
+
+        This method will either return a dev or a path descriptor uri
+        path string, suitable for use with for example pipeline configurations
+        in Shotgun.
+
+        :param bool for_development: Set to true for a dev descriptor
+        :returns: Dev or Path descriptor uri string representing the path
+        :raises: ValueError if the path object has no paths defined
+        """
+        if not self:
+            # no paths defined
+            raise ValueError(
+                "%s does not have any paths defined and "
+                "cannot be converted to a descriptor uri." % self
+            )
+
+        # build linux_path=/path/to/app&mac_path=/path/to/app&windows_path=...
+        paths = self.as_shotgun_dict(include_empty=False)
+        path_list = ["%s=%s" % (platform, urllib.quote(path)) for (platform, path) in paths.iteritems()]
+        paths_uri = "&".join(path_list)
+
+        if for_development:
+            return "sgtk:descriptor:dev?%s" % paths_uri
+        else:
+            return "sgtk:descriptor:path?%s" % paths_uri
 
     def join(self, folder):
         """

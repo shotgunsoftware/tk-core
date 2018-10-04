@@ -269,3 +269,29 @@ class TestShotgunPath(ShotgunTestBase):
         second = ShotgunPath("/a/b/d", None, None)
         self.assertNotEqual(first, second)
         self.assertNotEqual(hash(first), hash(second))
+
+    def test_as_descriptor_uri(self):
+        """
+        Test the descriptor URI method
+        """
+        empty_path = ShotgunPath()
+        self.assertRaises(ValueError, empty_path.as_descriptor_uri)
+
+        mac_only = ShotgunPath(macosx_path="/foo/bar")
+        self.assertEquals(
+            mac_only.as_descriptor_uri(),
+            "sgtk:descriptor:path?mac_path=/foo/bar"
+        )
+
+        # dev flag
+        self.assertEquals(
+            mac_only.as_descriptor_uri(for_development=True),
+            "sgtk:descriptor:dev?mac_path=/foo/bar"
+        )
+
+        # full path and escaping
+        full_path = ShotgunPath(macosx_path="/foo/bar", windows_path="C:\\foo\\bar", linux_path="/foo bar/baz")
+        self.assertEquals(
+            full_path.as_descriptor_uri(),
+            "sgtk:descriptor:path?mac_path=/foo/bar&windows_path=C%3A%5Cfoo%5Cbar&linux_path=/foo%20bar/baz"
+        )
