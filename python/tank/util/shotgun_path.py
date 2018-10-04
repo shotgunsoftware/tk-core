@@ -186,7 +186,7 @@ class ShotgunPath(object):
         Normalization include checking that separators are matching the
         current operating system, removal of trailing separators
         and removal of double separators. This is done automatically
-        for all :class:`ShotgunPath`s but sometimes it is useful
+        for all :class:`ShotgunPath`, but sometimes it is useful
         to just perform the normalization quickly on a local path.
 
         :param str path: Local operating system path to normalize
