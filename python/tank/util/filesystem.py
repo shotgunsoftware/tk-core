@@ -591,6 +591,8 @@ def _open_file_browser_for_file(path):
     system = sys.platform
 
     if system.startswith("linux"):
+        # note: there isn't a straight forward way to do
+        # this on linux, so just open the directory instead.
         cmd_args = ["xdg-open", os.path.dirname(path)]
     elif system == "darwin":
         cmd_args = ["open", "-R", path]

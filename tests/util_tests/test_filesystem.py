@@ -183,7 +183,7 @@ class TestOpenInFileBrowser(TankTestBase):
         args, kwargs = subprocess_mock.call_args
 
         if sys.platform.startswith("linux"):
-            self.assertEquals(args[0], ["xdg-open", self.test_file])
+            self.assertEquals(args[0], ["xdg-open", os.path.dirname(self.test_file)])
 
         elif sys.platform == "darwin":
             self.assertEquals(args[0], ["open", "-R", self.test_file])
