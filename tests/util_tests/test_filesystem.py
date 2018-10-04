@@ -16,7 +16,7 @@ from tank_test.tank_test_base import setUpModule # noqa
 import tank.util.filesystem as fs
 
 from mock import patch
-import subprocess
+import subprocess # noqa
 import shutil
 import stat
 import sys
@@ -162,7 +162,6 @@ class TestOpenInFileBrowser(TankTestBase):
 
         elif sys.platform == "win32":
             self.assertEquals(args[0], ["cmd.exe", "/C", "start", self.test_folder])
-
 
     @patch("subprocess.call", return_value=1234)
     def test_failed_folder(self, _):
