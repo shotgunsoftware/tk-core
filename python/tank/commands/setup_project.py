@@ -199,7 +199,7 @@ class SetupProjectAction(Action):
                     log,
                     self._shotgun_connect(log),
                     config_path,
-                    suppress_prompts=True
+                    self._interaction_interface
                 )
 
     def run_interactive(self, log, args):
@@ -288,7 +288,7 @@ class SetupProjectAction(Action):
                 log,
                 self._shotgun_connect(log),
                 config_path,
-                suppress_prompts=True
+                self._interaction_interface
             )
 
         # display readme etc.

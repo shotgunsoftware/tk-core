@@ -179,7 +179,7 @@ class SwitchAppAction(Action):
             log.info(" - %s: %s" % (k.capitalize(), v))
         
         log.info("")
-        if not console_utils.ask_yn_question("Okay to switch?"):
+        if not self._interaction_interface.ask_yn_question("Okay to switch?"):
             log.info("Switch aborted!")
             return
 
@@ -197,13 +197,27 @@ class SwitchAppAction(Action):
         # find the file where our item is being installed
         (_, yml_file) = env.find_location_for_app(engine_instance_name, app_instance_name)
         
-        console_utils.ensure_frameworks_installed(log, self.tk, yml_file, new_descriptor, env, suppress_prompts=False)
+        console_utils.ensure_frameworks_installed(
+            log,
+            self.tk,
+            yml_file,
+            new_descriptor,
+            env,
+            self._interaction_interface
+        )
     
         # find the name of the engine
         engine_system_name = env.get_engine_descriptor(engine_instance_name).system_name
     
         # now get data for all new settings values in the config
-        params = console_utils.get_configuration(log, self.tk, new_descriptor, descriptor, False, engine_system_name)
+        params = console_utils.get_configuration(
+            log,
+            self.tk,
+            new_descriptor,
+            descriptor,
+            self._interaction_interface,
+            engine_system_name
+        )
     
         # next step is to add the new configuration values to the environment
         env.update_app_settings(engine_instance_name, 

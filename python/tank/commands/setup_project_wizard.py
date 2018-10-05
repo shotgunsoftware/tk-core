@@ -709,5 +709,5 @@ class SetupProjectWizard(object):
                     self._log,
                     self._sg,
                     config_path,
-                    suppress_prompts=True
+                    self._interaction_interface
                 )

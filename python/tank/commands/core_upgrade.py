@@ -111,7 +111,7 @@ class CoreUpdateAction(Action):
         :param log: std python logger
         :param parameters: dictionary with tank command parameters
         """
-        return self._run(log, True, parameters[0] if len(parameters) else None)
+        return self._run(log, parameters[0] if len(parameters) else None)
 
     def run_interactive(self, log, args):
         """
@@ -122,14 +122,13 @@ class CoreUpdateAction(Action):
         """
         core_version = self._parse_arguments(args)
 
-        self._run(log, False, core_version)
+        self._run(log, core_version)
 
-    def _run(self, log, suppress_prompts, core_version):
+    def _run(self, log, core_version):
         """
         Actual execution payload.
 
         :param log: std python logger
-        :param suppress_prompts: If False, user will be prompted to accept or reject the core update.
         :param core_version: Version to update the core to. If None, updates the core to the latest version.
         """
         return_status = {"status": "unknown"}
@@ -195,7 +194,7 @@ class CoreUpdateAction(Action):
                      "this will affect the other projects as well.")
             log.info("")
 
-            if suppress_prompts or console_utils.ask_yn_question("Update to %s of the Core API?" % new_version):
+            if self._interaction_interface.ask_yn_question("Update to %s of the Core API?" % new_version):
                 # install it!
                 installer.do_install()
 
