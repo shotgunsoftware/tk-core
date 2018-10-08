@@ -84,13 +84,13 @@ def format_bundle_info(log, descriptor, required_updates=None):
     log.info("\%s" % ("-" * 70))
 
 
-
-
-##########################################################################################
-# displaying of info in the terminal, ascii-graphcics style
-
-
-def get_configuration(log, tank_api_instance, new_descriptor, old_descriptor, interaction_interface, parent_engine_name):
+def get_configuration(
+        log,
+        tank_api_instance,
+        new_descriptor,
+        old_descriptor,
+        interaction_interface,
+        parent_engine_name):
     """
     Retrieves all the parameters needed for an app, engine or framework.
     May prompt the user for information.
@@ -129,7 +129,14 @@ def get_configuration(log, tank_api_instance, new_descriptor, old_descriptor, in
     return params
 
 
-def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, params, interaction_interface, parent_engine_name, parent_path=None):
+def _get_configuration_recursive(
+        log,
+        tank_api_instance,
+        new_ver_descriptor,
+        params,
+        interaction_interface,
+        parent_engine_name,
+        parent_path=None):
     """
     Retrieves all the parameters needed for an app, engine or framework.
     May prompt the user for information.
@@ -272,7 +279,14 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
     # second pass: For all the missing frameworks that were installed, ensure that these in turn also
     # have their dependency requirements satisfied...
     for fw_descriptor in installed_fw_descriptors:
-        ensure_frameworks_installed(log, tank_api_instance, file_location, fw_descriptor, environment, interaction_interface)
+        ensure_frameworks_installed(
+            log,
+            tank_api_instance,
+            file_location,
+            fw_descriptor,
+            environment,
+            interaction_interface
+        )
 
 
 def check_constraints_for_item(descriptor, environment_obj, engine_instance_name=None):
@@ -388,8 +402,11 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
 
             # attempt to resolve a default value from the new parameter def.
             try:
-                default_value = resolve_default_value(new_param_definition_dict,
-                    parent_engine_name, raise_if_missing=True)
+                default_value = resolve_default_value(
+                    new_param_definition_dict,
+                    parent_engine_name,
+                    raise_if_missing=True
+                )
             except TankNoDefaultValueError:
                 # No default value exists. We won't add it to the dict.
                 # It will be prompted for later.
@@ -409,7 +426,11 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
 
                 new_child_params = _generate_settings_diff_recursive(parent_engine_name, old_items, new_items)
                 if new_child_params:
-                    new_params[param_name] = {"description": param_desc, "type": param_type, "children":new_child_params}
+                    new_params[param_name] = {
+                        "description": param_desc,
+                        "type": param_type,
+                        "children": new_child_params
+                    }
             elif param_type == "list":
                 # check to see if this is a list of dicts:
                 new_list_param_values = new_param_definition_dict.get("values", {})
@@ -426,7 +447,11 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
 
                     new_child_params = _generate_settings_diff_recursive(parent_engine_name, old_items, new_items)
                     if new_child_params:
-                        new_params[param_name] = {"description": param_desc, "type": param_type, "children":new_child_params}
+                        new_params[param_name] = {
+                            "description": param_desc,
+                            "type": param_type,
+                            "children":new_child_params
+                        }
                 elif new_list_param_values_type == "list":
                     # lists of lists are currently not handled!
                     continue
