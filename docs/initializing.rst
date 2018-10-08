@@ -109,6 +109,8 @@ the Toolkit plugin associated with that software is launched at startup.
 There are two fundamentally different ways to set up a Toolkit Project in Shotgun,
 both briefly outlined below:
 
+.. _distributed_configurations:
+
 Distributed configurations
 ==========================
 
@@ -126,6 +128,8 @@ automatically caches all necessary runtime components locally.
 .. note:: To create a distributed configuration, manually go into Shotgun and create
     a **Shotgun Pipeline Configuration entity** for your project. For more information,
     see :ref:`automatically_managed_pcs`.
+
+.. _centralized_configurations:
 
 Centralized configurations
 ==========================

@@ -37,6 +37,8 @@ class Sgtk(object):
     manipulation and the Toolkit template system.
     """
 
+    (DEFAULT, CENTRALIZED, DISTRIBUTED) = range(3)
+
     def __init__(self, project_path):
         """
         .. note:: Do not create this instance directly - Instead, instances of
@@ -275,13 +277,53 @@ class Sgtk(object):
         return data
 
     @property
+    def configuration_mode(self):
+        """
+        The mode of the currently running configuration:
+
+        - ``sgtk.CENTRALIZED`` if the configuration is part of a
+          :ref:`centralized<centralized_configurations>` setup.
+        - ``sgtk.DISTRIBUTED`` if the configuration is part of a
+          :ref:`distributed<distributed_configurations>` setup.
+        - ``sgtk.DEFAULT`` if the configuration does not have an associated pipeline
+          pipeline configuration but is falling back to its default builtins.
+        """
+        if self.configuration_id is None:
+            return self.DEFAULT
+        # any pipeline configuration which has the linux_path/windows_path or mac_path
+        # populated are defined as a centralized configuration
+        sg_data = self.shotgun.find_one(
+            "PipelineConfiguration",
+            [["id", "is", self.configuration_id]],
+            ["windows_path", "mac_path", "linux_path"]
+        )
+        if sg_data["windows_path"] or sg_data["mac_path"] or sg_data["linux_path"]:
+            return self.CENTRALIZED
+        else:
+            return self.DISTRIBUTED
+
+    @property
     def configuration_name(self):
         """
-        The name of the currently running pipeline configuration
-        
-        :returns: pipeline configuration name as string, e.g. 'primary'
+        The name of the currently running Shotgun Pipeline
+        Configuration, e.g. ``Primary``.
+        If the current session does not have an associated
+        pipeline configuration in Shotgun (for example
+        because you are running the built-in integrations),
+        ``None`` will be returned.
         """
         return self.__pipeline_config.get_name()
+
+    @property
+    def configuration_id(self):
+        """
+        The associated Shotgun pipeline configuration id.
+        If the current session does not have an associated
+        pipeline configuration in Shotgun (for example
+        because you are running the built-in integrations),
+        ``None`` will be returned.
+        """
+        return self.__pipeline_config.get_shotgun_id()
 
     ##########################################################################################
     # public methods

@@ -24,6 +24,10 @@ class CommandInteraction(object):
     This can be subclassed in order to provide a custom
     interaction environment when running commands in
     API mode.
+
+    In order to override the built-in interaction behavior,
+    pass an instance of a command interaction class to
+    the :meth:`sgtk.SgtkSystemCommand.execute` method.
     """
 
     def __init__(self):
@@ -33,6 +37,9 @@ class CommandInteraction(object):
     def supports_interaction(self):
         """
         True if interaction is supported, false if not.
+        Implementations returning ``False`` here typically
+        implement other methods by returning default values
+        without prompting the user for feedback.
         """
         raise NotImplementedError
 
