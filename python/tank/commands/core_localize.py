@@ -472,7 +472,6 @@ class AttachToCoreAction(Action):
 
         return self._run_wrapper(log, path_to_core)
 
-
     def _run_wrapper(self, log, path_to_core):
         """
         Given the path to the core API, resolves the core path on all three OSes
@@ -497,7 +496,6 @@ class AttachToCoreAction(Action):
             self._interaction_interface,
             copy_core=False,
         )
-
 
 
 def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, interaction_interface, copy_core):

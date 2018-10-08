@@ -236,7 +236,6 @@ class ValidateConfigAction(Action):
                 "WARNING: Latest version is %s. You are running %s." % (latest_desc.version, descriptor.version)
             )
 
-
         manifest = descriptor.configuration_schema
 
         for s in settings.keys():
@@ -255,7 +254,7 @@ class ValidateConfigAction(Action):
             try:
                 validation.validate_single_setting(name, tk, manifest, s, value)
             except TankError as e:
-                log.info("  ERROR - Parameter %s - Invalid value: %s" % (s,e))
+                log.info("  ERROR - Parameter %s - Invalid value: %s" % (s, e))
             else:
                 # validation is ok
                 if default is None:

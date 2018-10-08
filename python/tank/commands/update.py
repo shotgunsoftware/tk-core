@@ -368,7 +368,6 @@ class AppUpdatesAction(Action):
 
         return ret_val
 
-
     def _process_environment(
             self,
             tk,
@@ -611,7 +610,7 @@ class AppUpdatesAction(Action):
 
                 item_was_updated = True
 
-        elif status["out_of_date"] == False and not status["current"].exists_local():
+        elif status["out_of_date"] is False and not status["current"].exists_local():
             # app does not exist in the local app download cache area
             if self._interaction_interface.ask_yna_question(
                     "Current version does not exist locally - download it now?"
@@ -619,7 +618,7 @@ class AppUpdatesAction(Action):
                 log.info("Downloading %s..." % status["current"])
                 status["current"].download_local()
 
-        elif status["out_of_date"] == False:
+        elif status["out_of_date"] is False:
             log.info(" \-- You are running version %s which is the most recent release." % status["latest"].version)
 
         else:
@@ -675,7 +674,6 @@ class AppUpdatesAction(Action):
             curr_desc = environment_obj.get_engine_descriptor(engine_name)
             # and get potential upgrades
             latest_desc = curr_desc.find_latest_version()
-
 
         # out of date check
         out_of_date = (latest_desc.version != curr_desc.version)

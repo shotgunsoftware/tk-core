@@ -176,8 +176,7 @@ class InstallAppAction(Action):
                   engine_instance_name, 
                   app_name,
                   preserve_yaml)
-        
-        
+
     def _run(self, log, env_name, engine_instance_name, app_name, preserve_yaml):
         
         
@@ -428,7 +427,6 @@ class InstallEngineAction(Action):
         
         self._run(log, env_name, engine_name, preserve_yaml)
 
-
     def _run(self, log, env_name, engine_name, preserve_yaml):
         """
         Actual execution payload
@@ -444,8 +442,7 @@ class InstallEngineAction(Action):
             env.set_yaml_preserve_mode(preserve_yaml)
         except Exception as e:
             raise TankError("Environment '%s' could not be loaded! Error reported: %s" % (env_name, e))
-    
-    
+
         if engine_name.endswith(".git"):
             # this is a git location!
             # run descriptor factory method

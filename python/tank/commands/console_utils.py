@@ -128,6 +128,7 @@ def get_configuration(log, tank_api_instance, new_descriptor, old_descriptor, in
 
     return params
 
+
 def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, params, interaction_interface, parent_engine_name, parent_path=None):
     """
     Retrieves all the parameters needed for an app, engine or framework.
