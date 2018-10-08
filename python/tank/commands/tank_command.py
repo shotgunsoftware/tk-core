@@ -366,6 +366,14 @@ class SgtkSystemCommand(object):
 
         return self.__internal_action_obj.run_noninteractive(self.__log, params)
 
+    def terminate(self):
+        """
+        Instructs the command to attempt to terminate its execution.
+        Not all commands are able to terminate and execution normally
+        does not terminate straight away.
+        """
+        self.__internal_action_obj.terminate()
+
 ###############################################################################################
 # Main entry points for accessing tank commands from the tank command / shell engine
 
@@ -396,7 +404,7 @@ def get_actions(log, tk, ctx):
     # get all actions regardless of current scope first
     all_actions = _get_built_in_actions()
     if engine:
-        all_actions.extend( get_shell_engine_actions(engine) )
+        all_actions.extend(get_shell_engine_actions(engine))
     
     # now only pick the ones that are working with our current state
     for a in all_actions:

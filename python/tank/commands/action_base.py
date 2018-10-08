@@ -58,6 +58,7 @@ class Action(object):
         self.category = category
 
         self._interaction_interface = None
+        self._terminate_requested = False
         
         # set this property to False if your command doesn't support tank command access
         self.supports_tank_command = True 
@@ -173,6 +174,13 @@ class Action(object):
             instance deriving from :class:`CommandInteraction`.
         """
         self._interaction_interface = interaction_interface
+
+    def terminate(self):
+        """
+        Requests that the current command should be terminated.
+        Please note that not all commands are able to terminate.
+        """
+        self._terminate_requested = True
 
     def run_interactive(self, log, args):
         """

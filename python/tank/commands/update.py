@@ -314,7 +314,6 @@ class AppUpdatesAction(Action):
                 log.info("Environment %s..." % env_name)
                 log.info("======================================================================")
 
-
                 env_obj = pc.get_environment(env_name, writable=True)
                 env_obj.set_yaml_preserve_mode(preserve_yaml)
 
@@ -329,6 +328,8 @@ class AppUpdatesAction(Action):
                     app_instance_name
                 )
 
+                if self._terminate_requested:
+                    break
 
         # display summary
         log.info("")
@@ -403,6 +404,10 @@ class AppUpdatesAction(Action):
                 engines_to_process = []
 
         for engine in engines_to_process:
+
+            if self._terminate_requested:
+                break
+
             items.extend(self._process_item(
                 log,
                 tk,
@@ -425,6 +430,9 @@ class AppUpdatesAction(Action):
                     apps_to_process = []
 
             for app in apps_to_process:
+                if self._terminate_requested:
+                    break
+
                 items.extend(self._process_item(
                     log,
                     tk,
@@ -440,6 +448,8 @@ class AppUpdatesAction(Action):
             log.info("-" * 70)
 
             for framework in environment_obj.get_frameworks():
+                if self._terminate_requested:
+                    break
                 items.extend(self._process_item(log, tk, environment_obj, framework_name=framework))
 
         return items
@@ -569,7 +579,7 @@ class AppUpdatesAction(Action):
             )
 
             # ask user
-            if force_upgrade or self._interaction_interface.ask_yna_question("Update to the above version?"):
+            if force_upgrade or self._interaction_interface.ask_yna_question("Update to %s?" % new_descriptor):
                 curr_descriptor = status["current"]
                 self._update_item(
                     log,
@@ -711,7 +721,7 @@ class AppUpdatesAction(Action):
 
         return data
 
-    def _get_framework_requirements(log, environment, descriptor):
+    def _get_framework_requirements(self, log, environment, descriptor):
         """
         Returns a list of framework names that will be require updating. This
         is checking the given descriptor's required frameworks for any
