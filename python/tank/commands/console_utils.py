@@ -450,7 +450,7 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
                         new_params[param_name] = {
                             "description": param_desc,
                             "type": param_type,
-                            "children":new_child_params
+                            "children": new_child_params
                         }
                 elif new_list_param_values_type == "list":
                     # lists of lists are currently not handled!
