@@ -108,6 +108,28 @@ class TestInit(TestPathCache):
         column_names = [x[1] for x in ret.fetchall()]
         self.assertEquals(expected, column_names)
 
+    def test_db_location(self):
+        """
+        Ensure the path cache
+            - is always located in a folder named after the pipeline configuration
+            id and the project id
+            - doesn't use the plugin id.
+        """
+        expected = "p{0}c{1}".format(
+            self.tk.pipeline_configuration.get_project_id(),
+            self.tk.pipeline_configuration.get_shotgun_id()
+        )
+        with patch.object(self.tk.pipeline_configuration, "get_plugin_id", return_value="basic.maya"):
+            self.assertEqual(
+                expected,
+                os.path.basename(os.path.dirname(self.path_cache._get_path_cache_location()))
+            )
+
+        with patch.object(self.tk.pipeline_configuration, "get_plugin_id", return_value=None):
+            self.assertEqual(
+                expected,
+                os.path.basename(os.path.dirname(self.path_cache._get_path_cache_location()))
+            )
 
 
 class TestAddMapping(TestPathCache):
