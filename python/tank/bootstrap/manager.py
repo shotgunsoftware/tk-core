@@ -425,6 +425,10 @@ class ToolkitManager(object):
                                        and always in the range 0.0 to 1.0
                 :param message:        Progress message string
                 '''
+
+        .. note:: When registering a progress callback, ensure that it is ALWAYS
+            thread safe. There is no guarantee that it will be called from the 
+            main thread.
         """
         return self._progress_cb or self._default_progress_callback
 
@@ -440,7 +444,9 @@ class ToolkitManager(object):
 
         .. note:: This is a deprecated method. Property ``progress_callback`` should now be used.
 
-        :param progress_callback: Callback function that reports back on the toolkit and engine bootstrap progress.
+        :param progress_callback: Callback function that reports back on the toolkit
+            and engine bootstrap progress. This callback should ALWAYS be thread safe,
+            as there is no guarantee that it will be called in the main thread.
         """
 
         self.progress_callback = progress_callback
