@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -27,11 +27,11 @@ relative paths are always required and context based paths are always optional.
 
 """
 
-
 import os
 import re
 import sys
 import copy
+import collections
 
 from ..errors import TankError
 from ..template import TemplatePath
@@ -163,7 +163,32 @@ def _resolve_frameworks(lookup_dict, data):
         data["frameworks"].update(fw)    
     
     return data
-    
+
+def _merge_dict(dest_dict, update_dict):
+    """
+    Merge update_dict to dest_dict.
+    Example:
+      dest_dict = {'key':{'foo':'foo'}}
+      update_dict = {'key': {'added_key':'added_value'},
+                     'new_key':'new_value'}
+      # return {'key': {'foo':'foo', 'added_key':'added_value'},
+                'new_key':'new_value'}
+      _merge_dict(dest_dict, update_dict)
+    :param dict dest_dict:
+    :param dict update_dict:
+    :returns: merged dictionary
+    :rtype: dict
+    """
+    for key, value in update_dict.iteritems():
+        if key in dest_dict:
+            if isinstance(value, collections.Mapping) and isinstance(
+                    dest_dict[key], collections.Mapping):
+                dest_dict[key] = _merge_dict(dest_dict[key], value)
+            else:
+                dest_dict[key] = value
+        else:
+            dest_dict[key] = value
+    return dest_dict
 
 def process_includes(file_name, data, context):
     """
@@ -176,11 +201,14 @@ def process_includes(file_name, data, context):
     :returns:           The flattened yml data after all includes have
                         been recursively processed.
     """
+    # store recursive lookup dictionary which will be used to resolve references
+    # and frameworks
+    merged_lookup = {}
     # call the recursive method:
-    data, _ = _process_includes_r(file_name, data, context)
+    data, _ = _process_includes_r(file_name, data, context, merged_lookup)
     return data
         
-def _process_includes_r(file_name, data, context):
+def _process_includes_r(file_name, data, context, merged_lookup):
     """
     Recursively process includes for an environment file.
     
@@ -193,6 +221,8 @@ def _process_includes_r(file_name, data, context):
     :param file_name:   The root yml file to process
     :param data:        The contents of the root yml file to process
     :param context:     The current context
+    :param merged_lookup: store recursive lookup dictionary which will be used
+                          to resolve references
 
     :returns:           A tuple containing the flattened yml data 
                         after all includes have been recursively processed
@@ -210,7 +240,10 @@ def _process_includes_r(file_name, data, context):
         included_data = g_yaml_cache.get(include_file) or {}
                 
         # now resolve this data before proceeding
-        included_data, included_fw_lookup = _process_includes_r(include_file, included_data, context)
+        included_data, included_fw_lookup = _process_includes_r(include_file,
+                                                                included_data,
+                                                                context,
+                                                                merged_lookup)
 
         # update our big lookup dict with this included data:
         if "frameworks" in included_data and isinstance(included_data["frameworks"], dict):
@@ -227,12 +260,13 @@ def _process_includes_r(file_name, data, context):
 
         fw_lookup.update(included_fw_lookup)
         lookup_dict.update(included_data)
-    
+        merged_lookup = _merge_dict(merged_lookup, lookup_dict)
+
     # now go through our own data, recursively, and replace any refs.
     # recurse down in dicts and lists
     try:
-        data = _resolve_refs_r(lookup_dict, data)
-        data = _resolve_frameworks(lookup_dict, data)
+        data = _resolve_refs_r(merged_lookup, data)
+        data = _resolve_frameworks(merged_lookup, data)
     except TankError as e:
         raise TankError("Include error. Could not resolve references for %s: %s" % (file_name, e))
     
@@ -248,7 +282,7 @@ def find_framework_location(file_name, framework_name, context):
     :param framework_name:  The name of the framework to find
     :param context:         The current context
     
-    :returns:               The yml file that the framework is 
+    :returns:               The yml file that the framework is
                             defined in or None if not found.
     """
     # load the data in for the root file:
@@ -311,7 +345,7 @@ def find_reference(file_name, context, token, absolute_location=False):
         and the token within the file where the data resides.
     :rtype: tuple
     """
-    # load the data in 
+    # load the data in
     data = g_yaml_cache.get(file_name) or {}
     
     # first build our big fat lookup dict
