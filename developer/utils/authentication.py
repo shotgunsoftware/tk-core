@@ -24,6 +24,7 @@ and corresponding script key:
             --shotgun-host='https://mysite.shotgunstudio.com'
             --shotgun-script-name='plugin_build'
             --shotgun-script-key='<script-key-here>'
+            --ignore-descriptor-types='app_store'
             "sgtk:descriptor:app_store?version=v0.3.6&name=tk-config-basic" /tmp
 
 You can also use the SHOTGUN_HOST, SHOTGUN_SCRIPT_NAME and SHOTGUN_SCRIPT_KEY environment

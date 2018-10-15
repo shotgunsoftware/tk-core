@@ -44,7 +44,7 @@ logger = LogManager.get_logger("populate_bundle_cache")
 BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 
 
-def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri):
+def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri, ignore_types=[]):
     """
     Perform a build of the bundle cache.
 
@@ -83,7 +83,7 @@ def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri):
     cfg_descriptor.clone_cache(bundle_cache_root)
 
     # cache all apps, engines and frameworks
-    cache_apps(sg_connection, cfg_descriptor, bundle_cache_root)
+    cache_apps(sg_connection, cfg_descriptor, bundle_cache_root, ignore_types)
 
     if cfg_descriptor.associated_core_descriptor:
         logger.info("Config is specifying a custom core in config/core/core_api.yml.")
@@ -151,6 +151,14 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         action="store_true",
         help="Enable debug logging"
     )
+    parser.add_option(
+        "-i",
+        "--ignore-descriptor-type",
+        default=["dev", "path"],
+        action="append",
+        help="Descriptor types to ignore. Can be used multiple times",
+        dest="ignore_descriptor_types"
+    )
 
     add_authentication_options(parser)
 
@@ -159,7 +167,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
 
     logger.info("Welcome to the Toolkit bundle cache builder.")
     logger.info("")
-
+    
     if options.debug:
         LogManager().global_debug = True
 
@@ -182,7 +190,8 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     _build_bundle_cache(
         sg_connection,
         target_path,
-        config_descriptor_str
+        config_descriptor_str,
+        ignore_types=options.ignore_descriptor_types
     )
 
     # all good!

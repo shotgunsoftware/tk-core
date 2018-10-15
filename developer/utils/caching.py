@@ -40,7 +40,7 @@ def _cache_descriptor(sg, desc_type, desc_dict, target_path):
     desc.clone_cache(target_path)
 
 
-def _should_skip_caching(desc):
+def _should_skip_caching(desc, ignore_types=[]):
     """
     Returns if a descriptor's content should not be cached.
 
@@ -50,10 +50,12 @@ def _should_skip_caching(desc):
 
     :returns: ``True`` if the contents should be skipped, ``False`` otherwise.
     """
-    return desc["type"] in ["dev", "path"]
+    final_types = ["dev", "path"]
+    final_types += ignore_types
+    return desc["type"] in final_types
 
 
-def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
+def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root, ignore_types=[]):
     """
     Iterates over all environments within the given configuration descriptor
     and caches all items into the bundle cache root.
@@ -81,19 +83,18 @@ def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
 
         for eng in env.get_engines():
             desc = env.get_engine_descriptor_dict(eng)
-            if _should_skip_caching(desc):
-                continue
-            # resolve descriptor and clone cache into bundle cache
-            _cache_descriptor(
-                sg_connection,
-                Descriptor.ENGINE,
-                desc,
-                bundle_cache_root
-            )
+            if not _should_skip_caching(desc, ignore_types=ignore_types):
+                # resolve descriptor and clone cache into bundle cache
+                _cache_descriptor(
+                    sg_connection,
+                    Descriptor.ENGINE,
+                    desc,
+                    bundle_cache_root
+                )
 
             for app in env.get_apps(eng):
                 desc = env.get_app_descriptor_dict(eng, app)
-                if _should_skip_caching(desc):
+                if _should_skip_caching(desc, ignore_types=ignore_types):
                     continue
                 # resolve descriptor and clone cache into bundle cache
                 _cache_descriptor(
@@ -105,7 +106,7 @@ def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
 
         for framework in env.get_frameworks():
             desc = env.get_framework_descriptor_dict(framework)
-            if _should_skip_caching(desc):
+            if _should_skip_caching(desc, ignore_types=ignore_types):
                 continue
             _cache_descriptor(
                 sg_connection,
