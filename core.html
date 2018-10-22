@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Core &mdash; tk-core v0.18.154 documentation</title>
+  <title>Core &mdash; tk-core v0.18.155 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.154 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.155 documentation" href="index.html"/>
         <link rel="next" title="Apps, Engines and Frameworks" href="platform.html"/>
         <link rel="prev" title="Initialization and startup" href="initializing.html"/> 
 
@@ -169,7 +169,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.154.<br>
+    <b>tk-core</b> v0.18.155.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -932,7 +932,7 @@ the currently running version of the Toolkit Core.</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Path to location where the Toolkit Python library associated with the config resides.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></td>
 </tr>
 </tbody>
 </table>
@@ -984,13 +984,13 @@ through the <code class="xref py py-meth docutils literal"><span class="pre">Con
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pipeline_config_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Path to the pipeline configuration root.</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pipeline_config_path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Path to the pipeline configuration root.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Path to the Python interpreter for that configuration.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
@@ -1479,7 +1479,7 @@ method.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) &#8211; A dictionary generated from <a class="reference internal" href="#sgtk.Context.to_dict" title="sgtk.Context.to_dict"><code class="xref py py-meth docutils literal"><span class="pre">Context.to_dict()</span></code></a>.</li>
+<li><strong>data</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; A dictionary generated from <a class="reference internal" href="#sgtk.Context.to_dict" title="sgtk.Context.to_dict"><code class="xref py py-meth docutils literal"><span class="pre">Context.to_dict()</span></code></a>.</li>
 <li><strong>tk</strong> (<a class="reference internal" href="#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a>) &#8211; Toolkit instance to associate with the context.</li>
 </ul>
 </td>
@@ -2021,7 +2021,7 @@ as well as modifying the content that is being pushed to Shotgun.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>shotgun_data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) &#8211; All the data which will be passed to the Shotgun create call</li>
+<li><strong>shotgun_data</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; All the data which will be passed to the Shotgun create call</li>
 <li><strong>context</strong> (<a class="reference internal" href="#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a>) &#8211; The context of the publish</li>
 </ul>
 </td>
@@ -2029,7 +2029,7 @@ as well as modifying the content that is being pushed to Shotgun.</p>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">return (potentially) modified data dictionary</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)">dict</a></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)">dict</a></p>
 </td>
 </tr>
 </tbody>
@@ -2062,7 +2062,7 @@ information about the pipeline configuration that will be used.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>shotgun</strong> (<code class="xref py py-class docutils literal"><span class="pre">Shotgun</span></code>) &#8211; Connection to the Shotgun site.</li>
-<li><strong>pipeline_configuration_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; Id of the pipeline configuration we&#8217;re bootstrapping into.
+<li><strong>pipeline_configuration_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Id of the pipeline configuration we&#8217;re bootstrapping into.
 If None, the ToolkitManager is bootstrapping into the base configuration.</li>
 <li><strong>configuration_descriptor</strong> (<a class="reference internal" href="descriptor.html#sgtk.descriptor.ConfigDescriptor" title="sgtk.descriptor.ConfigDescriptor"><code class="xref py py-class docutils literal"><span class="pre">ConfigDescriptor</span></code></a>) &#8211; Configuration the manager is bootstrapping into.</li>
 </ul>
@@ -2087,7 +2087,7 @@ If None, the ToolkitManager is bootstrapping into the base configuration.</li>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="docutils literal"><span class="pre">True</span></code> if the bundle cache be cached with this hook, <code class="docutils literal"><span class="pre">False</span></code>
 if not.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)">bool</a></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)">bool</a></td>
 </tr>
 </tbody>
 </table>
@@ -2109,7 +2109,7 @@ will be left in an inconsistent state.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>destination</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Folder where the bundle needs to be written. Note
+<li><strong>destination</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Folder where the bundle needs to be written. Note
 that this is not the final destination folder inside the bundle cache.</li>
 <li><strong>descriptor</strong> &#8211; Descriptor of the bundle that needs to be cached.</li>
 </ul>
@@ -2171,13 +2171,13 @@ under <code class="docutils literal"><span class="pre">SHOTGUN_HOME</span></code
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>project_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; The Shotgun id of the project to store caches for. None if
+<li><strong>project_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The Shotgun id of the project to store caches for. None if
 the configuration is a site configuration.</li>
-<li><strong>plugin_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Unique string to identify the scope for a particular plugin
+<li><strong>plugin_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Unique string to identify the scope for a particular plugin
 or integration. For more information,
 see <a class="reference internal" href="initializing.html#sgtk.bootstrap.ToolkitManager.plugin_id" title="sgtk.bootstrap.ToolkitManager.plugin_id"><code class="xref py py-meth docutils literal"><span class="pre">plugin_id()</span></code></a>. For
 non-plugin based toolkit projects, this value is None.</li>
-<li><strong>pipeline_configuration_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; The Shotgun pipeline configuration id to store caches
+<li><strong>pipeline_configuration_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The Shotgun pipeline configuration id to store caches
 for. If the pipeline configuration is unmanaged, it
 will be <code class="docutils literal"><span class="pre">None</span></code></li>
 </ul>
@@ -2186,7 +2186,7 @@ will be <code class="docutils literal"><span class="pre">None</span></code></li>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The path to a path cache file. This file should exist when this method returns.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></p>
 </td>
 </tr>
 </tbody>
@@ -2219,12 +2219,12 @@ under <code class="docutils literal"><span class="pre">SHOTGUN_HOME</span></code
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>project_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; The Shotgun id of the project to store caches for, or None.</li>
-<li><strong>plugin_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Unique string to identify the scope for a particular plugin
+<li><strong>project_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The Shotgun id of the project to store caches for, or None.</li>
+<li><strong>plugin_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Unique string to identify the scope for a particular plugin
 or integration, or None. For more information,
 see <a class="reference internal" href="initializing.html#sgtk.bootstrap.ToolkitManager.plugin_id" title="sgtk.bootstrap.ToolkitManager.plugin_id"><code class="xref py py-meth docutils literal"><span class="pre">plugin_id()</span></code></a>. For
 non-plugin based toolkit projects, this value is None.</li>
-<li><strong>pipeline_configuration_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; The Shotgun pipeline config id to store caches for
+<li><strong>pipeline_configuration_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The Shotgun pipeline config id to store caches for
 or <code class="docutils literal"><span class="pre">None</span></code> if the pipeline configuration is unmanaged.</li>
 <li><strong>bundle</strong> (<a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal"><span class="pre">Engine</span></code></a>, <a class="reference internal" href="platform.html#sgtk.platform.Framework" title="sgtk.platform.Framework"><code class="xref py py-class docutils literal"><span class="pre">Framework</span></code></a> or
 <a class="reference internal" href="platform.html#sgtk.platform.Application" title="sgtk.platform.Application"><code class="xref py py-class docutils literal"><span class="pre">Application</span></code></a>) &#8211; The app, engine or framework object which is requesting the cache folder.</li>
@@ -2234,7 +2234,7 @@ or <code class="docutils literal"><span class="pre">None</span></code> if the pi
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The path to a folder which should exist on disk.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></p>
 </td>
 </tr>
 </tbody>
@@ -2358,7 +2358,7 @@ permissions for everyone.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; path to create</li>
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; path to create</li>
 <li><strong>bundle_object</strong> (<a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal"><span class="pre">Engine</span></code></a>, <a class="reference internal" href="platform.html#sgtk.platform.Framework" title="sgtk.platform.Framework"><code class="xref py py-class docutils literal"><span class="pre">Framework</span></code></a>
 or <a class="reference internal" href="platform.html#sgtk.platform.Application" title="sgtk.platform.Application"><code class="xref py py-class docutils literal"><span class="pre">Application</span></code></a>) &#8211; Object requesting the creation. This is a legacy
 parameter and we recommend using self.parent instead.</li>
@@ -2403,7 +2403,7 @@ Shotgun users table in order to extract further metadata.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A name that matches the user&#8217;s <code class="docutils literal"><span class="pre">login</span></code> field in Shotgun.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></td>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></td>
 </tr>
 </tbody>
 </table>
@@ -2424,9 +2424,9 @@ Shotgun users table in order to extract further metadata.</p>
 <dd><p>Called when Toolkit logs a list of metrics.</p>
 <p>A metric is a dictionary with three items:</p>
 <ul class="simple">
-<li><strong>event_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - Name of the event group.</li>
-<li><strong>event_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - Name of the event.</li>
-<li><strong>event_properties</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">list</span></code></a>) - List of properties for the event.</li>
+<li><strong>event_group</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - Name of the event group.</li>
+<li><strong>event_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - Name of the event.</li>
+<li><strong>event_properties</strong> (<code class="xref py py-class docutils literal"><span class="pre">list</span></code>) - List of properties for the event.</li>
 </ul>
 <p>The default implementation does nothing.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -2471,7 +2471,7 @@ does not match <code class="docutils literal"><span class="pre">Shot</span></cod
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Name of the environment to use or <code class="docutils literal"><span class="pre">None</span></code> is there was no match.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></td>
 </tr>
 </tbody>
 </table>
@@ -2522,18 +2522,18 @@ open permissions.</p>
 <p>This represents a standard folder in the file system which is not associated
 with anything in Shotgun. It contains the following keys:</p>
 <ul class="simple">
-<li><strong>action</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - <code class="docutils literal"><span class="pre">folder</span></code></li>
-<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - The configuration yaml data for this item</li>
-<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - path on disk to the item</li>
+<li><strong>action</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - <code class="docutils literal"><span class="pre">folder</span></code></li>
+<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - The configuration yaml data for this item</li>
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - path on disk to the item</li>
 </ul>
 <p><strong>Entity Folder</strong></p>
 <p>This represents a folder in the file system which is associated with a
 Shotgun entity. It contains the following keys:</p>
 <ul class="simple">
-<li><strong>action</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - <code class="docutils literal"><span class="pre">entity_folder</span></code></li>
-<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - The configuration yaml data for this item</li>
-<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - path on disk to the item</li>
-<li><strong>entity</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - Shotgun entity link with keys <code class="docutils literal"><span class="pre">type</span></code>, <code class="docutils literal"><span class="pre">id</span></code> and <code class="docutils literal"><span class="pre">name</span></code>.</li>
+<li><strong>action</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - <code class="docutils literal"><span class="pre">entity_folder</span></code></li>
+<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - The configuration yaml data for this item</li>
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - path on disk to the item</li>
+<li><strong>entity</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - Shotgun entity link with keys <code class="docutils literal"><span class="pre">type</span></code>, <code class="docutils literal"><span class="pre">id</span></code> and <code class="docutils literal"><span class="pre">name</span></code>.</li>
 </ul>
 <p><strong>Remote Entity Folder</strong></p>
 <p>This is the same as an entity folder, except that it was originally
@@ -2541,30 +2541,30 @@ created in another location. A remote folder request means that your
 local toolkit instance has detected that folders have been created by
 a different file system setup. It contains the following keys:</p>
 <ul class="simple">
-<li><strong>action</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - <code class="docutils literal"><span class="pre">remote_entity_folder</span></code></li>
-<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - The configuration yaml data for this item</li>
-<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - path on disk to the item</li>
-<li><strong>entity</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - Shotgun entity link with keys <code class="docutils literal"><span class="pre">type</span></code>, <code class="docutils literal"><span class="pre">id</span></code> and <code class="docutils literal"><span class="pre">name</span></code>.</li>
+<li><strong>action</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - <code class="docutils literal"><span class="pre">remote_entity_folder</span></code></li>
+<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - The configuration yaml data for this item</li>
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - path on disk to the item</li>
+<li><strong>entity</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - Shotgun entity link with keys <code class="docutils literal"><span class="pre">type</span></code>, <code class="docutils literal"><span class="pre">id</span></code> and <code class="docutils literal"><span class="pre">name</span></code>.</li>
 </ul>
 <p><strong>File Copy</strong></p>
 <p>This represents a file copy operation which should be carried out.
 It contains the following keys:</p>
 <ul class="simple">
-<li><strong>action</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - <code class="docutils literal"><span class="pre">copy</span></code></li>
-<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - The configuration yaml data associated with the directory level
+<li><strong>action</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - <code class="docutils literal"><span class="pre">copy</span></code></li>
+<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - The configuration yaml data associated with the directory level
 on which this object exists.</li>
-<li><strong>source_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - location of the file that should be copied</li>
-<li><strong>target_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - target location to where the file should be copied.</li>
+<li><strong>source_path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - location of the file that should be copied</li>
+<li><strong>target_path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - target location to where the file should be copied.</li>
 </ul>
 <p><strong>File Creation</strong></p>
 <p>This is similar to the file copy, but instead of a source path, a chunk
 of data is specified. It contains the following keys:</p>
 <ul class="simple">
-<li><strong>action</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - <code class="docutils literal"><span class="pre">create_file</span></code></li>
-<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - The configuration yaml data associated with the directory level
+<li><strong>action</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - <code class="docutils literal"><span class="pre">create_file</span></code></li>
+<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - The configuration yaml data associated with the directory level
 on which this object exists.</li>
-<li><strong>content</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) &#8211; file content</li>
-<li><strong>target_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) &#8211; target location to where the file should be copied.</li>
+<li><strong>content</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) &#8211; file content</li>
+<li><strong>target_path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) &#8211; target location to where the file should be copied.</li>
 </ul>
 <p><strong>Symbolic Links</strong></p>
 <p>This represents a request that a symbolic link is created. Note that symbolic links are not
@@ -2573,10 +2573,10 @@ implement symbolic link support on Windows systems. If you want to add symbolic 
 on windows, simply copy this hook to your project configuration and make the necessary
 modifications.</p>
 <ul class="simple">
-<li><strong>action</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - <code class="docutils literal"><span class="pre">symlink</span></code></li>
-<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - The raw configuration yaml data associated with symlink yml config file.</li>
-<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - the path to the symbolic link</li>
-<li><strong>target</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - the target to which the symbolic link should point</li>
+<li><strong>action</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - <code class="docutils literal"><span class="pre">symlink</span></code></li>
+<li><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">dict</span></code></a>) - The raw configuration yaml data associated with symlink yml config file.</li>
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - the path to the symbolic link</li>
+<li><strong>target</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a>) - the target to which the symbolic link should point</li>
 </ul>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2622,17 +2622,17 @@ be converted to <code class="docutils literal"><span class="pre">Pont_de_L-vis</
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>entity_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; The Shotgun entity type for which the value is taken.</li>
-<li><strong>entity_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; The entity id representing the data.</li>
-<li><strong>field_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; The Shotgun field associated with the value.</li>
-<li><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><em>object</em></a>) &#8211; The actual value in some form, as returned by the Shotgun API.</li>
+<li><strong>entity_type</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The Shotgun entity type for which the value is taken.</li>
+<li><strong>entity_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The entity id representing the data.</li>
+<li><strong>field_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The Shotgun field associated with the value.</li>
+<li><strong>value</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) &#8211; The actual value in some form, as returned by the Shotgun API.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A string repsenting the entity.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></p>
 </td>
 </tr>
 </tbody>
@@ -2660,7 +2660,7 @@ publish resolution logic should be used.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sg_publish_data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) &#8211; Dictionary containing Shotgun publish data.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sg_publish_data</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; Dictionary containing Shotgun publish data.
 Contains at minimum a code, type, id and a path key.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Path to the local file or <code class="docutils literal"><span class="pre">None</span></code>.</td>
@@ -2880,7 +2880,7 @@ in a given fields.</p>
 values of None.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)">list</a></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
 </td>
 </tr>
 </tbody>
@@ -3193,16 +3193,16 @@ in four flavors: string, integer, sequence and timestamp:</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Name by which the key will be referred.</li>
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name by which the key will be referred.</li>
 <li><strong>default</strong> &#8211; Default value for this key. If the default is a callable, it will be invoked
 without any parameters whenever a default value is required.</li>
 <li><strong>choices</strong> &#8211; List of possible values for this key. Can be either a list or a dictionary
 of choice:label pairs.</li>
-<li><strong>shotgun_entity_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the entity type.</li>
-<li><strong>shotgun_field_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the field name.</li>
-<li><strong>exclusions</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) &#8211; List of forbidden values.</li>
-<li><strong>abstract</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) &#8211; Flagging that this should be treated as an abstract key.</li>
-<li><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; If non-None, indicating that the value should be of a fixed length.</li>
+<li><strong>shotgun_entity_type</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the entity type.</li>
+<li><strong>shotgun_field_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the field name.</li>
+<li><strong>exclusions</strong> (<em>list</em>) &#8211; List of forbidden values.</li>
+<li><strong>abstract</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Flagging that this should be treated as an abstract key.</li>
+<li><strong>length</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; If non-None, indicating that the value should be of a fixed length.</li>
 </ul>
 </td>
 </tr>
@@ -3360,19 +3360,19 @@ of files, for example when you want to represent a sequence of frames using a
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Name by which the key will be referred.</li>
-<li><strong>default</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Default value for the key.</li>
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name by which the key will be referred.</li>
+<li><strong>default</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Default value for the key.</li>
 <li><strong>choices</strong> &#8211; List of possible values for this key. Can be either a list or a dictionary
 of choice:label pairs.</li>
-<li><strong>filter_by</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Name of filter type to limit values for string. Currently
+<li><strong>filter_by</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of filter type to limit values for string. Currently
 only accepted values are &#8216;alphanumeric&#8217;, &#8216;alpha&#8217;, None and a regex string.</li>
-<li><strong>shotgun_entity_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the entity type.</li>
-<li><strong>shotgun_field_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the field name.</li>
-<li><strong>exclusions</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) &#8211; List of forbidden values.</li>
-<li><strong>abstract</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) &#8211; Flagging that this should be treated as an abstract key.</li>
-<li><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; If non-None, indicating that the value should be of a fixed length.</li>
-<li><strong>subset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Regular expression defining a subset of the value to use.</li>
-<li><strong>subset_format</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; String to express the formatting of subset tokens.</li>
+<li><strong>shotgun_entity_type</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the entity type.</li>
+<li><strong>shotgun_field_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the field name.</li>
+<li><strong>exclusions</strong> (<em>list</em>) &#8211; List of forbidden values.</li>
+<li><strong>abstract</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Flagging that this should be treated as an abstract key.</li>
+<li><strong>length</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; If non-None, indicating that the value should be of a fixed length.</li>
+<li><strong>subset</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Regular expression defining a subset of the value to use.</li>
+<li><strong>subset_format</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; String to express the formatting of subset tokens.</li>
 </ul>
 </td>
 </tr>
@@ -3528,15 +3528,15 @@ correct padding.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Name by which the key will be referred.</li>
-<li><strong>default</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Default value for this key.</li>
-<li><strong>choices</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) &#8211; List of possible values for this key.</li>
-<li><strong>format_spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Specification for formatting when casting to a string.
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name by which the key will be referred.</li>
+<li><strong>default</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Default value for this key.</li>
+<li><strong>choices</strong> (<em>list</em>) &#8211; List of possible values for this key.</li>
+<li><strong>format_spec</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Specification for formatting when casting to a string.
 The form is a zero followed the number of spaces to pad
 the value.</li>
-<li><strong>shotgun_entity_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the entity type.</li>
-<li><strong>shotgun_field_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the field name.</li>
-<li><strong>exclusions</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; List of forbidden values.</li>
+<li><strong>shotgun_entity_type</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the entity type.</li>
+<li><strong>shotgun_field_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the field name.</li>
+<li><strong>exclusions</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; List of forbidden values.</li>
 </ul>
 </td>
 </tr>
@@ -3556,18 +3556,18 @@ the value.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Name by which the key will be referred.</li>
-<li><strong>default</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; Default value for this key.</li>
-<li><strong>choices</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) &#8211; List of possible values for this key.</li>
-<li><strong>format_spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Specification for formatting when casting to a string.
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name by which the key will be referred.</li>
+<li><strong>default</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Default value for this key.</li>
+<li><strong>choices</strong> (<em>list</em>) &#8211; List of possible values for this key.</li>
+<li><strong>format_spec</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Specification for formatting when casting to a string.
 The form is a zero followed the number of spaces to pad
 the value.</li>
-<li><strong>shotgun_entity_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the entity type.</li>
-<li><strong>shotgun_field_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the field name.</li>
-<li><strong>exclusions</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) &#8211; List of forbidden values.</li>
-<li><strong>abstract</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) &#8211; Flagging that this should be treated as an abstract key.</li>
-<li><strong>length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; If non-None, indicating that the value should be of a fixed length.</li>
-<li><strong>strict_matching</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) &#8211; Indicates if the padding should be matching exactly the
+<li><strong>shotgun_entity_type</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the entity type.</li>
+<li><strong>shotgun_field_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; For keys directly linked to a shotgun field, the field name.</li>
+<li><strong>exclusions</strong> (<em>list</em>) &#8211; List of forbidden values.</li>
+<li><strong>abstract</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Flagging that this should be treated as an abstract key.</li>
+<li><strong>length</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; If non-None, indicating that the value should be of a fixed length.</li>
+<li><strong>strict_matching</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Indicates if the padding should be matching exactly the
 format_spec when parsing a string. Default behavior is to match
 exactly the padding when a format_spec is provided.</li>
 </ul>
@@ -3604,7 +3604,7 @@ format_spec when parsing a string.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Name by which the key will be referred.</li>
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name by which the key will be referred.</li>
 <li><strong>default</strong> &#8211; <p>Default value for this field. Acceptable values are:</p>
 <ul>
 <li><code class="docutils literal"><span class="pre">None</span></code></li>
@@ -3615,7 +3615,7 @@ as the default value.</li>
 as the default value.</li>
 </ul>
 </li>
-<li><strong>format_spec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Specification for formatting when casting to/from a string.
+<li><strong>format_spec</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Specification for formatting when casting to/from a string.
 The format follows the convention of <code class="xref py py-meth docutils literal"><span class="pre">time.strftime()</span></code>. The
 default value is <code class="docutils literal"><span class="pre">%Y-%m-%d-%H-%M-%S</span></code>. Given June 24th, 2015 at
 9:20:30 PM, this will yield <code class="docutils literal"><span class="pre">2015-06-24-21-20-30</span></code>.</li>
@@ -3657,7 +3657,7 @@ The format follows the convention of <code class="xref py py-meth docutils liter
 <dl class="class">
 <dt id="sgtk.TankError">
 <em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">TankError</code><a class="reference internal" href="_modules/tank/errors.html#TankError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.TankError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
 <p>Top level exception for all toolkit-core level runtime errors</p>
 </dd></dl>
 
@@ -3768,7 +3768,7 @@ The format follows the convention of <code class="xref py py-meth docutils liter
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.154',
+            VERSION:'v0.18.155',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

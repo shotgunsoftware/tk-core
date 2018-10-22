@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Initialization and startup &mdash; tk-core v0.18.154 documentation</title>
+  <title>Initialization and startup &mdash; tk-core v0.18.155 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.154 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.155 documentation" href="index.html"/>
         <link rel="next" title="Core" href="core.html"/>
         <link rel="prev" title="Overview" href="overview.html"/> 
 
@@ -170,7 +170,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.154.<br>
+    <b>tk-core</b> v0.18.155.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1058,7 +1058,7 @@ that should be manipulated. Their content can be changed at any time.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">User defined values.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)">object</a></td>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)">object</a></td>
 </tr>
 </tbody>
 </table>
@@ -1079,7 +1079,7 @@ data.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><em>object</em></a>) &#8211; Settings obtained from <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.extract_settings" title="sgtk.bootstrap.ToolkitManager.extract_settings"><code class="xref py py-meth docutils literal"><span class="pre">ToolkitManager.extract_settings()</span></code></a></td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) &#8211; Settings obtained from <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.extract_settings" title="sgtk.bootstrap.ToolkitManager.extract_settings"><code class="xref py py-meth docutils literal"><span class="pre">ToolkitManager.extract_settings()</span></code></a></td>
 </tr>
 </tbody>
 </table>
@@ -1324,7 +1324,7 @@ but it simply caches all the bundles for later use instead of bootstrapping dire
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>engine_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Name of the engine instance to cache if using sparse caching. If <code class="docutils literal"><span class="pre">None</span></code>,
+<li><strong>engine_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the engine instance to cache if using sparse caching. If <code class="docutils literal"><span class="pre">None</span></code>,
 all engine instances will be cached.</li>
 <li><strong>entity</strong> &#8211; An entity link. If the entity is not a project, the project for that entity will be resolved.</li>
 </ul>
@@ -1448,7 +1448,7 @@ None if not defined.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>project</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) &#8211; The project entity, or None.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>project</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; The project entity, or None.</td>
 </tr>
 </tbody>
 </table>
@@ -1471,7 +1471,7 @@ bootstrapping.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path to the current core.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></td>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></td>
 </tr>
 </tbody>
 </table>
@@ -1715,11 +1715,11 @@ the tk-maya engine for that Maya session, and open
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> Toolkit instance.</li>
 <li><strong>context</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> Context to launch the DCC in.</li>
-<li><strong>engine_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Name of the Toolkit engine associated with
+<li><strong>engine_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the Toolkit engine associated with
 the DCC(s) to launch.</li>
-<li><strong>versions</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) &#8211; A list of version strings for filtering software
+<li><strong>versions</strong> (<em>list</em>) &#8211; A list of version strings for filtering software
 versions. See the <a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a> for more info.</li>
-<li><strong>products</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) &#8211; A list of product strings for filtering software
+<li><strong>products</strong> (<em>list</em>) &#8211; A list of product strings for filtering software
 versions. See the <a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a> for more info.</li>
 </ul>
 </td>
@@ -1752,15 +1752,15 @@ factory method.</p>
 <li><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> Toolkit instance</li>
 <li><strong>context</strong> &#8211; A <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> object to define the
 context on disk where the engine is operating.</li>
-<li><strong>engine_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Name of the Toolkit engine associated
+<li><strong>engine_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the Toolkit engine associated
 with the DCC(s) to launch.</li>
 <li><strong>env</strong> &#8211; An <code class="xref py py-class docutils literal"><span class="pre">Environment</span></code> object to
 associate with this launcher.</li>
-<li><strong>versions</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) &#8211; List of strings representing versions to search
+<li><strong>versions</strong> (<em>list</em>) &#8211; List of strings representing versions to search
 for. If set to <code class="docutils literal"><span class="pre">None</span></code> or <code class="docutils literal"><span class="pre">[]</span></code>, search for all versions. A version string
 is DCC-specific but could be something like &#8220;2017&#8221;, &#8220;6.3v7&#8221; or
 &#8220;1.2.3.52&#8221;</li>
-<li><strong>products</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) &#8211; List of strings representing product names to
+<li><strong>products</strong> (<em>list</em>) &#8211; List of strings representing product names to
 search for. If set to <code class="docutils literal"><span class="pre">None</span></code> or <code class="docutils literal"><span class="pre">[]</span></code>, search for all products. A product
 string is DCC-specific but could be something like &#8220;Houdini FX&#8221;,
 &#8220;Houdini Core&#8221; or &#8220;Houdini&#8221;</li>
@@ -1830,9 +1830,9 @@ on each match. Each match will be comprised of a path and a dictionary with they
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>match_template</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; String template that will be used both for globbing and performing
+<li><strong>match_template</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; String template that will be used both for globbing and performing
 a regular expression.</li>
-<li><strong>template_key_expressions</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) &#8211; Dictionary of regular expressions that can be substituted
+<li><strong>template_key_expressions</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; Dictionary of regular expressions that can be substituted
 in the template. The key should be the name of the token to substitute.</li>
 </ul>
 </td>
@@ -1885,7 +1885,7 @@ name (e.g. Maya Engine Startup)</p>
 <dl class="attribute">
 <dt id="sgtk.platform.SoftwareLauncher.logger">
 <code class="descname">logger</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.logger" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">logging.Logger</span></code></a> for this launcher. Use this whenever you want to emit or process log messages.</p>
+<dd><p><a class="reference external" href="https://docs.python.org/2/library/logging.html#logging.Logger" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">logging.Logger</span></code></a> for this launcher. Use this whenever you want to emit or process log messages.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1945,9 +1945,9 @@ args.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>exec_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Path to DCC executable to launch</li>
-<li><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Command line arguments as strings</li>
-<li><strong>file_to_open</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; (optional) Full path name of a file to open on
+<li><strong>exec_path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Path to DCC executable to launch</li>
+<li><strong>args</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Command line arguments as strings</li>
+<li><strong>file_to_open</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; (optional) Full path name of a file to open on
 launch</li>
 </ul>
 </td>
@@ -2024,7 +2024,7 @@ lists of supported version and product variations via the <a class="reference in
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a> supported by this launcher.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)">list</a></td>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
 </tbody>
 </table>
@@ -2045,15 +2045,15 @@ are useful for Toolkit Engine Startup functionality.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Explicit version of the DCC represented
+<li><strong>version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Explicit version of the DCC represented
 (e.g. 2017)</li>
-<li><strong>product</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Explicit product name of the DCC represented
+<li><strong>product</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Explicit product name of the DCC represented
 (e.g. &#8220;Houdini Apprentice&#8221;)</li>
-<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Full path to the DCC executable.</li>
-<li><strong>icon</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; (optional) Full path to a 256x256 (or smaller)
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Full path to the DCC executable.</li>
+<li><strong>icon</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; (optional) Full path to a 256x256 (or smaller)
 <code class="docutils literal"><span class="pre">png</span></code> file to use for graphical displays of
 this <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a>.</li>
-<li><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a>) &#8211; (optional) List of command line arguments
+<li><strong>args</strong> (<em>list</em>) &#8211; (optional) List of command line arguments
 that need to be passed down to the DCC.</li>
 </ul>
 </td>
@@ -2171,10 +2171,10 @@ subclass implementation of <code class="xref py py-meth docutils literal"><span 
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Resolved path to DCC</li>
-<li><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) &#8211; Args to pass on the command line
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Resolved path to DCC</li>
+<li><strong>args</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Args to pass on the command line
 when launching the DCC</li>
-<li><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><em>dict</em></a>) &#8211; Environment variables that
+<li><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; Environment variables that
 must be set to successfully
 launch the DCC.</li>
 </ul>
@@ -2272,7 +2272,7 @@ launching DCC.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.154',
+            VERSION:'v0.18.155',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
