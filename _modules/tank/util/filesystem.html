@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.filesystem &mdash; tk-core v0.18.155 documentation</title>
+  <title>tank.util.filesystem &mdash; tk-core v0.18.157 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.155 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.157 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.155.<br>
+    <b>tk-core</b> v0.18.157.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -194,6 +194,7 @@
 <span class="kn">import</span> <span class="nn">shutil</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">contextmanager</span>
 
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
@@ -670,6 +671,123 @@
         <span class="c1"># on exiting the context</span>
         <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;# End of file.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">open_file_browser</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Opens the given path in the operating system file browser such as</span>
+<span class="sd">    Windows explorer or Macosx Finder.</span>
+
+<span class="sd">    If the path points at a file, the method will attempt to highlight</span>
+<span class="sd">    the file.</span>
+
+<span class="sd">    :param path: A path to a file or folder.</span>
+<span class="sd">    :raises: RuntimeError: If the Platform is not supported or if</span>
+<span class="sd">        the file browser couldn&#39;t be launched.</span>
+<span class="sd">    :raises: ValueError: If the path is not a valid directory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="c1"># open the file, attempt to select in finder/explorer</span>
+        <span class="n">_open_file_browser_for_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="c1"># open the folder in finder/explorer</span>
+        <span class="n">_open_file_browser_for_folder</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># possibly we have an image sequence and therefore its a symbolic path,</span>
+        <span class="c1"># instead check to see if the parent folder of the path is valid and</span>
+        <span class="c1"># try opening that.</span>
+        <span class="c1">#</span>
+        <span class="c1"># TODO: The issue with this logic is that possibly it was a directory</span>
+        <span class="c1"># that just didn&#39;t exist, so we would just be gathering the next</span>
+        <span class="c1"># directory up.</span>
+        <span class="n">parent_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">_open_file_browser_for_folder</span><span class="p">(</span><span class="n">parent_dir</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_open_file_browser_for_folder</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This method will take a path to a folder and open it in</span>
+<span class="sd">    an OS&#39;s file browser.</span>
+
+<span class="sd">    :param path: A folder path</span>
+<span class="sd">    :raises: RuntimeError: If the Platform is not supported or if</span>
+<span class="sd">        the file browser couldn&#39;t be launched.</span>
+<span class="sd">    :raises: ValueError: If the path is not a valid directory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Launching file system browser for folder </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+
+    <span class="c1"># Check that we don&#39;t have a file path.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;The path </span><span class="se">\&quot;</span><span class="si">%s</span><span class="se">\&quot;</span><span class="s2"> is not a valid directory.&quot;</span> <span class="o">%</span> <span class="n">path</span>
+        <span class="p">)</span>
+
+    <span class="c1"># get the setting</span>
+    <span class="n">system</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span>
+
+    <span class="c1"># build the commands for opening the folder on the various OS&#39;s</span>
+    <span class="k">if</span> <span class="n">system</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;linux&quot;</span><span class="p">):</span>
+        <span class="n">cmd_args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;xdg-open&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">system</span> <span class="o">==</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span>
+        <span class="n">cmd_args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;open&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">system</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
+        <span class="n">cmd_args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;cmd.exe&quot;</span><span class="p">,</span> <span class="s2">&quot;/C&quot;</span><span class="p">,</span> <span class="s2">&quot;start&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Platform &#39;</span><span class="si">%s</span><span class="s2">&#39; is not supported.&quot;</span> <span class="o">%</span> <span class="n">system</span><span class="p">)</span>
+
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Executing command &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">cmd_args</span><span class="p">)</span>
+    <span class="n">exit_code</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd_args</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">exit_code</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Failed to launch a file browser for folder &#39;</span><span class="si">%s</span><span class="s2">&#39;. &quot;</span>
+            <span class="s2">&quot;Error code </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">exit_code</span><span class="p">)</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_open_file_browser_for_file</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This method will take a path to a file and open it in</span>
+<span class="sd">    an OS&#39;s file browser and attempt to highlight it.</span>
+
+<span class="sd">    :param path: A file path</span>
+<span class="sd">    :raises: RuntimeError: If the Platform is not supported or if</span>
+<span class="sd">        the file browser couldn&#39;t be launched.</span>
+<span class="sd">    :raises: ValueError: If the path is not a valid file path.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Launching file system browser for file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;The path </span><span class="se">\&quot;</span><span class="si">%s</span><span class="se">\&quot;</span><span class="s2"> is not a valid file path.&quot;</span> <span class="o">%</span> <span class="n">path</span>
+        <span class="p">)</span>
+
+    <span class="c1"># get the setting</span>
+    <span class="n">system</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span>
+
+    <span class="k">if</span> <span class="n">system</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;linux&quot;</span><span class="p">):</span>
+        <span class="c1"># note: there isn&#39;t a straight forward way to do</span>
+        <span class="c1"># this on linux, so just open the directory instead.</span>
+        <span class="n">cmd_args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;xdg-open&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="p">)]</span>
+    <span class="k">elif</span> <span class="n">system</span> <span class="o">==</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span>
+        <span class="n">cmd_args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;open&quot;</span><span class="p">,</span> <span class="s2">&quot;-R&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">system</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
+        <span class="c1"># /select makes windows select the file within the explorer window</span>
+        <span class="c1"># The problem with this approach is that it always returns back an error code of 1 even if it</span>
+        <span class="c1"># does behave correctly.</span>
+        <span class="n">cmd_args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;explorer&quot;</span><span class="p">,</span> <span class="s2">&quot;/select,&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Platform &#39;</span><span class="si">%s</span><span class="s2">&#39; is not supported.&quot;</span> <span class="o">%</span> <span class="n">system</span><span class="p">)</span>
+
+    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Executing command &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">cmd_args</span><span class="p">)</span>
+    <span class="n">exit_code</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd_args</span><span class="p">)</span>
+
+    <span class="c1"># cannot trust exit code from windows, see above</span>
+    <span class="k">if</span> <span class="n">system</span> <span class="o">!=</span> <span class="s2">&quot;win32&quot;</span> <span class="ow">and</span> <span class="n">exit_code</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Failed to launch a file browser for file &#39;</span><span class="si">%s</span><span class="s2">&#39;. &quot;</span>
+            <span class="s2">&quot;Error code </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">exit_code</span><span class="p">)</span>
+        <span class="p">)</span>
 </pre></div>
 
            </div>
@@ -702,7 +820,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.155',
+            VERSION:'v0.18.157',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
