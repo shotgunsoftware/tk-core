@@ -397,6 +397,6 @@ class TestGetPipelineConfigs(TankTestBase):
         config = configs[0]
         self.assertEqual(
             config["descriptor"].get_uri(),
-            "sgtk:descriptor:path?linux_path=/path&mac_path=/path&windows_path=%5Cpath"
+            "sgtk:descriptor:path?linux_path=/path&mac_path=/path&windows_path=\\path"
         )
         self.assertEqual(config["descriptor_source_uri"], None)

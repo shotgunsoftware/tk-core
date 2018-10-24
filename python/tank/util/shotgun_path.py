@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import sys
-import urllib
 
 
 class ShotgunPath(object):
@@ -456,6 +455,9 @@ class ShotgunPath(object):
         :returns: Dev or Path descriptor uri string representing the path
         :raises: ValueError if the path object has no paths defined
         """
+        # local import to avoid cycles
+        from ..descriptor import descriptor_dict_to_uri
+
         if not self:
             # no paths defined
             raise ValueError(
@@ -463,15 +465,19 @@ class ShotgunPath(object):
                 "cannot be converted to a descriptor uri." % self
             )
 
-        # build linux_path=/path/to/app&mac_path=/path/to/app&windows_path=...
-        paths = self.as_shotgun_dict(include_empty=False)
-        path_list = ["%s=%s" % (platform, urllib.quote(path)) for (platform, path) in paths.iteritems()]
-        paths_uri = "&".join(path_list)
+        # build up dictionary based decriptor
+        descriptor_dict = {}
 
         if for_development:
-            return "sgtk:descriptor:dev?%s" % paths_uri
+            descriptor_dict["type"] = "dev"
         else:
-            return "sgtk:descriptor:path?%s" % paths_uri
+            descriptor_dict["type"] = "path"
+
+        # add paths
+        descriptor_dict.update(self.as_shotgun_dict(include_empty=False))
+
+        # convert to string based uri
+        return descriptor_dict_to_uri(descriptor_dict)
 
     def join(self, folder):
         """

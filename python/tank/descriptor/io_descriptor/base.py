@@ -537,10 +537,11 @@ class IODescriptorBase(object):
         for param in sorted(descriptor_dict):
             if param == "type":
                 continue
-            qs_chunks.append("%s=%s" % (
-                param,
-                urllib.quote(str(descriptor_dict[param])))
-            )
+
+            # note: for readability of windows and git paths, do not convert '/@:\'
+            quoted_value = urllib.quote(str(descriptor_dict[param]), safe="@/:\\")
+            qs_chunks.append("%s=%s" % (param, quoted_value))
+
         qs = "&".join(qs_chunks)
 
         return "%s?%s" % (uri, qs)

@@ -293,5 +293,5 @@ class TestShotgunPath(ShotgunTestBase):
         full_path = ShotgunPath(macosx_path="/foo/bar", windows_path="C:\\foo\\bar", linux_path="/foo bar/baz")
         self.assertEquals(
             full_path.as_descriptor_uri(),
-            "sgtk:descriptor:path?mac_path=/foo/bar&windows_path=C%3A%5Cfoo%5Cbar&linux_path=/foo%20bar/baz"
+            "sgtk:descriptor:path?linux_path=/foo%20bar/baz&mac_path=/foo/bar&windows_path=C:\\foo\\bar"
         )

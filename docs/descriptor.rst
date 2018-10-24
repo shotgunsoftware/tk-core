@@ -185,7 +185,7 @@ SSH git syntax:
 
 .. code-block:: yaml
 
-    sgtk:descriptor:git?path=user%40remotehost%3A/path_to/repo.git&version=v0.1.0
+    sgtk:descriptor:git?path=user@remotehost:/path_to/repo.git&version=v0.1.0
 
 Git protocol syntax:
 
@@ -199,7 +199,7 @@ Git protocol syntax:
 
 .. code-block:: yaml
 
-    sgtk:descriptor:git?path=git%3A//github.com/user/tk-multi-publish.git&version=v0.1.0
+    sgtk:descriptor:git?path=git://github.com/user/tk-multi-publish.git&version=v0.1.0
 
 Http protocol syntax:
 
@@ -213,7 +213,7 @@ Http protocol syntax:
 
 .. code-block:: yaml
 
-    sgtk:descriptor:git?path=https%3A//github.com/user/tk-multi-publish.git&version=v0.1.0
+    sgtk:descriptor:git?path=https://github.com/user/tk-multi-publish.git&version=v0.1.0
 
 
 .. note:: The latest version for a descriptor is determined by retrieving the list of tags for
@@ -256,7 +256,7 @@ SSH git syntax:
 
 .. code-block:: yaml
 
-    sgtk:descriptor:git_branch?branch=master&path=user%40remotehost%3A/path_to/repo.git&version=17fedd8
+    sgtk:descriptor:git_branch?branch=master&path=user@remotehost:/path_to/repo.git&version=17fedd8
 
 Git protocol syntax:
 
@@ -271,7 +271,7 @@ Git protocol syntax:
 
 .. code-block:: yaml
 
-    sgtk:descriptor:git_branch?branch=master&path=git%3A//github.com/user/tk-multi-publish.git&version=17fedd8
+    sgtk:descriptor:git_branch?branch=master&path=git://github.com/user/tk-multi-publish.git&version=17fedd8
 
 Http protocol syntax:
 
@@ -286,7 +286,7 @@ Http protocol syntax:
 
 .. code-block:: yaml
 
-    sgtk:descriptor:git_branch?branch=master&path=https%3A//github.com/user/tk-multi-publish.git&version=17fedd8
+    sgtk:descriptor:git_branch?branch=master&path=https://github.com/user/tk-multi-publish.git&version=17fedd8
 
 You can use both long and short hash formats for the version token. The latest version for a git_branch
 descriptor is defined as the most recent commit for a given branch.
@@ -343,7 +343,7 @@ When using a ``path`` descriptor in production, you can include paths to multipl
 
 .. code-block:: yaml
 
-    sgtk:descriptor:path?linux_path=/path/to/app&mac_path=/path/to/app&windows_path=c%3A%5Cpath%5Cto%5Capp
+    sgtk:descriptor:path?linux_path=/path/to/app&mac_path=/path/to/app&windows_path=c:\path\to\app
 
 Environment variables can be included in paths:
 
@@ -371,6 +371,7 @@ Home directory `~` syntax will be expanded:
 
     sgtk:descriptor:path?path=%7E/path/to/app
 
+.. note:: Special characters are escaped for uri string compatibility
 
 Sometimes it may be useful to distribute application code within the configuration for applications
 that may not be accessible through the traditional distribution mechanism for Toolkit applications
