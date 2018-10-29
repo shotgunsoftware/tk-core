@@ -405,12 +405,23 @@ class TestApiProperties(TankTestBase):
         """
         self.assertEquals(self.tk.configuration_name, "Primary")
 
+    def test_configuration_id_property(self):
+        """
+        test api.configuration_id property
+        """
+        self.assertEquals(self.tk.configuration_id, self.tk.pipeline_configuration.get_shotgun_id())
+
+    def test_configuration_mode_property(self):
+        """
+        test api.configuration_mode property
+        """
+        self.assertEquals(self.tk.configuration_mode, self.tk.CENTRALIZED)
+
     def test_roots_property(self):
         """
         test api.roots property
         """
         self.assertEquals(self.tk.roots, {self.primary_root_name: self.project_root})
-
 
     def test_project_path_property(self):
         """

@@ -10,6 +10,7 @@
 
 from ..errors import TankError
 
+
 class Action(object):
     """
     Describes an executable action. Base class that all tank command actions derive from.
@@ -55,6 +56,9 @@ class Action(object):
         self.mode = mode
         self.description = description
         self.category = category
+
+        self._interaction_interface = None
+        self._terminate_requested = False
         
         # set this property to False if your command doesn't support tank command access
         self.supports_tank_command = True 
@@ -159,18 +163,48 @@ class Action(object):
                 raise TankError("Cannot execute %s - parameter '%s' not of required type %s" % (self, name, req_type))
         
         return new_param_values
-        
+
+    def set_interaction_interface(self, interaction_interface):
+        """
+        Specifies the interface to be used to request values
+        and ask the user questions. This needs to be set
+        before the run methods can be executed.
+
+        :param interaction_interface: Interaction interface. An
+            instance deriving from :class:`CommandInteraction`.
+        """
+        self._interaction_interface = interaction_interface
+
+    def terminate(self):
+        """
+        Requests that the current command should be terminated.
+        Please note that not all commands are able to terminate.
+        """
+        self._terminate_requested = True
+
     def run_interactive(self, log, args):
         """
         Run this API in interactive mode. 
         This mode may prompt the user for input via stdin.
+
+        :param log: Logger to use.
+        :param args: list of strings forming additional arguments
+            to be passed to the command.
         """
         raise NotImplementedError
              
     def run_noninteractive(self, log, parameters):
         """
-        Run non-interactive. 
+        Run command in non-interactive (API) mode.
+
         Needs to be implemented if the supports_api property is set to True.
+
+        :param log: Logger to use.
+        :param parameters: dictionary of parameters to pass to this command.
+            the dictionary key is the name of the parameter and the value
+            is the value you want to pass. You can query which parameters
+            can be passed in via the parameters property.
+        :returns: Whatever the command specifies
         """
         raise NotImplementedError
-        
+

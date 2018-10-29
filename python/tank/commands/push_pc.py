@@ -68,8 +68,7 @@ class PushPCAction(Action):
                 "type": "bool"
             },
         }
-        # Keep track of we are running in interactive mode or not.
-        self._is_interactive = False
+
         # Just a cache to query SG only once.
         self._pipeline_configs = None
 
@@ -93,7 +92,6 @@ class PushPCAction(Action):
         :param log: Standard python logger.
         :param args: Command line args.
         """
-        self._is_interactive = True
         self._preflight()
 
         if len(args) == 1 and args[0] == "--symlink":
@@ -250,8 +248,8 @@ class PushPCAction(Action):
                 "purposes only. You can easily switch a dev location using the "
                 "'tank switch_app' command."
             )
-            # Assume "yes" in non interactive mode
-            if self._is_interactive and not console_utils.ask_yn_question("Okay to proceed?"):
+
+            if not self._interaction_interface.ask_yn_question("Okay to proceed?"):
                 raise TankError("Aborted.")
         
         date_suffix = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
