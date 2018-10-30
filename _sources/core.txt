@@ -88,6 +88,11 @@ SgtkSystemCommand
 .. autoclass:: SgtkSystemCommand
     :members:
 
+CommandInteraction
+=========================================
+
+.. autoclass:: CommandInteraction
+    :members:
 
 .. _sgtk_hook_docs:
 

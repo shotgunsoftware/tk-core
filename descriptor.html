@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptors &mdash; tk-core v0.18.157 documentation</title>
+  <title>Descriptors &mdash; tk-core v0.18.158 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.157 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.158 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -142,7 +142,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.157.<br>
+    <b>tk-core</b> v0.18.158.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -351,7 +351,7 @@ to the git repository.</p>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=user%40remotehost%3A/path_to/repo.git&amp;version=v0.1.0</span>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=user@remotehost:/path_to/repo.git&amp;version=v0.1.0</span>
 </pre></div>
 </div>
 <p>Git protocol syntax:</p>
@@ -362,7 +362,7 @@ to the git repository.</p>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=git%3A//github.com/user/tk-multi-publish.git&amp;version=v0.1.0</span>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=git://github.com/user/tk-multi-publish.git&amp;version=v0.1.0</span>
 </pre></div>
 </div>
 <p>Http protocol syntax:</p>
@@ -373,7 +373,7 @@ to the git repository.</p>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=https%3A//github.com/user/tk-multi-publish.git&amp;version=v0.1.0</span>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=https://github.com/user/tk-multi-publish.git&amp;version=v0.1.0</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -409,7 +409,7 @@ a commit in a particular branch.</p>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=user%40remotehost%3A/path_to/repo.git&amp;version=17fedd8</span>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=user@remotehost:/path_to/repo.git&amp;version=17fedd8</span>
 </pre></div>
 </div>
 <p>Git protocol syntax:</p>
@@ -421,7 +421,7 @@ a commit in a particular branch.</p>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=git%3A//github.com/user/tk-multi-publish.git&amp;version=17fedd8</span>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=git://github.com/user/tk-multi-publish.git&amp;version=17fedd8</span>
 </pre></div>
 </div>
 <p>Http protocol syntax:</p>
@@ -433,7 +433,7 @@ a commit in a particular branch.</p>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=https%3A//github.com/user/tk-multi-publish.git&amp;version=17fedd8</span>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=https://github.com/user/tk-multi-publish.git&amp;version=17fedd8</span>
 </pre></div>
 </div>
 <p>You can use both long and short hash formats for the version token. The latest version for a git_branch
@@ -489,7 +489,7 @@ personal development:</p>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:path?linux_path=/path/to/app&amp;mac_path=/path/to/app&amp;windows_path=c%3A%5Cpath%5Cto%5Capp</span>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:path?linux_path=/path/to/app&amp;mac_path=/path/to/app&amp;windows_path=c:\path\to\app</span>
 </pre></div>
 </div>
 <p>Environment variables can be included in paths:</p>
@@ -511,6 +511,10 @@ personal development:</p>
 </div>
 <div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:path?path=%7E/path/to/app</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Special characters are escaped for uri string compatibility</p>
 </div>
 <p>Sometimes it may be useful to distribute application code within the configuration for applications
 that may not be accessible through the traditional distribution mechanism for Toolkit applications
@@ -3385,7 +3389,7 @@ If not url has been defined, <code class="docutils literal"><span class="pre">No
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.157',
+            VERSION:'v0.18.158',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

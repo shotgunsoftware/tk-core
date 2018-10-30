@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun_path &mdash; tk-core v0.18.157 documentation</title>
+  <title>tank.util.shotgun_path &mdash; tk-core v0.18.158 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.157 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.158 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.157.<br>
+    <b>tk-core</b> v0.18.158.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -218,11 +218,21 @@
 <span class="sd">        &gt;&gt;&gt; p.current_os</span>
 <span class="sd">        &#39;/tmp&#39;</span>
 
+<span class="sd">        # boolean operations</span>
+<span class="sd">        &gt;&gt;&gt; if p: print &quot;a path value defined for windows, linux or mac&quot;</span>
+
+<span class="sd">        # equality</span>
+<span class="sd">        &gt;&gt;&gt; if p1 == p2: print &quot;paths are same&quot;</span>
+
 <span class="sd">        # multi-platform access</span>
 <span class="sd">        &gt;&gt;&gt; p.as_shotgun_dict()</span>
 <span class="sd">        { &quot;windows_path&quot;: &quot;C:\\temp&quot;, &quot;mac_path&quot;: None, &quot;linux_path&quot;: &quot;/tmp&quot;}</span>
 <span class="sd">        &gt;&gt;&gt; p.as_system_dict()</span>
 <span class="sd">        { &quot;win32&quot;: &quot;C:\\temp&quot;, &quot;darwin&quot;: None, &quot;linux2&quot;: &quot;/tmp&quot;}</span>
+
+<span class="sd">        # descriptor uri conversion</span>
+<span class="sd">        &gt;&gt;&gt; p.as_descriptor_uri()</span>
+<span class="sd">        &#39;sgtk:descriptor:path?linux_path=/tmp/foo&#39;</span>
 
 <span class="sd">        # path manipulation</span>
 <span class="sd">        &gt;&gt;&gt; p2 = p.join(&#39;foo&#39;)</span>
@@ -607,6 +617,43 @@
             <span class="n">d</span><span class="p">[</span><span class="s2">&quot;linux2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linux_path</span>
         <span class="k">return</span> <span class="n">d</span></div>
 
+<div class="viewcode-block" id="ShotgunPath.as_descriptor_uri"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.as_descriptor_uri">[docs]</a>    <span class="k">def</span> <span class="nf">as_descriptor_uri</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">for_development</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Translates the path to a descriptor uri. For more information</span>
+<span class="sd">        about descriptors, see the :ref:`reference documentation&lt;descriptor&gt;`.</span>
+
+<span class="sd">        This method will either return a dev or a path descriptor uri</span>
+<span class="sd">        path string, suitable for use with for example pipeline configurations</span>
+<span class="sd">        in Shotgun.</span>
+
+<span class="sd">        :param bool for_development: Set to true for a dev descriptor</span>
+<span class="sd">        :returns: Dev or Path descriptor uri string representing the path</span>
+<span class="sd">        :raises: ValueError if the path object has no paths defined</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># local import to avoid cycles</span>
+        <span class="kn">from</span> <span class="nn">..descriptor</span> <span class="kn">import</span> <span class="n">descriptor_dict_to_uri</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="c1"># no paths defined</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> does not have any paths defined and &quot;</span>
+                <span class="s2">&quot;cannot be converted to a descriptor uri.&quot;</span> <span class="o">%</span> <span class="bp">self</span>
+            <span class="p">)</span>
+
+        <span class="c1"># build up dictionary based decriptor</span>
+        <span class="n">descriptor_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">for_development</span><span class="p">:</span>
+            <span class="n">descriptor_dict</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;dev&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">descriptor_dict</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;path&quot;</span>
+
+        <span class="c1"># add paths</span>
+        <span class="n">descriptor_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">as_shotgun_dict</span><span class="p">(</span><span class="n">include_empty</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+
+        <span class="c1"># convert to string based uri</span>
+        <span class="k">return</span> <span class="n">descriptor_dict_to_uri</span><span class="p">(</span><span class="n">descriptor_dict</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="ShotgunPath.join"><a class="viewcode-back" href="../../../utils.html#sgtk.util.ShotgunPath.join">[docs]</a>    <span class="k">def</span> <span class="nf">join</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folder</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Appends a single folder to the path.</span>
@@ -654,7 +701,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.157',
+            VERSION:'v0.18.158',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

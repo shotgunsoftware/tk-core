@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Core &mdash; tk-core v0.18.157 documentation</title>
+  <title>Core &mdash; tk-core v0.18.158 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.157 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.158 documentation" href="index.html"/>
         <link rel="next" title="Apps, Engines and Frameworks" href="platform.html"/>
         <link rel="prev" title="Initialization and startup" href="initializing.html"/> 
 
@@ -102,6 +102,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#commands">Commands</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#api-access-methods">API access methods</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtksystemcommand">SgtkSystemCommand</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#commandinteraction">CommandInteraction</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#hooks">Hooks</a><ul>
@@ -169,7 +170,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.157.<br>
+    <b>tk-core</b> v0.18.158.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -343,17 +344,38 @@ or None if no documentation is associated.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="sgtk.Sgtk.configuration_mode">
+<code class="descname">configuration_mode</code><a class="headerlink" href="#sgtk.Sgtk.configuration_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>The mode of the currently running configuration:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">sgtk.CENTRALIZED</span></code> if the configuration is part of a
+<a class="reference internal" href="initializing.html#centralized-configurations"><span class="std std-ref">centralized</span></a> setup.</li>
+<li><code class="docutils literal"><span class="pre">sgtk.DISTRIBUTED</span></code> if the configuration is part of a
+<a class="reference internal" href="initializing.html#distributed-configurations"><span class="std std-ref">distributed</span></a> setup.</li>
+<li><code class="docutils literal"><span class="pre">sgtk.DEFAULT</span></code> if the configuration does not have an associated pipeline
+pipeline configuration but is falling back to its default builtins.</li>
+</ul>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="sgtk.Sgtk.configuration_name">
 <code class="descname">configuration_name</code><a class="headerlink" href="#sgtk.Sgtk.configuration_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>The name of the currently running pipeline configuration</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">pipeline configuration name as string, e.g. &#8216;primary&#8217;</td>
-</tr>
-</tbody>
-</table>
+<dd><p>The name of the currently running Shotgun Pipeline
+Configuration, e.g. <code class="docutils literal"><span class="pre">Primary</span></code>.
+If the current session does not have an associated
+pipeline configuration in Shotgun (for example
+because you are running the built-in integrations),
+<code class="docutils literal"><span class="pre">None</span></code> will be returned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="sgtk.Sgtk.configuration_id">
+<code class="descname">configuration_id</code><a class="headerlink" href="#sgtk.Sgtk.configuration_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>The associated Shotgun pipeline configuration id.
+If the current session does not have an associated
+pipeline configuration in Shotgun (for example
+because you are running the built-in integrations),
+<code class="docutils literal"><span class="pre">None</span></code> will be returned.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1661,19 +1683,115 @@ may be deprecated at some point in the future.</p>
 
 <dl class="method">
 <dt id="sgtk.SgtkSystemCommand.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/commands/tank_command.html#SgtkSystemCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.SgtkSystemCommand.execute" title="Permalink to this definition">¶</a></dt>
+<code class="descname">execute</code><span class="sig-paren">(</span><em>params</em>, <em>interaction_interface=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/commands/tank_command.html#SgtkSystemCommand.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.SgtkSystemCommand.execute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute this command.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> &#8211; dictionary of parameters to pass to this command.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>params</strong> &#8211; dictionary of parameters to pass to this command.
 the dictionary key is the name of the parameter and the value
 is the value you want to pass. You can query which parameters
-can be passed in via the parameters property.</td>
+can be passed in via the parameters property.</li>
+<li><strong>interaction_interface</strong> &#8211; Optional interaction interface. This will be used
+whenever the command needs to interact with the user. Should be an
+instance deriving from <a class="reference internal" href="#sgtk.CommandInteraction" title="sgtk.CommandInteraction"><code class="xref py py-class docutils literal"><span class="pre">CommandInteraction</span></code></a>.</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Whatever the command returns. Data type and description for the return
-value can be introspected via the <a class="reference internal" href="#sgtk.SgtkSystemCommand.parameters" title="sgtk.SgtkSystemCommand.parameters"><code class="xref py py-meth docutils literal"><span class="pre">parameters()</span></code></a> property.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Whatever the command returns. Data type and description for the return
+value can be introspected via the <a class="reference internal" href="#sgtk.SgtkSystemCommand.parameters" title="sgtk.SgtkSystemCommand.parameters"><code class="xref py py-meth docutils literal"><span class="pre">parameters()</span></code></a> property.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.SgtkSystemCommand.terminate">
+<code class="descname">terminate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/commands/tank_command.html#SgtkSystemCommand.terminate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.SgtkSystemCommand.terminate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instructs the command to attempt to terminate its execution.
+Not all commands are able to terminate and execution normally
+does not terminate straight away.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="commandinteraction">
+<h3>CommandInteraction<a class="headerlink" href="#commandinteraction" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="sgtk.CommandInteraction">
+<em class="property">class </em><code class="descclassname">sgtk.</code><code class="descname">CommandInteraction</code><a class="reference internal" href="_modules/tank/commands/interaction.html#CommandInteraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.CommandInteraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class interface for tank command interaction.
+This can be subclassed in order to provide a custom
+interaction environment when running commands in
+API mode.</p>
+<p>In order to override the built-in interaction behavior,
+pass an instance of a command interaction class to
+the <a class="reference internal" href="#sgtk.SgtkSystemCommand.execute" title="sgtk.SgtkSystemCommand.execute"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.SgtkSystemCommand.execute()</span></code></a> method.</p>
+<dl class="attribute">
+<dt id="sgtk.CommandInteraction.supports_interaction">
+<code class="descname">supports_interaction</code><a class="headerlink" href="#sgtk.CommandInteraction.supports_interaction" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if interaction is supported, false if not.
+Implementations returning <code class="docutils literal"><span class="pre">False</span></code> here typically
+implement other methods by returning default values
+without prompting the user for feedback.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.CommandInteraction.request_input">
+<code class="descname">request_input</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/commands/interaction.html#CommandInteraction.request_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.CommandInteraction.request_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Request general input from the user.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>message</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Message to display</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Information entered by user.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.CommandInteraction.ask_yn_question">
+<code class="descname">ask_yn_question</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/commands/interaction.html#CommandInteraction.ask_yn_question"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.CommandInteraction.ask_yn_question" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prompts the user with a yes/no question.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>message</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Message to display</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if user selects yes, false if no.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.CommandInteraction.ask_yna_question">
+<code class="descname">ask_yna_question</code><span class="sig-paren">(</span><em>message</em>, <em>force_prompt=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/commands/interaction.html#CommandInteraction.ask_yna_question"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.CommandInteraction.ask_yna_question" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prompts the user with a yes/no/always question.</p>
+<p>Always means that further calls to this method will return True.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>message</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Message to display</li>
+<li><strong>force_prompt</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Force a prompt, even if always
+has been selected in the past.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">True if user selects yes, false if no.</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -3768,7 +3886,7 @@ The format follows the convention of <code class="xref py py-meth docutils liter
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.157',
+            VERSION:'v0.18.158',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

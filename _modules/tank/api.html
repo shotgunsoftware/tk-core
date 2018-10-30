@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.api &mdash; tk-core v0.18.157 documentation</title>
+  <title>tank.api &mdash; tk-core v0.18.158 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.157 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.158 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.157.<br>
+    <b>tk-core</b> v0.18.158.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -211,6 +211,8 @@
 <span class="sd">    Toolkit services such as filesystem creation, hooks, context</span>
 <span class="sd">    manipulation and the Toolkit template system.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="p">(</span><span class="n">DEFAULT</span><span class="p">,</span> <span class="n">CENTRALIZED</span><span class="p">,</span> <span class="n">DISTRIBUTED</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_path</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -450,13 +452,53 @@
         <span class="k">return</span> <span class="n">data</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">configuration_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The mode of the currently running configuration:</span>
+
+<span class="sd">        - ``sgtk.CENTRALIZED`` if the configuration is part of a</span>
+<span class="sd">          :ref:`centralized&lt;centralized_configurations&gt;` setup.</span>
+<span class="sd">        - ``sgtk.DISTRIBUTED`` if the configuration is part of a</span>
+<span class="sd">          :ref:`distributed&lt;distributed_configurations&gt;` setup.</span>
+<span class="sd">        - ``sgtk.DEFAULT`` if the configuration does not have an associated pipeline</span>
+<span class="sd">          pipeline configuration but is falling back to its default builtins.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">configuration_id</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT</span>
+        <span class="c1"># any pipeline configuration which has the linux_path/windows_path or mac_path</span>
+        <span class="c1"># populated are defined as a centralized configuration</span>
+        <span class="n">sg_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+            <span class="s2">&quot;PipelineConfiguration&quot;</span><span class="p">,</span>
+            <span class="p">[[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">configuration_id</span><span class="p">]],</span>
+            <span class="p">[</span><span class="s2">&quot;windows_path&quot;</span><span class="p">,</span> <span class="s2">&quot;mac_path&quot;</span><span class="p">,</span> <span class="s2">&quot;linux_path&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">sg_data</span><span class="p">[</span><span class="s2">&quot;windows_path&quot;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">sg_data</span><span class="p">[</span><span class="s2">&quot;mac_path&quot;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">sg_data</span><span class="p">[</span><span class="s2">&quot;linux_path&quot;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">CENTRALIZED</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">DISTRIBUTED</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">configuration_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The name of the currently running pipeline configuration</span>
-<span class="sd">        </span>
-<span class="sd">        :returns: pipeline configuration name as string, e.g. &#39;primary&#39;</span>
+<span class="sd">        The name of the currently running Shotgun Pipeline</span>
+<span class="sd">        Configuration, e.g. ``Primary``.</span>
+<span class="sd">        If the current session does not have an associated</span>
+<span class="sd">        pipeline configuration in Shotgun (for example</span>
+<span class="sd">        because you are running the built-in integrations),</span>
+<span class="sd">        ``None`` will be returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">configuration_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The associated Shotgun pipeline configuration id.</span>
+<span class="sd">        If the current session does not have an associated</span>
+<span class="sd">        pipeline configuration in Shotgun (for example</span>
+<span class="sd">        because you are running the built-in integrations),</span>
+<span class="sd">        ``None`` will be returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pipeline_config</span><span class="o">.</span><span class="n">get_shotgun_id</span><span class="p">()</span>
 
     <span class="c1">##########################################################################################</span>
     <span class="c1"># public methods</span>
@@ -1153,7 +1195,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.157',
+            VERSION:'v0.18.158',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

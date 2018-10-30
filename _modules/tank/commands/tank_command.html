@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.commands.tank_command &mdash; tk-core v0.18.157 documentation</title>
+  <title>tank.commands.tank_command &mdash; tk-core v0.18.158 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.157 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.18.158 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.157.<br>
+    <b>tk-core</b> v0.18.158.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -191,11 +191,11 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 
 <span class="kn">from</span> <span class="nn">.action_base</span> <span class="kn">import</span> <span class="n">Action</span>
+<span class="kn">from</span> <span class="nn">.interaction</span> <span class="kn">import</span> <span class="n">RawInputCommandInteraction</span><span class="p">,</span> <span class="n">YesToEverythingInteraction</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">folders</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">misc</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">move_pc</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">pc_overview</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">migrate_entities</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">path_cache</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">update</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">push_pc</span>
@@ -216,6 +216,7 @@
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">cache_yaml</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">get_entity_commands</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
+
 
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">constants_global</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
@@ -249,7 +250,6 @@
                     <span class="n">folders</span><span class="o">.</span><span class="n">PreviewFoldersAction</span><span class="p">,</span>
                     <span class="n">move_pc</span><span class="o">.</span><span class="n">MovePCAction</span><span class="p">,</span>
                     <span class="n">pc_overview</span><span class="o">.</span><span class="n">PCBreakdownAction</span><span class="p">,</span>
-                    <span class="n">migrate_entities</span><span class="o">.</span><span class="n">MigratePublishedFileEntitiesAction</span><span class="p">,</span>
                     <span class="n">path_cache</span><span class="o">.</span><span class="n">SynchronizePathCache</span><span class="p">,</span>
                     <span class="n">path_cache</span><span class="o">.</span><span class="n">PathCacheMigrationAction</span><span class="p">,</span>
                     <span class="n">unregister_folders</span><span class="o">.</span><span class="n">UnregisterFoldersAction</span><span class="p">,</span>
@@ -324,6 +324,7 @@
 <span class="c1"># - The SgtkSystemCommand class wraps around a command implementation and</span>
 <span class="c1">#   forms the actual interface which we expose via the interface.   </span>
 
+
 <div class="viewcode-block" id="list_commands"><a class="viewcode-back" href="../../../core.html#sgtk.list_commands">[docs]</a><span class="k">def</span> <span class="nf">list_commands</span><span class="p">(</span><span class="n">tk</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Lists the system commands registered with the system.</span>
@@ -369,6 +370,7 @@
             <span class="n">action_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
                 
     <span class="k">return</span> <span class="n">action_names</span></div>
+
 
 <div class="viewcode-block" id="get_command"><a class="viewcode-back" href="../../../core.html#sgtk.get_command">[docs]</a><span class="k">def</span> <span class="nf">get_command</span><span class="p">(</span><span class="n">command_name</span><span class="p">,</span> <span class="n">tk</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -520,7 +522,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__log</span> <span class="o">=</span> <span class="n">log</span></div>
 
-<div class="viewcode-block" id="SgtkSystemCommand.execute"><a class="viewcode-back" href="../../../core.html#sgtk.SgtkSystemCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+<div class="viewcode-block" id="SgtkSystemCommand.execute"><a class="viewcode-back" href="../../../core.html#sgtk.SgtkSystemCommand.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">interaction_interface</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Execute this command.</span>
 <span class="sd">        </span>
@@ -528,11 +530,24 @@
 <span class="sd">                       the dictionary key is the name of the parameter and the value</span>
 <span class="sd">                       is the value you want to pass. You can query which parameters</span>
 <span class="sd">                       can be passed in via the parameters property.</span>
+<span class="sd">        :param interaction_interface: Optional interaction interface. This will be used</span>
+<span class="sd">            whenever the command needs to interact with the user. Should be an</span>
+<span class="sd">            instance deriving from :class:`CommandInteraction`.</span>
 <span class="sd">        :returns: Whatever the command returns. Data type and description for the return</span>
 <span class="sd">                  value can be introspected via the :meth:`parameters` property.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">interaction_interface</span> <span class="o">=</span> <span class="n">interaction_interface</span> <span class="ow">or</span> <span class="n">YesToEverythingInteraction</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">set_interaction_interface</span><span class="p">(</span><span class="n">interaction_interface</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">run_noninteractive</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__log</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">run_noninteractive</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__log</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SgtkSystemCommand.terminate"><a class="viewcode-back" href="../../../core.html#sgtk.SgtkSystemCommand.terminate">[docs]</a>    <span class="k">def</span> <span class="nf">terminate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instructs the command to attempt to terminate its execution.</span>
+<span class="sd">        Not all commands are able to terminate and execution normally</span>
+<span class="sd">        does not terminate straight away.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span></div></div>
 
 <span class="c1">###############################################################################################</span>
 <span class="c1"># Main entry points for accessing tank commands from the tank command / shell engine</span>
@@ -564,7 +579,7 @@
     <span class="c1"># get all actions regardless of current scope first</span>
     <span class="n">all_actions</span> <span class="o">=</span> <span class="n">_get_built_in_actions</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">engine</span><span class="p">:</span>
-        <span class="n">all_actions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span> <span class="n">get_shell_engine_actions</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span> <span class="p">)</span>
+        <span class="n">all_actions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">get_shell_engine_actions</span><span class="p">(</span><span class="n">engine</span><span class="p">))</span>
     
     <span class="c1"># now only pick the ones that are working with our current state</span>
     <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">all_actions</span><span class="p">:</span>
@@ -683,6 +698,8 @@
         <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">70</span><span class="p">)</span>
         <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
+        <span class="n">found_action</span><span class="o">.</span><span class="n">set_interaction_interface</span><span class="p">(</span><span class="n">RawInputCommandInteraction</span><span class="p">())</span>
+
         <span class="k">return</span> <span class="n">found_action</span><span class="o">.</span><span class="n">run_interactive</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
 </pre></div>
 
@@ -716,7 +733,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.157',
+            VERSION:'v0.18.158',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

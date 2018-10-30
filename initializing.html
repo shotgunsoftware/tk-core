@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Initialization and startup &mdash; tk-core v0.18.157 documentation</title>
+  <title>Initialization and startup &mdash; tk-core v0.18.158 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.157 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.158 documentation" href="index.html"/>
         <link rel="next" title="Core" href="core.html"/>
         <link rel="prev" title="Overview" href="overview.html"/> 
 
@@ -170,7 +170,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.157.<br>
+    <b>tk-core</b> v0.18.158.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -310,7 +310,7 @@ general utilities, etc.</p>
 <p>There are two fundamentally different ways to set up a Toolkit Project in Shotgun,
 both briefly outlined below:</p>
 <div class="section" id="distributed-configurations">
-<h3>Distributed configurations<a class="headerlink" href="#distributed-configurations" title="Permalink to this headline">¶</a></h3>
+<span id="id1"></span><h3>Distributed configurations<a class="headerlink" href="#distributed-configurations" title="Permalink to this headline">¶</a></h3>
 <p>Distributed configurations are defined as Pipeline Configurations inside Shotgun.
 At startup, these are detected by the Bootstrap API which will automatically
 manage your local configuration and resources on disk, ensuring that you have all the
@@ -326,7 +326,7 @@ see <a class="reference internal" href="#automatically-managed-pcs"><span class=
 </div>
 </div>
 <div class="section" id="centralized-configurations">
-<h3>Centralized configurations<a class="headerlink" href="#centralized-configurations" title="Permalink to this headline">¶</a></h3>
+<span id="id2"></span><h3>Centralized configurations<a class="headerlink" href="#centralized-configurations" title="Permalink to this headline">¶</a></h3>
 <p>Centralized configurations are installed into a specific disk location, usually on a shared storage,
 and accessed by all users. All users who want to access to the configuration need to be able to
 access its shared location on disk.</p>
@@ -521,7 +521,7 @@ allowing a user to choose which config to use). A <code class="docutils literal"
 </div>
 </div>
 <div class="section" id="plugins-and-plugin-ids">
-<span id="id1"></span><h3>Plugins and plugin ids<a class="headerlink" href="#plugins-and-plugin-ids" title="Permalink to this headline">¶</a></h3>
+<span id="id3"></span><h3>Plugins and plugin ids<a class="headerlink" href="#plugins-and-plugin-ids" title="Permalink to this headline">¶</a></h3>
 <p>In each of the examples shown above, there is a <strong>Plugin Ids</strong> field set to <code class="docutils literal"><span class="pre">basic.*</span></code>:</p>
 <a class="reference internal image-reference" href="_images/pipeline_config.png"><img alt="_images/pipeline_config.png" class="align-center" src="_images/pipeline_config.png" style="width: 700px;" /></a>
 <p>This field is used to specify the <em>scope</em> where the configuration should be used. Each Toolkit plugin and
@@ -852,7 +852,7 @@ a Shotgun entity rather than a path. For more details, see <a class="reference i
 </div>
 </div>
 <div class="section" id="bootstrap-api">
-<span id="id2"></span><h2>Bootstrap API<a class="headerlink" href="#bootstrap-api" title="Permalink to this headline">¶</a></h2>
+<span id="id4"></span><h2>Bootstrap API<a class="headerlink" href="#bootstrap-api" title="Permalink to this headline">¶</a></h2>
 <p>The <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a> class allows for run-time handling of Toolkit configurations
 and removes the traditional step of a project setup. Instead, you can launch an engine
 directly based on a configuration <a class="reference internal" href="descriptor.html#descriptor"><span class="std std-ref">Descriptor URI</span></a>. The manager encapsulates
@@ -890,7 +890,7 @@ instance or run a <code class="docutils literal"><span class="pre">tank</span></
 point into the system. It will handle the setup and initialization of the configuration behind the scenes
 and start up a Toolkit session once all the required pieces have been initialized and set up.</p>
 <div class="section" id="environment-variables">
-<span id="id3"></span><h3>Environment Variables<a class="headerlink" href="#environment-variables" title="Permalink to this headline">¶</a></h3>
+<span id="id5"></span><h3>Environment Variables<a class="headerlink" href="#environment-variables" title="Permalink to this headline">¶</a></h3>
 <p>A number of different environment variables exist to help control the behavior of the Toolkit Startup:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1207,6 +1207,12 @@ all the config dependencies.</p>
 <span class="sd">    :param message:        Progress message string</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When registering a progress callback, ensure that it is ALWAYS
+thread safe. There is no guarantee that it will be called from the 
+main thread.</p>
 </div>
 </dd></dl>
 
@@ -1528,7 +1534,7 @@ likely to contain changes which have not yet been full tested.</p>
 </div>
 </div>
 <div class="section" id="launching-software">
-<span id="id4"></span><h2>Launching Software<a class="headerlink" href="#launching-software" title="Permalink to this headline">¶</a></h2>
+<span id="id6"></span><h2>Launching Software<a class="headerlink" href="#launching-software" title="Permalink to this headline">¶</a></h2>
 <p>In order to run software integrations in the form of a Toolkit <a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal"><span class="pre">Engine</span></code></a>,
 it is necessary to be able to easily launch the software and initialize Toolkit once
 the software environment.</p>
@@ -2272,7 +2278,7 @@ launching DCC.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.157',
+            VERSION:'v0.18.158',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

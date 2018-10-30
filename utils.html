@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.18.157 documentation</title>
+  <title>Utilities &mdash; tk-core v0.18.158 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.157 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.158 documentation" href="index.html"/>
         <link rel="next" title="Descriptors" href="descriptor.html"/>
         <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
 
@@ -151,7 +151,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.157.<br>
+    <b>tk-core</b> v0.18.158.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1229,11 +1229,21 @@ it easy to perform operations and cast between representations and platforms.</p
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">current_os</span>
 <span class="go">&#39;/tmp&#39;</span>
 
+<span class="go"># boolean operations</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">p</span><span class="p">:</span> <span class="nb">print</span> <span class="s2">&quot;a path value defined for windows, linux or mac&quot;</span>
+
+<span class="go"># equality</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">p1</span> <span class="o">==</span> <span class="n">p2</span><span class="p">:</span> <span class="nb">print</span> <span class="s2">&quot;paths are same&quot;</span>
+
 <span class="go"># multi-platform access</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">as_shotgun_dict</span><span class="p">()</span>
 <span class="go">{ &quot;windows_path&quot;: &quot;C:\temp&quot;, &quot;mac_path&quot;: None, &quot;linux_path&quot;: &quot;/tmp&quot;}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">as_system_dict</span><span class="p">()</span>
 <span class="go">{ &quot;win32&quot;: &quot;C:\temp&quot;, &quot;darwin&quot;: None, &quot;linux2&quot;: &quot;/tmp&quot;}</span>
+
+<span class="go"># descriptor uri conversion</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">as_descriptor_uri</span><span class="p">()</span>
+<span class="go">&#39;sgtk:descriptor:path?linux_path=/tmp/foo&#39;</span>
 
 <span class="go"># path manipulation</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">p2</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">)</span>
@@ -1450,6 +1460,28 @@ to just perform the normalization quickly on a local path.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>include_empty</strong> &#8211; Controls whether keys should be included for empty path values</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary of paths keyed by sys.platform.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="sgtk.util.ShotgunPath.as_descriptor_uri">
+<code class="descname">as_descriptor_uri</code><span class="sig-paren">(</span><em>for_development=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun_path.html#ShotgunPath.as_descriptor_uri"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.ShotgunPath.as_descriptor_uri" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translates the path to a descriptor uri. For more information
+about descriptors, see the <a class="reference internal" href="descriptor.html#descriptor"><span class="std std-ref">reference documentation</span></a>.</p>
+<p>This method will either return a dev or a path descriptor uri
+path string, suitable for use with for example pipeline configurations
+in Shotgun.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>for_development</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Set to true for a dev descriptor</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Dev or Path descriptor uri string representing the path</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">ValueError if the path object has no paths defined</td>
 </tr>
 </tbody>
 </table>
@@ -2258,7 +2290,7 @@ example unsupported url schemes.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.157',
+            VERSION:'v0.18.158',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
