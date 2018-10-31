@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
 import copy
@@ -148,7 +148,7 @@ class IODescriptorGitTag(IODescriptorGit):
         try:
             # clone the repo, checkout the given tag
             commands = ["checkout -q \"%s\"" % self._version]
-            self._clone_then_execute_git_commands(destination_path, commands)
+            self._persistent_clone_then_execute_git_commands(destination_path, commands, self._tag)
         except Exception as e:
             raise TankDescriptorError(
                 "Could not download %s, "

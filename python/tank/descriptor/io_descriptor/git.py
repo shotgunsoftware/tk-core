@@ -39,6 +39,24 @@ class IODescriptorGit(IODescriptorDownloadable):
     descriptors have a repository associated (via the 'path'
     parameter).
     """
+
+    _complete_repo_clone = False
+
+    class CompleteRepoClone(object):
+        """
+        When instantiated and used with the ``with`` statement,
+        non-temporary repository clones will keep the .git folder.
+        """
+        def __init__(self):
+            self._previous_state = None
+
+        def __enter__(self):
+            self._previous_state = IODescriptorGit._complete_repo_clone
+            IODescriptorGit._complete_repo_clone = True
+
+        def __exit__(self, *_):
+            IODescriptorGit._complete_repo_clone = self._previous_state
+
     def __init__(self, descriptor_dict):
         """
         Constructor
@@ -59,7 +77,15 @@ class IODescriptorGit(IODescriptorDownloadable):
         self._path = os.path.expanduser(self._path)
 
     @LogManager.log_timing
-    def _clone_then_execute_git_commands(self, target_path, commands):
+    def _persistent_clone_then_execute_git_commands(self, target_path, commands):
+        """
+        Clones the given git repository into the given location on the given commit/tag/branch
+        """
+        self.__clone_then_execute_git_commands(target_path, commands)
+        if not self._complete_repo_clone:
+            filesystem.safe_delete_folder(os.path.join(target_path, ".git"))
+
+    def __clone_then_execute_git_commands(self, target_path, commands):
         """
         Clones the git repository into the given location and
         executes the given list of git commands::
@@ -71,7 +97,7 @@ class IODescriptorGit(IODescriptorDownloadable):
                 "checkout -q my_feature_branch",
                 "reset -q --hard -q a6512356a"
             ]
-            self._clone_then_execute_git_commands("/tmp/foo", commands)
+            self.__clone_then_execute_git_commands("/tmp/foo", commands)
 
         The initial clone operation happens via the subprocess module, ensuring
         there is no terminal that will pop for credentials, leading to a more
@@ -140,6 +166,8 @@ class IODescriptorGit(IODescriptorDownloadable):
         if sys.platform == "win32":
             log.debug("Executing command '%s' using subprocess module." % cmd)
             try:
+                # It's important to pass GIT_TERMINAL_PROMPT=0 or the git subprocess will
+                # just hang waiting for credentials.
                 subprocess_check_output(cmd, startupinfo=startupinfo, env={"GIT_TERMINAL_PROMPT": "0"})
 
                 # If that works, we're done and we don't need to use os.system.
@@ -222,7 +250,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         Clone into a temp location and executes the given
         list of git commands.
 
-        For more details, see :meth:`_clone_then_execute_git_commands`.
+        For more details, see :meth:`__clone_then_execute_git_commands`.
 
         :param commands: list git commands to execute, e.g. ['checkout x']
         :returns: stdout and stderr of the last command executed as a string
@@ -230,7 +258,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         clone_tmp = os.path.join(tempfile.gettempdir(), "sgtk_clone_%s" % uuid.uuid4().hex)
         filesystem.ensure_folder_exists(clone_tmp)
         try:
-            return self._clone_then_execute_git_commands(clone_tmp, commands)
+            return self.__clone_then_execute_git_commands(clone_tmp, commands)
         finally:
             log.debug("Cleaning up temp location '%s'" % clone_tmp)
             shutil.rmtree(clone_tmp, ignore_errors=True)

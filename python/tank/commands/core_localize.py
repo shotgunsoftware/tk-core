@@ -16,6 +16,7 @@ import sys
 import shutil
 import datetime
 
+from ..descriptor.io_descriptor.git import IODescriptorGit
 from ..errors import TankError
 from ..util import filesystem
 from ..util.version import is_version_older
@@ -119,7 +120,8 @@ def do_localize(log, sg_connection, target_config_path, suppress_prompts):
             target_config_path,
             sg_connection
         )
-        core_descriptor.ensure_local()
+        with IODescriptorGit.CompleteRepoClone():
+            core_descriptor.ensure_local()
         source_core_path = core_descriptor.get_path()
         source_core_version = core_descriptor.get_version()
 

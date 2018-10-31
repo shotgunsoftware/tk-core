@@ -69,8 +69,8 @@ class CachedConfiguration(Configuration):
         self._plugin_id = plugin_id
         self._pipeline_config_id = pipeline_config_id
         self._bundle_cache_fallback_paths = bundle_cache_fallback_paths
-
         self._config_writer = ConfigurationWriter(self._path, self._sg_connection)
+        self._bundle_downloader = None
 
     def __str__(self):
         """
@@ -541,7 +541,7 @@ class CachedConfiguration(Configuration):
                 self._sg_connection, self._pipeline_config_id, self._descriptor
             )
         except ImportError:
-            self._bundle_downloader = None
+            pass
 
     def _download_bundle(self, descriptor):
         """
