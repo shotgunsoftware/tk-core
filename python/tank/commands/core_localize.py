@@ -119,6 +119,8 @@ def do_localize(log, sg_connection, target_config_path, interaction_interface):
             target_config_path,
             sg_connection
         )
+        # Cores from centralized config should keep their git history so users
+        # can update and revert core at will.
         with IODescriptorGit.CompleteRepoClone():
             core_descriptor.ensure_local()
         source_core_path = core_descriptor.get_path()

@@ -333,6 +333,8 @@ class TankCoreUpdater(object):
                     "Downloading Toolkit Core API %s from the App Store..." % self._new_core_descriptor.version
                 )
 
+                # Cores from centralized config should keep their git history so users
+                # can update and revert core at will.
                 with IODescriptorGit.CompleteRepoClone():
                     self._new_core_descriptor.download_local()
                 self._log.info("Download completed.")

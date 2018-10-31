@@ -99,14 +99,16 @@ class IODescriptorGit(IODescriptorDownloadable):
         if self._path.endswith("/") or self._path.endswith("\\"):
             self._path = self._path[:-1]
 
-        # Allow using env var in the git path.
-        self._path = os.path.expandvars(self._path)
-        self._path = os.path.expanduser(self._path)
-
     @LogManager.log_timing
     def _persistent_clone_then_execute_git_commands(self, target_path, commands):
         """
-        Clones the given git repository into the given location on the given commit/tag/branch
+        Clones the given git repository into the given location and runs some
+        git commands.
+
+        For more details, see :meth:`__clone_then_execute_git_commands`.
+
+        :param commands: list git commands to execute, e.g. ['checkout x']
+        :returns: stdout and stderr of the last command executed as a string
         """
         self.__clone_then_execute_git_commands(target_path, commands)
         if not self._complete_repo_clone:
