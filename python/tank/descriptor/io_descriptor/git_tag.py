@@ -148,7 +148,7 @@ class IODescriptorGitTag(IODescriptorGit):
         try:
             # clone the repo, checkout the given tag
             commands = ["checkout -q \"%s\"" % self._version]
-            self._persistent_clone_then_execute_git_commands(destination_path, commands, self._tag)
+            self._persistent_clone_then_execute_git_commands(destination_path, commands)
         except Exception as e:
             raise TankDescriptorError(
                 "Could not download %s, "
