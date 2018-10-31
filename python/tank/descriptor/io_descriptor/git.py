@@ -1,16 +1,17 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
 import sys
 import uuid
 import shutil
+import subprocess
 import tempfile
 
 from .downloadable import IODescriptorDownloadable
@@ -38,7 +39,6 @@ class IODescriptorGit(IODescriptorDownloadable):
     descriptors have a repository associated (via the 'path'
     parameter).
     """
-
     def __init__(self, descriptor_dict):
         """
         Constructor
@@ -54,8 +54,9 @@ class IODescriptorGit(IODescriptorDownloadable):
         if self._path.endswith("/") or self._path.endswith("\\"):
             self._path = self._path[:-1]
 
-        # Note: the git command always uses forward slashes
-        self._sanitized_repo_path = self._path.replace(os.path.sep, "/")
+        # Allow using env var in the git path.
+        self._path = os.path.expandvars(self._path)
+        self._path = os.path.expanduser(self._path)
 
     @LogManager.log_timing
     def _clone_then_execute_git_commands(self, target_path, commands):
@@ -72,9 +73,11 @@ class IODescriptorGit(IODescriptorDownloadable):
             ]
             self._clone_then_execute_git_commands("/tmp/foo", commands)
 
-        The initial clone operation happens via an `os.system` call, ensuring
-        that there is an initialized shell environment, allowing git
-        to potentially request shell based authentication for repositories
+        The initial clone operation happens via the subprocess module, ensuring
+        there is no terminal that will pop for credentials, leading to a more
+        seamless experience. If the operation failed, we try a second time with
+        os.system, ensuring that there is an initialized shell environment, allowing
+        git to potentially request shell based authentication for repositories
         which require credentials.
 
         The subsequent list of commands are intended to be executed on the
@@ -91,11 +94,20 @@ class IODescriptorGit(IODescriptorDownloadable):
 
         filesystem.ensure_folder_exists(parent_folder)
 
+        # The argument startupinfo exists on all platform, but the actual
+        # object can only be instantiated on Windows.
+        startupinfo = None
+        if sys.platform == "win32":
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = subprocess.SW_HIDE
+
         # first probe to check that git exists in our PATH
         log.debug("Checking that git exists and can be executed...")
         try:
-            output = subprocess_check_output(["git", "--version"])
+            output = subprocess_check_output(["git", "--version"], startupinfo=startupinfo)
         except:
+            log.exception("Unexpected error:")
             raise TankGitError(
                 "Cannot execute the 'git' command. Please make sure that git is "
                 "installed on your system and that the git executable has been added to the PATH."
@@ -111,14 +123,40 @@ class IODescriptorGit(IODescriptorDownloadable):
         # complications in cleanup scenarios and with file copying. We want
         # each repo that we clone to be completely independent on a filesystem level.
         log.debug("Git Cloning %r into %s" % (self, target_path))
-        cmd = "git clone --no-hardlinks -q \"%s\" \"%s\"" % (self._path, target_path)
+        cmd = ["git", "clone", "--no-hardlinks", "-q", self._path, target_path]
 
-        # Note that we use os.system here to allow for git to pop up (in a terminal
-        # if necessary) authentication prompting. This DOES NOT seem to be possible
-        # with subprocess.
-        log.debug("Executing command '%s' using os.system()" % cmd)
-        log.debug("Note: in a terminal environment, this may prompt for authentication")
-        status = os.system(cmd)
+        run_with_os_system = True
+
+        # We used to call only os.system here. On macOS and Linux this behaved correctly,
+        # i.e. if stdin was open you would be prompted on the terminal and if not then an
+        # error would be raised. This is the best we could do.
+        #
+        # However, for Windows, os.system actually pops a terminal, which is annoying, especially
+        # if you don't require to authenticate. To avoid this popup, we will first launch
+        # git through the subprocess module and instruct it to not show a terminal for the
+        # subprocess.
+        # If that fails, then we'll assume that it failed because credentials were required.
+        # Unfortunately, we can't tell why it failed.
+        if sys.platform == "win32":
+            log.debug("Executing command '%s' using subprocess module." % cmd)
+            try:
+                subprocess_check_output(cmd, startupinfo=startupinfo, env={"GIT_TERMINAL_PROMPT": "0"})
+
+                # If that works, we're done and we don't need to use os.system.
+                run_with_os_system = False
+                status = 0
+            except SubprocessCalledProcessError:
+                log.debug("Subprocess call failed.")
+
+        if run_with_os_system:
+            # Make sure path and repo path are quoted.
+            cmd[-1] = "\"%s\"" % cmd[-1]
+            cmd[-2] = "\"%s\"" % cmd[-2]
+            cmd = " ".join(cmd)
+            log.debug("Executing command '%s' using os.system" % cmd)
+            log.debug("Note: in a terminal environment, this may prompt for authentication")
+            status = os.system(cmd)
+
         log.debug("Command returned exit code %s" % status)
         if status != 0:
             raise TankGitError(
@@ -158,7 +196,8 @@ class IODescriptorGit(IODescriptorDownloadable):
                 try:
                     output = subprocess_check_output(
                         full_command,
-                        shell=True
+                        shell=True,
+                        startupinfo=startupinfo
                     )
 
                     # note: it seems on windows, the result is sometimes wrapped in single quotes.
@@ -166,7 +205,8 @@ class IODescriptorGit(IODescriptorDownloadable):
 
                 except SubprocessCalledProcessError as e:
                     raise TankGitError(
-                        "Error executing git operation '%s': %s (Return code %s)" % (full_command, e.output, e.returncode)
+                        "Error executing git operation '%s': %s (Return code %s)" %
+                        (full_command, e.output, e.returncode)
                     )
                 log.debug("Execution successful. stderr/stdout: '%s'" % output)
         finally:
