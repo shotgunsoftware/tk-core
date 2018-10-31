@@ -21,6 +21,7 @@ from .. import pipelineconfig_utils
 
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
+from .interaction import YesToEverythingInteraction
 
 class SetupProjectFactoryAction(Action):
     """
@@ -709,5 +710,5 @@ class SetupProjectWizard(object):
                     self._log,
                     self._sg,
                     config_path,
-                    suppress_prompts=True
+                    YesToEverythingInteraction()  # don't prompt
                 )
