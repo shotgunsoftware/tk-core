@@ -599,7 +599,7 @@ class TestShotgunSync(TankTestBase):
         # now we run the sync - and this sync should be incremental 
         log = sync_path_cache(self.tk)
         # make sure the log mentions an incremental sync
-        self.assertTrue("Doing an incremental sync" in log )
+        self.assertTrue("Doing an incremental sync" in log)
         # and make sure the sync generated new records
         self.assertEqual(len(self._get_path_cache()), 4)
 

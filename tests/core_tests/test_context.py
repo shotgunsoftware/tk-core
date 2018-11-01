@@ -639,7 +639,7 @@ class TestFromEntity(TestContext):
     def check_entity(self, first_entity, second_entity, check_name=True):
         "Checks two entity dictionaries have the same values for keys type, id and name."
         self.assertEqual(first_entity["type"], second_entity["type"])
-        self.assertEqual(first_entity["id"],   second_entity["id"])
+        self.assertEqual(first_entity["id"], second_entity["id"])
         if check_name:
             self.assertEqual(first_entity["name"], second_entity["name"])
 
