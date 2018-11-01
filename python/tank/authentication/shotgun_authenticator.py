@@ -85,7 +85,6 @@ class ShotgunAuthenticator(object):
                                  used.
         """
         self._defaults_manager = defaults_manager or DefaultsManager()
-        self._defaults_manager = defaults_manager or DefaultsManager()
 
     def clear_default_user(self):
         """

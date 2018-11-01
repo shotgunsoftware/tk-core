@@ -256,9 +256,7 @@ class PipelineConfiguration(object):
 
             if "bundle_cache_paths" in external_data:
                 self._bundle_cache_fallback_paths = external_data["bundle_cache_paths"]
-                log.debug(
-                    "%s: Setting bundle cache fallbacks to %s from external config data" %
-                    (self, self._bundle_cache_fallback_paths)
+                log.debug("%s: Setting bundle cache fallbacks to %s from external config data" % (self, self._bundle_cache_fallback_paths)
                 )
 
         # Populate the global yaml_cache if we find a pickled cache on disk.

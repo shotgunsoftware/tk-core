@@ -334,7 +334,6 @@ class Engine(TankBundle):
         # now determine if the runtime implementation
         # is the base class implementation or not
         subclassed = False
-        subclassed = False
 
         if sys.version_info < (2,6):
             # older pythons use im_func rather than __func__
