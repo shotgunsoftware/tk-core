@@ -775,7 +775,7 @@ class TestFolderCreationEdgeCases(TankTestBase):
         # 4. when creating folders, it should delete the previous records and replace with new
         
 
-        self.assertEquals(self.path_cache.get_paths("Shot", self.shot["id"], False), [])
+        self.assertEqual(self.path_cache.get_paths("Shot", self.shot["id"], False), [])
         
         folder.process_filesystem_structure(self.tk, 
                                             self.task["type"], 
@@ -786,7 +786,7 @@ class TestFolderCreationEdgeCases(TankTestBase):
         # check that it is in the db
         shot_path = os.path.join(self.project_root, "sequences", "seq_code", "shot_code")
         paths_in_db = self.path_cache.get_paths("Shot", self.shot["id"], False)
-        self.assertEquals(paths_in_db, [shot_path])
+        self.assertEqual(paths_in_db, [shot_path])
         
         # change the id of the shot - effectively deleting and creating a shot!
         old_id = self.shot["id"]
@@ -795,9 +795,9 @@ class TestFolderCreationEdgeCases(TankTestBase):
         # would have done a retirement.
         self.task["entity"] = self.shot
         
-        self.assertEquals( self.path_cache.get_paths("Shot", self.shot["id"], False), [])
+        self.assertEqual( self.path_cache.get_paths("Shot", self.shot["id"], False), [])
         
-        self.assertRaisesRegexp(TankError, 
+        self.assertRaisesRegex(TankError, 
                                 "Folder creation aborted.*unregister_folders",
                                 folder.process_filesystem_structure,
                                 self.tk,
@@ -835,7 +835,7 @@ class TestFolderCreationEdgeCases(TankTestBase):
         self.shot["code"] = "XYZ"
 
 
-        self.assertRaisesRegexp(TankError, 
+        self.assertRaisesRegex(TankError, 
                                 "Folder creation aborted.*unregister_folders",
                                 folder.process_filesystem_structure,
                                 self.tk,
@@ -857,7 +857,7 @@ class TestFolderCreationEdgeCases(TankTestBase):
         shutil.move(shot_path, renamed_shot_path)
         
 
-        self.assertRaisesRegexp(TankError, 
+        self.assertRaisesRegex(TankError, 
                                 "Folder creation aborted.*unregister_folders",
                                 folder.process_filesystem_structure,
                                 self.tk,

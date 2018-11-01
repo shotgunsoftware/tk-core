@@ -634,7 +634,7 @@ if PY3:
     _assertCountEqual = "assertCountEqual"
     if sys.version_info[1] <= 1:
         _assertRaisesRegex = "assertRaisesRegexp"
-        _assertRegex = "assertRegexpMatches"
+        _assertRegex = "assertRegex"
     else:
         _assertRaisesRegex = "assertRaisesRegex"
         _assertRegex = "assertRegex"
@@ -658,7 +658,7 @@ else:
     StringIO = BytesIO = StringIO.StringIO
     _assertCountEqual = "assertItemsEqual"
     _assertRaisesRegex = "assertRaisesRegexp"
-    _assertRegex = "assertRegexpMatches"
+    _assertRegex = "assertRegex"
 _add_doc(b, """Byte literal""")
 _add_doc(u, """Text literal""")
 

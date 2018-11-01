@@ -146,7 +146,7 @@ class Includes(object):
             """
             Make sure an exception is raised when the include doesn't exist.
             """
-            with self.assertRaisesRegexp(tank.TankError, "Include resolve error"):
+            with self.assertRaisesRegex(tank.TankError, "Include resolve error"):
                 self._resolve_includes("dead/path/to/a/file")
 
 

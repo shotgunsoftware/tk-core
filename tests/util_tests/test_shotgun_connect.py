@@ -151,69 +151,69 @@ class TestGetSgConfigData(ShotgunTestBase):
         Ensures host is cleaned-up properly.
         """
         # Ensure https is added if no scheme is specified.
-        self.assertEquals(
+        self.assertEqual(
             "https://no.scheme.com",
             sanitize_url("no.scheme.com")
         )
 
         # Ensure that we lowercase the URL.
-        self.assertEquals(
+        self.assertEqual(
             "https://caps.site.com",
             sanitize_url("https://CAPS.site.com")
         )
 
         # Ensure https is not modified if specified.
-        self.assertEquals(
+        self.assertEqual(
             "https://no.scheme.com",
             sanitize_url("https://no.scheme.com")
         )
 
         # Ensure http is left as is if specified.
-        self.assertEquals(
+        self.assertEqual(
             "http://no.scheme.com",
             sanitize_url("http://no.scheme.com")
         )
 
         # Ensure any scheme is left as is if specified.
-        self.assertEquals(
+        self.assertEqual(
             "invalid-scheme://no.scheme.com",
             sanitize_url("invalid-scheme://no.scheme.com")
         )
 
         # Ensures a suffixed slash gets removed.
-        self.assertEquals(
+        self.assertEqual(
             "https://no.suffixed.slash.com",
             sanitize_url("https://no.suffixed.slash.com/")
         )
 
         # Ensures anything after the host is dropped.
-        self.assertEquals(
+        self.assertEqual(
             "https://no.suffixed.slash.com",
             sanitize_url("https://no.suffixed.slash.com/path/to/a/resource")
         )
 
         # Ensures anything after the host is dropped.
-        self.assertEquals(
+        self.assertEqual(
             "http://localhost",
             sanitize_url("http://localhost")
         )
 
-        self.assertEquals(
+        self.assertEqual(
             "https://localhost",
             sanitize_url("localhost")
         )
 
-        self.assertEquals(
+        self.assertEqual(
             "https://127.0.0.1",
             sanitize_url("127.0.0.1")
         )
 
-        self.assertEquals(
+        self.assertEqual(
             "https://test.shotgunstudio.com",
             sanitize_url("test.shotgunstudio.com/")
         )
 
-        self.assertEquals(
+        self.assertEqual(
             "https://test.shotgunstudio.com",
             sanitize_url("test.shotgunstudio.com/a")
         )
@@ -226,17 +226,17 @@ class TestGetSgConfigData(ShotgunTestBase):
 
         # Ensure that port number is also kept.
 
-        # self.assertEquals(
+        # self.assertEqual(
         #     "https://no.scheme.com:8080",
         #     sanitize_url("no.scheme.com:8080")
         # )
 
-        # self.assertEquals(
+        # self.assertEqual(
         #     "https://localhost:8000",
         #     sanitize_url("localhost:8000")
         # )
 
-        # self.assertEquals(
+        # self.assertEqual(
         #     "https://127.0.0.1:8000",
         #     sanitize_url("127.0.0.1:8000")
         # )

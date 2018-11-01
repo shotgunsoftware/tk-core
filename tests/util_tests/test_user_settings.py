@@ -109,7 +109,7 @@ class UserSettingsTests(ShotgunTestBase):
         self.assertEqual(
             UserSettings().get_boolean_setting("Custom", "valid"), True
         )
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             TankError,
             "Invalid value 'L' in '.*' for setting 'invalid' in section 'Custom': expecting one of .*."
         ):
@@ -158,7 +158,7 @@ class UserSettingsTests(ShotgunTestBase):
         self.assertEqual(
             UserSettings().get_integer_setting("Custom", "also_valid"), -1
         )
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             TankError,
             "Invalid value 'L' in '.*' for setting 'invalid' in section 'Custom': expecting integer."
         ):
@@ -181,9 +181,9 @@ class UserSettingsTests(ShotgunTestBase):
         Test environment variables being set to files that don't exist.
         """
         with patch.dict(os.environ, {"SGTK_PREFERENCES_LOCATION": "/a/b/c"}):
-            with self.assertRaisesRegexp(EnvironmentVariableFileLookupError, "/a/b/c"):
+            with self.assertRaisesRegex(EnvironmentVariableFileLookupError, "/a/b/c"):
                 UserSettings()
 
         with patch.dict(os.environ, {"SGTK_DESKTOP_CONFIG_LOCATION": "/d/e/f"}):
-            with self.assertRaisesRegexp(EnvironmentVariableFileLookupError, "/d/e/f"):
+            with self.assertRaisesRegex(EnvironmentVariableFileLookupError, "/d/e/f"):
                 UserSettings()

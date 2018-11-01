@@ -212,7 +212,7 @@ class TestPipelineConfigUtils(ShotgunTestBase):
             pipelineconfig_utils.get_python_interpreter_for_config(config_root_with_bad_interpreter)
 
         # Test when the interpreter file is missing
-        with self.assertRaisesRegexp(TankFileDoesNotExistError, "No interpreter file for"):
+        with self.assertRaisesRegex(TankFileDoesNotExistError, "No interpreter file for"):
             pipelineconfig_utils.get_python_interpreter_for_config(config_root_without_interpreter_file)
 
     def test_core_location_retrieval(self):
@@ -289,7 +289,7 @@ class TestPipelineConfigUtils(ShotgunTestBase):
         studio_core_with_missing_interpreter_file_location = self._create_studio_core(
             "studio_core_with_missing_interpreter_file"
         )
-        with self.assertRaisesRegexp(TankFileDoesNotExistError, "No interpreter file for"):
+        with self.assertRaisesRegex(TankFileDoesNotExistError, "No interpreter file for"):
             pipelineconfig_utils.get_python_interpreter_for_config(
                 self._create_pipeline_configuration(
                     "config_using_studio_core_with_missing_interpreter_file",
@@ -312,7 +312,7 @@ class TestPipelineConfigUtils(ShotgunTestBase):
             "config_with_no_core_file"
         )
 
-        with self.assertRaisesRegexp(TankFileDoesNotExistError, "is missing a core location file"):
+        with self.assertRaisesRegex(TankFileDoesNotExistError, "is missing a core location file"):
             pipelineconfig_utils.get_python_interpreter_for_config(config_with_no_core_file_location)
 
     def test_missing_core_location_file(self):
@@ -323,7 +323,7 @@ class TestPipelineConfigUtils(ShotgunTestBase):
 
         self.assertIsNone(pipelineconfig_utils.get_core_path_for_config(config_root), None)
 
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             TankFileDoesNotExistError,
             "without a localized core is missing a core"
         ):
