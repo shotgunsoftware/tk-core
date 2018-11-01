@@ -182,7 +182,7 @@ class TestAddMapping(TestPathCache):
 
         # finally, make sure that there is exactly a single record in the db representing the path
         res = self.db_cursor.execute("SELECT path, root FROM path_cache WHERE entity_type = ? AND entity_id = ?", (self.entity["type"], self.entity["id"]))
-        self.assertEqual( len(res.fetchall()), 1)
+        self.assertEqual(len(res.fetchall()), 1)
 
     def test_is_path_in_db(self):
         """
@@ -247,31 +247,31 @@ class TestAddMapping(TestPathCache):
         add_item_to_cache(self.path_cache, {"type": et, "id": eid+3, "name": en}, full_path, primary=False)
         
         # get path should return the primary record
-        self.assertEqual( self.path_cache.get_entity(full_path), {'type': 'EntityType', 'id': 1, 'name': 'EntityName'} )
+        self.assertEqual(self.path_cache.get_entity(full_path), {'type': 'EntityType', 'id': 1, 'name': 'EntityName'})
         
         # check lookup from other direction
         paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"], primary_only=True)
-        self.assertEqual( len(paths), 1)
-        self.assertEqual( paths[0], full_path)
+        self.assertEqual(len(paths), 1)
+        self.assertEqual(paths[0], full_path)
 
         paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"]+1, primary_only=True)
-        self.assertEqual( len(paths), 0)
+        self.assertEqual(len(paths), 0)
 
         paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"]+1, primary_only=False)
-        self.assertEqual( len(paths), 1)
-        self.assertEqual( paths[0], full_path)
+        self.assertEqual(len(paths), 1)
+        self.assertEqual(paths[0], full_path)
 
         paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"]+2, primary_only=False)
-        self.assertEqual( len(paths), 1)
-        self.assertEqual( paths[0], full_path)
+        self.assertEqual(len(paths), 1)
+        self.assertEqual(paths[0], full_path)
 
         paths = self.path_cache.get_paths(self.entity["type"], self.entity["id"]+3, primary_only=False)
-        self.assertEqual( len(paths), 1)
-        self.assertEqual( paths[0], full_path)
+        self.assertEqual(len(paths), 1)
+        self.assertEqual(paths[0], full_path)
 
         # finally, make sure that there no dupe records
         res = self.db_cursor.execute("SELECT path, root FROM path_cache WHERE entity_type = ? AND entity_id = ?", (self.entity["type"], self.entity["id"]+3))
-        self.assertEqual( len(res.fetchall()), 1)
+        self.assertEqual(len(res.fetchall()), 1)
 
     def test_non_primary_path(self):
         """
@@ -460,7 +460,7 @@ class TestShotgunSync(TankTestBase):
         path_cache.close()
         
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 1)        
-        self.assertEqual( len(self._get_path_cache()), 1)
+        self.assertEqual(len(self._get_path_cache()), 1)
         
         
         folder.process_filesystem_structure(self.tk, 
@@ -471,12 +471,12 @@ class TestShotgunSync(TankTestBase):
         
         # now have project / seq 
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 2)
-        self.assertEqual( len(self._get_path_cache()), 2)
+        self.assertEqual(len(self._get_path_cache()), 2)
                 
         # nothing should happen
         sync_path_cache(self.tk)
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 2)
-        self.assertEqual( len(self._get_path_cache()), 2)
+        self.assertEqual(len(self._get_path_cache()), 2)
 
         # make a copy of the path cache at this point
         shutil.copy(pcl, "%s.snap1" % pcl) 
@@ -490,7 +490,7 @@ class TestShotgunSync(TankTestBase):
         
         # now have project / seq / shot / step 
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
-        self.assertEqual( len(self._get_path_cache()), 4)
+        self.assertEqual(len(self._get_path_cache()), 4)
         path_cache_contents_1 = self._get_path_cache()
         
         # now replace our path cache with snap1
@@ -499,12 +499,12 @@ class TestShotgunSync(TankTestBase):
         
         # now path cache has not been synchronized but shotgun has an entry
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
-        self.assertEqual( len(self._get_path_cache()), 2)
+        self.assertEqual(len(self._get_path_cache()), 2)
         sync_path_cache(self.tk)
         
         # check that the sync happend
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
-        self.assertEqual( len(self._get_path_cache()), 4)
+        self.assertEqual(len(self._get_path_cache()), 4)
         
         # and that the content is the same
         path_cache_contents_2 = self._get_path_cache()
@@ -517,7 +517,7 @@ class TestShotgunSync(TankTestBase):
         
         # check that the sync happend
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
-        self.assertEqual( len(self._get_path_cache()), 4)
+        self.assertEqual(len(self._get_path_cache()), 4)
         
         # and that the content is the same
         path_cache_contents_3 = self._get_path_cache()
@@ -575,7 +575,7 @@ class TestShotgunSync(TankTestBase):
         
         # now have project and sequence in the path cache 
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 2)
-        self.assertEqual( len(self._get_path_cache()), 2)
+        self.assertEqual(len(self._get_path_cache()), 2)
                 
         # make a copy of the path cache at this point
         shutil.copy(pcl, "%s.snap1" % pcl) 
@@ -589,19 +589,19 @@ class TestShotgunSync(TankTestBase):
         
         # now have project / seq / shot / step 
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
-        self.assertEqual( len(self._get_path_cache()), 4)
+        self.assertEqual(len(self._get_path_cache()), 4)
         
         # now replace our path cache file with with snap1
         # so that we have a not-yet-up to date path cache file. 
         shutil.copy("%s.snap1" % pcl, pcl)
-        self.assertEqual( len(self._get_path_cache()), 2)
+        self.assertEqual(len(self._get_path_cache()), 2)
         
         # now we run the sync - and this sync should be incremental 
         log = sync_path_cache(self.tk)
         # make sure the log mentions an incremental sync
-        self.assertTrue( "Doing an incremental sync" in log )
+        self.assertTrue("Doing an incremental sync" in log )
         # and make sure the sync generated new records
-        self.assertEqual( len(self._get_path_cache()), 4)
+        self.assertEqual(len(self._get_path_cache()), 4)
 
 
     def test_missing_roots_mapping(self):
@@ -617,7 +617,7 @@ class TestShotgunSync(TankTestBase):
                                             engine=None)  
         
         self.assertEqual(len(self.tk.shotgun.find(tank.path_cache.SHOTGUN_ENTITY, [])), 4)
-        self.assertEqual( len(self._get_path_cache()), 4)
+        self.assertEqual(len(self._get_path_cache()), 4)
 
         invalid_roots_data = {
             "primary": {
@@ -632,7 +632,7 @@ class TestShotgunSync(TankTestBase):
         # perform a full sync
         log = sync_path_cache(self.tk, force_full_sync=True)
         self.assertTrue("Could not resolve storages - skipping" in log)
-        self.assertEqual( len(self._get_path_cache()), 0)
+        self.assertEqual(len(self._get_path_cache()), 0)
 
         config_folder = os.path.join(
             self.pipeline_config_root,
@@ -645,7 +645,7 @@ class TestShotgunSync(TankTestBase):
         # perform a full sync
         log = sync_path_cache(self.tk, force_full_sync=True)
         self.assertTrue("Could not resolve storages - skipping" not in log)
-        self.assertEqual( len(self._get_path_cache()), 4)
+        self.assertEqual(len(self._get_path_cache()), 4)
 
     def test_truncated_eventlog(self):
         """Tests that a full sync happens if the event log is truncated."""

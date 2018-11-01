@@ -31,17 +31,17 @@ class TestVersionCompare(ShotgunTestBase):
         
         from tank.util.version import is_version_newer
         
-        self.assertTrue( is_version_newer("1.2.3", "1.0.0") )
-        self.assertTrue( is_version_newer("v1.2.3", "v1.0.0") )
-        self.assertTrue( is_version_newer("v1.2.3", "1.0.0") )
+        self.assertTrue(is_version_newer("1.2.3", "1.0.0") )
+        self.assertTrue(is_version_newer("v1.2.3", "v1.0.0") )
+        self.assertTrue(is_version_newer("v1.2.3", "1.0.0") )
         
-        self.assertTrue( is_version_newer("v1.200.3", "v1.12.345") )
+        self.assertTrue(is_version_newer("v1.200.3", "v1.12.345") )
         
-        self.assertTrue( is_version_newer("HEaD", "v1.12.345") )
-        self.assertTrue( is_version_newer("MAsTER", "v1.12.345") )
+        self.assertTrue(is_version_newer("HEaD", "v1.12.345") )
+        self.assertTrue(is_version_newer("MAsTER", "v1.12.345") )
         
-        self.assertTrue( is_version_newer("HEaD", "1.12.345") )
-        self.assertTrue( is_version_newer("MAsTER", "1.12.345") )
+        self.assertTrue(is_version_newer("HEaD", "1.12.345") )
+        self.assertTrue(is_version_newer("MAsTER", "1.12.345") )
 
         self.assertFalse( is_version_newer("v0.12.3", "HEaD") )
         self.assertFalse( is_version_newer("v0.12.3", "MAsTER") )
@@ -71,13 +71,13 @@ class TestVersionCompare(ShotgunTestBase):
         self.assertFalse( is_version_older("HEaD", "1.12.345") )
         self.assertFalse( is_version_older("MAsTER", "1.12.345") )
 
-        self.assertTrue( is_version_older("v0.12.3", "HEaD") )
-        self.assertTrue( is_version_older("v0.12.3", "MAsTER") )
+        self.assertTrue(is_version_older("v0.12.3", "HEaD") )
+        self.assertTrue(is_version_older("v0.12.3", "MAsTER") )
         
-        self.assertTrue( is_version_older("0.12.3", "HEaD") )
-        self.assertTrue( is_version_older("0.12.3", "MAsTER") )
+        self.assertTrue(is_version_older("0.12.3", "HEaD") )
+        self.assertTrue(is_version_older("0.12.3", "MAsTER") )
 
-        self.assertTrue( is_version_older("v0.12.3", "1.2.3") )
-        self.assertTrue( is_version_older("v0.12.3", "0.12.4") )
+        self.assertTrue(is_version_older("v0.12.3", "1.2.3") )
+        self.assertTrue(is_version_older("v0.12.3", "0.12.4") )
         
         self.assertFalse( is_version_older("1.0.0", "1.0.0") )

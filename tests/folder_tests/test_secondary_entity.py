@@ -124,8 +124,8 @@ class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
         pc = path_cache.PathCache(self.tk)
         shot_paths = pc.get_paths("Shot", self.shot["id"], primary_only=False)
         seq_paths = pc.get_paths("Sequence", self.seq["id"], primary_only=False)
-        self.assertEqual( len(shot_paths), 1 )
-        self.assertEqual( len(seq_paths), 1)
+        self.assertEqual(len(shot_paths), 1)
+        self.assertEqual(len(seq_paths), 1)
         pc.close()
         
         # it's the same folder for seq and shot
@@ -158,8 +158,8 @@ class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
         pc = path_cache.PathCache(self.tk)
         step_paths = pc.get_paths("Step", self.step["id"], primary_only=False)
         task_paths = pc.get_paths("Task", self.task["id"], primary_only=False)        
-        self.assertEqual( len(step_paths), 1 )
-        self.assertEqual( len(task_paths), 1)
+        self.assertEqual(len(step_paths), 1)
+        self.assertEqual(len(task_paths), 1)
         # it's the same folder for seq and shot
         self.assertEqual(step_paths, task_paths)
         pc.close()

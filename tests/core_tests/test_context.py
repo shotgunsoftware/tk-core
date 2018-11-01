@@ -533,7 +533,7 @@ class TestFromEntity(TestContext):
 
         # Check that the shotgun method find_one was used
         num_finds_after = self.tk.shotgun.finds
-        self.assertTrue( (num_finds_after-num_finds_before) == 1 )
+        self.assertTrue((num_finds_after-num_finds_before) == 1)
 
 
     @patch("tank.util.login.get_current_user")

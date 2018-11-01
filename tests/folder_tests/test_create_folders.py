@@ -774,7 +774,6 @@ class TestFolderCreationEdgeCases(TankTestBase):
         # 3. create a new shot ABC in SG
         # 4. when creating folders, it should delete the previous records and replace with new
         
-
         self.assertEqual(self.path_cache.get_paths("Shot", self.shot["id"], False), [])
         
         folder.process_filesystem_structure(self.tk, 
@@ -795,7 +794,7 @@ class TestFolderCreationEdgeCases(TankTestBase):
         # would have done a retirement.
         self.task["entity"] = self.shot
         
-        self.assertEqual( self.path_cache.get_paths("Shot", self.shot["id"], False), [])
+        self.assertEqual(self.path_cache.get_paths("Shot", self.shot["id"], False), [])
         
         self.assertRaisesRegex(TankError, 
                                 "Folder creation aborted.*unregister_folders",
@@ -834,7 +833,6 @@ class TestFolderCreationEdgeCases(TankTestBase):
         # rename the shot
         self.shot["code"] = "XYZ"
 
-
         self.assertRaisesRegex(TankError, 
                                 "Folder creation aborted.*unregister_folders",
                                 folder.process_filesystem_structure,
@@ -855,7 +853,6 @@ class TestFolderCreationEdgeCases(TankTestBase):
         shot_path = os.path.join(self.project_root, "sequences", "seq_code", "shot_code")
         renamed_shot_path = os.path.join(self.project_root, "sequences", "seq_code", "shot_code_renamed")
         shutil.move(shot_path, renamed_shot_path)
-        
 
         self.assertRaisesRegex(TankError, 
                                 "Folder creation aborted.*unregister_folders",
