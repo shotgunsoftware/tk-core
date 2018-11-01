@@ -315,15 +315,15 @@ class TestUrl(TestContext):
 
     def test_project(self):
         result = context.from_entity(self.tk, self.project["type"], self.project["id"])
-        self.assertEqual(result.shotgun_url, "http://unit_test_mock_sg/detail/Project/1" )
+        self.assertEqual(result.shotgun_url, "http://unit_test_mock_sg/detail/Project/1")
 
     def test_empty(self):
         result =  context.create_empty(self.tk)
-        self.assertEqual(result.shotgun_url, "http://unit_test_mock_sg" )
+        self.assertEqual(result.shotgun_url, "http://unit_test_mock_sg")
 
     def test_entity(self):
         result =  context.from_entity(self.tk, self.shot["type"], self.shot["id"])
-        self.assertEqual(result.shotgun_url, "http://unit_test_mock_sg/detail/Shot/2" )
+        self.assertEqual(result.shotgun_url, "http://unit_test_mock_sg/detail/Shot/2")
         
     def test_task(self):
         """
@@ -336,7 +336,7 @@ class TestUrl(TestContext):
         self.task["additional_field"] = add_value
         
         result = context.from_entity(self.tk, self.task["type"], self.task["id"])
-        self.assertEqual(result.shotgun_url, "http://unit_test_mock_sg/detail/Task/1" )
+        self.assertEqual(result.shotgun_url, "http://unit_test_mock_sg/detail/Task/1")
 
 
 class TestStringRepresentation(TestContext):
@@ -533,7 +533,7 @@ class TestFromEntity(TestContext):
 
         # Check that the shotgun method find_one was used
         num_finds_after = self.tk.shotgun.finds
-        self.assertTrue((num_finds_after-num_finds_before) == 1)
+        self.assertTrue((num_finds_after - num_finds_before) == 1)
 
 
     @patch("tank.util.login.get_current_user")
