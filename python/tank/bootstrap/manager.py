@@ -427,7 +427,7 @@ class ToolkitManager(object):
                 '''
 
         .. note:: When registering a progress callback, ensure that it is ALWAYS
-            thread safe. There is no guarantee that it will be called from the 
+            thread safe. There is no guarantee that it will be called from the
             main thread.
         """
         return self._progress_cb or self._default_progress_callback
@@ -1155,6 +1155,12 @@ class ToolkitManager(object):
             engine = tank.platform.start_engine(engine_name, tk, ctx)
 
         log.debug("Launched engine %r" % engine)
+
+        if hasattr(engine, "host_info"):
+            try:
+                log.debug(engine.host_info)
+            except Exception as e:
+                log.debug("Couldn't log host info: %s", e)
 
         self._report_progress(progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched.")
 
