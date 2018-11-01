@@ -322,7 +322,7 @@ module is globally installed and the user is expecting to run tests against a
 development version in a different location) then discovery halts with an
 ``ImportError`` and the problem is reported.
 
-Added docstrings to ``assertRegex`` and ``assertNotRegexpMatches``.
+Added docstrings to ``assertRegexpMatches`` and ``assertNotRegexpMatches``.
 
 Putting functions in test suites no longer crashes.
 

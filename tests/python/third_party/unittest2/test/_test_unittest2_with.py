@@ -155,7 +155,7 @@ class TestWith(unittest2.TestCase):
             (self.failUnlessRaises, (TypeError, lambda _: 3.14 + 'spam')),
             (self.failIf, (False,)),
             (self.assertRaisesRegexp, (KeyError, 'foo', lambda: {}['foo'])),
-            (self.assertRegex, ('bar', 'bar')),
+            (self.assertRegexpMatches, ('bar', 'bar')),
             (self.assertNotRegexpMatches, ('xxx', 'yyy')),
         )
         for meth, args in old:

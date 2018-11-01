@@ -39,4 +39,4 @@ class TestCase(unittest.TestCase):
 
     if not unittest_has('assertRegex'):
         def assertRegex(self, *args, **kwargs):
-            return self.assertRegex(*args, **kwargs)
+            return self.assertRegexpMatches(*args, **kwargs)

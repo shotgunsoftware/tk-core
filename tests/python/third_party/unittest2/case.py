@@ -1333,7 +1333,7 @@ class TestCase(unittest.TestCase):
     failUnlessRaises = _deprecate(assertRaises)
     failIf = _deprecate(assertFalse)
     assertRaisesRegexp = _deprecate(assertRaisesRegex)
-    assertRegex = _deprecate(assertRegex)
+    assertRegexpMatches = _deprecate(assertRegex)
     assertNotRegexpMatches = _deprecate(assertNotRegex)
 
 
