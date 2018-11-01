@@ -83,7 +83,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         ):
 
             if sys.platform == "win32":
-                local_path = r"x:\tmp\win\path\to\file.txt",
+                local_path = r"x:\tmp\win\path\to\file.txt"
             else:
                 local_path = "/tmp/nix/path/to/file.txt"
 
