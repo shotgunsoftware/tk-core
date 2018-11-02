@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright (c) 2018 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
@@ -19,12 +20,30 @@ import sys
 import os
 import glob
 import copy
+import optparse
 
 
 import subprocess
 
 
+def parse_options():
+    """
+    Parses the command line.
+
+    :returns: Value of the --with-coverate option and the list of tests to run.
+    :rtype: tuple
+    """
+    parser = optparse.OptionParser(usage="%prog [options] [<testname>...]")
+    parser.add_option("--with-coverage", action="store_true", default=False)
+
+    options, args = parser.parse_args()
+
+    return options.with_coverage, args
+
+
 def main():
+
+    with_coverage, args = parse_options()
 
     current_folder = os.path.dirname(__file__)
 
@@ -49,7 +68,7 @@ def main():
 
     before = time.time()
     try:
-        filenames = glob.iglob(os.path.join(current_folder, "*.py"))
+        filenames = args or glob.iglob(os.path.join(current_folder, "*.py"))
         for filename in filenames:
 
             # Skip the launcher. :)
@@ -60,7 +79,7 @@ def main():
             print("Running %s" % os.path.basename(filename))
             print("=" * 79)
 
-            if "--with-coverage" in sys.argv:
+            if with_coverage:
                 args = [
                     sys.executable,
                     coverage_path,

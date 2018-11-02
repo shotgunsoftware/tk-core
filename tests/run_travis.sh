@@ -55,4 +55,6 @@ if [ -z ${SHOTGUN_HOST+x} ]; then
     echo "Skipping integration tests, SHOTGUN_HOST is not set."
 else
     python tests/integration_tests/run_integration_tests.py --with-coverage
+    python tests/python/coverage_recombiner.py "$PWD"
 fi
+
