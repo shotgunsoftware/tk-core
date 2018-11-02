@@ -9,6 +9,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import print_function
+
 """
 Scripts that sanitizes Toolkit .coverage files.
 """
@@ -31,7 +33,7 @@ def main():
 
     coverage_file = os.path.join(current_folder, ".coverage")
 
-    print "Reading coverage data from '%s'..." % coverage_file
+    print("Reading coverage data from '%s'..." % coverage_file)
 
     # Read in the orignal data
     original_cov_data = coverage.CoverageData()
@@ -45,7 +47,7 @@ def main():
 
     for measured_file in original_cov_data.measured_files():
         if current_folder in measured_file:
-            print "Processing %s" % measured_file
+            print("Processing %s" % measured_file)
             combiner.add_lines(
                 {measured_file: original_cov_data.lines(measured_file)}
             )
@@ -56,14 +58,14 @@ def main():
 
             repathed_file = os.path.join(current_folder, python_tank_file)
 
-            print "Processing %s -> %s" % (measured_file, repathed_file)
+            print("Processing %s -> %s" % (measured_file, repathed_file))
             combiner.add_lines(
                 {repathed_file: original_cov_data.lines(measured_file)}
             )
 
-    print "Writing combined coverage data from '%s'..." % coverage_file
+    print("Writing combined coverage data from '%s'..." % coverage_file)
     combiner.write_file(coverage_file)
-    print "Done!"
+    print("Done!")
 
 if __name__ == "__main__":
     main()
