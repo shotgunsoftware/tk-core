@@ -280,11 +280,13 @@ class CachedConfiguration(Configuration):
             # the bootstrap hook and finally download the core with that hook if
             # possible.
             self._descriptor.ensure_local()
-            # Pass in our downloader class. Otherwise the method will lazily import the
-            # downloader, which will return the copy for current core's. In general this is
-            # not an issue, but if you try to bootstrap multiple times in the same process,
-            # you can to ensure that when caching the core you are always retrieving the downloader
-            # that came with this CachedConfiguration class.
+            # The this call lazily imports BundleDownloader by default. This means that
+            # when bootstrapping for the first time the tank module in sys.modules if the
+            # same as the one doing the bootstrapping. However, if the bootstrap failed
+            # and we try another engine, BundleDownloader will be lazily imported by the swapped
+            # core, for which the class might not even exist. This means that we wouldn't be
+            # using the bootstrapping core's BundleDownloader more. So here we pass the one
+            # that was imported globally.
             self._try_initialize_configuration_cacher(BundleDownloader)
             core_descriptor = self._ensure_core_local()
 
@@ -484,7 +486,7 @@ class CachedConfiguration(Configuration):
             # download and cache the entire config
             log.debug("caching_policy is CACHE_FULL - will download all items defined in the config")
 
-        # Reinitialize the configuration cacher so we use the new swapped core's.
+        # Here we do not pass the BundleDownloader on purpose. We want to use the one from the swapped core.
         self._try_initialize_configuration_cacher()
 
         descriptors = {}
