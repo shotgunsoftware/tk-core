@@ -196,7 +196,10 @@ class IODescriptorGit(IODescriptorDownloadable):
                 # just hang waiting for credentials to be entered on the missing terminal.
                 # I would have expected Windows to give an error about stdin being close and
                 # aborting the git command but at least on Windows 10 that is not the case.
-                _check_output(cmd, env={"GIT_TERMINAL_PROMPT": "0"})
+                environ = {}
+                environ.update(os.environ)
+                environ["GIT_TERMINAL_PROMPT"] = "0"
+                _check_output(cmd, env=environ)
 
                 # If that works, we're done and we don't need to use os.system.
                 run_with_os_system = False
