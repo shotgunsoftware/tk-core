@@ -23,6 +23,7 @@ from tank_vendor import yaml
 from .configuration import Configuration
 from .configuration_writer import ConfigurationWriter
 from .. import LogManager
+from .bundle_downloader import BundleDownloader
 
 log = LogManager.get_logger(__name__)
 
@@ -279,7 +280,12 @@ class CachedConfiguration(Configuration):
             # the bootstrap hook and finally download the core with that hook if
             # possible.
             self._descriptor.ensure_local()
-            self._try_initialize_configuration_cacher()
+            # Pass in our downloader class. Otherwise the method will lazily import the
+            # downloader, which will return the copy for current core's. In general this is
+            # not an issue, but if you try to bootstrap multiple times in the same process,
+            # you can to ensure that when caching the core you are always retrieving the downloader
+            # that came with this CachedConfiguration class.
+            self._try_initialize_configuration_cacher(BundleDownloader)
             core_descriptor = self._ensure_core_local()
 
             # Log information about the core being setup with this config.
@@ -528,20 +534,24 @@ class CachedConfiguration(Configuration):
                 except Exception as e:
                     log.warning("Failed to clean up temporary backup folder '%s': %s" % (path, e))
 
-    def _try_initialize_configuration_cacher(self):
+    def _try_initialize_configuration_cacher(self, dowloader_class=None):
         """
         Try to import the configuration cacher.
 
         This will import the one available with the currently in use Toolkit core, if one is
         available.
         """
-        try:
-            from sgtk.bootstrap.bundle_downloader import BundleDownloader
-            self._bundle_downloader = BundleDownloader(
+        if dowloader_class:
+            self._bundle_downloader = dowloader_class(
                 self._sg_connection, self._pipeline_config_id, self._descriptor
             )
-        except ImportError:
-            self._bundle_downloader = None
+        else:
+            try:
+                from sgtk.bootstrap.bundle_downloader import BundleDownloader as CoreSwappedDownloader
+            except ImportError:
+                self._bundle_downloader = None
+            else:
+                self._try_initialize_configuration_cacher(CoreSwappedDownloader)
 
     def _download_bundle(self, descriptor):
         """

@@ -9,8 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from sgtk import hook
-from sgtk import LogManager
+from tank import hook
+from tank import LogManager
 
 log = LogManager.get_logger(__name__)
 
