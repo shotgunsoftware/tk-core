@@ -72,6 +72,30 @@ class TestShotgunRegisterPublish(TankTestBase):
         self.name = "Test Publish"
         self.version = 1
 
+    def test_local_storage_disabled(self):
+        """
+        Checks that if local storage is disabled that we raise a more user friendly error
+        than a CRUD message.
+        """
+        with patch.object(
+            self.tk.shotgun, "create",
+            side_effect=Exception("[Attachment.local_storage] does not exist")
+        ):
+
+            if sys.platform == "win32":
+                local_path = r"x:\tmp\win\path\to\file.txt"
+            else:
+                local_path = "/tmp/nix/path/to/file.txt"
+
+            with self.assertRaisesRegex(tank.util.ShotgunPublishError, "Local File Linking seems to be turned off"):
+                tank.util.register_publish(
+                    self.tk,
+                    self.context,
+                    local_path,
+                    self.name,
+                    self.version
+                )
+
     def test_sequence_abstracted_path(self):
         """Test that if path supplied represents a sequence, the abstract version of that
         sequence is used."""
