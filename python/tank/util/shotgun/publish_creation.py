@@ -316,12 +316,19 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     except Exception as e:
         # Log the exception so the original traceback is available
         log.exception(e)
-        # Raise our own exception with the original message and the created entity,
-        # if any
-        raise ShotgunPublishError(
-            error_message="%s" % e,
-            entity=entity
-        )
+        if "[Attachment.local_storage] does not exist" in str(e):
+            raise ShotgunPublishError(
+                "Local File Linking seems to be turned off. "
+                "Turn it on on your Site Preferences Page.",
+                entity
+            )
+        else:
+            # Raise our own exception with the original message and the created entity,
+            # if any
+            raise ShotgunPublishError(
+                error_message="%s" % e,
+                entity=entity
+            )
 
 
 def _create_published_file(tk, context, path, name, version_number, task, comment, published_file_type,
