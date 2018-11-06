@@ -12,7 +12,6 @@ import os
 
 import sgtk
 from sgtk.descriptor import Descriptor
-from sgtk.descriptor.io_descriptor.git import IODescriptorGit
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import ShotgunTestBase, skip_if_git_missing
 
@@ -36,9 +35,6 @@ class TestGitIODescriptor(ShotgunTestBase):
         self.git_tag_repo_uri = os.path.join(self.fixtures_root, "misc", "tag-test-repo.git")
 
         self.bundle_cache = os.path.join(self.project_root, "bundle_cache")
-        # The project root is only cleaned between modules, not test execution,
-        # so remove the bundle cache so we don't have cross test file polution.
-        sgtk.util.filesystem.safe_delete_folder(self.bundle_cache)
 
     def _create_desc(self, location, resolve_latest=False, desc_type=Descriptor.CONFIG):
         """
@@ -97,8 +93,7 @@ class TestGitIODescriptor(ShotgunTestBase):
         self.assertEqual(latest_desc.version, "v0.16.1")
         self.assertEqual(latest_desc.get_path(), None)
 
-        with IODescriptorGit.CompleteRepoClone():
-            latest_desc.ensure_local()
+        latest_desc.ensure_local()
 
         self.assertEqual(
             latest_desc.get_path(),
@@ -121,25 +116,6 @@ class TestGitIODescriptor(ShotgunTestBase):
         copy_target = os.path.join(self.project_root, "test_copy_target")
         latest_desc.copy(copy_target)
         self.assertTrue(os.path.exists(os.path.join(copy_target, ".git")))
-
-    @skip_if_git_missing
-    def test_git_folder_removal(self):
-
-        location_dict = {
-            "type": "git",
-            "path": self.git_repo_uri,
-            "version": "v0.16.0"
-        }
-        desc = self._create_desc(location_dict)
-        desc = desc.find_latest_version()
-
-        desc.ensure_local()
-        self.assertFalse(os.path.exists(os.path.join(desc.get_path(), ".git")))
-        sgtk.util.filesystem.safe_delete_folder(desc.get_path())
-
-        with IODescriptorGit.CompleteRepoClone():
-            desc.ensure_local()
-            self.assertTrue(os.path.exists(os.path.join(desc.get_path(), ".git")))
 
     @skip_if_git_missing
     def test_branch_shorthash(self):
@@ -218,8 +194,7 @@ class TestGitIODescriptor(ShotgunTestBase):
         self.assertEqual(latest_desc.version, "7fa75a749c1dfdbd9ad93ee3497c7eaa8e1a488d")
         self.assertEqual(latest_desc.get_path(), None)
 
-        with IODescriptorGit.CompleteRepoClone():
-            latest_desc.ensure_local()
+        latest_desc.ensure_local()
 
         self.assertEqual(
             latest_desc.get_path(),

@@ -94,7 +94,7 @@ class IODescriptorGit(IODescriptorDownloadable):
                 "checkout -q my_feature_branch",
                 "reset -q --hard -q a6512356a"
             ]
-            self.__clone_then_execute_git_commands("/tmp/foo", commands)
+            self._clone_then_execute_git_commands("/tmp/foo", commands)
 
         The initial clone operation happens via the subprocess module, ensuring
         there is no terminal that will pop for credentials, leading to a more
