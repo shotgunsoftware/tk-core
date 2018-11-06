@@ -86,10 +86,10 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             "field": "sg_field",
             "id": 1234
         })
-        self.assertEquals(id_desc.system_name, "Shot_1234")
-        self.assertEquals(id_desc.version, "v123")
-        self.assertEquals(id_desc.is_dev(), False)
-        self.assertEquals(id_desc.is_immutable(), True)
+        self.assertEqual(id_desc.system_name, "Shot_1234")
+        self.assertEqual(id_desc.version, "v123")
+        self.assertEqual(id_desc.is_dev(), False)
+        self.assertEqual(id_desc.is_immutable(), True)
 
     def test_construction_by_name(self):
         """
@@ -104,8 +104,8 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             "name": "aaa111"
         })
 
-        self.assertEquals(name_desc.system_name, "aaa111")
-        self.assertEquals(name_desc.version, "v123")
+        self.assertEqual(name_desc.system_name, "aaa111")
+        self.assertEqual(name_desc.version, "v123")
 
         name_proj_desc = self._create_desc({
             "type": "shotgun",
@@ -116,8 +116,8 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             "project_id": 22
         })
 
-        self.assertEquals(name_proj_desc.system_name, "p22_aaa111")
-        self.assertEquals(name_proj_desc.version, "v123")
+        self.assertEqual(name_proj_desc.system_name, "p22_aaa111")
+        self.assertEqual(name_proj_desc.version, "v123")
 
     @patch("sgtk.util.shotgun.download_and_unpack_attachment")
     def test_resolve_id(self, _call_rpc_mock):
@@ -146,9 +146,9 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             bundle_cache_root_override=self.bundle_cache
         )
 
-        self.assertEquals(desc.get_path(), None)
+        self.assertEqual(desc.get_path(), None)
         desc.ensure_local()
-        self.assertEquals(desc.get_path(), expected_path)
+        self.assertEqual(desc.get_path(), expected_path)
 
     @patch("sgtk.util.shotgun.download_and_unpack_attachment")
     def test_resolve_name_and_project(self, _call_rpc_mock):
@@ -180,9 +180,9 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             bundle_cache_root_override=self.bundle_cache
         )
 
-        self.assertEquals(desc.get_path(), None)
+        self.assertEqual(desc.get_path(), None)
         desc.ensure_local()
-        self.assertEquals(desc.get_path(), expected_path)
+        self.assertEqual(desc.get_path(), expected_path)
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_get_latest_by_id(self, find_mock):
@@ -190,11 +190,11 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         Tests resolving the latest descriptor based on id
         """
         def our_find_mock(*args, **kwargs):
-            self.assertEquals(
+            self.assertEqual(
                 args,
                 ('Shot', [['id', 'is', 456]])
             )
-            self.assertEquals(
+            self.assertEqual(
                 kwargs,
                 {'retired_only': False, 'fields': ['sg_field'], 'filter_operator': None, 'order': None}
             )
@@ -227,9 +227,9 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             bundle_cache_root_override=self.bundle_cache
         )
 
-        self.assertEquals(desc.version, "v0")
+        self.assertEqual(desc.version, "v0")
         latest_desc = desc.find_latest_version()
-        self.assertEquals(latest_desc.version, "v139")
+        self.assertEqual(latest_desc.version, "v139")
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_get_latest_by_name(self, find_mock):
@@ -237,11 +237,11 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         Tests resolving the latest descriptor based on name
         """
         def our_find_mock(*args, **kwargs):
-            self.assertEquals(
+            self.assertEqual(
                 args,
                 ('Shot', [['code', 'is', 'Primary']])
             )
-            self.assertEquals(
+            self.assertEqual(
                 kwargs,
                 {'retired_only': False, 'fields': ['sg_field'], 'filter_operator': None, 'order': None}
             )
@@ -274,9 +274,9 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             bundle_cache_root_override=self.bundle_cache
         )
 
-        self.assertEquals(desc.version, "v0")
+        self.assertEqual(desc.version, "v0")
         latest_desc = desc.find_latest_version()
-        self.assertEquals(latest_desc.version, "v139")
+        self.assertEqual(latest_desc.version, "v139")
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_get_latest_by_name_and_proj(self, find_mock):
@@ -284,11 +284,11 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         Tests resolving the latest descriptor based on name and project
         """
         def our_find_mock(*args, **kwargs):
-            self.assertEquals(
+            self.assertEqual(
                 args,
                 ('Shot', [['code', 'is', 'Primary'], ['project', 'is', {'type': 'Project', 'id': 1334}]])
             )
-            self.assertEquals(
+            self.assertEqual(
                 kwargs,
                 {'retired_only': False, 'fields': ['sg_field'], 'filter_operator': None, 'order': None}
             )
@@ -322,9 +322,9 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             bundle_cache_root_override=self.bundle_cache
         )
 
-        self.assertEquals(desc.version, "v0")
+        self.assertEqual(desc.version, "v0")
         latest_desc = desc.find_latest_version()
-        self.assertEquals(latest_desc.version, "v139")
+        self.assertEqual(latest_desc.version, "v139")
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_find_invalid_attachment(self, find_mock):
@@ -360,7 +360,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             bundle_cache_root_override=self.bundle_cache
         )
 
-        self.assertEquals(desc.version, "v0")
+        self.assertEqual(desc.version, "v0")
         self.assertRaises(sgtk.descriptor.TankDescriptorError, desc.find_latest_version)
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
@@ -387,7 +387,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             bundle_cache_root_override=self.bundle_cache
         )
 
-        self.assertEquals(desc.version, "v0")
+        self.assertEqual(desc.version, "v0")
         self.assertRaises(
             sgtk.descriptor.TankDescriptorError,
             desc.find_latest_version
@@ -415,9 +415,9 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             bundle_cache_root_override=self.bundle_cache
         )
 
-        self.assertEquals(desc.version, "v99")
+        self.assertEqual(desc.version, "v99")
         latest_cached = desc.find_latest_cached_version()
-        self.assertEquals(latest_cached.version, "v99")
+        self.assertEqual(latest_cached.version, "v99")
 
         desc = sgtk.descriptor.create_descriptor(
             self.mockgun,
@@ -433,9 +433,9 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             bundle_cache_root_override=self.bundle_cache
         )
 
-        self.assertEquals(desc.version, "v1")
+        self.assertEqual(desc.version, "v1")
         latest_cached = desc.find_latest_cached_version()
-        self.assertEquals(latest_cached, None)
+        self.assertEqual(latest_cached, None)
 
     def test_get_latest_cached_by_id(self):
         """
@@ -458,9 +458,9 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             bundle_cache_root_override=self.bundle_cache
         )
 
-        self.assertEquals(desc.version, "v98")
+        self.assertEqual(desc.version, "v98")
         latest_cached = desc.find_latest_cached_version()
-        self.assertEquals(latest_cached.version, "v98")
+        self.assertEqual(latest_cached.version, "v98")
 
         desc = sgtk.descriptor.create_descriptor(
             self.mockgun,
@@ -475,6 +475,6 @@ class TestShotgunIODescriptor(ShotgunTestBase):
             bundle_cache_root_override=self.bundle_cache
         )
 
-        self.assertEquals(desc.version, "v1")
+        self.assertEqual(desc.version, "v1")
         latest_cached = desc.find_latest_cached_version()
-        self.assertEquals(latest_cached, None)
+        self.assertEqual(latest_cached, None)

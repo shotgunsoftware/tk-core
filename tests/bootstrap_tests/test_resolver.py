@@ -952,7 +952,7 @@ class TestResolvedLatestConfiguration(TankTestBase):
             self.mockgun
         )
 
-        self.assertEquals(
+        self.assertEqual(
             config.descriptor.get_uri(),
             "sgtk:descriptor:app_store?name=latest_test&version=v0.1.0"
         )
@@ -966,7 +966,7 @@ class TestResolvedLatestConfiguration(TankTestBase):
             self.mockgun
         )
 
-        self.assertEquals(
+        self.assertEqual(
             config.descriptor.get_uri(),
             "sgtk:descriptor:app_store?name=latest_test&version=v0.1.1"
         )
@@ -977,7 +977,7 @@ class TestResolvedLatestConfiguration(TankTestBase):
             self.mockgun
         )
 
-        self.assertEquals(
+        self.assertEqual(
             config.descriptor.get_uri(),
             "sgtk:descriptor:app_store?name=latest_test&version=v0.1.0"
         )
@@ -987,7 +987,7 @@ class TestResolvedLatestConfiguration(TankTestBase):
             self.mockgun
         )
 
-        self.assertEquals(
+        self.assertEqual(
             config.descriptor.get_uri(),
             "sgtk:descriptor:app_store?name=latest_test&version=v0.1.1"
         )
@@ -1018,7 +1018,7 @@ class TestResolveWithFilter(TestResolverBase):
         """
         Resolve a non-existent pipeline configuration by id should fail.
         """
-        with self.assertRaisesRegexp(sgtk.bootstrap.TankBootstrapError, "Pipeline configuration with id"):
+        with self.assertRaisesRegex(sgtk.bootstrap.TankBootstrapError, "Pipeline configuration with id"):
             self.resolver.resolve_shotgun_configuration(
                 pipeline_config_identifier=42,
                 fallback_config_descriptor=self.config_1,
@@ -1126,7 +1126,7 @@ class TestErrorHandling(TestResolverBase):
             }
         )
 
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             sgtk.bootstrap.TankBootstrapError,
             "The Shotgun pipeline configuration with id %s has no source location specified for "
             "your operating system." % pc_id
@@ -1175,7 +1175,7 @@ class TestErrorHandling(TestResolverBase):
         ).as_shotgun_dict()
         expected_descriptor_dict["type"] = "path"
 
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             sgtk.bootstrap.TankBootstrapError,
             "Installed pipeline configuration '.*' does not exist on disk!"
         ):

@@ -116,10 +116,10 @@ class TestDumpEnvironment(TankTestBase):
         dumped_env = self.tk.pipeline_configuration.get_environment(env_name)
 
         # make sure engines are there
-        self.assertEquals(dumped_env.get_engines(), ["test_engine"])
+        self.assertEqual(dumped_env.get_engines(), ["test_engine"])
 
         # make sure apps are there
-        self.assertEquals(dumped_env.get_apps("test_engine"), ["test_app"])
+        self.assertEqual(dumped_env.get_apps("test_engine"), ["test_app"])
 
         # because we didn't transform, it should not have any of the sparse
         # config values. try a couple to be sure
@@ -145,10 +145,10 @@ class TestDumpEnvironment(TankTestBase):
         dumped_env = self.tk.pipeline_configuration.get_environment(env_name)
 
         # make sure engines are there
-        self.assertEquals(dumped_env.get_engines(), ["test_engine"])
+        self.assertEqual(dumped_env.get_engines(), ["test_engine"])
 
         # make sure apps are there
-        self.assertEquals(dumped_env.get_apps("test_engine"), ["test_app"])
+        self.assertEqual(dumped_env.get_apps("test_engine"), ["test_app"])
 
         # it should have the sparse config values. try a couple to be sure
         app_settings = dumped_env.get_app_settings("test_engine", "test_app")
@@ -173,10 +173,10 @@ class TestDumpEnvironment(TankTestBase):
         dumped_env = self.tk.pipeline_configuration.get_environment(env_name)
 
         # make sure engines are there
-        self.assertEquals(dumped_env.get_engines(), ["test_engine"])
+        self.assertEqual(dumped_env.get_engines(), ["test_engine"])
 
         # make sure apps are there
-        self.assertEquals(dumped_env.get_apps("test_engine"), ["test_app"])
+        self.assertEqual(dumped_env.get_apps("test_engine"), ["test_app"])
 
         # because we dumped sparse, it should not have any of the sparse
         # config values. try a couple to be sure

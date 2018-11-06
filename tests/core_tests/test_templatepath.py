@@ -80,7 +80,7 @@ class TestInit(TestTemplatePath):
         second_token = sep + "work" + sep
         expected = [[first_token, second_token, ".", ".ma"]]
         template = TemplatePath(definition, self.keys, root_path=self.project_root)
-        self.assertEquals(expected, template._static_tokens)
+        self.assertEqual(expected, template._static_tokens)
 
     def test_static_tokens(self):
         definition = "{Sequence}/{Shot}/3d/maya/scenes/{branch}-v{version}.{ext}"
@@ -89,7 +89,7 @@ class TestInit(TestTemplatePath):
         else:
             expected = [["/", "/3d/maya/scenes/", "-v", "."]]
         template = TemplatePath(definition, self.keys, root_path="")
-        self.assertEquals(expected, template._static_tokens)
+        self.assertEqual(expected, template._static_tokens)
 
 class TestValidate(TestTemplatePath):
     """Test Case for validating a path"""
@@ -306,7 +306,7 @@ class TestApplyFields(TestTemplatePath):
                    "snapshot": 2}
         
         result = self.template_path.apply_fields(fields)
-        self.assertEquals(expected, result)        
+        self.assertEqual(expected, result)        
 
     def test_project_root(self):
         """
@@ -314,7 +314,7 @@ class TestApplyFields(TestTemplatePath):
         """
         root = self._primary_project_root
         result = self.project_root_template.apply_fields({})
-        self.assertEquals(root, result)
+        self.assertEqual(root, result)
 
     def test_multi_platform(self):
         relative_path = os.path.join("shots",
@@ -334,17 +334,17 @@ class TestApplyFields(TestTemplatePath):
         result = self.template_path.apply_fields(fields, "win32")
         root = self._project_roots[self.primary_root_name]["win32"]
         expected = "%s\\%s" % (root, relative_path.replace(os.sep, "\\"))
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         result = self.template_path.apply_fields(fields, "linux2")
         root = self._project_roots[self.primary_root_name]["linux2"]
         expected = "%s/%s" % (root, relative_path.replace(os.sep, "/"))
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         result = self.template_path.apply_fields(fields, "darwin")
         root = self._project_roots[self.primary_root_name]["darwin"]
         expected = "%s/%s" % (root, relative_path.replace(os.sep, "/"))
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_legacy_constructor_format(self):
         
@@ -363,7 +363,7 @@ class TestApplyFields(TestTemplatePath):
                    "snapshot": 2}
         
         result = self.template_path_current_os_only.apply_fields(fields)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_fields_missing(self):
         fields = {"Sequence": "seq_1",
@@ -396,7 +396,7 @@ class TestApplyFields(TestTemplatePath):
         expected = os.path.join(self.project_root, "s1", "Anm", "file.ex")
         fields = {"Shot": "s1", "Step": "Anm"}
         result = template.apply_fields(fields)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_enum_bad_key(self):
         fields = {"Shot": "s3", "Step": "Anm"}
@@ -407,7 +407,7 @@ class TestApplyFields(TestTemplatePath):
         expected = os.path.join(self.project_root, "s1", "Anm", "file.ex")
         fields = {"Step": "Anm"}
         result = template.apply_fields(fields)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_bad_alphanumeric(self):
         """
@@ -433,7 +433,7 @@ class TestApplyFields(TestTemplatePath):
         for valid_value in valid_values:
             result = template.apply_fields({"alpha_num": valid_value})
             expected = os.path.join(self.project_root, valid_value)
-            self.assertEquals(expected, result)
+            self.assertEqual(expected, result)
 
     def test_aliased_key(self):
         """
@@ -446,7 +446,7 @@ class TestApplyFields(TestTemplatePath):
 
         expected = os.path.join(self.project_root, "2")
         fields = {"aliased_name": 2}
-        self.assertEquals(expected, template.apply_fields(fields))
+        self.assertEqual(expected, template.apply_fields(fields))
 
         fields = {"initial_name": 2}
         self.assertRaises(TankError, template.apply_fields, fields)
@@ -508,7 +508,7 @@ class TestApplyFields(TestTemplatePath):
                    "version": 3,
                    "snapshot": 2}
         result = template_path.apply_fields(fields)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         # remove optional value
         del(fields["snapshot"])
@@ -520,7 +520,7 @@ class TestApplyFields(TestTemplatePath):
                                      "s1.mmm.v003")
         expected = os.path.join(self.project_root, relative_path)
         result = template_path.apply_fields(fields)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
 
         # remove optional value
@@ -533,7 +533,7 @@ class TestApplyFields(TestTemplatePath):
                                      "s1.v003")
         expected = os.path.join(self.project_root, relative_path)
         result = template_path.apply_fields(fields)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_multi_key_optional(self):
         """
@@ -552,7 +552,7 @@ class TestApplyFields(TestTemplatePath):
                    "version": 3,
                    "snapshot": 2}
         result = template_path.apply_fields(fields)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         # if one key from optional section missing, whole section skipped.
         relative_path = os.path.join("shots",
@@ -565,7 +565,7 @@ class TestApplyFields(TestTemplatePath):
                    "snapshot": 2}
 
         result = template_path.apply_fields(fields)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_optional_none_value(self):
         definition = "shots/{Shot}[.{branch}][.v{version}][.{snapshot}.ma]"
@@ -581,7 +581,7 @@ class TestApplyFields(TestTemplatePath):
 
         expected = os.path.join(self.project_root, relative_path)
         result = template_path.apply_fields(fields)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_format_default(self):
         definition = "shots/{Shot}.{branch}.{frame}.ext"
@@ -591,12 +591,12 @@ class TestApplyFields(TestTemplatePath):
                    
         # default format
         expected = os.path.join(self.project_root, "shots", "s1.loon.%04d.ext")
-        self.assertEquals(expected, template.apply_fields(fields))
+        self.assertEqual(expected, template.apply_fields(fields))
 
         # specify default format
         expected = os.path.join(self.project_root, "shots", "s1.loon.####.ext")
         fields["frame"] = "FORMAT:#"
-        self.assertEquals(expected, template.apply_fields(fields))
+        self.assertEqual(expected, template.apply_fields(fields))
 
 
 class Test_ApplyFields(TestTemplatePath):
@@ -608,7 +608,7 @@ class Test_ApplyFields(TestTemplatePath):
         fields = {"Shot":"*"}
         skip_fields = ["Shot"]
         result = template._apply_fields(fields, ignore_types=skip_fields)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_ignore_type(self):
         relative_path = os.path.join("shots",
@@ -625,7 +625,7 @@ class Test_ApplyFields(TestTemplatePath):
                    "version": "*",
                    "snapshot": 2}
         result = self.template_path._apply_fields(fields, ignore_types=["version"])
-        self.assertEquals(result, expected)
+        self.assertEqual(result, expected)
 
 class TestGetFields(TestTemplatePath):
     def test_anim_path(self):
@@ -643,7 +643,7 @@ class TestGetFields(TestTemplatePath):
                     "version": 3,
                     "snapshot": 2}
         result = self.template_path.get_fields(file_path)
-        self.assertEquals(result, expected)
+        self.assertEqual(result, expected)
 
     def test_project_root(self):
         """
@@ -652,7 +652,7 @@ class TestGetFields(TestTemplatePath):
         """
         root = self._primary_project_root
         result = self.project_root_template.get_fields(root)
-        self.assertEquals({}, result)
+        self.assertEqual({}, result)
 
     def test_key_first(self):
         definition = "{Sequence}/{Shot}/{Step}/work/{Shot}.{branch}.v{version}.{snapshot}.ma"
@@ -670,7 +670,7 @@ class TestGetFields(TestTemplatePath):
                     "version": 3,
                     "snapshot": 2}
         result = template.get_fields(file_path)
-        self.assertEquals(result, expected)
+        self.assertEqual(result, expected)
 
     def test_key_first_short(self):
         definition =  "{Step}/{Shot}.png"
@@ -680,7 +680,7 @@ class TestGetFields(TestTemplatePath):
         expected = {"Step": "Anm",
                     "Shot": "shot_1"}
         result = template.get_fields(file_path)
-        self.assertEquals(result, expected)
+        self.assertEqual(result, expected)
 
     def test_one_key(self):
         definition = "{Shot}/boo.wtf"
@@ -689,7 +689,7 @@ class TestGetFields(TestTemplatePath):
         file_path = os.path.join(self.project_root, relative_path)
         expected = {"Shot": "shot_1"}
         result = template.get_fields(file_path)
-        self.assertEquals(result, expected)
+        self.assertEqual(result, expected)
 
     def test_one_key_no_match(self):
         definition = "comp/{Shot}s/boo.wtf"
@@ -709,7 +709,7 @@ class TestGetFields(TestTemplatePath):
                     "Shot": "shot_1",
                     "Step": "Anm"}
         result = template.get_fields(file_path)
-        self.assertEquals(result, expected)
+        self.assertEqual(result, expected)
     
     def test_missing_values(self):
         relative_path = os.path.join("shots",
@@ -744,7 +744,7 @@ class TestGetFields(TestTemplatePath):
                     "branch":"mmm",
                     "version": 3}
         result = self.template_path.get_fields(file_path, skip_keys=["snapshot"])
-        self.assertEquals(result, expected)
+        self.assertEqual(result, expected)
 
 
     def test_string_for_int_type(self):
@@ -772,14 +772,14 @@ class TestGetFields(TestTemplatePath):
                     "version": 3,
                     "snapshot": 2}
         result = self.template_path.get_fields(file_path)
-        self.assertEquals(result, expected)
+        self.assertEqual(result, expected)
 
     def test_matching_enum(self):
         template = TemplatePath("{Shot}", self.keys, root_path=self.project_root)
         file_path = os.path.join(self.project_root, "s2")
         expected = {"Shot": "s2"}
         result = template.get_fields(file_path)
-        self.assertEquals(result, expected)
+        self.assertEqual(result, expected)
 
     def test_bad_enum(self):
         template = TemplatePath("{Shot}", self.keys, root_path=self.project_root)
@@ -813,7 +813,7 @@ class TestGetFields(TestTemplatePath):
                     "Shot": "Shot_1",
                     "Step": "Anm"}
         actual = template.get_fields(input_path)
-        self.assertEquals(expected, actual)
+        self.assertEqual(expected, actual)
 
     def test_double_int_key(self):
         """Test case that key of type int appears twice in definition."""
@@ -824,7 +824,7 @@ class TestGetFields(TestTemplatePath):
         relative_path = "4/something/4.else"
         input_path = os.path.join(self.project_root, relative_path)
         actual = template.get_fields(input_path)
-        self.assertEquals(expected, actual)
+        self.assertEqual(expected, actual)
 
 
     def test_valid_alphanumeric(self):
@@ -834,7 +834,7 @@ class TestGetFields(TestTemplatePath):
         expected = {"branch": "comp",
                     "version": 1}
         result = template.get_fields(input_path)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_aliased_key(self):
         key = IntegerKey("aliased_name")
@@ -844,7 +844,7 @@ class TestGetFields(TestTemplatePath):
         input_path = os.path.join(self.project_root, "3")
         expected = {"aliased_name": 3}
         result = template.get_fields(input_path)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_frame_number(self):
         input_path = "path/to/seq.0003.ext"
@@ -977,7 +977,7 @@ class TestGetKeysSepInValue(TestTemplatePath):
     def assert_path_matches(self, definition, input_path, expected):
         template = TemplatePath(definition, self.keys, "")
         result = template.get_fields(input_path)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_double_key_first_precise(self):
         definition = "build/{Asset}/maya/{Asset}_{name}.ext"
@@ -1105,7 +1105,7 @@ class TestParent(TestTemplatePath):
                                             "work")
         parent_def = self.template_path.parent
         self.assertTrue(isinstance(parent_def, TemplatePath))
-        self.assertEquals(expected_definition, parent_def.definition, self.project_root)
+        self.assertEqual(expected_definition, parent_def.definition, self.project_root)
 
     def test_project_root(self):
         """
@@ -1126,7 +1126,7 @@ class TestParent(TestTemplatePath):
         definition = "{old_name}/something"
         template = TemplatePath(definition, keys, root_path=self.project_root)
         result = template.parent
-        self.assertEquals("{new_name}", result.definition)
+        self.assertEqual("{new_name}", result.definition)
 
 
 

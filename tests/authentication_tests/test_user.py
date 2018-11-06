@@ -51,7 +51,7 @@ class UserTests(ShotgunTestBase):
             session_token="session_token",
             http_proxy="http_proxy"
         ))
-        self.assertEquals(session_user.login, "session_user")
+        self.assertEqual(session_user.login, "session_user")
 
         script_user = user.ShotgunUser(user_impl.ScriptUser(
             host="host",
@@ -71,7 +71,7 @@ class UserTests(ShotgunTestBase):
 
         custom_user = user.ShotgunUser(CustomUser())
 
-        self.assertEquals(custom_user.login, "custom_user")
+        self.assertEqual(custom_user.login, "custom_user")
 
     def test_serialize_deserialize(self):
         """
@@ -83,10 +83,10 @@ class UserTests(ShotgunTestBase):
         self.assertFalse("session_metadata" in su.impl.to_dict())
         su_2 = user.deserialize_user(user.serialize_user(su))
         self.assertNotIsInstance(su_2, user.ShotgunSamlUser)
-        self.assertEquals(su.host, su_2.host)
-        self.assertEquals(su.http_proxy, su_2.http_proxy)
-        self.assertEquals(su.login, su_2.login)
-        self.assertEquals(su.impl.get_session_token(), su_2.impl.get_session_token())
+        self.assertEqual(su.host, su_2.host)
+        self.assertEqual(su.http_proxy, su_2.http_proxy)
+        self.assertEqual(su.login, su_2.login)
+        self.assertEqual(su.impl.get_session_token(), su_2.impl.get_session_token())
 
         # Then, with a SAML user.
         su = self._create_test_saml_user()
@@ -94,10 +94,10 @@ class UserTests(ShotgunTestBase):
         self.assertTrue("session_metadata" in su.impl.to_dict())
         su_2 = user.deserialize_user(user.serialize_user(su))
         self.assertIsInstance(su_2, user.ShotgunSamlUser)
-        self.assertEquals(su.host, su_2.host)
-        self.assertEquals(su.http_proxy, su_2.http_proxy)
-        self.assertEquals(su.login, su_2.login)
-        self.assertEquals(su.impl.get_session_token(), su_2.impl.get_session_token())
+        self.assertEqual(su.host, su_2.host)
+        self.assertEqual(su.http_proxy, su_2.http_proxy)
+        self.assertEqual(su.login, su_2.login)
+        self.assertEqual(su.impl.get_session_token(), su_2.impl.get_session_token())
 
         su = user.ShotgunUser(user_impl.ScriptUser(
             host="host",
@@ -107,11 +107,11 @@ class UserTests(ShotgunTestBase):
         ))
 
         su_2 = user.deserialize_user(user.serialize_user(su))
-        self.assertEquals(su.host, su_2.host)
-        self.assertEquals(su.http_proxy, su_2.http_proxy)
-        self.assertEquals(su.login, su_2.login)
-        self.assertEquals(su.impl.get_key(), su_2.impl.get_key())
-        self.assertEquals(su.impl.get_script(), su_2.impl.get_script())
+        self.assertEqual(su.host, su_2.host)
+        self.assertEqual(su.http_proxy, su_2.http_proxy)
+        self.assertEqual(su.login, su_2.login)
+        self.assertEqual(su.impl.get_key(), su_2.impl.get_key())
+        self.assertEqual(su.impl.get_script(), su_2.impl.get_script())
 
         # Make sure we can unserialize a user with data that is not completely understood.
         user_with_unknown_data = {

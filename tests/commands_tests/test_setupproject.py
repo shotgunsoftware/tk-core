@@ -172,15 +172,15 @@ class TestSetupProject(TankTestBase):
             [["project", "is", {"type": "Project", "id": new_project["id"]}]],
             ["code", "plugin_ids", "uploaded_config", "windows_path", "linux_path", "mac_path"]
         )
-        self.assertEquals(len(data), 1)
+        self.assertEqual(len(data), 1)
         pc_data = data[0]
-        self.assertEquals(pc_data["type"], "PipelineConfiguration")
-        self.assertEquals(pc_data["plugin_ids"], "basic.*")
-        self.assertEquals(pc_data["code"], "Primary")
-        self.assertEquals(pc_data["windows_path"], None)
-        self.assertEquals(pc_data["linux_path"], None)
-        self.assertEquals(pc_data["mac_path"], None)
-        self.assertEquals(pc_data["id"], self.upload_associated_pipeline_config_id)
+        self.assertEqual(pc_data["type"], "PipelineConfiguration")
+        self.assertEqual(pc_data["plugin_ids"], "basic.*")
+        self.assertEqual(pc_data["code"], "Primary")
+        self.assertEqual(pc_data["windows_path"], None)
+        self.assertEqual(pc_data["linux_path"], None)
+        self.assertEqual(pc_data["mac_path"], None)
+        self.assertEqual(pc_data["id"], self.upload_associated_pipeline_config_id)
 
     @patch("tank.pipelineconfig.PipelineConfiguration.get_install_location")
     @patch("tank.pipelineconfig_utils.resolve_all_os_paths_to_core")

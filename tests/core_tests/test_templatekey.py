@@ -34,9 +34,9 @@ class TestTemplateKey(ShotgunTestBase):
         Makes sure that a key's default can be overriden at runtime.
         """
         sk = SequenceKey("sequencekey", format_spec="04")
-        self.assertEquals(sk.default, "%04d")
+        self.assertEqual(sk.default, "%04d")
         sk.default = "%03d"
-        self.assertEquals(sk.default, "%03d")
+        self.assertEqual(sk.default, "%03d")
 
 
 class TestStringKey(ShotgunTestBase):
@@ -57,7 +57,7 @@ class TestStringKey(ShotgunTestBase):
     def test_default(self):
         default_value = "default_value"
         template_field = StringKey("field_name", default=default_value)
-        self.assertEquals(default_value, template_field.default)
+        self.assertEqual(default_value, template_field.default)
 
     def test_no_default(self):
         template_field = StringKey("field_name")
@@ -66,12 +66,12 @@ class TestStringKey(ShotgunTestBase):
     def test_choices(self):
         choices_value = ["a", "b"]
         template_field = StringKey("field_name", choices=choices_value)
-        self.assertEquals(choices_value, template_field.choices)
+        self.assertEqual(choices_value, template_field.choices)
 
     def test_exclusions(self):
         exclusions = ["a", "b"]
         template_field = StringKey("field_name", exclusions=exclusions)
-        self.assertEquals(exclusions, template_field.exclusions)
+        self.assertEqual(exclusions, template_field.exclusions)
         self.assertFalse(template_field.validate("a"))
         self.assertFalse(template_field.validate("b"))
 
@@ -98,7 +98,7 @@ class TestStringKey(ShotgunTestBase):
     def test_name_set(self):
         name = "field_name"
         template_field = StringKey("field_name")
-        self.assertEquals(name, template_field.name)
+        self.assertEqual(name, template_field.name)
 
     def test_validate_string_good(self):
         value = "some string"
@@ -135,19 +135,19 @@ class TestStringKey(ShotgunTestBase):
         value = "a string"
         expected = value
         result = self.str_field.str_from_value(value)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_str_from_value_empty(self):
         value = ""
         expected = value
         result = self.str_field.str_from_value(value)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_str_from_value_good_choice(self):
         value = "b"
         expected = value
         result = self.choice_field.str_from_value(value)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_str_from_value_bad_choice(self):
         value = "c"
@@ -157,7 +157,7 @@ class TestStringKey(ShotgunTestBase):
     def test_str_from_value_use_default(self):
         expected = "b"
         result = self.default_field.str_from_value()
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_str_from_value_no_default(self):
         expected = "No value provided and no default available for %s" % self.str_field
@@ -167,13 +167,13 @@ class TestStringKey(ShotgunTestBase):
         value = "a9b9C"
         expected = value
         result = self.alphanum_field.str_from_value(value)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_str_from_value_alphanum_empty(self):
         value = ""
         expected = value
         result = self.alphanum_field.str_from_value(value)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_str_from_value_alphanum_bad(self):
         base_expected = "%s Illegal value '%%s' does not fit filter_by 'alphanumeric'" % self.alphanum_field
@@ -187,19 +187,19 @@ class TestStringKey(ShotgunTestBase):
         for bad_value in bad_values:
             expected = bad_value
             result = self.alphanum_field.str_from_value(bad_value, ignore_type=True)
-            self.assertEquals(expected, result)
+            self.assertEqual(expected, result)
 
     def test_str_from_value_alpha_good(self):
         value = "abC"
         expected = value
         result = self.alpha_field.str_from_value(value)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_str_from_value_alpha_empty(self):
         value = ""
         expected = value
         result = self.alpha_field.str_from_value(value)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_str_from_value_alpha_bad(self):
         base_expected = "%s Illegal value '%%s' does not fit filter_by 'alpha'" % self.alpha_field
@@ -213,13 +213,13 @@ class TestStringKey(ShotgunTestBase):
         for bad_value in bad_values:
             expected = bad_value
             result = self.regex_field.str_from_value(bad_value, ignore_type=True)
-            self.assertEquals(expected, result)
+            self.assertEqual(expected, result)
 
     def test_str_from_value_regex_good(self):
         value = "444@jlasdlkjasd"
         expected = value
         result = self.regex_field.str_from_value(value)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_str_from_value_regex_bad(self):
         base_expected = "%s Illegal value '%%s' does not fit filter_by '^[0-9]{3}@[a-z]+'" % self.regex_field
@@ -233,15 +233,15 @@ class TestStringKey(ShotgunTestBase):
         for bad_value in bad_values:
             expected = bad_value
             result = self.regex_field.str_from_value(bad_value, ignore_type=True)
-            self.assertEquals(expected, result)
+            self.assertEqual(expected, result)
 
     def test_value_from_str(self):
         str_value = "something"
-        self.assertEquals(str_value, self.str_field.value_from_str(str_value))
+        self.assertEqual(str_value, self.str_field.value_from_str(str_value))
 
     def test_shotgun_entity_type_set(self):
         str_field = StringKey("field_name", shotgun_entity_type="Shot")
-        self.assertEquals("Shot", str_field.shotgun_entity_type)
+        self.assertEqual("Shot", str_field.shotgun_entity_type)
 
     def test_shotgun_field_name_without_entity_type(self):
         """
@@ -251,12 +251,12 @@ class TestStringKey(ShotgunTestBase):
 
     def test_shotgun_field_name_set(self):
         str_field = StringKey("field_name", shotgun_entity_type="Shot", shotgun_field_name="code")
-        self.assertEquals("Shot", str_field.shotgun_entity_type)
-        self.assertEquals("code", str_field.shotgun_field_name)
+        self.assertEqual("Shot", str_field.shotgun_entity_type)
+        self.assertEqual("code", str_field.shotgun_field_name)
 
     def test_repr(self):
         expected = "<Sgtk StringKey field_name>"
-        self.assertEquals(expected, str(self.str_field))
+        self.assertEqual(expected, str(self.str_field))
 
     def test_subset(self):
         """
@@ -265,7 +265,7 @@ class TestStringKey(ShotgunTestBase):
 
         # test properties
         template_field = StringKey("field_name", subset="(.{3}).*")
-        self.assertEquals("(.{3}).*", template_field.subset)
+        self.assertEqual("(.{3}).*", template_field.subset)
         # test bad regex
         self.assertRaises(TankError, StringKey, "field_name", subset="({4}.).*BROKENREGEX")
 
@@ -298,10 +298,10 @@ class TestStringKey(ShotgunTestBase):
             full = test["full"]
             template_field = test["template"]
 
-            self.assertEquals(short, template_field.value_from_str(short))
-            self.assertEquals(full, template_field.value_from_str(full))
+            self.assertEqual(short, template_field.value_from_str(short))
+            self.assertEqual(full, template_field.value_from_str(full))
 
-            self.assertEquals(short, template_field.str_from_value(full))
+            self.assertEqual(short, template_field.str_from_value(full))
 
             self.assertTrue(template_field.validate(full))
 
@@ -322,7 +322,7 @@ class TestStringKey(ShotgunTestBase):
 
         # test properties
         template_field = StringKey("field_name", subset="(.)().*", subset_format="{0} FOO")
-        self.assertEquals("{0} FOO", template_field.subset_format)
+        self.assertEqual("{0} FOO", template_field.subset_format)
 
         # cannot specify subset_format without subset
         self.assertRaises(TankError, StringKey, "field_name", subset_format="{0} FOO")
@@ -361,10 +361,10 @@ class TestStringKey(ShotgunTestBase):
             full = test["full"]
             template_field = test["template"]
 
-            self.assertEquals(short, template_field.value_from_str(short))
-            self.assertEquals(full, template_field.value_from_str(full))
+            self.assertEqual(short, template_field.value_from_str(short))
+            self.assertEqual(full, template_field.value_from_str(full))
 
-            self.assertEquals(short, template_field.str_from_value(full))
+            self.assertEqual(short, template_field.str_from_value(full))
 
             self.assertTrue(template_field.validate(full))
 
@@ -390,7 +390,7 @@ class TestIntegerKey(ShotgunTestBase):
     def test_format_set(self):
         format_spec = "03"
         template_field = IntegerKey("field_name", format_spec=format_spec)
-        self.assertEquals(format_spec, template_field.format_spec)
+        self.assertEqual(format_spec, template_field.format_spec)
 
     def test_validate_string_good(self):
         value = "23"
@@ -408,13 +408,13 @@ class TestIntegerKey(ShotgunTestBase):
         value = 3
         expected = "%s" % value
         result = self.int_field.str_from_value(value)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_str_from_value_zero(self):
         value = 0
         expected = "%d" % value
         result = self.int_field.str_from_value(value)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_str_from_value_bad(self):
         value = "a"
@@ -426,21 +426,21 @@ class TestIntegerKey(ShotgunTestBase):
         value = 3
         expected = "%03d" % value
         result = formatted_field.str_from_value(value)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_str_from_value_ignore_type(self):
         value = "a"
         expected = value
         result = self.int_field.str_from_value(value, ignore_type=True)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_value_from_str(self):
         str_value = "32"
-        self.assertEquals(32, self.int_field.value_from_str(str_value))
+        self.assertEqual(32, self.int_field.value_from_str(str_value))
 
     def test_repr(self):
         expected = "<Sgtk IntegerKey field_name>"
-        self.assertEquals(expected, str(self.int_field))
+        self.assertEqual(expected, str(self.int_field))
 
     def test_init_validation(self):
         """
@@ -471,19 +471,19 @@ class TestIntegerKey(ShotgunTestBase):
             strict_matching=True, format_spec="03"
         )
         # Make sure than an error is raised when wrong types are passed in.
-        with self.assertRaisesRegexp(TankError, "is not of type boolean"):
+        with self.assertRaisesRegex(TankError, "is not of type boolean"):
             IntegerKey("version_number", strict_matching=1)
 
-        with self.assertRaisesRegexp(TankError, "is not of type string"):
+        with self.assertRaisesRegex(TankError, "is not of type string"):
             IntegerKey("version_number", format_spec=1)
 
         # Make sure that if the user specifies strict_matching with no format
         # there is an error
         error_regexp = "strict_matching can't be set"
-        with self.assertRaisesRegexp(TankError, error_regexp):
+        with self.assertRaisesRegex(TankError, error_regexp):
             IntegerKey("version_number", strict_matching=False)
 
-        with self.assertRaisesRegexp(TankError, error_regexp):
+        with self.assertRaisesRegex(TankError, error_regexp):
             IntegerKey("version_number", strict_matching=True)
 
         # We support 4 format_spec values:
@@ -495,27 +495,27 @@ class TestIntegerKey(ShotgunTestBase):
         IntegerKey("version_number", format_spec="01")
 
         # Make sure invalid formats are caught
-        with self.assertRaisesRegexp(TankError, "format_spec can't be empty"):
+        with self.assertRaisesRegex(TankError, "format_spec can't be empty"):
             IntegerKey("version_number", format_spec="")
 
         error_regexp = "has to either be"
         # We don't support the sign option.
-        with self.assertRaisesRegexp(TankError, error_regexp):
+        with self.assertRaisesRegex(TankError, error_regexp):
             IntegerKey("version_number", format_spec=" 3", strict_matching=False)
 
-        with self.assertRaisesRegexp(TankError, error_regexp):
+        with self.assertRaisesRegex(TankError, error_regexp):
             # Should throw because the padding number is not non zero.
             IntegerKey("version_number", format_spec="00")
 
-        with self.assertRaisesRegexp(TankError, error_regexp):
+        with self.assertRaisesRegex(TankError, error_regexp):
             # Should throw because it is not a non zero positive integer
             IntegerKey("version_number", format_spec="0")
 
-        with self.assertRaisesRegexp(TankError, error_regexp):
+        with self.assertRaisesRegex(TankError, error_regexp):
             # Should throw because the padding caracter is invalid
             IntegerKey("version_number", format_spec="a0")
 
-        with self.assertRaisesRegexp(TankError, error_regexp):
+        with self.assertRaisesRegex(TankError, error_regexp):
             # Should throw because the padding size is not a number.
             IntegerKey("version_number", format_spec="0a")
 
@@ -581,13 +581,13 @@ class TestIntegerKey(ShotgunTestBase):
         :param error_msg: Text that partially matches the error message.
         """
         # Should fail because not a number
-        with self.assertRaisesRegexp(TankError, error_msg):
+        with self.assertRaisesRegex(TankError, error_msg):
             key.value_from_str("aaaa")
-        with self.assertRaisesRegexp(TankError, error_msg):
+        with self.assertRaisesRegex(TankError, error_msg):
             key.value_from_str("0a")
-        with self.assertRaisesRegexp(TankError, error_msg):
+        with self.assertRaisesRegex(TankError, error_msg):
             key.value_from_str("a0")
-        with self.assertRaisesRegexp(TankError, error_msg):
+        with self.assertRaisesRegex(TankError, error_msg):
             key.value_from_str("aa")
 
     def _test_strict_matching(self, padding_char):
@@ -617,24 +617,24 @@ class TestIntegerKey(ShotgunTestBase):
         error_msg = "does not match format spec"
 
         # It should not match a string with too few digits
-        with self.assertRaisesRegexp(TankError, error_msg):
+        with self.assertRaisesRegex(TankError, error_msg):
             key.value_from_str("1")
 
         # It should not match a template with too many digits that are all zero because that would
         # lossy. (there are more zeros than the format spec can rebuild)
-        with self.assertRaisesRegexp(TankError, error_msg):
+        with self.assertRaisesRegex(TankError, error_msg):
             key.value_from_str("0000")
 
         # It should not match negative numbers either
-        with self.assertRaisesRegexp(TankError, error_msg):
+        with self.assertRaisesRegex(TankError, error_msg):
             key.value_from_str("-1000")
 
         # It should not match baddly padded numbers
-        with self.assertRaisesRegexp(TankError, error_msg):
+        with self.assertRaisesRegex(TankError, error_msg):
             key.value_from_str("0100")
 
         # It should not match negative values
-        with self.assertRaisesRegexp(TankError, error_msg):
+        with self.assertRaisesRegex(TankError, error_msg):
             key.value_from_str("-01")
 
         self._test_nan(key, error_msg)
@@ -657,19 +657,19 @@ class TestSequenceKey(ShotgunTestBase):
     def test_framespec_no_format(self):
         seq_field = SequenceKey("field_name")
         expected_frame_specs = set(["%d", "#", "@", "$F", "<UDIM>", "$UDIM"])
-        self.assertEquals(expected_frame_specs, set(seq_field._frame_specs))
+        self.assertEqual(expected_frame_specs, set(seq_field._frame_specs))
 
     def test_framspec_short_format(self):
         format_spec = "02"
         expected_frame_specs = set(["%02d", "##", "@@", "$F2", "<UDIM>", "$UDIM"])
         seq_field = SequenceKey("field_name", format_spec=format_spec)
-        self.assertEquals(expected_frame_specs, set(seq_field._frame_specs))
+        self.assertEqual(expected_frame_specs, set(seq_field._frame_specs))
 
     def test_framespec_long_format(self):
         format_spec = "010"
         seq_field = SequenceKey("field_name", format_spec=format_spec)
         expected_frame_specs = set(["%010d", "@@@@@@@@@@", "##########", "$F10", "<UDIM>", "$UDIM"])
-        self.assertEquals(expected_frame_specs, set(seq_field._frame_specs))
+        self.assertEqual(expected_frame_specs, set(seq_field._frame_specs))
 
     def test_validate_good(self):
         good_values = copy.copy(self.seq_field._frame_specs)
@@ -699,7 +699,7 @@ class TestSequenceKey(ShotgunTestBase):
                             "<UDIM>":"<UDIM>",
                             "$UDIM":"$UDIM"}
         for str_value, expected_value in valid_str_values.items():
-            self.assertEquals(expected_value, self.seq_field.value_from_str(str_value))
+            self.assertEqual(expected_value, self.seq_field.value_from_str(str_value))
 
     def test_str_from_value_good(self):
 
@@ -714,7 +714,7 @@ class TestSequenceKey(ShotgunTestBase):
                             "<UDIM>":"<UDIM>",
                             "$UDIM":"$UDIM"}
         for value, str_value in valid_value_strs.items():
-            self.assertEquals(str_value, self.seq_field.str_from_value(value))
+            self.assertEqual(str_value, self.seq_field.str_from_value(value))
 
 
     def test_str_from_value_bad(self):
@@ -731,13 +731,13 @@ class TestSequenceKey(ShotgunTestBase):
         value = 3
         expected = "%03d" % value
         result = formatted_field.str_from_value(value)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_str_from_value_ignore_type(self):
         value = "a"
         expected = value
         result = self.seq_field.str_from_value(value, ignore_type=True)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_str_from_value_default_one(self):
         """
@@ -748,32 +748,32 @@ class TestSequenceKey(ShotgunTestBase):
         seq_field = SequenceKey("field_name")
         expected = "%d"
         result = seq_field.str_from_value(value="FORMAT:%d")
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         expected = "#"
         result = seq_field.str_from_value(value="FORMAT:#")
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         expected = "@"
         result = seq_field.str_from_value(value="FORMAT:@")
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         expected = "$F"
         result = seq_field.str_from_value(value="FORMAT:$F")
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         expected = "<UDIM>"
         result = seq_field.str_from_value(value="FORMAT:<UDIM>")
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         expected = "$UDIM"
         result = seq_field.str_from_value(value="FORMAT:$UDIM")
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         # no pattern specified
         expected = "%d"
         result = seq_field.str_from_value()
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_str_from_value_default_three(self):
         """
@@ -784,32 +784,32 @@ class TestSequenceKey(ShotgunTestBase):
 
         expected = "%03d"
         result = seq_field.str_from_value("FORMAT:%d")
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         expected = "###"
         result = seq_field.str_from_value("FORMAT:#")
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         expected = "@@@"
         result = seq_field.str_from_value("FORMAT:@")
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         expected = "$F3"
         result = seq_field.str_from_value("FORMAT:$F")
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         expected = "<UDIM>"
         result = seq_field.str_from_value(value="FORMAT:<UDIM>")
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         expected = "$UDIM"
         result = seq_field.str_from_value(value="FORMAT:$UDIM")
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         # no pattern specified
         expected = "%03d"
         result = seq_field.str_from_value()
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_str_from_value_format_whitespace(self):
         """Use of FORMAT: prefix with whitespace."""
@@ -818,44 +818,44 @@ class TestSequenceKey(ShotgunTestBase):
 
         expected = "%03d"
         result = seq_field.str_from_value("FORMAT: %d")
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         expected = "###"
         result = seq_field.str_from_value("FORMAT: #")
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         expected = "@@@"
         result = seq_field.str_from_value("FORMAT: @")
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         expected = "$F3"
         result = seq_field.str_from_value("FORMAT: $F")
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         expected = "<UDIM>"
         result = seq_field.str_from_value(value="FORMAT: <UDIM>")
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         expected = "$UDIM"
         result = seq_field.str_from_value(value="FORMAT: $UDIM")
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_default_int(self):
         default = 13
         seq_frame = SequenceKey("field_name", default=default)
-        self.assertEquals(default, seq_frame.default)
+        self.assertEqual(default, seq_frame.default)
 
     def test_default_frame_spec(self):
         frame_specs = set(["%d", "#", "@", "$F", "<UDIM>", "$UDIM"])
         for frame_spec in frame_specs:
             seq_frame = SequenceKey("field_name", default=frame_spec)
-            self.assertEquals(frame_spec, seq_frame.default)
+            self.assertEqual(frame_spec, seq_frame.default)
 
     def test_default_frame_spec_choices(self):
         frame_specs = set(["%d", "#", "@", "$F", "<UDIM>", "$UDIM"])
         for frame_spec in frame_specs:
             seq_frame = SequenceKey("field_name", default=frame_spec, choices=[1,2])
-            self.assertEquals(frame_spec, seq_frame.default)
+            self.assertEqual(frame_spec, seq_frame.default)
 
     def test_default_bad(self):
         default = "bad default"
@@ -864,19 +864,19 @@ class TestSequenceKey(ShotgunTestBase):
     def test_choices_int(self):
         choices = [1]
         seq_frame = SequenceKey("field_name", choices=choices)
-        self.assertEquals(choices, seq_frame.choices)
+        self.assertEqual(choices, seq_frame.choices)
 
     def test_choices_frame_spec(self):
         frame_specs = set(["%d", "#", "@", "$F", "<UDIM>", "$UDIM"])
         seq_frame = SequenceKey("field_name", choices=frame_specs)
-        self.assertEquals(list(frame_specs), seq_frame.choices)
+        self.assertEqual(list(frame_specs), seq_frame.choices)
 
 
 class TestMakeKeys(ShotgunTestBase):
     def test_no_data(self):
         data = {}
         result = make_keys(data)
-        self.assertEquals({}, result)
+        self.assertEqual({}, result)
 
     def test_string(self):
         data = {"simple": {"type": "str"},
@@ -891,18 +891,18 @@ class TestMakeKeys(ShotgunTestBase):
         alpha_key = result.get("alpha")
         complex_key = result.get("complex")
 
-        self.assertEquals("simple", simple_key.name)
-        self.assertEquals(None, simple_key.default)
-        self.assertEquals([], simple_key.choices)
+        self.assertEqual("simple", simple_key.name)
+        self.assertEqual(None, simple_key.default)
+        self.assertEqual([], simple_key.choices)
 
-        self.assertEquals("alpha", alpha_key.name)
-        self.assertEquals(None, alpha_key.default)
-        self.assertEquals([], alpha_key.choices)
-        self.assertEquals("alphanumeric", alpha_key.filter_by)
+        self.assertEqual("alpha", alpha_key.name)
+        self.assertEqual(None, alpha_key.default)
+        self.assertEqual([], alpha_key.choices)
+        self.assertEqual("alphanumeric", alpha_key.filter_by)
 
-        self.assertEquals("complex", complex_key.name)
-        self.assertEquals("a", complex_key.default)
-        self.assertEquals(["a", "b"], complex_key.choices)
+        self.assertEqual("complex", complex_key.name)
+        self.assertEqual("a", complex_key.default)
+        self.assertEqual(["a", "b"], complex_key.choices)
 
     def test_int(self):
         data = {"simple": {"type": "int"},
@@ -915,14 +915,14 @@ class TestMakeKeys(ShotgunTestBase):
         simple_key = result.get("simple")
         complex_key = result.get("complex")
 
-        self.assertEquals("simple", simple_key.name)
-        self.assertEquals(None, simple_key.default)
-        self.assertEquals([], simple_key.choices)
+        self.assertEqual("simple", simple_key.name)
+        self.assertEqual(None, simple_key.default)
+        self.assertEqual([], simple_key.choices)
 
-        self.assertEquals("complex", complex_key.name)
-        self.assertEquals(2, complex_key.default)
-        self.assertEquals([1, 2], complex_key.choices)
-        self.assertEquals("03", complex_key.format_spec)
+        self.assertEqual("complex", complex_key.name)
+        self.assertEqual(2, complex_key.default)
+        self.assertEqual([1, 2], complex_key.choices)
+        self.assertEqual("03", complex_key.format_spec)
 
     def test_sequence(self):
         data = {"simple": {"type": "sequence"},
@@ -936,11 +936,11 @@ class TestMakeKeys(ShotgunTestBase):
         simple_key = result.get("simple")
         complex_key = result.get("complex")
 
-        self.assertEquals("simple", simple_key.name)
-        self.assertEquals("01", simple_key.format_spec)
+        self.assertEqual("simple", simple_key.name)
+        self.assertEqual("01", simple_key.format_spec)
 
-        self.assertEquals("complex", complex_key.name)
-        self.assertEquals("03", complex_key.format_spec)
+        self.assertEqual("complex", complex_key.name)
+        self.assertEqual("03", complex_key.format_spec)
 
     def test_shotgun_fields(self):
         """
@@ -960,18 +960,18 @@ class TestMakeKeys(ShotgunTestBase):
 
         str_key = result.get("string")
         self.assertIsInstance(str_key, StringKey)
-        self.assertEquals("entity one", str_key.shotgun_entity_type)
-        self.assertEquals("field one", str_key.shotgun_field_name)
+        self.assertEqual("entity one", str_key.shotgun_entity_type)
+        self.assertEqual("field one", str_key.shotgun_field_name)
 
         int_key = result.get("integer")
         self.assertIsInstance(int_key, IntegerKey)
-        self.assertEquals("entity two", int_key.shotgun_entity_type)
-        self.assertEquals("field two", int_key.shotgun_field_name)
+        self.assertEqual("entity two", int_key.shotgun_entity_type)
+        self.assertEqual("field two", int_key.shotgun_field_name)
 
         seq_key = result.get("sequence")
         self.assertIsInstance(seq_key, SequenceKey)
-        self.assertEquals("entity three", seq_key.shotgun_entity_type)
-        self.assertEquals("field three", seq_key.shotgun_field_name)
+        self.assertEqual("entity three", seq_key.shotgun_entity_type)
+        self.assertEqual("field three", seq_key.shotgun_field_name)
 
     def test_bad_format(self):
         data = {"bad": {"type": "int", "format_spec": 3}}
@@ -986,7 +986,7 @@ class TestMakeKeys(ShotgunTestBase):
         keys = make_keys(data)
         key = keys.get("real_key_name")
         self.assertIsInstance(key, StringKey)
-        self.assertEquals("alias_name", key.name)
+        self.assertEqual("alias_name", key.name)
 
 
 class TestEyeKey(ShotgunTestBase):
@@ -1004,7 +1004,7 @@ class TestEyeKey(ShotgunTestBase):
         self.assertTrue(self.eye_key.validate("R"))
 
     def test_str_from_value_default(self):
-        self.assertEquals(self.default_value, self.eye_key.str_from_value())
+        self.assertEqual(self.default_value, self.eye_key.str_from_value())
 
     def test_set_choices(self):
         eye_key = StringKey("eye", default="%V", choices=["l","r", "%V"])
@@ -1056,19 +1056,19 @@ class TestTimestampKey(ShotgunTestBase):
         TimestampKey("name", format_spec="%Y-%m-%d")
 
         # format_spec has to be a string.
-        with self.assertRaisesRegexp(TankError, "is not of type string or None"):
+        with self.assertRaisesRegex(TankError, "is not of type string or None"):
             TimestampKey("name", default=1)
 
         # format_spec has to be a string.
-        with self.assertRaisesRegexp(TankError, "is not of type string"):
+        with self.assertRaisesRegex(TankError, "is not of type string"):
             TimestampKey("name", format_spec=1)
 
         # Date that to be a valid time.
-        with self.assertRaisesRegexp(TankError, "Invalid string"):
+        with self.assertRaisesRegex(TankError, "Invalid string"):
             TimestampKey("name", default="00-07-2015", format_spec="%d-%m-%Y")
 
         # Date that to be a valid time.
-        with self.assertRaisesRegexp(TankError, "Invalid string"):
+        with self.assertRaisesRegex(TankError, "Invalid string"):
             TimestampKey("name", default="not_a_date")
 
     def test_str_from_value(self):
@@ -1104,14 +1104,14 @@ class TestTimestampKey(ShotgunTestBase):
         """
         key = TimestampKey("test")
         # bad format
-        with self.assertRaisesRegexp(TankError, "Invalid string"):
+        with self.assertRaisesRegex(TankError, "Invalid string"):
             key.value_from_str("1 2 3")
         # out of bound values
-        with self.assertRaisesRegexp(TankError, "Invalid string"):
+        with self.assertRaisesRegex(TankError, "Invalid string"):
             key.value_from_str("2015-06-33-21-20-30")
 
         # Too much data
-        with self.assertRaisesRegexp(TankError, "Invalid string"):
+        with self.assertRaisesRegex(TankError, "Invalid string"):
             key.value_from_str(self._datetime_string + "bad date")
 
     def test_bad_value(self):
@@ -1119,7 +1119,7 @@ class TestTimestampKey(ShotgunTestBase):
         Test with values that are not supported.
         """
         key = TimestampKey("test")
-        with self.assertRaisesRegexp(TankError, "Invalid type"):
+        with self.assertRaisesRegex(TankError, "Invalid type"):
             key.str_from_value(1)
 
     @patch("tank.templatekey.TimestampKey._TimestampKey__get_current_time")

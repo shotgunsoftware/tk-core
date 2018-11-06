@@ -250,7 +250,7 @@ class TestShotgunPath(ShotgunTestBase):
             "/Darwin.yml"
         )
 
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError,
             "Cannot resolve file name - unsupported os platform 'potato'"
         ):
@@ -278,20 +278,20 @@ class TestShotgunPath(ShotgunTestBase):
         self.assertRaises(ValueError, empty_path.as_descriptor_uri)
 
         mac_only = ShotgunPath(macosx_path="/foo/bar")
-        self.assertEquals(
+        self.assertEqual(
             mac_only.as_descriptor_uri(),
             "sgtk:descriptor:path?mac_path=/foo/bar"
         )
 
         # dev flag
-        self.assertEquals(
+        self.assertEqual(
             mac_only.as_descriptor_uri(for_development=True),
             "sgtk:descriptor:dev?mac_path=/foo/bar"
         )
 
         # full path and escaping
         full_path = ShotgunPath(macosx_path="/foo/bar", windows_path="C:\\foo\\bar", linux_path="/foo bar/baz")
-        self.assertEquals(
+        self.assertEqual(
             full_path.as_descriptor_uri(),
             "sgtk:descriptor:path?linux_path=/foo%20bar/baz&mac_path=/foo/bar&windows_path=C:\\foo\\bar"
         )
