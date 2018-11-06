@@ -24,6 +24,10 @@ environment:
 
 build: off
 
+install:
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - %CMD_IN_ENV% pip install -r tests\\ci_requirements.txt"
+
 test_script:
   # Put your test command here.
   # If you don't need to build C extensions on 64-bit Python 3.3 or 3.4,
@@ -33,3 +37,6 @@ test_script:
   # the interpreter you're using - Appveyor does not do anything special
   # to put the Python version you want to use on PATH.
   - "tests\\run_appveyor.bat"
+
+after_test:
+  - codecov

@@ -12,7 +12,9 @@
 :: This file is run by the appveyor builds.
 ::
 
-%PYTHON%\python tests/run_tests.py
+set PYTHONPATH=tests/python/third_party
+
+python tests/python/third_party/coverage run tests/run_tests.py
 
 :: FIXME: This approach does not scale...
 if not %ERRORLEVEL% == 0 exit /b %ERRORLEVEL%
@@ -22,7 +24,7 @@ set SHOTGUN_TEST_ENTITY_SUFFIX=app_veyor
 
 :: Run these tests only if the integration tests environment variables are set.
 IF DEFINED SHOTGUN_HOST (
-    %PYTHON%\python tests\integration_tests\run_integration_tests.py
+    python tests\integration_tests\run_integration_tests.py --with-coverage
 
 ) ELSE (
     ECHO "Skipping integration tests, SHOTGUN_HOST is not set."

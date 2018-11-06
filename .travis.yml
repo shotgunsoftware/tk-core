@@ -28,4 +28,4 @@ install:
 # command to run tests
 script: tests/run_travis.sh
 # Only run coveralls if we actually ran tests. Otherwise this breaks coveralls it seems.
-after_success: test $SHOTGUN_COMPILE_ONLY = 0 && coveralls
+after_success: test $SHOTGUN_COMPILE_ONLY = 0 && codecov
