@@ -26,7 +26,9 @@ build: off
 
 install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - set PYTHONWARNINGS=ignore
   - "%CMD_IN_ENV% pip install -r tests\\ci_requirements.txt"
+  - set PYTHONWARNINGS=
 
 test_script:
   # Put your test command here.
