@@ -27,7 +27,6 @@ from ..util import shotgun
 from .. import pipelineconfig_utils
 from . import console_utils
 from ..util.version import is_version_newer, is_version_head
-from ..descriptor.io_descriptor.git import IODescriptorGit
 
 from tank_vendor import yaml
 
@@ -85,7 +84,7 @@ class CoreUpdateAction(Action):
         ret_val_doc += "number of the core that was updated to. "
         ret_val_doc += "For the 'update_blocked' status, data will contain a reason key containing an explanation."
 
-        self.parameters = {"return_value": {"description": ret_val_doc, "type": "dict"}}
+        self.parameters = {"return_value": {"description": ret_val_doc, "type": "dict" }}
 
     def _parse_arguments(self, parameters):
         """
@@ -274,7 +273,7 @@ class TankCoreUpdater(object):
 
         # now also extract the version of shotgun currently running
         try:
-            self._sg_studio_version = ".".join([str(x) for x in self._local_sg.server_info["version"]])
+            self._sg_studio_version = ".".join([ str(x) for x in self._local_sg.server_info["version"]])
         except Exception as e:
             raise TankError("Could not extract version number for shotgun: %s" % e)
 
@@ -329,14 +328,8 @@ class TankCoreUpdater(object):
             # to download the whole bundle just to see the file.
             if not self._new_core_descriptor.exists_local():
                 self._log.info("")
-                self._log.info(
-                    "Downloading Toolkit Core API %s from the App Store..." % self._new_core_descriptor.version
-                )
-
-                # Cores from centralized config should keep their git history so users
-                # can update and revert core at will.
-                with IODescriptorGit.CompleteRepoClone():
-                    self._new_core_descriptor.download_local()
+                self._log.info("Downloading Toolkit Core API %s from the App Store..." % self._new_core_descriptor.version)
+                self._new_core_descriptor.download_local()
                 self._log.info("Download completed.")
 
             # running an older version. Make sure that shotgun has the required version

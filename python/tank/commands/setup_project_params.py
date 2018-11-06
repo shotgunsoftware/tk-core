@@ -26,7 +26,6 @@ from .. import hook
 from ..errors import TankError, TankErrorProjectIsSetup
 from .. import pipelineconfig_utils
 from ..descriptor import create_descriptor, Descriptor
-from ..descriptor.io_descriptor.git import IODescriptorGit
 
 from tank_vendor import yaml
 
@@ -1099,10 +1098,7 @@ class TemplateConfiguration(object):
             # this is a git repository!
             self._log.info("Hang on, loading configuration from git...")
             descriptor = self._create_git_descriptor(config_uri)
-            # Configuration from centralized config should keep their git history so users
-            # can update and revert core at will.
-            with IODescriptorGit.CompleteRepoClone():
-                descriptor.ensure_local()
+            descriptor.ensure_local()
             return descriptor.get_path(), descriptor.version, "git"
 
         elif os.path.sep in config_uri:
