@@ -26,7 +26,7 @@ build: off
 
 install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-  - %CMD_IN_ENV% pip install -r "tests\\ci_requirements.txt"
+  - "%CMD_IN_ENV% pip install -r tests\\ci_requirements.txt"
 
 test_script:
   # Put your test command here.
