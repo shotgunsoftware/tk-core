@@ -134,7 +134,7 @@ class TestApi(ShotgunTestBase):
         self.assertEqual(d.get_uri(), "sgtk:descriptor:app_store?name=tk-testbundlefactory&version=v0.2.3")
 
         # test opting out of the local fallback
-        with self.assertRaisesRegexp(tank.descriptor.TankDescriptorError, "Could not get latest version of"):
+        with self.assertRaisesRegex(tank.descriptor.TankDescriptorError, "Could not get latest version of"):
             sgtk.descriptor.create_descriptor(
                 self.mockgun,
                 sgtk.descriptor.Descriptor.CONFIG,

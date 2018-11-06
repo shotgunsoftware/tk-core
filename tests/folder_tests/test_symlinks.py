@@ -70,7 +70,7 @@ class TestSymlinks(TankTestBase):
         if sys.platform != "win32":
             self.assertTrue(os.path.lexists(self.aaa_link))
             self.assertTrue(os.path.islink(self.aaa_link))
-            self.assertEquals(os.readlink(self.aaa_link), "../Stuff/project_code/aaa")
+            self.assertEqual(os.readlink(self.aaa_link), "../Stuff/project_code/aaa")
         else:
             # no support on windows
             self.assertFalse(os.path.exists(self.aaa_link))
@@ -96,7 +96,7 @@ class TestSymlinks(TankTestBase):
         if sys.platform != "win32":
             self.assertTrue(os.path.lexists(self.bbb_link))
             self.assertTrue(os.path.islink(self.bbb_link))
-            self.assertEquals(os.readlink(self.bbb_link), "../Stuff/project_code/vehicle/bbb")
+            self.assertEqual(os.readlink(self.bbb_link), "../Stuff/project_code/vehicle/bbb")
         else:
             # no support on windows
             self.assertFalse(os.path.exists(self.bbb_link))

@@ -199,9 +199,9 @@ class TestUser(TestContext):
         
         get_current_user.return_value = self.current_user
         
-        self.assertEquals(self.current_user["id"], self.context.user["id"])
-        self.assertEquals(self.current_user["type"], self.context.user["type"])
-        self.assertEquals(len(self.context.user), 3)
+        self.assertEqual(self.current_user["id"], self.context.user["id"])
+        self.assertEqual(self.current_user["type"], self.context.user["type"])
+        self.assertEqual(len(self.context.user), 3)
 
 class TestCreateEmpty(TestContext):
     def test_empty_context(self):
@@ -220,12 +220,12 @@ class TestFromPath(TestContext):
         result = self.tk.context_from_path(shot_path_abs)
 
         # check context's attributes
-        self.assertEquals(self.shot["id"], result.entity["id"])
-        self.assertEquals(self.shot["type"], result.entity["type"])
-        self.assertEquals(self.project["id"], result.project["id"])
-        self.assertEquals(self.project["type"], result.project["type"])
-        self.assertEquals(self.current_user["id"], result.user["id"])
-        self.assertEquals(self.current_user["type"], result.user["type"])
+        self.assertEqual(self.shot["id"], result.entity["id"])
+        self.assertEqual(self.shot["type"], result.entity["type"])
+        self.assertEqual(self.project["id"], result.project["id"])
+        self.assertEqual(self.project["type"], result.project["type"])
+        self.assertEqual(self.current_user["id"], result.user["id"])
+        self.assertEqual(self.current_user["type"], result.user["type"])
         self.assertIsNone(result.step)
         self.assertIsNone(result.task)
 
@@ -235,8 +235,8 @@ class TestFromPath(TestContext):
         shot_path_abs = os.path.abspath(os.path.join(self.project_root, ".."))
         result = self.tk.context_from_path(shot_path_abs)
         # check context's attributes
-        self.assertEquals(self.current_user["id"], result.user["id"])
-        self.assertEquals(self.current_user["type"], result.user["type"])
+        self.assertEqual(self.current_user["id"], result.user["id"])
+        self.assertEqual(self.current_user["type"], result.user["type"])
         self.assertIsNone(result.entity)
         self.assertIsNone(result.task)
         self.assertIsNone(result.step)
@@ -248,14 +248,14 @@ class TestFromPath(TestContext):
         
 
         # check context's attributes
-        self.assertEquals(self.shot["id"], result.entity["id"])
-        self.assertEquals(self.shot["type"], result.entity["type"])
-        self.assertEquals(self.project["id"], result.project["id"])
-        self.assertEquals(self.project["type"], result.project["type"])
-        self.assertEquals(self.step["id"], result.step["id"])
-        self.assertEquals(self.step["type"], result.step["type"])
-        self.assertEquals(self.other_user["id"], result.user["id"])
-        self.assertEquals(self.other_user["type"], result.user["type"])
+        self.assertEqual(self.shot["id"], result.entity["id"])
+        self.assertEqual(self.shot["type"], result.entity["type"])
+        self.assertEqual(self.project["id"], result.project["id"])
+        self.assertEqual(self.project["type"], result.project["type"])
+        self.assertEqual(self.step["id"], result.step["id"])
+        self.assertEqual(self.step["type"], result.step["type"])
+        self.assertEqual(self.other_user["id"], result.user["id"])
+        self.assertEqual(self.other_user["type"], result.user["type"])
         
         self.assertIsNone(result.task)
 
@@ -286,16 +286,16 @@ class TestFromPathWithPrevious(TestContext):
         result = self.tk.context_from_path(shot_path_abs, prev_ctx)
 
         # check context's attributes
-        self.assertEquals(self.shot["id"], result.entity["id"])
-        self.assertEquals(self.shot["type"], result.entity["type"])
-        self.assertEquals(self.project["id"], result.project["id"])
-        self.assertEquals(self.project["type"], result.project["type"])
-        self.assertEquals("Step", result.step["type"])
-        self.assertEquals(self.step["id"], result.step["id"])
-        self.assertEquals("Task", result.task["type"])
-        self.assertEquals(self.task["id"], result.task["id"])
-        self.assertEquals(self.current_user["id"], result.user["id"])
-        self.assertEquals(self.current_user["type"], result.user["type"])
+        self.assertEqual(self.shot["id"], result.entity["id"])
+        self.assertEqual(self.shot["type"], result.entity["type"])
+        self.assertEqual(self.project["id"], result.project["id"])
+        self.assertEqual(self.project["type"], result.project["type"])
+        self.assertEqual("Step", result.step["type"])
+        self.assertEqual(self.step["id"], result.step["id"])
+        self.assertEqual("Task", result.task["type"])
+        self.assertEqual(self.task["id"], result.task["id"])
+        self.assertEqual(self.current_user["id"], result.user["id"])
+        self.assertEqual(self.current_user["type"], result.user["type"])
 
 
 class TestUrl(TestContext):
@@ -315,15 +315,15 @@ class TestUrl(TestContext):
 
     def test_project(self):
         result = context.from_entity(self.tk, self.project["type"], self.project["id"])
-        self.assertEquals(result.shotgun_url, "http://unit_test_mock_sg/detail/Project/1" )
+        self.assertEqual(result.shotgun_url, "http://unit_test_mock_sg/detail/Project/1")
 
     def test_empty(self):
         result =  context.create_empty(self.tk)
-        self.assertEquals(result.shotgun_url, "http://unit_test_mock_sg" )
+        self.assertEqual(result.shotgun_url, "http://unit_test_mock_sg")
 
     def test_entity(self):
         result =  context.from_entity(self.tk, self.shot["type"], self.shot["id"])
-        self.assertEquals(result.shotgun_url, "http://unit_test_mock_sg/detail/Shot/2" )
+        self.assertEqual(result.shotgun_url, "http://unit_test_mock_sg/detail/Shot/2")
         
     def test_task(self):
         """
@@ -336,7 +336,7 @@ class TestUrl(TestContext):
         self.task["additional_field"] = add_value
         
         result = context.from_entity(self.tk, self.task["type"], self.task["id"])
-        self.assertEquals(result.shotgun_url, "http://unit_test_mock_sg/detail/Task/1" )
+        self.assertEqual(result.shotgun_url, "http://unit_test_mock_sg/detail/Task/1")
 
 
 class TestStringRepresentation(TestContext):
@@ -363,35 +363,35 @@ class TestStringRepresentation(TestContext):
         Tests string representation of site context
         """
         result = context.create_empty(self.tk)
-        self.assertEquals(str(result), "unit_test_mock_sg")
+        self.assertEqual(str(result), "unit_test_mock_sg")
 
     def test_project(self):
         """
         Tests string representation of project context
         """
         result = context.from_entity(self.tk, self.project["type"], self.project["id"])
-        self.assertEquals(str(result), "Project project_name")
+        self.assertEqual(str(result), "Project project_name")
 
     def test_entity_with_step(self):
         """
         Tests string representation of shot context with a single step set
         """
         result = context.from_entity(self.tk, self.shot["type"], self.shot["id"])
-        self.assertEquals(str(result), "step_name, Shot shot_name")
+        self.assertEqual(str(result), "step_name, Shot shot_name")
 
     def test_entity(self):
         """
         Tests string representation of shot context
         """
         result = context.from_entity(self.tk, self.shot_alt["type"], self.shot_alt["id"])
-        self.assertEquals(str(result), "Shot shot_name_alt")
+        self.assertEqual(str(result), "Shot shot_name_alt")
 
     def test_task(self):
         """
         Tests string representation of task context
         """
         result = context.from_entity(self.tk, self.task["type"], self.task["id"])
-        self.assertEquals(str(result), "task_content, Shot shot_name")
+        self.assertEqual(str(result), "task_content, Shot shot_name")
 
 
 class TestFromEntity(TestContext):
@@ -460,17 +460,17 @@ class TestFromEntity(TestContext):
         result =  context.from_entity(self.tk, self.shot["type"], self.shot["id"])
 
         self.check_entity(self.project, result.project)
-        self.assertEquals(3, len(result.project))
+        self.assertEqual(3, len(result.project))
 
         self.check_entity(self.shot, result.entity)
-        self.assertEquals(3, len(result.entity))
+        self.assertEqual(3, len(result.entity))
                 
         self.check_entity(self.current_user, result.user)
 
-        self.assertEquals(None, result.task)
+        self.assertEqual(None, result.task)
         
         self.check_entity(self.step, result.step)
-        self.assertEquals(3, len(result.step))
+        self.assertEqual(3, len(result.step))
     
     @patch("tank.util.login.get_current_user")
     def test_step_higher_entity(self, get_current_user):
@@ -510,30 +510,30 @@ class TestFromEntity(TestContext):
 
         result = context.from_entity(self.tk, self.task["type"], self.task["id"])
         self.check_entity(self.project, result.project)
-        self.assertEquals(3, len(result.project))
+        self.assertEqual(3, len(result.project))
 
         self.check_entity(self.shot, result.entity)
-        self.assertEquals(3, len(result.entity))
+        self.assertEqual(3, len(result.entity))
 
         self.check_entity(self.step, result.step)
-        self.assertEquals(3, len(result.step))
+        self.assertEqual(3, len(result.step))
 
         self.check_entity(self.current_user, result.user)
 
-        self.assertEquals(self.current_user["id"], result.user["id"])
-        self.assertEquals(self.current_user["type"], result.user["type"])
+        self.assertEqual(self.current_user["id"], result.user["id"])
+        self.assertEqual(self.current_user["type"], result.user["type"])
 
-        self.assertEquals(self.task["type"], result.task["type"])
-        self.assertEquals(self.task["id"], result.task["id"])
-        self.assertEquals(self.task["content"], result.task["name"])
-        self.assertEquals(3, len(result.task))
+        self.assertEqual(self.task["type"], result.task["type"])
+        self.assertEqual(self.task["id"], result.task["id"])
+        self.assertEqual(self.task["content"], result.task["name"])
+        self.assertEqual(3, len(result.task))
 
         add_result = result.additional_entities[0]
         self.check_entity(add_value, add_result)
 
         # Check that the shotgun method find_one was used
         num_finds_after = self.tk.shotgun.finds
-        self.assertTrue( (num_finds_after-num_finds_before) == 1 )
+        self.assertTrue((num_finds_after - num_finds_before) == 1)
 
 
     @patch("tank.util.login.get_current_user")
@@ -547,11 +547,11 @@ class TestFromEntity(TestContext):
         shot = {"type": "Shot", "id": 13, "name": "never_seen_me_before"}
         result = context.from_entity(self.tk, shot["type"], shot["id"])
 
-        self.assertEquals(shot["id"], result.entity["id"])
-        self.assertEquals(shot["type"], result.entity["type"])
+        self.assertEqual(shot["id"], result.entity["id"])
+        self.assertEqual(shot["type"], result.entity["type"])
         self.check_entity(self.project, result.project)
-        self.assertEquals(self.current_user["id"], result.user["id"])
-        self.assertEquals(self.current_user["type"], result.user["type"])
+        self.assertEqual(self.current_user["id"], result.user["id"])
+        self.assertEqual(self.current_user["type"], result.user["type"])
         # Everything else should be none
         self.assertIsNone(result.step)
         self.assertIsNone(result.task)
@@ -588,10 +588,10 @@ class TestFromEntity(TestContext):
         self.assertIsNotNone(result)
 
         self.check_entity(self.project, result.project)
-        self.assertEquals(3, len(result.project))
+        self.assertEqual(3, len(result.project))
 
         self.check_entity(self.shot, result.entity)
-        self.assertEquals(3, len(result.entity))
+        self.assertEqual(3, len(result.entity))
         
         self.check_entity(self.current_user, result.user)
 
@@ -621,40 +621,40 @@ class TestFromEntity(TestContext):
         self.assertIsNotNone(result)
 
         self.check_entity(self.project, result.project)
-        self.assertEquals(3, len(result.project))
+        self.assertEqual(3, len(result.project))
 
         self.check_entity(self.shot, result.entity)
-        self.assertEquals(3, len(result.entity))
+        self.assertEqual(3, len(result.entity))
         
         self.check_entity(self.current_user, result.user)
         
         self.check_entity(self.step, result.step)
-        self.assertEquals(3, len(result.step))
+        self.assertEqual(3, len(result.step))
         
-        self.assertEquals(self.task["type"], result.task["type"])
-        self.assertEquals(self.task["id"], result.task["id"])
-        self.assertEquals(self.task["content"], result.task["name"])
-        self.assertEquals(3, len(result.task))
+        self.assertEqual(self.task["type"], result.task["type"])
+        self.assertEqual(self.task["id"], result.task["id"])
+        self.assertEqual(self.task["content"], result.task["name"])
+        self.assertEqual(3, len(result.task))
 
     def check_entity(self, first_entity, second_entity, check_name=True):
         "Checks two entity dictionaries have the same values for keys type, id and name."
-        self.assertEquals(first_entity["type"], second_entity["type"])
-        self.assertEquals(first_entity["id"],   second_entity["id"])
+        self.assertEqual(first_entity["type"], second_entity["type"])
+        self.assertEqual(first_entity["id"], second_entity["id"])
         if check_name:
-            self.assertEquals(first_entity["name"], second_entity["name"])
+            self.assertEqual(first_entity["name"], second_entity["name"])
 
     def test_bad_entities(self):
         """
         Test exception are raised if bad entities are used.
         """
-        with self.assertRaisesRegexp(TankError, "Cannot create a context from an entity type 'None'"):
+        with self.assertRaisesRegex(TankError, "Cannot create a context from an entity type 'None'"):
             context.from_entity(self.tk, None, 7777)
-        with self.assertRaisesRegexp(TankError, "Cannot create a context from an entity id set to 'None'"):
+        with self.assertRaisesRegex(TankError, "Cannot create a context from an entity id set to 'None'"):
             context.from_entity(self.tk, "Task", None)
-        with self.assertRaisesRegexp(TankError, "Unable to locate Task with id -1 in Shotgun"):
+        with self.assertRaisesRegex(TankError, "Unable to locate Task with id -1 in Shotgun"):
             context.from_entity(self.tk, "Task", -1)
         # PublishedFiles go through some dedicated code.
-        with self.assertRaisesRegexp(TankError, "Entity PublishedFile with id -1 not found in Shotgun!"):
+        with self.assertRaisesRegex(TankError, "Entity PublishedFile with id -1 not found in Shotgun!"):
             context.from_entity(self.tk, "PublishedFile", -1)
 
 
@@ -729,7 +729,7 @@ class TestAsTemplateFields(TestContext):
 
         # check the result:
         expected_result = {"Step": "step_short_name"}
-        self.assertEquals(result, expected_result)
+        self.assertEqual(result, expected_result)
 
     def test_validate_parameter(self):
         """
@@ -739,7 +739,7 @@ class TestAsTemplateFields(TestContext):
         # test a context that should resolve a full set of fields:
         fields = self.ctx.as_template_fields(self.template, validate=True)
         expected_fields = {"Sequence": "Seq", "Shot": "shot_code", "Step": "step_short_name"}
-        self.assertEquals(fields, expected_fields)
+        self.assertEqual(fields, expected_fields)
 
         # test a context that shouldn't resolve a full set of fields.  For this, we create
         # a new shot and add it to the path cache but we don't add the Step to ensure the
@@ -762,7 +762,7 @@ class TestAsTemplateFields(TestContext):
         # check that running with validate=False returns the expected fields:
         fields = test_ctx.as_template_fields(self.template, validate=False)
         expected_fields = {"Sequence": "Seq", "Shot": "shot_other"}
-        self.assertEquals(fields, expected_fields)
+        self.assertEqual(fields, expected_fields)
 
         # now check that when validate=True, a TankError is raised:
         self.assertRaises(TankError, test_ctx.as_template_fields, self.template, True)
@@ -775,7 +775,7 @@ class TestAsTemplateFields(TestContext):
         template_def = "/sequence/{Sequence}/{Shot}/{Step}/work/{shot_extra}.ext"
         template = TemplatePath(template_def, self.keys, self.project_root)
         result = self.ctx.as_template_fields(template)
-        self.assertEquals("extravalue", result["shot_extra"])
+        self.assertEqual("extravalue", result["shot_extra"])
 
     def test_step_first_template(self):
         """
@@ -785,9 +785,9 @@ class TestAsTemplateFields(TestContext):
         template_def = "{Step}/{Sequence}/{Shot}"
         template = TemplatePath(template_def, self.keys, self.project_root)
         result = self.ctx.as_template_fields(template)
-        self.assertEquals("step_short_name", result["Step"])
-        self.assertEquals("Seq", result["Sequence"])
-        self.assertEquals("shot_code", result["Shot"])
+        self.assertEqual("step_short_name", result["Step"])
+        self.assertEqual("Seq", result["Sequence"])
+        self.assertEqual("shot_code", result["Shot"])
 
     def test_entity_field_query(self):
         """
@@ -799,7 +799,7 @@ class TestAsTemplateFields(TestContext):
         template_def = "/sequence/{Sequence}/{Shot}/{Step}/work/{shot_seq}.ext"
         template = TemplatePath(template_def, self.keys, self.project_root)
         result = self.ctx.as_template_fields(template)
-        self.assertEquals("seq_name", result["shot_seq"])
+        self.assertEqual("seq_name", result["shot_seq"])
 
     def test_template_query_invalid(self):
         """
@@ -822,7 +822,7 @@ class TestAsTemplateFields(TestContext):
         template_def = "/sequence/{Sequence}/{Shot}/{Step}/work/{shot_seq}.ext"
         template = TemplatePath(template_def, self.keys, self.project_root)
         fields = self.ctx.as_template_fields(template)
-        self.assertEquals(fields['shot_seq'], None)
+        self.assertEqual(fields['shot_seq'], None)
 
     def test_query_cached(self):
         """
@@ -835,14 +835,14 @@ class TestAsTemplateFields(TestContext):
         template_def = "/sequence/{Sequence}/{Shot}/{Step}/work/{shot_extra}.ext"
         template = TemplatePath(template_def, self.keys, self.project_root)
         result = self.ctx.as_template_fields(template)
-        self.assertEquals("extravalue", result["shot_extra"])
+        self.assertEqual("extravalue", result["shot_extra"])
 
         # clear mock history so we can check it.
         finds = self.tk.shotgun.finds
 
         # do same query again
         result = self.ctx.as_template_fields(template)
-        self.assertEquals("extravalue", result["shot_extra"])
+        self.assertEqual("extravalue", result["shot_extra"])
 
         # Check that the shotgun method find_one was not used
         self.assertEqual(finds, self.tk.shotgun.finds)
@@ -851,8 +851,8 @@ class TestAsTemplateFields(TestContext):
         expected_step_name = "step_short_name"
         expected_shot_name = "shot_code"
         result = self.ctx.as_template_fields(self.template)
-        self.assertEquals(expected_step_name, result['Step'])
-        self.assertEquals(expected_shot_name, result['Shot'])
+        self.assertEqual(expected_step_name, result['Step'])
+        self.assertEqual(expected_shot_name, result['Shot'])
 
     def test_double_step(self):
         """
@@ -870,8 +870,8 @@ class TestAsTemplateFields(TestContext):
         expected_step_name = "step_short_name"
         expected_shot_name = "shot_code"
         result = self.ctx.as_template_fields(self.template)
-        self.assertEquals(expected_step_name, result['Step'])
-        self.assertEquals(expected_shot_name, result['Shot'])
+        self.assertEqual(expected_step_name, result['Step'])
+        self.assertEqual(expected_shot_name, result['Shot'])
 
 
 
@@ -919,9 +919,9 @@ class TestAsTemplateFields(TestContext):
         template = TemplatePath(definition, self.keys, self.project_root)
 
         result = ctx.as_template_fields(template)
-        self.assertEquals(asset_type, result["asset_type"])
-        self.assertEquals(step_short_name, result["Step"])
-        self.assertEquals(asset_code, result["Asset"])
+        self.assertEqual(asset_type, result["asset_type"])
+        self.assertEqual(step_short_name, result["Step"])
+        self.assertEqual(asset_code, result["Asset"])
 
     def test_non_context(self):
         """
@@ -929,7 +929,7 @@ class TestAsTemplateFields(TestContext):
         """
         expected =  "Seq"
         result = self.ctx.as_template_fields(self.template)
-        self.assertEquals(expected, result.get("Sequence"))
+        self.assertEqual(expected, result.get("Sequence"))
 
     def test_static(self):
         """
@@ -952,7 +952,7 @@ class TestAsTemplateFields(TestContext):
         result = ctx.as_template_fields(template)
 
         # Check for non-entity value
-        self.assertEquals("static", result["static_key"])
+        self.assertEqual("static", result["static_key"])
 
     def test_static_ambiguous(self):
         """
@@ -992,8 +992,8 @@ class TestAsTemplateFields(TestContext):
         expected_step_name = "step_short_name"
         expected_shot_name = "shot_code"
         result = self.ctx.as_template_fields(self.template)
-        self.assertEquals(expected_step_name, result['Step'])
-        self.assertEquals(expected_shot_name, result['Shot'])
+        self.assertEqual(expected_step_name, result['Step'])
+        self.assertEqual(expected_shot_name, result['Shot'])
 
     def test_multifield_intermediate(self):
         """
@@ -1006,8 +1006,8 @@ class TestAsTemplateFields(TestContext):
         expected_step_name = "step_short_name"
         expected_shot_name = "shot_code"
         result = self.ctx.as_template_fields(self.template)
-        self.assertEquals(expected_step_name, result['Step'])
-        self.assertEquals(expected_shot_name, result['Shot'])
+        self.assertEqual(expected_step_name, result['Step'])
+        self.assertEqual(expected_shot_name, result['Shot'])
 
     def test_ambiguous_entity_location(self):
         """
@@ -1029,7 +1029,7 @@ class TestAsTemplateFields(TestContext):
         template = tank.template.TemplatePath(definition, self.keys, self.project_root)
         result = self.ctx.as_template_fields(template)
         expected = os.path.basename(self.seq_path)
-        self.assertEquals(expected, result.get("Sequence"))
+        self.assertEqual(expected, result.get("Sequence"))
 
     def test_user_ctx(self):
         """Check other_user is set when contained in the path."""
@@ -1038,14 +1038,14 @@ class TestAsTemplateFields(TestContext):
         ctx = self.tk.context_from_path(self.other_user_path)
 
         # check context's attributes
-        self.assertEquals(self.shot["id"], ctx.entity["id"])
-        self.assertEquals(self.shot["type"], ctx.entity["type"])
-        self.assertEquals(self.project["id"], ctx.project["id"])
-        self.assertEquals(self.project["type"], ctx.project["type"])
-        self.assertEquals(self.step["id"], ctx.step["id"])
-        self.assertEquals(self.step["type"], ctx.step["type"])
-        self.assertEquals(self.other_user["id"], ctx.user["id"])
-        self.assertEquals(self.other_user["type"], ctx.user["type"])
+        self.assertEqual(self.shot["id"], ctx.entity["id"])
+        self.assertEqual(self.shot["type"], ctx.entity["type"])
+        self.assertEqual(self.project["id"], ctx.project["id"])
+        self.assertEqual(self.project["type"], ctx.project["type"])
+        self.assertEqual(self.step["id"], ctx.step["id"])
+        self.assertEqual(self.step["type"], ctx.step["type"])
+        self.assertEqual(self.other_user["id"], ctx.user["id"])
+        self.assertEqual(self.other_user["type"], ctx.user["type"])
         self.assertIsNone(ctx.task)
         
         # create a template that uses user
@@ -1056,11 +1056,11 @@ class TestAsTemplateFields(TestContext):
         # pull out fields and test that we have everything we expect
         fields = ctx.as_template_fields(template)
 
-        self.assertEquals(fields["HumanUser"], "user_login")
-        self.assertEquals(fields["Shot"], "shot_code")
-        self.assertEquals(fields["Sequence"], "Seq")
-        self.assertEquals(fields["Step"], "step_short_name")
-        self.assertEquals(len(fields), 4)
+        self.assertEqual(fields["HumanUser"], "user_login")
+        self.assertEqual(fields["Shot"], "shot_code")
+        self.assertEqual(fields["Sequence"], "Seq")
+        self.assertEqual(fields["Step"], "step_short_name")
+        self.assertEqual(len(fields), 4)
 
     def test_missing_shotgun_field(self):
         """
@@ -1218,8 +1218,8 @@ class TestMultiRoot(TestContext):
         )
 
         result = ctx.as_template_fields(template)
-        self.assertEquals(expected_step_name, result['Step'])
-        self.assertEquals(expected_shot_name, result['Shot'])
+        self.assertEqual(expected_step_name, result['Step'])
+        self.assertEqual(expected_shot_name, result['Shot'])
 
     @patch("tank.util.login.get_current_user")
     def test_non_primary_path(self, get_current_user):
@@ -1228,12 +1228,12 @@ class TestMultiRoot(TestContext):
 
         result = self.tk.context_from_path(self.alt_1_shot_path)
         # check context's attributes
-        self.assertEquals(self.shot["id"], result.entity["id"])
-        self.assertEquals(self.shot["type"], result.entity["type"])
-        self.assertEquals(self.project["id"], result.project["id"])
-        self.assertEquals(self.project["type"], result.project["type"])
-        self.assertEquals(self.current_user["id"], result.user["id"])
-        self.assertEquals(self.current_user["type"], result.user["type"])
+        self.assertEqual(self.shot["id"], result.entity["id"])
+        self.assertEqual(self.shot["type"], result.entity["type"])
+        self.assertEqual(self.project["id"], result.project["id"])
+        self.assertEqual(self.project["type"], result.project["type"])
+        self.assertEqual(self.current_user["id"], result.user["id"])
+        self.assertEqual(self.current_user["type"], result.user["type"])
 
         self.assertIsNone(result.step)
         self.assertIsNone(result.task)

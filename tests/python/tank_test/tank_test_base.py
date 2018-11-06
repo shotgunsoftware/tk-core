@@ -940,7 +940,7 @@ class TankTestBase(unittest.TestCase):
         try:
             func(*args, **kws)
         except error_type as e:
-            self.assertEquals(message, str(e))
+            self.assertEqual(message, str(e))
 
     def write_toolkit_ini_file(self, login_section={}, **kwargs):
         """

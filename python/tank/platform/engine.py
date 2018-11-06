@@ -2308,25 +2308,23 @@ class Engine(TankBundle):
         THIS METHOD HAS BEEN DEPRECATED AND SHOULD NOT BE USED!
         Instead, call _initialize_standard_look_and_feel()
         **********************************************************************
-        
+
         For environments which do not have a well defined QT style sheet,
         Toolkit maintains a "standard style" which is similar to the look and
-        feel that Maya and Nuke has. 
-        
+        feel that Maya and Nuke has.
+
         This is intended to be used in conjunction with QTs cleanlooks mode.
         The init code inside an engine would typically look something like this:
-        
+
             QtGui.QApplication.setStyle("cleanlooks")
             qt_application = QtGui.QApplication([])
-            qt_application.setStyleSheet( self._get_standard_qt_stylesheet() )         
-        
+            qt_application.setStyleSheet( self._get_standard_qt_stylesheet() )
+
         :returns: The style sheet data, as a string.
         """
         css_file = self.__get_platform_resource_path("toolkit_std_dark.css")
-        f = open(css_file)
-        css_data = f.read()
-        f.close()
-        return css_data
+        with open(css_file) as f:
+            return f.read()
 
     def _register_shared_framework(self, instance_name, fw_obj):
         """

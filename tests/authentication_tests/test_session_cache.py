@@ -220,10 +220,10 @@ class SessionCacheTests(ShotgunTestBase):
         with patch("sgtk.util.shotgun.connection.sanitize_url", wraps=lambda x: x):
             session_cache.set_current_host("https://host.cleaned.up.on.read/")
             # ... then sure we indeed disabled cleanup and that the malformed value was written to disk...
-            self.assertEquals("https://host.cleaned.up.on.read/", session_cache.get_current_host())
+            self.assertEqual("https://host.cleaned.up.on.read/", session_cache.get_current_host())
 
         # ... and finaly that the value is filtered when being read back from disk.
-        self.assertEquals("https://host.cleaned.up.on.read", session_cache.get_current_host())
+        self.assertEqual("https://host.cleaned.up.on.read", session_cache.get_current_host())
 
         # Make sure we're cleaning up the hostname when saving it.
         session_cache.set_current_host("https://host.cleaned.up.on.write/")
