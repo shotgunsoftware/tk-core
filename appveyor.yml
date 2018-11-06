@@ -12,7 +12,7 @@
 
 environment:
   matrix:
-    - PYTHON: "C:\\Python26"
+    - PYTHON: "C:\\Python27"
 
   # To update these values, visit AppVeyor's site, click the user icon and scroll down to Encrypt Data.
   SHOTGUN_HOST:
@@ -26,9 +26,7 @@ build: off
 
 install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-  - set PYTHONWARNINGS=ignore
   - "%CMD_IN_ENV% pip install -r tests\\ci_requirements.txt"
-  - set PYTHONWARNINGS=
 
 test_script:
   # Put your test command here.
