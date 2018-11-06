@@ -129,7 +129,7 @@ class IODescriptorGitBranch(IODescriptorGit):
                 "checkout -q \"%s\"" % self._branch,
                 "reset --hard -q \"%s\"" % self._version
             ]
-            self._persistent_clone_then_execute_git_commands(destination_path, commands)
+            self._clone_then_execute_git_commands(destination_path, commands)
         except Exception as e:
             raise TankDescriptorError(
                 "Could not download %s, branch %s, "
