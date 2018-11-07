@@ -49,13 +49,13 @@ Generally there is one test module per module in tank, with the test modules nam
 It is possible to use more than one test module for a single target module if that module has multiple classes which require substantial tests.
 In general their is one test case class per method or function, though it is possible to define multiple if there is the need to test the same method with different setups.
 
-ShotgunTestBase
----------------
-This is a lighter version of the TankTestBase, which only sets up a Shotgun connection and does not write anything to disk. If you are testing parts of the API that doesn't need to write to disk, this is a faster option.
-
 TankTestBase
 -------------
 There is a tank tests module, `tank_test.tank_test_base.py` which contains both a base class from which the test cases inherit and a module level setup. This module handles the creation of test fixture data, including studio level and project level configuration.
+
+ShotgunTestBase
+---------------
+This is a lighter version of the TankTestBase, which only sets up a Shotgun connection and does not write anything to disk. If you are testing parts of the API that doesn't need to write to disk, this is a faster option.
 
 ### A partial list of features
 Among other features, this module includes:
