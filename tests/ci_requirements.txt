@@ -12,4 +12,5 @@
 
 # This is required by coveralls.io, which is used to upload our test coverage
 # results.
+coverage==4.4.1
 coveralls==1.1
