@@ -12,8 +12,8 @@ linecache2-1.0.0.dist-info/WHEEL,sha256=AvR0WeTpDaxT645bl5FQxUK6NPsTls2ttpcGJg3j
 linecache2-1.0.0.dist-info/METADATA,sha256=7Bf9RDchl8aKALiQmas4ZQBWlW9qfagqpLV-fSCatDs,1000
 linecache2-1.0.0.dist-info/pbr.json,sha256=pke93tIRuma0kuqf20mw9gs96eIvBZoAFm0tW1Nqu7E,46
 linecache2-1.0.0.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
+linecache2/tests/mapping_tests.pyc,,
 linecache2/tests/__init__.pyc,,
 linecache2/tests/test_linecache.pyc,,
 linecache2/__init__.pyc,,
 linecache2/tests/inspect_fodder.pyc,,
-linecache2/tests/mapping_tests.pyc,,

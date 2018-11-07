@@ -43,35 +43,22 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 # DAMAGE.
 
-from distutils import core
-from distutils import errors
 import logging
 import os
 import sys
 import warnings
 
-from setuptools import dist
+from distutils import errors
 
 from pbr import util
-
-
-_saved_core_distribution = core.Distribution
-
-
-def _monkeypatch_distribution():
-    core.Distribution = dist._get_unpatched(core.Distribution)
-
-
-def _restore_distribution_monkeypatch():
-    core.Distribution = _saved_core_distribution
 
 
 if sys.version_info[0] == 3:
     string_type = str
     integer_types = (int,)
 else:
-    string_type = basestring  # flake8: noqa
-    integer_types = (int, long)  # flake8: noqa
+    string_type = basestring  # noqa
+    integer_types = (int, long)  # noqa
 
 
 def pbr(dist, attr, value):
@@ -94,63 +81,65 @@ def pbr(dist, attr, value):
     not work well with distributions that do use a `Distribution` subclass.
     """
 
+    if not value:
+        return
+    if isinstance(value, string_type):
+        path = os.path.abspath(value)
+    else:
+        path = os.path.abspath('setup.cfg')
+    if not os.path.exists(path):
+        raise errors.DistutilsFileError(
+            'The setup.cfg file %s does not exist.' % path)
+
+    # Converts the setup.cfg file to setup() arguments
     try:
-        _monkeypatch_distribution()
-        if not value:
-            return
-        if isinstance(value, string_type):
-            path = os.path.abspath(value)
-        else:
-            path = os.path.abspath('setup.cfg')
-        if not os.path.exists(path):
-            raise errors.DistutilsFileError(
-                'The setup.cfg file %s does not exist.' % path)
+        attrs = util.cfg_to_args(path, dist.script_args)
+    except Exception:
+        e = sys.exc_info()[1]
+        # NB: This will output to the console if no explicit logging has
+        # been setup - but thats fine, this is a fatal distutils error, so
+        # being pretty isn't the #1 goal.. being diagnosable is.
+        logging.exception('Error parsing')
+        raise errors.DistutilsSetupError(
+            'Error parsing %s: %s: %s' % (path, e.__class__.__name__, e))
 
-        # Converts the setup.cfg file to setup() arguments
-        try:
-            attrs = util.cfg_to_args(path, dist.script_args)
-        except Exception:
-            e = sys.exc_info()[1]
-            # NB: This will output to the console if no explicit logging has
-            # been setup - but thats fine, this is a fatal distutils error, so
-            # being pretty isn't the #1 goal.. being diagnosable is.
-            logging.exception('Error parsing')
-            raise errors.DistutilsSetupError(
-                'Error parsing %s: %s: %s' % (path, e.__class__.__name__, e))
+    # There are some metadata fields that are only supported by
+    # setuptools and not distutils, and hence are not in
+    # dist.metadata.  We are OK to write these in.  For gory details
+    # see
+    #  https://github.com/pypa/setuptools/pull/1343
+    _DISTUTILS_UNSUPPORTED_METADATA = (
+        'long_description_content_type', 'project_urls', 'provides_extras'
+    )
 
-        # Repeat some of the Distribution initialization code with the newly
-        # provided attrs
-        if attrs:
-            # Skips 'options' and 'licence' support which are rarely used; may
-            # add back in later if demanded
-            for key, val in attrs.items():
-                if hasattr(dist.metadata, 'set_' + key):
-                    getattr(dist.metadata, 'set_' + key)(val)
-                elif hasattr(dist.metadata, key):
-                    setattr(dist.metadata, key, val)
-                elif hasattr(dist, key):
-                    setattr(dist, key, val)
-                else:
-                    msg = 'Unknown distribution option: %s' % repr(key)
-                    warnings.warn(msg)
+    # Repeat some of the Distribution initialization code with the newly
+    # provided attrs
+    if attrs:
+        # Skips 'options' and 'licence' support which are rarely used; may
+        # add back in later if demanded
+        for key, val in attrs.items():
+            if hasattr(dist.metadata, 'set_' + key):
+                getattr(dist.metadata, 'set_' + key)(val)
+            elif hasattr(dist.metadata, key):
+                setattr(dist.metadata, key, val)
+            elif hasattr(dist, key):
+                setattr(dist, key, val)
+            elif key in _DISTUTILS_UNSUPPORTED_METADATA:
+                setattr(dist.metadata, key, val)
+            else:
+                msg = 'Unknown distribution option: %s' % repr(key)
+                warnings.warn(msg)
 
-        # Re-finalize the underlying Distribution
-        core.Distribution.finalize_options(dist)
+    # Re-finalize the underlying Distribution
+    try:
+        super(dist.__class__, dist).finalize_options()
+    except TypeError:
+        # If dist is not declared as a new-style class (with object as
+        # a subclass) then super() will not work on it. This is the case
+        # for Python 2. In that case, fall back to doing this the ugly way
+        dist.__class__.__bases__[-1].finalize_options(dist)
 
-        # This bit comes out of distribute/setuptools
-        if isinstance(dist.metadata.version, integer_types + (float,)):
-            # Some people apparently take "version number" too literally :)
-            dist.metadata.version = str(dist.metadata.version)
-
-        # This bit of hackery is necessary so that the Distribution will ignore
-        # normally unsupport command options (namely pre-hooks and post-hooks).
-        # dist.command_options is normally a dict mapping command names to
-        # dicts of their options.  Now it will be a defaultdict that returns
-        # IgnoreDicts for the each command's options so we can pass through the
-        # unsupported options
-        ignore = ['pre_hook.*', 'post_hook.*']
-        dist.command_options = util.DefaultGetDict(
-            lambda: util.IgnoreDict(ignore)
-        )
-    finally:
-        _restore_distribution_monkeypatch()
+    # This bit comes out of distribute/setuptools
+    if isinstance(dist.metadata.version, integer_types + (float,)):
+        # Some people apparently take "version number" too literally :)
+        dist.metadata.version = str(dist.metadata.version)
