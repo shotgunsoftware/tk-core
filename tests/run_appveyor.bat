@@ -14,7 +14,12 @@
 
 set PYTHONPATH=tests/python/third_party
 
-coverage run tests/run_tests.py
+IF %RUN_COVERAGE% EQU "1" (
+    coverage run tests/run_tests.py
+)
+ELSE (
+    python tests/run_tests.py
+)
 
 :: FIXME: This approach does not scale...
 if not %ERRORLEVEL% == 0 exit /b %ERRORLEVEL%
