@@ -129,7 +129,7 @@ def _initialize_coverage(test_root):
     except ImportError:
         print()
         print("The 'coverage' module is missing. Run 'pip install coverage' to install it.")
-        sys.exit(0)
+        sys.exit(1)
 
     if test_root:
         coveragerc_location = os.path.abspath(
