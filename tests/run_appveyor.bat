@@ -16,8 +16,10 @@ set PYTHONPATH=tests/python/third_party
 
 IF /I "%RUN_COVERAGE%" EQU "1" (
     set WITH_COVERAGE_FLAG="--with-coverage"
+    coverage run tests/run_tests.py
 ) ELSE (
     set WITH_COVERAGE_FLAG=""
+    python tests/run_tests.py
 )
 
 :: FIXME: This approach does not scale...
