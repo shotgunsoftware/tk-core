@@ -13,12 +13,28 @@
 language: python
 sudo: required
 
+os:
+  - linux
+  - windows
+  - osx
+
 matrix:
   include:
+    - python: "2.6"
+    os:
+      - windows
+    # When set to 1, tests/run_travis.sh will only compile the sources using python -m compileall
+    env: SHOTGUN_COMPILE_ONLY=0
   - python: "2.7"
+    os:
+      - linux
+      - windows
+      - osx
     # When set to 1, tests/run_travis.sh will only compile the sources using python -m compileall
     env: SHOTGUN_COMPILE_ONLY=0
   - python: "3.6"
+    os:
+      - linux
     # We do not support Python 3 for the moment, but we will be compilable at the very least.
     env: SHOTGUN_COMPILE_ONLY=1
 

@@ -24,7 +24,7 @@ if [[ $SHOTGUN_COMPILE_ONLY -eq 1 ]]; then
     exit 0
 fi
 
-if [[ $TRAVIS = true ]]; then
+if [[ $TRAVIS_OS_NAME = "linux" ]]; then
     # PySide is tricky to install and run. Let's get a wheel from someone who already compiled it for
     # Travis.
     # Taken from: https://stackoverflow.com/questions/24489588/how-can-i-install-pyside-on-travis
@@ -42,7 +42,7 @@ if [[ $TRAVIS = true ]]; then
 fi
 
 # Insert the event type and python version, since we can be running multiple builds at the same time.
-export SHOTGUN_TEST_ENTITY_SUFFIX="travis_${TRAVIS_EVENT_TYPE}_${TRAVIS_PYTHON_VERSION}"
+export SHOTGUN_TEST_ENTITY_SUFFIX="travis_${TRAVIS_EVENT_TYPE}_${TRAVIS_PYTHON_VERSION}_${TRAVIS_OS_NAME}"
 
 # Do not launch the coverage for our unit tests with --with-coverage. If you do, run_tests will
 # generate all the coverage in memory and not leave a .coverage file to be uploaded.
