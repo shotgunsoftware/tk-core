@@ -20,7 +20,7 @@ os:
 
 matrix:
   include:
-    - python: "2.6"
+  - python: "2.6"
     os:
       - windows
     # When set to 1, tests/run_travis.sh will only compile the sources using python -m compileall
