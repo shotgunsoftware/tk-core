@@ -42,4 +42,4 @@ test_script:
   - "tests\\run_appveyor.bat"
 
 after_test:
-  - "IF /I "%RUN_COVERAGE%" EQU \"1\" codecov"
+  - "IF /I \"%RUN_COVERAGE%\" EQU \"1\" codecov"
