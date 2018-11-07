@@ -67,9 +67,7 @@ class OfflineWorkflow(SgtkIntegrationTest):
         )
         try:
             sgtk.util.process.subprocess_check_output([
-                sys.executable,
-                # Run the script through coverage so we get stats from the subprocess.
-                os.path.join(repo_root, "tests", "python", "third_party", "coverage"),
+                "coverage",
                 "run", "-a",
                 os.path.join(repo_root, "developer", "populate_bundle_cache.py"),
                 "sgtk:descriptor:path?path={0}".format(self.config_dir),
