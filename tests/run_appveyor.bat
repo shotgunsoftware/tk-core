@@ -16,10 +16,8 @@ set PYTHONPATH=tests/python/third_party
 
 IF /I "%RUN_COVERAGE%" EQU "1" (
     set WITH_COVERAGE_FLAG="--with-coverage"
-    ::coverage run tests/run_tests.py
 ) ELSE (
     set WITH_COVERAGE_FLAG=""
-    ::python tests/run_tests.py
 )
 
 :: FIXME: This approach does not scale...
@@ -31,7 +29,6 @@ set SHOTGUN_TEST_ENTITY_SUFFIX=app_veyor
 :: Run these tests only if the integration tests environment variables are set.
 IF DEFINED SHOTGUN_HOST (
     python tests\integration_tests\run_integration_tests.py "%WITH_COVERAGE_FLAG%"
-
 ) ELSE (
     ECHO "Skipping integration tests, SHOTGUN_HOST is not set."
 )
