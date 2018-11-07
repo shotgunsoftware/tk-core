@@ -12,7 +12,10 @@
 
 environment:
   matrix:
+    - PYTHON: "C:\\Python26"
+      RUN_COVERAGE: "0"
     - PYTHON: "C:\\Python27"
+      RUN_COVERAGE: "1"
 
   # To update these values, visit AppVeyor's site, click the user icon and scroll down to Encrypt Data.
   SHOTGUN_HOST:
@@ -26,7 +29,7 @@ build: off
 
 install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-  - "%CMD_IN_ENV% pip install -r tests\\ci_requirements.txt"
+  - "IF /I "%RUN_COVERAGE%" EQU \"1\" %CMD_IN_ENV% pip install -r tests\\ci_requirements.txt"
 
 test_script:
   # Put your test command here.
@@ -39,4 +42,4 @@ test_script:
   - "tests\\run_appveyor.bat"
 
 after_test:
-  - codecov
+  - "IF /I "%RUN_COVERAGE%" EQU \"1\" codecov"
