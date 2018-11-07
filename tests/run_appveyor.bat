@@ -14,7 +14,7 @@
 
 set PYTHONPATH=tests/python/third_party
 
-python tests/python/third_party/coverage run tests/run_tests.py
+coverage run tests/run_tests.py
 
 :: FIXME: This approach does not scale...
 if not %ERRORLEVEL% == 0 exit /b %ERRORLEVEL%
