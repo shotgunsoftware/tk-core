@@ -14,7 +14,7 @@
 
 set PYTHONPATH=tests/python/third_party
 
-IF %RUN_COVERAGE% EQU "1" (
+IF /I "%RUN_COVERAGE%" EQU "1" (
     coverage run tests/run_tests.py
 )
 ELSE (
