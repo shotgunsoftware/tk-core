@@ -36,12 +36,8 @@ class TestExtrasRequireParsingScenarios(base.BaseTestCase):
                     baz>=3.2
                     foo
                 """,
-            'expected_extra_requires': {
-                'first': ['foo', 'bar==1.0'],
-                'second': ['baz>=3.2', 'foo'],
-                'test': ['requests-mock'],
-                "test:(python_version=='2.6')": ['ordereddict'],
-            }
+            'expected_extra_requires': {'first': ['foo', 'bar==1.0'],
+                                        'second': ['baz>=3.2', 'foo']}
         }),
         ('with_markers', {
             'config_text': """

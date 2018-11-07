@@ -45,14 +45,13 @@ import distutils.errors
 import logging
 import os
 import sys
-import warnings
 
 logger = logging.getLogger(__name__)
 
 
 class TestrReal(cmd.Command):
 
-    description = "DEPRECATED: Run unit tests using testr"
+    description = "Run unit tests using testr"
 
     user_options = [
         ('coverage', None, "Replace PYTHON with coverage and merge coverage "
@@ -101,11 +100,6 @@ class TestrReal(cmd.Command):
     def run(self):
         """Set up testr repo, then run testr."""
         logger.debug("run called")
-
-        warnings.warn('testr integration in pbr is deprecated. Please use '
-                      'the \'testr\' setup command or call testr directly',
-                      DeprecationWarning)
-
         if not os.path.isdir(".testrepository"):
             self._run_testr("init")
 
