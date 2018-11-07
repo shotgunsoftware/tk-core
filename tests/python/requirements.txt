@@ -14,3 +14,7 @@ unittest2==1.1.0
 
 # Use to temporarily replace part of the API or mock return values.
 mock==2.0.0
+
+# The Shotgun Desktop does not include setuptools, which comes with pip. Make
+# sure they are installed in case the tests are run with this python.
+setuptools==36.0.1
