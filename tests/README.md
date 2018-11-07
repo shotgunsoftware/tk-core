@@ -6,7 +6,7 @@ Required packages
 -----------------
 * unittest2
 * mock
-* coverage (only if coverage option is used)
+* coverage (only if `--with-coverage` option is used)
 
 `unitest2` and `mock` are packaged under `tests/python/third_party`. If you intend to run the tests with the `--with-coverage` option, you need to `pip install coverage` first.
 
@@ -58,7 +58,7 @@ TankTestBase
 There is a tank tests module, `tank_test.tank_test_base.py` which contains both a base class from which the test cases inherit and a module level setup. This module handles the creation of test fixture data, including studio level and project level configuration.
 
 ### A partial list of features
-sAmong other features, this module includes:
+Among other features, this module includes:
 
 #### tank_test_base.setUpModule
 Module level set up function which determines test data location and sets up studio level directories therein.
