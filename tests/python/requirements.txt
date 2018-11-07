@@ -15,6 +15,10 @@ unittest2==1.1.0
 # Use to temporarily replace part of the API or mock return values.
 mock==2.0.0
 
-# The Shotgun Desktop does not include setuptools, which comes with pip. Make
-# sure they are installed in case the tests are run with this python.
+# When pip installing the mock module, it also installs the pbr module.
+# The pbr module has a depdendency on the setuptools module. The reason
+# why we are listing it here is that when we pip install the requirements
+# from this file, setuptools is already installed with python, which means
+# it won't be copied to this repo. By specifying it here, it forces
+# this specific version to be installed in tests/python/third_party.
 setuptools==36.0.1
