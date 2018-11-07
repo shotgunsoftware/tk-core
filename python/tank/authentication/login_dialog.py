@@ -198,10 +198,10 @@ class LoginDialog(QtGui.QDialog):
                 self.ui.login.setFocus(QtCore.Qt.OtherFocusReason)
 
         # Select the right first page.
-        # self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
+        self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
         # self.ui.stackedWidget.setCurrentWidget(self.ui._2fa_page)
         # self.ui.stackedWidget.setCurrentWidget(self.ui.backup_page)
-        self.ui.stackedWidget.setCurrentWidget(self.ui.web_page)
+        # self.ui.stackedWidget.setCurrentWidget(self.ui.web_page)
 
         # hook up signals
         self.ui.sign_in.clicked.connect(self._ok_pressed)
