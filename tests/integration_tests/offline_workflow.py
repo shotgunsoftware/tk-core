@@ -67,7 +67,7 @@ class OfflineWorkflow(SgtkIntegrationTest):
         )
         # Run with coverage only if it is being used.
         try:
-            import coverage
+            import coverage # noqa
         except ImportError:
             runner = ["python"]
         else:
