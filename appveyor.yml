@@ -12,7 +12,10 @@
 
 environment:
   matrix:
+    # Toolkit supports Python 2.6 and 2.7, so build for both of these versions of Python.
     - PYTHON: "C:\\Python26"
+    # Do not attempt to run code coverage with Python 2.6, as this version of Python can't pip install
+    # modules anymore.
       RUN_COVERAGE: "0"
     - PYTHON: "C:\\Python27"
       RUN_COVERAGE: "1"
@@ -29,16 +32,10 @@ build: off
 
 install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  # Do not pip install requirements if we're not running code coverage.
   - "IF /I \"%RUN_COVERAGE%\" EQU \"1\" %CMD_IN_ENV% pip install -r tests\\ci_requirements.txt"
 
 test_script:
-  # Put your test command here.
-  # If you don't need to build C extensions on 64-bit Python 3.3 or 3.4,
-  # you can remove "build.cmd" from the front of the command, as it's
-  # only needed to support those cases.
-  # Note that you must use the environment variable %PYTHON% to refer to
-  # the interpreter you're using - Appveyor does not do anything special
-  # to put the Python version you want to use on PATH.
   - "tests\\run_appveyor.bat"
 
 after_test:
