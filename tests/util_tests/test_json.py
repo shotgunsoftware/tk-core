@@ -72,7 +72,7 @@ class JSONTests(TestCase):
         self._assert_no_unicode(self.kanji)
         self._assert_no_unicode({"k": "v"})
 
-        with self.assertRaisesRegexp(Exception, "unicode string found in u'allo'"):
+        with self.assertRaisesRegex(Exception, "unicode string found in u'allo'"):
             self._assert_no_unicode(u"allo")
 
     def test_scalar_values(self):

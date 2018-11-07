@@ -119,7 +119,7 @@ class TestGetProjectRoots(TankTestBase):
         root_file.close()
         # We should get a TankError if we don't have a primary storage in a
         # multi-roots file.
-        with self.assertRaisesRegexp(TankError, "Could not identify a default storage"):
+        with self.assertRaisesRegex(TankError, "Could not identify a default storage"):
             pc = tank.pipelineconfig_factory.from_path(self.project_root)
         # Only keep the master storage
         del new_roots["publish"]

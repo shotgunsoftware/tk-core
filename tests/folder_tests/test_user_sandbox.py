@@ -84,8 +84,8 @@ class TestHumanUser(TankTestBase):
         ctx_foo = self.tk.context_from_path(self.user_path)        
         ctx_bar = self.tk.context_from_path(self.user_path2)
         
-        self.assertEquals(ctx_foo.filesystem_locations, [self.user_path])
-        self.assertEquals(ctx_bar.filesystem_locations, [self.user_path2])        
+        self.assertEqual(ctx_foo.filesystem_locations, [self.user_path])
+        self.assertEqual(ctx_bar.filesystem_locations, [self.user_path2])        
         
     @patch("tank.util.login.get_current_user")
     def test_login_not_in_shotgun(self, get_current_user):

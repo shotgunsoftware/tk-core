@@ -155,13 +155,13 @@ class TestOpenInFileBrowser(TankTestBase):
         args, kwargs = subprocess_mock.call_args
 
         if sys.platform.startswith("linux"):
-            self.assertEquals(args[0], ["xdg-open", self.test_folder])
+            self.assertEqual(args[0], ["xdg-open", self.test_folder])
 
         elif sys.platform == "darwin":
-            self.assertEquals(args[0], ["open", self.test_folder])
+            self.assertEqual(args[0], ["open", self.test_folder])
 
         elif sys.platform == "win32":
-            self.assertEquals(args[0], ["cmd.exe", "/C", "start", self.test_folder])
+            self.assertEqual(args[0], ["cmd.exe", "/C", "start", self.test_folder])
 
     @patch("subprocess.call", return_value=1234)
     def test_failed_folder(self, _):
@@ -183,13 +183,13 @@ class TestOpenInFileBrowser(TankTestBase):
         args, kwargs = subprocess_mock.call_args
 
         if sys.platform.startswith("linux"):
-            self.assertEquals(args[0], ["xdg-open", os.path.dirname(self.test_file)])
+            self.assertEqual(args[0], ["xdg-open", os.path.dirname(self.test_file)])
 
         elif sys.platform == "darwin":
-            self.assertEquals(args[0], ["open", "-R", self.test_file])
+            self.assertEqual(args[0], ["open", "-R", self.test_file])
 
         elif sys.platform == "win32":
-            self.assertEquals(args[0], ["explorer", "/select,", self.test_file])
+            self.assertEqual(args[0], ["explorer", "/select,", self.test_file])
 
     @patch("subprocess.call", return_value=1234)
     def test_failed_file(self, _):
@@ -212,18 +212,18 @@ class TestOpenInFileBrowser(TankTestBase):
         args, kwargs = subprocess_mock.call_args
 
         if sys.platform.startswith("linux"):
-            self.assertEquals(
+            self.assertEqual(
                 args[0], ["xdg-open", os.path.dirname(self.test_sequence)]
             )
 
         elif sys.platform == "darwin":
-            self.assertEquals(
+            self.assertEqual(
                 args[0],
                 ["open", os.path.dirname(self.test_sequence)]
             )
 
         elif sys.platform == "win32":
-            self.assertEquals(
+            self.assertEqual(
                 args[0],
                 ["cmd.exe", "/C", "start", os.path.dirname(self.test_sequence)]
             )

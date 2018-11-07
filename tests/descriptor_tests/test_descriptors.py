@@ -210,7 +210,7 @@ class TestConfigDescriptor(TankTestBase):
         """
         Ensures installed pipeline configurations can't be copied.
         """
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             TankDescriptorError,
             "cannot be copied"
         ):
@@ -574,7 +574,7 @@ class TestDescriptorSupport(TankTestBase):
         )
 
         # invalids
-        self.assertRaisesRegexp(TankError,
+        self.assertRaisesRegex(TankError,
                                 "Incorrect version pattern '.*'. There should be no digit after a 'x'",
                                 desc._io_descriptor._find_latest_tag_by_pattern,
                                 ["v1.2.3", "v1.2.233", "v1.3.1"],
@@ -651,7 +651,7 @@ class TestConstraintValidation(unittest2.TestCase):
             ).check_version_constraints()
 
         self.assertEqual(len(ctx.exception.reasons), 1)
-        self.assertRegexpMatches(
+        self.assertRegex(
             ctx.exception.reasons[0], "Requires at least Shotgun .* but currently installed version is .*\."
         )
 
@@ -675,7 +675,7 @@ class TestConstraintValidation(unittest2.TestCase):
             ).check_version_constraints("v6.6.5")
 
         self.assertEqual(len(ctx.exception.reasons), 1)
-        self.assertRegexpMatches(
+        self.assertRegex(
             ctx.exception.reasons[0], "Requires at least Core API .* but currently installed version is v6.6.5"
         )
 
@@ -688,7 +688,7 @@ class TestConstraintValidation(unittest2.TestCase):
             ).check_version_constraints(core_version=None)
 
         self.assertEqual(len(ctx.exception.reasons), 1)
-        self.assertRegexpMatches(
+        self.assertRegex(
             ctx.exception.reasons[0], "Requires at least Core API .* but currently installed version is v6.6.5"
         )
 
@@ -715,7 +715,7 @@ class TestConstraintValidation(unittest2.TestCase):
                 engine_descriptor=SealedMock(version="v6.6.5", display_name="Tk Test")
             )
 
-        self.assertRegexpMatches(
+        self.assertRegex(
             ctx.exception.reasons[0],
             "Requires at least Engine .* but currently installed version is .*"
         )
@@ -750,7 +750,7 @@ class TestConstraintValidation(unittest2.TestCase):
                 )
             )
 
-        self.assertRegexpMatches(
+        self.assertRegex(
             ctx.exception.reasons[0], "Not compatible with engine .*. Supported engines are .*"
         )
 
@@ -778,7 +778,7 @@ class TestConstraintValidation(unittest2.TestCase):
             )
 
         self.assertEqual(len(ctx.exception.reasons), 1)
-        self.assertRegexpMatches(
+        self.assertRegex(
             ctx.exception.reasons[0],
             "Requires at least Shotgun Desktop.* but currently installed version is .*\."
         )
@@ -825,14 +825,14 @@ class TestConstraintValidation(unittest2.TestCase):
             ).check_version_constraints()
 
         self.assertEqual(len(ctx.exception.reasons), 3)
-        self.assertRegexpMatches(
+        self.assertRegex(
             ctx.exception.reasons[0],
             "Requires a minimal engine version but no engine was specified"
         )
-        self.assertRegexpMatches(
+        self.assertRegex(
             ctx.exception.reasons[1], "Bundle is compatible with a subset of engines but no engine was specified"
         )
-        self.assertRegexpMatches(
+        self.assertRegex(
             ctx.exception.reasons[2], "Requires at least Shotgun Desktop v3.3.4 but no version was specified"
         )
 

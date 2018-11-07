@@ -55,8 +55,8 @@ class ShotgunAuthenticatorTests(ShotgunTestBase):
         )
         self.assertIsInstance(session_user, user.ShotgunUser)
         self.assertNotIsInstance(session_user, user.ShotgunSamlUser)
-        self.assertEquals(generate_session_token_mock.call_count, 1)
-        self.assertEquals(session_user.impl.get_session_token(), "session_token")
+        self.assertEqual(generate_session_token_mock.call_count, 1)
+        self.assertEqual(session_user.impl.get_session_token(), "session_token")
 
         connection = session_user.create_sg_connection()
         self.assertEqual(connection.config.session_token, "session_token")
@@ -68,8 +68,8 @@ class ShotgunAuthenticatorTests(ShotgunTestBase):
         )
         self.assertIsInstance(session_user, user.ShotgunUser)
         self.assertNotIsInstance(session_user, user.ShotgunSamlUser)
-        self.assertEquals(generate_session_token_mock.call_count, 2)
-        self.assertEquals(session_user.impl.get_session_token(), "session_token")
+        self.assertEqual(generate_session_token_mock.call_count, 2)
+        self.assertEqual(session_user.impl.get_session_token(), "session_token")
 
         connection = session_user.create_sg_connection()
         self.assertEqual(connection.config.session_token, "session_token")
@@ -80,8 +80,8 @@ class ShotgunAuthenticatorTests(ShotgunTestBase):
             session_metadata=valid_session_metadata
         )
         self.assertIsInstance(session_user, user.ShotgunSamlUser)
-        self.assertEquals(generate_session_token_mock.call_count, 3)
-        self.assertEquals(session_user.impl.get_session_token(), "session_token")
+        self.assertEqual(generate_session_token_mock.call_count, 3)
+        self.assertEqual(session_user.impl.get_session_token(), "session_token")
 
         connection = session_user.create_sg_connection()
         self.assertEqual(connection.config.session_token, "session_token")

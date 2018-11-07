@@ -93,7 +93,7 @@ class Hook(object):
 
         # in a callback method once a user has selected an action -
         # call out to the hook to execute the action
-        self.execute_hook_method("actions_hook", "run_action", sg_data, action_name)
+        self.execute_hook_method("actions_hook", "run_action", action_name, sg_data)
 
     In the configuration for your app, you can now 'glue together' different functionality
     for different scenarios. For example, when you install the app to run inside the Maya

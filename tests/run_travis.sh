@@ -46,8 +46,7 @@ export SHOTGUN_TEST_ENTITY_SUFFIX="travis_${TRAVIS_EVENT_TYPE}_${TRAVIS_PYTHON_V
 
 # Do not launch the coverage for our unit tests with --with-coverage. If you do, run_tests will
 # generate all the coverage in memory and not leave a .coverage file to be uploaded.
-export PYTHONPATH="tests/python/third_party"
-python tests/python/third_party/coverage run tests/run_tests.py
+coverage run tests/run_tests.py
 
 
 # Run these tests only if the integration tests environment variables are set.
