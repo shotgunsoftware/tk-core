@@ -65,14 +65,22 @@ class OfflineWorkflow(SgtkIntegrationTest):
             os.path.dirname(__file__),
             "..", ".."
         )
+        # Run with coverage only if it is being used.
         try:
-            sgtk.util.process.subprocess_check_output([
-                "coverage",
-                "run", "-a",
-                os.path.join(repo_root, "developer", "populate_bundle_cache.py"),
-                "sgtk:descriptor:path?path={0}".format(self.config_dir),
-                self.config_dir
-            ])
+            import coverage
+        except ImportError:
+            runner = ["python"]
+        else:
+            runner = ["coverage", "run", "-a"]
+
+        try:
+            sgtk.util.process.subprocess_check_output(
+                runner + [
+                    os.path.join(repo_root, "developer", "populate_bundle_cache.py"),
+                    "sgtk:descriptor:path?path={0}".format(self.config_dir),
+                    self.config_dir
+                ]
+            )
         except sgtk.util.process.SubprocessCalledProcessError as e:
             print(e.output)
             raise
