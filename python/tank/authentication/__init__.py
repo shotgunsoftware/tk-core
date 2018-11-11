@@ -33,4 +33,5 @@ from .user import (  # noqa
     serialize_user,
     ShotgunSamlUser,
     ShotgunUser,
+    ShotgunWebUser,
 )

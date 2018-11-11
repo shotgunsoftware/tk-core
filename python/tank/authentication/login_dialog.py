@@ -18,6 +18,7 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
+from tank_vendor import shotgun_api3
 from .ui import resources_rc # noqa
 from .ui import login_dialog
 from . import session_cache
@@ -25,8 +26,12 @@ from ..util.shotgun import connection
 from ..util import login
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit
-from tank_vendor import shotgun_api3
-from .sso_saml2 import SsoSaml2Toolkit, SsoSaml2MissingQtModuleError, is_sso_enabled_on_site
+from .sso_saml2 import (
+    SsoSaml2Toolkit,
+    SsoSaml2MissingQtModuleError,
+    is_sso_enabled_on_site,
+    is_unified_login_flow_enabled_on_site,
+)
 from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
@@ -58,6 +63,7 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         QtCore.QThread.__init__(self, parent)
         self._url_to_test = ""
         self._sso_enabled = False
+        self._unified_login_flow_enabled = False
         self._http_proxy = http_proxy
 
     @property
@@ -65,9 +71,10 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         """Bool R/W property."""
         return self._sso_enabled
 
-    @sso_enabled.setter
-    def sso_enabled(self, value):
-        self._sso_enabled = value
+    @property
+    def unified_login_flow_enabled(self):
+        """Bool R/W property."""
+        return self._unified_login_flow_enabled
 
     @property
     def url_to_test(self):
@@ -82,7 +89,10 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         """
         Runs the thread.
         """
-        self.sso_enabled = is_sso_enabled_on_site(shotgun_api3, self.url_to_test, self._http_proxy)
+        # The site information is cached, so those two calls do not add
+        # any significant overhead.
+        self._sso_enabled = is_sso_enabled_on_site(self.url_to_test, self._http_proxy)
+        self._unified_login_flow_enabled = is_unified_login_flow_enabled_on_site(self.url_to_test, self._http_proxy)
 
 
 class LoginDialog(QtGui.QDialog):
@@ -129,7 +139,7 @@ class LoginDialog(QtGui.QDialog):
 
         self._is_session_renewal = is_session_renewal
         self._session_metadata = session_metadata
-        self._use_sso = False
+        self._use_web = False
 
         # setup the gui
         self.ui = login_dialog.Ui_LoginDialog()
@@ -151,14 +161,14 @@ class LoginDialog(QtGui.QDialog):
         self.ui.site.set_selection(hostname)
 
         # Apply the stylesheet manually, Qt doesn't see it otherwise...
-        COMPLETER_STYLE = self.styleSheet() + (
+        completer_style = self.styleSheet() + (
             "\n\nQWidget {"
             "font-size: 12px;"
             "}"
         )
-        self.ui.site.set_style_sheet(COMPLETER_STYLE)
+        self.ui.site.set_style_sheet(completer_style)
         self.ui.site.set_placeholder_text("example.shotgunstudio.com")
-        self.ui.login.set_style_sheet(COMPLETER_STYLE)
+        self.ui.login.set_style_sheet(completer_style)
         self.ui.login.set_placeholder_text("login")
 
         self._populate_user_dropdown(recent_hosts[0] if recent_hosts else None)
@@ -225,7 +235,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui.site.lineEdit().editingFinished.connect(self._on_site_changed)
 
         self._query_task = QuerySiteAndUpdateUITask(self, http_proxy)
-        self._query_task.finished.connect(self._toggle_sso)
+        self._query_task.finished.connect(self._toggle_web)
         self._update_ui_according_to_sso_support()
 
         # We want to wait until we know if the site uses SSO or not, to avoid
@@ -325,22 +335,22 @@ class LoginDialog(QtGui.QDialog):
                 self.ui.message, "Can't open '%s'." % forgot_password
             )
 
-    def _toggle_sso(self):
+    def _toggle_web(self):
         """
-        Sets up the dialog GUI according to the use of SSO or not.
+        Sets up the dialog GUI according to the use of web login or not.
         """
         # We only update the GUI if there was a change between to mode we
         # are showing and what was detected on the potential target site.
-        if self._use_sso != self._query_task.sso_enabled:
-            self._use_sso = not self._use_sso
-            if self._use_sso:
-                self.ui.message.setText("Sign in using your Single Sign-On (SSO) Account.")
+        if self._use_web != (self._query_task.sso_enabled or self._query_task.unified_login_flow_enabled):
+            self._use_web = not self._use_web
+            if self._use_web:
+                self.ui.message.setText("Sign in using the Web.")
                 self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
             else:
                 self.ui.message.setText("Please enter your credentials.")
 
-            self.ui.login.setVisible(not self._use_sso)
-            self.ui.password.setVisible(not self._use_sso)
+            self.ui.login.setVisible(not self._use_web)
+            self.ui.password.setVisible(not self._use_web)
 
     def _current_page_changed(self, index):
         """
@@ -458,11 +468,11 @@ class LoginDialog(QtGui.QDialog):
             return
 
         # Cleanup the URL and update the GUI.
-        if self._use_sso and site.startswith("http://"):
+        if self._use_web and site.startswith("http://"):
             site = "https" + site[4:]
         self.ui.site.setEditText(site)
 
-        if not self._use_sso:
+        if not self._use_web:
             if len(login) == 0:
                 self._set_error_message(self.ui.message, "Please enter your login name.")
                 self.ui.login.setFocus(QtCore.Qt.OtherFocusReason)
@@ -495,7 +505,7 @@ class LoginDialog(QtGui.QDialog):
         """
         success = False
         try:
-            if self._use_sso and self._sso_saml2:
+            if self._use_web and self._sso_saml2:
                 res = self._sso_saml2.login_attempt(
                     host=site,
                     http_proxy=self._http_proxy,

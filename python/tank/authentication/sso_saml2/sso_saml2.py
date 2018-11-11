@@ -17,6 +17,7 @@ from .core import (  # noqa
 
 from .utils import (  # noqa
     is_sso_enabled_on_site,
+    is_unified_login_flow_enabled_on_site,
     set_logger_parent,
 )
 
@@ -25,6 +26,20 @@ class SsoSaml2(object):
     """
     This class provides a minimal interface to support SSO authentication.
     """
+
+    # Supported Shotgun login flows
+    Unified_flow = "Unified"
+    Saml_flow = "Saml"
+
+    # login paths
+    renew_paths = {
+        Unified_flow: "/auth/renew",
+        Saml_flow: "/saml/saml_renew",
+    }
+    landing_paths = {
+        Unified_flow: "/auth/landing",
+        Saml_flow: "/saml/saml_renew_landing",
+    }
 
     def __init__(self, window_title=None, qt_modules=None):
         """
@@ -38,6 +53,7 @@ class SsoSaml2(object):
         """
         window_title = window_title or "SSO"
         qt_modules = qt_modules or {}
+
         self._core = SsoSaml2Core(window_title=window_title, qt_modules=qt_modules)
 
     def login_attempt(self, host, cookies=None, product=None, http_proxy=None, use_watchdog=False):
@@ -60,11 +76,21 @@ class SsoSaml2(object):
         :returns: True if the login was successful.
         """
         product = product or "Undefined"
+
+        renew_path = self.renew_paths[self.Saml_flow]
+        landing_path = self.landing_paths[self.Saml_flow]
+
+        if is_unified_login_flow_enabled_on_site(host, http_proxy):
+            renew_path = self.renew_paths[self.Unified_flow]
+            landing_path = self.landing_paths[self.Unified_flow]
+
         success = self._core.on_sso_login_attempt({
             "host": host,
             "http_proxy": http_proxy,
             "cookies": cookies,
             "product": product,
+            "renew_path": renew_path,
+            "landing_path": landing_path,
         }, use_watchdog)
         return success == 1
 

@@ -32,8 +32,8 @@ from .utils import (
     get_csrf_token,
     get_logger,
     get_saml_claims_expiration,
-    get_saml_user_name,
     get_session_id,
+    get_user_name,
 )
 
 # Error messages for events.
@@ -42,13 +42,6 @@ HTTP_AUTHENTICATE_REQUIRED = "Valid credentials are required."
 HTTP_AUTHENTICATE_SSO_NOT_UPPORTED = "SSO not supported or enabled on that site."
 HTTP_CANT_AUTHENTICATE_SSO_TIMEOUT = "Time out attempting to authenticate to SSO service."
 HTTP_CANT_AUTHENTICATE_SSO_NO_ACCESS = "You have not been granted access to the Shotgun site."
-
-# Paths for bootstrap the login/renewal process.
-URL_SAML_RENEW_PATH = "/saml/saml_renew"
-URL_SAML_RENEW_LANDING_PATH = "/saml/saml_renew_landing"
-
-# Old login path, which is not used for SSO.
-URL_LOGIN_PATH = "/user/login"
 
 # Timer related values.
 # @TODO: parametrize these and add environment variable overload.
@@ -101,7 +94,6 @@ class SsoSaml2Core(object):
         self._dialog.finished.connect(self.on_dialog_closed)
 
         self._view = QtWebKit.QWebView(self._dialog)
-        self._view.page().networkAccessManager().finished.connect(self.on_http_response_finished)
         self._view.page().networkAccessManager().authenticationRequired.connect(self.on_authentication_required)
         self._view.loadFinished.connect(self.on_load_finished)
 
@@ -254,7 +246,7 @@ class SsoSaml2Core(object):
         content = {
             "session_expiration": get_saml_claims_expiration(encoded_cookies),
             "session_id": get_session_id(encoded_cookies),
-            "user_id": get_saml_user_name(encoded_cookies),
+            "user_id": get_user_name(encoded_cookies),
             "csrf_key": get_csrf_key(encoded_cookies),
             "csrf_value": get_csrf_token(encoded_cookies),
         }
@@ -421,7 +413,7 @@ class SsoSaml2Core(object):
 
         # We do not update the page cookies, assuming that they have already
         # have been cleared/updated before.
-        self._view.page().mainFrame().load(self._session.host + URL_SAML_RENEW_PATH)
+        self._view.page().mainFrame().load(self._session.host + self._event_data["renew_path"])
 
     def on_renew_sso_session_timeout(self):
         """
@@ -455,70 +447,14 @@ class SsoSaml2Core(object):
         """
         url = self._view.page().mainFrame().url().toString().encode("utf-8")
         if (
-                self._session is not None and
-                url.startswith(self._session.host + URL_SAML_RENEW_LANDING_PATH)
+                self._session is not None and self._event_data is not None and
+                url.startswith(self._session.host + self._event_data["landing_path"])
         ):
             self.update_session_from_browser()
             if self._session_renewal_active:
                 self.start_sso_renewal()
 
             self._dialog.accept()
-
-    def on_http_response_finished(self, reply):
-        """
-        This callbaback is triggered after every page load in the QWebView.
-
-        :param reply: The Qt reply HTTP response object.
-        """
-        error = reply.error()
-        url = reply.url().toString().encode("utf-8")
-        session = AuthenticationSessionData() if self._session is None else self._session
-        QtNetwork = self._QtNetwork  # noqa
-
-        if (
-            error is not QtNetwork.QNetworkReply.NetworkError.NoError and
-            error is not QtNetwork.QNetworkReply.NetworkError.OperationCanceledError
-        ):
-            if error is QtNetwork.QNetworkReply.NetworkError.HostNotFoundError:
-                session.error = HTTP_CANT_CONNECT_TO_SHOTGUN
-            elif error is QtNetwork.QNetworkReply.NetworkError.ContentNotFoundError:
-                if url.startswith(session.host + URL_SAML_RENEW_PATH):
-                    # This is likely because the subdomain is not valid.
-                    # e.g. https://foobar.shotgunstudio.com
-                    # Here the domain (shotgunstudio.com) is valid, but not
-                    # foobar.
-                    session.error = HTTP_CANT_CONNECT_TO_SHOTGUN
-                else:
-                    # We silently ignore content not found otherwise.
-                    pass
-            elif error is QtNetwork.QNetworkReply.NetworkError.UnknownContentError:
-                # This means that the site does not support SSO or that
-                # it is not enabled.
-                session.error = HTTP_AUTHENTICATE_SSO_NOT_UPPORTED
-            elif error is QtNetwork.QNetworkReply.NetworkError.ContentOperationNotPermittedError:
-                # This means that the SSO login worked, but that the user does
-                # have access to the site.
-                session.error = HTTP_CANT_AUTHENTICATE_SSO_NO_ACCESS
-            elif error is QtNetwork.QNetworkReply.NetworkError.AuthenticationRequiredError:
-                # This means that the user entered incorrect credentials.
-                if url.startswith(session.host):
-                    session.error = HTTP_AUTHENTICATE_REQUIRED
-                else:
-                    # If we are not on our site, we are on the Identity Provider (IdP) portal site.
-                    # We let it deal with the error.
-                    # Reset the error to None to disregard the error.
-                    session.error = None
-            else:
-                session.error = reply.attribute(QtNetwork.QNetworkRequest.HttpReasonPhraseAttribute)
-        elif url.startswith(session.host + URL_LOGIN_PATH):
-            # If we are being redirected to the login page, then SSO is not
-            # enabled on that site.
-            session.error = HTTP_AUTHENTICATE_SSO_NOT_UPPORTED
-
-        if session.error:
-            # If there are any errors, we exit by force-closing the dialog.
-            self._logger.error("Closing SSO dialog on Error (%s - %s) from loading page: %s" % (error, session.error, url))
-            self._dialog.reject()
 
     def on_authentication_required(self, reply, authenticator):
         """
@@ -576,7 +512,7 @@ class SsoSaml2Core(object):
 
             # We append the product code to the GET request.
             self._view.page().mainFrame().load(
-                self._session.host + URL_SAML_RENEW_PATH + "?product=%s" % self._session.product
+                self._session.host + self._event_data["renew_path"] + "?product=%s" % self._session.product
             )
 
             self._dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)

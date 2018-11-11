@@ -64,13 +64,30 @@ class AuthenticationSSOError(ShotgunAuthenticationError):
 class ConsoleLoginWithSSONotSupportedError(AuthenticationSSOError):
     """
     Thrown when attempting to use Username/Password pair to login onto
-    a SSO-enabled site.
+    an SSO-enabled site.
     """
 
     def __init__(self, url):
         """
         :param str url: Url of the site where login was attempted.
         """
-        ShotgunAuthenticationError.__init__(
-            self, "Authentication using username/password is not supported on the console for %s, an SSO-enabled site." % url
+        super(ConsoleLoginWithSSONotSupportedError, self).__init__(
+            "Authentication using username/password is not supported on "
+            "the console for %s, an SSO-enabled site." % url
+        )
+
+
+class ConsoleLoginWithAutodeskIdentityNotSupportedError(AuthenticationSSOError):
+    """
+    Thrown when attempting to use Username/Password pair to login onto
+    an Autodesk Identity-enabled site.
+    """
+
+    def __init__(self, url):
+        """
+        :param str url: Url of the site where login was attempted.
+        """
+        super(ConsoleLoginWithAutodeskIdentityNotSupportedError, self).__init__(
+            "Authentication using username/password is not supported on "
+            "the console for %s, an SSO-enabled site." % url
         )

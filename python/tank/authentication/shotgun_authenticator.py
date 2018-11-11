@@ -10,7 +10,10 @@
 
 """Shotgun Authenticator."""
 
-from .sso_saml2 import has_sso_info_in_cookies
+from .sso_saml2 import (
+    has_sso_info_in_cookies,
+    has_unified_login_flow_info_in_cookies,
+)
 from . import interactive_authentication
 from . import user
 from . import user_impl
@@ -153,10 +156,15 @@ class ShotgunAuthenticator(object):
 
         # Create a session user
         impl = user_impl.SessionUser(host, login, session_token, http_proxy, password=password, session_metadata=session_metadata)
-        if has_sso_info_in_cookies(session_metadata):
+
+        # We check for SSO first, because it is possible that we use both the
+        # Unified Login Flow and SSO. We specifically want to discriminate a
+        # SSO sesssion from others due to the need to renew the claims.
+        if session_metadata and has_sso_info_in_cookies(session_metadata):
             return user.ShotgunSamlUser(impl)
-        else:
-            return user.ShotgunUser(impl)
+        if session_metadata and has_unified_login_flow_info_in_cookies(session_metadata):
+            return user.ShotgunWebUser(impl)
+        return user.ShotgunUser(impl)
 
     def create_session_user(self, login, session_token=None, password=None, host=None, http_proxy=None):
         """
