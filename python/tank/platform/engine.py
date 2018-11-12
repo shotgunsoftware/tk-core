@@ -1092,6 +1092,10 @@ class Engine(TankBundle):
             "properties": properties,
         }
 
+        # If there was a duplicate, now clean up the temporary duplicate command.
+        if name in self.__commands_that_need_prefixing:
+            del(self.__commands[new_name_for_existing])
+
 
     def register_panel(self, callback, panel_name="main", properties=None):
         """
