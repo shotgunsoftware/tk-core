@@ -59,15 +59,19 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         self._url_to_test = ""
         self._sso_enabled = False
         self._http_proxy = http_proxy
+        self._site_info = {}
 
     @property
     def sso_enabled(self):
-        """Bool R/W property."""
-        return self._sso_enabled
+        return self._site_info.get("user_authentication_method") == "saml2"
 
-    @sso_enabled.setter
-    def sso_enabled(self, value):
-        self._sso_enabled = value
+    @property
+    def oxygen_enabled(self):
+        return self._site_info.get("user_authentication_method") == "oxygen"
+
+    @property
+    def unified_login_flow_enabled(self):
+        return bool(self._site_info.get("unified_login_flow_enabled"))
 
     @property
     def url_to_test(self):
@@ -82,8 +86,10 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         """
         Runs the thread.
         """
-        self.sso_enabled = is_sso_enabled_on_site(shotgun_api3, self.url_to_test, self._http_proxy)
-
+        try:
+            self._site_info = shotgun_api3.Shotgun(self.url_to_test, connect=False, http_proxy=self._http_proxy).info()
+        except Exception:
+            pass
 
 class LoginDialog(QtGui.QDialog):
     """
@@ -129,7 +135,7 @@ class LoginDialog(QtGui.QDialog):
 
         self._is_session_renewal = is_session_renewal
         self._session_metadata = session_metadata
-        self._use_sso = False
+        self._use_webview = False
 
         # setup the gui
         self.ui = login_dialog.Ui_LoginDialog()
@@ -225,7 +231,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui.site.lineEdit().editingFinished.connect(self._on_site_changed)
 
         self._query_task = QuerySiteAndUpdateUITask(self, http_proxy)
-        self._query_task.finished.connect(self._toggle_sso)
+        self._query_task.finished.connect(self._toggle_webview)
         self._update_ui_according_to_sso_support()
 
         # We want to wait until we know if the site uses SSO or not, to avoid
@@ -325,22 +331,26 @@ class LoginDialog(QtGui.QDialog):
                 self.ui.message, "Can't open '%s'." % forgot_password
             )
 
-    def _toggle_sso(self):
+    def _toggle_webview(self):
         """
-        Sets up the dialog GUI according to the use of SSO or not.
+        Sets up the dialog GUI according to the use of SSO/Unified Login Flow or not.
         """
         # We only update the GUI if there was a change between to mode we
         # are showing and what was detected on the potential target site.
-        if self._use_sso != self._query_task.sso_enabled:
-            self._use_sso = not self._use_sso
-            if self._use_sso:
-                self.ui.message.setText("Sign in using your Single Sign-On (SSO) Account.")
-                self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
-            else:
-                self.ui.message.setText("Please enter your credentials.")
+        qt = self._query_task
+        use_webview = qt.sso_enabled or qt.oxygen_enabled and qt.unified_login_flow_enabled
+        if self._use_webview == use_webview:
+            return
 
-            self.ui.login.setVisible(not self._use_sso)
-            self.ui.password.setVisible(not self._use_sso)
+        # Toggle value
+        self._use_webview ^= 1
+
+        # Update UI
+        self.ui.message.setText("Please enter your credentials." if not self._use_webview else "Sign in using your identity account.")
+        self.ui.login.setVisible(not self._use_webview)
+        self.ui.password.setVisible(not self._use_webview)
+        if self._use_webview:
+            self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
 
     def _current_page_changed(self, index):
         """
@@ -406,7 +416,8 @@ class LoginDialog(QtGui.QDialog):
                 http_proxy=self._http_proxy,
                 cookies=self._session_metadata,
                 product=PRODUCT_IDENTIFIER,
-                use_watchdog=True
+                use_watchdog=True,
+                webview_mode=self._query_task.oxygen_enabled and self._query_task.unified_login_flow_enabled
             )
             # If the offscreen session renewal failed, show the GUI as a failsafe
             if res == QtGui.QDialog.Accepted:
@@ -458,11 +469,11 @@ class LoginDialog(QtGui.QDialog):
             return
 
         # Cleanup the URL and update the GUI.
-        if self._use_sso and site.startswith("http://"):
+        if self._query_task._sso_enabled and site.startswith("http://"):
             site = "https" + site[4:]
         self.ui.site.setEditText(site)
 
-        if not self._use_sso:
+        if not self._use_webview:
             if len(login) == 0:
                 self._set_error_message(self.ui.message, "Please enter your login name.")
                 self.ui.login.setFocus(QtCore.Qt.OtherFocusReason)
@@ -495,12 +506,13 @@ class LoginDialog(QtGui.QDialog):
         """
         success = False
         try:
-            if self._use_sso and self._sso_saml2:
+            if self._use_webview and self._sso_saml2:
                 res = self._sso_saml2.login_attempt(
                     host=site,
                     http_proxy=self._http_proxy,
                     cookies=self._session_metadata,
-                    product=PRODUCT_IDENTIFIER
+                    product=PRODUCT_IDENTIFIER,
+                    webview_mode=self._query_task.oxygen_enabled and self._query_task.unified_login_flow_enabled
                 )
                 if res == QtGui.QDialog.Accepted:
                     self._new_session_token = self._sso_saml2.session_id

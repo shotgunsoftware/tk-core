@@ -70,7 +70,7 @@ class UiAuthenticationHandler(object):
 
         if LoginDialog is None:
             logger.error("Unexpected state. LoginDialog should be available.")
-            raise ShotgunAuthenticationError("Could not instantiated login dialog.")
+            raise ShotgunAuthenticationError("Could not instantiate login dialog.")
 
         def _process_ui():
             dlg = LoginDialog(
