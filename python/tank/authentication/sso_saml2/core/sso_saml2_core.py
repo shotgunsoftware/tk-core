@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 """
-Module to support SSO login via a web browser and automated session renewal.
+Module to support Web login via a web browser and automated session renewal.
 """
 
 import base64
@@ -51,11 +51,11 @@ SHOTGUN_SSO_RENEWAL_INTERVAL = 5000
 
 
 class SsoSaml2Core(object):
-    """Performs Shotgun SSO login and pre-emptive renewal."""
+    """Performs Shotgun Web login and pre-emptive renewal for SSO sessions."""
 
-    def __init__(self, window_title="SSO", qt_modules=None):
+    def __init__(self, window_title="Web Login", qt_modules=None):
         """
-        Create a SSO login dialog, using a Web-browser like environment.
+        Create a Web login dialog, using a Web-browser like environment.
 
         :param window_title: Title to use for the window.
         :param qt_modules:   a dictionnary of required Qt modules.
@@ -485,7 +485,7 @@ class SsoSaml2Core(object):
 
         :returns: 1 if successful, 0 otherwise.
         """
-        self._logger.debug("SSO login attempt")
+        self._logger.debug("Web login attempt")
         QtCore = self._QtCore  # noqa
 
         if event_data is not None:

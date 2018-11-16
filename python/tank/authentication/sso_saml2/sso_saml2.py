@@ -43,7 +43,7 @@ class SsoSaml2(object):
 
     def __init__(self, window_title=None, qt_modules=None):
         """
-        Create a SSO login dialog, using a Web-browser like environment.
+        Create a Web login dialog, using a Web-browser like environment.
 
         :param window_title: Title to use for the window.
         :param qt_modules:   a dictionnary of required Qt modules.
@@ -51,7 +51,7 @@ class SsoSaml2(object):
 
         :returns: The SsoSaml2 oject.
         """
-        window_title = window_title or "SSO"
+        window_title = window_title or "Web Login"
         qt_modules = qt_modules or {}
 
         self._core = SsoSaml2Core(window_title=window_title, qt_modules=qt_modules)
@@ -75,7 +75,7 @@ class SsoSaml2(object):
 
         :returns: True if the login was successful.
         """
-        product = product or "Undefined"
+        product = product or "undefined"
 
         renew_path = self.renew_paths[self.Saml_flow]
         landing_path = self.landing_paths[self.Saml_flow]
