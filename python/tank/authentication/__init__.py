@@ -25,6 +25,10 @@ from .errors import (  # noqa
     IncompleteCredentials,
     ShotgunAuthenticationError,
 )
+from .web_login_support import (
+    get_shotgun_authenticator_support_web_login,
+    set_shotgun_authenticator_support_web_login,
+)
 from .shotgun_authenticator import ShotgunAuthenticator
 from .defaults_manager import DefaultsManager
 from .core_defaults_manager import CoreDefaultsManager

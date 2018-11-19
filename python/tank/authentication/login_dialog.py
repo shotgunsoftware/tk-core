@@ -17,8 +17,10 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
+import os
 
 from tank_vendor import shotgun_api3
+from .web_login_support import get_shotgun_authenticator_support_web_login
 from .ui import resources_rc # noqa
 from .ui import login_dialog
 from . import session_cache
@@ -29,6 +31,7 @@ from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit
 from .sso_saml2 import (
     SsoSaml2Toolkit,
     SsoSaml2MissingQtModuleError,
+    is_autodesk_identity_enabled_on_site,
     is_sso_enabled_on_site,
     is_unified_login_flow_enabled_on_site,
 )
@@ -68,12 +71,17 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
 
     @property
     def sso_enabled(self):
-        """Bool R/W property."""
+        """Bool Read-only property."""
         return self._sso_enabled
 
     @property
+    def autodesk_identity_enabled(self):
+        """Bool Read-only property."""
+        return self._autodesk_identity_enabled
+
+    @property
     def unified_login_flow_enabled(self):
-        """Bool R/W property."""
+        """Bool Read-only property."""
         return self._unified_login_flow_enabled
 
     @property
@@ -89,9 +97,10 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         """
         Runs the thread.
         """
-        # The site information is cached, so those two calls do not add
+        # The site information is cached, so those three calls do not add
         # any significant overhead.
         self._sso_enabled = is_sso_enabled_on_site(self.url_to_test, self._http_proxy)
+        self._autodesk_identity_enabled = is_autodesk_identity_enabled_on_site(self.url_to_test, self._http_proxy)
         self._unified_login_flow_enabled = is_unified_login_flow_enabled_on_site(self.url_to_test, self._http_proxy)
 
 
@@ -341,7 +350,13 @@ class LoginDialog(QtGui.QDialog):
         """
         # We only update the GUI if there was a change between to mode we
         # are showing and what was detected on the potential target site.
-        if self._use_web != (self._query_task.sso_enabled or self._query_task.unified_login_flow_enabled):
+        use_web = self._query_task.sso_enabled or self._query_task.autodesk_identity_enabled
+
+        # If we have full support for Web-based login, or if we enable it in our
+        # environment, use the Unified Login Flow for all authentication modes.
+        if get_shotgun_authenticator_support_web_login() or "SHOTGUN_USE_ULF" in os.environ:
+            use_web = use_web or self._query_task.unified_login_flow_enabled
+        if self._use_web != use_web:
             self._use_web = not self._use_web
             if self._use_web:
                 self.ui.message.setText("Sign in using the Web.")
