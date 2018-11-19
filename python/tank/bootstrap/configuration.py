@@ -120,7 +120,6 @@ class Configuration(object):
         else:
             uses_claims_renewal = False
 
-        # @HERE:
         if self._swap_core_if_needed(python_core_path):
             log.debug("Core swapped, authenticated user will be set.")
         else:
