@@ -89,5 +89,5 @@ class ConsoleLoginWithAutodeskIdentityNotSupportedError(AuthenticationSSOError):
         """
         super(ConsoleLoginWithAutodeskIdentityNotSupportedError, self).__init__(
             "Authentication using username/password is not supported on "
-            "the console for %s, an SSO-enabled site." % url
+            "the console for %s, an Autodesk Identity-enabled site." % url
         )
