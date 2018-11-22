@@ -483,20 +483,39 @@ class Engine(TankBundle):
         this engine.
 
         The dictionary contains information about this engine: its name and version,
-        and informations about the application hosting the engine: its name and
-        version::
-        
+        information about the application hosting the engine: its name and
+        version, and the current context: all of its data, like entity, project and uses,
+        as a dictionary::
+
             {
                 'Host App': 'Maya',
                 'Host App Version': '2017',
                 'Engine': 'tk-maya',
                 'Engine Version': 'v0.4.1',
+                'Context': {
+                    'entity': {
+                        'name': 'Box',
+                        'type': 'Asset'
+                    },
+                    'project': {
+                        'name': 'Demo Project'
+                    },
+                    'source_entity': {
+                        'content': 'Modeling',
+                        'type': 'Task'
+                    },
+                    'user': {
+                        'login': 'john.doe',
+                        'email': 'john.doe@example.com'
+                    }
+                }
             }
 
         :returns: A dictionary with metrics properties as per above.
         """
         # Always create a new dictionary so the caller can safely modify it.
         return {
+            EventMetric.KEY_CONTEXT: self.context.to_dict(),
             EventMetric.KEY_ENGINE: self.name,
             EventMetric.KEY_ENGINE_VERSION: self.version,
             EventMetric.KEY_HOST_APP: self.host_info.get("name", "unknown"),

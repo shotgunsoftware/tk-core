@@ -619,6 +619,7 @@ class EventMetric(object):
     KEY_APP = "App"
     KEY_APP_VERSION = "App Version"
     KEY_COMMAND = "Command"
+    KEY_CONTEXT = "Context"
     KEY_ENGINE = "Engine"
     KEY_ENGINE_VERSION = "Engine Version"
     KEY_ENTITY_TYPE = "Entity Type"
