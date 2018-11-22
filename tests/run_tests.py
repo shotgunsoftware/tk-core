@@ -10,12 +10,11 @@
 
 from __future__ import print_function
 
-import sys
-import os
 import glob
+import os
+import sys
 import tempfile
 from optparse import OptionParser
-
 
 # Let the user know which Python is picked up to run the tests.
 print()
@@ -173,7 +172,7 @@ def _finalize_coverage(cov):
         print("Note: Full html coverage report can be found in the coverage_html_report folder.")
 
 
-def _initialize_logging():
+def _initialize_logging(options):
     """
     Sets up a log file for the unit tests and optionally logs everything to the console.
     """
@@ -205,7 +204,7 @@ def _run_tests(test_root, test_names):
     return tank_test_runner.run_tests(test_names)
 
 
-def _parse_command_line():
+def _parse_command_line(sys_args):
     """
     Parses the command line.
 
@@ -231,14 +230,23 @@ def _parse_command_line():
                       action="store_true",
                       help="Run tests and redirect logging output to the console.")
 
-    (options, args) = parser.parse_args()
+    (options, args) = parser.parse_args(sys_args)
 
     test_names = args or []
 
     return options, test_names
 
 
-if __name__ == "__main__":
+def main(sys_args):
+    """Set up environment, run test and evaluate coverage.
+
+    This includes setting up a new temp base directory,
+    parsing the system arguments, running
+
+    :param sys_args: System arguments using the following keys and order
+        [with-coverage, interactive, test-root, debug, log-to-console].
+    :return: Exit value.
+    """
 
     exit_val = 0
 
@@ -261,7 +269,7 @@ if __name__ == "__main__":
         #
         tempfile.tempdir = new_base_tempdir
 
-        options, test_names = _parse_command_line()
+        options, test_names = _parse_command_line(sys_args)
 
         # Do not import Toolkit before coverage or it will tank (pun intended) our coverage
         # score. We'll do this test even when we're not running code coverage to make sure
@@ -274,7 +282,7 @@ if __name__ == "__main__":
         if options.coverage:
             cov = _initialize_coverage(options.test_root)
 
-        _initialize_logging()
+        _initialize_logging(options)
 
         # If we have a custom test root, add its python folder, if it exists, so the user doesn't need
         # to set it up themselves.
@@ -306,4 +314,9 @@ if __name__ == "__main__":
             print("\nCleaning up '%s'" % (new_base_tempdir))
             safe_delete_folder(new_base_tempdir)
 
+    return exit_val
+
+
+if __name__ == "__main__":
+    exit_val = main(sys.argv[1:])
     sys.exit(exit_val)
