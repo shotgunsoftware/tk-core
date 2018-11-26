@@ -37,6 +37,7 @@ class FuzzyMatcher():
         self._re = re.compile(re_pattern, re.IGNORECASE)
 
     def score(self, string):
+        string = str(string)
         match = self._re.search(string)
         if match is None:
             # letters did not appear in order

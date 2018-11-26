@@ -266,7 +266,7 @@ class LoginDialog(QtGui.QDialog):
         :returns: The site to connect to.
         """
         return connection.sanitize_url(
-            self.ui.site.currentText().strip()
+            str(self.ui.site.currentText()).strip()
         ).encode("utf-8")
 
     def _get_current_user(self):
@@ -275,7 +275,7 @@ class LoginDialog(QtGui.QDialog):
 
         :returns: The login to use for authentication.
         """
-        return self.ui.login.currentText().strip().encode("utf-8")
+        return str(self.ui.login.currentText()).strip().encode("utf-8")
 
     def _update_ui_according_to_sso_support(self):
         """
@@ -323,7 +323,7 @@ class LoginDialog(QtGui.QDialog):
         """
         Cleans up a field after editing.
         """
-        self.sender().setText(self.sender().text().strip())
+        self.sender().setText(str(self.sender().text()).strip())
 
     def _link_activated(self, site):
         """
@@ -405,7 +405,7 @@ class LoginDialog(QtGui.QDialog):
         # exec_() since it implicitly call exec_().
         #
         # This bug is described here: https://bugreports.qt.io/browse/QTBUG-48248
-        if QtCore.__version__.startswith("4."):
+        if hasattr(QtCore, '__version__') and QtCore.__version__.startswith("4."):
             self.show()
 
         self.raise_()
