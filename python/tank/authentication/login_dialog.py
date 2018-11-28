@@ -27,7 +27,7 @@ from . import session_cache
 from ..util.shotgun import connection
 from ..util import login
 from .errors import AuthenticationError
-from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit
+from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit, QtWebEngineWidgets
 from .sso_saml2 import (
     SsoSaml2Toolkit,
     SsoSaml2MissingQtModuleError,
@@ -136,6 +136,7 @@ class LoginDialog(QtGui.QDialog):
             "QtGui": QtGui,
             "QtNetwork": QtNetwork,
             "QtWebKit": QtWebKit,
+            "QtWebEngineWidgets": QtWebEngineWidgets,
         }
         try:
             self._sso_saml2 = SsoSaml2Toolkit("Web Login", qt_modules=qt_modules)
@@ -475,7 +476,7 @@ class LoginDialog(QtGui.QDialog):
         # pull values from the gui
         site = self._get_current_site()
         login = self._get_current_user()
-        password = self.ui.password.text()
+        password = str(self.ui.password.text())
 
         if site == "https://" or site == "http://":
             self._set_error_message(self.ui.message, "Please enter the address of the site to connect to.")

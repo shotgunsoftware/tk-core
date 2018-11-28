@@ -66,6 +66,13 @@ class QtImporter(object):
         return self._modules["QtWebKit"] if self._modules else None
 
     @property
+    def QtWebEngineWidgets(self):
+        """
+        :returns: QtWebEngineWidgets module, if available.
+        """
+        return self._modules["QtWebEngineWidgets"] if self._modules else None
+
+    @property
     def QtNetwork(self):
         """
         :returns: QtNetwork module, if available.
@@ -165,6 +172,7 @@ class QtImporter(object):
             "QtGui": QtGui,
             "QtNetwork": QtNetwork,
             "QtWebKit": QtWebKit,
+            "QtWebEngineWidgets": None,
         }, self._to_version_tuple(QtCore.qVersion())
 
     def _import_pyside2(self):
@@ -183,7 +191,8 @@ class QtImporter(object):
         sub_modules = [
             "QtGui", "QtHelp", "QtNetwork", "QtPrintSupport", "QtQml", "QtQuick", "QtQuickWidgets",
             "QtScript", "QtSvg", "QtTest", "QtUiTools", "QtWebChannel",
-            "QtWebKit", "QtWebKitWidgets", "QtWidgets", "QtWebSockets", "QtXml", "QtXmlPatterns",
+            "QtWebKit", "QtWebKitWidgets", "QtWidgets", "QtWebSockets",
+            "QtWebEngineWidgets", "QtXml", "QtXmlPatterns",
             "QtScriptSql", "QtScriptTools", "QtOpenGL", "QtMultimedia"
         ]
 
@@ -232,13 +241,17 @@ class QtImporter(object):
 
         QtCore, QtGui = PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
         QtNetwork = self._import_module_by_name("PySide2", "QtNetwork")
+        # Some implementation of PySide may provide both/either QtWebKit or QtWebEngine.
+        # We prefer QtWebkit as its implementation/bindings are more complete.
         QtWebKit = self._import_module_by_name("PySide2.QtWebKitWidgets", "QtWebKit")
+        QtWebEngineWidgets = self._import_module_by_name("PySide2", "QtWebEngineWidgets")
 
         return "PySide2", PySide2.__version__, PySide2, {
             "QtCore": QtCore,
             "QtGui": QtGui,
             "QtNetwork": QtNetwork,
             "QtWebKit": QtWebKit,
+            "QtWebEngineWidgets": QtWebEngineWidgets,
         }, self._to_version_tuple(QtCore.qVersion())
 
     def _import_pyqt4(self):
@@ -269,6 +282,7 @@ class QtImporter(object):
             "QtGui": QtGui,
             "QtNetwork": QtNetwork,
             "QtWebKit": QtWebKit,
+            "QtWebEngineWidgets": None,
         }, self._to_version_tuple(QtCore.QT_VERSION_STR)
 
     def _to_version_tuple(self, version_str):

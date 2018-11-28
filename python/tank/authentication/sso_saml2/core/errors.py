@@ -52,3 +52,9 @@ class SsoSaml2MissingQtWebKit(SsoSaml2MissingQtModuleError):
     """
     Exception that indicates that the QtWebKit component is missing.
     """
+
+
+class SsoSaml2MissingQtWebEngineWidgets(SsoSaml2MissingQtModuleError):
+    """
+    Exception that indicates that the QtWebEngineWidgets component is missing.
+    """

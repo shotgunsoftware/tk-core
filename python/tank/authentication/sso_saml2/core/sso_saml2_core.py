@@ -23,6 +23,7 @@ from .errors import (
     SsoSaml2MissingQtGui,
     SsoSaml2MissingQtNetwork,
     SsoSaml2MissingQtWebKit,
+    SsoSaml2MissingQtWebEngineWidgets,
 )
 from .utils import (
     _decode_cookies,
@@ -72,6 +73,7 @@ class SsoSaml2Core(object):
         QtGui = self._QtGui = qt_modules.get('QtGui')  # noqa
         QtNetwork = self._QtNetwork = qt_modules.get('QtNetwork')  # noqa
         QtWebKit = self._QtWebKit = qt_modules.get('QtWebKit')  # noqa
+        QtWebEngineWidgets = self._QtWebEngineWidgets = qt_modules.get('QtWebEngineWidgets')  # noqa
 
         if QtCore is None:
             raise SsoSaml2MissingQtCore("The QtCore module is unavailable")
@@ -82,8 +84,11 @@ class SsoSaml2Core(object):
         if QtNetwork is None:
             raise SsoSaml2MissingQtNetwork("The QtNetwork module is unavailable")
 
-        if QtWebKit is None:
-            raise SsoSaml2MissingQtWebKit("The QtWebKit module is unavailable")
+        if QtWebKit is None and QtWebEngineWidgets is None:
+            if QtWebKit is None:
+                raise SsoSaml2MissingQtWebKit("The QtWebKit module is unavailable")
+            if QtWebEngineWidgets is None:
+                raise SsoSaml2MissingQtWebEngineWidgets("The QtWebEngineWidgets module is unavailable")
 
         self._event_data = None
         self._sessions_stack = []
@@ -93,13 +98,19 @@ class SsoSaml2Core(object):
         self._dialog.setWindowTitle(window_title)
         self._dialog.finished.connect(self.on_dialog_closed)
 
-        self._view = QtWebKit.QWebView(self._dialog)
-        self._view.page().networkAccessManager().authenticationRequired.connect(self.on_authentication_required)
+        if QtWebKit:
+            self._view = QtWebKit.QWebView(self._dialog)
+            self._view.page().networkAccessManager().authenticationRequired.connect(self.on_authentication_required)
+            self._cookie_jar = self._view.page().networkAccessManager().cookieJar()
+        else:
+            self._view = QtWebEngineWidgets.QWebEngineView(self._dialog)
+            self._cookie_jar = QtNetwork.QNetworkCookieJar()
         self._view.loadFinished.connect(self.on_load_finished)
 
         # Purposely disable the 'Reload' contextual menu, as it should not be
         # used for SSO. Reloading the page confuses the server.
-        self._view.page().action(QtWebKit.QWebPage.Reload).setVisible(False)
+        if QtWebKit:
+            self._view.page().action(QtWebKit.QWebPage.Reload).setVisible(False)
 
         # Ensure that the background color is not controlled by the login page.
         # We want to be able to display any login dialog page without having
@@ -127,9 +138,10 @@ class SsoSaml2Core(object):
         #
         # Worst case scenario : should Shotgun modify how the warning is displayed
         # it would show up in the page.
-        css_style = base64.b64encode("div.browser_not_approved { display: none !important; }")
-        url = QtCore.QUrl("data:text/css;charset=utf-8;base64," + css_style)
-        self._view.settings().setUserStyleSheetUrl(url)
+        if QtWebKit:
+            css_style = base64.b64encode("div.browser_not_approved { display: none !important; }")
+            url = QtCore.QUrl("data:text/css;charset=utf-8;base64," + css_style)
+            self._view.settings().setUserStyleSheetUrl(url)
 
         # Threshold percentage of the SSO session duration, at which
         # time the pre-emptive renewal operation should be started.
@@ -177,15 +189,16 @@ class SsoSaml2Core(object):
             config.setPeerVerifyMode(QtNetwork.QSslSocket.VerifyNone)
             QtNetwork.QSslConfiguration.setDefaultConfiguration(config)
 
-            # Adds the Developer Tools option when right-clicking
-            QtWebKit.QWebSettings.globalSettings().setAttribute(
-                QtWebKit.QWebSettings.WebAttribute.DeveloperExtrasEnabled,
-                True
-            )
-            QtWebKit.QWebSettings.globalSettings().setAttribute(
-                QtWebKit.QWebSettings.WebAttribute.LocalStorageEnabled,
-                True
-            )
+            if QtWebKit:
+                # Adds the Developer Tools option when right-clicking
+                QtWebKit.QWebSettings.globalSettings().setAttribute(
+                    QtWebKit.QWebSettings.WebAttribute.DeveloperExtrasEnabled,
+                    True
+                )
+                QtWebKit.QWebSettings.globalSettings().setAttribute(
+                    QtWebKit.QWebSettings.WebAttribute.LocalStorageEnabled,
+                    True
+                )
 
     def __del__(self):
         """Destructor."""
@@ -234,7 +247,7 @@ class SsoSaml2Core(object):
         """
         self._logger.debug("Updating session cookies from browser")
 
-        cookie_jar = self._view.page().networkAccessManager().cookieJar()
+        cookie_jar = self._cookie_jar
 
         # Here, the cookie jar is a dictionary of key/values
         cookies = SimpleCookie()
@@ -284,7 +297,7 @@ class SsoSaml2Core(object):
             cookies = _decode_cookies(self._session.cookies)
             qt_cookies = QtNetwork.QNetworkCookie.parseCookies(cookies.output(header=""))
 
-        self._view.page().networkAccessManager().cookieJar().setAllCookies(qt_cookies)
+        self._cookie_jar.setAllCookies(qt_cookies)
 
     def is_session_renewal_active(self):
         """
@@ -413,7 +426,7 @@ class SsoSaml2Core(object):
 
         # We do not update the page cookies, assuming that they have already
         # have been cleared/updated before.
-        self._view.page().mainFrame().load(self._session.host + self._event_data["renew_path"])
+        self._view.page().load(self._session.host + self._event_data["renew_path"])
 
     def on_renew_sso_session_timeout(self):
         """
@@ -445,7 +458,7 @@ class SsoSaml2Core(object):
 
         :param succeeded: indicate the status of the load process. (not used)
         """
-        url = self._view.page().mainFrame().url().toString().encode("utf-8")
+        url = self._view.page().url().toString().encode("utf-8")
         if (
                 self._session is not None and self._event_data is not None and
                 url.startswith(self._session.host + self._event_data["landing_path"])
@@ -511,7 +524,7 @@ class SsoSaml2Core(object):
             self._view.raise_()
 
             # We append the product code to the GET request.
-            self._view.page().mainFrame().load(
+            self._view.page().load(
                 self._session.host + self._event_data["renew_path"] + "?product=%s" % self._session.product
             )
 
@@ -551,4 +564,4 @@ class SsoSaml2Core(object):
                 self._logger.warn("Our QDialog got canceled outside of an event handling")
 
         # Clear the web page
-        self._view.page().mainFrame().load("about:blank")
+        self._view.page().load("about:blank")
