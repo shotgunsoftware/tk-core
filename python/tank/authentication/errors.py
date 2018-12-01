@@ -70,5 +70,6 @@ class ConsoleLoginNotSupportedError(ShotgunAuthenticationError):
             "the console for %s." % url
         )
 
+
 # For backward compatibility.
 ConsoleLoginWithSSONotSupportedError = ConsoleLoginNotSupportedError
