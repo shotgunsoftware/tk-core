@@ -327,7 +327,7 @@ class InteractiveTests(ShotgunTestBase):
         side_effect=["  https://test-identity.shotgunstudio.com "]
     )
     @patch(
-        "tank.authentication.console_authentication.is_identity_enabled_on_site",
+        "tank.authentication.console_authentication.is_autodesk_identity_enabled_on_site",
         return_value=True
     )
     def test_identity_enabled_site(self, *mocks):
