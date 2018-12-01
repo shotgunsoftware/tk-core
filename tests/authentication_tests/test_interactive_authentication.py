@@ -23,7 +23,7 @@ from tank_test.tank_test_base import ShotgunTestBase, skip_if_pyside_missing, sk
 from mock import patch
 from tank.authentication import (
     console_authentication,
-    ConsoleLoginSupportedError,
+    ConsoleLoginNotSupportedError,
     interactive_authentication,
     invoker,
     user_impl,
@@ -319,7 +319,7 @@ class InteractiveTests(ShotgunTestBase):
         on an SSO-enabled site.
         """
         handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
-        with self.assertRaises(ConsoleLoginSupportedError):
+        with self.assertRaises(ConsoleLoginNotSupportedError):
             handler._get_user_credentials(None, None, None)
 
     @patch(
@@ -336,7 +336,7 @@ class InteractiveTests(ShotgunTestBase):
         on an SSO-enabled site.
         """
         handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
-        with self.assertRaises(ConsoleLoginSupportedError):
+        with self.assertRaises(ConsoleLoginNotSupportedError):
             handler._get_user_credentials(None, None, None)
 
     @skip_if_on_travis_ci("Offscreen XServer doesn't do focus changes.")
