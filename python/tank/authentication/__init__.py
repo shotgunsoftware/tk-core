@@ -21,7 +21,8 @@ credentials are reused if available.
 from .errors import (  # noqa
     AuthenticationCancelled,
     AuthenticationError,
-    ConsoleLoginWithSSONotSupportedError,
+    ConsoleLoginWithSSONotSupportedError,  # For backward compatibility.
+    ConsoleLoginNotSupportedError,
     IncompleteCredentials,
     ShotgunAuthenticationError,
 )

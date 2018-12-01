@@ -23,7 +23,7 @@ from tank_test.tank_test_base import ShotgunTestBase, skip_if_pyside_missing, sk
 from mock import patch
 from tank.authentication import (
     console_authentication,
-    ConsoleLoginWithSSONotSupportedError,
+    ConsoleLoginSupportedError,
     interactive_authentication,
     invoker,
     user_impl,
@@ -319,7 +319,24 @@ class InteractiveTests(ShotgunTestBase):
         on an SSO-enabled site.
         """
         handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
-        with self.assertRaises(ConsoleLoginWithSSONotSupportedError):
+        with self.assertRaises(ConsoleLoginSupportedError):
+            handler._get_user_credentials(None, None, None)
+
+    @patch(
+        "__builtin__.raw_input",
+        side_effect=["  https://test-identity.shotgunstudio.com "]
+    )
+    @patch(
+        "tank.authentication.console_authentication.is_identity_enabled_on_site",
+        return_value=True
+    )
+    def test_identity_enabled_site(self, *mocks):
+        """
+        Ensure that an exception is thrown should we attempt console authentication
+        on an SSO-enabled site.
+        """
+        handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
+        with self.assertRaises(ConsoleLoginSupportedError):
             handler._get_user_credentials(None, None, None)
 
     @skip_if_on_travis_ci("Offscreen XServer doesn't do focus changes.")

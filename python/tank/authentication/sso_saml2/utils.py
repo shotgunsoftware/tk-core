@@ -59,6 +59,7 @@ def _get_site_infos(url, http_proxy=None):
             get_logger().debug(
                 "Using HTTP proxy to connect to the Shotgun server: %s", http_proxy
             )
+        # Checks if the information is in the cache, is missing or out of date.
         if url not in INFOS_CACHE or ((time.time() - INFOS_CACHE[url][0]) > INFOS_CACHE_TIMEOUT):
             get_logger().info("Infos for site '%s' not in cache or expired", url)
             infos = shotgun_api3.Shotgun(
@@ -85,7 +86,8 @@ def _get_user_authentication_method(url, http_proxy=None):
     :param url:            Url of the site to query.
     :param http_proxy:     HTTP proxy to use, if any.
 
-    :returns:   A string, or None, indicating which mode is used.
+    :returns:   A string, such as 'default', 'ldap', 'saml' or 'oxygen', indicating the mode used.
+                None is returned when the information is unavailable or we could not reach the site.
     """
     infos = _get_site_infos(url, http_proxy)
     user_authentication_method = None

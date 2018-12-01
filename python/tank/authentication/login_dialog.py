@@ -17,8 +17,6 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
-import os
-
 from tank_vendor import shotgun_api3
 from .web_login_support import get_shotgun_authenticator_support_web_login
 from .ui import resources_rc # noqa
@@ -71,17 +69,17 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
 
     @property
     def sso_enabled(self):
-        """Bool Read-only property."""
+        """returns: `True` if SSO is enabled, `False` otherwise."""
         return self._sso_enabled
 
     @property
     def autodesk_identity_enabled(self):
-        """Bool Read-only property."""
+        """returns: `True` if Identity is enabled, `False` otherwise."""
         return self._autodesk_identity_enabled
 
     @property
     def unified_login_flow_enabled(self):
-        """Bool Read-only property."""
+        """returns: `True` if ULF is enabled, `False` otherwise."""
         return self._unified_login_flow_enabled
 
     @property
@@ -354,7 +352,7 @@ class LoginDialog(QtGui.QDialog):
 
         # If we have full support for Web-based login, or if we enable it in our
         # environment, use the Unified Login Flow for all authentication modes.
-        if get_shotgun_authenticator_support_web_login() or "SHOTGUN_USE_ULF" in os.environ:
+        if get_shotgun_authenticator_support_web_login():
             use_web = use_web or self._query_task.unified_login_flow_enabled
         if self._use_web != use_web:
             self._use_web = not self._use_web

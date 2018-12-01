@@ -447,6 +447,10 @@ class SsoSaml2Core(object):
         """
         url = self._view.page().mainFrame().url().toString().encode("utf-8")
         if (
+                # This callback may be triggered outside the actual auth process
+                # like when we clear the page to use the "about:blank".
+                # or after there has been a prior error. So we ensure that we
+                # update our session and accept only when we really have to.
                 self._session is not None and self._event_data is not None and
                 url.startswith(self._session.host + self._event_data["landing_path"])
         ):

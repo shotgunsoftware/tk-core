@@ -86,7 +86,7 @@ def _get_shotgun_user_id(cookies):
     user_id = None
     user_domain = None
     for cookie in cookies:
-        if cookie.startswith("csrf_token_u") or cookie == "shotgun_current_user_id":
+        if cookie.startswith("csrf_token_u"):
             # Shotgun appends the unique numerical ID of the user to the cookie name:
             # ex: csrf_token_u78
             if user_id is not None:
@@ -100,10 +100,7 @@ def _get_shotgun_user_id(cookies):
                 # have no way to identify the proper user id in the lot.
                 message = "The cookies for this user seem to come from two different shotgun sites: '%s' and '%s'"
                 raise SsoSaml2MultiSessionNotSupportedError(message % (user_domain, cookies[cookie]['domain']))
-            if cookie.startswith("csrf_token_u"):
-                user_id = cookie[12:]
-            else:
-                user_id = cookies[cookie].value
+            user_id = cookie[12:]
             user_domain = cookies[cookie]["domain"]
     return user_id
 
@@ -193,7 +190,8 @@ def get_session_expiration(encoded_cookies):
 
     :param encoded_cookies: An encoded string representing the cookie jar.
 
-    :returns: An int with the time in seconds since January 1st 1970 UTC, or None
+    :returns: An int with the time in seconds since January 1st 1970 UTC, or None if the cookie
+              'shotgun_current_session_expiration' is not defined.
     """
     session_expiration = _get_cookie(encoded_cookies, "shotgun_current_session_expiration")
     if session_expiration is not None:
