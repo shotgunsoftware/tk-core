@@ -45,11 +45,10 @@ def _assert_console_session_is_supported(hostname, http_proxy):
     username/password pair is not supported by the Shotgun server.
     Which is the case when using SSO or Autodesk Identity.
     """
-    if (
-        is_sso_enabled_on_site(hostname, http_proxy) or
-        is_autodesk_identity_enabled_on_site(hostname, http_proxy)
-    ):
-        raise ConsoleLoginNotSupportedError(hostname)
+    if is_sso_enabled_on_site(hostname, http_proxy):
+        raise ConsoleLoginNotSupportedError(hostname, "Single Sign-On")
+    if is_autodesk_identity_enabled_on_site(hostname, http_proxy):
+        raise ConsoleLoginNotSupportedError(hostname, "Autodesk Identity")
 
 
 class ConsoleAuthenticationHandlerBase(object):

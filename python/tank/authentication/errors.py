@@ -61,13 +61,15 @@ class ConsoleLoginNotSupportedError(ShotgunAuthenticationError):
     an SSO-enabled site.
     """
 
-    def __init__(self, url):
+    def __init__(self, url, site_auth_type="Single Sign-On"):
         """
         :param str url: Url of the site where login was attempted.
+        :param str site_auth_type: type of authentication, e.g. SSO, Identity.
+                                   The default value is for backward compatibility.
         """
         super(ConsoleLoginNotSupportedError, self).__init__(
             "Authentication using username/password is not supported on "
-            "the console for %s." % url
+            "the console %s for sites using %s." % (url, site_auth_type)
         )
 
 
