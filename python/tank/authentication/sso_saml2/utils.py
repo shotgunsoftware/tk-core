@@ -26,7 +26,7 @@ from .core.utils import (  # noqa
 )
 
 
-# Cache the servers infos foe 30 seconds.
+# Cache the servers infos for 30 seconds.
 INFOS_CACHE_TIMEOUT = 30
 INFOS_CACHE = {}
 

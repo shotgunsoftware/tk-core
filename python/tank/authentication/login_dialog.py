@@ -354,6 +354,11 @@ class LoginDialog(QtGui.QDialog):
         # environment, use the Unified Login Flow for all authentication modes.
         if get_shotgun_authenticator_support_web_login():
             use_web = use_web or self._query_task.unified_login_flow_enabled
+
+        # if we are switching from one mode (using the web) to another (not using
+        # the web), or vice-versa, we need to update the GUI.
+        # In web-based authentication, the web form is in charge of obtaining
+        # and validating the user credentials.
         if self._use_web != use_web:
             self._use_web = not self._use_web
             if self._use_web:
