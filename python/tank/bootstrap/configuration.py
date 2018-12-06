@@ -100,16 +100,16 @@ class Configuration(object):
 
         # Swap the core out if needed and ensure we use the right login
         # Get the user before the core swapping and serialize it.
-        from ..authentication import serialize_user, ShotgunSamlUser
+        from ..authentication import (
+            get_shotgun_authenticator_support_web_login,
+            serialize_user,
+            ShotgunSamlUser,
+        )
         serialized_user = serialize_user(sg_user)
 
         # Caching support for the Web authentication flow.
-        support_web_login = False
-        try:
-            from ..authentication import get_shotgun_authenticator_support_web_login
-            support_web_login = get_shotgun_authenticator_support_web_login()
-        except ImportError:
-            log.warning("This core does not support the Unified Login Flow")
+        support_web_login = get_shotgun_authenticator_support_web_login()
+        log.debug("Caching the old core's support of the Unified Login Flow: %s" % support_web_login)
 
         # Stop claims renewal before swapping core, but only if the claims loop
         # is actually active.
