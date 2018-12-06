@@ -16,6 +16,11 @@ from .import_handler import CoreImportHandler
 from ..log import LogManager
 from .. import pipelineconfig_utils
 from .. import constants
+from ..authentication import (
+    get_shotgun_authenticator_support_web_login,
+    serialize_user,
+    ShotgunSamlUser,
+)
 
 log = LogManager.get_logger(__name__)
 
@@ -89,6 +94,8 @@ class Configuration(object):
         """
         Returns a tk instance for this configuration.
 
+        It swaps the core out if needed and ensure we use the right login.
+
         :param sg_user: Authenticated Shotgun user to associate
                         the tk instance with.
 
@@ -98,13 +105,7 @@ class Configuration(object):
         path = self._path.current_os
         python_core_path = pipelineconfig_utils.get_core_python_path_for_config(path)
 
-        # Swap the core out if needed and ensure we use the right login
         # Get the user before the core swapping and serialize it.
-        from ..authentication import (
-            get_shotgun_authenticator_support_web_login,
-            serialize_user,
-            ShotgunSamlUser,
-        )
         serialized_user = serialize_user(sg_user)
 
         # Caching support for the Web authentication flow.
