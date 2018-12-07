@@ -14,14 +14,11 @@ Unit tests tank validate.
 
 from __future__ import with_statement
 
-import os
 import logging
 
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
-from tank.platform.environment import InstalledEnvironment
-
-from tank_test.mock_appstore import TankMockStoreDescriptor, patch_app_store
+from tank_test.mock_appstore import patch_app_store
 
 
 class TestSimpleValidate(TankTestBase):
@@ -58,4 +55,4 @@ class TestSimpleValidate(TankTestBase):
         # Run validate.
         command = self.tk.get_command("validate")
         command.set_logger(logging.getLogger("/dev/null"))
-        command.execute({"envs":["simple"]})
+        command.execute({"envs": ["simple"]})
