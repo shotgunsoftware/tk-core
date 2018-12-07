@@ -98,7 +98,7 @@ class ValidateConfigAction(Action):
 
             env = self.tk.pipeline_configuration.get_environment(env_name)
             log.info("Environment path: %s" % (env.disk_location))
-            self._process_environment(self, log, self.tk, env)
+            self._process_environment(log, self.tk, env)
     
         log.info("")
         log.info("")
