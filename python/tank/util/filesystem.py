@@ -165,7 +165,7 @@ def copy_file(src, dst, permissions=0o666):
 
     try:
         os.chmod(dst, permissions)
-    except Exception as e:
+    except OSError as e:
         pass
 
 
