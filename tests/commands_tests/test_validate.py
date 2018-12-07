@@ -50,7 +50,7 @@ class TestSimpleValidate(TankTestBase):
     def test_simple_validate(self):
         """
         Test Simple validate.
-        Just makes sure that the command runs with out and error in a simple environment.
+        Makes sure that the command runs without an error in a simple environment.
         """
         # Run validate.
         command = self.tk.get_command("validate")
