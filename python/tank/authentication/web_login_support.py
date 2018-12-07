@@ -31,6 +31,14 @@ a session. This flag will not change that behaviour.
 At this time, only the Shotgun Desktop and Shotgun Create fully support the
 Web based authentication.
 """
+
+# This global variable is meant to affect the way the authentication is
+# handled by the toolkit-using application.
+# Initially, the only clients that will modify this value will be the
+# Shotgun Desktop and Shotgun Create.
+# This is the way for an application to clearly state: yes I support the ULF.
+# This value will properly be propagated across a core swap if the new core
+# also defines this variable.
 shotgun_authenticator_support_web_login = False
 
 

@@ -28,6 +28,11 @@ from .core.utils import (  # noqa
 
 # Cache the servers infos for 30 seconds.
 INFOS_CACHE_TIMEOUT = 30
+# This is a global state variable. It is used to cache information about the Shotgun servers we
+# are interacting with. This is purely to avoid making multiple calls to the servers which would
+# yield back the same information. (That info is relatively constant on a given server)
+# Should this variable be cleared when doing a Python Core swap, it is not an issue.
+# The side effect would be an additional call to the Shotgun site.
 INFOS_CACHE = {}
 
 
