@@ -27,7 +27,7 @@ from .core.utils import (  # noqa
 
 
 # Cache the servers infos for 30 seconds.
-INFOS_CACHE_TIMEOUT = 30
+INFOS_CACHE_TIMEOUT = 0
 # This is a global state variable. It is used to cache information about the Shotgun servers we
 # are interacting with. This is purely to avoid making multiple calls to the servers which would
 # yield back the same information. (That info is relatively constant on a given server)
@@ -80,6 +80,8 @@ def _get_site_infos(url, http_proxy=None):
     except Exception as e:
         # Silently ignore exceptions
         get_logger().debug("Unable to connect with %s, got exception '%s'", url, e)
+        INFOS_CACHE[url] = (time.time(), {"error_message": e})
+        infos = INFOS_CACHE[url][1]
 
     return infos
 
@@ -151,6 +153,22 @@ def is_autodesk_identity_enabled_on_site(url, http_proxy=None):
     :returns:   A boolean indicating if Autodesk Identity has been enabled or not.
     """
     return _get_user_authentication_method(url, http_proxy) == "oxygen"
+
+
+def get_error_message_for_site(url, http_proxy=None):
+    """
+    Check to see if connecting to the web site generated an error.
+
+    :param url:            Url of the site to query.
+    :param http_proxy:     HTTP proxy to use, if any.
+
+    :returns:   A string with the message, or None.
+    """
+    infos = _get_site_infos(url, http_proxy)
+    error_message = None
+    if "error_message" in infos:
+        error_message = infos["error_message"]
+    return error_message
 
 
 def has_unified_login_flow_info_in_cookies(encoded_cookies):

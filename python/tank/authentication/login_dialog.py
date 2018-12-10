@@ -27,11 +27,12 @@ from ..util import login
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit
 from .sso_saml2 import (
-    SsoSaml2Toolkit,
-    SsoSaml2MissingQtModuleError,
+    get_error_message_for_site,
     is_autodesk_identity_enabled_on_site,
     is_sso_enabled_on_site,
     is_unified_login_flow_enabled_on_site,
+    SsoSaml2MissingQtModuleError,
+    SsoSaml2Toolkit,
 )
 from .. import LogManager
 
@@ -65,6 +66,7 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         self._url_to_test = ""
         self._sso_enabled = False
         self._unified_login_flow_enabled = False
+        self._error_message = None
         self._http_proxy = http_proxy
 
     @property
@@ -81,6 +83,11 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
     def unified_login_flow_enabled(self):
         """returns: `True` if ULF is enabled, `False` otherwise."""
         return self._unified_login_flow_enabled
+
+    @property
+    def error_message(self):
+        """returns: a string with the error message, None if there were none."""
+        return self._error_message
 
     @property
     def url_to_test(self):
@@ -100,6 +107,7 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         self._sso_enabled = is_sso_enabled_on_site(self.url_to_test, self._http_proxy)
         self._autodesk_identity_enabled = is_autodesk_identity_enabled_on_site(self.url_to_test, self._http_proxy)
         self._unified_login_flow_enabled = is_unified_login_flow_enabled_on_site(self.url_to_test, self._http_proxy)
+        self._error_message = get_error_message_for_site(self.url_to_test, self._http_proxy)
 
 
 class LoginDialog(QtGui.QDialog):
@@ -107,8 +115,9 @@ class LoginDialog(QtGui.QDialog):
     Dialog for getting user credentials.
     """
 
-    # Formatting required to display error messages.
+    # Formatting required to display error messages and information.
     ERROR_MSG_FORMAT = "<font style='color: rgb(252, 98, 70);'>%s</font>"
+    INFO_MSG_FORMAT = "<font style='color: rgb(227, 152, 36);'>%s</font>"
 
     def __init__(
         self,
@@ -217,6 +226,10 @@ class LoginDialog(QtGui.QDialog):
         # Select the right first page.
         self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
 
+        # Ensure that we get the site infos before allowing the user to attempt
+        # at logging in.
+        self.ui.sign_in.setVisible(False)
+
         # hook up signals
         self.ui.sign_in.clicked.connect(self._ok_pressed)
         self.ui.stackedWidget.currentChanged.connect(self._current_page_changed)
@@ -280,7 +293,13 @@ class LoginDialog(QtGui.QDialog):
         Updates the GUI if SSO is supported or not, hiding or showing the username/password fields.
         """
         # Only update the GUI if we were able to initialize the sam2sso module.
-        if self._sso_saml2:
+        if self._sso_saml2 and len(self.ui.site.currentText().strip()) > 0:
+            # Let's disable the Sign In button until we know the site is valid.
+            self.ui.sign_in.setVisible(False)
+
+            # Ensure our last site info query has completed before starting a new one.
+            self._query_task.wait()
+            self._set_info_message(self.ui.message, "Querying infos for site %s." % self._get_current_site())
             self._query_task.url_to_test = self._get_current_site()
             self._query_task.start()
 
@@ -346,29 +365,39 @@ class LoginDialog(QtGui.QDialog):
         """
         Sets up the dialog GUI according to the use of web login or not.
         """
-        # We only update the GUI if there was a change between to mode we
-        # are showing and what was detected on the potential target site.
-        use_web = self._query_task.sso_enabled or self._query_task.autodesk_identity_enabled
+        message = self._query_task.error_message
 
-        # If we have full support for Web-based login, or if we enable it in our
-        # environment, use the Unified Login Flow for all authentication modes.
-        if get_shotgun_authenticator_support_web_login():
-            use_web = use_web or self._query_task.unified_login_flow_enabled
+        if message is None:
+            # We only update the GUI if there was a change between to mode we
+            # are showing and what was detected on the potential target site.
+            use_web = self._query_task.sso_enabled or self._query_task.autodesk_identity_enabled
 
-        # if we are switching from one mode (using the web) to another (not using
-        # the web), or vice-versa, we need to update the GUI.
-        # In web-based authentication, the web form is in charge of obtaining
-        # and validating the user credentials.
-        if self._use_web != use_web:
-            self._use_web = not self._use_web
+            # If we have full support for Web-based login, or if we enable it in our
+            # environment, use the Unified Login Flow for all authentication modes.
+            if get_shotgun_authenticator_support_web_login():
+                use_web = use_web or self._query_task.unified_login_flow_enabled
+
+            # if we are switching from one mode (using the web) to another (not using
+            # the web), or vice-versa, we need to update the GUI.
+            # In web-based authentication, the web form is in charge of obtaining
+            # and validating the user credentials.
+            if self._use_web != use_web:
+                self._use_web = not self._use_web
             if self._use_web:
-                self.ui.message.setText("Sign in using the Web.")
+                if get_shotgun_authenticator_support_web_login():
+                    self.ui.message.setText("Sign in using the Web.")
+                    self.ui.sign_in.setVisible(True)
+                else:
+                    self.ui.message.setText("Please sign in using the Shotgun Desktop.\nThis is a very long message on purpose to see how the GUI reacts.")
                 self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
             else:
                 self.ui.message.setText("Please enter your credentials.")
-
+                self.ui.sign_in.setVisible(True)
             self.ui.login.setVisible(not self._use_web)
             self.ui.password.setVisible(not self._use_web)
+
+        else:
+            self._set_error_message(self.ui.message, message)
 
     def _current_page_changed(self, index):
         """
@@ -462,6 +491,15 @@ class LoginDialog(QtGui.QDialog):
         :param message: Message to display in red in the dialog.
         """
         widget.setText(self.ERROR_MSG_FORMAT % message)
+
+    def _set_info_message(self, widget, message):
+        """
+        Set the error message in the dialog.
+
+        :param widget: Widget to display the message on.
+        :param message: Message to display in red in the dialog.
+        """
+        widget.setText(self.INFO_MSG_FORMAT % message)
 
     def _ok_pressed(self):
         """
