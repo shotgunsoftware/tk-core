@@ -14,6 +14,7 @@ import glob
 import os
 import sys
 import tempfile
+import traceback
 from optparse import OptionParser
 
 # Let the user know which Python is picked up to run the tests.
@@ -300,8 +301,8 @@ def main(sys_args):
         if ret_val.errors or ret_val.failures:
             exit_val = 1
 
-    except Exception as e:
-        print("Unexpected exception: %s" % e)
+    except Exception:
+        print("Unexpected exception:\n{0}".format(traceback.format_exc()))
         # signal failure
         exit_val = 1
 
@@ -313,6 +314,7 @@ def main(sys_args):
         if new_base_tempdir and os.path.isdir(new_base_tempdir):
             print("\nCleaning up '%s'" % (new_base_tempdir))
             safe_delete_folder(new_base_tempdir)
+            tempfile.tempdir = None
 
     return exit_val
 
