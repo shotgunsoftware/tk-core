@@ -446,6 +446,7 @@ class SsoSaml2Core(object):
         :param succeeded: indicate the status of the load process. (not used)
         """
         url = self._view.page().mainFrame().url().toString().encode("utf-8")
+        self._logger.debug("==> %s", url)
         if (
                 # This callback may be triggered outside the actual auth process
                 # like when we clear the page to use the "about:blank".
