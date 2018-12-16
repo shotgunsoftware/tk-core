@@ -139,7 +139,7 @@ class SessionRenewal(object):
             # We're the first thread, so authenticate.
             try:
                 if user.get_session_metadata() is not None:
-                    logger.debug("Attempting to renew our Web session.")
+                    logger.debug("Attempting to renew our SSO session.")
                 else:
                     logger.debug("Not authenticated, requesting user input.")
 

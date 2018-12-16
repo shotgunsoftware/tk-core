@@ -196,6 +196,10 @@ class LoginDialog(QtGui.QDialog):
         self._url_changed_timer.setSingleShot(True)
         self._url_changed_timer.timeout.connect(self._update_ui_according_to_sso_support)
 
+        # Should the info/status/error message include a link, make it
+        # so that it can be clickable.
+        self.ui.message.setOpenExternalLinks(True)
+
         # If the host is fixed, disable the site textbox.
         if fixed_host:
             self._disable_text_widget(
@@ -212,9 +216,15 @@ class LoginDialog(QtGui.QDialog):
                 self.ui.login,
                 "You are renewing your session: you can't change your login."
             )
-            self._set_login_message("Your session has expired. Please enter your password.")
+            self._set_info_message(
+                self.ui.message,
+                "Your session has expired. Please enter your password."
+            )
         else:
-            self._set_login_message("Please enter your credentials.")
+            self._set_info_message(
+                self.ui.message,
+                "Please enter your Shotgun site URL."
+            )
 
         # Set the focus appropriately on the topmost line edit that is empty.
         if self._get_current_site():
@@ -229,6 +239,8 @@ class LoginDialog(QtGui.QDialog):
         # Ensure that we get the site infos before allowing the user to attempt
         # at logging in.
         self.ui.sign_in.setVisible(False)
+        self.ui.login.setVisible(False)
+        self.ui.password.setVisible(False)
 
         # hook up signals
         self.ui.sign_in.clicked.connect(self._ok_pressed)
@@ -290,24 +302,35 @@ class LoginDialog(QtGui.QDialog):
 
     def _update_ui_according_to_sso_support(self):
         """
-        Updates the GUI if SSO is supported or not, hiding or showing the username/password fields.
+        Updates the GUI if Web login is supported or not, hiding or showing the
+        username/password fields and reporting that we are contacting the site.
         """
-        # Only update the GUI if we were able to initialize the sam2sso module.
-        if self._sso_saml2 and len(self.ui.site.currentText().strip()) > 0:
+        # Only update the GUI if we were able to initialize the sam2sso module,
+        if self._sso_saml2:
             # Let's disable the Sign In button until we know the site is valid.
             self.ui.sign_in.setVisible(False)
 
             # Ensure our last site info query has completed before starting a new one.
             self._query_task.wait()
-            self._set_info_message(self.ui.message, "Querying infos for site %s." % self._get_current_site())
-            self._query_task.url_to_test = self._get_current_site()
-            self._query_task.start()
+            url_to_test = self._get_current_site()
+            logger.debug("url_to_test: %s" % url_to_test)
+            if "." in url_to_test:
+                # url_to_test += ".shotgunstudio.com"
+                # logger.debug("Trying %s" % url_to_test)
+                message = "Querying infos for site:\n%s\nPlease wait." % url_to_test
+                self._set_info_message(self.ui.message, message)
+                self._query_task.url_to_test = url_to_test
+                self._query_task.start()
+            # else:
+            #     message = ""
+            # self._set_info_message(self.ui.message, message)
 
     def _site_url_changing(self, text):
         """
         Starts a timer to wait until the user stops entering the URL .
         """
         self._url_changed_timer.start(USER_INPUT_DELAY_BEFORE_SSO_CHECK)
+        # self._set_info_message(self.ui.message, "")
 
     def _on_site_changed(self):
         """
@@ -385,13 +408,26 @@ class LoginDialog(QtGui.QDialog):
                 self._use_web = not self._use_web
             if self._use_web:
                 if get_shotgun_authenticator_support_web_login():
-                    self.ui.message.setText("Sign in using the Web.")
+                    self._set_info_message(
+                        self.ui.message,
+                        "Sign in using the Web."
+                    )
                     self.ui.sign_in.setVisible(True)
                 else:
-                    self.ui.message.setText("Please sign in using the Shotgun Desktop.\nThis is a very long message on purpose to see how the GUI reacts.")
+                    self._set_info_message(
+                        self.ui.message,
+                        "<p>Please sign in using the Shotgun Desktop."
+                        "<p>This is a very long message on purpose to see how the GUI reacts."
+                        '<p><a href="http://mystudio.shotgunstudio.com/user/forgot_password">'
+                        '<span style=" text-decoration: underline; color:#c0c1c3;">'
+                        'More information</span></a>'
+                    )
                 self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
             else:
-                self.ui.message.setText("Please enter your credentials.")
+                self._set_info_message(
+                    self.ui.message,
+                    "Please enter your credentials."
+                )
                 self.ui.sign_in.setVisible(True)
             self.ui.login.setVisible(not self._use_web)
             self.ui.password.setVisible(not self._use_web)
@@ -418,13 +454,6 @@ class LoginDialog(QtGui.QDialog):
         widget.lineEdit().setReadOnly(True)
         widget.setEnabled(False)
         widget.setToolTip(tooltip_text)
-
-    def _set_login_message(self, message):
-        """
-        Set the message in the dialog.
-        :param message: Message to display in the dialog.
-        """
-        self.ui.message.setText(message)
 
     def exec_(self):
         """
@@ -457,7 +486,11 @@ class LoginDialog(QtGui.QDialog):
         :returns: A tuple of (hostname, username and session token) string if the user authenticated
                   None if the user cancelled.
         """
-        if self._session_metadata and self._sso_saml2:
+        use_web = get_shotgun_authenticator_support_web_login()
+
+        # Here we attempt an offscreen renewal, if we find any previous session
+        # metadata.
+        if use_web and self._session_metadata and self._sso_saml2:
             res = self._sso_saml2.login_attempt(
                 host=self._get_current_site(),
                 http_proxy=self._http_proxy,
@@ -468,8 +501,7 @@ class LoginDialog(QtGui.QDialog):
             # If the offscreen session renewal failed, show the GUI as a failsafe
             if res == QtGui.QDialog.Accepted:
                 return self._sso_saml2.get_session_data()
-            else:
-                return None
+            return None
 
         res = self.exec_()
 
@@ -519,7 +551,10 @@ class LoginDialog(QtGui.QDialog):
         password = self.ui.password.text()
 
         if site == "https://" or site == "http://":
-            self._set_error_message(self.ui.message, "Please enter the address of the site to connect to.")
+            self._set_error_message(
+                self.ui.message,
+                "Please enter the address of the site to connect to."
+            )
             self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
             return
 
@@ -530,11 +565,17 @@ class LoginDialog(QtGui.QDialog):
 
         if not self._use_web:
             if len(login) == 0:
-                self._set_error_message(self.ui.message, "Please enter your login name.")
+                self._set_error_message(
+                    self.ui.message,
+                    "Please enter your login name."
+                )
                 self.ui.login.setFocus(QtCore.Qt.OtherFocusReason)
                 return
             if len(password) == 0:
-                self._set_error_message(self.ui.message, "Please enter your password.")
+                self._set_error_message(
+                    self.ui.message,
+                    "Please enter your password."
+                )
                 self.ui.password.setFocus(QtCore.Qt.OtherFocusReason)
                 return
 

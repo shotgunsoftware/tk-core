@@ -27,7 +27,7 @@ from .core.utils import (  # noqa
 
 
 # Cache the servers infos for 30 seconds.
-INFOS_CACHE_TIMEOUT = 0
+INFOS_CACHE_TIMEOUT = 1
 # This is a global state variable. It is used to cache information about the Shotgun servers we
 # are interacting with. This is purely to avoid making multiple calls to the servers which would
 # yield back the same information. (That info is relatively constant on a given server)

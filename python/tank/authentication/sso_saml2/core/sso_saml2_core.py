@@ -172,11 +172,6 @@ class SsoSaml2Core(object):
         # @TODO: Find a better way than to use the log level
         if self._logger.level == logging.DEBUG or "SHOTGUN_SSO_DEVELOPER_ENABLED" in os.environ:
             self._logger.debug("Using developer mode. Disabling strict SSL mode, enabling developer tools and local storage.")
-            # Disable SSL validation, useful when using a VM or a test site.
-            config = QtNetwork.QSslConfiguration.defaultConfiguration()
-            config.setPeerVerifyMode(QtNetwork.QSslSocket.VerifyNone)
-            QtNetwork.QSslConfiguration.setDefaultConfiguration(config)
-
             # Adds the Developer Tools option when right-clicking
             QtWebKit.QWebSettings.globalSettings().setAttribute(
                 QtWebKit.QWebSettings.WebAttribute.DeveloperExtrasEnabled,
@@ -186,6 +181,17 @@ class SsoSaml2Core(object):
                 QtWebKit.QWebSettings.WebAttribute.LocalStorageEnabled,
                 True
             )
+            # Disable SSL validation, useful when using a VM or a test site.
+            # Some version of PySide do not expose tge QSslConfiguration, so
+            # we need to guard against that.
+            try:
+                config = QtNetwork.QSslConfiguration.defaultConfiguration()
+                config.setPeerVerifyMode(QtNetwork.QSslSocket.VerifyNone)
+                QtNetwork.QSslConfiguration.setDefaultConfiguration(config)
+
+            except AttributeError as caught_exception:
+                # Silently ignore the exception.
+                self._logger.error("Unable to modify SSL options: %s", caught_exception.message)
 
     def __del__(self):
         """Destructor."""
