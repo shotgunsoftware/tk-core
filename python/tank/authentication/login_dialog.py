@@ -220,7 +220,10 @@ class LoginDialog(QtGui.QDialog):
             )
             self._set_login_message("Your session has expired. Please enter your password.")
         else:
-            self._set_login_message("Please enter your credentials.")
+            if len(self.ui.site.currentText()) == 0:
+                self._set_login_message("Please enter your Shotgun site URL.")
+            else:
+                self._set_login_message("Please enter your credentials.")
 
         # Set the focus appropriately on the topmost line edit that is empty.
         if len(self.ui.site.currentText()) == 0:
@@ -265,8 +268,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui.site.lineEdit().editingFinished.connect(self._on_site_changed)
 
         self._query_task = QuerySiteAndUpdateUITask(self, http_proxy)
-        # self._query_task.finished.connect(self._toggle_gui)
-        self._query_task.finished.connect(self._on_site_changed)
+        self._query_task.finished.connect(self._toggle_gui)
         # self._query_site()
 
         # We want to wait until we know if the site uses SSO or not, to avoid
@@ -299,7 +301,7 @@ class LoginDialog(QtGui.QDialog):
         """
         return self.ui.login.currentText().strip().encode("utf-8")
 
-    def _query_site(self):
+    def _query_site(self, url):
         """
         Updates the GUI if Web login is supported or not, hiding or showing the
         username/password fields and reporting that we are contacting the site.
@@ -311,16 +313,20 @@ class LoginDialog(QtGui.QDialog):
         # self.ui.password.setVisible(False)
 
         # Ensure our last site info query has completed before starting a new one.
-        logger.debug("_query_site")
+        logger.debug("_query_site: %s", url)
         self._query_task.wait()
-        url_to_test = self._get_current_site()
-        logger.debug("url_to_test: %s" % url_to_test)
-
-        # url_to_test += ".shotgunstudio.com"
-        # logger.debug("Trying %s" % url_to_test)
-        self._set_info_message(self.ui.message, "Querying infos for site: %s<p>Please wait." % url_to_test)
-        self._query_task.url_to_test = url_to_test
+        self._set_info_message(self.ui.message, "Querying infos for site: %s<p>Please wait." % url)
+        self._query_task.url_to_test = url
         self._query_task.start()
+
+        # url_to_test = self._get_current_site()
+        # logger.debug("url_to_test: %s" % url_to_test)
+
+        # # url_to_test += ".shotgunstudio.com"
+        # # logger.debug("Trying %s" % url_to_test)
+        # self._set_info_message(self.ui.message, "Querying infos for site: %s<p>Please wait." % url_to_test)
+        # self._query_task.url_to_test = url_to_test
+        # self._query_task.start()
 
     def _site_url_changing(self, text):
         """
@@ -337,17 +343,28 @@ class LoginDialog(QtGui.QDialog):
         logger.debug("_on_site_changed")
         current_site = self._get_current_site()
         if self._previous_site is None or self._previous_site != current_site:
+            self._previous_site = current_site
             if "." in current_site:
-                self.ui.login.clear()
-                self._populate_user_dropdown(current_site)
-                self._query_site()
-                self._previous_site = current_site
-                self._toggle_gui()
+                self._query_site(current_site)
             else:
                 logger.debug("Site url '%s' seems incomplete, not checking" % current_site)
+                self._set_login_message("Please enter your Shotgun site URL.")
         else:
             logger.debug("Site url does not have really changed: %s" % current_site)
-            # self._set_login_message("Please enter your Shotgun site URL.")
+
+        # current_site = self._get_current_site()
+        # if self._previous_site is None or self._previous_site != current_site:
+        #     if "." in current_site:
+        #         self.ui.login.clear()
+        #         self._populate_user_dropdown(current_site)
+        #         self._query_site()
+        #         self._previous_site = current_site
+        #         self._toggle_gui()
+        #     else:
+        #         logger.debug("Site url '%s' seems incomplete, not checking" % current_site)
+        # else:
+        #     logger.debug("Site url does not have really changed: %s" % current_site)
+        #     # self._set_login_message("Please enter your Shotgun site URL.")
 
     def _populate_user_dropdown(self, site):
         """
@@ -396,53 +413,63 @@ class LoginDialog(QtGui.QDialog):
         """
         Sets up the dialog GUI according to the use of web login or not.
         """
+        logger.debug("_toggle_gui")
         message = self._query_task.error_message
 
-        logger.error("A -> %s - %s", type(message), message)
         if message is None:
-            # We only update the GUI if there was a change between to mode we
-            # are showing and what was detected on the potential target site.
-            use_web = self._query_task.sso_enabled or self._query_task.autodesk_identity_enabled
-
-            # If we have full support for Web-based login, or if we enable it in our
-            # environment, use the Unified Login Flow for all authentication modes.
-            if get_shotgun_authenticator_support_web_login():
-                use_web = use_web or self._query_task.unified_login_flow_enabled
-
-            # if we are switching from one mode (using the web) to another (not using
-            # the web), or vice-versa, we need to update the GUI.
-            # In web-based authentication, the web form is in charge of obtaining
-            # and validating the user credentials.
-            if self._use_web != use_web:
-                self._use_web = not self._use_web
-            if self._use_web:
-                if get_shotgun_authenticator_support_web_login():
-                    self._set_info_message(
-                        self.ui.message,
-                        "Sign in using the Web."
-                    )
-                    self.ui.sign_in.setVisible(True)
-                else:
-                    self._set_info_message(
-                        self.ui.message,
-                        "<p>Please sign in using the Shotgun Desktop."
-                        "<p>This is a very long message on purpose to see how the GUI reacts."
-                        '<p><a href="http://mystudio.shotgunstudio.com/user/forgot_password">'
-                        '<span style=" text-decoration: underline; color:#c0c1c3;">'
-                        'More information</span></a>'
-                    )
-                self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
-            else:
-                self._set_login_message(
-                    "Please enter your credentials."
-                )
-                self.ui.sign_in.setVisible(True)
-            self.ui.login.setVisible(not self._use_web)
-            self.ui.password.setVisible(not self._use_web)
-
+            self.ui.sign_in.setVisible(True)
+            self.ui.login.clear()
+            logger.debug("_toggle_gui - populate")
+            self._populate_user_dropdown(self._query_task.url_to_test)
         else:
-            logger.error("-> %s", message)
+            self.ui.sign_in.setVisible(False)
             self._set_error_message(self.ui.message, message)
+
+        # logger.error("A -> %s - %s", type(message), message)
+        # if message is None:
+        #     # We only update the GUI if there was a change between to mode we
+        #     # are showing and what was detected on the potential target site.
+        #     use_web = self._query_task.sso_enabled or self._query_task.autodesk_identity_enabled
+
+        #     # If we have full support for Web-based login, or if we enable it in our
+        #     # environment, use the Unified Login Flow for all authentication modes.
+        #     if get_shotgun_authenticator_support_web_login():
+        #         use_web = use_web or self._query_task.unified_login_flow_enabled
+
+        #     # if we are switching from one mode (using the web) to another (not using
+        #     # the web), or vice-versa, we need to update the GUI.
+        #     # In web-based authentication, the web form is in charge of obtaining
+        #     # and validating the user credentials.
+        #     if self._use_web != use_web:
+        #         self._use_web = not self._use_web
+        #     if self._use_web:
+        #         if get_shotgun_authenticator_support_web_login():
+        #             self._set_info_message(
+        #                 self.ui.message,
+        #                 "Sign in using the Web."
+        #             )
+        #             self.ui.sign_in.setVisible(True)
+        #         else:
+        #             self._set_info_message(
+        #                 self.ui.message,
+        #                 "<p>Please sign in using the Shotgun Desktop."
+        #                 "<p>This is a very long message on purpose to see how the GUI reacts."
+        #                 '<p><a href="http://mystudio.shotgunstudio.com/user/forgot_password">'
+        #                 '<span style=" text-decoration: underline; color:#c0c1c3;">'
+        #                 'More information</span></a>'
+        #             )
+        #         self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
+        #     else:
+        #         self._set_login_message(
+        #             "Please enter your credentials."
+        #         )
+        #         self.ui.sign_in.setVisible(True)
+        #     self.ui.login.setVisible(not self._use_web)
+        #     self.ui.password.setVisible(not self._use_web)
+
+        # else:
+        #     logger.error("-> %s", message)
+        #     self._set_error_message(self.ui.message, message)
 
     def _current_page_changed(self, index):
         """
@@ -568,18 +595,18 @@ class LoginDialog(QtGui.QDialog):
         login = self._get_current_user()
         password = self.ui.password.text()
 
-        if site == "https://" or site == "http://":
-            self._set_error_message(
-                self.ui.message,
-                "Please enter the address of the site to connect to."
-            )
-            self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
-            return
+        # if site == "https://" or site == "http://":
+        #     self._set_error_message(
+        #         self.ui.message,
+        #         "Please enter the address of the site to connect to."
+        #     )
+        #     self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
+        #     return
 
-        # Cleanup the URL and update the GUI.
-        if self._use_web and site.startswith("http://"):
-            site = "https" + site[4:]
-        self.ui.site.setEditText(site)
+        # # Cleanup the URL and update the GUI.
+        # if self._use_web and site.startswith("http://"):
+        #     site = "https" + site[4:]
+        # self.ui.site.setEditText(site)
 
         if not self._use_web:
             if len(login) == 0:
