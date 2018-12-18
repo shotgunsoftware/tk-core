@@ -14,7 +14,6 @@ SSO/SAML2 Utility functions.
 import time
 
 from tank_vendor import shotgun_api3
-
 from .core.utils import (  # noqa
     get_logger,
     set_logger_parent,
@@ -77,10 +76,18 @@ def _get_site_infos(url, http_proxy=None):
         else:
             get_logger().info("Infos for site '%s' found in cache", url)
             infos = INFOS_CACHE[url][1]
-    except Exception as e:
-        # Silently ignore exceptions
+    except shotgun_api3.ProtocolError as e:
         get_logger().debug("Unable to connect with %s, got exception '%s'", url, e)
-        INFOS_CACHE[url] = (time.time(), {"error_message": e})
+        if e.errcode == 403:
+            INFOS_CACHE[url] = (time.time(), {"error_message": "Site %s does not support HTTP protocol" % (url)})
+        elif e.errcode == 404:
+            INFOS_CACHE[url] = (time.time(), {"error_message": "Site %s not found" % (url)})
+        else:
+            INFOS_CACHE[url] = (time.time(), {"error_message": "Problem contacting site %s:<p>%s" % (url, e.errmsg)})
+        infos = INFOS_CACHE[url][1]
+    except Exception as e:
+        get_logger().debug("Unable to connect with %s, got exception '%s'", url, e)
+        INFOS_CACHE[url] = (time.time(), {"error_message": "Problem contacting site %s:<p>%s" % (url, e.message)})
         infos = INFOS_CACHE[url][1]
 
     return infos

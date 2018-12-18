@@ -173,6 +173,7 @@ class LoginDialog(QtGui.QDialog):
         if hostname and hostname not in recent_hosts:
             recent_hosts.insert(0, hostname)
 
+        self._previous_site = None
         self.ui.site.set_recent_items(recent_hosts)
         self.ui.site.set_selection(hostname)
 
@@ -194,7 +195,8 @@ class LoginDialog(QtGui.QDialog):
         # typed, but instead wait for a period of inactivity from the user.
         self._url_changed_timer = QtCore.QTimer(self)
         self._url_changed_timer.setSingleShot(True)
-        self._url_changed_timer.timeout.connect(self._update_ui_according_to_sso_support)
+        # self._url_changed_timer.timeout.connect(self._query_site)
+        self._url_changed_timer.timeout.connect(self._on_site_changed)
 
         # Should the info/status/error message include a link, make it
         # so that it can be clickable.
@@ -216,18 +218,14 @@ class LoginDialog(QtGui.QDialog):
                 self.ui.login,
                 "You are renewing your session: you can't change your login."
             )
-            self._set_info_message(
-                self.ui.message,
-                "Your session has expired. Please enter your password."
-            )
+            self._set_login_message("Your session has expired. Please enter your password.")
         else:
-            self._set_info_message(
-                self.ui.message,
-                "Please enter your Shotgun site URL."
-            )
+            self._set_login_message("Please enter your credentials.")
 
         # Set the focus appropriately on the topmost line edit that is empty.
-        if self._get_current_site():
+        if len(self.ui.site.currentText()) == 0:
+            self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
+        else:
             if self._get_current_user():
                 self.ui.password.setFocus(QtCore.Qt.OtherFocusReason)
             else:
@@ -267,8 +265,9 @@ class LoginDialog(QtGui.QDialog):
         self.ui.site.lineEdit().editingFinished.connect(self._on_site_changed)
 
         self._query_task = QuerySiteAndUpdateUITask(self, http_proxy)
-        self._query_task.finished.connect(self._toggle_web)
-        self._update_ui_according_to_sso_support()
+        # self._query_task.finished.connect(self._toggle_gui)
+        self._query_task.finished.connect(self._on_site_changed)
+        # self._query_site()
 
         # We want to wait until we know if the site uses SSO or not, to avoid
         # flickering GUI.
@@ -300,30 +299,28 @@ class LoginDialog(QtGui.QDialog):
         """
         return self.ui.login.currentText().strip().encode("utf-8")
 
-    def _update_ui_according_to_sso_support(self):
+    def _query_site(self):
         """
         Updates the GUI if Web login is supported or not, hiding or showing the
         username/password fields and reporting that we are contacting the site.
         """
         # Only update the GUI if we were able to initialize the sam2sso module,
-        if self._sso_saml2:
-            # Let's disable the Sign In button until we know the site is valid.
-            self.ui.sign_in.setVisible(False)
+        # Let's disable the Sign In button until we know the site is valid.
+        # self.ui.sign_in.setVisible(False)
+        # self.ui.login.setVisible(False)
+        # self.ui.password.setVisible(False)
 
-            # Ensure our last site info query has completed before starting a new one.
-            self._query_task.wait()
-            url_to_test = self._get_current_site()
-            logger.debug("url_to_test: %s" % url_to_test)
-            if "." in url_to_test:
-                # url_to_test += ".shotgunstudio.com"
-                # logger.debug("Trying %s" % url_to_test)
-                message = "Querying infos for site:\n%s\nPlease wait." % url_to_test
-                self._set_info_message(self.ui.message, message)
-                self._query_task.url_to_test = url_to_test
-                self._query_task.start()
-            # else:
-            #     message = ""
-            # self._set_info_message(self.ui.message, message)
+        # Ensure our last site info query has completed before starting a new one.
+        logger.debug("_query_site")
+        self._query_task.wait()
+        url_to_test = self._get_current_site()
+        logger.debug("url_to_test: %s" % url_to_test)
+
+        # url_to_test += ".shotgunstudio.com"
+        # logger.debug("Trying %s" % url_to_test)
+        self._set_info_message(self.ui.message, "Querying infos for site: %s<p>Please wait." % url_to_test)
+        self._query_task.url_to_test = url_to_test
+        self._query_task.start()
 
     def _site_url_changing(self, text):
         """
@@ -337,9 +334,20 @@ class LoginDialog(QtGui.QDialog):
         Called when the user is done editing the site. It will refresh the
         list of recent users.
         """
-        self.ui.login.clear()
-        self._populate_user_dropdown(self._get_current_site())
-        self._update_ui_according_to_sso_support()
+        logger.debug("_on_site_changed")
+        current_site = self._get_current_site()
+        if self._previous_site is None or self._previous_site != current_site:
+            if "." in current_site:
+                self.ui.login.clear()
+                self._populate_user_dropdown(current_site)
+                self._query_site()
+                self._previous_site = current_site
+                self._toggle_gui()
+            else:
+                logger.debug("Site url '%s' seems incomplete, not checking" % current_site)
+        else:
+            logger.debug("Site url does not have really changed: %s" % current_site)
+            # self._set_login_message("Please enter your Shotgun site URL.")
 
     def _populate_user_dropdown(self, site):
         """
@@ -384,12 +392,13 @@ class LoginDialog(QtGui.QDialog):
                 self.ui.message, "Can't open '%s'." % forgot_password
             )
 
-    def _toggle_web(self):
+    def _toggle_gui(self):
         """
         Sets up the dialog GUI according to the use of web login or not.
         """
         message = self._query_task.error_message
 
+        logger.error("A -> %s - %s", type(message), message)
         if message is None:
             # We only update the GUI if there was a change between to mode we
             # are showing and what was detected on the potential target site.
@@ -424,8 +433,7 @@ class LoginDialog(QtGui.QDialog):
                     )
                 self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
             else:
-                self._set_info_message(
-                    self.ui.message,
+                self._set_login_message(
                     "Please enter your credentials."
                 )
                 self.ui.sign_in.setVisible(True)
@@ -433,6 +441,7 @@ class LoginDialog(QtGui.QDialog):
             self.ui.password.setVisible(not self._use_web)
 
         else:
+            logger.error("-> %s", message)
             self._set_error_message(self.ui.message, message)
 
     def _current_page_changed(self, index):
@@ -454,6 +463,13 @@ class LoginDialog(QtGui.QDialog):
         widget.lineEdit().setReadOnly(True)
         widget.setEnabled(False)
         widget.setToolTip(tooltip_text)
+
+    def _set_login_message(self, message):
+        """
+        Set the message in the dialog.
+        :param message: Message to display in the dialog.
+        """
+        self.ui.message.setText(message)
 
     def exec_(self):
         """
@@ -522,6 +538,7 @@ class LoginDialog(QtGui.QDialog):
         :param widget: Widget to display the message on.
         :param message: Message to display in red in the dialog.
         """
+        logger.error("_set_error_message: %s", message)
         widget.setText(self.ERROR_MSG_FORMAT % message)
 
     def _set_info_message(self, widget, message):
@@ -531,6 +548,7 @@ class LoginDialog(QtGui.QDialog):
         :param widget: Widget to display the message on.
         :param message: Message to display in red in the dialog.
         """
+        logger.error("_set_info_message: %s", message)
         widget.setText(self.INFO_MSG_FORMAT % message)
 
     def _ok_pressed(self):
