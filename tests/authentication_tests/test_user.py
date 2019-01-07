@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import with_statement
+import base64
 
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import ShotgunTestBase
@@ -17,6 +18,13 @@ from mock import patch
 
 from tank.authentication import user, user_impl
 from tank_vendor.shotgun_api3 import AuthenticationFault
+
+# Create a set of valid cookies, for SSO and Web related tests.
+# For a Web session, we detect the presence of the shotgun_current_session_expiration cookie.
+valid_web_session_metadata = base64.b64encode('shotgun_current_session_expiration=1234')
+# For a Saml session, we detect the presence of the shotgun_sso_session_expiration_u* cookie.
+# But we also need to figure out what the user ID is, for which we use the csrf_token_u* suffix.
+valid_sso_session_metadata = base64.b64encode('csrf_token_u00=fedcba;shotgun_sso_session_expiration_u00=4321')
 
 
 class UserTests(ShotgunTestBase):
@@ -29,13 +37,22 @@ class UserTests(ShotgunTestBase):
             http_proxy="http_proxy"
         ))
 
+    def _create_test_web_user(self):
+        return user.ShotgunWebUser(user_impl.SessionUser(
+            host="https://tank.shotgunstudio.com",
+            login="login",
+            session_token="session_token",
+            http_proxy="http_proxy",
+            session_metadata=valid_web_session_metadata,
+        ))
+
     def _create_test_saml_user(self):
         return user.ShotgunSamlUser(user_impl.SessionUser(
             host="https://tank.shotgunstudio.com",
             login="login",
             session_token="session_token",
             http_proxy="http_proxy",
-            session_metadata="session_metadata",
+            session_metadata=valid_sso_session_metadata,
         ))
 
     def test_attributes_valid(self):
@@ -77,12 +94,23 @@ class UserTests(ShotgunTestBase):
         """
         Makes sure serialization and deserialization works for users
         """
-        # First start with a non-SAML user.
+        # First start with a non-Web/non-SAML user.
         su = self._create_test_user()
         self.assertNotIsInstance(su, user.ShotgunSamlUser)
         self.assertFalse("session_metadata" in su.impl.to_dict())
         su_2 = user.deserialize_user(user.serialize_user(su))
         self.assertNotIsInstance(su_2, user.ShotgunSamlUser)
+        self.assertEqual(su.host, su_2.host)
+        self.assertEqual(su.http_proxy, su_2.http_proxy)
+        self.assertEqual(su.login, su_2.login)
+        self.assertEqual(su.impl.get_session_token(), su_2.impl.get_session_token())
+
+        # Then, with a Web user.
+        su = self._create_test_web_user()
+        self.assertIsInstance(su, user.ShotgunWebUser)
+        self.assertTrue("session_metadata" in su.impl.to_dict())
+        su_2 = user.deserialize_user(user.serialize_user(su))
+        self.assertIsInstance(su_2, user.ShotgunWebUser)
         self.assertEqual(su.host, su_2.host)
         self.assertEqual(su.http_proxy, su_2.http_proxy)
         self.assertEqual(su.login, su_2.login)

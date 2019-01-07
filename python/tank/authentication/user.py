@@ -132,7 +132,23 @@ class ShotgunUser(object):
         return self._impl
 
 
-class ShotgunSamlUser(ShotgunUser):
+class ShotgunWebUser(ShotgunUser):
+    """
+    This specialized shotgun user is needed when the Unified Login Flow is used
+    for authentication.
+
+    User objects are created via the :class:`ShotgunAuthenticator` object, which will handle
+    caching user objects on disk, prompting the user for their credentials etc.
+    """
+
+    def __init__(self, impl):
+        """
+        :param impl: Internal user implementation class this class proxies.
+        """
+        super(ShotgunWebUser, self).__init__(impl)
+
+
+class ShotgunSamlUser(ShotgunWebUser):
     """
     This specialized shotgun user is needed when SSO is used, as it provides
     mechanisms for automatic claims renewal.
@@ -306,6 +322,10 @@ def deserialize_user(payload):
 
     # We use the presence of session_metadata as an indicator that we are using SSO.
     if isinstance(impl, user_impl.SessionUser) and impl.get_session_metadata() is not None:
-        return ShotgunSamlUser(impl)
-    else:
-        return ShotgunUser(impl)
+        # if sso_saml2.get_saml_claims_expiration(impl.get_session_metadata()):
+        if sso_saml2.has_sso_info_in_cookies(impl.get_session_metadata()):
+            return ShotgunSamlUser(impl)
+        if sso_saml2.has_unified_login_flow_info_in_cookies(impl.get_session_metadata()):
+            return ShotgunWebUser(impl)
+    # If there are no cookies or invalid/unknown cookies, we return a ShotgunUser.
+    return ShotgunUser(impl)

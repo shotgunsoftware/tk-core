@@ -25,7 +25,7 @@ class SsoSaml2Rv(SsoSaml2):
 
     def __init__(self, window_title=None, qt_modules=None):
         """
-        Create a SSO login dialog, using a Web-browser like environment.
+        Create a Web login dialog, using a Web-browser like environment.
 
         :param window_title: Title to use for the window.
         :param qt_modules:   a dictionnary of required Qt modules.
@@ -41,7 +41,7 @@ class SsoSaml2Rv(SsoSaml2):
 
         :param event: RV event. Not used.
         """
-        self._logger.debug("Cancel SSO login attempt")
+        self._logger.debug("Cancel Web login attempt")
 
         # We only need to cancel if there is login attempt currently being made.
         if self.is_handling_event():
