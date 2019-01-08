@@ -85,6 +85,27 @@ class SsoSaml2Core(object):
         if QtWebKit is None:
             raise SsoSaml2MissingQtWebKit("The QtWebKit module is unavailable")
 
+        class TKWebPage(QtWebKit.QWebPage):
+            """
+            Wrapper class to better control the behaviour when clicking on links
+            in the Qt web browser. If we are asked to open a new tab/window, then
+            we defer the page to the external browser.
+            """
+
+            def acceptNavigationRequest(self, frame, request, n_type): # noqa
+                """
+                Overloaded method, to properly control the behavioir of clicking on
+                links.
+                """
+                get_logger().debug('NavigationRequest, destination and reason: %s (%s)', request.url().toString(), n_type)
+                # A null frame means : open a new window/tab. so we just farm out
+                # the request to the external browser.
+                if frame is None and n_type == QtWebKit.QWebPage.NavigationType.NavigationTypeLinkClicked:
+                    QtGui.QDesktopServices.openUrl(request.url())
+                    return False
+                # Otherwise we accept the default behaviour.
+                return QtWebKit.QWebPage.acceptNavigationRequest(self, frame, request, n_type)
+
         self._event_data = None
         self._sessions_stack = []
         self._session_renewal_active = False
@@ -94,6 +115,7 @@ class SsoSaml2Core(object):
         self._dialog.finished.connect(self.on_dialog_closed)
 
         self._view = QtWebKit.QWebView(self._dialog)
+        self._view.setPage(TKWebPage())
         self._view.page().networkAccessManager().authenticationRequired.connect(self.on_authentication_required)
         self._view.loadFinished.connect(self.on_load_finished)
 
