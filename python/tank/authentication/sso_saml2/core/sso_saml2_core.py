@@ -90,6 +90,14 @@ class SsoSaml2Core(object):
             Wrapper class to better control the behaviour when clicking on links
             in the Qt web browser. If we are asked to open a new tab/window, then
             we defer the page to the external browser.
+
+            We need to open some links in an external window so as to avoid
+            breaking the authentication flow just to visit an external link.
+            Some examples of links that the user may see which we want to open
+            externally:
+             - Term of use and conditions,
+             - Download of the Google/Duo authenticator app
+             - Any other links which may be presented by SSO Providers
             """
 
             def acceptNavigationRequest(self, frame, request, n_type): # noqa
