@@ -17,9 +17,9 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
+# pylint: disable=C0301,C0103,R0902,R0913,R0915
 from tank_vendor import shotgun_api3
 from .web_login_support import get_shotgun_authenticator_support_web_login
-from .ui import resources_rc # noqa
 from .ui import login_dialog
 from . import session_cache
 from ..util.shotgun import connection
@@ -65,6 +65,7 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         QtCore.QThread.__init__(self, parent)
         self._url_to_test = ""
         self._sso_enabled = False
+        self._autodesk_identity_enabled = False
         self._unified_login_flow_enabled = False
         self._error_message = None
         self._http_proxy = http_proxy
@@ -120,9 +121,9 @@ class LoginDialog(QtGui.QDialog):
     INFO_MSG_FORMAT = "<font style='color: rgb(227, 152, 36);'>%s</font>"
 
     def __init__(
-        self,
-        is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None,
-        parent=None, session_metadata=None
+            self,
+            is_session_renewal, hostname=None, login=None, fixed_host=False, http_proxy=None,
+            parent=None, session_metadata=None
     ):
         """
         Constructs a dialog.
@@ -147,7 +148,7 @@ class LoginDialog(QtGui.QDialog):
         try:
             self._sso_saml2 = SsoSaml2Toolkit("Web Login", qt_modules=qt_modules)
         except SsoSaml2MissingQtModuleError as e:
-            logger.info("Web login not supported due to missing Qt module: %s" % e)
+            logger.info("Web login not supported due to missing Qt module: %s", e)
             self._sso_saml2 = None
 
         hostname = hostname or ""
@@ -220,13 +221,13 @@ class LoginDialog(QtGui.QDialog):
             )
             self._set_login_message("Your session has expired. Please enter your password.")
         else:
-            if len(self.ui.site.currentText()) == 0:
+            if not self.ui.site.currentText():
                 self._set_login_message("Please enter your Shotgun site URL.")
             else:
                 self._set_login_message("Please enter your credentials.")
 
         # Set the focus appropriately on the topmost line edit that is empty.
-        if len(self.ui.site.currentText()) == 0:
+        if not self.ui.site.currentText():
             self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
         else:
             if self._get_current_user():
@@ -274,7 +275,7 @@ class LoginDialog(QtGui.QDialog):
         # We want to wait until we know if the site uses SSO or not, to avoid
         # flickering GUI.
         if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
-            logger.warning("Timed out awaiting check for SSO support on the site: %s" % self._get_current_site())
+            logger.warning("Timed out awaiting check for SSO support on the site: %s", self._get_current_site())
 
     def __del__(self):
         """
@@ -328,7 +329,7 @@ class LoginDialog(QtGui.QDialog):
         # self._query_task.url_to_test = url_to_test
         # self._query_task.start()
 
-    def _site_url_changing(self, text):
+    def _site_url_changing(self, unused_text):
         """
         Starts a timer to wait until the user stops entering the URL .
         """
@@ -344,13 +345,14 @@ class LoginDialog(QtGui.QDialog):
         current_site = self._get_current_site()
         if self._previous_site is None or self._previous_site != current_site:
             self._previous_site = current_site
-            if "." in current_site:
+            # Short-circuiting the URL check if there is only one dot
+            if current_site.count(".") > 1:
                 self._query_site(current_site)
             else:
-                logger.debug("Site url '%s' seems incomplete, not checking" % current_site)
+                logger.debug("Site url '%s' seems incomplete, not checking", current_site)
                 self._set_login_message("Please enter your Shotgun site URL.")
         else:
-            logger.debug("Site url does not have really changed: %s" % current_site)
+            logger.debug("Site url does not have really changed: %s", current_site)
 
         # current_site = self._get_current_site()
         # if self._previous_site is None or self._previous_site != current_site:
@@ -586,7 +588,7 @@ class LoginDialog(QtGui.QDialog):
         QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         try:
             if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
-                logger.warning("Timed out awaiting check for SSO support on the site: %s" % self._get_current_site())
+                logger.warning("Timed out awaiting check for SSO support on the site: %s", self._get_current_site())
         finally:
             QtGui.QApplication.restoreOverrideCursor()
 
@@ -609,14 +611,14 @@ class LoginDialog(QtGui.QDialog):
         # self.ui.site.setEditText(site)
 
         if not self._use_web:
-            if len(login) == 0:
+            if not login:
                 self._set_error_message(
                     self.ui.message,
                     "Please enter your login name."
                 )
                 self.ui.login.setFocus(QtCore.Qt.OtherFocusReason)
                 return
-            if len(password) == 0:
+            if not password:
                 self._set_error_message(
                     self.ui.message,
                     "Please enter your password."

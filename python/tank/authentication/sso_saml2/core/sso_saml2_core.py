@@ -93,9 +93,15 @@ class SsoSaml2Core(object):
         self._dialog.setWindowTitle(window_title)
         self._dialog.finished.connect(self.on_dialog_closed)
 
+        self._layout = QtGui.QVBoxLayout(self._dialog)
+        self._layout.setSpacing(0)
+        self._layout.setContentsMargins(0, 0, 0, 0)
+
         self._view = QtWebKit.QWebView(self._dialog)
         self._view.page().networkAccessManager().authenticationRequired.connect(self.on_authentication_required)
         self._view.loadFinished.connect(self.on_load_finished)
+
+        self._layout.addWidget(self._view)
 
         # Purposely disable the 'Reload' contextual menu, as it should not be
         # used for SSO. Reloading the page confuses the server.
