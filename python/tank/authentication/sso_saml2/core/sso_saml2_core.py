@@ -104,6 +104,12 @@ class SsoSaml2Core(object):
                 """
                 Overloaded method, to properly control the behavioir of clicking on
                 links.
+                :param frame:   QWebFrame where the navigation is requested.
+                                Will be 'None' if the intent is to have the page
+                                open in a new tab or window.
+                :param request: QNetworkRequest which we must accept/refuse.
+                :param n_type:  NavigationType (LinkClicked, FormSubmitted, etc.)
+                :returns:       A boolean indicating if we accept or refuse the request.
                 """
                 get_logger().debug('NavigationRequest, destination and reason: %s (%s)', request.url().toString(), n_type)
                 # A null frame means : open a new window/tab. so we just farm out
