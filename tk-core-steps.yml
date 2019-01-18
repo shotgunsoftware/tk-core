@@ -25,12 +25,19 @@ jobs:
 
   - script: python -m coverage run tests/run_tests.py
     displayName: 'Running tests'
-  - script: coverage xml
-  - script: coverage html
-  - task: PublishCodeCoverageResults@1
-    displayName: Publish Coverage to Azure
+
+  - task: CopyFiles@2
+    displayName: move coverage files into staging area
+    condition: succeededOrFailed()
     inputs:
-      codeCoverageTool: 'cobertura'
-      summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage.xml'
-      reportDirectory: '$(System.DefaultWorkingDirectory)/htmlcov'
-      failIfCoverageEmpty: true
+      sourceFolder: $(System.DefaultWorkingDirectory)
+      contents: |
+        .coverage
+      targetFolder: $(Build.ArtifactStagingDirectory)
+
+  - task: PublishBuildArtifacts@1
+    displayName: publish coverage file
+    condition: succeededOrFailed()
+    inputs:
+      pathtoPublish: $(Build.ArtifactStagingDirectory)
+      ArtifactName: ${{ format('coverage-{0}', parameters.vmImage) }}
