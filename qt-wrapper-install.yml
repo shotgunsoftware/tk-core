@@ -9,7 +9,7 @@ steps:
       python -m pip install PySide==1.2.2
       pyside_postinstall.py -install
     condition: eq( variables['Agent.OS'], 'Darwin' )
-    displayName: "Installing $(parameters.library) on macOS"
+    displayName: "Installing Qt wrapper on macOS"
 
   # xvfb starts on Linux but somehow the tests complain that
   # they can't connect to the X server.
@@ -22,8 +22,8 @@ steps:
   #     sleep 3
   #     export QT_QPA_PLATFORM=offscreen
   #   condition: eq( variables['Agent.OS'], 'Linux' )
-  #   displayName: "Installing $(parameters.library) on Linux"
+  #   displayName: "Installing Qt wrapper on Linux"
 
   - script: python -m pip install PySide==1.2.2
     condition: in( variables['Agent.OS'], 'Windows_NT' )
-    displayName: "Installing $(parameters.library) on Windows"
+    displayName: "Installing Qt wrapper on Windows"
