@@ -39,9 +39,14 @@ jobs:
     condition: in( variables['Agent.OS'], 'Linux', 'Darwin' )
     displayName: "PySide post-install on Linux and Darwin"
     
-#   - bash: export DISPLAY=:99.0 && sh -e /etc/init.d/xvfb start && sleep 3 && export QT_QPA_PLATFORM=offscreen 
-#     condition: in( variables['Agent.OS'], 'Linux' )
-#     displayName: "Prepping XServer"
+  - bash: |
+      sudo apt-get install xvfb
+      export DISPLAY=:99.0
+      sh -e /etc/init.d/xvfb start
+      sleep 3
+      export QT_QPA_PLATFORM=offscreen
+    condition: in( variables['Agent.OS'], 'Linux' )
+    displayName: "Prepping XServer"
 # End of PySide installation
 
   - script: python -m pip install -r tests/ci_requirements.txt
@@ -49,5 +54,6 @@ jobs:
 
   - bash: |
       export QT_QPA_PLATFORM=offscreen
+      export DISPLAY=:99.0
       coverage run tests/run_tests.py
     displayName: 'Running tests'
