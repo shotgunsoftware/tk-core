@@ -42,11 +42,6 @@ def main():
 
     current_folder, current_file = os.path.split(__file__)
 
-    # Ensures code coverage will be generated
-    coverage_path = os.path.normpath(
-        os.path.join(current_folder, "..", "python", "third_party", "coverage")
-    )
-
     before = time.time()
     try:
         filenames = glob.iglob(os.path.join(current_folder, "*.py"))
@@ -62,8 +57,7 @@ def main():
 
             if "--with-coverage" in sys.argv:
                 args = [
-                    sys.executable,
-                    coverage_path,
+                    "coverage",
                     "run",
                     "-a",
                     filename

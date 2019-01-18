@@ -16,6 +16,11 @@ from .import_handler import CoreImportHandler
 from ..log import LogManager
 from .. import pipelineconfig_utils
 from .. import constants
+from ..authentication import (
+    get_shotgun_authenticator_support_web_login,
+    serialize_user,
+    ShotgunSamlUser,
+)
 
 log = LogManager.get_logger(__name__)
 
@@ -89,6 +94,8 @@ class Configuration(object):
         """
         Returns a tk instance for this configuration.
 
+        It swaps the core out if needed and ensure we use the right login.
+
         :param sg_user: Authenticated Shotgun user to associate
                         the tk instance with.
 
@@ -98,10 +105,12 @@ class Configuration(object):
         path = self._path.current_os
         python_core_path = pipelineconfig_utils.get_core_python_path_for_config(path)
 
-        # Swap the core out if needed and ensure we use the right login
         # Get the user before the core swapping and serialize it.
-        from ..authentication import serialize_user, ShotgunSamlUser
         serialized_user = serialize_user(sg_user)
+
+        # Caching support for the Web authentication flow.
+        support_web_login = get_shotgun_authenticator_support_web_login()
+        log.debug("Caching the old core's support of the Unified Login Flow: %s" % support_web_login)
 
         # Stop claims renewal before swapping core, but only if the claims loop
         # is actually active.
@@ -118,6 +127,18 @@ class Configuration(object):
             log.debug("Core didn't need to be swapped, authenticated user will be set.")
 
         sg_user = self._set_authenticated_user(sg_user, sg_user.login, serialized_user)
+
+        if support_web_login:
+            try:
+                from ..authentication import set_shotgun_authenticator_support_web_login
+                log.debug("This core fully supports the Unified Login Flow.")
+                set_shotgun_authenticator_support_web_login(support_web_login)
+            except ImportError:
+                log.warning(
+                    "This swapped core does not support the Unified Login Flow,"
+                    "but the original core did. This may lead to problems with"
+                    "session renewal or re-authentication."
+                )
 
         # If we're swapping into a core that supports authentication, restart claims renewal. Note
         # that here we're not testing that the API supports claims renewal as to not complexify this
