@@ -17,7 +17,34 @@ jobs:
       versionSpec: '$(python.version)'
       architecture: 'x64'
 
-  - script: python -m pip install --upgrade pip && pip install coverage
+
+# These steps could be exported as a InstallPySide template task
+  - bash: apt-get install lib-qt4-dev
+    condition: eq( variables['Agent.OS'], 'Linux' )
+    displayName: "Installing Qt"
+    
+  - bash: brew install qt@4
+    condition: eq( variables['Agent.OS'], 'Darwin' )
+    displayName: "Installing Qt"
+    
+  - bash: pip install PySide==1.2.2 --no-index --find-links https://parkin.github.io/python-wheelhouse
+    condition: eq( variables['Agent.OS'], 'Linux' )
+    displayName: "Installing PySide"
+    
+  - script: python -m pip install PySide==1.2.2
+    condition: in( variables['Agent.OS'], 'Windows', 'Darwin' )
+    displayName: "Installing PySide"
+    
+  - bash: pyside_postinstall.py -install
+    condition: in( variables['Agent.OS'], 'Linux', 'Darwin' )
+    displayName: "PySide post-install"
+    
+  - bash: export DISPLAY=:99.0 && sh -e /etc/init.d/xvfb start && sleep 3 && export QT_QPA_PLATFORM=offscreen 
+    condition: in( variables['Agent.OS'], 'Linux' )
+    displayName: "Prepping XServer"
+# End of PySide installation
+
+  - script: python -m pip install --upgrade pip && pip install tests/requirements.txt
     displayName: 'Install dependencies'
 
   - script: |
