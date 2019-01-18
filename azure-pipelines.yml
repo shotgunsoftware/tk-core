@@ -7,7 +7,7 @@ jobs:
 
 - template: tk-core-steps.yml  # Template reference
   parameters:
-    name: Linux
+    name: linux
     vmImage: 'ubuntu-16.04'
     
 - template: tk-core-steps.yml  # Template reference
@@ -17,10 +17,10 @@ jobs:
     
 - template: tk-core-steps.yml  # Template reference
   parameters:
-    name: Windows
+    name: windows
     vmImage: 'vs2017-win2016'
 
-- job: Report coverage
+- job: report_coverage
   pool: {vmImage: 'Ubuntu 16.04'}
   condition: always()
   dependsOn:
