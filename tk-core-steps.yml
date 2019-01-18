@@ -19,15 +19,15 @@ jobs:
 
 
 # These steps could be exported as a InstallPySide template task
-  - bash: apt-get install lib-qt4-dev
+  - bash: sudo apt-get install lib-qt4-dev
     condition: eq( variables['Agent.OS'], 'Linux' )
     displayName: "Installing Qt"
     
-  - bash: brew install qt@4
+  - bash: brew tap cartr/qt4 && brew tap-pin cartr/qt4 && brew install qt@4
     condition: eq( variables['Agent.OS'], 'Darwin' )
     displayName: "Installing Qt"
     
-  - bash: pip install PySide==1.2.2 --no-index --find-links https://parkin.github.io/python-wheelhouse
+  - bash: python -m pip install PySide==1.2.2 --no-index --find-links https://parkin.github.io/python-wheelhouse
     condition: eq( variables['Agent.OS'], 'Linux' )
     displayName: "Installing PySide"
     
