@@ -3,19 +3,67 @@
 # Add steps that analyze code, save the dist with the build record, publish to a PyPI-compatible index, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
-jobs:
+strategy:
+  matrix:
+    linux:
+      imageName: 'ubuntu-16.04'
+      python.verion: '2.7'
+    mac:
+      imageName: 'macos-10.13'
+      python.verion: '2.7'      
+    windows:
+      imageName: 'vs2017-win2016'
+      python.verion: '2.7'
 
-- template: tk-core-steps.yml  # Template reference
-  parameters:
-    name: Linux
-    vmImage: 'ubuntu-16.04'
+jobs:
+- job: $(imageName)
+  pool: 
+    vmImage: $(imageName)
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '$(python.version)'
+      architecture: 'x64'
+
+# These steps could be exported as a InstallPySide template task
+
+# Commenting out PySide on Linux for now. Xvfb doesn't seem to work.
+#   - bash: sudo apt-get install libqt4-dev
+#     condition: eq( variables['Agent.OS'], 'Linux' )
+#     displayName: "Installing Qt on Linux"
     
-- template: tk-core-steps.yml  # Template reference
-  parameters:
-    name: macOS
-    vmImage: 'macOS-10.13'
+  - script: |
+      set -e
+      brew tap cartr/qt4
+      brew tap-pin cartr/qt4
+      brew install qt@4
+    condition: eq( variables['Agent.OS'], 'Darwin' )
+    displayName: "Installing Qt on macOS"
     
-- template: tk-core-steps.yml  # Template reference
-  parameters:
-    name: Windows
-    vmImage: 'vs2017-win2016'
+#   - bash: python -m pip install PySide==1.2.2 --no-index --find-links https://parkin.github.io/python-wheelhouse
+#     condition: eq( variables['Agent.OS'], 'Linux' )
+#     displayName: "Installing PySide on Linux"
+    
+  - script: python -m pip install PySide==1.2.2
+    condition: in( variables['Agent.OS'], 'Windows_NT', 'Darwin' )
+    displayName: "Installing PySide Windows and macOS"
+    
+  - script: pyside_postinstall.py -install
+    condition: eq( variables['Agent.OS'], 'Darwin' )
+    displayName: "PySide post-install on macOS"
+    
+#   - bash: |
+#       set -e
+#       export DISPLAY=:99.0
+#       sudo sh -e ./xvfb start
+#       sleep 3
+#       export QT_QPA_PLATFORM=offscreen
+#     condition: in( variables['Agent.OS'], 'Linux' )
+#     displayName: "Prepping XServer"
+# End of PySide installation
+
+  - script: python -m pip install -r tests/ci_requirements.txt
+    displayName: 'Install dependencies'
+
+  - script: coverage run tests/run_tests.py
+    displayName: 'Running tests'
