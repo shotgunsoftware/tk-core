@@ -26,6 +26,7 @@ jobs:
   - script: python -m coverage run tests/run_tests.py
     displayName: 'Running tests'
   - script: coverage xml
+  - script: coverage html
   - task: PublishCodeCoverageResults@1
     displayName: Publish Coverage to Azure
     inputs:
