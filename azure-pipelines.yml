@@ -47,7 +47,6 @@ jobs:
       import shutil
       from_folder = Path("$(Build.ArtifactStagingDirectory)")
       destination_folder = Path("$(System.DefaultWorkingDirectory)")
-      destination_folder.mkdir()
       for coverage_file in from_folder.glob("*/.coverage"):
           destination = destination_folder / f".coverage.{coverage_file.parent.name[9:]}"
           print(f"{coverage_file} copy to {destination}")
