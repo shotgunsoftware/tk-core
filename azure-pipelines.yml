@@ -23,7 +23,7 @@ jobs:
       versionSpec: '$(python.version)'
       architecture: 'x64'
 
-  - script: python -m pip install --upgrade pip && pip install -r coverage
+  - script: python -m pip install --upgrade pip && pip install coverage
     displayName: 'Install dependencies'
 
   - script: |
