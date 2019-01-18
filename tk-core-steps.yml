@@ -12,12 +12,24 @@ jobs:
         python.version: '2.7'
     maxParallel: 1
   steps:
+
   - task: UsePythonVersion@0
     inputs:
       versionSpec: '$(python.version)'
       architecture: 'x64'
+
   - template: qt-wrapper-install.yml
+
   - script: python -m pip install -r tests/ci_requirements.txt
     displayName: 'Install dependencies'
+
   - script: python -m coverage run tests/run_tests.py
     displayName: 'Running tests'
+  - script: coverage xml
+  - task: PublishCodeCoverageResults@1
+    displayName: Publish Coverage to Azure
+    inputs:
+      codeCoverageTool: 'cobertura'
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage.xml'
+      reportDirectory: '$(System.DefaultWorkingDirectory)/htmlcov'
+      failIfCoverageEmpty: true
