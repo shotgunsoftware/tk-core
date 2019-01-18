@@ -3,9 +3,6 @@
 # Add steps that analyze code, save the dist with the build record, publish to a PyPI-compatible index, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
-trigger:
-- master
-
 jobs:
 
 - template: tk-core-steps.yml  # Template reference
@@ -15,10 +12,10 @@ jobs:
     
 - template: tk-core-steps.yml  # Template reference
   parameters:
-    name: Linux
+    name: macOS
     vmImage: 'macOS-10.13'
     
 - template: tk-core-steps.yml  # Template reference
   parameters:
-    name: Linux
+    name: Windows
     vmImage: 'vs2017-win2016'
