@@ -1,7 +1,7 @@
 [![VFX Platform](https://img.shields.io/badge/vfxplatform-2018-yellow.svg)](http://www.vfxplatform.com/)
 [![Reference Documentation](http://img.shields.io/badge/doc-reference-blue.svg)](http://developer.shotgunsoftware.com/tk-core)
 [![Build Status](https://dev.azure.com/jeanfrancoisboismenu/jeanfrancoisboismenu/_apis/build/status/jfboismenu.tk-core?branchName=master)](https://dev.azure.com/jeanfrancoisboismenu/jeanfrancoisboismenu/_build/latest?definitionId=1&branchName=master)
-[![Coverage Status](https://coveralls.io/repos/github/jfboismenu/tk-core/badge.svg?branch=master)](https://coveralls.io/github/jfboismenu/tk-core?branch=master)
+[![codecov](https://codecov.io/gh/jfboismenu/tk-core/branch/master/graph/badge.svg)](https://codecov.io/gh/jfboismenu/tk-core)
 [![Linting](https://img.shields.io/badge/PEP8%20by-Hound%20CI-a873d1.svg)](https://houndci.com)
 
 # Shotgun Pipeline Toolkit Core API
