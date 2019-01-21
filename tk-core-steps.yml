@@ -6,38 +6,20 @@ jobs:
 - job: ${{ parameters.name }}
   pool: 
     vmImage: ${{ parameters.vmImage }}
-  strategy:
-    matrix:
-      Python27:
-        python.version: '2.7'
-    maxParallel: 1
   steps:
 
   - task: UsePythonVersion@0
     inputs:
-      versionSpec: '$(python.version)'
+      versionSpec: '2.7'
       architecture: 'x64'
 
   - template: qt-wrapper-install.yml
 
   - script: python -m pip install -r tests/ci_requirements.txt
-    displayName: 'Install dependencies'
+    displayName: 'Install tests dependencies'
 
   - script: python -m coverage run tests/run_tests.py
     displayName: 'Running tests'
 
-  - task: CopyFiles@2
-    displayName: move coverage files into staging area
-    condition: succeededOrFailed()
-    inputs:
-      sourceFolder: $(System.DefaultWorkingDirectory)
-      contents: |
-        .coverage
-      targetFolder: $(Build.ArtifactStagingDirectory)
-
-  - task: PublishBuildArtifacts@1
-    displayName: publish coverage file
-    condition: succeededOrFailed()
-    inputs:
-      pathtoPublish: $(Build.ArtifactStagingDirectory)
-      ArtifactName: ${{ format('coverage-{0}', parameters.vmImage) }}
+  - bash: bash <(curl -s https://raw.githubusercontent.com/jfboismenu/azure-pipeline-test/make-cov-work/codecov.sh) -t $(codecov.token)
+    displayName: 'Uploading coverage to Codecov'
