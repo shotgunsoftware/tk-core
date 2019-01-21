@@ -178,7 +178,13 @@ def _initialize_logging():
     Sets up a log file for the unit tests and optionally logs everything to the console.
     """
     import tank
-    tank.LogManager().initialize_base_file_handler("run_tests")
+
+    if "SHOTGUN_TEST_LOG_FILE_LOCATION" in os.environ:
+        tank.LogManager().initialize_base_file_handler_from_path(
+            os.environ["SHOTGUN_TEST_LOG_FILE_LOCATION"]
+        )
+    else:
+        tank.LogManager().initialize_base_file_handler("run_tests")
 
     if options.log_to_console:
         tank.LogManager().initialize_custom_handler()

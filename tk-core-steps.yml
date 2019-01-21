@@ -18,8 +18,19 @@ jobs:
   - script: python -m pip install -r tests/ci_requirements.txt
     displayName: 'Install tests dependencies'
 
-  - script: python -m coverage run tests/run_tests.py
+  # This runs the tests and redirects the output to test_output.txt
+  - bash: python -m coverage run tests/run_tests.py 2>&1 | tee -a $(Build.ArtifactStagingDirectory)/test_output.txt
     displayName: 'Running tests'
+    environment:
+      SHOTGUN_TEST_LOG_FILE_LOCATION: $(Build.ArtifactStagingDirectory)/toolkit_logs_output.txt
+
+  - task: PublishBuildArtifacts@1
+    displayName: Upload test output and logs
+    condition: succeededOrFailed()
+    inputs:
+      pathtoPublish: $(Build.ArtifactStagingDirectory)
+      ArtifactName: test-log-and-output
 
   - bash: bash <(curl -s https://raw.githubusercontent.com/jfboismenu/azure-pipeline-test/make-cov-work/codecov.sh) -t $(codecov.token)
+    condition: succeededOrFailed()
     displayName: 'Uploading coverage to Codecov'
