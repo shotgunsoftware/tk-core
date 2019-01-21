@@ -89,7 +89,7 @@ def _is_git_missing():
     Tests is git is available in PATH
     :returns: True is git is available, False otherwise.
     """
-    git_missing = True
+    return True
     try:
         sgtk.util.process.subprocess_check_output(["git", "--version"])
         git_missing = False
