@@ -21,7 +21,7 @@ jobs:
   # This runs the tests and redirects the output to test_output.txt
   - bash: python -m coverage run tests/run_tests.py 2>&1 | tee -a $(Build.ArtifactStagingDirectory)/test_output.txt
     displayName: 'Running tests'
-    environment:
+    env:
       SHOTGUN_TEST_LOG_FILE_LOCATION: $(Build.ArtifactStagingDirectory)/toolkit_logs_output.txt
 
   - task: PublishBuildArtifacts@1
