@@ -950,6 +950,29 @@ class Context(object):
                 else:
                     cur_path = os.path.dirname(cur_path)
 
+                    # There's odd behavior on Windows in Python 2.7.14 that causes
+                    # os.path.dirname to leave the last folder on a UNC path
+                    # unchanged, including the trailing delimiter:
+                    #
+                    # Example (on Windows using Python 2.7.14):
+                    #
+                    # >>> os.path.dirname(r"\\foo\bar\")
+                    # '\\foo\bar\'
+                    #
+                    # The problem is really that the trailing slash isn't removed, when
+                    # it seems to have been in older versions of Python. The trailing slash
+                    # trips up the logic behind validate_and_get_fields, so we end up in an
+                    # infinite loop. The fix is to just remove the trailing path separator
+                    # if it's there.
+                    #
+                    # The fact that it does not consider "\\foo" to be the dirname for
+                    # "\\foo\bar\" is actually correct, as explained here:
+                    # 
+                    # https://bugs.python.org/issue27403
+                    #
+                    if cur_path.endswith(os.path.sep):
+                        cur_path = cur_path[:-1]
+
         return fields
 
     def _fields_from_template_tree(self, template, known_fields, context_entities):
