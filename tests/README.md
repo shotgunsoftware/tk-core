@@ -12,27 +12,16 @@ Required packages
 
 Running the test suite
 -----------------------
-To run the tests on windows run the core/tests/run_tests.bat. To run on linux run the script run_tests.sh.
-Add "-h" to see options.
+To run the tests on Windows run the `run_tests.bat`. To run on Linux or macOS, run the script `run_tests.sh`.
+Add `-h` to see options.
 To run specific test(s), specify module, or module.class or module.class.test:
 
     $ run_tests.sh test_tank_content.TestValidate.test_valid_path
 
 To run all the tests from a specific file, you can specify both the module or file path:
 
-    $ run_tests.sh tank_module_test.test_module
-    $ run_tests.sh tank_module_test/test_module.py
-
-To run tests without using run_tests script:
-
-* Add the tank packages directory ( core/python ) to the PYTHONPATH
-* Use the test runner of your choice:
-
-    `$ nosetests core/tests/`
-
-    or
-
-    `$ unit2 discover core/tests`
+    $ ./run_tests.sh tank_module_test.test_module
+    $ ./run_tests.sh tank_module_test/test_module.py
 
 
 Compile sources with Python 3
@@ -55,7 +44,7 @@ There is a tank tests module, `tank_test.tank_test_base.py` which contains both 
 
 ShotgunTestBase
 ---------------
-This is a lighter version of the TankTestBase, which only sets up a Shotgun connection and does not write anything to disk. If you are testing parts of the API that doesn't need to write to disk, this is a faster option.
+This is a lighter version of the TankTestBase, which only mocks a Shotgun connection and does not write anything to disk. If you are testing parts of the API that doesn't need to write to disk, this is a faster option.
 
 ### A partial list of features
 Among other features, this module includes:
