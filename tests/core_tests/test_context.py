@@ -15,7 +15,7 @@ import copy
 
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
-from mock import Mock, patch, PropertyMock
+from mock import patch, PropertyMock
 
 import tank
 from tank import context
