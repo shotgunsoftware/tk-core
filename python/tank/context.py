@@ -926,7 +926,7 @@ class Context(object):
         :returns:           A dictionary of field name, value pairs for any fields found for the template
         """
         fields = {}
-        project_roots = self.__tk.pipeline_configuration.get_data_roots().values()
+        project_roots = self._get_project_roots()
 
         # get all locations on disk for our context object from the path cache
         path_cache_locations = self.entity_locations 
@@ -935,6 +935,7 @@ class Context(object):
         # are matching the template that is passed in. In that case, try to
         # extract the fields values.
         for cur_path in path_cache_locations:
+            previous_path = None
 
             # walk up path until we reach the project root and get values
             while cur_path not in project_roots:
@@ -949,6 +950,44 @@ class Context(object):
                     break
                 else:
                     cur_path = os.path.dirname(cur_path)
+
+                    # There's odd behavior on Windows in Python 2.7.14 that causes
+                    # os.path.dirname to leave the last folder on a UNC path
+                    # unchanged, including the trailing delimiter:
+                    #
+                    # Example (on Windows using Python 2.7.14):
+                    #
+                    # >>> os.path.dirname(r"\\foo\bar\")
+                    # '\\foo\bar\'
+                    #
+                    # The problem is really that the trailing slash isn't removed, when
+                    # it seems to have been in older versions of Python. The trailing slash
+                    # trips up the logic behind validate_and_get_fields, so we end up in an
+                    # infinite loop. The fix is to just remove the trailing path separator
+                    # if it's there.
+                    #
+                    # The fact that it does not consider "\\foo" to be the dirname for
+                    # "\\foo\bar\" is actually correct, as explained here:
+                    # 
+                    # https://bugs.python.org/issue27403
+                    #
+                    if cur_path.endswith(os.path.sep):
+                        cur_path = cur_path[:-1]
+
+                    # We really should never be in this case now with the fix above, but
+                    # just in case, we'll raise here if it looks like we're just looping
+                    # over the same path multiple times. This will also make our tests
+                    # fail in a reasonable way if there's a problem rather than just
+                    # hanging up forever until the process is killed.
+                    if cur_path == previous_path:
+                        raise TankError(
+                            "There was a problem parsing an entity location to determine "
+                            "its project root. The path in question is %s, and the "
+                            "project's roots are %s. This problem would have resulted in "
+                            "an infinite loop, but has now been stopped." % (cur_path, project_roots)
+                        )
+                    else:
+                        previous_path = cur_path
 
         return fields
 
@@ -1090,6 +1129,15 @@ class Context(object):
             path_cache.close()
 
         return found_fields
+
+    def _get_project_roots(self):
+        """
+        Gets the project root paths for the current pipeline configuration.
+
+        :returns: A list of project root file paths as strings.
+        :rtype: list
+        """
+        return self.__tk.pipeline_configuration.get_data_roots().values()
 
 
 ################################################################################################

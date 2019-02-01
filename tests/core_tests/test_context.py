@@ -15,7 +15,7 @@ import copy
 
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
-from mock import Mock, patch
+from mock import patch, PropertyMock
 
 import tank
 from tank import context
@@ -788,6 +788,22 @@ class TestAsTemplateFields(TestContext):
         self.assertEqual("step_short_name", result["Step"])
         self.assertEqual("Seq", result["Sequence"])
         self.assertEqual("shot_code", result["Shot"])
+
+    @patch("tank.context.Context._get_project_roots", return_value=["//foo/bar"])
+    @patch("tank.context.Context.entity_locations", new_callable=PropertyMock(return_value=["//foo/bar/baz"]))
+    def test_fields_from_entity_paths_with_unc_project_root(self, *args):
+        """
+        Makes sure that if we're using UNC paths and the project root is at the top
+        level of a UNC path that we don't get stuck in an infinite loop.
+        """
+        template_def = "{Step}/{Sequence}/{Shot}"
+        template = TemplatePath(template_def, self.keys, self.project_root)
+
+        # The mocked paths are bogus, so we should just get back an empty dict. What
+        # we're really interested in is whether this finishes at all. If it gets
+        # caught in an infinite loop and Python blow it up to make it stop then
+        # we know we have the problem outlined/fixed in SG-10167.
+        self.assertEqual(self.ctx._fields_from_entity_paths(template), dict())
 
     def test_entity_field_query(self):
         """
