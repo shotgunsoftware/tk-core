@@ -46,7 +46,7 @@ class ProcessFolderName(Hook):
         :param str field_name: The Shotgun field associated with the value.
         :param object value: The actual value in some form, as returned by the Shotgun API.
 
-        :returns: A string repsenting the entity.
+        :returns: A string representing the entity.
         :rtype: str
         """
         if value.__class__ == dict and "name" in value:
