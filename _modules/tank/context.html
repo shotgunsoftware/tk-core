@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.context &mdash; tk-core v0.18.160 documentation</title>
+  <title>tank.context &mdash; tk-core v0.18.162 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.160 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.18.162 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.160.<br>
+    <b>tk-core</b> v0.18.162.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1101,7 +1101,7 @@
 <span class="sd">        :returns:           A dictionary of field name, value pairs for any fields found for the template</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">project_roots</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_data_roots</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="n">project_roots</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_project_roots</span><span class="p">()</span>
 
         <span class="c1"># get all locations on disk for our context object from the path cache</span>
         <span class="n">path_cache_locations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity_locations</span> 
@@ -1110,6 +1110,7 @@
         <span class="c1"># are matching the template that is passed in. In that case, try to</span>
         <span class="c1"># extract the fields values.</span>
         <span class="k">for</span> <span class="n">cur_path</span> <span class="ow">in</span> <span class="n">path_cache_locations</span><span class="p">:</span>
+            <span class="n">previous_path</span> <span class="o">=</span> <span class="bp">None</span>
 
             <span class="c1"># walk up path until we reach the project root and get values</span>
             <span class="k">while</span> <span class="n">cur_path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">project_roots</span><span class="p">:</span>
@@ -1124,6 +1125,44 @@
                     <span class="k">break</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">cur_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">cur_path</span><span class="p">)</span>
+
+                    <span class="c1"># There&#39;s odd behavior on Windows in Python 2.7.14 that causes</span>
+                    <span class="c1"># os.path.dirname to leave the last folder on a UNC path</span>
+                    <span class="c1"># unchanged, including the trailing delimiter:</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># Example (on Windows using Python 2.7.14):</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># &gt;&gt;&gt; os.path.dirname(r&quot;\\foo\bar\&quot;)</span>
+                    <span class="c1"># &#39;\\foo\bar\&#39;</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># The problem is really that the trailing slash isn&#39;t removed, when</span>
+                    <span class="c1"># it seems to have been in older versions of Python. The trailing slash</span>
+                    <span class="c1"># trips up the logic behind validate_and_get_fields, so we end up in an</span>
+                    <span class="c1"># infinite loop. The fix is to just remove the trailing path separator</span>
+                    <span class="c1"># if it&#39;s there.</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># The fact that it does not consider &quot;\\foo&quot; to be the dirname for</span>
+                    <span class="c1"># &quot;\\foo\bar\&quot; is actually correct, as explained here:</span>
+                    <span class="c1"># </span>
+                    <span class="c1"># https://bugs.python.org/issue27403</span>
+                    <span class="c1">#</span>
+                    <span class="k">if</span> <span class="n">cur_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">):</span>
+                        <span class="n">cur_path</span> <span class="o">=</span> <span class="n">cur_path</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+                    <span class="c1"># We really should never be in this case now with the fix above, but</span>
+                    <span class="c1"># just in case, we&#39;ll raise here if it looks like we&#39;re just looping</span>
+                    <span class="c1"># over the same path multiple times. This will also make our tests</span>
+                    <span class="c1"># fail in a reasonable way if there&#39;s a problem rather than just</span>
+                    <span class="c1"># hanging up forever until the process is killed.</span>
+                    <span class="k">if</span> <span class="n">cur_path</span> <span class="o">==</span> <span class="n">previous_path</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
+                            <span class="s2">&quot;There was a problem parsing an entity location to determine &quot;</span>
+                            <span class="s2">&quot;its project root. The path in question is </span><span class="si">%s</span><span class="s2">, and the &quot;</span>
+                            <span class="s2">&quot;project&#39;s roots are </span><span class="si">%s</span><span class="s2">. This problem would have resulted in &quot;</span>
+                            <span class="s2">&quot;an infinite loop, but has now been stopped.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cur_path</span><span class="p">,</span> <span class="n">project_roots</span><span class="p">)</span>
+                        <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">previous_path</span> <span class="o">=</span> <span class="n">cur_path</span>
 
         <span class="k">return</span> <span class="n">fields</span>
 
@@ -1264,7 +1303,16 @@
         <span class="k">finally</span><span class="p">:</span>
             <span class="n">path_cache</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="n">found_fields</span></div>
+        <span class="k">return</span> <span class="n">found_fields</span>
+
+    <span class="k">def</span> <span class="nf">_get_project_roots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the project root paths for the current pipeline configuration.</span>
+
+<span class="sd">        :returns: A list of project root file paths as strings.</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_data_roots</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">()</span></div>
 
 
 <span class="c1">################################################################################################</span>
@@ -2043,7 +2091,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Autodesk.
+        &copy; Copyright 2019, Autodesk.
 
     </p>
   </div> 
@@ -2064,7 +2112,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.160',
+            VERSION:'v0.18.162',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
