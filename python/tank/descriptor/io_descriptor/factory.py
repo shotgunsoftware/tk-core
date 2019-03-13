@@ -75,6 +75,7 @@ def create_io_descriptor(
     from .shotgun_entity import IODescriptorShotgunEntity
     from .git_tag import IODescriptorGitTag
     from .git_branch import IODescriptorGitBranch
+    from .github_release import IODescriptorGithubRelease
     from .manual import IODescriptorManual
 
     # resolve into both dict and uri form
@@ -106,6 +107,9 @@ def create_io_descriptor(
 
     elif descriptor_dict.get("type") == "git_branch":
         descriptor = IODescriptorGitBranch(descriptor_dict)
+
+    elif descriptor_dict.get("type") == "github_release":
+        descriptor = IODescriptorGithubRelease(descriptor_dict, sg)
 
     elif descriptor_dict.get("type") == "dev":
         descriptor = IODescriptorDev(descriptor_dict)
