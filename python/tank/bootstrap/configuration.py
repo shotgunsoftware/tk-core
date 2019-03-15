@@ -103,8 +103,7 @@ class Configuration(object):
             the new current user and the Toolkit instance.
         """
         path = self._path.current_os
-        # python_core_path = pipelineconfig_utils.get_core_python_path_for_config(path)
-        core_descriptor = self.descriptor.resolve_core_descriptor()
+        python_core_path = pipelineconfig_utils.ConfigFileResolver(path).get_core_python_location()
 
         # Get the user before the core swapping and serialize it.
         serialized_user = serialize_user(sg_user)
@@ -122,7 +121,7 @@ class Configuration(object):
         else:
             uses_claims_renewal = False
 
-        if self._swap_core_if_needed(core_descriptor.get_path() + "/python"):
+        if self._swap_core_if_needed(python_core_path):
             log.debug("Core swapped, authenticated user will be set.")
         else:
             log.debug("Core didn't need to be swapped, authenticated user will be set.")

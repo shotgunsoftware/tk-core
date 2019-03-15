@@ -32,6 +32,46 @@ from .errors import TankError
 logger = LogManager.get_logger(__name__)
 
 
+class ConfigFileResolver(object):
+
+    def __init__(self, pc_root):
+        self._pc_root = pc_root
+
+    def get_core_api_version(self):
+        if self._is_cached_configuration():
+            with open(self._get_cache_core_location_file(), "rt") as fh:
+                return fh.read()
+        else:
+            core_path = get_core_path_for_config(self._pc_root)
+            return get_core_api_version(core_path)
+
+    def get_core_install_location(self):
+        if self._is_cached_configuration():
+            return self._pc_root
+        else:
+            core_api_root = get_core_path_for_config(
+                self._pc_root
+            )
+            if core_api_root is None:
+                # lookup failed. fall back onto runtime introspection
+                core_api_root = get_path_to_current_core()
+            return core_api_root
+
+    def get_core_python_location(self):
+        if self._is_cached_configuration():
+            with open(self._get_cache_core_location_file(), "rt") as fh:
+                return os.path.join(fh.read(), "python")
+        else:
+            core_path = get_core_path_for_config(self._pc_root)
+            return os.path.join(get_core_api_version(core_path), "install", "core", "python")
+
+    def _is_cached_configuration(self):
+        return os.path.exists(self._get_cache_core_location_file())
+
+    def _get_cache_core_location_file(self):
+        return os.path.join(self._pc_root, "cache", "core_location.ini")
+
+
 def has_core_descriptor(pipeline_config_path):
     """
     Returns ``True`` if the pipeline configuration contains a core descriptor

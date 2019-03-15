@@ -325,7 +325,7 @@ class ConfigurationWriter(object):
             fh.write("Darwin: '%s'\n" % self._path.macosx)
             fh.write("Linux: '%s'\n" % self._path.linux)
 
-    def write_config_info_file(self, config_descriptor):
+    def write_config_info_file(self, config_descriptor, core_descriptor):
         """
         Writes a cache file with info about where the config came from.
 
@@ -349,6 +349,10 @@ class ConfigurationWriter(object):
 
             # write yaml
             yaml.safe_dump(metadata, fh)
+
+        core_location_ini_file = os.path.join(self._path.current_os, "cache", "core_location.ini")
+        with open(core_location_ini_file, "wt") as fh:
+            fh.write(core_descriptor.get_path())
 
     def write_shotgun_file(self, descriptor):
         """

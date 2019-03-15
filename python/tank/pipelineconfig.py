@@ -65,6 +65,7 @@ class PipelineConfiguration(object):
         :type descriptor: :class:`sgtk.descriptor.ConfigDescriptor`
         """
         self._pc_root = pipeline_configuration_path
+        self._config_file_resolver = pipelineconfig_utils.ConfigFileResolver(self._pc_root)
 
         # validate that the current code version matches or is compatible with
         # the code that is locally stored in this config!!!!
@@ -805,8 +806,7 @@ class PipelineConfiguration(object):
 
         :returns: version str e.g. 'v1.2.3', None if no version could be determined.
         """
-        # associated_api_root = self.get_install_location()
-        return pipelineconfig_utils.get_core_api_version("/Users/jfboismenu/gitlocal/tk-core")
+        return self._config_file_resolver.get_core_api_version()
 
     def get_install_location(self):
         """
@@ -818,15 +818,8 @@ class PipelineConfiguration(object):
 
         :returns: path string to the current core API install root location
         """
-        return self._pc_root
-        # core_api_root = pipelineconfig_utils.get_core_path_for_config(
-        #     self._pc_root)
+        return self._config_file_resolver.get_core_install_location()
 
-        # if core_api_root is None:
-        #     # lookup failed. fall back onto runtime introspection
-        #     core_api_root = pipelineconfig_utils.get_path_to_current_core()
-
-        # return core_api_root
 
     def get_core_python_location(self):
         """
@@ -834,7 +827,7 @@ class PipelineConfiguration(object):
 
         :returns: path string
         """
-        return os.path.join("/Users/jfboismenu/gitlocal/tk-core/python")
+        return self._config_file_resolver.get_core_python_location()
 
     ########################################################################################
     # descriptors and locations
