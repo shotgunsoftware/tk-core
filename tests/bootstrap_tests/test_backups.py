@@ -100,6 +100,10 @@ class TestBackups(ShotgunTestBase):
             # First update, no backup
             config.update_configuration()
 
+            # Core does not copy itself anymore to the install folder, so fake one copy was installed before
+            # so we can move it out of the way and it won't be written back to the folder.
+            os.mkdir(os.path.join(config_root_path, "install", "core"))
+
             def dont_cleanup_backup_folders(self, config, core):
                 self.config_backup_folder_path = config
                 self.core_backup_folder_path = core
@@ -153,12 +157,16 @@ class TestBackups(ShotgunTestBase):
 
             # First update, no backup
             config.update_configuration()
+
+            # Core does not copy itself anymore to the install folder, so fake one copy was installed before
+            # so we can move it out of the way and it won't be written back to the folder.
+            os.mkdir(os.path.join(config_root_path, "install", "core"))
             
             def dont_cleanup_backup_folders(self, config, core):
                 self.config_backup_folder_path = config
                 self.core_backup_folder_path = core
 
-            with patch.object(sgtk.bootstrap.resolver.CachedConfiguration, '_cleanup_backup_folders', new=dont_cleanup_backup_folders):
+            with patch.object(sgtk.bootstrap.resolver.CachedConfiguration, '_cleanup_backup_folders', new=dont_cleanup_backup_folders) as mocked:
                 # Update the configuration, but don't clean up backups in order to ...
                 config.update_configuration()
                 config_backup_folder_path = config.config_backup_folder_path

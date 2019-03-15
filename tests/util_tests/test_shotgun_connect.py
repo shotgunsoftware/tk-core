@@ -42,7 +42,10 @@ class TestGetSgConfigData(ShotgunTestBase):
                     "http_proxy": "http_proxy"
                 },
                 "default",
-                "not_a_file.cfg"
+                # These two params are for studio level hooks. We're passing invalid data in so
+                # it doesn't trigger that code path.
+                "not_a_file.cfg",
+                "not_a_core_location"
             ),
             {
                 "host": "https://host.shotgunstudio.com",
@@ -80,7 +83,10 @@ class TestGetSgConfigData(ShotgunTestBase):
 
                     },
                     "default",
-                    "not_a_file.cfg"
+                    # These two params are for studio level hooks. We're passing invalid data in so
+                    # it doesn't trigger that code path.
+                    "not_a_file.cfg",
+                    "not_a_core_location"
                 ),
                 {
                     "host": test_host,
@@ -99,7 +105,10 @@ class TestGetSgConfigData(ShotgunTestBase):
                 "api_script": "api_script"
             },
             "default",
-            "not_a_file.cfg"
+            # These two params are for studio level hooks. We're passing invalid data in so
+            # it doesn't trigger that code path.
+            "not_a_file.cfg",
+            "not_a_core_location"
         )
 
     def test_incomplete_script_user_credentials(self, get_api_core_config_location_mock):
@@ -110,7 +119,10 @@ class TestGetSgConfigData(ShotgunTestBase):
                     "api_script": "api_script"
                 },
                 "default",
-                "not_a_file.cfg"
+                # These two params are for studio level hooks. We're passing invalid data in so
+                # it doesn't trigger that code path.
+                "not_a_file.cfg",
+                "not_a_core_location"
             )
 
         with self.assertRaises(errors.TankError):
@@ -120,7 +132,10 @@ class TestGetSgConfigData(ShotgunTestBase):
                     "api_key": "api_key"
                 },
                 "default",
-                "not_a_file.cfg"
+                # These two params are for studio level hooks. We're passing invalid data in so
+                # it doesn't trigger that code path.
+                "not_a_file.cfg",
+                "not_a_core_location"
             )
 
         with self.assertRaises(errors.TankError):
@@ -130,7 +145,10 @@ class TestGetSgConfigData(ShotgunTestBase):
                     "api_script": "api_script"
                 },
                 "default",
-                "not_a_file.cfg"
+                # These two params are for studio level hooks. We're passing invalid data in so
+                # it doesn't trigger that code path.
+                "not_a_file.cfg",
+                "not_a_core_location"
             )
 
     def test_parse_config_data_cleans_host(self, get_api_core_config_location_mock):
@@ -141,7 +159,10 @@ class TestGetSgConfigData(ShotgunTestBase):
             tank.util.shotgun.connection._parse_config_data(
                 {"host": "https://extra.slash.will.be.removed/"},
                 "default",
-                "not_a_file.cfg"
+                # These two params are for studio level hooks. We're passing invalid data in so
+                # it doesn't trigger that code path.
+                "not_a_file.cfg",
+                "not_a_core_location"
             ),
             {"host": "https://extra.slash.will.be.removed"}
         )

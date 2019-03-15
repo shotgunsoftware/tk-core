@@ -313,9 +313,14 @@ def internal_get_associated_sg_config_data(core_install_location):
     :returns: The configuration data dictionary with keys host and optional entries
               api_script, api_key and http_proxy.
     """
-    cfg = os.path.join(core_install_location, "config", "core", "shotgun.yml")
+    if core_install_location is None:
+        shotgun_yml_location = __get_sg_config()
+        core_install_location = __get_api_core_config_location()
+    else:
+        shotgun_yml_location = os.path.join(core_install_location, "config", "core", "shotgun.yml")
+        core_config_folder = os.path.join(core_install_location, "config", "core")
     return __get_sg_config_data(
-        cfg, os.path.join(core_install_location, "config", "core")
+        shotgun_yml_location, core_config_folder
     )
 
 
@@ -325,8 +330,7 @@ def get_associated_sg_config_data():
     :returns: The configuration data dictionary with keys host and optional entries
               api_script, api_key and http_proxy.
     """
-    cfg = __get_sg_config()
-    core_install_location = __get_api_core_config_location()
+
     return __get_sg_config_data(
         cfg,
         os.path.join(core_install_location, "config", "core")

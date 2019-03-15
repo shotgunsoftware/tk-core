@@ -529,7 +529,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             descriptor_dict["label"] = self._label
 
         # and return a descriptor instance
-        desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type)
+        desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type, self._config_app_store_proxy)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
 
         log.debug("Latest cached version resolved to %r" % desc)
@@ -653,7 +653,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             descriptor_dict["label"] = self._label
 
         # and return a descriptor instance
-        desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type)
+        desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type, self._config_app_store_proxy)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
 
         # if this item exists locally, attempt to update the metadata cache

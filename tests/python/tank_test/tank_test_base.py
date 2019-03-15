@@ -291,6 +291,7 @@ class TankTestBase(unittest.TestCase):
         self.tk_core_repo_root = os.path.normpath(
             os.path.join(os.path.dirname(__file__), "..", "..", "..")
         )
+
         os.environ["SHOTGUN_TKCORE_REPO_ROOT"] = self.tk_core_repo_root
 
         # where to go for test data
@@ -416,7 +417,7 @@ class TankTestBase(unittest.TestCase):
         # Mock this so that authentication manager works even tough we are not in a config.
         # If we don't mock it than the path cache calling get_current_user will fail.
         self._mock_return_value(
-            "tank.util.shotgun.connection.get_associated_sg_config_data",
+            "tank.util.shotgun.connection.internal_get_associated_sg_config_data",
             {"host": "https://somewhere.shotgunstudio.com"}
         )
 
@@ -536,6 +537,12 @@ class TankTestBase(unittest.TestCase):
                                 "mac_path": self.tank_temp}
 
         self.add_to_sg_mock_db(self.primary_storage)
+
+        self.repo_core_descriptor = sgtk.descriptor.create_descriptor(
+            self.mockgun,
+            sgtk.descriptor.Descriptor.CORE,
+            dict(type="dev", path=self.tk_core_repo_root)
+        )
 
         # back up the authenticated user in case a unit test doesn't clean up correctly.
         self._authenticated_user = sgtk.get_authenticated_user()

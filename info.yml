@@ -20,4 +20,4 @@ features:
    # lean_config history
    # v1: When bootstrapping with a descriptor based configuration, the
    #     config folder is run from the bundle cache.
-   bootstrap.lean_config.version: 1
+   bootstrap.lean_config.version: 2

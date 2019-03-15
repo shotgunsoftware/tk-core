@@ -326,8 +326,9 @@ class CachedConfiguration(Configuration):
             # make sure roots file reflects current paths
             self._config_writer.update_roots_file(self._descriptor)
 
-            # and lastly install core
-            # self._config_writer.install_core(core_descriptor)
+            # and lastly install if it doesn't support running from the bundle cache.
+            if self._descriptor.get_associated_core_feature_info("bootstrap.lean_config.version", 0) < 2:
+                self._config_writer.install_core(core_descriptor)
 
         except Exception as e:
 

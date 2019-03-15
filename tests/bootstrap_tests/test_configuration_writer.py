@@ -263,7 +263,7 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
             os.makedirs(core_folder)
         os.makedirs(os.path.join(self._root, "install", "core", "setup", "root_binaries"))
 
-        self._cw.create_tank_command(executable, prefix)
+        self._cw.create_tank_command(self.repo_core_descriptor, executable, prefix)
 
         interpreters = []
         for platform in ["Windows", "Linux", "Darwin"]:

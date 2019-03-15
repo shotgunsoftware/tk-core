@@ -114,7 +114,7 @@ class DefaultsManagerTest(ShotgunTestBase):
         self.assertIs(dm.get_http_proxy(), self._CONFIG_HTTP_PROXY)
 
     @patch(
-        "tank.util.shotgun.get_associated_sg_config_data",
+        "tank.util.shotgun.connection.internal_get_associated_sg_config_data",
         return_value={
             "host": _SHOTGUN_YML_HOST,
             "http_proxy": _SHOTGUN_YML_PROXY
@@ -135,7 +135,7 @@ class DefaultsManagerTest(ShotgunTestBase):
         self.assertIs(dm.get_http_proxy(), self._SHOTGUN_YML_PROXY)
 
     @patch(
-        "tank.util.shotgun.get_associated_sg_config_data",
+        "tank.util.shotgun.connection.internal_get_associated_sg_config_data",
         return_value={
             "host": _SHOTGUN_YML_HOST
         }
@@ -156,7 +156,7 @@ class DefaultsManagerTest(ShotgunTestBase):
         return_value="192.168.10.1"
     )
     @patch(
-        "tank.util.shotgun.get_associated_sg_config_data",
+        "tank.util.shotgun.connection.internal_get_associated_sg_config_data",
         return_value={}
     )
     def test_toolkit_ini_disabling_global_proxy(self, *_):
@@ -171,7 +171,7 @@ class DefaultsManagerTest(ShotgunTestBase):
         self.assertEqual(dm.get_http_proxy(), "")
 
     @patch(
-        "tank.util.shotgun.get_associated_sg_config_data",
+        "tank.util.shotgun.connection.internal_get_associated_sg_config_data",
         return_value={
             "http_proxy": ""
         }
