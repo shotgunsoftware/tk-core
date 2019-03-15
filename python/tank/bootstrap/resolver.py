@@ -334,6 +334,11 @@ class ConfigurationResolver(object):
                         "Pipeline configuration %s does not define a valid "
                         "access location. Details: %s" % (pipeline_config, e)
                     )
+            else:
+                log.debug(
+                    "%s was rejected because it didn't match the current plugin id or it didn't have a *_path set.",
+                    pipeline_config["descriptor"]
+                )
 
     def _create_config_descriptor(self, sg_connection, shotgun_pc_data):
         """
