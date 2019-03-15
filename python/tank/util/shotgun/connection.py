@@ -56,8 +56,6 @@ def __get_api_core_config_location():
         path_to_file = os.path.abspath(os.path.dirname(__file__))
         path_to_core = os.path.abspath(os.path.join(path_to_file, "..", ".."))
 
-        # if "TANK_CURRENT_PC" in os.environ:
-        #     return os.path.join(os.environ["TANK_CURRENT_PC" ], "config", "core")
         raise UnresolvableCoreConfigurationError(path_to_core)
 
     return core_cfg

@@ -187,7 +187,7 @@ class Configuration(object):
         # passed in, so we'll have to be backwards compatible with these. If the pipeline
         # configuration does support the get_configuration_descriptor method however, we can
         # pass the descriptor in.
-        # os.environ["TANK_CURRENT_PC"] = path
+        os.environ["TANK_CURRENT_PC"] = path
         if hasattr(pipelineconfig.PipelineConfiguration, "get_configuration_descriptor"):
             pc = pipelineconfig.PipelineConfiguration(path, self.descriptor)
         else:
