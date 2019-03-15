@@ -24,6 +24,7 @@ from .util.version import is_version_older
 from . import constants
 from .platform.environment import InstalledEnvironment, WritableEnvironment
 from .util import shotgun, yaml_cache
+from .util.shotgun import connection
 from .util import ShotgunPath
 from .util import StorageRoots
 from . import hook
@@ -215,7 +216,9 @@ class PipelineConfiguration(object):
             descriptor_dict,
             self._bundle_cache_root_override,
             self._bundle_cache_fallback_paths,
-            config_app_store_proxy=shotgun.get_associated_sg_config_data(self._pc_root)
+            config_app_store_proxy=connection.internal_get_associated_sg_config_data(
+                self._config_file_resolver.get_core_install_location()
+            )
         )
 
         self._descriptor = descriptor
@@ -923,7 +926,9 @@ class PipelineConfiguration(object):
 
         descriptor_dict = self._preprocess_descriptor(descriptor_dict)
 
-        shotgun_yml_data = shotgun.get_associated_sg_config_data(self.get_install_location())
+        shotgun_yml_data = connection.internal_get_associated_sg_config_data(
+            self.get_install_location()
+        )
 
         if shotgun_yml_data and "app_store_proxy" in shotgun_yml_data:
             proxy = shotgun_yml_data["app_store_proxy"]

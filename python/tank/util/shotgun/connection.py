@@ -307,19 +307,29 @@ def get_associated_sg_base_url():
         return get_associated_sg_config_data()["host"]
 
 
-def get_associated_sg_config_data(core_install_location=None):
+def internal_get_associated_sg_config_data(core_install_location):
     """
     Returns the shotgun configuration which is associated with this Toolkit setup.
     :returns: The configuration data dictionary with keys host and optional entries
               api_script, api_key and http_proxy.
     """
-    if core_install_location is None:
-        cfg = __get_sg_config()
-        core_install_location = __get_api_core_config_location()
-    else:
-        cfg = os.path.join(core_install_location, "config", "core", "shotgun.yml")
+    cfg = os.path.join(core_install_location, "config", "core", "shotgun.yml")
     return __get_sg_config_data(
         cfg, os.path.join(core_install_location, "config", "core")
+    )
+
+
+def get_associated_sg_config_data():
+    """
+    Returns the shotgun configuration which is associated with this Toolkit setup.
+    :returns: The configuration data dictionary with keys host and optional entries
+              api_script, api_key and http_proxy.
+    """
+    cfg = __get_sg_config()
+    core_install_location = __get_api_core_config_location()
+    return __get_sg_config_data(
+        cfg,
+        os.path.join(core_install_location, "config", "core")
     )
 
 

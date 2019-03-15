@@ -15,7 +15,7 @@ been configured with the core, its credentials will also be provided.
 """
 
 from .defaults_manager import DefaultsManager
-from ..util import shotgun
+from ..util.shotgun import connection
 
 
 class CoreDefaultsManager(DefaultsManager):
@@ -49,7 +49,7 @@ class CoreDefaultsManager(DefaultsManager):
         Returns the host found in the core configuration.
         :returns: The host value from the configuration
         """
-        return shotgun.get_associated_sg_config_data(self._core_install_folder).get("host")
+        return connection.internal_get_associated_sg_config_data(self._core_install_folder).get("host")
 
     def get_http_proxy(self):
         """
@@ -60,7 +60,7 @@ class CoreDefaultsManager(DefaultsManager):
         :returns: String with proxy definition suitable for the Shotgun API or
                   None if not necessary.
         """
-        sg_config_data = shotgun.get_associated_sg_config_data(self._core_install_folder)
+        sg_config_data = connection.internal_get_associated_sg_config_data(self._core_install_folder)
         # If http_proxy is not set, fallback on the base class. Note that http_proxy
         # can be set to an empty value, which we want to use in that case.
         if "http_proxy" not in sg_config_data:
@@ -78,7 +78,7 @@ class CoreDefaultsManager(DefaultsManager):
                   User or None in case no credentials could be established.
         """
         if not self._mask_script_user:
-            data = shotgun.get_associated_sg_config_data(self._core_install_folder)
+            data = connection.internal_get_associated_sg_config_data(self._core_install_folder)
             if data.get("api_script") and data.get("api_key"):
                 return {
                     "api_script": data["api_script"],
