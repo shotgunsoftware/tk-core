@@ -202,7 +202,7 @@ class ConfigDescriptor(Descriptor):
 
         :returns: Path to the configuration files folder.
         """
-        raise NotImplementedError("ConfigDescriptor.get_config_folder is not implemented.")
+        raise NotImplementedError("ConfigDescriptor.get_config_folder is not implemented.")     
 
     def _get_current_platform_interpreter_file_name(self, install_root):
         """

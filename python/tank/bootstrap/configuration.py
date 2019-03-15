@@ -103,7 +103,8 @@ class Configuration(object):
             the new current user and the Toolkit instance.
         """
         path = self._path.current_os
-        python_core_path = pipelineconfig_utils.get_core_python_path_for_config(path)
+        # python_core_path = pipelineconfig_utils.get_core_python_path_for_config(path)
+        core_descriptor = self.descriptor.resolve_core_descriptor()
 
         # Get the user before the core swapping and serialize it.
         serialized_user = serialize_user(sg_user)
@@ -121,7 +122,7 @@ class Configuration(object):
         else:
             uses_claims_renewal = False
 
-        if self._swap_core_if_needed(python_core_path):
+        if self._swap_core_if_needed(core_descriptor.get_path() + "/python"):
             log.debug("Core swapped, authenticated user will be set.")
         else:
             log.debug("Core didn't need to be swapped, authenticated user will be set.")
@@ -264,7 +265,12 @@ class Configuration(object):
         log.debug("The project's core supports the authentication module.")
 
         # Retrieve the user associated with the current project.
-        default_user = ShotgunAuthenticator(CoreDefaultsManager()).get_default_user()
+        default_user = ShotgunAuthenticator(
+            CoreDefaultsManager(
+                # FIXME: For installed configuration, we need to use the core location.
+                core_install_folder=os.path.join(self._path.current_os)
+            )
+        ).get_default_user()
 
         # By default, we'll assume we couldn't find a user with the authenticator.
         project_user = None

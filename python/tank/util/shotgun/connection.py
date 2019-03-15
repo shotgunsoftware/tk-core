@@ -88,7 +88,7 @@ def get_project_name_studio_hook_location():
     path = os.path.join(core_cfg, constants.STUDIO_HOOK_PROJECT_NAME)
     return path
 
-def __get_sg_config_data(shotgun_cfg_path, user="default"):
+def __get_sg_config_data(shotgun_cfg_path, core_config_path, user="default"):
     """
     Returns the shotgun configuration yml parameters given a config file.
     
@@ -127,7 +127,7 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
     except Exception as error:
         raise TankError("Cannot load config file '%s'. Error: %s" % (shotgun_cfg_path, error))
 
-    return _parse_config_data(file_data, user, shotgun_cfg_path)
+    return _parse_config_data(file_data, user, shotgun_cfg_path, core_config_path)
 
 
 def __get_sg_config_data_with_script_user(shotgun_cfg_path, user="default"):
@@ -151,7 +151,7 @@ def __get_sg_config_data_with_script_user(shotgun_cfg_path, user="default"):
         raise TankError("Missing required script user in config '%s'" % shotgun_cfg_path)
 
 
-def _parse_config_data(file_data, user, shotgun_cfg_path):
+def _parse_config_data(file_data, user, shotgun_cfg_path, core_config_path):
     """
     Parses configuration data and overrides it with the studio level hook's result if available.
     :param file_data: Dictionary with all the values from the configuration data.
@@ -172,7 +172,7 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
         config_data = file_data
 
     # now check if there is a studio level override hook which want to refine these settings
-    sg_hook_path = os.path.join(__get_api_core_config_location(), constants.STUDIO_HOOK_SG_CONNECTION_SETTINGS)
+    sg_hook_path = os.path.join(core_config_path or __get_api_core_config_location(), constants.STUDIO_HOOK_SG_CONNECTION_SETTINGS)
 
     if os.path.exists(sg_hook_path):
         # custom hook is available!
@@ -306,14 +306,19 @@ def get_associated_sg_base_url():
         return get_associated_sg_config_data()["host"]
 
 
-def get_associated_sg_config_data():
+def get_associated_sg_config_data(core_install_location):
     """
     Returns the shotgun configuration which is associated with this Toolkit setup.
     :returns: The configuration data dictionary with keys host and optional entries
               api_script, api_key and http_proxy.
     """
-    cfg = __get_sg_config()
-    return __get_sg_config_data(cfg)
+    if core_install_location is None:
+        cfg = __get_sg_config()
+    else:
+        cfg = os.path.join(core_install_location, "config", "core", "shotgun.yml")
+    return __get_sg_config_data(
+        cfg, os.path.join(core_install_location, "config", "core")
+    )
 
 
 def get_deferred_sg_connection():

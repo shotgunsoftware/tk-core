@@ -24,13 +24,14 @@ class CoreDefaultsManager(DefaultsManager):
     (shotgun.yml) to provide a default host, proxy and user.
     """
 
-    def __init__(self, mask_script_user=False):
+    def __init__(self, mask_script_user=False, core_install_folder=None):
         """
         Constructor
 
         :param mask_script_user: Prevents the get_user_credentials method from
             returning the script user credentials if the are available.
         """
+        self._core_install_folder = core_install_folder
         self._mask_script_user = mask_script_user
         super(CoreDefaultsManager, self).__init__()
 
@@ -48,7 +49,7 @@ class CoreDefaultsManager(DefaultsManager):
         Returns the host found in the core configuration.
         :returns: The host value from the configuration
         """
-        return shotgun.get_associated_sg_config_data().get("host")
+        return shotgun.get_associated_sg_config_data(self._core_install_folder).get("host")
 
     def get_http_proxy(self):
         """
@@ -59,7 +60,7 @@ class CoreDefaultsManager(DefaultsManager):
         :returns: String with proxy definition suitable for the Shotgun API or
                   None if not necessary.
         """
-        sg_config_data = shotgun.get_associated_sg_config_data()
+        sg_config_data = shotgun.get_associated_sg_config_data(self._core_install_folder)
         # If http_proxy is not set, fallback on the base class. Note that http_proxy
         # can be set to an empty value, which we want to use in that case.
         if "http_proxy" not in sg_config_data:
@@ -77,7 +78,7 @@ class CoreDefaultsManager(DefaultsManager):
                   User or None in case no credentials could be established.
         """
         if not self._mask_script_user:
-            data = shotgun.get_associated_sg_config_data()
+            data = shotgun.get_associated_sg_config_data(self._core_install_folder)
             if data.get("api_script") and data.get("api_key"):
                 return {
                     "api_script": data["api_script"],
