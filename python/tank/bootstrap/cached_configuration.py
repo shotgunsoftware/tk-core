@@ -327,7 +327,7 @@ class CachedConfiguration(Configuration):
             self._config_writer.update_roots_file(self._descriptor)
 
             # and lastly install core
-            self._config_writer.install_core(core_descriptor)
+            # self._config_writer.install_core(core_descriptor)
 
         except Exception as e:
 
@@ -383,7 +383,7 @@ class CachedConfiguration(Configuration):
         # @todo - prime caches (yaml, path cache)
 
         # make sure tank command and interpreter files are up to date
-        self._config_writer.create_tank_command()
+        self._config_writer.create_tank_command(core_descriptor)
 
         self._config_writer.end_transaction()
 

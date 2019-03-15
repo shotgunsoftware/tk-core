@@ -195,7 +195,7 @@ class ConfigurationWriter(object):
             return (config_backup_path, core_backup_path)
 
     @filesystem.with_cleared_umask
-    def create_tank_command(self, executable=sys.executable, prefix=sys.prefix):
+    def create_tank_command(self, core_descriptor, executable=sys.executable, prefix=sys.prefix):
         """
         Create a tank command for this configuration.
 
@@ -284,8 +284,7 @@ class ConfigurationWriter(object):
                 fh.write(executables[platform])
 
         # now deploy the actual tank command
-        core_target_path = os.path.join(config_root_path, "install", "core")
-        root_binaries_folder = os.path.join(core_target_path, "setup", "root_binaries")
+        root_binaries_folder = os.path.join(core_descriptor.get_path(), "setup", "root_binaries")
         for file_name in os.listdir(root_binaries_folder):
             src_file = os.path.join(root_binaries_folder, file_name)
             tgt_file = os.path.join(config_root_path, file_name)
