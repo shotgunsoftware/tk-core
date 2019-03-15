@@ -55,6 +55,9 @@ def __get_api_core_config_location():
     if not os.path.exists(core_cfg):
         path_to_file = os.path.abspath(os.path.dirname(__file__))
         path_to_core = os.path.abspath(os.path.join(path_to_file, "..", ".."))
+
+        # if "TANK_CURRENT_PC" in os.environ:
+        #     return os.path.join(os.environ["TANK_CURRENT_PC" ], "config", "core")
         raise UnresolvableCoreConfigurationError(path_to_core)
 
     return core_cfg
@@ -306,7 +309,7 @@ def get_associated_sg_base_url():
         return get_associated_sg_config_data()["host"]
 
 
-def get_associated_sg_config_data(core_install_location):
+def get_associated_sg_config_data(core_install_location=None):
     """
     Returns the shotgun configuration which is associated with this Toolkit setup.
     :returns: The configuration data dictionary with keys host and optional entries
@@ -314,6 +317,7 @@ def get_associated_sg_config_data(core_install_location):
     """
     if core_install_location is None:
         cfg = __get_sg_config()
+        core_install_location = __get_api_core_config_location()
     else:
         cfg = os.path.join(core_install_location, "config", "core", "shotgun.yml")
     return __get_sg_config_data(

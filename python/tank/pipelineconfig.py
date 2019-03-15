@@ -19,6 +19,7 @@ import cPickle as pickle
 from tank_vendor import yaml
 
 from .errors import TankError, TankUnreadableFileError
+from .descriptor.descriptor_cached_config import CachedConfigDescriptor
 from .util.version import is_version_older
 from . import constants
 from .platform.environment import InstalledEnvironment, WritableEnvironment
@@ -29,6 +30,7 @@ from . import hook
 from . import pipelineconfig_utils
 from . import template_includes
 from . import LogManager
+
 
 from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
 
@@ -211,7 +213,8 @@ class PipelineConfiguration(object):
             Descriptor.INSTALLED_CONFIG if is_installed else Descriptor.CONFIG,
             descriptor_dict,
             self._bundle_cache_root_override,
-            self._bundle_cache_fallback_paths
+            self._bundle_cache_fallback_paths,
+            config_app_store_proxy=shotgun.get_associated_sg_config_data(self._pc_root)
         )
 
         self._descriptor = descriptor
@@ -802,8 +805,8 @@ class PipelineConfiguration(object):
 
         :returns: version str e.g. 'v1.2.3', None if no version could be determined.
         """
-        associated_api_root = self.get_install_location()
-        return pipelineconfig_utils.get_core_api_version(associated_api_root)
+        # associated_api_root = self.get_install_location()
+        return pipelineconfig_utils.get_core_api_version("/Users/jfboismenu/gitlocal/tk-core")
 
     def get_install_location(self):
         """
@@ -815,14 +818,15 @@ class PipelineConfiguration(object):
 
         :returns: path string to the current core API install root location
         """
-        core_api_root = pipelineconfig_utils.get_core_path_for_config(
-            self._pc_root)
+        return self._pc_root
+        # core_api_root = pipelineconfig_utils.get_core_path_for_config(
+        #     self._pc_root)
 
-        if core_api_root is None:
-            # lookup failed. fall back onto runtime introspection
-            core_api_root = pipelineconfig_utils.get_path_to_current_core()
+        # if core_api_root is None:
+        #     # lookup failed. fall back onto runtime introspection
+        #     core_api_root = pipelineconfig_utils.get_path_to_current_core()
 
-        return core_api_root
+        # return core_api_root
 
     def get_core_python_location(self):
         """
@@ -830,8 +834,7 @@ class PipelineConfiguration(object):
 
         :returns: path string
         """
-        return os.path.join(self.get_install_location(), "install", "core",
-                            "python")
+        return os.path.join("/Users/jfboismenu/gitlocal/tk-core/python")
 
     ########################################################################################
     # descriptors and locations
@@ -927,6 +930,13 @@ class PipelineConfiguration(object):
 
         descriptor_dict = self._preprocess_descriptor(descriptor_dict)
 
+        shotgun_yml_data = shotgun.get_associated_sg_config_data(self.get_install_location())
+
+        if shotgun_yml_data and "app_store_proxy" in shotgun_yml_data:
+            proxy = shotgun_yml_data["app_store_proxy"]
+        else:
+            proxy = None
+
         desc = create_descriptor(
             sg_connection,
             descriptor_type,
@@ -934,7 +944,8 @@ class PipelineConfiguration(object):
             self._bundle_cache_root_override,
             self._bundle_cache_fallback_paths,
             latest,
-            constraint_pattern
+            constraint_pattern,
+            config_app_store_proxy=proxy
         )
 
         return desc

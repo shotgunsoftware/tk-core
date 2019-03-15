@@ -30,7 +30,9 @@ def create_descriptor(
         fallback_roots=None,
         resolve_latest=False,
         constraint_pattern=None,
-        local_fallback_when_disconnected=True):
+        local_fallback_when_disconnected=True,
+        config_app_store_proxy=None
+    ):
     """
     Factory method. Use this when creating descriptor objects.
 
@@ -104,7 +106,8 @@ def create_descriptor(
         fallback_roots,
         resolve_latest,
         constraint_pattern,
-        local_fallback_when_disconnected
+        local_fallback_when_disconnected,
+        config_app_store_proxy
     )
 
     # now create a high level descriptor and bind that with the low level descriptor

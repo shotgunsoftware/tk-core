@@ -24,7 +24,9 @@ def create_io_descriptor(
         fallback_roots,
         resolve_latest,
         constraint_pattern=None,
-        local_fallback_when_disconnected=True):
+        local_fallback_when_disconnected=True,
+        config_app_store_proxy=None
+    ):
     """
     Factory method. Use this method to construct all DescriptorIO instances.
 
@@ -93,7 +95,7 @@ def create_io_descriptor(
 
     # factory logic
     if descriptor_dict.get("type") == "app_store":
-        descriptor = IODescriptorAppStore(descriptor_dict, sg, descriptor_type)
+        descriptor = IODescriptorAppStore(descriptor_dict, sg, descriptor_type, config_app_store_proxy)
 
     elif descriptor_dict.get("type") == "shotgun":
         descriptor = IODescriptorShotgunEntity(descriptor_dict, sg)

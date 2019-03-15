@@ -115,7 +115,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         "sg_deprecation_message"
     ]
 
-    def __init__(self, descriptor_dict, sg_connection, bundle_type):
+    def __init__(self, descriptor_dict, sg_connection, bundle_type, config_app_store_proxy):
         """
         Constructor
 
@@ -133,6 +133,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         )
 
         self._sg_connection = sg_connection
+        self._config_app_store_proxy = config_app_store_proxy
         self._type = bundle_type
         self._name = descriptor_dict.get("name")
         self._version = descriptor_dict.get("version")
@@ -798,13 +799,8 @@ class IODescriptorAppStore(IODescriptorDownloadable):
 
         :returns: The http proxy connection string.
         """
-        try:
-            config_data = shotgun.get_associated_sg_config_data()
-        except UnresolvableCoreConfigurationError:
-            config_data = None
-
-        if config_data and constants.APP_STORE_HTTP_PROXY in config_data:
-            return config_data[constants.APP_STORE_HTTP_PROXY]
+        if self._config_app_store_proxy:
+            return self._config_app_store_proxy
 
         settings = UserSettings()
         if settings.app_store_proxy is not None:
