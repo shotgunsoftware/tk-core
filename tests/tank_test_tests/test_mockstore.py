@@ -52,7 +52,8 @@ class TestMockStore(ShotgunTestBase):
             IODescriptorAppStore(
                 {"name": "tk-test", "type": "app_store", "version": "v1.2.3"},
                 None,
-                Descriptor.ENGINE
+                Descriptor.ENGINE,
+                None
             ), TankMockStoreDescriptor
         )
 

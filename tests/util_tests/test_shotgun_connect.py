@@ -386,9 +386,21 @@ class ConnectionSettingsTestCases:
             self.assertEqual(sg.base_url, self._SITE)
             self.assertEqual(sg.config.raw_http_proxy, source_proxy)
 
+            from sgtk.util.shotgun import connection
+            shotgun_yml_data = connection.internal_get_associated_sg_config_data(
+                "unused_core_location_because_auth_user_is_set"
+            )
+
+            # FIXME: We're losing the difference between the value being absent
+            # and the value forced to None 
+            if shotgun_yml_data and "app_store_proxy" in shotgun_yml_data:
+                proxy = shotgun_yml_data["app_store_proxy"]
+            else:
+                proxy = None
+
             descriptor = IODescriptorAppStore(
                 {"name": "tk-multi-app", "version": "v0.0.1", "type": "app_store"},
-                sg, Descriptor.CORE, None
+                sg, Descriptor.CORE, proxy
             )
             http_proxy = descriptor._IODescriptorAppStore__get_app_store_proxy_setting()
             self.assertEqual(http_proxy, expected_store_proxy)

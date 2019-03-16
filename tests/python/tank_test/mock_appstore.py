@@ -229,7 +229,8 @@ class TankMockStoreDescriptor(IODescriptorBase):
              "type": "app_store",
              "version": version},
             None,
-            self._type
+            self._type,
+            None
         )
 
         descriptor.set_cache_roots(self._bundle_cache_root, self._fallback_roots)

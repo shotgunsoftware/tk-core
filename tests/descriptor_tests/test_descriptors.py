@@ -489,7 +489,8 @@ class TestDescriptorSupport(TankTestBase):
                 descriptor = sgtk.descriptor.io_descriptor.appstore.IODescriptorAppStore(
                     {"name": "tk-config-basic", "version": "v1.0.0", "type": "app_store"},
                     self.mockgun,
-                    sgtk.descriptor.Descriptor.CONFIG
+                    sgtk.descriptor.Descriptor.CONFIG,
+                    None
                 )
                 self.assertEqual(descriptor.has_remote_access(), False)
 
@@ -929,7 +930,7 @@ class TestFeaturesApi(unittest2.TestCase):
         desc = self._create_core_desc(io_desc)
 
         features = {
-            "bootstrap.lean_config.version": 1
+            "bootstrap.lean_config.version": 2
         }
 
         # Make sure every feature is at the expected version.
