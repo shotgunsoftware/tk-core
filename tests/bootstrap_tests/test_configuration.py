@@ -62,8 +62,14 @@ class TestConfigurationBase(ShotgunTestBase):
             api_script, api_key=api_script[::-1], host=host
         )
 
-
 class TestConfiguration(TestConfigurationBase):
+
+    def setUp(self):
+        super(TestConfiguration, self).setUp()
+
+        self._configuration = Configuration(
+            sgtk.util.ShotgunPath.from_current_os_path(self.tank_temp), None
+        )
 
     def test_login_to_login_authentication(self):
         """
@@ -72,15 +78,13 @@ class TestConfiguration(TestConfigurationBase):
         """
         default_user = self._create_session_user("default_user")
 
-        configuration = Configuration(None, None)
-
         # Create a default user.
         with patch(
             "tank.authentication.ShotgunAuthenticator.get_default_user",
             return_value=default_user
         ):
             current_user = self._create_session_user("current_user")
-            configuration._set_authenticated_user(
+            self._configuration._set_authenticated_user(
                 current_user,
                 current_user.login,
                 sgtk.authentication.serialize_user(current_user)
@@ -111,7 +115,7 @@ class TestConfiguration(TestConfigurationBase):
                 wraps=tank_vendor.shotgun_authentication.deserialize_user
             ) as deserialize_wrapper:
                 current_user = self._create_session_user("current_user")
-                configuration._set_authenticated_user(current_user, current_user.login, "invalid")
+                self._configuration._set_authenticated_user(current_user, current_user.login, "invalid")
 
                 deserialize_wrapper.assert_called_once_with("invalid")
 
@@ -135,7 +139,7 @@ class TestConfiguration(TestConfigurationBase):
             return_value=script_user
         ):
             current_user = self._create_session_user("current_user")
-            configuration._set_authenticated_user(
+            self._configuration._set_authenticated_user(
                 current_user,
                 current_user.login,
                 sgtk.authentication.serialize_user(current_user)
@@ -157,7 +161,7 @@ class TestConfiguration(TestConfigurationBase):
             "tank.authentication.ShotgunAuthenticator.get_default_user",
             return_value=project_user
         ):
-            configuration._set_authenticated_user(
+            self._configuration._set_authenticated_user(
                 bootstrap_user,
                 bootstrap_user.login,
                 sgtk.authentication.serialize_user(bootstrap_user)
@@ -169,8 +173,6 @@ class TestConfiguration(TestConfigurationBase):
         """
         Ensure a project configuration overrides a script user used for bootstrapping.
         """
-        configuration = Configuration(None, None)
-
         script_user_for_bootstrap = self._create_script_user("api_script_for_bootstrap")
         script_user_for_project = self._create_script_user("api_script_for_project")
 
@@ -179,7 +181,7 @@ class TestConfiguration(TestConfigurationBase):
             "tank.authentication.ShotgunAuthenticator.get_default_user",
             return_value=script_user_for_project
         ):
-            configuration._set_authenticated_user(
+            self._configuration._set_authenticated_user(
                 script_user_for_bootstrap,
                 script_user_for_bootstrap.login,
                 sgtk.authentication.serialize_user(script_user_for_bootstrap)
@@ -194,8 +196,6 @@ class TestConfiguration(TestConfigurationBase):
         Ensure that bootstrapping with a script into a project without a script user in its
         configuration will pick the bootstrap user.
         """
-        configuration = Configuration(None, None)
-
         user_for_bootstrap = self._create_script_user("api_script_for_bootstrap")
         user_for_project = self._create_session_user("project_user")
 
@@ -204,7 +204,7 @@ class TestConfiguration(TestConfigurationBase):
             "tank.authentication.ShotgunAuthenticator.get_default_user",
             return_value=user_for_project
         ):
-            configuration._set_authenticated_user(
+            self._configuration._set_authenticated_user(
                 user_for_bootstrap,
                 user_for_bootstrap.login,
                 sgtk.authentication.serialize_user(user_for_bootstrap)
@@ -252,11 +252,15 @@ class TestSSOClaims(TestConfigurationBase):
         # thread startup and shutdown, we only want to ensure they are invoked.
         for mocked_method in [
             "tank.bootstrap.import_handler.CoreImportHandler.swap_core",
-            "tank.bootstrap.cached_configuration.CachedConfiguration._ensure_core_local",
             "tank.bootstrap.configuration_writer.ConfigurationWriter.install_core",
-            "tank.bootstrap.configuration_writer.ConfigurationWriter.create_tank_command",
+            "tank.bootstrap.configuration_writer.ConfigurationWriter.create_tank_command"
         ]:
             self._mock_return_value(mocked_method, return_value=None)
+
+        self._mock_return_value(
+            "tank.bootstrap.cached_configuration.CachedConfiguration._ensure_core_local",
+            self.repo_core_descriptor
+        )
 
         self._start_claims_mock = self._mock_return_value(
             "tank.authentication.user.ShotgunSamlUser.start_claims_renewal",
@@ -478,7 +482,7 @@ class TestCachedConfiguration(ShotgunTestBase):
         self._cached_config._descriptor.is_immutable = lambda: True
         # Seems up the test tremendously since installing core becomes a noop.
         self._cached_config._config_writer.install_core = lambda _: None
-        self._cached_config._config_writer.create_tank_command = lambda: None
+        self._cached_config._config_writer.create_tank_command = lambda x: None
 
     def test_verifies_tank_name(self):
         """

@@ -252,7 +252,6 @@ class CachedConfiguration(Configuration):
         This method fails gracefully and attempts to roll back to a
         stable state on failure.
         """
-
         self._config_writer.start_transaction()
 
         # stow away any previous versions of core and config folders

@@ -388,7 +388,7 @@ class ConnectionSettingsTestCases:
 
             descriptor = IODescriptorAppStore(
                 {"name": "tk-multi-app", "version": "v0.0.1", "type": "app_store"},
-                sg, Descriptor.CORE
+                sg, Descriptor.CORE, None
             )
             http_proxy = descriptor._IODescriptorAppStore__get_app_store_proxy_setting()
             self.assertEqual(http_proxy, expected_store_proxy)

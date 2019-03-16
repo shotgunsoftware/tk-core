@@ -321,10 +321,9 @@ class TestConfigLocations(TankTestBase):
         # Core location tests.
         self.assertEqual(pc.is_localized(), is_localized)
         self.assertEqual(pc.get_install_location(), expected_core_root)
-        self.assertEqual(
-            pc.get_core_python_location(),
-            os.path.join(expected_core_root, "install", "core", "python")
-        )
+        pc_python_location = pc.get_core_python_location()
+        expected_location = os.path.join(expected_core_root, "install", "core", "python")
+        self.assertEqual(pc_python_location, expected_location)
 
     def _test_config_locations(self, pc, autogen_files_root, config_files_root):
         """

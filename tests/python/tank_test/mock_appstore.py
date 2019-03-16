@@ -205,7 +205,7 @@ class TankMockStoreDescriptor(IODescriptorBase):
     Mocking of the TankAppStoreDescriptor class. Interfaces with the MockStore to return results.
     """
 
-    def __init__(self, location_dict, sg_connection, bundle_type):
+    def __init__(self, location_dict, sg_connection, bundle_type, proxy):
         """
         Constructor.
 

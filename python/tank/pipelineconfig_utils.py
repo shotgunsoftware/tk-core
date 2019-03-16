@@ -42,7 +42,7 @@ class ConfigFileResolver(object):
             with open(self._get_cache_core_location_file(), "rt") as fh:
                 return fh.read()
         else:
-            core_path = get_core_path_for_config(self._pc_root)
+            core_path = self.get_core_install_location()
             return get_core_api_version(core_path)
 
     def get_core_install_location(self):
@@ -62,8 +62,8 @@ class ConfigFileResolver(object):
             with open(self._get_cache_core_location_file(), "rt") as fh:
                 return os.path.join(fh.read(), "python")
         else:
-            core_path = get_core_path_for_config(self._pc_root)
-            return os.path.join(get_core_api_version(core_path), "install", "core", "python")
+            core_path = self.get_core_install_location()
+            return os.path.join(core_path, "install", "core", "python")
 
     def _is_cached_configuration(self):
         return os.path.exists(self._get_cache_core_location_file())
