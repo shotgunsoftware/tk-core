@@ -156,12 +156,13 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5, auto_de
     :raises: ShotgunAttachmentDownloadError on failure
     """
     return _download_and_unpack(
-            sg,
-            target,
-            retries,
-            auto_detect_bundle,
-            attachment_id=attachment_id
-        )
+        sg,
+        target,
+        retries,
+        auto_detect_bundle,
+        attachment_id=attachment_id
+    )
+
 
 def download_and_unpack_url(sg, url, target, retries=5, auto_detect_bundle=False):
     """
@@ -180,12 +181,13 @@ def download_and_unpack_url(sg, url, target, retries=5, auto_detect_bundle=False
     :raises: ShotgunAttachmentDownloadError on failure
     """
     return _download_and_unpack(
-            sg,
-            target,
-            retries,
-            auto_detect_bundle,
-            url=url
-        )
+        sg,
+        target,
+        retries,
+        auto_detect_bundle,
+        url=url
+    )
+
 
 @LogManager.log_timing
 def _download_and_unpack(sg, target, retries, auto_detect_bundle, attachment_id=None, url=None):

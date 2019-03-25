@@ -72,7 +72,7 @@ class MockResponse(object):
             headers = dict()
             # grab key/value pairs out of headers from curl and build a dict like urllib2 does
             # explain the regex better
-            header_line_regex = "(?P<key>[a-zA-Z\-]+): (?P<value>.+)"
+            header_line_regex = r"(?P<key>[a-zA-Z\-]+): (?P<value>.+)"
             for line in headers_file:
                 m = re.match(header_line_regex, line)
                 if m:
