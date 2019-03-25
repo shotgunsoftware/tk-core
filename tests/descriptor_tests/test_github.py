@@ -216,7 +216,7 @@ class TestGithubIODescriptor(ShotgunTestBase):
         # Test with two pages of results, but the desired item on first page.
         # We should not request the second page.
         with patch(_TESTED_MODULE + ".urllib2.urlopen") as urlopen_mock:
-            urlopen_mock.side_effect = [MockResponse("releases"), MockResponse("releases?page=2")]
+            urlopen_mock.side_effect = [MockResponse("releases"), MockResponse("releases_page_2")]
             desc2 = desc.find_latest_version(constraint_pattern="v1.2.x")
             urlopen_mock.assert_called_with(target_url_page_1)
             self.assertEqual(urlopen_mock.call_count, 1)
@@ -224,7 +224,7 @@ class TestGithubIODescriptor(ShotgunTestBase):
         # Now test again, but the desired item will be on the second page, make sure
         # we request it.
         with patch(_TESTED_MODULE + ".urllib2.urlopen") as urlopen_mock:
-            urlopen_mock.side_effect = [MockResponse("releases"), MockResponse("releases?page=2")]
+            urlopen_mock.side_effect = [MockResponse("releases"), MockResponse("releases_page_2")]
             desc2 = desc.find_latest_version(constraint_pattern="v1.1.x")
             calls = [mock.call(target_url_page_1), mock.call(target_url_page_2)]
             urlopen_mock.assert_has_calls(calls)
