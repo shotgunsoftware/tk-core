@@ -223,7 +223,7 @@ def _download_and_unpack(sg, target, retries, auto_detect_bundle, attachment_id=
             time_before = time.time()
             if attachment_id:
                 log.debug("Downloading attachment id %s..." % attachment_id)
-                bundle_content = sg.download_attachment(url)
+                bundle_content = sg.download_attachment(attachment_id)
                 log.debug("Download complete. Saving into %s" % zip_tmp)
                 with open(zip_tmp, "wb") as fh:
                     fh.write(bundle_content)
@@ -249,9 +249,16 @@ def _download_and_unpack(sg, target, retries, auto_detect_bundle, attachment_id=
                 invalid_zip_file = True
 
         except Exception as e:
-            log.warning(
-                "Attempt %s: Attachment download of id %s from %s failed: %s" % (attempt, attachment_id, sg.base_url, e)
-            )
+            if attachment_id:
+                log.warning(
+                    "Attempt %s: Attachment download of id %s from %s failed: %s" % (attempt, attachment_id, sg.base_url, e)
+                )
+            elif url:
+                log.warning(
+                    "Attempt %s: Download of content of url %s failed: %s" % (attempt, url, e)
+                )
+            else:
+                raise
             attempt += 1
             # sleep 500ms before we retry
             time.sleep(0.5)
