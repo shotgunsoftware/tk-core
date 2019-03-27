@@ -26,22 +26,23 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
     Represents a Github Release.
     """
 
-    def __init__(self, descriptor_dict, sg_connection):
+    def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
         Constructor
 
         :param descriptor_dict: descriptor dictionary describing the bundle
-        :param sg_connection: Shotgun connection to associated site
+        :param sg_connection: Shotgun connection to associated site.
+        :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
-        super(IODescriptorGithubRelease, self).__init__(descriptor_dict)
+        super(IODescriptorGithubRelease, self).__init__(descriptor_dict, sg_connection, bundle_type)
         self._validate_descriptor(
             descriptor_dict,
             required=["type", "organization", "repository", "version"],
             optional=[]
         )
-        # @todo: validation, check for illegal chars, etc perhaps
         self._sg_connection = sg_connection
+        self._bundle_type = bundle_type
         self._organization = descriptor_dict["organization"]
         self._repository = descriptor_dict["repository"]
         self._version = descriptor_dict["version"]
@@ -189,7 +190,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
             "version": version,
             "type": "github_release",
         }
-        desc = IODescriptorGithubRelease(descriptor_dict, self._sg_connection)
+        desc = IODescriptorGithubRelease(descriptor_dict, self._sg_connection, self._bundle_type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
         return desc
 
@@ -226,7 +227,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
         }
 
         # and return a descriptor instance
-        desc = IODescriptorGithubRelease(descriptor_dict, self._sg_connection)
+        desc = IODescriptorGithubRelease(descriptor_dict, self._sg_connection, self._bundle_type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
 
         log.debug("Latest cached version resolved to %r" % desc)
@@ -257,9 +258,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
             # for private repos accessed without a token, so there's no way to helpfully warn the
             # user if they try to download from a private repo.
             can_connect = response_code == 200
-            # @todo should we deal with redirects?
-            # 301 Permanent redirection. The URI you used to make the request has been superseded by the one specified in the Location header field. This and all future requests to this resource should be directed to the new URI.
-            # 302, 307 Temporary redirection. The request should be repeated verbatim to the URI specified in the Location header field but clients should continue to use the original URI for future requests.
+            # @todo Should we also deal with redirects here?
             if can_connect:
                 log.debug("...connection established!")
             else:

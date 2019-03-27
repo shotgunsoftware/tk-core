@@ -66,14 +66,16 @@ class IODescriptorGit(IODescriptorDownloadable):
     descriptors have a repository associated (via the 'path'
     parameter).
     """
-    def __init__(self, descriptor_dict):
+    def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
         Constructor
 
         :param descriptor_dict: descriptor dictionary describing the bundle
+        :param sg_connection: Shotgun connection to associated site.
+        :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
-        super(IODescriptorGit, self).__init__(descriptor_dict)
+        super(IODescriptorGit, self).__init__(descriptor_dict, sg_connection, bundle_type)
 
         self._path = descriptor_dict.get("path")
         # strip trailing slashes - this is so that when we build
