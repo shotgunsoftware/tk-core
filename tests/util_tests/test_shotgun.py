@@ -10,27 +10,17 @@
 
 from __future__ import with_statement
 import os
-import sys
 import shutil
 import datetime
-import threading
 import urlparse
-import unittest2 as unittest
-import logging
 
-from mock import patch, call, MagicMock
+from mock import patch, MagicMock
 
 import tank
-from tank import context, errors
 from tank_test.tank_test_base import TankTestBase, ShotgunTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
-from tank.authentication.user import ShotgunUser
-from tank.authentication.user_impl import SessionUser
-from tank.descriptor import Descriptor
-from tank.descriptor.io_descriptor.appstore import IODescriptorAppStore
-from tank.util import get_sg_entity_name_field
 
 
 def get_file_list(folder, prefix):
