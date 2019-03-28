@@ -400,29 +400,26 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
         target_dir = os.path.join(self.download_destination, "attachment")
         attachment_id = 764876347
         self.mockgun.download_attachment = MagicMock()
-        try:
-            # fail forever, and ensure exception is raised.
-            self.mockgun.download_attachment.side_effect = Exception("Test Exception")
-            with self.assertRaises(tank.util.ShotgunAttachmentDownloadError):
-                tank.util.shotgun.download_and_unpack_attachment(
-                    self.mockgun, attachment_id, target_dir
-                )
 
-            # fail once, then succeed, ensuring retries work.
-            self.mockgun.download_attachment.side_effect = (
-                Exception("Test Exception"), download_result
-            )
+        # fail forever, and ensure exception is raised.
+        self.mockgun.download_attachment.side_effect = Exception("Test Exception")
+        with self.assertRaises(tank.util.ShotgunAttachmentDownloadError):
             tank.util.shotgun.download_and_unpack_attachment(
                 self.mockgun, attachment_id, target_dir
             )
-            self.mockgun.download_attachment.assert_called_with(attachment_id)
-            self.assertEqual(
-                set(get_file_list(target_dir, target_dir)),
-                set(self.expected_output)
-            )
-        finally:
-            shutil.rmtree(target_dir)
-            del self.mockgun.download_attachment
+
+        # fail once, then succeed, ensuring retries work.
+        self.mockgun.download_attachment.side_effect = (
+            Exception("Test Exception"), download_result
+        )
+        tank.util.shotgun.download_and_unpack_attachment(
+            self.mockgun, attachment_id, target_dir
+        )
+        self.mockgun.download_attachment.assert_called_with(attachment_id)
+        self.assertEqual(
+            set(get_file_list(target_dir, target_dir)),
+            set(self.expected_output)
+        )
 
     def test_download_and_unpack_url(self):
         """
@@ -430,14 +427,14 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
         failure, and downloads and unpacks the specified URL as expected.
         """
         target_dir = os.path.join(self.download_destination, "url")
-        try:
-            with patch("tank.util.shotgun.download.download_url") as download_url_mock:
-                # Fail forever, and ensure exception is raised.
-                download_url_mock.side_effect = Exception("Test Exception")
-                with self.assertRaises(tank.util.ShotgunAttachmentDownloadError):
-                    tank.util.shotgun.download_and_unpack_url(
-                        self.mockgun, self.good_zip_url, target_dir
-                    )
+
+        with patch("tank.util.shotgun.download.download_url") as download_url_mock:
+            # Fail forever, and ensure exception is raised.
+            download_url_mock.side_effect = Exception("Test Exception")
+            with self.assertRaises(tank.util.ShotgunAttachmentDownloadError):
+                tank.util.shotgun.download_and_unpack_url(
+                    self.mockgun, self.good_zip_url, target_dir
+                )
 
             # Download a zip file and ensure that it's unpacked to the expected location.
             tank.util.shotgun.download_and_unpack_url(
@@ -447,8 +444,6 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
                 set(get_file_list(target_dir, target_dir)),
                 set(self.expected_output)
             )
-        finally:
-            shutil.rmtree(target_dir)
 
     def test_no_source(self):
         """
