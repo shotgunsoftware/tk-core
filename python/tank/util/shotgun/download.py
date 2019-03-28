@@ -270,7 +270,10 @@ def _download_and_unpack(sg, target, retries, auto_detect_bundle, attachment_id=
 
     if invalid_zip_file:
         # the attachment in shotgun could not be unpacked
-        raise ShotgunAttachmentDownloadError("Shotgun attachment with id %s is not a zip file!" % attachment_id)
+        if attachment_id:
+            raise ShotgunAttachmentDownloadError("Shotgun attachment with id %s is not a zip file!" % attachment_id)
+        else:
+            raise ShotgunAttachmentDownloadError("Content of url %s is not a zip file!" % url)
     elif not done:
         # we couldn't download for some reason
         raise ShotgunAttachmentDownloadError(
