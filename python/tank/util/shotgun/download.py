@@ -240,10 +240,11 @@ def _download_and_unpack(sg, target, retries, auto_detect_bundle, attachment_id=
 
             # log connection speed
             time_to_download = time.time() - time_before
-            broadband_speed_bps = file_size * 8.0 / time_to_download
-            broadband_speed_mibps = broadband_speed_bps / (1024 * 1024)
-            log.debug("Download speed: %4f Mbit/s" % broadband_speed_mibps)
-            print "Download speed: %4f Mbit/s" % broadband_speed_mibps
+            if time_to_download:
+                broadband_speed_bps = file_size * 8.0 / time_to_download
+                broadband_speed_mibps = broadband_speed_bps / (1024 * 1024)
+                log.debug("Download speed: %4f Mbit/s" % broadband_speed_mibps)
+                print "Download speed: %4f Mbit/s" % broadband_speed_mibps
 
             log.debug("Unpacking %s bytes to %s..." % (file_size, target))
             print "Unpacking %s bytes to %s..." % (file_size, target)
