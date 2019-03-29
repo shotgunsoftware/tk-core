@@ -223,15 +223,12 @@ def _download_and_unpack(sg, target, retries, auto_detect_bundle, attachment_id=
             time_before = time.time()
             if attachment_id:
                 log.debug("Downloading attachment id %s..." % attachment_id)
-                print "Downloading attachment id %s..." % attachment_id
                 bundle_content = sg.download_attachment(attachment_id)
                 log.debug("Download complete. Saving into %s" % zip_tmp)
-                print "Download complete. Saving into %s" % zip_tmp
                 with open(zip_tmp, "wb") as fh:
                     fh.write(bundle_content)
             elif url:
                 log.debug("Downloading content of url %s..." % url)
-                print "Downloading content of url %s..." % url
                 download_url(sg, url, zip_tmp)
             else:
                 raise ValueError("A value is required for one of kwargs `url` or `attachment_id`")
@@ -241,13 +238,14 @@ def _download_and_unpack(sg, target, retries, auto_detect_bundle, attachment_id=
             # log connection speed
             time_to_download = time.time() - time_before
             if time_to_download:
+                # In downloads from localhost (including during unit tests)
+                # downloads can be immediate.  In this case, we won't try to log
+                # download speed.
                 broadband_speed_bps = file_size * 8.0 / time_to_download
                 broadband_speed_mibps = broadband_speed_bps / (1024 * 1024)
                 log.debug("Download speed: %4f Mbit/s" % broadband_speed_mibps)
-                print "Download speed: %4f Mbit/s" % broadband_speed_mibps
 
             log.debug("Unpacking %s bytes to %s..." % (file_size, target))
-            print "Unpacking %s bytes to %s..." % (file_size, target)
             filesystem.ensure_folder_exists(target)
             try:
                 unzip_file(zip_tmp, target, auto_detect_bundle)
@@ -255,9 +253,6 @@ def _download_and_unpack(sg, target, retries, auto_detect_bundle, attachment_id=
                 invalid_zip_file = True
 
         except Exception as e:
-            print "Exception raised in _download_and_unpack:"
-            import traceback
-            traceback.print_exc()
             if attachment_id:
                 log.warning(
                     "Attempt %s: Attachment download of id %s from %s failed: %s" % (attempt, attachment_id, sg.base_url, e)

@@ -288,6 +288,8 @@ class TestShotgunDownloadUrl(ShotgunTestBase):
         )
 
         # Construct a URL from the source file name
+        # "file" will be used for the protocol, so this URL will look like
+        # `file:///fixtures_root/config/hooks/toolkitty.png`
         self.download_url = urlparse.urlunparse(
             ("file", None, self.download_source, None, None, None)
         )
@@ -370,6 +372,8 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
         self.expected_output = open(self.expected_output_txt).read().split("\n")
 
         # Construct URLs from the source file name
+        # "file" will be used for the protocol, so this URL will look like
+        # `file:///fixtures_root/misc/zip/tank_core.zip`
         self.good_zip_url = urlparse.urlunparse(
             ("file", None, self.download_source, None, None, None)
         )
@@ -399,9 +403,6 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
         download_result = open(self.download_source, "rb").read()
         target_dir = os.path.join(self.download_destination, "attachment")
         attachment_id = 764876347
-        print "\ntarget dir:", target_dir
-        print "mockgun:", self.mockgun
-        print "download_result size:", len(download_result)
         self.mockgun.download_attachment = MagicMock()
         try:
             # fail forever, and ensure exception is raised.
@@ -433,9 +434,6 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
         failure, and downloads and unpacks the specified URL as expected.
         """
         target_dir = os.path.join(self.download_destination, "url")
-        print "\nsource url:", self.good_zip_url
-        print "target dir:", target_dir
-        print "mockgun:", self.mockgun
         try:
             with patch("tank.util.shotgun.download.download_url") as download_url_mock:
                 # Fail forever, and ensure exception is raised.
