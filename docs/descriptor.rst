@@ -322,9 +322,10 @@ Getting ``tk-multi-pythonconsole`` from its ``shotgunsoftware`` Github repo:
         version: v1.2.29
     }
 
- - ``organization`` is the Github organization or user that the repository belongs to.
- - ``repository`` is the name of the repository to find a Release for.
- - ``version`` is the name of the Release to use.
+
+- ``organization`` is the Github organization or user that the repository belongs to.
+- ``repository`` is the name of the repository to find a Release for.
+- ``version`` is the name of the Release to use.
 
 You can use both long and short hash formats for the version token. The latest version for a git_branch
 descriptor is defined as the most recent commit for a given branch.
