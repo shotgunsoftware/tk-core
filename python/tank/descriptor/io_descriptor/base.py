@@ -46,8 +46,6 @@ class IODescriptorBase(object):
     def register_descriptor_factory(cls, descriptor_type, subclass):
         """
         Registers a descriptor subclass with the :meth:`create` factory.
-        This is an internal method that should not be called by external
-        code.
 
         :param descriptor_type: String type name of the descriptor, as will
             appear in the app location configuration.
@@ -58,8 +56,7 @@ class IODescriptorBase(object):
     @classmethod
     def create(cls, bundle_type, descriptor_dict, sg_connection):
         """
-        Factory method used by :meth:`create_descriptor`. This is an internal
-        method that should not be called by external code.
+        Factory method used by :meth:`create_descriptor`.
 
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :param descriptor_dict: Descriptor dictionary describing the bundle.
