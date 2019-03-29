@@ -250,7 +250,8 @@ def _download_and_unpack(sg, target, retries, auto_detect_bundle, attachment_id=
 
         except Exception as e:
             print "Exception raised in _download_and_unpack:"
-            e.print_exc()
+            import traceback
+            traceback.print_exc()
             if attachment_id:
                 log.warning(
                     "Attempt %s: Attachment download of id %s from %s failed: %s" % (attempt, attachment_id, sg.base_url, e)
