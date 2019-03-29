@@ -396,7 +396,7 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
         download_attachment() as exepcted, and unpacks the
         returned zip file as expected.
         """
-        download_result = open(self.download_source).read()
+        download_result = open(self.download_source, "rb").read()
         target_dir = os.path.join(self.download_destination, "attachment")
         attachment_id = 764876347
         print "\ntarget dir:", target_dir
