@@ -309,7 +309,6 @@ Tracking against releases on Github
 ===================================
 
 The ``github_release`` descriptor type is useful for studios and 3rd parties wishing to deploy apps directly from Github.
-a commit in a particular branch.
 
 Getting ``tk-multi-pythonconsole`` from its ``shotgunsoftware`` Github repo:
 
