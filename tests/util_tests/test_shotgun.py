@@ -10,6 +10,7 @@
 
 from __future__ import with_statement
 import os
+import shutil
 import datetime
 import urlparse
 
@@ -398,27 +399,33 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
         download_result = open(self.download_source).read()
         target_dir = os.path.join(self.download_destination, "attachment")
         attachment_id = 764876347
+        print "\ntarget dir:", target_dir
+        print "mockgun:", self.mockgun
+        print "download_result size:", len(download_result)
         self.mockgun.download_attachment = MagicMock()
+        try:
+            # fail forever, and ensure exception is raised.
+            self.mockgun.download_attachment.side_effect = Exception("Test Exception")
+            with self.assertRaises(tank.util.ShotgunAttachmentDownloadError):
+                tank.util.shotgun.download_and_unpack_attachment(
+                    self.mockgun, attachment_id, target_dir
+                )
 
-        # fail forever, and ensure exception is raised.
-        self.mockgun.download_attachment.side_effect = Exception("Test Exception")
-        with self.assertRaises(tank.util.ShotgunAttachmentDownloadError):
+            # fail once, then succeed, ensuring retries work.
+            self.mockgun.download_attachment.side_effect = (
+                Exception("Test Exception"), download_result
+            )
             tank.util.shotgun.download_and_unpack_attachment(
                 self.mockgun, attachment_id, target_dir
             )
-
-        # fail once, then succeed, ensuring retries work.
-        self.mockgun.download_attachment.side_effect = (
-            Exception("Test Exception"), download_result
-        )
-        tank.util.shotgun.download_and_unpack_attachment(
-            self.mockgun, attachment_id, target_dir
-        )
-        self.mockgun.download_attachment.assert_called_with(attachment_id)
-        self.assertEqual(
-            set(get_file_list(target_dir, target_dir)),
-            set(self.expected_output)
-        )
+            self.mockgun.download_attachment.assert_called_with(attachment_id)
+            self.assertEqual(
+                set(get_file_list(target_dir, target_dir)),
+                set(self.expected_output)
+            )
+        finally:
+            shutil.rmtree(target_dir)
+            del self.mockgun.download_attachment
 
     def test_download_and_unpack_url(self):
         """
@@ -426,14 +433,17 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
         failure, and downloads and unpacks the specified URL as expected.
         """
         target_dir = os.path.join(self.download_destination, "url")
-
-        with patch("tank.util.shotgun.download.download_url") as download_url_mock:
-            # Fail forever, and ensure exception is raised.
-            download_url_mock.side_effect = Exception("Test Exception")
-            with self.assertRaises(tank.util.ShotgunAttachmentDownloadError):
-                tank.util.shotgun.download_and_unpack_url(
-                    self.mockgun, self.good_zip_url, target_dir
-                )
+        print "\nsource url:", self.good_zip_url
+        print "target dir:", target_dir
+        print "mockgun:", self.mockgun
+        try:
+            with patch("tank.util.shotgun.download.download_url") as download_url_mock:
+                # Fail forever, and ensure exception is raised.
+                download_url_mock.side_effect = Exception("Test Exception")
+                with self.assertRaises(tank.util.ShotgunAttachmentDownloadError):
+                    tank.util.shotgun.download_and_unpack_url(
+                        self.mockgun, self.good_zip_url, target_dir
+                    )
 
             # Download a zip file and ensure that it's unpacked to the expected location.
             tank.util.shotgun.download_and_unpack_url(
@@ -443,6 +453,8 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
                 set(get_file_list(target_dir, target_dir)),
                 set(self.expected_output)
             )
+        finally:
+            shutil.rmtree(target_dir)
 
     def test_no_source(self):
         """
