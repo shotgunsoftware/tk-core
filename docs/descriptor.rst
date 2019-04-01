@@ -315,9 +315,9 @@ Getting ``tk-multi-pythonconsole`` from its ``shotgunsoftware`` Github repo:
 .. code-block:: yaml
 
     {
-        type: github_release
-        organization: shotgunsoftware
-        repository: tk-multi-pythonconsole
+        type: github_release,
+        organization: shotgunsoftware,
+        repository: tk-multi-pythonconsole,
         version: v1.2.29
     }
 
