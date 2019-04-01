@@ -321,17 +321,19 @@ Getting ``tk-multi-pythonconsole`` from its ``shotgunsoftware`` Github repo:
         version: v1.2.29
     }
 
+.. code-block:: yaml
+
+    sgtk:descriptor:github_release?organization=shotgunsoftware&repository=tk-multi-pythonconsole&version=v1.2.29
+
 
 - ``organization`` is the Github organization or user that the repository belongs to.
 - ``repository`` is the name of the repository to find a Release for.
 - ``version`` is the name of the Release to use.
 
-You can use both long and short hash formats for the version token. The latest version for a git_branch
-descriptor is defined as the most recent commit for a given branch.
 
-.. note:: This descriptor only works with Github Releases, not all tags.  For more information, see the [Github Documentation on Releases](https://help.github.com/en/articles/creating-releases).
+.. note:: This descriptor only works with Github Releases, not all tags.  For more information, see the `Github Documentation on Releases <https://help.github.com/en/articles/creating-releases>`_.
 
-.. note:: If you want constraint patterns (i.e. ``v1.x.x``) to work correctly with this descriptor, you must follow the [semantic versioning](https://semver.org/) specification when naming Releases on Github.
+.. note:: If you want constraint patterns (i.e. ``v1.x.x``) to work correctly with this descriptor, you must follow the `semantic versioning <https://semver.org/>`_ specification when naming Releases on Github.
 
 .. warning:: Private repositories are not currently supported by this descriptor.
 
