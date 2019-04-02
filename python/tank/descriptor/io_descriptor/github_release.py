@@ -7,7 +7,6 @@
 # By accessing, using, copying or modifying this work you indicate your 
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
-from ...util.shotgun import download
 
 import json
 import os
@@ -17,6 +16,7 @@ import urllib2
 from .downloadable import IODescriptorDownloadable
 from ..errors import TankError, TankDescriptorError
 from ... import LogManager
+from ...util.shotgun import download
 
 log = LogManager.get_logger(__name__)
 
