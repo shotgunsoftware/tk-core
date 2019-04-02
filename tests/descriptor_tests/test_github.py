@@ -56,10 +56,12 @@ class MockResponse(object):
         """
         self._page_name = page_name
         fixtures_path = os.path.join(os.environ["TK_TEST_FIXTURES"], "descriptor_tests", "github")
+
         # get the response data from {pagename}.json file in the fixtures dir
         response_path = os.path.join(fixtures_path, page_name + ".json")
         with open(response_path) as response_file:
             self.resp_data = response_file.read()
+
         # get the headers from {pagename}.header file in the fixtures dir and
         # build a dictionary matching the expected headers from urllib2
         header_path = os.path.join(fixtures_path, page_name + ".header")
@@ -78,6 +80,7 @@ class MockResponse(object):
                 if m:
                     # keys will be all-lowercase
                     headers[m.group("key").lower()] = m.group("value")
+
         self.code = status_code
         self.msg = status_message
         self.headers = headers
@@ -183,14 +186,17 @@ class TestGithubIODescriptor(ShotgunTestBase):
         """
         with patch(_TESTED_MODULE + ".urllib2.urlopen") as urlopen_mock:
             desc = self._create_desc()
+
             # URLError from urllib2 should raise TankDescriptorError.
             urlopen_mock.side_effect = urllib2.URLError("Some Exception")
             with self.assertRaises(sgtk.descriptor.TankDescriptorError):
                 desc.find_latest_version()
+
             # A non 200, non 404 response from Github should also raise a TankDescriptorError.
             urlopen_mock.side_effect = MockResponse("repo_root_500").get_exception()
             with self.assertRaises(sgtk.descriptor.TankDescriptorError):
                 desc.find_latest_version()
+
             # A 404 response from Github should give us back the current Descriptor.
             urlopen_mock.side_effect = MockResponse("repo_root_404").get_exception()
             self.assertEqual(desc.find_latest_version(), desc)
@@ -221,6 +227,7 @@ class TestGithubIODescriptor(ShotgunTestBase):
             urlopen_mock.assert_called_with(target_url_page_1)
             self.assertEqual(urlopen_mock.call_count, 1)
             self.assertEqual(desc2.get_version(), "v1.2.30")
+
         # Now test again, but the desired item will be on the second page, make sure
         # we request it.
         with patch(_TESTED_MODULE + ".urllib2.urlopen") as urlopen_mock:
@@ -239,11 +246,13 @@ class TestGithubIODescriptor(ShotgunTestBase):
         """
         with patch(_TESTED_CLASS + "._get_locally_cached_versions") as cached_versions_mock:
             desc = self._create_desc()
+
             # Ensure that the latest cached version is returned if present.
             cached_versions_dict = {"v3.2.1": "/fake/path", "v4.2.1": "/faker/path"}
             cached_versions_mock.return_value = cached_versions_dict
             desc2 = desc.find_latest_cached_version()
             self.assertEqual(desc2.get_version(), "v4.2.1")
+
             # If no cached versions are present, None should be returned.
             cached_versions_mock.return_value = dict()
             self.assertEqual(desc.find_latest_cached_version(), None)
@@ -255,13 +264,15 @@ class TestGithubIODescriptor(ShotgunTestBase):
         acceptable release on disk when a constraint pattern is provided.
         """
         with patch(_TESTED_CLASS + "._get_locally_cached_versions") as cached_versions_mock:
+            desc = self._create_desc()
+
             # Ensure that the latest cached version that matches the provided constraint pattern
             # is returned (and not a newer one that doesn't match the constraint pattern.)
             cached_versions_dict = {"v3.2.1": "/fake/path", "v4.2.1": "/faker/path"}
             cached_versions_mock.return_value = cached_versions_dict
-            desc = self._create_desc()
             desc2 = desc.find_latest_cached_version(constraint_pattern="v3.x.x")
             self.assertEqual(desc2.get_version(), "v3.2.1")
+
             # If no cached versions match the provided constraint pattern, None should be returned.
             desc2 = desc.find_latest_cached_version(constraint_pattern="v5.x.x")
             self.assertEqual(desc2, None)
@@ -282,9 +293,11 @@ class TestGithubIODescriptor(ShotgunTestBase):
             urlopen_mock.return_value = MockResponse("repo_root")
             self.assertEqual(desc.has_remote_access(), True)
             urlopen_mock.assert_called_with(target_url)
+
             # 404 response
             urlopen_mock.side_effect = MockResponse("repo_root_404").get_exception()
             self.assertEqual(desc.has_remote_access(), False)
+
             # No internet connection, no response from GH API, etc
             urlopen_mock.side_effect = urllib2.URLError("Test exception.")
             self.assertEqual(desc.has_remote_access(), False)
@@ -317,11 +330,13 @@ class TestGithubIODescriptor(ShotgunTestBase):
             r=self.default_location_dict["repository"],
             v=self.default_location_dict["version"],
         )
+
         with patch("tank.util.shotgun.download.download_and_unpack_url") as download_and_unpack_url_mock:
             # Raise an exception first and ensure it's caught and a TankDescriptorError is raised.
             download_and_unpack_url_mock.side_effect = sgtk.TankError()
             with self.assertRaises(sgtk.descriptor.TankDescriptorError):
                 desc.download_local()
+
         with patch("tank.util.shotgun.download.download_and_unpack_url") as download_and_unpack_url_mock:
             # Now reset and let the download "succeed" and ensure the correct calls were made, and
             # the expected arguments were passed.
