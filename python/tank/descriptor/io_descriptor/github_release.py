@@ -249,7 +249,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
         """
         Probes if the current descriptor is able to handle remote requests by
         requesting the repo resource from the Github API for the repository this
-        descriptor instance will get releases for.  If a 200 code response is
+        descriptor instance will get releases for. If a 200 code response is
         received, it is determined that the method should return true, and that
         operations such as :meth:`download_local` and :meth:`get_latest_version`
         can be expected to succeed.
@@ -272,7 +272,10 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
             # for private repos accessed without a token, so there's no way to helpfully warn the
             # user if they try to download from a private repo.
             can_connect = response_code == 200
-            # @todo Should we also deal with redirects here?
+            # @todo Perhaps deal with redirects (which may occur in the case of a
+            # renamed repo) here. The HTTPRedirectHandler may be a good option
+            # for this.
+            # (https://docs.python.org/2/library/urllib2.html#urllib2.HTTPRedirectHandler)
             if can_connect:
                 log.debug("...connection established!")
             else:
