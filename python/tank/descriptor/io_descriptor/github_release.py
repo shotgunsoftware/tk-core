@@ -117,9 +117,11 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
         """
         if not url:
             # If no URL was provided, build one for this descriptor.
+            log.debug("Building Github API request URL...")
             url = "https://api.github.com/repos/{organization}/{system_name}/releases"
             url = url.format(organization=self._organization, system_name=self.get_system_name())
         if self._sg_connection.config.proxy_handler:
+            log.debug("Installing Proxy Handler for Github API requests...")
             # Grab proxy server settings from the shotgun API.
             opener = urllib2.build_opener(self._sg_connection.config.proxy_handler)
             urllib2.install_opener(opener)
@@ -129,20 +131,26 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
         # that it can be followed if need be.
         next_link = None
         try:
+            log.debug("Requesting Releases from Github API: %s" % url)
             response = urllib2.urlopen(url)
             response_data = json.load(response)
+            log.debug("Got a valid JSON response from Github API.")
             m = re.search(r"<(.+)>; rel=\"next\"", response.headers.get("link", ""))
             if m:
                 next_link = m.group(1)
+                log.debug("Github API response indicates an additional page at %s" % next_link)
         except urllib2.HTTPError as e:
             if e.code == 404:
-                # Github API gives a 404 when no releases have been published.  Additionally,
+                # Github API gives a 404 when no releases have been published. Additionally,
                 # 404 could mean a non-existant or private repo, but this should have been caught
                 # by has_remote_access().
+                log.warning("Github API responed with code 404.")
                 return ([], None)
             else:
+                log.warning("Github API responed with code %d." % e.code)
                 raise TankDescriptorError("Error communicating with Github API: %s" % e)
         except urllib2.URLError as e:
+            log.warning("Error connecting to Github API: %s" % e)
             raise TankDescriptorError("Unable to contact Github API: %s" % e)
         # zipballs are stored under the tag name, not the release name,
         # so that's the "version" name we want
@@ -164,13 +172,14 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
         :returns: IODescriptorGithubRelease object
         """
         if constraint_pattern:
-            # get the list of releases from github API.  If we don't find a match on
+            # get the list of releases from github API. If we don't find a match on
             # the first request, and there was an additional page linked, follow the link
-            # and see if we find a match.  Repeat until a match is found, or there are no
+            # and see if we find a match. Repeat until a match is found, or there are no
             # more pages.
             can_fetch_more = True
             next_url = None
             version = None
+            log.debug("Querying Github for releases to find a match for %s..." % constraint_pattern)
             while not version and can_fetch_more:
                 versions, next_url = self._get_github_releases(url=next_url)
                 version = self._find_latest_tag_by_pattern(versions, constraint_pattern)
@@ -178,10 +187,12 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
         else:
             # Otherwise, we can ask for the latest version from the github api
             # directly.
+            log.debug("Querying Github for the latest release...")
             versions, _ = self._get_github_releases(latest_only=True)
             version = versions[0] if versions else None
         if version is None or version == self.get_version():
             # There is no latest release, or the latest release is this one, so return this descriptor.
+            log.debug("No latest release was found.")
             return self
         # If a release was found, generate a descriptor for that version and return it.
         descriptor_dict = {
@@ -192,6 +203,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
         }
         desc = IODescriptorGithubRelease(descriptor_dict, self._sg_connection, self._bundle_type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
+        log.debug("Latest version resolved to %r" % desc)
         return desc
 
     def get_latest_cached_version(self, constraint_pattern=None):
