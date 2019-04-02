@@ -103,16 +103,16 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
 
     def _get_github_releases(self, latest_only=False, url=None):
         """
-        Helper method for interacting witht he Github API.  Finds releases using the
+        Helper method for interacting with the Github API. Finds releases using the
         Github API for the organization and repo of this Descriptor instance, and builds
-        a list of tag names.  If the results are paginated and there is an additional page after
+        a list of tag names. If the results are paginated and there is an additional page after
         the current page, that page's URL will also be returned.
 
         :param latest_only: If True asks the Github API for the latest release only.
-        :param url: If specified, gets releases from this URL instead of building one.  This is
+        :param url: If specified, gets releases from this URL instead of building one. This is
             useful for following pagination links.
-        :return: tuple of list, string or None.  The list will contain a list of strings for the
-            tag names (versions) that were found.  The second position will contain a URL for the
+        :return: tuple of list, string or None. The list will contain a list of strings for the
+            tag names (versions) that were found. The second position will contain a URL for the
             next page if the results were paginated, or None if this is the last page of results.
         """
         if not url:
@@ -235,12 +235,14 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
 
     def has_remote_access(self):
         """
-        Probes if the current descriptor is able to handle
-        remote requests. If this method returns, true, operations
-        such as :meth:`download_local` and :meth:`get_latest_version`
+        Probes if the current descriptor is able to handle remote requests by
+        requesting the repo resource from the Github API for the repository this
+        descriptor instance will get releases for.  If a 200 code response is
+        received, it is determined that the method should return true, and that
+        operations such as :meth:`download_local` and :meth:`get_latest_version`
         can be expected to succeed.
 
-        :return: True if a remote is accessible, false if not.
+        :return: True if the Github API is accessible, false if not.
         """
         # check if we can make api request for the specified repo
         can_connect = True

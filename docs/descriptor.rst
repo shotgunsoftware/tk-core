@@ -331,7 +331,7 @@ Getting ``tk-multi-pythonconsole`` from its ``shotgunsoftware`` Github repo:
 - ``version`` is the name of the Release to use.
 
 
-.. note:: This descriptor only works with Github Releases, not all tags.  For more information, see the `Github Documentation on Releases <https://help.github.com/en/articles/creating-releases>`_.
+.. note:: This descriptor only works with Github Releases, not all tags. For more information, see the `Github Documentation on Releases <https://help.github.com/en/articles/creating-releases>`_.
 
 .. note:: If you want constraint patterns (i.e. ``v1.x.x``) to work correctly with this descriptor, you must follow the `semantic versioning <https://semver.org/>`_ specification when naming Releases on Github.
 
