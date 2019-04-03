@@ -8,7 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from functools import wraps
 import mock
 from mock import patch
 import os
@@ -22,22 +21,6 @@ from tank_test.tank_test_base import ShotgunTestBase
 
 _TESTED_MODULE = "tank.descriptor.io_descriptor.github_release"
 _TESTED_CLASS = _TESTED_MODULE + ".IODescriptorGithubRelease"
-
-
-def skip_remote_access_check(has_access=True):
-    """
-    Decorator to mock the has_remote_access method on IODescriptorGithubRelease.
-
-    :param has_access: the value has_remote_access should return.
-    """
-    def inner(fn):
-        @wraps(fn)
-        def wrapped(*args, **kwargs):
-            with patch(_TESTED_CLASS + ".has_remote_access") as has_remote_access_mock:
-                has_remote_access_mock.return_value = has_access
-                fn(*args, **kwargs)
-        return wrapped
-    return inner
 
 
 class MockResponse(object):
@@ -113,9 +96,10 @@ class MockResponse(object):
         return None
 
 
-class TestGithubIODescriptor(ShotgunTestBase):
+class GithubIODescriptorTestBase(ShotgunTestBase):
     """
-    Testing the Shotgun deploy main API methods
+    Base class for testing the Github IODescriptor that provides a convenience method
+    for generating a Descriptor, and default values for that descriptor for testing.
     """
 
     def setUp(self):
@@ -131,8 +115,7 @@ class TestGithubIODescriptor(ShotgunTestBase):
             "repository": "tk-core",
             "version": "v1.2.1"
         }
-        # mock has_remote_access for all tests?  see if there precedent for this.
-        # then test has_remote_access on its own.
+        super(GithubIODescriptorTestBase, self).setUp()
 
     def _create_desc(self, location=None, resolve_latest=False, desc_type=Descriptor.CONFIG):
         """
@@ -147,7 +130,23 @@ class TestGithubIODescriptor(ShotgunTestBase):
             bundle_cache_root_override=self.bundle_cache,
             resolve_latest=resolve_latest)
 
-    @skip_remote_access_check()
+
+class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
+    """
+    Test the GithubIODescriptor with has_remote_access always returning True.
+    """
+
+    def setUp(self):
+        # patch has_remote_access to always return True
+        self._has_remote_access_mock = patch(_TESTED_CLASS + ".has_remote_access")
+        self._has_remote_access_mock.start()
+        self._has_remote_access_mock.return_value = True
+        super(TestGithubIODescriptorWithRemoteAccess, self).setUp()
+
+    def tearDown(self):
+        self._has_remote_access_mock.stop()
+        super(TestGithubIODescriptorWithRemoteAccess, self).tearDown()
+
     def test_construction(self):
         """
         Test that the Descriptor construction is successful, and correctly sets
@@ -157,7 +156,6 @@ class TestGithubIODescriptor(ShotgunTestBase):
         self.assertEqual(desc.get_system_name(), self.default_location_dict["repository"])
         self.assertEqual(desc.get_version(), self.default_location_dict["version"])
 
-    @skip_remote_access_check()
     def test_get_latest_release(self):
         """
         Test that the get_latest_version() method correctly finds the latest release,
@@ -178,7 +176,6 @@ class TestGithubIODescriptor(ShotgunTestBase):
             urlopen_mock.assert_called_with(target_url)
             self.assertEqual(desc2.version, "v1.2.3")
 
-    @skip_remote_access_check()
     def test_get_release_failure(self):
         """
         Test that the get_latest_version() method correctly responds as expected
@@ -201,7 +198,6 @@ class TestGithubIODescriptor(ShotgunTestBase):
             urlopen_mock.side_effect = MockResponse("repo_root_404").get_exception()
             self.assertEqual(desc.find_latest_version(), desc)
 
-    @skip_remote_access_check()
     def test_get_constraint_release(self):
         """
         Test that the get_latest_version() method correctly finds the latest acceptable
@@ -238,71 +234,6 @@ class TestGithubIODescriptor(ShotgunTestBase):
             self.assertEqual(urlopen_mock.call_count, 2)
             self.assertEqual(desc2.get_version(), "v1.1.1")
 
-    @skip_remote_access_check(has_access=False)
-    def test_get_latest_cached_release(self):
-        """
-        Test that the get_latest_cached_version() method correctly finds the latest release
-        on disk.
-        """
-        with patch(_TESTED_CLASS + "._get_locally_cached_versions") as cached_versions_mock:
-            desc = self._create_desc()
-
-            # Ensure that the latest cached version is returned if present.
-            cached_versions_dict = {"v3.2.1": "/fake/path", "v4.2.1": "/faker/path"}
-            cached_versions_mock.return_value = cached_versions_dict
-            desc2 = desc.find_latest_cached_version()
-            self.assertEqual(desc2.get_version(), "v4.2.1")
-
-            # If no cached versions are present, None should be returned.
-            cached_versions_mock.return_value = dict()
-            self.assertEqual(desc.find_latest_cached_version(), None)
-
-    @skip_remote_access_check(has_access=False)
-    def test_get_constraint_cached_release(self):
-        """
-        Test that the get_latest_cached_version() method correctly finds the latest
-        acceptable release on disk when a constraint pattern is provided.
-        """
-        with patch(_TESTED_CLASS + "._get_locally_cached_versions") as cached_versions_mock:
-            desc = self._create_desc()
-
-            # Ensure that the latest cached version that matches the provided constraint pattern
-            # is returned (and not a newer one that doesn't match the constraint pattern.)
-            cached_versions_dict = {"v3.2.1": "/fake/path", "v4.2.1": "/faker/path"}
-            cached_versions_mock.return_value = cached_versions_dict
-            desc2 = desc.find_latest_cached_version(constraint_pattern="v3.x.x")
-            self.assertEqual(desc2.get_version(), "v3.2.1")
-
-            # If no cached versions match the provided constraint pattern, None should be returned.
-            desc2 = desc.find_latest_cached_version(constraint_pattern="v5.x.x")
-            self.assertEqual(desc2, None)
-
-    def test_has_remote_access(self):
-        """
-        Test that the has_remote_access() method returns as expected when able and unable to
-        connect to the Github API, and requests the correct URL.
-        """
-        desc = self._create_desc()
-        target_url = "https://api.github.com/repos/{o}/{r}"
-        target_url = target_url.format(
-            o=self.default_location_dict["organization"],
-            r=self.default_location_dict["repository"]
-        )
-        with patch(_TESTED_MODULE + ".urllib2.urlopen") as urlopen_mock:
-            # normal good response
-            urlopen_mock.return_value = MockResponse("repo_root")
-            self.assertEqual(desc.has_remote_access(), True)
-            urlopen_mock.assert_called_with(target_url)
-
-            # 404 response
-            urlopen_mock.side_effect = MockResponse("repo_root_404").get_exception()
-            self.assertEqual(desc.has_remote_access(), False)
-
-            # No internet connection, no response from GH API, etc
-            urlopen_mock.side_effect = urllib2.URLError("Test exception.")
-            self.assertEqual(desc.has_remote_access(), False)
-
-    @skip_remote_access_check()
     def test_bundle_cache_path(self):
         """
         Test that the bund_cache_path is built as expected.
@@ -318,7 +249,6 @@ class TestGithubIODescriptor(ShotgunTestBase):
         found_bundle_cache_path = desc._io_descriptor._get_bundle_cache_path(self.bundle_cache)
         self.assertEqual(found_bundle_cache_path, expected_bundle_cache_path)
 
-    @skip_remote_access_check()
     def test_download_local(self):
         """
         Test that download_local downloads from the correct URL, and handles an Exception as expected.
@@ -349,6 +279,91 @@ class TestGithubIODescriptor(ShotgunTestBase):
             self.assertEqual(calls[0][0][0], self.mockgun)
             # second positional arg of first call
             self.assertEqual(calls[0][0][1], expected_url)
+
+
+class TestGithubIODescriptorWithoutRemoteAccess(GithubIODescriptorTestBase):
+    """
+    Test the GithubIODescriptor with has_remote_access always returning False.
+    """
+
+    def setUp(self):
+        # patch has_remote_access to always return True
+        self._has_remote_access_mock = patch(_TESTED_CLASS + ".has_remote_access")
+        self._has_remote_access_mock.start()
+        self._has_remote_access_mock.return_value = False
+        super(TestGithubIODescriptorWithoutRemoteAccess, self).setUp()
+
+    def tearDown(self):
+        self._has_remote_access_mock.stop()
+        super(TestGithubIODescriptorWithoutRemoteAccess, self).tearDown()
+
+    def test_get_latest_cached_release(self):
+        """
+        Test that the get_latest_cached_version() method correctly finds the latest release
+        on disk.
+        """
+        with patch(_TESTED_CLASS + "._get_locally_cached_versions") as cached_versions_mock:
+            desc = self._create_desc()
+
+            # Ensure that the latest cached version is returned if present.
+            cached_versions_dict = {"v3.2.1": "/fake/path", "v4.2.1": "/faker/path"}
+            cached_versions_mock.return_value = cached_versions_dict
+            desc2 = desc.find_latest_cached_version()
+            self.assertEqual(desc2.get_version(), "v4.2.1")
+
+            # If no cached versions are present, None should be returned.
+            cached_versions_mock.return_value = dict()
+            self.assertEqual(desc.find_latest_cached_version(), None)
+
+    def test_get_constraint_cached_release(self):
+        """
+        Test that the get_latest_cached_version() method correctly finds the latest
+        acceptable release on disk when a constraint pattern is provided.
+        """
+        with patch(_TESTED_CLASS + "._get_locally_cached_versions") as cached_versions_mock:
+            desc = self._create_desc()
+
+            # Ensure that the latest cached version that matches the provided constraint pattern
+            # is returned (and not a newer one that doesn't match the constraint pattern.)
+            cached_versions_dict = {"v3.2.1": "/fake/path", "v4.2.1": "/faker/path"}
+            cached_versions_mock.return_value = cached_versions_dict
+            desc2 = desc.find_latest_cached_version(constraint_pattern="v3.x.x")
+            self.assertEqual(desc2.get_version(), "v3.2.1")
+
+            # If no cached versions match the provided constraint pattern, None should be returned.
+            desc2 = desc.find_latest_cached_version(constraint_pattern="v5.x.x")
+            self.assertEqual(desc2, None)
+
+
+class TestGithubIODescriptorRemoteAccessCheck(GithubIODescriptorTestBase):
+    """
+    Test the remote aspect check functionality of GithubIODescriptor.   
+    """
+
+    def test_has_remote_access(self):
+        """
+        Test that the has_remote_access() method returns as expected when able and unable to
+        connect to the Github API, and requests the correct URL.
+        """
+        desc = self._create_desc()
+        target_url = "https://api.github.com/repos/{o}/{r}"
+        target_url = target_url.format(
+            o=self.default_location_dict["organization"],
+            r=self.default_location_dict["repository"]
+        )
+        with patch(_TESTED_MODULE + ".urllib2.urlopen") as urlopen_mock:
+            # normal good response
+            urlopen_mock.return_value = MockResponse("repo_root")
+            self.assertEqual(desc.has_remote_access(), True)
+            urlopen_mock.assert_called_with(target_url)
+
+            # 404 response
+            urlopen_mock.side_effect = MockResponse("repo_root_404").get_exception()
+            self.assertEqual(desc.has_remote_access(), False)
+
+            # No internet connection, no response from GH API, etc
+            urlopen_mock.side_effect = urllib2.URLError("Test exception.")
+            self.assertEqual(desc.has_remote_access(), False)
 
     def test_github_api_proxied(self):
         """
