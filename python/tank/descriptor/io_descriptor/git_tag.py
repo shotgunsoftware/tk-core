@@ -35,11 +35,12 @@ class IODescriptorGitTag(IODescriptorGit):
         /full/path/to/local/repo.git
     """
 
-    def __init__(self, descriptor_dict, bundle_type):
+    def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
         Constructor
 
         :param descriptor_dict: descriptor dictionary describing the bundle
+        :param sg_connection: Shotgun connection to associated site.
         :param bundle_type: The type of bundle. ex: Descriptor.APP
         :return: Descriptor instance
         """
@@ -51,13 +52,13 @@ class IODescriptorGitTag(IODescriptorGit):
         )
 
         # call base class
-        super(IODescriptorGitTag, self).__init__(descriptor_dict)
+        super(IODescriptorGitTag, self).__init__(descriptor_dict, sg_connection, bundle_type)
 
         # path is handled by base class - all git descriptors
         # have a path to a repo
         self._version = descriptor_dict.get("version")
-
-        self._type = bundle_type
+        self._sg_connection = sg_connection
+        self._bundle_type = bundle_type
 
     def __str__(self):
         """
@@ -114,7 +115,7 @@ class IODescriptorGitTag(IODescriptorGit):
         legacy_folder = self._get_legacy_bundle_install_folder(
             "git",
             self._bundle_cache_root,
-            self._type,
+            self._bundle_type,
             name,
             self.get_version()
         )
@@ -185,7 +186,7 @@ class IODescriptorGitTag(IODescriptorGit):
         new_loc_dict["version"] = tag_name
 
         # create new descriptor to represent this tag
-        desc = IODescriptorGitTag(new_loc_dict, self._type)
+        desc = IODescriptorGitTag(new_loc_dict, self._sg_connection, self._bundle_type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
         return desc
 
@@ -280,7 +281,7 @@ class IODescriptorGitTag(IODescriptorGit):
         # create new descriptor to represent this tag
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
         new_loc_dict["version"] = version_to_use
-        desc = IODescriptorGitTag(new_loc_dict, self._type)
+        desc = IODescriptorGitTag(new_loc_dict, self._sg_connection, self._bundle_type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
 
         log.debug("Latest cached version resolved to %r" % desc)

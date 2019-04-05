@@ -48,11 +48,13 @@ class IODescriptorGitBranch(IODescriptorGit):
     adjusted to point at the given branch and commit.
     """
 
-    def __init__(self, descriptor_dict):
+    def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
         Constructor
 
         :param descriptor_dict: descriptor dictionary describing the bundle
+        :param sg_connection: Shotgun connection to associated site.
+        :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
         # make sure all required fields are there
@@ -63,10 +65,12 @@ class IODescriptorGitBranch(IODescriptorGit):
         )
 
         # call base class
-        super(IODescriptorGitBranch, self).__init__(descriptor_dict)
+        super(IODescriptorGitBranch, self).__init__(descriptor_dict, sg_connection, bundle_type)
 
         # path is handled by base class - all git descriptors
         # have a path to a repo
+        self._sg_connection = sg_connection
+        self._bundle_type = bundle_type
         self._version = descriptor_dict.get("version")
         self._branch = descriptor_dict.get("branch")
 
@@ -186,7 +190,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         # make a new descriptor
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
         new_loc_dict["version"] = git_hash
-        desc = IODescriptorGitBranch(new_loc_dict)
+        desc = IODescriptorGitBranch(new_loc_dict, self._sg_connection, self._bundle_type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
         return desc
 

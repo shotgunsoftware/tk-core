@@ -1,0 +1,41 @@
+{
+  "url": "https://api.github.com/repos/shotgunsoftware/tk-config-basic/releases/16175996",
+  "assets_url": "https://api.github.com/repos/shotgunsoftware/tk-config-basic/releases/16175996/assets",
+  "upload_url": "https://uploads.github.com/repos/shotgunsoftware/tk-config-basic/releases/16175996/assets{?name,label}",
+  "html_url": "https://github.com/shotgunsoftware/tk-config-basic/releases/tag/v1.2.3",
+  "id": 16175996,
+  "node_id": "MDc6UmVsZWFzZTE2MTc1OTk2",
+  "tag_name": "v1.2.3",
+  "target_commitish": "adobe-features",
+  "name": "Shotgun Basic Configuration v1.2.3",
+  "draft": false,
+  "author": {
+    "login": "mathurf",
+    "id": 8168836,
+    "node_id": "MDQ6VXNlcjgxNjg4MzY=",
+    "avatar_url": "https://avatars2.githubusercontent.com/u/8168836?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/mathurf",
+    "html_url": "https://github.com/mathurf",
+    "followers_url": "https://api.github.com/users/mathurf/followers",
+    "following_url": "https://api.github.com/users/mathurf/following{/other_user}",
+    "gists_url": "https://api.github.com/users/mathurf/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/mathurf/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/mathurf/subscriptions",
+    "organizations_url": "https://api.github.com/users/mathurf/orgs",
+    "repos_url": "https://api.github.com/users/mathurf/repos",
+    "events_url": "https://api.github.com/users/mathurf/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/mathurf/received_events",
+    "type": "User",
+    "site_admin": false
+  },
+  "prerelease": false,
+  "created_at": "2019-03-18T11:28:58Z",
+  "published_at": "2019-03-18T11:38:46Z",
+  "assets": [
+
+  ],
+  "tarball_url": "https://api.github.com/repos/shotgunsoftware/tk-config-basic/tarball/v1.2.3",
+  "zipball_url": "https://api.github.com/repos/shotgunsoftware/tk-config-basic/zipball/v1.2.3",
+  "body": "**What’s new?**\r\nNew integration for Adobe After Effects, as well as a number of improved features and bug fixes, including:\r\n- Resolved an issue where placeholder thumbnails were never replaced in the activity stream widget, and\r\n- Simplified window parenting logic for modern 3ds Max versions.\r\n\r\n**After Effects Integration**\r\nThe Shotgun engine for After Effects contains a standard platform for integrating the Shotgun Pipeline Toolkit apps into After Effects. Once installed, it allows you to run the same apps that you have in Maya, Nuke, Photoshop, and other applications. The full API is exposed to app developers, which means that you can rapidly build After Effects functionality using Python and Qt without having to compile anything or understand the details of how to build and deploy a After Effects plugin.\r\n\r\nThis integration also includes a new framework for RPC and extension management for the Adobe product ecosystem.\r\n\r\n**Additional Features/Polish**\r\n- Improved the description in the Publish2 documentation for the get_ui_settings method.\r\n- Simplified window parenting logic for modern 3ds Max versions.\r\n\r\n**Bugs**\r\n- Fixed an issue where placeholder thumbnails were never replaced in the activity stream widget. [SG-10692]\r\n- Fixed a QStandardItem issue for Qt 5.9.5. A big thanks to Ariel Calzada Solano for his contribution to this bug fix. [SG-10736]"
+}

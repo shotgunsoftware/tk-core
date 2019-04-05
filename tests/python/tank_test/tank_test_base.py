@@ -502,9 +502,6 @@ class TankTestBase(unittest.TestCase):
             roots_file.write(yaml.dump(roots))
             roots_file.close()
 
-        # clear bundle in-memory cache
-        sgtk.descriptor.io_descriptor.factory.g_cached_instances = {}
-
         if self._do_io:
             self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
             self.tk = tank.Tank(self.pipeline_configuration)

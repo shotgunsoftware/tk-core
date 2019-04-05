@@ -40,12 +40,48 @@ class IODescriptorBase(object):
     Tank App store and one which knows how to handle the local file system.
     """
 
-    def __init__(self, descriptor_dict):
+    _factory = {}
+
+    @classmethod
+    def register_descriptor_factory(cls, descriptor_type, subclass):
+        """
+        Registers a descriptor subclass with the :meth:`create` factory. This is
+        necessary to remove local imports from IODescriptorBase subclasses to prevent
+        problems during core swapping.
+
+        :param descriptor_type: String type name of the descriptor, as will
+            appear in the app location configuration.
+        :param subclass: Class deriving from IODescriptorBase to associate.
+        """
+        cls._factory[descriptor_type] = subclass
+
+    @classmethod
+    def create(cls, bundle_type, descriptor_dict, sg_connection):
+        """
+        Factory method used by :meth:`create_descriptor`. This complex factory
+        pattern is necessary to remove local imports from IODescriptorBase subclasses
+        to prevent problems during core swapping.
+
+        :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
+        :param descriptor_dict: Descriptor dictionary describing the bundle.
+        :param sg_connection: Shotgun connection to associated site.
+        :returns: Instance of class deriving from :class:`IODescriptorBase`
+        :raises: TankDescriptorError
+        """
+        descriptor_type = descriptor_dict.get("type")
+        if descriptor_type not in cls._factory:
+            raise TankDescriptorError("Unknown descriptor type for '%s'" % descriptor_dict)
+        class_obj = cls._factory[descriptor_type]
+        return class_obj(descriptor_dict, sg_connection, bundle_type)
+
+    def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
         Constructor
 
         :param descriptor_dict: Dictionary describing what
-                                the descriptor is pointing at
+                                the descriptor is pointing at.
+        :param sg_connection: Shotgun connection to associated site.
+        :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         """
         self._bundle_cache_root = None
         self._fallback_roots = []

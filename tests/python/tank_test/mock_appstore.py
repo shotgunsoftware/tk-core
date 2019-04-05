@@ -215,7 +215,7 @@ class TankMockStoreDescriptor(IODescriptorBase):
         :param sg_connection: Shotgun connection to associated site
         :param bundle_type: Either Descriptor.APP, CORE, ENGINE or FRAMEWORK
         """
-        IODescriptorBase.__init__(self, location_dict)
+        IODescriptorBase.__init__(self, location_dict, sg_connection, bundle_type)
         self._type = bundle_type
 
     def create(self, version):
@@ -372,6 +372,7 @@ class _Patcher(object):
         """
         MockStore.instance = self._mock_store
         self._patch.start()
+        IODescriptorBase._factory["app_store"] = TankMockStoreDescriptor
         return MockStore.instance
 
     def stop(self):
@@ -380,6 +381,8 @@ class _Patcher(object):
         """
         del MockStore.instance
         self._patch.stop()
+        from tank.descriptor.io_descriptor.appstore import IODescriptorAppStore
+        IODescriptorBase._factory["app_store"] = IODescriptorAppStore
 
     def __call__(self, func):
         """

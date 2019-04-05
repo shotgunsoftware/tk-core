@@ -11,6 +11,7 @@
 import copy
 
 from ..errors import TankDescriptorError
+from .base import IODescriptorBase
 
 from ... import LogManager
 log = LogManager.get_logger(__name__)
@@ -68,15 +69,6 @@ def create_io_descriptor(
     :returns: Descriptor object
     :raises: :class:`TankDescriptorError`
     """
-    from .base import IODescriptorBase
-    from .appstore import IODescriptorAppStore
-    from .dev import IODescriptorDev
-    from .path import IODescriptorPath
-    from .shotgun_entity import IODescriptorShotgunEntity
-    from .git_tag import IODescriptorGitTag
-    from .git_branch import IODescriptorGitBranch
-    from .manual import IODescriptorManual
-
     # resolve into both dict and uri form
     if isinstance(dict_or_uri, basestring):
         descriptor_dict = IODescriptorBase.dict_from_uri(dict_or_uri)
@@ -91,30 +83,8 @@ def create_io_descriptor(
         # make sure to add an artificial one so that we can resolve it.
         descriptor_dict["version"] = "latest"
 
-    # factory logic
-    if descriptor_dict.get("type") == "app_store":
-        descriptor = IODescriptorAppStore(descriptor_dict, sg, descriptor_type)
-
-    elif descriptor_dict.get("type") == "shotgun":
-        descriptor = IODescriptorShotgunEntity(descriptor_dict, sg)
-
-    elif descriptor_dict.get("type") == "manual":
-        descriptor = IODescriptorManual(descriptor_dict, descriptor_type)
-
-    elif descriptor_dict.get("type") == "git":
-        descriptor = IODescriptorGitTag(descriptor_dict, descriptor_type)
-
-    elif descriptor_dict.get("type") == "git_branch":
-        descriptor = IODescriptorGitBranch(descriptor_dict)
-
-    elif descriptor_dict.get("type") == "dev":
-        descriptor = IODescriptorDev(descriptor_dict)
-
-    elif descriptor_dict.get("type") == "path":
-        descriptor = IODescriptorPath(descriptor_dict)
-
-    else:
-        raise TankDescriptorError("Unknown descriptor type for '%s'" % descriptor_dict)
+    # instantiate the Descriptor
+    descriptor = IODescriptorBase.create(descriptor_type, descriptor_dict, sg)
 
     # specify where to go look for caches
     descriptor.set_cache_roots(bundle_cache_root, fallback_roots)
@@ -153,8 +123,6 @@ def create_io_descriptor(
                     "Could not get latest version of %s. "
                     "For more details, see the log." % descriptor
                 )
-
-
 
     return descriptor
 
@@ -219,7 +187,6 @@ def descriptor_uri_to_dict(uri):
     :param uri: descriptor string uri
     :returns: descriptor dictionary
     """
-    from .base import IODescriptorBase
     return IODescriptorBase.dict_from_uri(uri)
 
 
@@ -230,5 +197,4 @@ def descriptor_dict_to_uri(ddict):
     :param ddict: descriptor dictionary
     :returns: descriptor uri
     """
-    from .base import IODescriptorBase
     return IODescriptorBase.uri_from_dict(ddict)

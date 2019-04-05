@@ -139,7 +139,12 @@ class Descriptor(object):
     and helper methods.
     """
 
-    (APP, FRAMEWORK, ENGINE, CONFIG, CORE, INSTALLED_CONFIG) = range(6)
+    APP = constants.DESCRIPTOR_APP
+    FRAMEWORK = constants.DESCRIPTOR_FRAMEWORK
+    ENGINE = constants.DESCRIPTOR_ENGINE
+    CONFIG = constants.DESCRIPTOR_CONFIG
+    CORE = constants.DESCRIPTOR_CORE
+    INSTALLED_CONFIG = constants.DESCRIPTOR_INSTALLED_CONFIG
 
     _factory = {}
 
