@@ -20,7 +20,6 @@ from ..errors import TankError
 from ..util import filesystem
 from ..util.version import is_version_older
 from .action_base import Action
-from . import console_utils
 from .. import pipelineconfig_utils
 from .. import pipelineconfig_factory
 
@@ -63,7 +62,7 @@ class CoreLocalizeAction(Action):
             log,
             self.tk.shotgun,
             pc_root,
-            suppress_prompts=True
+            self._interaction_interface
         )
 
     def run_interactive(self, log, args):
@@ -82,18 +81,18 @@ class CoreLocalizeAction(Action):
             log,
             self.tk.shotgun,
             pc_root,
-            suppress_prompts=False
+            self._interaction_interface
         )
 
 
-def do_localize(log, sg_connection, target_config_path, suppress_prompts):
+def do_localize(log, sg_connection, target_config_path, interaction_interface):
     """
     Perform the actual localize command.
 
     :param log: logging object
     :param sg_connection: An open shotgun connection
     :param str target_config_path: Path to the config that should be localized.
-    :param bool suppress_prompts: Indicates if prompts should be suppressed.
+    :param interaction_interface: Interface to use to interact with the user
     """
 
     # the configuration to localize
@@ -147,12 +146,11 @@ def do_localize(log, sg_connection, target_config_path, suppress_prompts):
         )
 
     log.info("")
-    if not suppress_prompts:
-        # check with user if they wanna continue
-        if not console_utils.ask_yn_question("Do you want to proceed"):
-            # user says no!
-            log.info("Operation cancelled.")
-            return
+    # check with user if they wanna continue
+    if not interaction_interface.ask_yn_question("Do you want to proceed"):
+        # user says no!
+        log.info("Operation cancelled.")
+        return
 
     log.debug("About to localize '%s'" % target_config_path)
     log.debug(
@@ -354,13 +352,15 @@ class ShareCoreAction(Action):
         # validate params and seed default values
         computed_params = self._validate_parameters(parameters)
 
-        return _run_unlocalize(self.tk,
-                               log,
-                               computed_params["core_path_mac"],
-                               computed_params["core_path_win"],
-                               computed_params["core_path_linux"],
-                               copy_core=True,
-                               suppress_prompts=True)
+        return _run_unlocalize(
+            self.tk,
+            log,
+            computed_params["core_path_mac"],
+            computed_params["core_path_win"],
+            computed_params["core_path_linux"],
+            self._interaction_interface,
+            copy_core=True,
+        )
 
 
     def run_interactive(self, log, args):
@@ -393,13 +393,15 @@ class ShareCoreAction(Action):
         windows_path = args[1]
         mac_path = args[2]
 
-        return _run_unlocalize(self.tk,
-                               log,
-                               mac_path,
-                               windows_path,
-                               linux_path,
-                               copy_core=True,
-                               suppress_prompts=False)
+        return _run_unlocalize(
+            self.tk,
+            log,
+            mac_path,
+            windows_path,
+            linux_path,
+            self._interaction_interface,
+            copy_core=True,
+        )
 
 
 class AttachToCoreAction(Action):
@@ -440,7 +442,7 @@ class AttachToCoreAction(Action):
         # validate params and seed default values
         computed_params = self._validate_parameters(parameters)
 
-        return self._run_wrapper(log, computed_params["path"], suppress_prompts=True)
+        return self._run_wrapper(log, computed_params["path"])
 
 
     def run_interactive(self, log, args):
@@ -468,17 +470,15 @@ class AttachToCoreAction(Action):
 
         path_to_core = args[0]
 
-        return self._run_wrapper(log, path_to_core, suppress_prompts=False)
+        return self._run_wrapper(log, path_to_core)
 
-
-    def _run_wrapper(self, log, path_to_core, suppress_prompts):
+    def _run_wrapper(self, log, path_to_core):
         """
         Given the path to the core API, resolves the core path on all three OSes
         and then executes the unlocalize payload.
 
         :param log: Logger
         :param path_to_core: path to core root on current os.
-        :param suppress_prompts: Boolean to indicate if no questions should be asked.
         """
 
         # resolve the path to core on all platforms
@@ -487,19 +487,18 @@ class AttachToCoreAction(Action):
         log.debug("Resolved the following core path locations via install_location: %s" % core_locations)
 
         # and run the actual localize
-        return _run_unlocalize(self.tk,
-                               log,
-                               core_locations["darwin"],
-                               core_locations["win32"],
-                               core_locations["linux2"],
-                               copy_core=False,
-                               suppress_prompts=suppress_prompts)
+        return _run_unlocalize(
+            self.tk,
+            log,
+            core_locations["darwin"],
+            core_locations["win32"],
+            core_locations["linux2"],
+            self._interaction_interface,
+            copy_core=False,
+        )
 
 
-
-
-
-def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, suppress_prompts):
+def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, interaction_interface, copy_core):
     """
     Actual execution payload for share_core and relocate_core. This method can be used to
 
@@ -513,10 +512,10 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
     :param mac_path: New core path on mac
     :param windows_path: New core path on windows
     :param linux_path: New core path on linux
+    :param interaction_interface: Interface to use when interacting with the user.
     :param copy_core: Boolean. If true, the method will operate in "copy mode" where it tries
                       to copy the core out to an external location. If fase, it will instead
                       try to attach to an existing core.
-    :param suppress_prompts: if true, no questions are asked.
     """
 
     log.debug("Executing the share_core command for %r" % tk)
@@ -579,12 +578,11 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
              "no configurations that are using the core embedded in this configuration.")
     log.info("")
 
-    if not suppress_prompts:
-        # check with user if they wanna continue
-        if not console_utils.ask_yn_question("Do you want to proceed"):
-            # user pressed no
-            log.info("Operation cancelled.")
-            return
+    # check with user if they wanna continue
+    if not interaction_interface.ask_yn_question("Do you want to proceed"):
+        # user pressed no
+        log.info("Operation cancelled.")
+        return
 
     # proceed with setup
     log.info("")

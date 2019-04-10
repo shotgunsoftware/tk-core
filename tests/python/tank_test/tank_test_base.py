@@ -502,9 +502,6 @@ class TankTestBase(unittest.TestCase):
             roots_file.write(yaml.dump(roots))
             roots_file.close()
 
-        # clear bundle in-memory cache
-        sgtk.descriptor.io_descriptor.factory.g_cached_instances = {}
-
         if self._do_io:
             self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
             self.tk = tank.Tank(self.pipeline_configuration)
@@ -940,7 +937,7 @@ class TankTestBase(unittest.TestCase):
         try:
             func(*args, **kws)
         except error_type as e:
-            self.assertEquals(message, str(e))
+            self.assertEqual(message, str(e))
 
     def write_toolkit_ini_file(self, login_section={}, **kwargs):
         """

@@ -369,7 +369,7 @@ class TestInvalidInstalledConfiguration(TankTestBase):
             sgtk.bootstrap.resolver.InstalledConfiguration
         )
 
-        self.assertEquals(config.status(), config.LOCAL_CFG_UP_TO_DATE)
+        self.assertEqual(config.status(), config.LOCAL_CFG_UP_TO_DATE)
 
         # now get rid of some stuff from our fixtures to emulate
         # a config which was downloaded directly from github and not
@@ -382,7 +382,7 @@ class TestInvalidInstalledConfiguration(TankTestBase):
             os.path.join(self.pipeline_config_root, "config", "core", "install_location.yml")
         )
 
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
                 sgtk.bootstrap.TankBootstrapError,
                 "Cannot find required system file"):
             config.status()

@@ -29,7 +29,7 @@ class TestInit(TankTestBase):
 
     def test_project_from_param(self):
         tank = Tank(self.project_root)
-        self.assertEquals(self.project_root, tank.project_path)
+        self.assertEqual(self.project_root, tank.project_path)
 
 
 class TestTemplateFromPath(TankTestBase):
@@ -83,10 +83,10 @@ class TestTemplatesLoaded(TankTestBase):
         """Test project root on templates with alternate and primary roots are set correctly."""
 
         primary_template = self.tk.templates["shot_project"]
-        self.assertEquals(self.project_root, primary_template.root_path)
+        self.assertEqual(self.project_root, primary_template.root_path)
 
         alt_template = self.tk.templates["maya_shot_publish"]
-        self.assertEquals(self.alt_root_1, alt_template.root_path)
+        self.assertEqual(self.alt_root_1, alt_template.root_path)
 
 
 class TestPathsFromTemplate(TankTestBase):
@@ -142,7 +142,7 @@ class TestPathsFromTemplate(TankTestBase):
         fields["Sequence"] = "Seq_2"
         expected = [self.file_1]
         actual = self.tk.paths_from_template(self.template, fields, skip_keys=skip_keys)
-        self.assertEquals(expected, actual)
+        self.assertEqual(expected, actual)
 
     def test_skip_version(self):
         """
@@ -157,7 +157,7 @@ class TestPathsFromTemplate(TankTestBase):
         fields["Sequence"] = "Seq_1"
         expected = [self.file_1, self.file_2]
         actual = self.tk.paths_from_template(self.template, fields, skip_keys=skip_keys)
-        self.assertEquals(set(expected), set(actual))
+        self.assertEqual(set(expected), set(actual))
 
     def test_skip_invalid(self):
         """Test that files not valid for an template are not returned.
@@ -261,46 +261,46 @@ class TestAbstractPathsFromTemplate(TankTestBase):
                      os.path.join(self.shot_b_path, "%V", "anothername.%04d.exr")]
 
         result = self.tk.abstract_paths_from_template(self.template, {})
-        self.assertEquals(set(expected), set(result))
+        self.assertEqual(set(expected), set(result))
 
     def test_specify_shot(self):
         expected = [ os.path.join(self.shot_a_path, "%V", "filename.%04d.exr"),
                      os.path.join(self.shot_a_path, "%V", "anothername.%04d.exr")]
 
         result = self.tk.abstract_paths_from_template(self.template, {"Shot": "AAA"})
-        self.assertEquals(set(expected), set(result))
+        self.assertEqual(set(expected), set(result))
 
     def test_bad_seq(self):
         expected = []
         result = self.tk.abstract_paths_from_template(self.template, {"Shot": "AAA", "SEQ": "####"})
-        self.assertEquals(set(expected), set(result))
+        self.assertEqual(set(expected), set(result))
 
     def test_specific_frame(self):
         expected = [os.path.join(self.shot_a_path, "%V", "filename.0003.exr"),
                     os.path.join(self.shot_a_path, "%V", "anothername.0003.exr")]
 
         result = self.tk.abstract_paths_from_template(self.template, {"Shot": "AAA", "SEQ": 3})
-        self.assertEquals(set(expected), set(result))
+        self.assertEqual(set(expected), set(result))
 
     def test_specify_eye(self):
         expected = [os.path.join(self.shot_a_path, "left", "anothername.%04d.exr"),
                     os.path.join(self.shot_a_path, "left", "filename.%04d.exr")]
 
         result = self.tk.abstract_paths_from_template(self.template, {"Shot": "AAA", "eye": "left"})
-        self.assertEquals(set(expected), set(result))
+        self.assertEqual(set(expected), set(result))
 
 
     def test_specify_shot_and_name(self):
         expected = [os.path.join(self.shot_a_path, "%V", "filename.%04d.exr")]
 
         result = self.tk.abstract_paths_from_template(self.template, {"Shot": "AAA", "name": "filename"})
-        self.assertEquals(set(expected), set(result))
+        self.assertEqual(set(expected), set(result))
 
     def test_specify_name(self):
         expected = [os.path.join(self.shot_a_path, "%V", "filename.%04d.exr"),
                     os.path.join(self.shot_b_path, "%V", "filename.%04d.exr")]
         result = self.tk.abstract_paths_from_template(self.template, {"name": "filename"})
-        self.assertEquals(set(expected), set(result))
+        self.assertEqual(set(expected), set(result))
 
 
 class TestPathsFromTemplateGlob(TankTestBase):
@@ -319,11 +319,11 @@ class TestPathsFromTemplateGlob(TankTestBase):
         expected = [os.path.join(self.project_root, "shot_1","001","filename.00001")]
         mock_glob.return_value = expected
         retval = self.tk.paths_from_template(self.template, fields, skip_keys=skip_keys)
-        self.assertEquals(expected, retval)
+        self.assertEqual(expected, retval)
         # Check glob string
         expected_glob = os.path.join(self.project_root, expected_glob)
         glob_actual = [x[0][0] for x in mock_glob.call_args_list][0]
-        self.assertEquals(expected_glob, glob_actual)
+        self.assertEqual(expected_glob, glob_actual)
 
     def test_fully_qualified(self):
         """Test case where all field values are supplied."""
@@ -379,44 +379,55 @@ class TestApiProperties(TankTestBase):
         """
         test api.version property
         """
-        self.assertEquals(self.tk.version, "HEAD")
+        self.assertEqual(self.tk.version, "HEAD")
 
     def test_doc_property(self):
         """
         test api.documentation_url property
         """
-        self.assertEquals(self.tk.documentation_url, "https://support.shotgunsoftware.com/hc/en-us/articles/219039808")
+        self.assertEqual(self.tk.documentation_url, "https://support.shotgunsoftware.com/hc/en-us/articles/219039808")
 
     def test_shotgun_url_property(self):
         """
         test api.shotgun_url property
         """
-        self.assertEquals(self.tk.shotgun_url, "http://unit_test_mock_sg")
+        self.assertEqual(self.tk.shotgun_url, "http://unit_test_mock_sg")
 
     def test_shotgun_property(self):
         """
         test api.shotgun property
         """
-        self.assertEquals(self.tk.shotgun.__class__.__name__, "Shotgun")
+        self.assertEqual(self.tk.shotgun.__class__.__name__, "Shotgun")
 
     def test_configuration_name_property(self):
         """
         test api.configuration_name property
         """
-        self.assertEquals(self.tk.configuration_name, "Primary")
+        self.assertEqual(self.tk.configuration_name, "Primary")
+
+    def test_configuration_id_property(self):
+        """
+        test api.configuration_id property
+        """
+        self.assertEqual(self.tk.configuration_id, self.tk.pipeline_configuration.get_shotgun_id())
+
+    def test_configuration_mode_property(self):
+        """
+        test api.configuration_mode property
+        """
+        self.assertEqual(self.tk.configuration_mode, self.tk.CENTRALIZED)
 
     def test_roots_property(self):
         """
         test api.roots property
         """
-        self.assertEquals(self.tk.roots, {self.primary_root_name: self.project_root})
-
+        self.assertEqual(self.tk.roots, {self.primary_root_name: self.project_root})
 
     def test_project_path_property(self):
         """
         test api.project_path property
         """
-        self.assertEquals(self.tk.project_path, self.project_root)
+        self.assertEqual(self.tk.project_path, self.project_root)
 
 
 
@@ -431,28 +442,28 @@ class TestApiCache(TankTestBase):
         """
         test api.get_cache_item
         """
-        self.assertEquals(self.tk.get_cache_item("foo"), None)
-        self.assertEquals(self.tk.get_cache_item("bar"), None)
+        self.assertEqual(self.tk.get_cache_item("foo"), None)
+        self.assertEqual(self.tk.get_cache_item("bar"), None)
 
         self.tk.set_cache_item("foo", 123)
 
-        self.assertEquals(self.tk.get_cache_item("foo"), 123)
-        self.assertEquals(self.tk.get_cache_item("bar"), None)
+        self.assertEqual(self.tk.get_cache_item("foo"), 123)
+        self.assertEqual(self.tk.get_cache_item("bar"), None)
 
         self.tk.set_cache_item("bar", 456)
 
-        self.assertEquals(self.tk.get_cache_item("foo"), 123)
-        self.assertEquals(self.tk.get_cache_item("bar"), 456)
+        self.assertEqual(self.tk.get_cache_item("foo"), 123)
+        self.assertEqual(self.tk.get_cache_item("bar"), 456)
 
         self.tk.set_cache_item("foo", None)
 
-        self.assertEquals(self.tk.get_cache_item("foo"), None)
-        self.assertEquals(self.tk.get_cache_item("bar"), 456)
+        self.assertEqual(self.tk.get_cache_item("foo"), None)
+        self.assertEqual(self.tk.get_cache_item("bar"), 456)
 
         self.tk.set_cache_item("bar", None)
 
-        self.assertEquals(self.tk.get_cache_item("foo"), None)
-        self.assertEquals(self.tk.get_cache_item("bar"), None)
+        self.assertEqual(self.tk.get_cache_item("foo"), None)
+        self.assertEqual(self.tk.get_cache_item("bar"), None)
 
 
     def test_isolation(self):
@@ -462,28 +473,28 @@ class TestApiCache(TankTestBase):
         tk2 = tank.sgtk_from_path(self.tk.pipeline_configuration.get_path())
         tk = self.tk
 
-        self.assertEquals(tk.get_cache_item("foo"), None)
-        self.assertEquals(tk2.get_cache_item("foo"), None)
+        self.assertEqual(tk.get_cache_item("foo"), None)
+        self.assertEqual(tk2.get_cache_item("foo"), None)
 
         tk.set_cache_item("foo", 123)
 
-        self.assertEquals(tk.get_cache_item("foo"), 123)
-        self.assertEquals(tk2.get_cache_item("foo"), None)
+        self.assertEqual(tk.get_cache_item("foo"), 123)
+        self.assertEqual(tk2.get_cache_item("foo"), None)
 
         tk2.set_cache_item("foo", 456)
 
-        self.assertEquals(tk.get_cache_item("foo"), 123)
-        self.assertEquals(tk2.get_cache_item("foo"), 456)
+        self.assertEqual(tk.get_cache_item("foo"), 123)
+        self.assertEqual(tk2.get_cache_item("foo"), 456)
 
         tk.set_cache_item("foo", None)
 
-        self.assertEquals(tk.get_cache_item("foo"), None)
-        self.assertEquals(tk2.get_cache_item("foo"), 456)
+        self.assertEqual(tk.get_cache_item("foo"), None)
+        self.assertEqual(tk2.get_cache_item("foo"), 456)
 
         tk2.set_cache_item("foo", None)
 
-        self.assertEquals(tk.get_cache_item("foo"), None)
-        self.assertEquals(tk2.get_cache_item("foo"), None)
+        self.assertEqual(tk.get_cache_item("foo"), None)
+        self.assertEqual(tk2.get_cache_item("foo"), None)
 
 
 

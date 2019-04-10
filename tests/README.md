@@ -6,33 +6,22 @@ Required packages
 -----------------
 * unittest2
 * mock
-* coverage (only if coverage option is used)
+* coverage (only if `--with-coverage` option is used)
 
-These are all packaged under `tests/python/third_party`.
+`unitest2` and `mock` are packaged under `tests/python/third_party`. If you intend to run the tests with the `--with-coverage` option, you need to `pip install coverage` first.
 
 Running the test suite
 -----------------------
-To run the tests on windows run the core/tests/run_tests.bat. To run on linux run the script run_tests.sh.
-Add "-h" to see options.
+To run the tests on Windows run the `run_tests.bat`. To run on Linux or macOS, run the script `run_tests.sh`.
+Add `-h` to see options.
 To run specific test(s), specify module, or module.class or module.class.test:
 
     $ run_tests.sh test_tank_content.TestValidate.test_valid_path
 
 To run all the tests from a specific file, you can specify both the module or file path:
 
-    $ run_tests.sh tank_module_test.test_module
-    $ run_tests.sh tank_module_test/test_module.py
-
-To run tests without using run_tests script:
-
-* Add the tank packages directory ( core/python ) to the PYTHONPATH
-* Use the test runner of your choice:
-
-    `$ nosetests core/tests/`
-
-    or
-
-    `$ unit2 discover core/tests`
+    $ ./run_tests.sh tank_module_test.test_module
+    $ ./run_tests.sh tank_module_test/test_module.py
 
 
 Compile sources with Python 3
@@ -53,8 +42,12 @@ TankTestBase
 -------------
 There is a tank tests module, `tank_test.tank_test_base.py` which contains both a base class from which the test cases inherit and a module level setup. This module handles the creation of test fixture data, including studio level and project level configuration.
 
+ShotgunTestBase
+---------------
+This is a lighter version of the TankTestBase, which only mocks a Shotgun connection and does not write anything to disk. If you are testing parts of the API that doesn't need to write to disk, this is a faster option.
+
 ### A partial list of features
-Examples of the usage of this module can be found in `tank_util/example_tests.py`. Among other features, this module includes:
+Among other features, this module includes:
 
 #### tank_test_base.setUpModule
 Module level set up function which determines test data location and sets up studio level directories therein.
@@ -74,4 +67,3 @@ Setting up a test
 * In this module, import the base class and module setup method: `from tank_test.tank_test_base import setUpModule, TankTestBase`
 * Create a test class inheriting from the `TankTestBase` class.
 * If a setUp other than the base one is needed, be sure to call `super(TestClassName, self).setUp()` in order to allow the base class to setup the fixtures.
-

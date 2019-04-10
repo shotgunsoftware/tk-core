@@ -50,7 +50,7 @@ class TestPipelineConfig(TankTestBase):
         push_cmd = self.tk.get_command("push_configuration")
         # Check that we get an error if trying to push while having a single
         # pipeline config
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             TankError,
             "Only one pipeline config",
             push_cmd.execute, {"target_id": 666}
@@ -69,13 +69,13 @@ class TestPipelineConfig(TankTestBase):
             "path_linux": temp_pc_dir,
         })
         # Check we can't push on ourself
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             TankError,
             "The target pipeline config id must be different from the current one",
             push_cmd.execute, {"target_id": pc.get_shotgun_id()}
         )
         # Check we can't push with an invalid target id
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             TankError,
             "Id 6666 is not a valid pipeline config id",
             push_cmd.execute, {"target_id": 6666}
@@ -118,7 +118,7 @@ class TestPipelineConfig(TankTestBase):
                 sgtk.sgtk_from_path(temp_pc_dir)
             else:
                 # Pushing should raise an error on Linux/Osx
-                self.assertRaisesRegexp(
+                self.assertRaisesRegex(
                     TankError,
                     "Permission denied|Access is denied",
                     push_cmd.execute, {"target_id": cloned_pc_id}
@@ -131,7 +131,7 @@ class TestPipelineConfig(TankTestBase):
         # Test pushing with symlinks, unless on Windows where symlinks are not
         # available.
         if sys.platform == "win32":
-            self.assertRaisesRegexp(
+            self.assertRaisesRegex(
                 TankError,
                 "Symbolic links are not supported",
                 push_cmd.execute, {"target_id": cloned_pc_id, "use_symlink": True}

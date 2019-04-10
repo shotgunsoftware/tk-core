@@ -26,6 +26,7 @@ from ..util.filesystem import ensure_folder_exists
 
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
+from .interaction import YesToEverythingInteraction
 
 class SetupProjectAction(Action):
     """
@@ -199,7 +200,7 @@ class SetupProjectAction(Action):
                     log,
                     self._shotgun_connect(log),
                     config_path,
-                    suppress_prompts=True
+                    YesToEverythingInteraction()  # don't prompt
                 )
 
     def run_interactive(self, log, args):
@@ -288,7 +289,7 @@ class SetupProjectAction(Action):
                 log,
                 self._shotgun_connect(log),
                 config_path,
-                suppress_prompts=True
+                YesToEverythingInteraction()  # don't prompt
             )
 
         # display readme etc.

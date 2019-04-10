@@ -124,7 +124,12 @@ def _initialize_coverage(test_root):
 
     :returns: The coverage instance.
     """
-    import coverage
+    try:
+        import coverage
+    except ImportError:
+        print()
+        print("The 'coverage' module is missing. Run 'pip install coverage' to install it.")
+        sys.exit(1)
 
     if test_root:
         coveragerc_location = os.path.abspath(

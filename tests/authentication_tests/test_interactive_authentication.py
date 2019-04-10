@@ -23,6 +23,7 @@ from tank_test.tank_test_base import ShotgunTestBase, skip_if_pyside_missing, sk
 from mock import patch
 from tank.authentication import (
     console_authentication,
+    ConsoleLoginNotSupportedError,
     ConsoleLoginWithSSONotSupportedError,
     interactive_authentication,
     invoker,
@@ -313,13 +314,48 @@ class InteractiveTests(ShotgunTestBase):
         "tank.authentication.console_authentication.is_sso_enabled_on_site",
         return_value=True
     )
+    def test_sso_enabled_site_with_legacy_exception_name(self, *mocks):
+        """
+        Ensure that an exception is thrown should we attempt console authentication
+        on an SSO-enabled site. We use the legacy exception-name to ensure backward
+        compatibility with older code.
+        """
+        handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
+        with self.assertRaises(ConsoleLoginWithSSONotSupportedError):
+            handler._get_user_credentials(None, None, None)
+
+    @patch(
+        "__builtin__.raw_input",
+        side_effect=["  https://test-sso.shotgunstudio.com "]
+    )
+    @patch(
+        "tank.authentication.console_authentication.is_sso_enabled_on_site",
+        return_value=True
+    )
     def test_sso_enabled_site(self, *mocks):
         """
         Ensure that an exception is thrown should we attempt console authentication
         on an SSO-enabled site.
         """
         handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
-        with self.assertRaises(ConsoleLoginWithSSONotSupportedError):
+        with self.assertRaises(ConsoleLoginNotSupportedError):
+            handler._get_user_credentials(None, None, None)
+
+    @patch(
+        "__builtin__.raw_input",
+        side_effect=["  https://test-identity.shotgunstudio.com "]
+    )
+    @patch(
+        "tank.authentication.console_authentication.is_autodesk_identity_enabled_on_site",
+        return_value=True
+    )
+    def test_identity_enabled_site(self, *mocks):
+        """
+        Ensure that an exception is thrown should we attempt console authentication
+        on an Autodesk Identity-enabled site.
+        """
+        handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
+        with self.assertRaises(ConsoleLoginNotSupportedError):
             handler._get_user_credentials(None, None, None)
 
     @skip_if_on_travis_ci("Offscreen XServer doesn't do focus changes.")

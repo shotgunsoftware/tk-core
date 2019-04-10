@@ -24,7 +24,6 @@ from ...util import shotgun
 from ...util import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError
 from ...util.user_settings import UserSettings
 
-from ..descriptor import Descriptor
 from ..errors import TankAppStoreConnectionError
 from ..errors import TankAppStoreError
 from ..errors import TankDescriptorError
@@ -62,39 +61,39 @@ class IODescriptorAppStore(IODescriptorDownloadable):
     (APP, FRAMEWORK, ENGINE, CONFIG, CORE) = range(5)
 
     _APP_STORE_OBJECT = {
-        Descriptor.APP: constants.TANK_APP_ENTITY_TYPE,
-        Descriptor.FRAMEWORK: constants.TANK_FRAMEWORK_ENTITY_TYPE,
-        Descriptor.ENGINE: constants.TANK_ENGINE_ENTITY_TYPE,
-        Descriptor.CONFIG: constants.TANK_CONFIG_ENTITY_TYPE,
-        Descriptor.INSTALLED_CONFIG: None,
-        Descriptor.CORE: None,
+        constants.DESCRIPTOR_APP: constants.TANK_APP_ENTITY_TYPE,
+        constants.DESCRIPTOR_FRAMEWORK: constants.TANK_FRAMEWORK_ENTITY_TYPE,
+        constants.DESCRIPTOR_ENGINE: constants.TANK_ENGINE_ENTITY_TYPE,
+        constants.DESCRIPTOR_CONFIG: constants.TANK_CONFIG_ENTITY_TYPE,
+        constants.DESCRIPTOR_INSTALLED_CONFIG: None,
+        constants.DESCRIPTOR_CORE: None,
     }
 
     _APP_STORE_VERSION = {
-        Descriptor.APP: constants.TANK_APP_VERSION_ENTITY_TYPE,
-        Descriptor.FRAMEWORK: constants.TANK_FRAMEWORK_VERSION_ENTITY_TYPE,
-        Descriptor.ENGINE: constants.TANK_ENGINE_VERSION_ENTITY_TYPE,
-        Descriptor.CONFIG: constants.TANK_CONFIG_VERSION_ENTITY_TYPE,
-        Descriptor.INSTALLED_CONFIG: None,
-        Descriptor.CORE: constants.TANK_CORE_VERSION_ENTITY_TYPE,
+        constants.DESCRIPTOR_APP: constants.TANK_APP_VERSION_ENTITY_TYPE,
+        constants.DESCRIPTOR_FRAMEWORK: constants.TANK_FRAMEWORK_VERSION_ENTITY_TYPE,
+        constants.DESCRIPTOR_ENGINE: constants.TANK_ENGINE_VERSION_ENTITY_TYPE,
+        constants.DESCRIPTOR_CONFIG: constants.TANK_CONFIG_VERSION_ENTITY_TYPE,
+        constants.DESCRIPTOR_INSTALLED_CONFIG: None,
+        constants.DESCRIPTOR_CORE: constants.TANK_CORE_VERSION_ENTITY_TYPE,
     }
 
     _APP_STORE_LINK = {
-        Descriptor.APP: "sg_tank_app",
-        Descriptor.FRAMEWORK: "sg_tank_framework",
-        Descriptor.ENGINE: "sg_tank_engine",
-        Descriptor.CONFIG: "sg_tank_config",
-        Descriptor.INSTALLED_CONFIG: None,
-        Descriptor.CORE: None,
+        constants.DESCRIPTOR_APP: "sg_tank_app",
+        constants.DESCRIPTOR_FRAMEWORK: "sg_tank_framework",
+        constants.DESCRIPTOR_ENGINE: "sg_tank_engine",
+        constants.DESCRIPTOR_CONFIG: "sg_tank_config",
+        constants.DESCRIPTOR_INSTALLED_CONFIG: None,
+        constants.DESCRIPTOR_CORE: None,
     }
 
     _DOWNLOAD_STATS_EVENT_TYPE = {
-        Descriptor.APP: "TankAppStore_App_Download",
-        Descriptor.FRAMEWORK: "TankAppStore_Framework_Download",
-        Descriptor.ENGINE: "TankAppStore_Engine_Download",
-        Descriptor.CONFIG: "TankAppStore_Config_Download",
-        Descriptor.INSTALLED_CONFIG: None,
-        Descriptor.CORE: "TankAppStore_CoreApi_Download",
+        constants.DESCRIPTOR_APP: "TankAppStore_App_Download",
+        constants.DESCRIPTOR_FRAMEWORK: "TankAppStore_Framework_Download",
+        constants.DESCRIPTOR_ENGINE: "TankAppStore_Engine_Download",
+        constants.DESCRIPTOR_CONFIG: "TankAppStore_Config_Download",
+        constants.DESCRIPTOR_INSTALLED_CONFIG: None,
+        constants.DESCRIPTOR_CORE: "TankAppStore_CoreApi_Download",
     }
 
     _VERSION_FIELDS_TO_CACHE = [
@@ -124,7 +123,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         :param bundle_type: Either Descriptor.APP, CORE, ENGINE or FRAMEWORK or CONFIG
         :return: Descriptor instance
         """
-        super(IODescriptorAppStore, self).__init__(descriptor_dict)
+        super(IODescriptorAppStore, self).__init__(descriptor_dict, sg_connection, bundle_type)
 
         self._validate_descriptor(
             descriptor_dict,
@@ -133,7 +132,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         )
 
         self._sg_connection = sg_connection
-        self._type = bundle_type
+        self._bundle_type = bundle_type
         self._name = descriptor_dict.get("name")
         self._version = descriptor_dict.get("version")
         self._label = descriptor_dict.get("label")
@@ -143,20 +142,20 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         Human readable representation
         """
         display_name_lookup = {
-            Descriptor.APP: "App",
-            Descriptor.FRAMEWORK: "Framework",
-            Descriptor.ENGINE: "Engine",
-            Descriptor.CONFIG: "Config",
-            Descriptor.CORE: "Core",
+            constants.DESCRIPTOR_APP: "App",
+            constants.DESCRIPTOR_FRAMEWORK: "Framework",
+            constants.DESCRIPTOR_ENGINE: "Engine",
+            constants.DESCRIPTOR_CONFIG: "Config",
+            constants.DESCRIPTOR_CORE: "Core",
         }
 
         # Toolkit App Store App tk-multi-loader2 v1.2.3
         # Toolkit App Store Framework tk-framework-shotgunutils v1.2.3
         # Toolkit App Store Core v1.2.3
-        if self._type == Descriptor.CORE:
+        if self._bundle_type == constants.DESCRIPTOR_CORE:
             display_name = "Toolkit App Store Core %s" % self._version
         else:
-            display_name = display_name_lookup[self._type]
+            display_name = display_name_lookup[self._bundle_type]
             display_name = "Toolkit App Store %s %s %s" % (display_name, self._name, self._version)
 
         if self._label:
@@ -216,14 +215,14 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             log.debug("Connecting to Shotgun to retrieve metadata for %r" % self)
 
             # get the appropriate shotgun app store types and fields
-            bundle_entity_type = self._APP_STORE_OBJECT[self._type]
-            version_entity_type = self._APP_STORE_VERSION[self._type]
-            link_field = self._APP_STORE_LINK[self._type]
+            bundle_entity_type = self._APP_STORE_OBJECT[self._bundle_type]
+            version_entity_type = self._APP_STORE_VERSION[self._bundle_type]
+            link_field = self._APP_STORE_LINK[self._bundle_type]
 
             # connect to the app store
             (sg, _) = self.__create_sg_app_store_connection()
 
-            if self._type == self.CORE:
+            if self._bundle_type == self.CORE:
                 # special handling of core since it doesn't have a high-level 'bundle' entity
                 sg_bundle_data = None
 
@@ -326,7 +325,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         legacy_folder = self._get_legacy_bundle_install_folder(
             "app_store",
             self._bundle_cache_root,
-            self._type,
+            self._bundle_type,
             self.get_system_name(),
             self.get_version()
         )
@@ -458,7 +457,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                 self._name,
                 self._version
             )
-            data["event_type"] = self._DOWNLOAD_STATS_EVENT_TYPE[self._type]
+            data["event_type"] = self._DOWNLOAD_STATS_EVENT_TYPE[self._bundle_type]
             data["entity"] = version
             data["user"] = script_user
             data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
@@ -528,7 +527,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             descriptor_dict["label"] = self._label
 
         # and return a descriptor instance
-        desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type)
+        desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._bundle_type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
 
         log.debug("Latest cached version resolved to %r" % desc)
@@ -567,10 +566,10 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                 ["sg_status_list", "is_not", "bad"]
             ]
 
-        if self._type != self.CORE:
+        if self._bundle_type != self.CORE:
             # find the main entry
             sg_bundle_data = sg.find_one(
-                self._APP_STORE_OBJECT[self._type],
+                self._APP_STORE_OBJECT[self._bundle_type],
                 [["sg_system_name", "is", self._name]],
                 self._BUNDLE_FIELDS_TO_CACHE
             )
@@ -579,8 +578,8 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                 raise TankDescriptorError("App store does not contain an item named '%s'!" % self._name)
 
             # now get all versions
-            link_field = self._APP_STORE_LINK[self._type]
-            entity_type = self._APP_STORE_VERSION[self._type]
+            link_field = self._APP_STORE_LINK[self._bundle_type]
+            entity_type = self._APP_STORE_VERSION[self._bundle_type]
             sg_filter += [[link_field, "is", sg_bundle_data]]
 
         else:
@@ -652,7 +651,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             descriptor_dict["label"] = self._label
 
         # and return a descriptor instance
-        desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type)
+        desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._bundle_type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
 
         # if this item exists locally, attempt to update the metadata cache
