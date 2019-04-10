@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Descriptors &mdash; tk-core v0.18.164 documentation</title>
+  <title>Descriptors &mdash; tk-core v0.18.165 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.164 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.165 documentation" href="index.html"/>
         <link rel="next" title="Authentication" href="authentication.html"/>
         <link rel="prev" title="Utilities" href="utils.html"/> 
 
@@ -100,6 +100,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#the-shotgun-app-store">The Shotgun App store</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tracking-against-tags-in-git">Tracking against tags in git</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#tracking-against-commits-in-a-git-branch">Tracking against commits in a git branch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tracking-against-releases-on-github">Tracking against releases on Github</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pointing-to-a-path-on-disk">Pointing to a path on disk</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pointing-at-a-file-attachment-in-shotgun">Pointing at a file attachment in Shotgun</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#manual-descriptors">Manual Descriptors</a></li>
@@ -142,7 +143,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.164.<br>
+    <b>tk-core</b> v0.18.165.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -283,6 +284,7 @@ centralized disk location to which the descriptors are cached.</p>
 <li>A <strong>shotgun</strong> descriptor represents an item stored in Shotgun</li>
 <li>A <strong>git</strong> descriptor represents a tag in a git repository</li>
 <li>A <strong>git_branch</strong> descriptor represents a commit in a git branch</li>
+<li>A <strong>github_release</strong> descriptor represents a Release on a Github repo</li>
 <li>A <strong>path</strong> descriptor represents a location on disk</li>
 <li>A <strong>dev</strong> descriptor represents a developer sandbox</li>
 <li>A <strong>manual</strong> descriptor gives raw access to the bundle caching structure</li>
@@ -455,6 +457,39 @@ trying to prompt for a password in the background.</p>
 the <code class="docutils literal"><span class="pre">PATH</span></code> in order for the API to be able to do a latest check or
 app download. The git executable is, however, not needed during descriptor
 resolve and normal operation.</p>
+</div>
+</div>
+<div class="section" id="tracking-against-releases-on-github">
+<h3>Tracking against releases on Github<a class="headerlink" href="#tracking-against-releases-on-github" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal"><span class="pre">github_release</span></code> descriptor type is useful for studios and 3rd parties wishing to deploy apps directly from Github.</p>
+<p>Getting <code class="docutils literal"><span class="pre">tk-multi-pythonconsole</span></code> from its <code class="docutils literal"><span class="pre">shotgunsoftware</span></code> Github repo:</p>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<span class="nt">    type</span><span class="p">:</span> <span class="nv">github_release</span><span class="p p-Indicator">,</span>
+<span class="nt">    organization</span><span class="p">:</span> <span class="nv">shotgunsoftware</span><span class="p p-Indicator">,</span>
+<span class="nt">    repository</span><span class="p">:</span> <span class="nv">tk-multi-pythonconsole</span><span class="p p-Indicator">,</span>
+<span class="nt">    version</span><span class="p">:</span> <span class="nv">v1.2.29</span>
+<span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:github_release?organization=shotgunsoftware&amp;repository=tk-multi-pythonconsole&amp;version=v1.2.29</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">organization</span></code> is the Github organization or user that the repository belongs to.</li>
+<li><code class="docutils literal"><span class="pre">repository</span></code> is the name of the repository to find a Release for.</li>
+<li><code class="docutils literal"><span class="pre">version</span></code> is the name of the Release to use.</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This descriptor only works with Github Releases, not all tags. For more information, see the <a class="reference external" href="https://help.github.com/en/articles/creating-releases">Github Documentation on Releases</a>.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want constraint patterns (i.e. <code class="docutils literal"><span class="pre">v1.x.x</span></code>) to work correctly with this descriptor, you must follow the <a class="reference external" href="https://semver.org/">semantic versioning</a> specification when naming Releases on Github.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Private repositories are not currently supported by this descriptor.</p>
 </div>
 </div>
 <div class="section" id="pointing-to-a-path-on-disk">
@@ -3389,7 +3424,7 @@ If not url has been defined, <code class="docutils literal"><span class="pre">No
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.164',
+            VERSION:'v0.18.165',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

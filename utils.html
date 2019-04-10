@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.18.164 documentation</title>
+  <title>Utilities &mdash; tk-core v0.18.165 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.164 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.18.165 documentation" href="index.html"/>
         <link rel="next" title="Descriptors" href="descriptor.html"/>
         <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
 
@@ -122,6 +122,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#shotgun-related">Shotgun Related</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#file-download-related">File Download Related</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#miscellaneous">Miscellaneous</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#exceptions">Exceptions</a></li>
 </ul>
@@ -151,7 +152,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.164.<br>
+    <b>tk-core</b> v0.18.165.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1985,53 +1986,6 @@ return. Defaults to id and type.</li>
 </dd></dl>
 
 <dl class="function">
-<dt id="sgtk.util.download_url">
-<code class="descclassname">sgtk.util.</code><code class="descname">download_url</code><span class="sig-paren">(</span><em>sg</em>, <em>url</em>, <em>location</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun/download.html#download_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.download_url" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convenience method that downloads a file from a given url.
-This method will take into account any proxy settings which have
-been defined in the Shotgun connection parameters.</p>
-<p>In some cases, the target content of the url is not known beforehand.
-For example, the url <code class="docutils literal"><span class="pre">https://my-site.shotgunstudio.com/thumbnail/full/Asset/1227</span></code>
-may redirect into <code class="docutils literal"><span class="pre">https://some-site/path/to/a/thumbnail.png</span></code>. In
-such cases, you can set the optional use_url_extension parameter to True - this
-will cause the method to append the file extension of the resolved url to
-the filename passed in via the location parameter. So for the urls given
-above, you would get the following results:</p>
-<ul class="simple">
-<li>location=&#8221;/path/to/file&#8221; and use_url_extension=False would return &#8220;/path/to/file&#8221;</li>
-<li>location=&#8221;/path/to/file&#8221; and use_url_extension=True would return &#8220;/path/to/file.png&#8221;</li>
-</ul>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>sg</strong> &#8211; Shotgun API instance to get proxy connection settings from</li>
-<li><strong>url</strong> &#8211; url to download</li>
-<li><strong>location</strong> &#8211; path on disk where the payload should be written.
-this path needs to exists and the current user needs
-to have write permissions</li>
-<li><strong>use_url_extension</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Optionally append the file extension of the
-resolved URL&#8217;s path to the input <code class="docutils literal"><span class="pre">location</span></code>
-to construct the full path name to the downloaded
-contents. The newly constructed full path name
-will be returned.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Full filepath to the downloaded file. This may have been altered from
-the input <code class="docutils literal"><span class="pre">location</span></code> if <code class="docutils literal"><span class="pre">use_url_extension</span></code> is True and a file extension
-could be determined from the resolved url.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">TankError</span></code> on failure.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
 <dt id="sgtk.util.create_event_log_entry">
 <code class="descclassname">sgtk.util.</code><code class="descname">create_event_log_entry</code><span class="sig-paren">(</span><em>tk</em>, <em>context</em>, <em>event_type</em>, <em>description</em>, <em>metadata=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun/publish_util.html#create_event_log_entry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.create_event_log_entry" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates an event log entry inside of Shotgun.
@@ -2132,6 +2086,114 @@ the published file type in Shotgun is always <code class="docutils literal"><spa
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>entity_type</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; The entity type to get the name field for.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The name field for the specified entity type.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="file-download-related">
+<h2>File Download Related<a class="headerlink" href="#file-download-related" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="sgtk.util.download_url">
+<code class="descclassname">sgtk.util.</code><code class="descname">download_url</code><span class="sig-paren">(</span><em>sg</em>, <em>url</em>, <em>location</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun/download.html#download_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.download_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method that downloads a file from a given url.
+This method will take into account any proxy settings which have
+been defined in the Shotgun connection parameters.</p>
+<p>In some cases, the target content of the url is not known beforehand.
+For example, the url <code class="docutils literal"><span class="pre">https://my-site.shotgunstudio.com/thumbnail/full/Asset/1227</span></code>
+may redirect into <code class="docutils literal"><span class="pre">https://some-site/path/to/a/thumbnail.png</span></code>. In
+such cases, you can set the optional use_url_extension parameter to True - this
+will cause the method to append the file extension of the resolved url to
+the filename passed in via the location parameter. So for the urls given
+above, you would get the following results:</p>
+<ul class="simple">
+<li>location=&#8221;/path/to/file&#8221; and use_url_extension=False would return &#8220;/path/to/file&#8221;</li>
+<li>location=&#8221;/path/to/file&#8221; and use_url_extension=True would return &#8220;/path/to/file.png&#8221;</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sg</strong> &#8211; Shotgun API instance to get proxy connection settings from</li>
+<li><strong>url</strong> &#8211; url to download</li>
+<li><strong>location</strong> &#8211; path on disk where the payload should be written.
+this path needs to exists and the current user needs
+to have write permissions</li>
+<li><strong>use_url_extension</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Optionally append the file extension of the
+resolved URL&#8217;s path to the input <code class="docutils literal"><span class="pre">location</span></code>
+to construct the full path name to the downloaded
+contents. The newly constructed full path name
+will be returned.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Full filepath to the downloaded file. This may have been altered from
+the input <code class="docutils literal"><span class="pre">location</span></code> if <code class="docutils literal"><span class="pre">use_url_extension</span></code> is True and a file extension
+could be determined from the resolved url.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">TankError</span></code> on failure.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.shotgun.download_and_unpack_attachment">
+<code class="descclassname">sgtk.util.shotgun.</code><code class="descname">download_and_unpack_attachment</code><span class="sig-paren">(</span><em>sg</em>, <em>attachment_id</em>, <em>target</em>, <em>retries=5</em>, <em>auto_detect_bundle=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun/download.html#download_and_unpack_attachment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.shotgun.download_and_unpack_attachment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Downloads the given attachment from Shotgun, assumes it is a zip file
+and attempts to unpack it into the given location.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sg</strong> &#8211; Shotgun API instance</li>
+<li><strong>attachment_id</strong> &#8211; Attachment to download</li>
+<li><strong>target</strong> &#8211; Folder to unpack zip to. if not created, the method will
+try to create it.</li>
+<li><strong>retries</strong> &#8211; Number of times to retry before giving up</li>
+<li><strong>auto_detect_bundle</strong> &#8211; Hints that the attachment contains a toolkit bundle
+(config, app, engine, framework) and that this should be attempted to be
+detected and unpacked intelligently. For example, if the zip file contains
+the bundle in a subfolder, this should be correctly unfolded.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">ShotgunAttachmentDownloadError on failure</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.shotgun.download_and_unpack_url">
+<code class="descclassname">sgtk.util.shotgun.</code><code class="descname">download_and_unpack_url</code><span class="sig-paren">(</span><em>sg</em>, <em>url</em>, <em>target</em>, <em>retries=5</em>, <em>auto_detect_bundle=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/shotgun/download.html#download_and_unpack_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.shotgun.download_and_unpack_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Downloads the content from the provided url, assumes it is a zip file
+and attempts to unpack it into the given location.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sg</strong> &#8211; Shotgun API instance</li>
+<li><strong>url</strong> &#8211; The url to download from</li>
+<li><strong>target</strong> &#8211; Folder to unpack zip to. if not created, the method will
+try to create it.</li>
+<li><strong>retries</strong> &#8211; Number of times to retry before giving up</li>
+<li><strong>auto_detect_bundle</strong> &#8211; Hints that the attachment contains a toolkit bundle
+(config, app, engine, framework) and that this should be attempted to be
+detected and unpacked intelligently. For example, if the zip file contains
+the bundle in a subfolder, this should be correctly unfolded.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">ShotgunAttachmentDownloadError on failure</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -2290,7 +2352,7 @@ example unsupported url schemes.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.164',
+            VERSION:'v0.18.165',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
