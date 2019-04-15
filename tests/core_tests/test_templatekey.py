@@ -729,7 +729,7 @@ class TestSequenceKey(ShotgunTestBase):
         expected = "%s Illegal value '%s', expected an Integer, a frame spec or format spec." % (str(self.seq_field), value)
         expected += "\nValid frame specs: ['%d', '#', '@', '$F', '<UDIM>', '$UDIM', '_MAPID_']"
         expected += ("\nValid format strings: ['FORMAT: %d', 'FORMAT: #', 'FORMAT: @', 'FORMAT: $F', "
-                     "'FORMAT: <UDIM>', 'FORMAT: $UDIM', 'FORMAT': _MAPID_]\n")
+                     "'FORMAT: <UDIM>', 'FORMAT: $UDIM', 'FORMAT: _MAPID_']\n")
 
         self.check_error_message(TankError, expected, self.seq_field.str_from_value, value)
 
