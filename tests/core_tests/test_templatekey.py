@@ -649,6 +649,7 @@ class TestIntegerKey(ShotgunTestBase):
 
 
 class TestSequenceKey(ShotgunTestBase):
+
     def setUp(self):
         super(TestSequenceKey, self).setUp()
         self.seq_field = SequenceKey("field_name")
@@ -656,26 +657,28 @@ class TestSequenceKey(ShotgunTestBase):
 
     def test_framespec_no_format(self):
         seq_field = SequenceKey("field_name")
-        expected_frame_specs = set(["%d", "#", "@", "$F", "<UDIM>", "$UDIM"])
+        expected_frame_specs = set(["%d", "#", "@", "$F", "<UDIM>", "$UDIM", "_MAPID_"])
         self.assertEqual(expected_frame_specs, set(seq_field._frame_specs))
 
     def test_framspec_short_format(self):
         format_spec = "02"
-        expected_frame_specs = set(["%02d", "##", "@@", "$F2", "<UDIM>", "$UDIM"])
+        expected_frame_specs = set(["%02d", "##", "@@", "$F2", "<UDIM>", "$UDIM", "_MAPID_"])
         seq_field = SequenceKey("field_name", format_spec=format_spec)
         self.assertEqual(expected_frame_specs, set(seq_field._frame_specs))
 
     def test_framespec_long_format(self):
         format_spec = "010"
         seq_field = SequenceKey("field_name", format_spec=format_spec)
-        expected_frame_specs = set(["%010d", "@@@@@@@@@@", "##########", "$F10", "<UDIM>", "$UDIM"])
+        expected_frame_specs = set(["%010d", "@@@@@@@@@@", "##########", "$F10", "<UDIM>", "$UDIM", "_MAPID_"])
         self.assertEqual(expected_frame_specs, set(seq_field._frame_specs))
 
     def test_validate_good(self):
         good_values = copy.copy(self.seq_field._frame_specs)
-        good_values.extend(["FORMAT:%d", "FORMAT:#", "FORMAT:@", "FORMAT:$F", "FORMAT:<UDIM>", "FORMAT:$UDIM"])
-        good_values.extend(["FORMAT:  %d", "FORMAT:  #", "FORMAT:  @", "FORMAT:  $F",
-                            "FORMAT:  <UDIM>", "FORMAT:  $UDIM"])
+        good_values.extend(["FORMAT:%d", "FORMAT:#", "FORMAT:@", "FORMAT:$F", "FORMAT:<UDIM>", "FORMAT:$UDIM",
+                            "FORMAT:_MAPID_"])
+
+        good_values.extend(["FORMAT:  %d", "FORMAT:  #", "FORMAT:  @", "FORMAT:  $F", "FORMAT:  <UDIM>",
+                            "FORMAT:  $UDIM", "FORMAT:  _MAPID_"])
         good_values.extend(["243", "0123"])
         good_values.extend(["[243-13123123123]", "[0001-0122]"])
         for good_value in good_values:
@@ -697,7 +700,9 @@ class TestSequenceKey(ShotgunTestBase):
                             "@":"@",
                             "$F":"$F",
                             "<UDIM>":"<UDIM>",
-                            "$UDIM":"$UDIM"}
+                            "$UDIM":"$UDIM",
+                            "_MAPID_": "_MAPID_"
+                            }
         for str_value, expected_value in valid_str_values.items():
             self.assertEqual(expected_value, self.seq_field.value_from_str(str_value))
 
@@ -712,7 +717,9 @@ class TestSequenceKey(ShotgunTestBase):
                             "@":"@",
                             "$F":"$F",
                             "<UDIM>":"<UDIM>",
-                            "$UDIM":"$UDIM"}
+                            "$UDIM":"$UDIM",
+                            "_MAPID_":"_MAPID_"
+                            }
         for value, str_value in valid_value_strs.items():
             self.assertEqual(str_value, self.seq_field.str_from_value(value))
 
@@ -720,9 +727,9 @@ class TestSequenceKey(ShotgunTestBase):
     def test_str_from_value_bad(self):
         value = "a"
         expected = "%s Illegal value '%s', expected an Integer, a frame spec or format spec." % (str(self.seq_field), value)
-        expected += "\nValid frame specs: ['%d', '#', '@', '$F', '<UDIM>', '$UDIM']"
+        expected += "\nValid frame specs: ['%d', '#', '@', '$F', '<UDIM>', '$UDIM', '_MAPID_']"
         expected += ("\nValid format strings: ['FORMAT: %d', 'FORMAT: #', 'FORMAT: @', 'FORMAT: $F', "
-                     "'FORMAT: <UDIM>', 'FORMAT: $UDIM']\n")
+                     "'FORMAT: <UDIM>', 'FORMAT: $UDIM', 'FORMAT': _MAPID_]\n")
 
         self.check_error_message(TankError, expected, self.seq_field.str_from_value, value)
 
@@ -770,6 +777,10 @@ class TestSequenceKey(ShotgunTestBase):
         result = seq_field.str_from_value(value="FORMAT:$UDIM")
         self.assertEqual(expected, result)
 
+        expected = "_MAPID_"
+        result = seq_field.str_from_value(value="FORMAT:_MAPID_")
+        self.assertEqual(expected, result)
+
         # no pattern specified
         expected = "%d"
         result = seq_field.str_from_value()
@@ -806,6 +817,10 @@ class TestSequenceKey(ShotgunTestBase):
         result = seq_field.str_from_value(value="FORMAT:$UDIM")
         self.assertEqual(expected, result)
 
+        expected = "_MAPID_"
+        result = seq_field.str_from_value(value="FORMAT:_MAPID_")
+        self.assertEqual(expected, result)
+
         # no pattern specified
         expected = "%03d"
         result = seq_field.str_from_value()
@@ -840,19 +855,23 @@ class TestSequenceKey(ShotgunTestBase):
         result = seq_field.str_from_value(value="FORMAT: $UDIM")
         self.assertEqual(expected, result)
 
+        expected = "_MAPID_"
+        result = seq_field.str_from_value(value="FORMAT: _MAPID_")
+        self.assertEqual(expected, result)
+
     def test_default_int(self):
         default = 13
         seq_frame = SequenceKey("field_name", default=default)
         self.assertEqual(default, seq_frame.default)
 
     def test_default_frame_spec(self):
-        frame_specs = set(["%d", "#", "@", "$F", "<UDIM>", "$UDIM"])
+        frame_specs = set(["%d", "#", "@", "$F", "<UDIM>", "$UDIM", "_MAPID_"])
         for frame_spec in frame_specs:
             seq_frame = SequenceKey("field_name", default=frame_spec)
             self.assertEqual(frame_spec, seq_frame.default)
 
     def test_default_frame_spec_choices(self):
-        frame_specs = set(["%d", "#", "@", "$F", "<UDIM>", "$UDIM"])
+        frame_specs = set(["%d", "#", "@", "$F", "<UDIM>", "$UDIM", "_MAPID_"])
         for frame_spec in frame_specs:
             seq_frame = SequenceKey("field_name", default=frame_spec, choices=[1,2])
             self.assertEqual(frame_spec, seq_frame.default)
@@ -867,7 +886,7 @@ class TestSequenceKey(ShotgunTestBase):
         self.assertEqual(choices, seq_frame.choices)
 
     def test_choices_frame_spec(self):
-        frame_specs = set(["%d", "#", "@", "$F", "<UDIM>", "$UDIM"])
+        frame_specs = set(["%d", "#", "@", "$F", "<UDIM>", "$UDIM", "_MAPID_"])
         seq_frame = SequenceKey("field_name", choices=frame_specs)
         self.assertEqual(list(frame_specs), seq_frame.choices)
 
