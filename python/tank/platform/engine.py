@@ -623,8 +623,14 @@ class Engine(TankBundle):
             # on Engine, (changing the previous behavior of _define_qt_bases and possibly requiring
             # clients to update their own Engine implementations) we will compare against the class
             # name.
-            qApp = qt.QtGui.QApplication.instance()
-            return qApp.__class__.__name__.endswith("QApplication")
+            try:
+                qApp = qt.QtGui.QApplication.instance()
+                return qApp.__class__.__name__.endswith("QApplication")
+            except Exception:
+                self.logger.warning(
+                    "Error occured while attmepting to determine if there is a QApplication instance exists.",
+                    exc_info=True
+                )
         return False
 
     @property

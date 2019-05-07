@@ -598,6 +598,16 @@ class TestHasUi(TestEngineBase):
             qt_mock.QtGui = None
             self.assertEqual(cur_engine.has_ui, False)
 
+    def test_except(self):
+        """
+        Ensure that has_ui returns False when an arbitrary exception is raised
+        by QApplication.instance.
+        """
+        cur_engine = tank.platform.start_engine("test_engine", self.tk, self.context)
+        with mock.patch("tank.platform.engine.qt") as qt_mock:
+            qt_mock.QtGui.QApplication.instance.side_effect = Exception("Some Error.")
+            self.assertEqual(cur_engine.has_ui, False)
+
 
 class TestCompatibility(TankTestBase):
 
