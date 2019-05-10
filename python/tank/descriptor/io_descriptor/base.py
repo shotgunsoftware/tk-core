@@ -128,6 +128,23 @@ class IODescriptorBase(object):
         class_name = self.__class__.__name__
         return "<%s %s>" % (class_name, self.get_uri())
 
+    @property
+    def disabled(self):
+        """
+        The enabled/disabled state of the descriptor
+        :return: bool
+        """
+        return self._descriptor_dict.get("disabled",False)
+
+    @property
+    def disabled_platforms(self):
+        """
+        A list of platforms that the descriptor should be disabled for.
+        Example of all platforms being disabled would be: ["mac", "windows", "linux"]
+        :return: list of strings
+        """
+        return self._descriptor_dict.get("deny_platforms", [])
+
     @classmethod
     def _validate_descriptor(cls, descriptor_dict, required, optional):
         """
