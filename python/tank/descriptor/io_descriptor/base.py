@@ -134,7 +134,7 @@ class IODescriptorBase(object):
         The enabled/disabled state of the descriptor
         :return: bool
         """
-        return self._descriptor_dict.get("disabled",False)
+        return self._descriptor_dict.get("disabled", False)
 
     @property
     def disabled_platforms(self):
