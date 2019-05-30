@@ -143,7 +143,9 @@ class IODescriptorBase(object):
         """
         desc_keys_set = set(descriptor_dict.keys())
         required_set = set(required)
-        optional_set = set(optional)
+        # Add deny_platforms and disabled to the list of optional parameters as these are globally supported across
+        # all descriptors and are used by the environment code to check if an item is disabled.
+        optional_set = set(optional + ["deny_platforms", "disabled"])
 
         if not required_set.issubset(desc_keys_set):
             missing_keys = required_set.difference(desc_keys_set)

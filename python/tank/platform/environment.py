@@ -109,6 +109,8 @@ class Environment(object):
         """
         handles the checks to see if an item is disabled
         """
+        # TODO: This should be redesigned to use the descriptor API disabled and disabled_platforms properties to help
+        #       better encapsulate the feature?
         descriptor_dict = settings.get(constants.ENVIRONMENT_LOCATION_KEY)
 
         # Check for disabled and deny_platforms
