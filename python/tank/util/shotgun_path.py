@@ -43,11 +43,21 @@ class ShotgunPath(object):
         >>> p.current_os
         '/tmp'
 
+        # boolean operations
+        >>> if p: print "a path value defined for windows, linux or mac"
+
+        # equality
+        >>> if p1 == p2: print "paths are same"
+
         # multi-platform access
         >>> p.as_shotgun_dict()
         { "windows_path": "C:\\temp", "mac_path": None, "linux_path": "/tmp"}
         >>> p.as_system_dict()
         { "win32": "C:\\temp", "darwin": None, "linux2": "/tmp"}
+
+        # descriptor uri conversion
+        >>> p.as_descriptor_uri()
+        'sgtk:descriptor:path?linux_path=/tmp/foo'
 
         # path manipulation
         >>> p2 = p.join('foo')
@@ -186,7 +196,7 @@ class ShotgunPath(object):
         Normalization include checking that separators are matching the
         current operating system, removal of trailing separators
         and removal of double separators. This is done automatically
-        for all :class:`ShotgunPath`s but sometimes it is useful
+        for all :class:`ShotgunPath`, but sometimes it is useful
         to just perform the normalization quickly on a local path.
 
         :param str path: Local operating system path to normalize
@@ -431,6 +441,43 @@ class ShotgunPath(object):
         if self._linux_path or include_empty:
             d["linux2"] = self._linux_path
         return d
+
+    def as_descriptor_uri(self, for_development=False):
+        """
+        Translates the path to a descriptor uri. For more information
+        about descriptors, see the :ref:`reference documentation<descriptor>`.
+
+        This method will either return a dev or a path descriptor uri
+        path string, suitable for use with for example pipeline configurations
+        in Shotgun.
+
+        :param bool for_development: Set to true for a dev descriptor
+        :returns: Dev or Path descriptor uri string representing the path
+        :raises: ValueError if the path object has no paths defined
+        """
+        # local import to avoid cycles
+        from ..descriptor import descriptor_dict_to_uri
+
+        if not self:
+            # no paths defined
+            raise ValueError(
+                "%s does not have any paths defined and "
+                "cannot be converted to a descriptor uri." % self
+            )
+
+        # build up dictionary based decriptor
+        descriptor_dict = {}
+
+        if for_development:
+            descriptor_dict["type"] = "dev"
+        else:
+            descriptor_dict["type"] = "path"
+
+        # add paths
+        descriptor_dict.update(self.as_shotgun_dict(include_empty=False))
+
+        # convert to string based uri
+        return descriptor_dict_to_uri(descriptor_dict)
 
     def join(self, folder):
         """

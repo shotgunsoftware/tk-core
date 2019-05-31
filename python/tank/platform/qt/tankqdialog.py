@@ -421,7 +421,7 @@ class TankQDialog(TankDialogBase):
                 # here!
                 pass
             else:
-                # widget supressed the close!
+                # widget suppressed the close!
                 return
         else:
             # process 'done' so that the exit code

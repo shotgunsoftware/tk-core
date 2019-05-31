@@ -55,22 +55,23 @@ class AuthenticationCancelled(ShotgunAuthenticationError):
         )
 
 
-class AuthenticationSSOError(ShotgunAuthenticationError):
-    """
-    Base class for all SSO-related exceptions coming out from this module.
-    """
-
-
-class ConsoleLoginWithSSONotSupportedError(AuthenticationSSOError):
+class ConsoleLoginNotSupportedError(ShotgunAuthenticationError):
     """
     Thrown when attempting to use Username/Password pair to login onto
-    a SSO-enabled site.
+    an SSO-enabled site.
     """
 
-    def __init__(self, url):
+    def __init__(self, url, site_auth_type="Single Sign-On"):
         """
         :param str url: Url of the site where login was attempted.
+        :param str site_auth_type: type of authentication, e.g. SSO, Identity.
+                                   The default value is for backward compatibility.
         """
-        ShotgunAuthenticationError.__init__(
-            self, "Authentication using username/password is not supported on the console for %s, an SSO-enabled site." % url
+        super(ConsoleLoginNotSupportedError, self).__init__(
+            "Authentication using username/password is not supported on "
+            "the console %s for sites using %s." % (url, site_auth_type)
         )
+
+
+# For backward compatibility.
+ConsoleLoginWithSSONotSupportedError = ConsoleLoginNotSupportedError

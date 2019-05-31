@@ -36,13 +36,13 @@ class TestInit(TestTemplateString):
         definition = "something-{Shot}.{Sequence}"
         template = TemplateString(definition, self.keys)
         expected = [["%s%ssomething-" % (template._prefix, os.path.sep), "."]]
-        self.assertEquals(expected, template._static_tokens)
+        self.assertEqual(expected, template._static_tokens)
 
     def test_static_key_first(self):
         definition = "{Shot}something-{Sequence}."
         template = TemplateString(definition, self.keys)
         expected = [["%s%s" % (template._prefix, os.path.sep), "something-", "."]]
-        self.assertEquals(expected, template._static_tokens)
+        self.assertEqual(expected, template._static_tokens)
 
     def test_definition_preseves_leading_slash(self):
         """
@@ -52,13 +52,13 @@ class TestInit(TestTemplateString):
         # forward slashes with leading slash
         definition = "/tmp/{Shot}/something/{Sequence}/"
         template_string = TemplateString(definition, self.keys)
-        self.assertEquals(definition, template_string.definition)
+        self.assertEqual(definition, template_string.definition)
 
     def test_definition_preserves_back_slashes(self):
         # back slashes with leading slash
         definition = r"\something\{Shot}\\"
         template_string = TemplateString(definition, self.keys)
-        self.assertEquals(definition, template_string.definition)
+        self.assertEqual(definition, template_string.definition)
 
 class TestParent(TestTemplateString):
     def test_none(self):
@@ -109,7 +109,7 @@ class TestApplyFields(TestTemplateString):
                   "Sequence": "seq_2"}
         expected = "something-shot_1.seq_2"
         result = self.template_string.apply_fields(fields)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_value_missing(self):
         fields = {"Shot": "shot_1"}
@@ -121,13 +121,13 @@ class TestApplyFields(TestTemplateString):
                   "Sequence": "seq_2"}
         expected = "something-shot_1.seq_2"
         result = template_string.apply_fields(fields)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         # remove optional value
         del(fields["Sequence"])
         expected = "something-shot_1"
         result = template_string.apply_fields(fields)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
 
 class TestGetFields(TestTemplateString):
@@ -137,7 +137,7 @@ class TestGetFields(TestTemplateString):
         expected = {"Shot": "shot_1",
                     "Sequence": "Seq_12"}
         result = self.template_string.get_fields(input_string)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
         
     def test_key_first(self):
         definition = "{Shot}.{Sequence}"
@@ -146,7 +146,7 @@ class TestGetFields(TestTemplateString):
         expected = {"Shot": "shot_1",
                     "Sequence": "Seq_12"}
         result = template_string.get_fields(input_string)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_key_only(self):
         definition = "{Shot}"
@@ -154,7 +154,7 @@ class TestGetFields(TestTemplateString):
         input_string = "shot_1"
         expected = {"Shot": "shot_1"}
         result = template_string.get_fields(input_string)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_missing_value(self):
         input_string = "shot_1."
@@ -184,7 +184,7 @@ class TestGetFields(TestTemplateString):
                     "Sequence": "seq_2"}
 
         result = template_string.get_fields(input_string)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
 
         # without optional value
@@ -192,7 +192,7 @@ class TestGetFields(TestTemplateString):
         expected = {"Shot": "shot_1"}
 
         result = template_string.get_fields(input_string)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
     
     #TODO this won't pass with current algorithm
 #    def test_definition_short_end_key(self):

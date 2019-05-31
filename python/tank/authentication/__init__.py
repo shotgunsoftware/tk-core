@@ -21,9 +21,14 @@ credentials are reused if available.
 from .errors import (  # noqa
     AuthenticationCancelled,
     AuthenticationError,
-    ConsoleLoginWithSSONotSupportedError,
+    ConsoleLoginWithSSONotSupportedError,  # For backward compatibility.
+    ConsoleLoginNotSupportedError,
     IncompleteCredentials,
     ShotgunAuthenticationError,
+)
+from .web_login_support import (
+    get_shotgun_authenticator_support_web_login,
+    set_shotgun_authenticator_support_web_login,
 )
 from .shotgun_authenticator import ShotgunAuthenticator
 from .defaults_manager import DefaultsManager
@@ -33,4 +38,5 @@ from .user import (  # noqa
     serialize_user,
     ShotgunSamlUser,
     ShotgunUser,
+    ShotgunWebUser,
 )

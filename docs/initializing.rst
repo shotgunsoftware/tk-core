@@ -109,6 +109,8 @@ the Toolkit plugin associated with that software is launched at startup.
 There are two fundamentally different ways to set up a Toolkit Project in Shotgun,
 both briefly outlined below:
 
+.. _distributed_configurations:
+
 Distributed configurations
 ==========================
 
@@ -126,6 +128,8 @@ automatically caches all necessary runtime components locally.
 .. note:: To create a distributed configuration, manually go into Shotgun and create
     a **Shotgun Pipeline Configuration entity** for your project. For more information,
     see :ref:`automatically_managed_pcs`.
+
+.. _centralized_configurations:
 
 Centralized configurations
 ==========================
@@ -154,21 +158,22 @@ to Shotgun. At startup, the Toolkit Bootstrap will automatically look for upload
 and if detected, download the configuration locally and then launch. Toolkit will take care
 of distribution and setup.
 
-To use this workflow, start by creating a custom file/link field on the Pipeline Configuration.
-Name it ``Uploaded Config`` (so that its API field code becomes ``sg_uploaded_config``):
 
-.. image:: ./resources/initializing/create_uploaded_config_field.png
-    :width: 700px
-    :align: center
-
-Once created, you can zip up your configuration and upload it as an attachment:
+To use this workflow, simply zip up your configuration and upload it as an attachment:
 
 .. image:: ./resources/initializing/zip_config.png
     :width: 700px
     :align: center
 
-Once a configuration is uploaded, it will be detected and used at boostrap.
-If a new configuration is uploaded to Shotgun, users will pick that up the
+.. note:: For backwards compatibility, configurations uploaded to the custom ``sg_uploaded_config`` field 
+    are also supported.
+
+    Older versions of Shotgun may not have an **Uploaded Config** field enabled by
+    default, and in this case it may be necessary to create a custom field. Naming it **Uploaded Config**
+    will generate a field with the API name ``sg_uploaded_config`` and thus will be recognized by Toolkit.
+
+Once a configuration is uploaded, it will be detected and used at bootstrap.
+If a new configuration is uploaded to Shotgun, users will pick it up the
 next time they start up.
 
 .. note:: As an example, you can download one of the default configurations from
@@ -237,6 +242,7 @@ but is shared between all pipeline configurations.
         :align: center
 
     |
+
     The structure of this folder is identical to the global ``bundle_cache``
     folder found in the locations listed above and can contain all of the
     apps, engines, and frameworks required by your configuration.
@@ -390,9 +396,49 @@ In addition to this, a project folder name needs to be defined. This will be the
 to the root folder on disk when the folder structure starts getting populated. The project name
 is defined in a field named ``tank_name`` on the Shotgun Project entity.
 
-.. note:: When using a  :ref:`centralized configuraion<centralized_configs>`, this process
+.. note:: When using a  :ref:`centralized configuration<centralized_configs>`, this process
           is automatically handled by the project setup wizard. In this case, you have to
           do it manually.
+
+Distributing application code from your site
+============================================
+
+If you want to cache custom application code that may only be accessible for
+users on your local network or from developers who have access keys to the Git
+repositories, you can upload  individual bundles to Shotgun and then take over the
+:meth:`~bootstrap.Bootstrap.populate_bundle_cache_entry` and
+:meth:`~bootstrap.Bootstrap.can_cache_bundle` methods of the
+:class:`~bootstrap.Bootstrap` hook.
+
+.. note::
+    This workflow isn't limited to custom applications stored in git. You can also use it
+    to distribute applications downloaded from the Toolkit AppStore if your users do not
+    have access to the Internet.
+
+Here's a suggested setup:
+
+.. image:: ./resources/initializing/bundle_custom_entity.png
+
+As you can see, a non project custom entity has been configured to cache Toolkit bundles. The
+most important column here is Descriptor, which is the field the bootstrap hook will use
+to determine if a bundle is available in Shotgun or not.
+
+.. warning ::
+    You should never upload a new bundle to an existing Toolkit Bundle entity. Toolkit caches
+    items locally based on the version number inside the descriptor URI. For every change to
+    a bundle, always create a new version number.
+
+Once the bundles have been uploaded, you can implement the ``core/bootstrap.py`` hook.
+
+.. literalinclude:: examples/bootstrap_hook.py
+   :language: python
+   :start-after: #documentationStart
+   :end-before: #documentationEnd
+
+Once you are done, you can zip your configuration and its custom bootstrap and upload it to a
+``PipelineConfiguration`` entity in Shotgun. Now every time a user bootstraps into this pipeline
+configuration, they will download the configuration and cache the Toolkit core and all application
+bundles through the hook.
 
 
 .. _centralized_configs:
@@ -440,11 +486,44 @@ Starting a Toolkit engine from a centralized project
 ============================================================
 
 In this case, when a known location exists for your core API, you are not required to use the
-bootstrap API, however you still can. In order to launch a maya engine using the bootrap API,
-you would simply execute:
+bootstrap API. Given that the location of the configuration is known on beforehand, factory methods
+such as :meth:`sgtk.sgtk_from_path` can also be used, however when doing so you need
+to make sure you always use the core associated with the configuration:
 
 .. code-block:: python
 
+    # for our hidden forest project the configuration is
+    # installed in /mnt/toolkit/configs/hidden_forest
+    # add the tk-core of the project to the pythonpath
+    import sys
+    sys.path.append("/mnt/toolkit/configs/hidden_forest/install/core/python")
+
+    # now import the API associated with config
+    import sgtk
+
+    # and create a tk instance by passing in the path to the
+    # configuration or a path to any file associated with the
+    # project
+    tk = sgtk.sgtk_from_path("/mnt/toolkit/configs/hidden_forest")
+
+    # create a context for a Shotgun entity associated with the project
+    ctx = tk.context_from_entity("Project", 122)
+
+    # finally, launch the engine
+    engine = sgtk.platform.start_engine("tk-maya", tk, ctx)
+
+If you want, you can also use the bootstrap API to launch a centralized configuration:
+
+.. code-block:: python
+
+    # here, we can use any tk-core we want - it doesn't even have to be connected
+    # to a project - the bootstrap API will swap out the core for the right version
+    # as it starts things up.
+    #
+    # here you could also pip install the tk-core for a fully automated workflow.
+    #
+    import sys
+    sys.path.append("/my/python/stuff")
     import sgtk
 
     # Start up a Toolkit Manager
@@ -453,39 +532,22 @@ you would simply execute:
     # now start up the maya engine for a given Shotgun object
     e = mgr.bootstrap_engine("tk-maya", entity={"type": "Project", "id": 122})
 
+
 .. note:: When using boostrap, any ``tk-core`` API can be used for the initial ``import sgtk``.
     The bootstrap API will automatically determine which version is required for the project
     we are bootstrapping into, and potentially swap the core at runtime if the project
     requires a more recent version than the one used to bootstrap with.
 
-Given that the location of the configuration is known on beforehand, factory methods
-such as :meth:`sgtk.sgtk_from_path` can also be used, however when doing so you need
-to make sure you use the core associated with the configuration:
+Factory methods
+========================================
 
-.. code-block:: python
+.. currentmodule:: sgtk
 
-    # our configuration is installed in /mnt/toolkit/configs/hidden_forest
+Two main methods exist if you want to start a centralized configuration and not utilize the
+bootstrap API:
 
-    # add the core of the project to the pythonpath
-    import sys
-    sys.path.append("/mnt/toolkit/configs/hidden_forest/install/core/python")
-
-    # now import the API associated with config
-    import sgtk
-
-    # and start up the main tk API
-    tk = sgtk.sgtk_from_path("/mnt/toolkit/configs/hidden_forest")
-
-    # create a context
-    ctx = tk.context_from_entity("Project", 122)
-
-    # launch the engine
-    engine = sgtk.platform.start_engine("tk-maya", tk, ctx)
-
-
-
-
-
+.. autofunction:: sgtk_from_path
+.. autofunction:: sgtk_from_entity
 
 
 
@@ -524,6 +586,11 @@ to launch Toolkit's default config for an Shotgun Asset:
     # the latest version will be looked up and used
     mgr.base_configuration = "sgtk:descriptor:app_store?name=tk-config-basic"
 
+    # Each bootstrap session is normally defined by a plugin id. We recommend
+    # using a 'basic.' prefix if you want your bootstrap session to pick up the
+    # standard toolkit configurations
+    mgr.plugin_id = "basic.my_toolkit_plugin"
+
     # now start up the maya engine for a given Shotgun object
     e = mgr.bootstrap_engine("tk-maya", entity={"type": "Asset", "id": 1234})
 
@@ -531,7 +598,6 @@ In this example, there is no need to construct any :class:`sgtk.Sgtk`
 instance or run a ``tank`` command - the :class:`ToolkitManager` instead becomes the entry
 point into the system. It will handle the setup and initialization of the configuration behind the scenes
 and start up a Toolkit session once all the required pieces have been initialized and set up.
-
 
 .. _environment_variables:
 
@@ -630,30 +696,6 @@ Exception Classes
     :members:
 
 
-Factory methods
-========================================
-
-.. currentmodule:: sgtk
-
-For setups where the configuration resides in a specific location on disk, you can use
-the following factory methods to create a :class:`sgtk.Sgtk` instance:
-
-.. note::
-
-    These methods were designed to initialize Toolkit in workflows where the location of configuration
-    is pre-determined, typically via the ``tank setup_project`` command (or via Shotgun Desktop's
-    project setup wizard).
-
-    Modern toolkit workflows handle the configuration management automatically, driven by the
-    configuration information in Shotgun and via the :class:`~sgtk.bootstrap.ToolkitManager` API.
-    For these workflows, there is no need to use these commands.
-    Instead, launch your toolkit engine directly using the :class:`~sgtk.bootstrap.ToolkitManager`
-    methods.
-
-.. autofunction:: sgtk_from_path
-.. autofunction:: sgtk_from_entity
-
-
 
 Installing the sgtk module using pip
 ----------------------------------------
@@ -666,12 +708,12 @@ potentially even including a different version of the core API than you are usin
 In order to fully automate this process programatically, you need an ``sgtk`` instance to begin with.
 One way to accomplish this is to use ``pip`` (see https://pip.pypa.io/). Use the following syntax::
 
-    pip install git+https://github.com/shotgunsoftware/tk-core@v0.18.35
+    pip install git+https://github.com/shotgunsoftware/tk-core@VERSION
 
-
+Where you swap the ``VERSION`` text with the latest version in the format of ``vx.x.x``.
 If you want to add an sgtk core to a ``requirements.txt`` file, use the following syntax::
 
-    git+https://github.com/shotgunsoftware/tk-core@v0.18.35
+    git+https://github.com/shotgunsoftware/tk-core@VERSION
 
 .. warning:: In order to use ``pip``, you currently need to have the git executable installed
              on the system that you are deploying to.
@@ -740,7 +782,7 @@ The following lines of python code demonstrate how to launch Maya using the core
 
     # Use the SoftwareLauncher instance to find a list of Maya versions installed on the
     # local filesystem. A list of SoftwareVersion instances is returned.
-    software_versions = software_launcher.get_supported_software()
+    software_versions = software_launcher.scan_software()
 
     # Ask the SoftwareLauncher instance to prepare an environment to launch Maya in.
     # For simplicity, use the first version returned from the list of software_versions.
@@ -852,7 +894,7 @@ Software Launch APIs
 ============================
 
 This section contains the techincal documentation for the core classes and methods described in the
-:ref:`Launching Software` section above.
+:ref:`launching_software` section above.
 
 .. autofunction:: create_engine_launcher
 

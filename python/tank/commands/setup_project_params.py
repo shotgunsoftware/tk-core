@@ -20,7 +20,7 @@ from ..util import StorageRoots
 from ..util import shotgun
 from ..util import filesystem
 from ..util.version import is_version_newer
-from ..util.zip import unzip_file
+from ..util.zip import unzip_file, zip_file
 
 from .. import hook
 from ..errors import TankError, TankErrorProjectIsSetup
@@ -54,8 +54,9 @@ class ProjectSetupParameters(object):
     - validate using pre_setup_validation
 
     - run project setup!
-
     """
+
+    (CENTRALIZED_CONFIG, DISTRIBUTED_CONFIG) = range(2)
 
     def __init__(self, log, sg):
         """
@@ -78,6 +79,11 @@ class ProjectSetupParameters(object):
 
         # expert setting auto path mode
         self._auto_path = False
+
+        # distribution mode, e.g. use old xxx_path fields or
+        # new descriptor/uploaded config fields when storing
+        # stuff on the pipeline config.
+        self._distribution_mode = self.CENTRALIZED_CONFIG
 
         # initialize data members - project
         self._force_setup = False
@@ -267,8 +273,14 @@ class ProjectSetupParameters(object):
 
     def get_configuration_shotgun_info(self):
         """
-        Returns information about how the config relates to shotgun.
-        Returns a dictionary with shotgun pipelineconfig information,
+        Returns information about how the config that we are
+        using as a template for this project relates to shotgun.
+
+        if we are basing the project on an external configuration,
+        None is returned.
+
+        If we are basing the project on an existing project, a dictionary
+        with shotgun pipelineconfig information is returned,
         including the fields
 
         - id
@@ -374,6 +386,84 @@ class ProjectSetupParameters(object):
         """
         self._cached_config_templates[config_uri].update_storage_root(
             root_name, storage_data)
+
+    def upload_configuration(self, pipeline_config_id):
+        """
+        Zips up and then uploads the configuration to Shotgun.
+
+        :param int pipeline_config_id: Pipeline configuration id to upload to.
+        """
+        if self._config_template is None:
+            raise TankError("Please specify a configuration template!")
+
+        # compose a filename for the zip file that will be uploaded to SG
+        # this will also be the name that is displayed on the attachment in SG
+        zip_filename = "%s.zip" % (self._config_template.version or "config")
+
+        # create a folder name which will be the folder which everything is
+        # contained inside if you unzip the configuration
+        folder_name = "config_%s" % (self._config_template.version or "unversioned")
+
+        # create a temp area where we can do our zipping
+        temp_root = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
+        filesystem.ensure_folder_exists(temp_root)
+        temp_zip = os.path.join(tempfile.gettempdir(), temp_root, zip_filename)
+        temp_config = os.path.join(tempfile.gettempdir(), temp_root, folder_name)
+
+        self._log.debug("Packaging up configuration...")
+
+        try:
+            # copy the configuration to the temp folder so we can update it.
+            self._config_template.copy_configuration(temp_config)
+
+            # update the roots.yml file in the config to
+            # match the storage selections we have made in the wizard
+            # e.g. link up a storage name e.g. 'primary' in the config
+            # against a local storage id in Shotgun.
+            #
+            # Note: We don't write any paths to the roots.yml -
+            # these are resolved at bootstrap time.
+            roots_data = {}
+            for storage_name in self.get_required_storages():
+
+                # for distributed configs, we don't include any paths
+                roots_data[storage_name] = {
+                    "windows_path": None,
+                    "linux_path": None,
+                    "mac_path": None,
+                }
+
+                # if this is the default storage,
+                # ensure it is explicitly marked in the roots file
+                if self.default_storage_name and storage_name == self.default_storage_name:
+                    roots_data[storage_name]["default"] = True
+
+                # if there is a SG local storage associated with this root, make sure
+                # it is explicit in the the roots file. this allows roots to exist that
+                # are not named the same as the storage in SG
+                sg_storage_id = self.get_storage_shotgun_id(storage_name)
+                if sg_storage_id is not None:
+                    roots_data[storage_name]["shotgun_storage_id"] = sg_storage_id
+
+            storage_roots = StorageRoots.from_metadata(roots_data)
+            storage_roots.write(self._sg, temp_config, storage_roots)
+
+            # clean up some system files
+            filesystem.safe_delete_folder(os.path.join(temp_config, "tk-metadata"))
+
+            # zip up
+            zip_file(temp_config, temp_zip)
+
+            self._log.debug("Uploading confguration to Shotgun...")
+            self._sg.upload(
+                constants.PIPELINE_CONFIGURATION_ENTITY,
+                pipeline_config_id,
+                temp_zip,
+                field_name=constants.PIPELINE_CONFIGURATION_UPLOAD_FIELD,
+            )
+        finally:
+            filesystem.safe_delete_folder(temp_root)
+
 
     def create_configuration(self, target_path):
         """
@@ -578,6 +668,24 @@ class ProjectSetupParameters(object):
         """
         return self._auto_path
 
+    def set_distribution_mode(self, mode):
+        """
+        Controls whether the setup should be deployed as a
+        centralized or distributed configuration.
+
+        :param mode: Pass ProjectSetupParameters.CENTRALIZED_CONFIG|DISTRIBUTED_CONFIG
+        """
+        self._distribution_mode = mode
+
+    def get_distribution_mode(self):
+        """
+        Returns whether the setup should be deployed as a
+        centralized or distributed configuration.
+
+        :returns: ProjectSetupParameters.CENTRALIZED_CONFIG|DISTRIBUTED_CONFIG
+        """
+        return self._distribution_mode
+
     def validate_configuration_location(self, linux_path, windows_path, macosx_path):
         """
         Performs basic I/O checks to ensure that the given configuration location is valid.
@@ -744,14 +852,39 @@ class ProjectSetupParameters(object):
         if self._config_template is None:
             raise TankError("Configuration template has not been specified!")
 
-        if self._config_path is None:
+        if self._distribution_mode == self.CENTRALIZED_CONFIG and self._config_path is None:
             raise TankError("Path to the target configuration install has not been specified!")
 
         if self._project_disk_name is None:
             raise TankError("Project disk name has not been specified!")
 
-        # get the location of the configuration
-        config_path_current_os = self.get_configuration_location(sys.platform)
+        # ensure an uploaded_config field exists if we are doing a distributed cfg
+        if self._distribution_mode == self.DISTRIBUTED_CONFIG:
+            # if the fields don't exist in shotgun, the fields will be not be returned
+            field_data = self._sg.schema_field_read("PipelineConfiguration")
+            if "uploaded_config" not in field_data:
+                raise TankError(
+                    "Shotgun site is missing a PipelineConfiguration.uploaded_config "
+                    "field, required for distributed configs to work correctly. Please update to "
+                    "a more recent version of Shotgun."
+                )
+        else:
+            # checks for centralized config
+
+            # make sure that the storage location is not the same folder
+            # as the pipeline config location. That will confuse tank.
+            config_path_current_os = self.get_configuration_location(sys.platform)
+            for storage_name in self.get_required_storages():
+
+                # get the project path for this storage
+                # note! at this point, the storage root has been checked and exists on disk.
+                project_path_local_os = self.get_project_path(storage_name, sys.platform)
+
+                if config_path_current_os == project_path_local_os:
+                    raise TankError(
+                        "Your configuration location '%s' has been set to the same "
+                        "as one of the storage locations. This is not supported!" % config_path_current_os
+                    )
 
         # validate the local storages
         for storage_name in self.get_required_storages():
@@ -759,12 +892,6 @@ class ProjectSetupParameters(object):
             # get the project path for this storage
             # note! at this point, the storage root has been checked and exists on disk.
             project_path_local_os = self.get_project_path(storage_name, sys.platform)
-
-            # make sure that the storage location is not the same folder
-            # as the pipeline config location. That will confuse tank.
-            if config_path_current_os == project_path_local_os:
-                raise TankError("Your configuration location '%s' has been set to the same "
-                                "as one of the storage locations. This is not supported!" % config_path_current_os)
 
             if not os.path.exists(project_path_local_os):
                 raise TankError("The Project path %s for storage %s does not exist on disk! "
@@ -831,7 +958,7 @@ class TemplateConfiguration(object):
         # now extract the cfg and validate
         old_umask = os.umask(0)
         try:
-            (self._cfg_folder, self._config_mode) = self._process_config(config_uri)
+            (self._cfg_folder, self._version, self._config_mode) = self._process_config(config_uri)
         finally:
             os.umask(old_umask)
         self._config_uri = config_uri
@@ -972,7 +1099,7 @@ class TemplateConfiguration(object):
             self._log.info("Hang on, loading configuration from git...")
             descriptor = self._create_git_descriptor(config_uri)
             descriptor.ensure_local()
-            return descriptor.get_path(), "git"
+            return descriptor.get_path(), descriptor.version, "git"
 
         elif os.path.sep in config_uri:
             # probably a file path!
@@ -980,10 +1107,10 @@ class TemplateConfiguration(object):
                 # either a folder or zip file!
                 if config_uri.endswith(".zip"):
                     self._log.info("Hang on, unzipping configuration...")
-                    return (self._process_config_zip(config_uri), "zip")
+                    return self._process_config_zip(config_uri), None, "zip"
                 else:
                     self._log.info("Hang on, loading configuration...")
-                    return (self._process_config_dir(config_uri), self._LOCAL)
+                    return self._process_config_dir(config_uri), None, self._LOCAL
             else:
                 raise TankError("File path %s does not exist on disk!" % config_uri)
 
@@ -999,8 +1126,7 @@ class TemplateConfiguration(object):
                 local_fallback_when_disconnected=False
             )
             descriptor.ensure_local()
-
-            return (descriptor.get_path(), "app_store")
+            return descriptor.get_path(), descriptor.version, "app_store"
 
         else:
             raise TankError("Don't know how to handle config '%s'" % config_uri)
@@ -1014,6 +1140,13 @@ class TemplateConfiguration(object):
         The default storage name for this template configuration.
         """
         return self._storage_roots.default
+
+    @property
+    def version(self):
+        """
+        Version number string for this config or none if no version is defined.
+        """
+        return self._version
 
     def resolve_storages(self):
         """
@@ -1181,6 +1314,17 @@ class TemplateConfiguration(object):
         :returns string
         """
         return self._manifest.get("description")
+
+    @filesystem.with_cleared_umask
+    def copy_configuration(self, target_path):
+        """
+        Copies the configuration to the given path.
+        If the target_path does not exist, it will be created.
+
+        :param target_path: Path where config will be copied
+        """
+        # copy the config from its source location into place
+        filesystem.copy_folder(self._cfg_folder, target_path)
 
     @filesystem.with_cleared_umask
     def create_configuration(self, target_path):

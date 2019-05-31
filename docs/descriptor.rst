@@ -94,6 +94,7 @@ Several different descriptor types are supported by Toolkit:
 - A **shotgun** descriptor represents an item stored in Shotgun
 - A **git** descriptor represents a tag in a git repository
 - A **git_branch** descriptor represents a commit in a git branch
+- A **github_release** descriptor represents a Release on a Github repo
 - A **path** descriptor represents a location on disk
 - A **dev** descriptor represents a developer sandbox
 - A **manual** descriptor gives raw access to the bundle caching structure
@@ -185,7 +186,7 @@ SSH git syntax:
 
 .. code-block:: yaml
 
-    sgtk:descriptor:git?path=user%40remotehost%3A/path_to/repo.git&version=v0.1.0
+    sgtk:descriptor:git?path=user@remotehost:/path_to/repo.git&version=v0.1.0
 
 Git protocol syntax:
 
@@ -199,7 +200,7 @@ Git protocol syntax:
 
 .. code-block:: yaml
 
-    sgtk:descriptor:git?path=git%3A//github.com/user/tk-multi-publish.git&version=v0.1.0
+    sgtk:descriptor:git?path=git://github.com/user/tk-multi-publish.git&version=v0.1.0
 
 Http protocol syntax:
 
@@ -213,7 +214,7 @@ Http protocol syntax:
 
 .. code-block:: yaml
 
-    sgtk:descriptor:git?path=https%3A//github.com/user/tk-multi-publish.git&version=v0.1.0
+    sgtk:descriptor:git?path=https://github.com/user/tk-multi-publish.git&version=v0.1.0
 
 
 .. note:: The latest version for a descriptor is determined by retrieving the list of tags for
@@ -256,7 +257,7 @@ SSH git syntax:
 
 .. code-block:: yaml
 
-    sgtk:descriptor:git_branch?branch=master&path=user%40remotehost%3A/path_to/repo.git&version=17fedd8
+    sgtk:descriptor:git_branch?branch=master&path=user@remotehost:/path_to/repo.git&version=17fedd8
 
 Git protocol syntax:
 
@@ -271,7 +272,7 @@ Git protocol syntax:
 
 .. code-block:: yaml
 
-    sgtk:descriptor:git_branch?branch=master&path=git%3A//github.com/user/tk-multi-publish.git&version=17fedd8
+    sgtk:descriptor:git_branch?branch=master&path=git://github.com/user/tk-multi-publish.git&version=17fedd8
 
 Http protocol syntax:
 
@@ -286,7 +287,7 @@ Http protocol syntax:
 
 .. code-block:: yaml
 
-    sgtk:descriptor:git_branch?branch=master&path=https%3A//github.com/user/tk-multi-publish.git&version=17fedd8
+    sgtk:descriptor:git_branch?branch=master&path=https://github.com/user/tk-multi-publish.git&version=17fedd8
 
 You can use both long and short hash formats for the version token. The latest version for a git_branch
 descriptor is defined as the most recent commit for a given branch.
@@ -302,6 +303,39 @@ descriptor is defined as the most recent commit for a given branch.
           the ``PATH`` in order for the API to be able to do a latest check or
           app download. The git executable is, however, not needed during descriptor
           resolve and normal operation.
+
+
+Tracking against releases on Github
+===================================
+
+The ``github_release`` descriptor type is useful for studios and 3rd parties wishing to deploy apps directly from Github.
+
+Getting ``tk-multi-pythonconsole`` from its ``shotgunsoftware`` Github repo:
+
+.. code-block:: yaml
+
+    {
+        type: github_release,
+        organization: shotgunsoftware,
+        repository: tk-multi-pythonconsole,
+        version: v1.2.29
+    }
+
+.. code-block:: yaml
+
+    sgtk:descriptor:github_release?organization=shotgunsoftware&repository=tk-multi-pythonconsole&version=v1.2.29
+
+
+- ``organization`` is the Github organization or user that the repository belongs to.
+- ``repository`` is the name of the repository to find a Release for.
+- ``version`` is the name of the Release to use.
+
+
+.. note:: This descriptor only works with Github Releases, not all tags. For more information, see the `Github Documentation on Releases <https://help.github.com/en/articles/creating-releases>`_.
+
+.. note:: If you want constraint patterns (i.e. ``v1.x.x``) to work correctly with this descriptor, you must follow the `semantic versioning <https://semver.org/>`_ specification when naming Releases on Github.
+
+.. warning:: Private repositories are not currently supported by this descriptor.
 
 
 Pointing to a path on disk
@@ -343,7 +377,7 @@ When using a ``path`` descriptor in production, you can include paths to multipl
 
 .. code-block:: yaml
 
-    sgtk:descriptor:path?linux_path=/path/to/app&mac_path=/path/to/app&windows_path=c%3A%5Cpath%5Cto%5Capp
+    sgtk:descriptor:path?linux_path=/path/to/app&mac_path=/path/to/app&windows_path=c:\path\to\app
 
 Environment variables can be included in paths:
 
@@ -371,6 +405,7 @@ Home directory `~` syntax will be expanded:
 
     sgtk:descriptor:path?path=%7E/path/to/app
 
+.. note:: Special characters are escaped for uri string compatibility
 
 Sometimes it may be useful to distribute application code within the configuration for applications
 that may not be accessible through the traditional distribution mechanism for Toolkit applications
@@ -440,9 +475,8 @@ or other items to your distributed users - regardless of network or file access.
 All they need is a connection to Shotgun.
 
 A practical application of this is Toolkit's cloud based configurations;
-Create a custom file/link field named ``PipelineConfiguration.sg_uploaded_config``
-and upload a zipped up toolkit configuration to your this field on your pipeline configuration.
-The :class:`~sgtk.bootstrap.ToolkitManager` boostrapping interface will automatically detect
+Upload a zipped toolkit configuration to the ``PipelineConfiguration.uploaded_config`` field on your pipeline configuration.
+The :class:`~sgtk.bootstrap.ToolkitManager` bootstrapping interface will automatically detect
 this, download the configuration locally and use this when launching.
 This allows for a powerful workflow where a configuration is simply
 uploaded to Shotgun and it gets automatically picked up by all
@@ -456,7 +490,7 @@ Two formats are supported, one explicit based on a shotgun entity id and
 one implicit which uses the name in shotgun to resolve a record. With the
 id based syntax you specify the Shotgun entity type and field name you want
 to look for and the entity id to inspect. For example, if your attachment field is called
-``PipelineConfiguration.sg_uploaded_config`` and you want to access the uploaded payload for
+``PipelineConfiguration.uploaded_config`` and you want to access the uploaded payload for
 the Pipeline Configuration entity with id 111, use the following descriptor:
 
 .. code-block:: yaml
@@ -465,7 +499,7 @@ the Pipeline Configuration entity with id 111, use the following descriptor:
         type: shotgun,
         entity_type: PipelineConfiguration,  # entity type
         id: 111,                             # shotgun entity id
-        field: sg_uploaded_config,           # attachment field where payload can be found
+        field: uploaded_config,              # attachment field where payload can be found
         version: 222                         # attachment id of particular attachment
     }
 
@@ -490,7 +524,7 @@ following syntax can be useful:
         entity_type: PipelineConfiguration,  # entity type
         name: Primary,                       # name of the record in shotgun (e.g. 'code' field)
         project_id: 123,                     # optional project id. If omitted, name is assumed to be unique.
-        field: sg_uploaded_config,           # attachment field where payload can be found
+        field: uploaded_config,              # attachment field where payload can be found
         version: 456                         # attachment id of particular attachment
     }
 

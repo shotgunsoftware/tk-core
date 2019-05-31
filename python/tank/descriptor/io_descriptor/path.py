@@ -38,15 +38,17 @@ class IODescriptorPath(IODescriptorBase):
     If name is not specified and path is /tmp/foo/bar, the name will set to 'bar'
     """
 
-    def __init__(self, descriptor_dict):
+    def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
         Constructor
 
         :param descriptor_dict: descriptor dictionary describing the bundle
+        :param sg_connection: Shotgun connection to associated site.
+        :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
 
-        super(IODescriptorPath, self).__init__(descriptor_dict)
+        super(IODescriptorPath, self).__init__(descriptor_dict, sg_connection, bundle_type)
 
         self._validate_descriptor(
             descriptor_dict,

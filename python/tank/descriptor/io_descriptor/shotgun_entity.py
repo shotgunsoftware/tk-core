@@ -66,15 +66,16 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
 
     (_MODE_ID_BASED, _MODE_NAME_BASED) = range(2)
 
-    def __init__(self, descriptor_dict, sg_connection):
+    def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
         Constructor
 
         :param descriptor_dict: descriptor dictionary describing the bundle
-        :param sg_connection: Shotgun connection to associated site
+        :param sg_connection: Shotgun connection to associated site.
+        :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
-        super(IODescriptorShotgunEntity, self).__init__(descriptor_dict)
+        super(IODescriptorShotgunEntity, self).__init__(descriptor_dict, sg_connection, bundle_type)
 
         # ensure project id is an int if specified
         self._project_link = None
@@ -121,6 +122,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
                 self._project_id = project_id_int
 
         self._sg_connection = sg_connection
+        self._bundle_type = bundle_type
         self._entity_type = descriptor_dict.get("entity_type")
         self._field = descriptor_dict.get("field")
 
@@ -279,7 +281,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
             }
 
         # and return a descriptor instance
-        desc = IODescriptorShotgunEntity(descriptor_dict, self._sg_connection)
+        desc = IODescriptorShotgunEntity(descriptor_dict, self._sg_connection, self._bundle_type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
 
         log.debug("Latest version resolved to %s" % desc)
