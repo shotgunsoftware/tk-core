@@ -52,6 +52,8 @@ SHOTGUN_SSO_RENEWAL_INTERVAL = 5000
 # Some IdP will use JavaScript code which makes use of ES6. Our Qt4
 # environment is unfortunately missing some definitions which we
 # need to inject prior to running the IdP code.
+# The reference for this code is:
+#     https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind#Polyfill
 FUNCTION_PROTOTYPE_BIND_POLYFILL = """
 // Yes, it does work with `new funcA.bind(thisArg, args)`
 if (!Function.prototype.bind) (function(){
