@@ -49,9 +49,9 @@ WATCHDOG_TIMEOUT_MS = 5000
 PREEMPTIVE_RENEWAL_THRESHOLD = 0.9
 SHOTGUN_SSO_RENEWAL_INTERVAL = 5000
 
-# Some IdP will use JavaScript code which makes use of ES6. Our Qt4
-# environment is unfortunately missing some definitions which we
-# need to inject prior to running the IdP code.
+# Some IdP (Identity Providers) will use JavaScript code which makes use of ES6.
+# Our Qt4 environment is unfortunately missing some definitions which we need to
+# inject prior to running the IdP code.
 # The reference for this code is:
 #     https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind#Polyfill
 FUNCTION_PROTOTYPE_BIND_POLYFILL = """
@@ -514,9 +514,15 @@ class SsoSaml2Core(object):
     def _polyfill(self):
         """
         Called by Qt when the Web Page has changed and before it is loaded.
+
+        The purpose of this function is to inject JavaScript code in a page
+        before any of its code is run. This gives us a way to modify the code's
+        environment and define functions which would be required by that code.
         """
         frame = self._view.page().currentFrame()
         frame.evaluateJavaScript(FUNCTION_PROTOTYPE_BIND_POLYFILL)
+        self._logger.debug("Injected polyfill JavaScript code for Function.prototype.bind")
+
 
     def on_load_finished(self, succeeded):
         """
