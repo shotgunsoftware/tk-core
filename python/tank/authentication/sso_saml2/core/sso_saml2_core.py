@@ -49,6 +49,42 @@ WATCHDOG_TIMEOUT_MS = 5000
 PREEMPTIVE_RENEWAL_THRESHOLD = 0.9
 SHOTGUN_SSO_RENEWAL_INTERVAL = 5000
 
+# Some IdP will use JavaScript code which makes use of ES6. Our Qt4
+# environment is unfortunately missing some definitions which we
+# need to inject prior to running the IdP code.
+FUNCTION_PROTOTYPE_BIND_POLYFILL = """
+// Yes, it does work with `new funcA.bind(thisArg, args)`
+if (!Function.prototype.bind) (function(){
+  var ArrayPrototypeSlice = Array.prototype.slice;
+  Function.prototype.bind = function(otherThis) {
+    if (typeof this !== 'function') {
+      // closest thing possible to the ECMAScript 5
+      // internal IsCallable function
+      throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
+    }
+
+    var baseArgs= ArrayPrototypeSlice .call(arguments, 1),
+        baseArgsLength = baseArgs.length,
+        fToBind = this,
+        fNOP    = function() {},
+        fBound  = function() {
+          baseArgs.length = baseArgsLength; // reset to default base arguments
+          baseArgs.push.apply(baseArgs, arguments);
+          return fToBind.apply(
+                 fNOP.prototype.isPrototypeOf(this) ? this : otherThis, baseArgs
+          );
+        };
+
+    if (this.prototype) {
+      // Function.prototype doesn't have a prototype property
+      fNOP.prototype = this.prototype; 
+    }
+    fBound.prototype = new fNOP();
+
+    return fBound;
+  };
+})();
+"""
 
 class SsoSaml2Core(object):
     """Performs Shotgun Web login and pre-emptive renewal for SSO sessions."""
@@ -132,6 +168,13 @@ class SsoSaml2Core(object):
         self._view.setPage(TKWebPage())
         self._view.page().networkAccessManager().authenticationRequired.connect(self.on_authentication_required)
         self._view.loadFinished.connect(self.on_load_finished)
+
+        # We want to inject custom JavaScript code before any code is
+        # executed in the loaded web pages. This is to polyfill any
+        # missing functionality.
+        frame = self._view.page().currentFrame()
+        frame.javaScriptWindowObjectCleared.connect(self._polyfill)
+
 
         # Purposely disable the 'Reload' contextual menu, as it should not be
         # used for SSO. Reloading the page confuses the server.
@@ -465,6 +508,13 @@ class SsoSaml2Core(object):
     # Qt event handlers
     #
     ############################################################################
+
+    def _polyfill(self):
+        """
+        Called by Qt when the Web Page has changed and before it is loaded.
+        """
+        frame = self._view.page().currentFrame()
+        frame.evaluateJavaScript(FUNCTION_PROTOTYPE_BIND_POLYFILL)
 
     def on_load_finished(self, succeeded):
         """
