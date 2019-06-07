@@ -282,14 +282,28 @@ class UncachedPathCache(object):
                         the high level folder creation request.
 
         """
+        if self._path_cache_disabled:
+                raise TankError("You are currently running a configuration which does not have any "
+                                "capabilities of storing path entry lookups. There is no path cache "
+                                "file defined for this project.")
+
         # Seems like the code never invokes this with more than one entry.
         assert len(entity_ids) == 1 or len(entity_ids) == 0
 
-        data_for_sg = []
+        data_for_sg = {}
 
         for d in data:
+            # The data array may contain the same input multiple times,
+            # so make sure we only insert it once by generating a key.
+            key = "/".join((d["path"], str(d["entity"]["id"]), d["entity"]["type"], str(d["primary"])))
             if self._has_shotgun_entry(d["path"], d["entity"], d["primary"]) is False:
-                data_for_sg.append(d)
+                # If the key has never been inserted, add it.
+                if key not in data_for_sg:
+                    data_for_sg[key] = d
+
+        # We don't care for the data keys, we only care for the values which we'll
+        # insert in Shotgun.
+        data_for_sg = data_for_sg.values()
 
         if len(data_for_sg) > 0:
             # first, a summary of what we are up to for the event log description
@@ -340,9 +354,8 @@ class UncachedPathCache(object):
                 else:
                     # the entry that exists in the db matches what we are trying to insert so skip it
                     return True
-        else:
-            if self._is_path_in_db(path, entity["type"], entity["id"]):
-                return True
+        elif self._is_path_in_db(path, entity["type"], entity["id"]):
+            return True
 
         return False
 
@@ -372,7 +385,7 @@ class UncachedPathCache(object):
             [
                 [SG_ENTITY_ID_FIELD, "is", entity_id],
                 [SG_ENTITY_TYPE_FIELD, "is", entity_type],
-                [SG_RELATIVE_PATH_FIELD, "is", relative_path],
+                [SG_RELATIVE_PATH_FIELD, "is", db_path],
                 [SG_STORAGE_FIELD, "is", root_name]
             ]
         )
@@ -391,6 +404,7 @@ class UncachedPathCache(object):
         :param path: Path to look for in the path cache
         :returns: A shotgun FilesystemLocation id or None if not found.
         """
+
         try:
             root_name, relative_path = self._separate_root(path)
         except TankError:
@@ -521,6 +535,9 @@ class UncachedPathCache(object):
         :returns: Shotgun entity dict, e.g. {"type": "Shot", "name": "xxx", "id": 123}
                 or None if not found
         """
+        if self._path_cache_disabled:
+            # no entries because we don't have a path cache
+            return None
 
         if path is None:
             # basic sanity checking
@@ -558,17 +575,6 @@ class UncachedPathCache(object):
         else:
             return None
 
-    def ensure_all_entries_are_in_shotgun(self):
-        """
-        Ensures that all the path cache data in this database is also registered in Shotgun.
-
-        This will go through each entity in the path cache database and check if it exists in
-        Shotgun. If not, it will be created.
-
-        No updates will be made to the path cache database.
-        """
-        raise NotImplementedError("PathCache.ensure_all_entries_are_in_shotgun")
-
     def _path_to_dbpath(self, relative_path):
         """
         converts a  relative path to a db path form
@@ -602,10 +608,7 @@ class UncachedPathCache(object):
                 break
 
         if not root_name:
-
             storages_str = ",".join( self._roots.values() )
-            print full_path
-            print self._roots
             raise TankError("The path '%s' could not be split up into a project centric path for "
                             "any of the storages %s that are associated with this "
                             "project." % (full_path, storages_str))
@@ -779,3 +782,14 @@ class UncachedPathCache(object):
             matches.append( {"type": type_str, "id": d[SG_ENTITY_ID_FIELD], "name": name_str } )
 
         return matches
+
+    def ensure_all_entries_are_in_shotgun(self):
+        """
+        Ensures that all the path cache data in this database is also registered in Shotgun.
+
+        This will go through each entity in the path cache database and check if it exists in
+        Shotgun. If not, it will be created.
+
+        No updates will be made to the path cache database.
+        """
+        # Noop. There is no local cache, so the data is valid.

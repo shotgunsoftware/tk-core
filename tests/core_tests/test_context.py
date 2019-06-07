@@ -860,8 +860,11 @@ class TestAsTemplateFields(TestContext):
         result = self.ctx.as_template_fields(template)
         self.assertEqual("extravalue", result["shot_extra"])
 
-        # Check that the shotgun method find_one was not used
-        self.assertEqual(finds, self.tk.shotgun.finds)
+        # If we have a volatile path cache, we will query Shotgun
+        # again, so do no test that.
+        if "SHOTGUN_UNCACHED_PATH_CACHE" not in os.environ:
+            # Check that the shotgun method find_one was not used
+            self.assertEqual(finds, self.tk.shotgun.finds)
 
     def test_shot_step(self):
         expected_step_name = "step_short_name"
