@@ -29,7 +29,6 @@ from tank import folder
 from tank import constants
 from tank import LogManager
 import tank
-import unittest2
 
 from tank.util import StorageRoots
 

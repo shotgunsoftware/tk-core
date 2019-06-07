@@ -14,21 +14,15 @@ all Tank items in the file system are kept.
 
 """
 
-import collections
-import sys
 import os
-import itertools
 
 # use api json to cover py 2.5
 # todo - replace with proper external library
 from tank_vendor import shotgun_api3
 
-from .platform.engine import show_global_busy, clear_global_busy
-from . import constants
 from .errors import TankError
 from . import LogManager
 from .util.login import get_current_user
-from .util.shotgun_path import ShotgunPath
 
 json = shotgun_api3.shotgun.json
 
@@ -112,21 +106,25 @@ class UncachedPathCache(object):
         # This should go into a base class for UncachedPathCache
         sg_batch_data = []
         for pid in path_ids:
-            req = {"request_type": "delete",
+            req = {
+                "request_type": "delete",
                 "entity_type": SHOTGUN_ENTITY,
-                "entity_id": pid}
+                "entity_id": pid
+            }
             sg_batch_data.append(req)
 
         try:
             tk.shotgun.batch(sg_batch_data)
         except Exception as e:
-            raise TankError("Shotgun reported an error while attempting to delete FilesystemLocation entities. "
-                            "Please contact support. Details: %s Data: %s" % (e, sg_batch_data))
+            raise TankError(
+                "Shotgun reported an error while attempting to "
+                "delete FilesystemLocation entities. Please contact"
+                " support. Details: %s Data: %s" % (e, sg_batch_data))
 
         # now register the deleted ids in the event log
         # this will later on be read by the synchronization
-        # now, based on the entities we just deleted, assemble a metadata chunk that
-        # the sync calls can use later on.
+        # now, based on the entities we just deleted, assemble a metadata
+        # chunk that the sync calls can use later on.
 
         if tk.pipeline_configuration.is_unmanaged():
             pc_link = None
@@ -349,7 +347,7 @@ class UncachedPathCache(object):
                 if curr_entity["type"] != entity["type"] or curr_entity["id"] != entity["id"]:
                     raise TankError("Database concurrency problems: The path '%s' is "
                                     "already associated with Shotgun entity %s. Please re-run "
-                                    "folder creation to try again." % (path, str(curr_entity) ))
+                                    "folder creation to try again." % (path, str(curr_entity)))
 
                 else:
                     # the entry that exists in the db matches what we are trying to insert so skip it
@@ -452,7 +450,7 @@ class UncachedPathCache(object):
         root_name = fs_loc[SG_STORAGE_FIELD]
         path = fs_loc[SG_RELATIVE_PATH_FIELD]
         root_path = self._roots.get(root_name)
-        matches.append( {"path": self._dbpath_to_path(root_path, path), "sg_id": shotgun_id } )
+        matches.append({"path": self._dbpath_to_path(root_path, path), "sg_id": shotgun_id})
 
         fs_locations = self._tk.shotgun.find(
             SHOTGUN_ENTITY,
@@ -471,7 +469,7 @@ class UncachedPathCache(object):
 
             # first append this match
             root_path = self._roots.get(root_name)
-            matches.append( {"path": self._dbpath_to_path(root_path, path), "sg_id": sg_id } )
+            matches.append({"path": self._dbpath_to_path(root_path, path), "sg_id": sg_id})
 
         return matches
 
@@ -608,13 +606,12 @@ class UncachedPathCache(object):
                 break
 
         if not root_name:
-            storages_str = ",".join( self._roots.values() )
+            storages_str = ",".join(self._roots.values())
             raise TankError("The path '%s' could not be split up into a project centric path for "
                             "any of the storages %s that are associated with this "
                             "project." % (full_path, storages_str))
 
         return root_name, relative_path
-
 
     def _dbpath_to_path(self, root_path, dbpath):
         """
@@ -677,21 +674,24 @@ class UncachedPathCache(object):
             db_path = self._path_to_dbpath(relative_path)
             path_display_name = "[%s] %s" % (root_name, db_path)
 
-            req = {"request_type":"create",
+            req = {
+                "request_type": "create",
                 "entity_type": SHOTGUN_ENTITY,
-                "data": {"project": self._get_project_link(),
-                            "created_by": get_current_user(self._tk),
-                            SG_ENTITY_FIELD: d["entity"],
-                            SG_IS_PRIMARY_FIELD: d["primary"],
-                            SG_PIPELINE_CONFIG_FIELD: pc_link,
-                            SG_METADATA_FIELD: json.dumps(d["metadata"]),
-                            SG_ENTITY_ID_FIELD: d["entity"]["id"],
-                            SG_ENTITY_TYPE_FIELD: d["entity"]["type"],
-                            SG_ENTITY_NAME_FIELD: d["entity"]["name"],
-                            SG_PATH_FIELD: { "local_path": d["path"], "name": path_display_name },
-                            SG_STORAGE_FIELD: root_name,
-                            SG_RELATIVE_PATH_FIELD: db_path
-                            } }
+                "data": {
+                    "project": self._get_project_link(),
+                    "created_by": get_current_user(self._tk),
+                    SG_ENTITY_FIELD: d["entity"],
+                    SG_IS_PRIMARY_FIELD: d["primary"],
+                    SG_PIPELINE_CONFIG_FIELD: pc_link,
+                    SG_METADATA_FIELD: json.dumps(d["metadata"]),
+                    SG_ENTITY_ID_FIELD: d["entity"]["id"],
+                    SG_ENTITY_TYPE_FIELD: d["entity"]["type"],
+                    SG_ENTITY_NAME_FIELD: d["entity"]["name"],
+                    SG_PATH_FIELD: { "local_path": d["path"], "name": path_display_name },
+                    SG_STORAGE_FIELD: root_name,
+                    SG_RELATIVE_PATH_FIELD: db_path
+                }
+            }
 
             sg_batch_data.append(req)
 
@@ -712,7 +712,7 @@ class UncachedPathCache(object):
         # the api version used is always useful to know
         meta["core_api_version"] = self._tk.version
         # shotgun ids created
-        meta["sg_folder_ids"] = [ x["id"] for x in response]
+        meta["sg_folder_ids"] = [x["id"] for x in response]
 
         sg_event_data = {}
         sg_event_data["event_type"] = "Toolkit_Folders_Create"
@@ -779,7 +779,7 @@ class UncachedPathCache(object):
             # convert to string, not unicode!
             type_str = str(d[SG_ENTITY_TYPE_FIELD])
             name_str = str(d[SG_ENTITY_NAME_FIELD])
-            matches.append( {"type": type_str, "id": d[SG_ENTITY_ID_FIELD], "name": name_str } )
+            matches.append({"type": type_str, "id": d[SG_ENTITY_ID_FIELD], "name": name_str })
 
         return matches
 
