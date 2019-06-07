@@ -1193,6 +1193,8 @@ else:
                 raise TankError("You are currently running a configuration which does not have any "
                                 "capabilities of storing path entry lookups. There is no path cache "
                                 "file defined for this project.")
+
+            assert len(entity_ids) == 1 or len(entity_ids) == 0
             
             c = self._connection.cursor()
             try:
