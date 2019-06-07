@@ -42,16 +42,10 @@ SG_ENTITY_ID_FIELD = "linked_entity_id"
 SG_ENTITY_TYPE_FIELD = "linked_entity_type"
 SG_ENTITY_NAME_FIELD = "code"
 SG_PIPELINE_CONFIG_FIELD = "pipeline_configuration"
+SG_RELATIVE_PATH_FIELD = "path_cache"
+SG_STORAGE_FIELD = "path_cache_storage"
 
 log = LogManager.get_logger(__name__)
-
-
-class FilesystemLocationEntry(object):
-
-    __slots__ = ["link", "is_primary", "storage", "relative_path"]
-
-    def __init__(self):
-        pass
 
 
 class UncachedPathCache(object):
@@ -372,7 +366,7 @@ class UncachedPathCache(object):
 
         # now see if we have any records in the db which matches the path
         self._tk.shotgun.find(
-            "FilesystemLocation",
+            SHOTGUN_ENTITY,
         )
         res = cursor.execute(
             """
@@ -405,12 +399,12 @@ class UncachedPathCache(object):
         }
 
         any_primary_paths_predicate = [
-            ["is_primary", "is", True],
+            [SG_IS_PRIMARY_FIELD, "is", True],
             any_paths_predicate
         ]
 
         entities = self._tk.shotgun.find(
-            "FilesystemLocation",
+            SHOTGUN_ENTITY,
             any_primary_paths_predicate,
             [SG_ENTITY_ID_FIELD, SG_ENTITY_TYPE_FIELD, SG_ENTITY_NAME_FIELD]
         )
@@ -425,8 +419,8 @@ class UncachedPathCache(object):
         return {
             "filter_operator": "all",
             "filters": [
-                ["path_cache", "is", db_path],
-                ["path_cache_storage", "is", root_name]
+                [SG_RELATIVE_PATH_FIELD, "is", db_path],
+                [SG_STORAGE_FIELD, "is", root_name]
             ]
         }
 
@@ -449,11 +443,11 @@ class UncachedPathCache(object):
             return None
 
         data = self._tk.shotgun.find(
-            "FilesystemLocation",
+            SHOTGUN_ENTITY,
             [
-                ["path_cache", "is", relative_path],
-                ["path_cache_storage", "is", root_name],
-                ["is_primary", "is", True]
+                [SG_RELATIVE_PATH_FIELD, "is", relative_path],
+                [SG_STORAGE_FIELD, "is", root_name],
+                [SG_IS_PRIMARY_FIELD, "is", True]
             ]
         )
 
@@ -475,9 +469,9 @@ class UncachedPathCache(object):
         """
 
         fs_loc = self._tk.shotgun.find_one(
-            "FilesystemLocation",
+            SHOTGUN_ENTITY,
             [["id", "is", shotgun_id]],
-            ["path_cache_storage", "path_cache"]
+            [SG_STORAGE_FIELD, SG_RELATIVE_PATH_FIELD]
         )
 
         if fs_loc is None:
@@ -485,24 +479,24 @@ class UncachedPathCache(object):
 
         matches = []
 
-        root_name = fs_loc["path_cache_storage"]
-        path = fs_loc["path_cache"]
+        root_name = fs_loc[SG_STORAGE_FIELD]
+        path = fs_loc[SG_RELATIVE_PATH_FIELD]
         root_path = self._roots.get(root_name)
         matches.append( {"path": self._dbpath_to_path(root_path, path), "sg_id": shotgun_id } )
 
         fs_locations = self._tk.shotgun.find(
-            "FilesystemLocation",
+            SHOTGUN_ENTITY,
             [
-                ["path_cache_storage", "is", fs_loc["path_cache_storage"]],
+                [SG_STORAGE_FIELD, "is", fs_loc[SG_STORAGE_FIELD]],
                 # Grab any subfolder of the root
-                ["path_cache", "starts_with", (fs_loc["path_cache"] or "") + "/"]
+                [SG_RELATIVE_PATH_FIELD, "starts_with", (fs_loc[SG_RELATIVE_PATH_FIELD] or "") + "/"]
             ],
-            ["path_cache_storage", "path_cache"]
+            [SG_STORAGE_FIELD, SG_RELATIVE_PATH_FIELD]
         )
 
         for fs_loc in fs_locations:
-            root_name = fs_loc["path_cache_storage"]
-            path = fs_loc["path_cache"] or ""
+            root_name = fs_loc[SG_STORAGE_FIELD]
+            path = fs_loc[SG_RELATIVE_PATH_FIELD] or ""
             sg_id = fs_loc["id"]
 
             # first append this match
@@ -531,20 +525,20 @@ class UncachedPathCache(object):
 
         if primary_only:
             predicates.append(
-                ["is_primary", "is", True]
+                [SG_IS_PRIMARY_FIELD, "is", True]
             )
 
         entries = self._tk.shotgun.find(
-            "FilesystemLocation",
+            SHOTGUN_ENTITY,
             predicates,
-            ["path_cache", "path_cache_storage"]
+            [SG_RELATIVE_PATH_FIELD, SG_STORAGE_FIELD]
         )
 
         paths = []
 
         for entry in entries:
-            root_name = entry["path_cache_storage"]
-            relative_path = entry["path_cache"]
+            root_name = entry[SG_STORAGE_FIELD]
+            relative_path = entry[SG_RELATIVE_PATH_FIELD]
 
             root_path = self._roots.get(root_name)
             if not root_path:
@@ -719,8 +713,8 @@ class UncachedPathCache(object):
                             SG_ENTITY_TYPE_FIELD: d["entity"]["type"],
                             SG_ENTITY_NAME_FIELD: d["entity"]["name"],
                             SG_PATH_FIELD: { "local_path": d["path"], "name": path_display_name },
-                            "path_cache_storage": root_name,
-                            "path_cache": db_path
+                            SG_STORAGE_FIELD: root_name,
+                            SG_RELATIVE_PATH_FIELD: db_path
                             } }
 
             sg_batch_data.append(req)
@@ -795,11 +789,11 @@ class UncachedPathCache(object):
             return []
 
         data = self._tk.shotgun.find(
-            "FilesystemLocation",
+            SHOTGUN_ENTITY,
             [
-                ["path_cache", "is", relative_path],
-                ["path_cache_storage", "is", root_name],
-                ["is_primary", "is", False]
+                [SG_RELATIVE_PATH_FIELD, "is", relative_path],
+                [SG_STORAGE_FIELD, "is", root_name],
+                [SG_IS_PRIMARY_FIELD, "is", False]
             ],
             [SG_ENTITY_TYPE_FIELD, SG_ENTITY_ID_FIELD, SG_ENTITY_NAME_FIELD]
         )
