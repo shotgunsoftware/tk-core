@@ -287,8 +287,6 @@ class UncachedPathCache(object):
         # Seems like the code never invokes this with more than one entry.
         assert len(entity_ids) == 1 or len(entity_ids) == 0
 
-        print data
-
         data_for_sg = []
 
         for d in data:
@@ -570,16 +568,6 @@ class UncachedPathCache(object):
             }
         else:
             return None
-
-    def get_secondary_entities(self, path):
-        """
-        Returns all the secondary entities for a path.
-
-        :param path: a path on disk
-        :returns: list of shotgun entity dicts, e.g. [{"type": "Shot", "name": "xxx", "id": 123}]
-                or [] if no entities associated.
-        """
-        raise NotImplementedError("PathCache.get_secondary_entities")
 
     def ensure_all_entries_are_in_shotgun(self):
         """
