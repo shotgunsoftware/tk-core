@@ -22,7 +22,6 @@ import itertools
 # use api json to cover py 2.5
 # todo - replace with proper external library
 from tank_vendor import shotgun_api3
-json = shotgun_api3.shotgun.json
 
 from .platform.engine import show_global_busy, clear_global_busy
 from . import constants
@@ -30,6 +29,8 @@ from .errors import TankError
 from . import LogManager
 from .util.login import get_current_user
 from .util.shotgun_path import ShotgunPath
+
+json = shotgun_api3.shotgun.json
 
 # Shotgun field definitions to store the path cache data
 SHOTGUN_ENTITY = "FilesystemLocation"
@@ -440,7 +441,29 @@ class UncachedPathCache(object):
         :param path: Path to look for in the path cache
         :returns: A shotgun FilesystemLocation id or None if not found.
         """
-        raise NotImplementedError("PathCache.get_shotgun_id_from_path")
+        try:
+            root_name, relative_path = self._separate_root(path)
+        except TankError:
+            # fail gracefully if path is not a valid path
+            # eg. doesn't belong to the project
+            return None
+
+        data = self._tk.shotgun.find(
+            "FilesystemLocation",
+            [
+                ["path_cache", "is", relative_path],
+                ["path_cache_storage", "is", root_name],
+                ["is_primary", "is", True]
+            ]
+        )
+
+        if len(data) > 1:
+            # never supposed to happen!
+            raise TankError("More than one entry in the path cache database for %s!" % path)
+        elif len(data) == 1:
+            return data[0]["id"]
+        else:
+            return None
 
     def get_folder_tree_from_sg_id(self, shotgun_id):
         """
