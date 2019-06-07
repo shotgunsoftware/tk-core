@@ -53,7 +53,7 @@ class FilesystemLocationEntry(object):
         pass
 
 
-class InMemoryPathCache(object):
+class UncachedPathCache(object):
     """
     A global cache which holds the mapping between a shotgun entity and a location on disk.
     """
@@ -111,7 +111,58 @@ class InMemoryPathCache(object):
 
         :param list path_ids: List of FilesystemLocation ids to remove.
         """
-        raise NotImplementedError("PathCache.remove_filesystem_location_entries")
+        # This should go into a base class for UncachedPathCache
+        sg_batch_data = []
+        for pid in path_ids:
+            req = {"request_type": "delete",
+                "entity_type": SHOTGUN_ENTITY,
+                "entity_id": pid}
+            sg_batch_data.append(req)
+
+        try:
+            tk.shotgun.batch(sg_batch_data)
+        except Exception as e:
+            raise TankError("Shotgun reported an error while attempting to delete FilesystemLocation entities. "
+                            "Please contact support. Details: %s Data: %s" % (e, sg_batch_data))
+
+        # now register the deleted ids in the event log
+        # this will later on be read by the synchronization
+        # now, based on the entities we just deleted, assemble a metadata chunk that
+        # the sync calls can use later on.
+
+        if tk.pipeline_configuration.is_unmanaged():
+            pc_link = None
+        else:
+            pc_link = {
+                "type": "PipelineConfiguration",
+                "id": tk.pipeline_configuration.get_shotgun_id()
+            }
+
+        if tk.pipeline_configuration.is_site_configuration():
+            project_link = None
+        else:
+            project_link = {"type": "Project", "id": tk.pipeline_configuration.get_project_id()}
+
+        meta = {}
+        # the api version used is always useful to know
+        meta["core_api_version"] = tk.version
+        # shotgun ids created
+        meta["sg_folder_ids"] = path_ids
+
+        sg_event_data = {}
+        sg_event_data["event_type"] = "Toolkit_Folders_Delete"
+        sg_event_data["description"] = "Toolkit %s: Unregistered %s folders." % (tk.version, len(path_ids))
+        sg_event_data["project"] = project_link
+        sg_event_data["entity"] = pc_link
+        sg_event_data["meta"] = meta
+        sg_event_data["user"] = get_current_user(tk)
+
+        try:
+            tk.shotgun.create("EventLogEntry", sg_event_data)
+        except Exception as e:
+            raise TankError("Shotgun Reported an error while trying to write a Toolkit_Folders_Delete event "
+                            "log entry after having successfully removed folders. Please contact support for "
+                            "assistance. Error details: %s Data: %s" % (e, sg_event_data))
 
     ############################################################################################
     # pre-insertion validation
@@ -128,8 +179,89 @@ class InMemoryPathCache(object):
                     - primary: a boolean indicating if this is a primary entry
                     - metadata: configuration metadata
         """
-        print("PathCache.validate_mappings not implemented for now.")
-        # raise NotImplementedError("PathCache.validate_mappings")
+        for d in data:
+            self._validate_mapping(d["path"], d["entity"], d["primary"])
+
+    def _validate_mapping(self, path, entity, is_primary):
+        """
+        Consistency checks happening prior to folder creation. May raise a TankError
+        if an inconsistency is detected.
+
+        :param path: The path calculated
+        :param entity: Sg entity dict with keys id, type and name
+        :param is_primary: indicates that this is a primary mapping - each folder may have
+                        both primary and secondary entity associations - the secondary
+                        being more loosely tied to the path.
+        """
+
+        # Make sure that there isn't already a record with the same
+        # name in the database and file system, but with a different id.
+        # We only do this for primary items - for secondary items, multiple items can exist
+        if is_primary:
+            entity_in_db = self.get_entity(path)
+
+            if entity_in_db is not None:
+                if entity_in_db["id"] != entity["id"] or entity_in_db["type"] != entity["type"]:
+
+                    # there is already a record in the database for this path,
+                    # but associated with another entity! Display an error message
+                    # and ask that the user investigates using special tank commands.
+                    #
+                    # Note! We are only comparing against the type and the id
+                    # not against the name. It should be perfectly valid to rename something
+                    # in shotgun and if folders are then recreated for that item, nothing happens
+                    # because there is already a folder which represents that item. (although now with
+                    # an incorrect name)
+
+                    msg  = "The path '%s' cannot be processed because it is already associated " % path
+                    msg += "with %s '%s' (id %s) in Shotgun. " % (entity_in_db["type"], entity_in_db["name"], entity_in_db["id"])
+                    msg += "You are now trying to associate it with %s '%s' (id %s). " % (entity["type"], entity["name"], entity["id"])
+                    msg += "If you want to unregister your previously created folders, you can run "
+                    msg += "the following command: 'tank unregister_folders %s' " % path
+                    raise TankError(msg)
+
+        # Check 2. Check if a folder for this shot has already been created,
+        # but with another name. This can happen if someone
+        # - creates a shot AAA
+        # - creates folders on disk for Shot AAA
+        # - renamed the shot to BBB
+        # - tries to create folders. Now we don't want to create folders for BBB,
+        #   since we already have a location on disk for this shot.
+        #
+        # note: this can also happen if the folder creation rules change.
+        #
+        # we only check for primary entities, doing the check for secondary
+        # would only be to carry out the same check twice.
+        if is_primary:
+            for p in self.get_paths(entity["type"], entity["id"], primary_only=False):
+                # so we got a path that matches our entity
+                if p != path and os.path.dirname(p) == os.path.dirname(path):
+                    # this path is identical to our path we are about to create except for the name.
+                    # there is still a folder on disk. Abort folder creation
+                    # with a descriptive error message
+                    msg  = "The path '%s' cannot be created because another " % path
+                    msg += "path '%s' is already associated with %s %s. " % (p, entity["type"], entity["name"])
+                    msg += "This typically happens if an item in Shotgun is renamed or "
+                    msg += "if the path naming in the folder creation configuration "
+                    msg += "is changed. In order to continue you can either change "
+                    msg += "the %s back to its previous name or you can unregister " % entity["type"]
+                    msg += "the currently associated folders by running the following command: "
+
+                    # Steps are a special case. We need to tell the user to unregister the
+                    # conflicting path directly rather than by entity. The reason for this is
+                    # is two fold: running the unregister on the folder directly will properly
+                    # handle the underlying Task folders beneath the Step. Also, we have some
+                    # logic that assumes an entity being unregistered has a Project, and that
+                    # isn't the case for Step entities. All in all, this is the right thing for
+                    # a user to do to resolve the renamed Step entity's folder situation.
+                    if entity["type"] == "Step":
+                        msg += "'tank unregister_folders %s' and then try again." % p
+                    else:
+                        msg += "'tank %s %s unregister_folders' and then try again." % (
+                            entity["type"],
+                            entity["name"]
+                        )
+                    raise TankError(msg)
 
     ############################################################################################
     # database insertion methods
@@ -155,6 +287,8 @@ class InMemoryPathCache(object):
         # Seems like the code never invokes this with more than one entry.
         assert len(entity_ids) == 1 or len(entity_ids) == 0
 
+        print data
+
         data_for_sg = []
 
         for d in data:
@@ -173,61 +307,95 @@ class InMemoryPathCache(object):
         """
         Adds an association to the database. If the association already exists, it will
         do nothing, just return.
-        
-        If there is another association which conflicts with the association that is 
+
+        If there is another association which conflicts with the association that is
         to be inserted, a TankError is raised.
 
         :param path: a path on disk representing the entity.
         :param entity: a shotgun entity dict with keys type, id and name
-        :param primary: is this the primary entry for this particular path     
-        
-        :returns: ``False`` is nothing was 
+        :param primary: is this the primary entry for this particular path
+
+        :returns: ``False`` is nothing was
         """
-        # only support primary for now
-        assert(primary)
+        if primary:
+            # the primary entity must be unique: path/id/type
+            # see if there are any records for this path
+            # note that get_entity does not return secondary entities
+            curr_entity = self.get_entity(path)
 
-        # the primary entity must be unique: path/id/type
-        # see if there are any records for this path
-        # note that get_entity does not return secondary entities
-        curr_entity = self.get_entity(path)
+            if curr_entity is not None:
+                # this path is already registered. Ensure it is connected to
+                # our entity!
+                #
+                # Note! We are only comparing against the type and the id
+                # not against the name. It should be perfectly valid to rename something
+                # in shotgun and if folders are then recreated for that item, nothing happens
+                # because there is already a folder which repreents that item. (although now with
+                # an incorrect name)
+                #
+                # also note that we have already done this once as part of the validation checks -
+                # this time round, we are doing it more as an integrity check.
+                #
+                if curr_entity["type"] != entity["type"] or curr_entity["id"] != entity["id"]:
+                    raise TankError("Database concurrency problems: The path '%s' is "
+                                    "already associated with Shotgun entity %s. Please re-run "
+                                    "folder creation to try again." % (path, str(curr_entity) ))
 
-        if curr_entity is not None:
-            # this path is already registered. Ensure it is connected to
-            # our entity!
-            #
-            # Note! We are only comparing against the type and the id
-            # not against the name. It should be perfectly valid to rename something
-            # in shotgun and if folders are then recreated for that item, nothing happens
-            # because there is already a folder which repreents that item. (although now with
-            # an incorrect name)
-            #
-            # also note that we have already done this once as part of the validation checks -
-            # this time round, we are doing it more as an integrity check.
-            #
-            if curr_entity["type"] != entity["type"] or curr_entity["id"] != entity["id"]:
-                raise TankError("Database concurrency problems: The path '%s' is "
-                                "already associated with Shotgun entity %s. Please re-run "
-                                "folder creation to try again." % (path, str(curr_entity) ))
-
-            else:
-                # the entry that exists in the db matches what we are trying to insert so skip it
+                else:
+                    # the entry that exists in the db matches what we are trying to insert so skip it
+                    return True
+        else:
+            if self._is_path_in_db(path, entity["type"], entity["id"]):
                 return True
 
         return False
-        # entities = self._get_mappings_missing_from_sg(data)
 
-    # def _get_mappings_missing_from_sg(self, data):
+    def _is_path_in_db(self, path, entity_type, entity_id, cursor):
+        """
+        Given an entity, checks if a path is in the database or not
 
-    #     entities = self._get_entities_from_sg(data)
+        :param path: Path to try
+        :param entity_type: A Shotgun entity type
+        :param entity_id: A Shotgun entity id
+        :param cursor: Database cursor to use.
+        :returns: True if path exists, false if not
+        """
+        raise NotImplementedError("Oh noes! I don't want to code this yet!")
 
-    #     # Create a fast lookup for the mappings.
-    #     entities_per_id = {
-    #         entity["id"]: entity for entity in entities
-    #     }
+        try:
+            root_name, relative_path = self._separate_root(path)
+        except TankError:
+            # fail gracefully if path is not a valid path
+            # eg. doesn't belong to the project
+            return False
 
-    #     data_for_sg = []
-    #     for entry in entities:
-    #         if entry["id"]
+        db_path = self._path_to_dbpath(relative_path)
+
+        # now see if we have any records in the db which matches the path
+        self._tk.shotgun.find(
+            "FilesystemLocation",
+        )
+        res = cursor.execute(
+            """
+            SELECT count(entity_id)
+            FROM   path_cache
+            WHERE  entity_type = ?
+            AND    entity_id = ?
+            AND    root = ?
+            AND    path = ?
+            GROUP BY entity_id
+            """,
+            (entity_type, entity_id, root_name, db_path)
+        )
+
+        res = list(res)
+
+        # in case there are > 0 records: res = [(4,)]
+        # in case there are no records: res = []
+        if len(res) == 0:
+            return False
+        else:
+            return True
 
     def _get_entities_from_sg(self, data):
         # Create a predicate that will retrieve all the entities matching a given
@@ -284,7 +452,43 @@ class InMemoryPathCache(object):
         :param shotgun_id: The shotgun filesystem location id which should be unregistered.
         :returns: A list of items making up the subtree below the given id
         """
-        raise NotImplementedError("PathCache.get_folder_tree_from_sg_id")
+
+        fs_loc = self._tk.shotgun.find_one(
+            "FilesystemLocation",
+            [["id", "is", shotgun_id]],
+            ["path_cache_storage", "path_cache"]
+        )
+
+        if fs_loc is None:
+            return []
+
+        matches = []
+
+        root_name = fs_loc["path_cache_storage"]
+        path = fs_loc["path_cache"]
+        root_path = self._roots.get(root_name)
+        matches.append( {"path": self._dbpath_to_path(root_path, path), "sg_id": shotgun_id } )
+
+        fs_locations = self._tk.shotgun.find(
+            "FilesystemLocation",
+            [
+                ["path_cache_storage", "is", fs_loc["path_cache_storage"]],
+                # Grab any subfolder of the root
+                ["path_cache", "starts_with", (fs_loc["path_cache"] or "") + "/"]
+            ],
+            ["path_cache_storage", "path_cache"]
+        )
+
+        for fs_loc in fs_locations:
+            root_name = fs_loc["path_cache_storage"]
+            path = fs_loc["path_cache"] or ""
+            sg_id = fs_loc["id"]
+
+            # first append this match
+            root_path = self._roots.get(root_name)
+            matches.append( {"path": self._dbpath_to_path(root_path, path), "sg_id": sg_id } )
+
+        return matches
 
     def get_paths(self, entity_type, entity_id, primary_only):
         """
@@ -299,15 +503,19 @@ class InMemoryPathCache(object):
             # no entries because we don't have a path cache
             return []
 
-        assert primary_only
+        predicates = [
+            [SG_ENTITY_ID_FIELD, "is", entity_id],
+            [SG_ENTITY_TYPE_FIELD, "is", entity_type]
+        ]
+
+        if primary_only:
+            predicates.append(
+                ["is_primary", "is", True]
+            )
 
         entries = self._tk.shotgun.find(
             "FilesystemLocation",
-            [
-                [SG_ENTITY_ID_FIELD, "is", entity_id],
-                [SG_ENTITY_TYPE_FIELD, "is", entity_type],
-                ["is_primary", "is", True]
-            ],
+            predicates,
             ["path_cache", "path_cache_storage"]
         )
 
@@ -321,7 +529,7 @@ class InMemoryPathCache(object):
             if not root_path:
                 # The root name doesn't match a recognized name, so skip this entry
                 continue
-            
+
             # assemble path
             path_str = self._dbpath_to_path(root_path, relative_path)
             paths.append(path_str)
@@ -417,9 +625,9 @@ class InMemoryPathCache(object):
                 break
 
         if not root_name:
-            
+
             storages_str = ",".join( self._roots.values() )
-            
+
             raise TankError("The path '%s' could not be split up into a project centric path for "
                             "any of the storages %s that are associated with this "
                             "project." % (full_path, storages_str))
@@ -432,12 +640,14 @@ class InMemoryPathCache(object):
         converts a dbpath to path for the local platform
 
         linux:    /foo/bar --> /studio/proj/foo/bar
-        windows:  /foo/bar --> \\studio\proj\foo\bar         
+        windows:  /foo/bar --> \\studio\proj\foo\bar
 
         :param root_path: Project root path
         :param db_path: Relative path
         """
         # first make sure dbpath doesn't start with a /
+        # dbpath can None if the field is empty in Shotgun.
+        dbpath = dbpath or ""
         if dbpath.startswith("/"):
             dbpath = dbpath[1:]
         # convert slashes
@@ -451,21 +661,21 @@ class InMemoryPathCache(object):
         Takes a standard chunk of Shotgun data and uploads it to Shotgun
         using a single batch statement. Then writes a single event log entry record
         which binds the created path records. Returns the id of this event log record.
-        
+
         data needs to be a list of dicts with the following keys:
         - entity - std sg entity dict with name, id and type
         - primary - boolean to indicate if something is primary
         - metadata - metadata dict
         - path - local os path
         - path_cache_row_id - the path cache db row id for the entry
-        
+
         :param data: List of dicts. See details above.
         :param event_log_desc: Description to add to the event log entry created.
         :returns: A tuple with (event_log_id, sg_id_lookup)
-                - event_log_id is the id for the event log entry which summarizes the 
+                - event_log_id is the id for the event log entry which summarizes the
                     creation event.
-                - sg_id_lookup is a dictionary where the keys are path cache row ids 
-                    and the values are the newly created corresponding shotgun ids. 
+                - sg_id_lookup is a dictionary where the keys are path cache row ids
+                    and the values are the newly created corresponding shotgun ids.
         """
 
         if self._tk.pipeline_configuration.is_unmanaged():
@@ -479,15 +689,15 @@ class InMemoryPathCache(object):
 
         sg_batch_data = []
         for d in data:
-                            
+
             # get a name for the clickable url in the path field
             # this will include the name of the storage
             root_name, relative_path = self._separate_root(d["path"])
             db_path = self._path_to_dbpath(relative_path)
-            path_display_name = "[%s] %s" % (root_name, db_path) 
-            
-            req = {"request_type":"create", 
-                "entity_type": SHOTGUN_ENTITY, 
+            path_display_name = "[%s] %s" % (root_name, db_path)
+
+            req = {"request_type":"create",
+                "entity_type": SHOTGUN_ENTITY,
                 "data": {"project": self._get_project_link(),
                             "created_by": get_current_user(self._tk),
                             SG_ENTITY_FIELD: d["entity"],
@@ -501,28 +711,28 @@ class InMemoryPathCache(object):
                             "path_cache_storage": root_name,
                             "path_cache": db_path
                             } }
-            
+
             sg_batch_data.append(req)
-        
+
         # push to shotgun in a single xact
         log.debug("Uploading %s path entries to Shotgun..." % len(sg_batch_data))
-        
-        try:    
+
+        try:
             response = self._tk.shotgun.batch(sg_batch_data)
         except Exception as e:
             raise TankError("Critical! Could not update Shotgun with folder "
                             "data. Please contact support. Error details: %s" % e)
-        
+
         # now register the created ids in the event log
-        # this will later on be read by the synchronization            
-        # now, based on the entities we just created, assemble a metadata chunk that 
-        # the sync calls can use later on.        
+        # this will later on be read by the synchronization
+        # now, based on the entities we just created, assemble a metadata chunk that
+        # the sync calls can use later on.
         meta = {}
         # the api version used is always useful to know
         meta["core_api_version"] = self._tk.version
         # shotgun ids created
         meta["sg_folder_ids"] = [ x["id"] for x in response]
-        
+
         sg_event_data = {}
         sg_event_data["event_type"] = "Toolkit_Folders_Create"
         sg_event_data["description"] = "Toolkit %s: %s" % (self._tk.version, event_log_desc)
@@ -530,13 +740,13 @@ class InMemoryPathCache(object):
         sg_event_data["entity"] = pc_link
         sg_event_data["meta"] = meta
         sg_event_data["user"] = get_current_user(self._tk)
-    
+
         try:
             log.debug("Creating event log entry %s" % sg_event_data)
             response = self._tk.shotgun.create("EventLogEntry", sg_event_data)
         except Exception as e:
             raise TankError("Critical! Could not update Shotgun with folder data event log "
-                            "history marker. Please contact support. Error details: %s" % e)            
+                            "history marker. Please contact support. Error details: %s" % e)
 
     def _get_project_link(self):
         """
@@ -552,3 +762,42 @@ class InMemoryPathCache(object):
                 "type": "Project",
                 "id": self._tk.pipeline_configuration.get_project_id()
             }
+
+    def get_secondary_entities(self, path):
+        """
+        Returns all the secondary entities for a path.
+
+        :param path: a path on disk
+        :returns: list of shotgun entity dicts, e.g. [{"type": "Shot", "name": "xxx", "id": 123}]
+                or [] if no entities associated.
+        """
+
+        if self._path_cache_disabled:
+            # no entries because we don't have a path cache
+            return []
+
+        try:
+            root_name, relative_path = self._separate_root(path)
+        except TankError:
+            # fail gracefully if path is not a valid path
+            # eg. doesn't belong to the project
+            return []
+
+        data = self._tk.shotgun.find(
+            "FilesystemLocation",
+            [
+                ["path_cache", "is", relative_path],
+                ["path_cache_storage", "is", root_name],
+                ["is_primary", "is", False]
+            ],
+            [SG_ENTITY_TYPE_FIELD, SG_ENTITY_ID_FIELD, SG_ENTITY_NAME_FIELD]
+        )
+
+        matches = []
+        for d in data:
+            # convert to string, not unicode!
+            type_str = str(d[SG_ENTITY_TYPE_FIELD])
+            name_str = str(d[SG_ENTITY_NAME_FIELD])
+            matches.append( {"type": type_str, "id": d[SG_ENTITY_ID_FIELD], "name": name_str } )
+
+        return matches
