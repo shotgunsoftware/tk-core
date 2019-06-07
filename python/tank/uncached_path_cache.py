@@ -381,41 +381,6 @@ class UncachedPathCache(object):
         else:
             return True
 
-    def _get_entities_from_sg(self, data):
-        # Create a predicate that will retrieve all the entities matching a given
-        # set of path and their storage.
-        any_paths_predicate = {
-            "filter_operator": "any",
-            "filters": [self._path_to_predicate(d["path"]) for d in data]
-        }
-
-        any_primary_paths_predicate = [
-            [SG_IS_PRIMARY_FIELD, "is", True],
-            any_paths_predicate
-        ]
-
-        entities = self._tk.shotgun.find(
-            SHOTGUN_ENTITY,
-            any_primary_paths_predicate,
-            [SG_ENTITY_ID_FIELD, SG_ENTITY_TYPE_FIELD, SG_ENTITY_NAME_FIELD]
-        )
-
-        return entities
-
-    def _path_to_predicate(self, path):
-
-        root_name, relative_path = self._separate_root(path)
-        db_path = self._path_to_dbpath(relative_path)
-
-        return {
-            "filter_operator": "all",
-            "filters": [
-                [SG_RELATIVE_PATH_FIELD, "is", db_path],
-                [SG_STORAGE_FIELD, "is", root_name]
-            ]
-        }
-
-
     ############################################################################################
     # database accessor methods
 
@@ -559,11 +524,27 @@ class UncachedPathCache(object):
 
         if path is None:
             # basic sanity checking
-            import pdb
-            pdb.set_trace()
             return None
 
-        entities = self._get_entities_from_sg([{"path": path}])
+        try:
+            root_name, relative_path = self._separate_root(path)
+        except TankError:
+            # fail gracefully if path is not a valid path
+            # eg. doesn't belong to the project
+            return None
+
+        db_path = self._path_to_dbpath(relative_path)
+
+        entities = self._tk.shotgun.find(
+            SHOTGUN_ENTITY,
+            [
+                [SG_RELATIVE_PATH_FIELD, "is", db_path],
+                [SG_STORAGE_FIELD, "is", root_name],
+                [SG_IS_PRIMARY_FIELD, "is", True],
+            ],
+            [SG_ENTITY_TYPE_FIELD, SG_ENTITY_ID_FIELD, SG_ENTITY_NAME_FIELD]
+        )
+
         if len(entities) > 1:
             # never supposed to happen!
             raise TankError("More than one entry in path database for %s!" % path)
@@ -623,7 +604,8 @@ class UncachedPathCache(object):
         if not root_name:
 
             storages_str = ",".join( self._roots.values() )
-
+            print full_path
+            print self._roots
             raise TankError("The path '%s' could not be split up into a project centric path for "
                             "any of the storages %s that are associated with this "
                             "project." % (full_path, storages_str))
