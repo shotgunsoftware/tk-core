@@ -44,7 +44,7 @@ SG_PIPELINE_CONFIG_FIELD = "pipeline_configuration"
 
 log = LogManager.get_logger(__name__)
 
-if "SHOTGUN_IN_MEMORY_PATH_CACHE" in os.env:
+if "SHOTGUN_IN_MEMORY_PATH_CACHE" in os.environ:
 
     from .in_memory_path_cache import InMemoryPathCache as PathCache
 

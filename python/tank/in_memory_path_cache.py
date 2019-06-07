@@ -211,3 +211,6 @@ class InMemoryPathCache(object):
         No updates will be made to the path cache database.
         """
         raise NotImplementedError("PathCache.ensure_all_entries_are_in_shotgun")
+
+    def _get_path_cache_location(self):
+        return None
