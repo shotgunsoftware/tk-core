@@ -572,7 +572,7 @@ class TankTestBase(unittest.TestCase):
                 pc = path_cache.PathCache(self.tk)
                 path_cache_file = pc._get_path_cache_location()
                 pc.close()
-                if os.path.exists(path_cache_file):
+                if path_cache_file and os.path.exists(path_cache_file):
                     os.remove(path_cache_file)
 
                 # get rid of init cache

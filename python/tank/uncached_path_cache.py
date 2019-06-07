@@ -53,6 +53,9 @@ class UncachedPathCache(object):
     A global cache which holds the mapping between a shotgun entity and a location on disk.
     """
 
+    def _get_path_cache_location(self):
+        return None
+
     def __init__(self, tk):
         """
         Constructor.
@@ -343,7 +346,7 @@ class UncachedPathCache(object):
 
         return False
 
-    def _is_path_in_db(self, path, entity_type, entity_id, cursor):
+    def _is_path_in_db(self, path, entity_type, entity_id):
         """
         Given an entity, checks if a path is in the database or not
 
@@ -353,7 +356,6 @@ class UncachedPathCache(object):
         :param cursor: Database cursor to use.
         :returns: True if path exists, false if not
         """
-        raise NotImplementedError("Oh noes! I don't want to code this yet!")
 
         try:
             root_name, relative_path = self._separate_root(path)
@@ -365,27 +367,16 @@ class UncachedPathCache(object):
         db_path = self._path_to_dbpath(relative_path)
 
         # now see if we have any records in the db which matches the path
-        self._tk.shotgun.find(
+        record = self._tk.shotgun.find_one(
             SHOTGUN_ENTITY,
+            [
+                [SG_ENTITY_ID_FIELD, "is", entity_id],
+                [SG_ENTITY_TYPE_FIELD, "is", entity_type],
+                [SG_RELATIVE_PATH_FIELD, "is", relative_path],
+                [SG_STORAGE_FIELD, "is", root_name]
+            ]
         )
-        res = cursor.execute(
-            """
-            SELECT count(entity_id)
-            FROM   path_cache
-            WHERE  entity_type = ?
-            AND    entity_id = ?
-            AND    root = ?
-            AND    path = ?
-            GROUP BY entity_id
-            """,
-            (entity_type, entity_id, root_name, db_path)
-        )
-
-        res = list(res)
-
-        # in case there are > 0 records: res = [(4,)]
-        # in case there are no records: res = []
-        if len(res) == 0:
+        if record is None:
             return False
         else:
             return True
