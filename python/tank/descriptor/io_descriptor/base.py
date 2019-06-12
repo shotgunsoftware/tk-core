@@ -692,6 +692,8 @@ class IODescriptorBase(object):
             if self._exists_local(path):
                 return path
 
+        log.warn('No cache path found for: %s', self.get_uri())
+        log.warn('Please consider running "tank cache_apps"')
         return None
 
     def clone_cache(self, cache_root):
