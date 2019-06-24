@@ -12,6 +12,7 @@ from __future__ import print_function
 
 import sys
 import os
+import re
 
 import tank
 from tank import TankError
@@ -1056,6 +1057,59 @@ class TestGetKeysSepInValue(TestTemplatePath):
         expected_msg = ("Template %s: Ambiguous values found for key 'Asset' could be any of: "
                         "'cat', 'cat_man', 'cat_man_doogle', 'cat_man_doogle_do'" % template)
         self.check_error_message(TankError, expected_msg, template.get_fields, input_path)         
+
+    def test_resolve_ambiguous_from_previous(self):
+        """
+        Resolve 1 ambiguous key if they have already been resolved before.
+        """
+        definition = "{Asset}/build/{Asset}_{name}/maya"
+        asset_name = "cat_man_doogle_do_dandy_dod"
+        input_parts = ["build", asset_name, "maya"]
+
+        for found in re.finditer("_", asset_name):
+            expected = {
+                "Asset": asset_name[:found.start()],  # e.g. cat_man
+                "name": asset_name[found.end():],  # e.g. doogle_do_dandy_dod
+            }
+            # e.g. cat_man/build/cat_man_doogle_do_dandy_dod/maya
+            input_path = "/".join([expected["Asset"]] + input_parts)
+
+            self.assert_path_matches(definition, input_path, expected)
+
+    def test_resolve_multi_ambiguous_from_previous(self):
+        """
+        Resolve multiple ambiguous keys if all previously resolved.
+        """
+        def split_underscores(text):
+            """Iterate text substrings split by underscore.
+
+            :return: Text before and after underscore split
+            :rtype: (str, str)
+            """
+            for found_underscore in re.finditer("_", text):
+                yield (
+                    text[:found_underscore.start()],
+                    text[found_underscore.end():],
+                )
+
+        self.keys["favorites"] = StringKey("favorites")
+        definition = "{Asset}/{name}/build/{Asset}_{name}_{favorites}/maya"
+        asset_name_favorites = "cat_man_doogle_do_dandy_dod"
+        build_folders = ["build", asset_name_favorites, "maya"]
+
+        for asset, name_favorites in split_underscores(asset_name_favorites):
+            for name, favorites in split_underscores(name_favorites):
+                expected = {
+                    "Asset": asset,
+                    "name": name,
+                    "favorites": favorites,
+                }
+
+                # e.g. cat_man/doogle/build/cat_man_doogle_do_dandy_dod/maya
+                leading_folders = [asset, name]
+                input_path = "/".join(leading_folders + build_folders)
+
+                self.assert_path_matches(definition, input_path, expected)
 
     def test_ambiguous_wrong_type(self):
         keys = {"some_num": IntegerKey("some_num"),
