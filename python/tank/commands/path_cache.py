@@ -12,11 +12,13 @@
 Methods relating to the path cache
 """
 
+from __future__ import absolute_import
 from ..errors import TankError
 from .. import path_cache
 from .. import folder
 
 from .action_base import Action
+from six.moves import input
 
 
 class SynchronizePathCache(Action):
@@ -148,7 +150,7 @@ class PathCacheMigrationAction(Action):
                  "'tank upgrade_folders' for each one of them in order for them to pick up folders "
                  "from Shotgun.")
         log.info("")
-        val = raw_input("Turn on syncing for this pipeline configuration (Yes/No) ? [Yes]: ")
+        val = input("Turn on syncing for this pipeline configuration (Yes/No) ? [Yes]: ")
         if val != "" and not val.lower().startswith("y"):
             log.info("Exiting! Syncing will not be turned on.")
             return

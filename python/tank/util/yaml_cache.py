@@ -15,6 +15,7 @@ unless it's changed on disk.
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
 import os
 import copy
 import threading
@@ -186,7 +187,7 @@ class YamlCache(object):
         """
         Returns a list of all CacheItems stored in the cache.
         """
-        return self._cache.values()
+        return list(self._cache.values())
 
     def merge_cache_items(self, cache_items):
         """

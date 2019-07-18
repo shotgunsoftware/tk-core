@@ -12,9 +12,10 @@
 User settings management.
 """
 
+from __future__ import absolute_import
 import os
-import ConfigParser
-import urllib
+import six.moves.configparser
+import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 
 from .local_file_storage import LocalFileStorageManager
 from .errors import EnvironmentVariableFileLookupError, TankError
@@ -166,7 +167,7 @@ class UserSettings(Singleton):
         else:
             raise TankError(
                 "Invalid value '%s' in '%s' for setting '%s' in section '%s': expecting one of '%s'." % (
-                    value, self._path, name, section, "', '".join(self._boolean_states.keys())
+                    value, self._path, name, section, "', '".join(list(self._boolean_states.keys()))
                 )
             )
 
@@ -270,7 +271,7 @@ class UserSettings(Singleton):
 
         :returns: A ConfigParser instance with the contents from the configuration file.
         """
-        config = ConfigParser.SafeConfigParser()
+        config = six.moves.configparser.SafeConfigParser()
         if os.path.exists(path):
             config.read(path)
         return config

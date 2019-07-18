@@ -15,6 +15,7 @@ across storages, configurations etc.
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
 import os
 
 from tank_vendor import yaml

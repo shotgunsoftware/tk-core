@@ -27,6 +27,7 @@ for all users in Shotgun and if a match is found, this is deemed to be the
 current user.
 """
 
+from __future__ import absolute_import
 from tank import Hook
 import os
 import sys

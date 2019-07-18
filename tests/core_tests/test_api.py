@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import absolute_import
 import os
 
 from mock import Mock, patch
@@ -70,7 +71,7 @@ class TestTemplatesLoaded(TankTestBase):
         self.expected_names = ["maya_shot_work", "nuke_shot_work"]
 
     def test_templates_loaded(self):
-        actual_names = self.tk.templates.keys()
+        actual_names = list(self.tk.templates.keys())
         for expected_name in self.expected_names:
             self.assertTrue(expected_name in actual_names)
 

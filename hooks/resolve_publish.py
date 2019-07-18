@@ -13,6 +13,7 @@ Hook used to resolve publish records in Shotgun into local form on a machine dur
 a call to :meth:`sgtk.util.resolve_publish_path`.
 """
 
+from __future__ import absolute_import
 from sgtk import Hook
 
 

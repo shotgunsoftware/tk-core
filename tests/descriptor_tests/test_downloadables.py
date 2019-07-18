@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import absolute_import
+from __future__ import print_function
 from functools import reduce
 import multiprocessing
 import os
@@ -24,6 +26,7 @@ from tank_test.tank_test_base import setUpModule # noqa
 
 import sgtk
 import tank
+from six.moves import range
 
 
 def _raise_exception(placeholder_a="default_a", placeholder_b="default_b"):
@@ -120,7 +123,7 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
                 tank.util.filesystem.ensure_folder_exists(target)
                 tank.util.zip.unzip_file(zip_tmp, target, auto_detect_bundle)
             except Exception as e:
-                print("Attempt %s: Attachment download failed: %s" % (attempt, e))
+                print(("Attempt %s: Attachment download failed: %s" % (attempt, e)))
                 attempt += 1
                 # sleep 500ms before we retry
                 time.sleep(0.5)
@@ -149,7 +152,7 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
             zf = zipfile.ZipFile(zip_file_path, "w")
             zf.write(text_file_path, arcname="large_binary_file")
         except Exception as e:
-            print("Failed to create the temporary zip package at %s." % zip_file_path)
+            print(("Failed to create the temporary zip package at %s." % zip_file_path))
             raise e
         finally:
             zf.close()

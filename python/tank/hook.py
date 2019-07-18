@@ -11,6 +11,7 @@
 """
 Defines the base class for all Tank Hooks.
 """
+from __future__ import absolute_import
 import os
 import re
 import sys

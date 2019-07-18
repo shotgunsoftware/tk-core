@@ -13,6 +13,7 @@ Unit tests tank setup_project.
 """
 from __future__ import with_statement
 
+from __future__ import absolute_import
 import os
 import sys
 import logging
@@ -107,7 +108,7 @@ class TestSetupProject(TankTestBase):
 
         # Check we get back our custom primary root name
         new_pc = tank.pipelineconfig_factory.from_path(new_config_root)
-        self.assertEqual(new_pc.get_data_roots().keys(), ["setup_project_root"])
+        self.assertEqual(list(new_pc.get_data_roots().keys()), ["setup_project_root"])
 
         # make sure the fake core didn't get copied across, e.g. that
         # we didn't localize the setup
@@ -234,7 +235,7 @@ class TestSetupProject(TankTestBase):
 
             # Check we get back our custom primary root name
             new_pc = tank.pipelineconfig_factory.from_path(new_config_root)
-            self.assertEqual(new_pc.get_data_roots().keys(), ["setup_project_root"])
+            self.assertEqual(list(new_pc.get_data_roots().keys()), ["setup_project_root"])
 
             # the 'fake' core that we mocked earlier has a 'bad_path' folder
             self.assertFalse(os.path.exists(

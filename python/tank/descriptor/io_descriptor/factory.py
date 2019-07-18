@@ -8,12 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import absolute_import
 import copy
 
 from ..errors import TankDescriptorError
 from .base import IODescriptorBase
 
 from ... import LogManager
+import six
 log = LogManager.get_logger(__name__)
 
 
@@ -70,7 +72,7 @@ def create_io_descriptor(
     :raises: :class:`TankDescriptorError`
     """
     # resolve into both dict and uri form
-    if isinstance(dict_or_uri, basestring):
+    if isinstance(dict_or_uri, six.string_types):
         descriptor_dict = IODescriptorBase.dict_from_uri(dict_or_uri)
     else:
         # make a copy to make sure the original object is never altered
@@ -165,7 +167,7 @@ def is_descriptor_version_missing(dict_or_uri):
     :return: Boolean to indicate if a required version token is missing
     """
     # resolve into both dict and uri form
-    if isinstance(dict_or_uri, basestring):
+    if isinstance(dict_or_uri, six.string_types):
         descriptor_dict = descriptor_uri_to_dict(dict_or_uri)
     else:
         # make a copy to make sure the original object is never altered

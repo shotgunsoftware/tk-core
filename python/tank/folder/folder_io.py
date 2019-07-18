@@ -16,6 +16,7 @@ Known constraints:
 
 """
 
+from __future__ import absolute_import
 from . import constants
 from ..errors import TankError
 

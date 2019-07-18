@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import absolute_import
 import os
 
 from .configuration import Configuration
@@ -16,7 +17,7 @@ from .configuration_writer import ConfigurationWriter
 from .. import LogManager
 from .. import constants
 
-import cPickle as pickle
+import six.moves.cPickle as pickle
 
 from ..util import ShotgunPath
 from ..errors import TankFileDoesNotExistError

@@ -16,6 +16,7 @@ Utility methods for unserializing JSON documents.
 from __future__ import absolute_import
 
 import json
+import six
 
 
 def _convert_unicode_keys_to_string(input_value):
@@ -28,7 +29,7 @@ def _convert_unicode_keys_to_string(input_value):
     :returns: A value with utf-8 encoded :class:`str` instances.
     """
 
-    if isinstance(input_value, unicode):
+    if isinstance(input_value, six.text_type):
         return input_value.encode("utf8")
 
     if isinstance(input_value, list):
@@ -37,7 +38,7 @@ def _convert_unicode_keys_to_string(input_value):
     if isinstance(input_value, dict):
         return dict(
             (_convert_unicode_keys_to_string(k), _convert_unicode_keys_to_string(v))
-            for k, v in input_value.iteritems()
+            for k, v in six.iteritems(input_value)
         )
 
     return input_value

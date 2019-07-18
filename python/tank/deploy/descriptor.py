@@ -14,15 +14,17 @@ Legacy handling of descriptors for Shotgun Desktop.
 This code may be removed at some point in the future.
 """
 
+from __future__ import absolute_import
 from ..descriptor import create_descriptor, Descriptor
 from ..util import shotgun
+from six.moves import range
 
 
 class AppDescriptor(object):
     """
     Kept for backwards compatibility reasons for get_from_location_and_paths()
     """
-    APP, ENGINE, FRAMEWORK = range(3)
+    APP, ENGINE, FRAMEWORK = list(range(3))
 
 
 def get_from_location_and_paths(app_or_engine, pc_path, bundle_install_path, location_dict):

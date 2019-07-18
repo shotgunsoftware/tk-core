@@ -16,6 +16,7 @@ Therefore, this hook will not be invoked to download a configuration. However, t
 applications, frameworks and engines can be downloaded through the hook.
 """
 
+from __future__ import absolute_import
 from sgtk import get_hook_baseclass
 
 

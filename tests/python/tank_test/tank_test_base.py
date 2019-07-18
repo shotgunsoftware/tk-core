@@ -14,6 +14,7 @@ Base class for engine and app testing
 
 from __future__ import with_statement, print_function
 
+from __future__ import absolute_import
 import sys
 import os
 import time
@@ -38,6 +39,8 @@ import tank
 from tank import path_cache, pipelineconfig_factory
 from tank_vendor import yaml
 from tank.util.user_settings import UserSettings
+import six
+from six.moves import range
 
 TANK_TEMP = None
 
@@ -147,7 +150,7 @@ def temp_env_var(**kwargs):
     :param \**kwargs: key-value pairs of environment variables to set.
     """
     backup_values = {}
-    for k, v in kwargs.iteritems():
+    for k, v in six.iteritems(kwargs):
         if k in os.environ:
             backup_values[k] = os.environ[k]
         os.environ[k] = v
@@ -155,7 +158,7 @@ def temp_env_var(**kwargs):
     try:
         yield
     finally:
-        for k, v in kwargs.iteritems():
+        for k, v in six.iteritems(kwargs):
             if k in backup_values:
                 os.environ[k] = backup_values[k]
             else:
@@ -218,7 +221,7 @@ class UnitTestTimer(object):
         print()
         print("Test run stats")
         print("==============")
-        for name, stat in sorted(self._timers.items(), key=lambda x: x[1].total_time, reverse=True):
+        for name, stat in sorted(list(self._timers.items()), key=lambda x: x[1].total_time, reverse=True):
             print("{0} : {1} ({2} hits, {3:.3f} avg)".format(name, stat.total_time, stat.nb_invokes, stat.average))
 
         print(
@@ -959,12 +962,12 @@ class TankTestBase(unittest.TestCase):
         ini_file_location = os.path.join(folder, "toolkit.ini")
         with open(ini_file_location, "w") as f:
             f.writelines(["[Login]\n"])
-            for key, value in login_section.iteritems():
+            for key, value in six.iteritems(login_section):
                 f.writelines(["%s=%s\n" % (key, value)])
 
             for section in kwargs:
                 f.writelines(["[%s]\n" % section])
-                for key, value in kwargs[section].iteritems():
+                for key, value in six.iteritems(kwargs[section]):
                     f.writelines(["%s=%s\n" % (key, value)])
 
         # The setUp phase cleared the singleton. So set the preferences environment variable and
@@ -1032,7 +1035,7 @@ class SealedMock(mock.Mock):
         :param kwargs: Passed down directly to the base class as kwargs. Each keys are passed to the ``spec_set``
             argument from the base class to seal the gettable and settable properties.
         """
-        super(SealedMock, self).__init__(spec_set=kwargs.keys(), **kwargs)
+        super(SealedMock, self).__init__(spec_set=list(kwargs.keys()), **kwargs)
 
 
 def _move_data(path):

@@ -14,6 +14,7 @@ Tests for templatefield module.
 
 from __future__ import with_statement, print_function
 
+from __future__ import absolute_import
 from tank import TankError
 import copy
 import sys
@@ -22,6 +23,7 @@ from mock import patch
 from tank_test.tank_test_base import ShotgunTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 from tank.templatekey import StringKey, IntegerKey, SequenceKey, TimestampKey, make_keys
+import six
 
 
 class TestTemplateKey(ShotgunTestBase):
@@ -1094,7 +1096,7 @@ class TestTimestampKey(ShotgunTestBase):
             self._datetime
         )
         self.assertEqual(
-            key.value_from_str(unicode(self._datetime_string)),
+            key.value_from_str(six.text_type(self._datetime_string)),
             self._datetime
         )
 

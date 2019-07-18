@@ -26,6 +26,7 @@ at any point.
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
 from .errors import AuthenticationCancelled
 from .console_authentication import ConsoleLoginHandler, ConsoleRenewSessionHandler
 from .ui_authentication import UiAuthenticationHandler
@@ -35,6 +36,7 @@ from .. import LogManager
 import threading
 import sys
 import os
+from six.moves import range
 
 # When importing qt_abstraction, a lot of code is executed to detects which
 # version of Qt is being used. Running business logic at import time is not
@@ -94,7 +96,7 @@ class SessionRenewal(object):
     _renew_session_internal_lock = threading.Lock()
 
     # List of possible states for session renewal.
-    WAITING, CANCELLED, SUCCESS = range(3)
+    WAITING, CANCELLED, SUCCESS = list(range(3))
 
     # When a thread cancels session renewal, this flag is set so other threads know
     # to raise an exception as well.

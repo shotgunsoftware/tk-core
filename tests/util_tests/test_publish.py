@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import with_statement
+from __future__ import absolute_import
 import os
 import sys
 
@@ -17,6 +18,7 @@ from mock import patch, call
 import tank
 from tank import context, errors
 from tank_test.tank_test_base import TankTestBase, setUpModule, only_run_on_windows, only_run_on_nix
+import six
 
 
 class TestShotgunRegisterPublish(TankTestBase):
@@ -302,7 +304,7 @@ class TestShotgunRegisterPublish(TankTestBase):
             }
 
         # Various paths we support, Unix and Windows styles
-        for (local_path, path_dict) in values.iteritems():
+        for (local_path, path_dict) in six.iteritems(values):
 
             publish_data = tank.util.register_publish(
                 self.tk,

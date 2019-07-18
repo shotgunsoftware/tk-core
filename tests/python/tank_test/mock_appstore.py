@@ -14,6 +14,7 @@ Unit tests tank updates.
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
 import os
 import re
 import logging
@@ -191,7 +192,7 @@ class MockStore(object):
 
         :returns: List of version strings for a particular bundle.
         """
-        return self._bundles[bundle_type][name].keys()
+        return list(self._bundles[bundle_type][name].keys())
 
 
 # Simpler than having to write three class types that would also have to be documented.

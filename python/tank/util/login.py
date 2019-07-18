@@ -13,6 +13,7 @@ Helper methods that extracts information about the current user.
 
 """
 
+from __future__ import absolute_import
 import os
 import sys
 

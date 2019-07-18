@@ -12,6 +12,7 @@
 Helper methods that do environment management
 """
 
+from __future__ import absolute_import
 import os, sys
 
 

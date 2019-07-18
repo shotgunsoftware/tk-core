@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import absolute_import
 import os
 import sys
 from tank_vendor import yaml
@@ -18,7 +19,8 @@ from tank.errors import TankInitError
 from sgtk.util import ShotgunPath
 from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule # noqa
 from mock import patch
-import cPickle as pickle
+import six.moves.cPickle as pickle
+import six
 
 
 class TestTankFromPath(TankTestBase):
@@ -478,7 +480,7 @@ class TestPipelineConfigurationEnumeration(ShotgunTestBase):
         :returns: A new dictionary without the keys specified.
         """
         return dict(
-            (k, v) for k, v in dictionary.iteritems() if k not in keys_to_remove
+            (k, v) for k, v in six.iteritems(dictionary) if k not in keys_to_remove
         )
 
 

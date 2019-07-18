@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import absolute_import
 from . import QtCore, QtGui
 from .ui_busy_dialog import Ui_BusyDialog
 

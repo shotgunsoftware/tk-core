@@ -12,9 +12,11 @@
 Qt version abstraction layer.
 """
 
+from __future__ import absolute_import
 import os
 
 from ..log import LogManager
+from six.moves import range
 logger = LogManager.get_logger(__name__)
 
 
@@ -32,7 +34,7 @@ class QtImporter(object):
             ...
     """
 
-    QT4, QT5 = range(4, 6)
+    QT4, QT5 = list(range(4, 6))
 
     def __init__(self, interface_version_requested=QT4):
         """

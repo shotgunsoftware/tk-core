@@ -19,14 +19,16 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-import cPickle
-import httplib
+from __future__ import absolute_import
+import six.moves.cPickle
+import six.moves.http_client
 from .shotgun_wrapper import ShotgunWrapper
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault, ProtocolError
 
 from . import session_cache
 from .errors import IncompleteCredentials
 from .. import LogManager
+import six
 
 # Indirection to create ShotgunWrapper instances. Great for unit testing.
 _shotgun_instance_factory = ShotgunWrapper
@@ -53,10 +55,10 @@ class ShotgunUserImpl(object):
         # we don't end up infecting API instances with unicode strings
         # that would then cause some string data to be unicoded during
         # concatenation operations.
-        if isinstance(http_proxy, unicode):
+        if isinstance(http_proxy, six.text_type):
             http_proxy = http_proxy.encode("utf-8")
 
-        if isinstance(host, unicode):
+        if isinstance(host, six.text_type):
             host = host.encode("utf-8")
 
         self._host = host
@@ -304,7 +306,7 @@ class SessionUser(ShotgunUserImpl):
             # But if we get there, it means our session_token is still valid
             # as far as Shotgun is concerned.
             if (
-                e.errcode == httplib.FOUND and
+                e.errcode == six.moves.http_client.FOUND and
                 "location" in e.headers and
                 e.headers["location"].endswith("/saml/saml_login_request")
             ):
@@ -533,7 +535,7 @@ def serialize_user(user):
     """
     # Pickle the dictionary and inject the user type in the payload so we know
     # how to unpickle the user.
-    return cPickle.dumps({
+    return six.moves.cPickle.dumps({
         "type": user.__class__.__name__,
         "data": user.to_dict()
     })
@@ -549,7 +551,7 @@ def deserialize_user(payload):
     :returns: A ShotgunUser derived instance.
     """
     # Unpickle the dictionary
-    user_dict = cPickle.loads(payload)
+    user_dict = six.moves.cPickle.loads(payload)
 
     # Find which user type we have
     global __factories

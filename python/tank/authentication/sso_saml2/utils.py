@@ -11,6 +11,7 @@
 SSO/SAML2 Utility functions.
 """
 
+from __future__ import absolute_import
 import time
 
 from tank_vendor import shotgun_api3

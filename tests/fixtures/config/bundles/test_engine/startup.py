@@ -8,11 +8,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import absolute_import
 import os
 
 import sgtk
 from sgtk import TankError
 from sgtk.platform import SoftwareLauncher, SoftwareVersion, LaunchInformation
+from six.moves import range
 
 
 class TestLauncher(SoftwareLauncher):

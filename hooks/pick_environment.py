@@ -13,6 +13,7 @@ Hook which chooses an environment file to use based on the current context.
 This file is almost always overridden by a configuration.
 """
 
+from __future__ import absolute_import
 from tank import Hook
 
 

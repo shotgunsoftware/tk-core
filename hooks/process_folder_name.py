@@ -24,8 +24,10 @@ is being used, for example:
        raise TankError("Shot names cannot start with AA!")
 """
 
+from __future__ import absolute_import
 from tank import Hook
 import re
+import six
 
 
 class ProcessFolderName(Hook):
@@ -77,7 +79,7 @@ class ProcessFolderName(Hook):
             except KeyError:
                 str_value = str(value)
 
-        elif isinstance(value, basestring):
+        elif isinstance(value, six.string_types):
             # no conversion required
             str_value = value
 
@@ -110,7 +112,7 @@ class ProcessFolderName(Hook):
             # "word" characters, not just A-Z.
             exp = re.compile(u"\W", re.UNICODE)
 
-        if isinstance(src, unicode):
+        if isinstance(src, six.text_type):
             # src is unicode so we don't need to convert!
             return exp.sub("-", src)
         else:

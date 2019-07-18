@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import absolute_import
 import sys
 import os
 import re
@@ -30,6 +31,7 @@ from ..descriptor import create_descriptor, Descriptor
 from tank_vendor import yaml
 
 from ..util import ShotgunPath
+from six.moves import range
 
 
 
@@ -56,7 +58,7 @@ class ProjectSetupParameters(object):
     - run project setup!
     """
 
-    (CENTRALIZED_CONFIG, DISTRIBUTED_CONFIG) = range(2)
+    (CENTRALIZED_CONFIG, DISTRIBUTED_CONFIG) = list(range(2))
 
     def __init__(self, log, sg):
         """
@@ -336,7 +338,7 @@ class ProjectSetupParameters(object):
         if self._config_template is None:
             raise TankError("Please specify a configuration template!")
 
-        return self._storage_data.keys()
+        return list(self._storage_data.keys())
 
     def get_storage_description(self, storage_name):
         """

@@ -20,6 +20,7 @@ new code. This compatibility wrapper will be removed at some point in the future
 #
 # from tank_vendor.shotgun_authentication.user import ShotgunUser
 #
+from __future__ import absolute_import
 from tank.authentication.user_impl import *
 
 

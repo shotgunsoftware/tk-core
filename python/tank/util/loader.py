@@ -13,6 +13,7 @@ Methods for loading and managing plugins, e.g. Apps, Engines, Hooks etc.
 
 """
 
+from __future__ import absolute_import
 import sys
 import imp
 import traceback

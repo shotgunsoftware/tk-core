@@ -12,6 +12,7 @@
 Manages a thread-safe stack of Toolkit imports.
 """
 
+from __future__ import absolute_import
 import threading
 
 

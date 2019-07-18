@@ -11,11 +11,12 @@
 SSO/SAML2 Core utility functions.
 """
 
+from __future__ import absolute_import
 import base64
 import logging
-import urllib
-import urlparse
-from Cookie import SimpleCookie
+import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
+import six.moves.urllib.parse
+from six.moves.http_cookies import SimpleCookie
 
 
 from .errors import (
@@ -157,12 +158,12 @@ def _sanitize_http_proxy(http_proxy):
     if http_proxy and not (http_proxy.startswith("http://") or http_proxy.startswith("https://")):
         get_logger().debug("Assuming the proxy to be HTTP")
         alt_http_proxy = "http://%s" % http_proxy
-        parsed_url = urlparse.urlparse(alt_http_proxy)
+        parsed_url = six.moves.urllib.parse.urlparse(alt_http_proxy)
         # We want to ensure that the resulting URL is valid.
         if parsed_url.netloc:
             http_proxy = alt_http_proxy
 
-    return urlparse.urlparse(http_proxy)
+    return six.moves.urllib.parse.urlparse(http_proxy)
 
 
 def get_saml_claims_expiration(encoded_cookies):
@@ -214,7 +215,7 @@ def get_user_name(encoded_cookies):
         _get_cookie_from_prefix(encoded_cookies, "shotgun_sso_session_userid_u")
     )
     if user_name is not None:
-        user_name = urllib.unquote(user_name)
+        user_name = six.moves.urllib.parse.unquote(user_name)
     return user_name
 
 

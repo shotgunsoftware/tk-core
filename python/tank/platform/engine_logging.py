@@ -8,8 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import absolute_import
 import logging
-import Queue
+import six.moves.queue
 import sys
 
 class ToolkitEngineHandler(logging.Handler):
@@ -65,7 +66,7 @@ class ToolkitEngineLegacyHandler(logging.Handler):
         # avoiding super in order to be py25-compatible
         logging.Handler.__init__(self)
         self._engine = engine
-        self._inside_dispatch_stack = Queue.Queue()
+        self._inside_dispatch_stack = six.moves.queue.Queue()
 
     @property
     def inside_dispatch(self):

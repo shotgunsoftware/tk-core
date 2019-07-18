@@ -7,6 +7,7 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
+from __future__ import absolute_import
 import os
 import copy
 
@@ -267,7 +268,7 @@ class IODescriptorGitTag(IODescriptorGit):
         :returns: instance deriving from IODescriptorBase or None if not found
         """
         log.debug("Looking for cached versions of %r..." % self)
-        all_versions = self._get_locally_cached_versions().keys()
+        all_versions = list(self._get_locally_cached_versions().keys())
         log.debug("Found %d versions" % len(all_versions))
 
         if len(all_versions) == 0:

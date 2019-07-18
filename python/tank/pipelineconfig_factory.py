@@ -8,10 +8,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import absolute_import
 import os
 import collections
 import pprint
-import cPickle as pickle
+import six.moves.cPickle as pickle
 
 from .errors import TankError, TankInitError
 from . import LogManager
@@ -22,6 +23,7 @@ from . import constants
 from . import pipelineconfig_utils
 from .pipelineconfig import PipelineConfiguration
 from .util import LocalFileStorageManager
+import six
 
 log = LogManager.get_logger(__name__)
 
@@ -149,7 +151,7 @@ def _from_path(path, force_reread_shotgun_cache):
     :rtype: :class:`PipelineConfiguration`
     :raises: :class:`TankInitError`
     """
-    if not isinstance(path, basestring):
+    if not isinstance(path, six.string_types):
         raise ValueError(
             "Cannot create a configuration from path '%s' - path must be a string." % path
         )

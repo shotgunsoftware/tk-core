@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import absolute_import
 from ..util import filesystem
 from . import constants
 from ..errors import TankError
@@ -22,6 +23,7 @@ from ..util import ShotgunPath
 import os
 import datetime
 import shutil
+from six.moves import input
 
 # Core configuration files which are associated with the core API installation and not
 # the pipeline configuration.
@@ -127,7 +129,7 @@ class PushPCAction(Action):
             log.info(" - [%d] %s (%s)" % (pc["id"], pc["code"], local_path))
         log.info("")
         
-        answer = raw_input(
+        answer = input(
             "Please type in the id of the configuration to push to (ENTER to exit): "
         )
         if answer == "":

@@ -8,9 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import absolute_import
 import os
 import fnmatch
-import cPickle
+import six.moves.cPickle
 
 from .action_base import Action
 from ..errors import TankError
@@ -86,7 +87,7 @@ class CacheYamlAction(Action):
             raise TankError("Unable to open '%s' for writing: %s" % (pickle_path, e))
 
         try:
-            cPickle.dump(items, fh)
+            six.moves.cPickle.dump(items, fh)
         except Exception as e:
             raise TankError("Unable to dump pickled cache data: %s" % e)
 

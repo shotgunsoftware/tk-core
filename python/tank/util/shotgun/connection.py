@@ -14,9 +14,10 @@ Methods for connecting to Shotgun
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
 import os
 import threading
-import urlparse
+import six.moves.urllib.parse
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
@@ -234,10 +235,10 @@ def __sanitize_url(server_url):
     # network location
 
     # Then break up the url into chunks
-    tokens_parsed = urlparse.urlparse(server_url)
+    tokens_parsed = six.moves.urllib.parse.urlparse(server_url)
 
     # Then extract the good parts from the url
-    clean_url_tokens = urlparse.ParseResult(
+    clean_url_tokens = six.moves.urllib.parse.ParseResult(
         # We want https when there is no specified scheme.
         scheme=tokens_parsed.scheme or "https",
         # If only a host has been provided, path will be set.
@@ -246,7 +247,7 @@ def __sanitize_url(server_url):
         path="", params="", query="", fragment=""
     )
 
-    return urlparse.urlunparse(clean_url_tokens)
+    return six.moves.urllib.parse.urlunparse(clean_url_tokens)
 
 
 def sanitize_url(server_url):

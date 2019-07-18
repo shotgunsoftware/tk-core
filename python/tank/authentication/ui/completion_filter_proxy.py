@@ -18,6 +18,7 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
+from __future__ import absolute_import
 import re
 
 from .qt_abstraction import QtGui

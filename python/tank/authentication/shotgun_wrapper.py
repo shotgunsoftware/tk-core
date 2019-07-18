@@ -15,7 +15,8 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
-import httplib
+from __future__ import absolute_import
+import six.moves.http_client
 
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
 from tank_vendor.shotgun_api3.lib.xmlrpclib import ProtocolError
@@ -70,7 +71,7 @@ class ShotgunWrapper(Shotgun):
             # saml_login_request URL. In that case we will proceed to renew
             # the session.
             if (
-                e.errcode == httplib.FOUND and
+                e.errcode == six.moves.http_client.FOUND and
                 "location" in e.headers and
                 e.headers["location"].endswith("/saml/saml_login_request")
             ):

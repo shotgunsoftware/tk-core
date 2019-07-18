@@ -12,6 +12,7 @@
 App configuration and schema validation.
 
 """
+from __future__ import absolute_import
 import os
 import sys
 
@@ -21,6 +22,7 @@ from ..template import TemplateString
 from .bundle import resolve_default_value
 from ..util.version import is_version_older, is_version_number
 from ..log import LogManager
+import six
 
 # We're potentially running here in an environment with
 # no engine available via current_engine(), so we'll have
@@ -175,7 +177,7 @@ def validate_and_return_frameworks(descriptor, environment):
         desired_fw_instance = "%s_%s" % (required_fw_name, version)
         min_version_satisfied = True
 
-        for fw_instance_name, fw_desc in fw_descriptors.iteritems():
+        for fw_instance_name, fw_desc in six.iteritems(fw_descriptors):
 
             # We've found a matching framework.
             if fw_instance_name == desired_fw_instance:
@@ -238,7 +240,7 @@ def validate_and_return_frameworks(descriptor, environment):
 
                 msg += "The currently installed frameworks are: \n"
                 fw_strings = []
-                for x, fw in fw_descriptors.iteritems():
+                for x, fw in six.iteritems(fw_descriptors):
                     fw_strings.append("Name: '%s', Version: '%s'" % (fw.system_name,
                                                                      fw.version))
                 msg += "\n".join(fw_strings)

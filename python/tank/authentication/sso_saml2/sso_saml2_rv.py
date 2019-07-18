@@ -11,6 +11,7 @@
 Integration with Shotgun RV.
 """
 
+from __future__ import absolute_import
 import json
 
 from .sso_saml2 import (  # noqa

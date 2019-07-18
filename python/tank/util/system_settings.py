@@ -13,7 +13,8 @@ System settings management.
 """
 
 
-import urllib
+from __future__ import absolute_import
+import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 
 
 class SystemSettings(object):

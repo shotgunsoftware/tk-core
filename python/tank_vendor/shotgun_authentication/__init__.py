@@ -16,6 +16,7 @@ new code. This compatibility wrapper will be removed at some point in the future
 """
 
 # map the official API
+from __future__ import absolute_import
 from tank.authentication import DefaultsManager, ShotgunAuthenticator
 from tank.authentication import ShotgunAuthenticationError, AuthenticationError, IncompleteCredentials, AuthenticationCancelled
 from tank.authentication import ShotgunUser, deserialize_user, serialize_user

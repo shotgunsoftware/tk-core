@@ -11,6 +11,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
+from __future__ import absolute_import
 from mock import patch
 
 from tank.util.metrics import (
@@ -32,9 +33,11 @@ import os
 import json
 import time
 import threading
-import urllib2
+import six.moves.urllib.request, six.moves.urllib.error, six.moves.urllib.parse
 import time
 import unittest2
+import six
+from six.moves import range
 
 
 class TestEventMetric(ShotgunTestBase):
@@ -273,7 +276,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                 # TODO: find out what class type is 'something'
                 for something in mocked_call:
                     for instance in something:
-                        if isinstance(instance, urllib2.Request):
+                        if isinstance(instance, six.moves.urllib.request.Request):
                             mocked_request_calls.append(instance)
 
         return mocked_request_calls
@@ -407,14 +410,14 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue("DictProp" in server_received_metric["event_properties"])
         self.assertTrue("ListProp" in server_received_metric["event_properties"])
 
-        self.assertTrue(isinstance(server_received_metric["event_group"], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_name"], unicode))
+        self.assertTrue(isinstance(server_received_metric["event_group"], six.text_type))
+        self.assertTrue(isinstance(server_received_metric["event_name"], six.text_type))
         self.assertTrue(isinstance(server_received_metric["event_properties"], dict))
 
-        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_HOST_APP], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_HOST_APP_VERSION], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_APP], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_APP_VERSION], unicode))
+        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_HOST_APP], six.text_type))
+        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_HOST_APP_VERSION], six.text_type))
+        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_APP], six.text_type))
+        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_APP_VERSION], six.text_type))
 
         self.assertTrue(isinstance(server_received_metric["event_properties"]["IntProp"], int))
         self.assertTrue(isinstance(server_received_metric["event_properties"]["IntProp"], int))
@@ -526,14 +529,14 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue("DictProp" in preserved_properties)
         self.assertTrue("ListProp" in preserved_properties)
 
-        self.assertTrue(isinstance(server_received_metric["event_group"], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_name"], unicode))
+        self.assertTrue(isinstance(server_received_metric["event_group"], six.text_type))
+        self.assertTrue(isinstance(server_received_metric["event_name"], six.text_type))
         self.assertTrue(isinstance(server_received_metric["event_properties"], dict))
 
-        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_HOST_APP], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_HOST_APP_VERSION], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_APP], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_APP_VERSION], unicode))
+        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_HOST_APP], six.text_type))
+        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_HOST_APP_VERSION], six.text_type))
+        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_APP], six.text_type))
+        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_APP_VERSION], six.text_type))
 
         self.assertTrue(isinstance(preserved_properties["IntProp"], int))
         self.assertTrue(isinstance(preserved_properties["IntProp"], int))
@@ -990,7 +993,7 @@ class TestBundleMetrics(TankTestBase):
         # after the loops
         able_to_test_a_framework = False
         # Check metrics logged from apps
-        for app in engine.apps.itervalues():
+        for app in six.itervalues(engine.apps):
             app.log_metric("App test")
             metrics = metrics_queue.get_metrics()
             self.assertEqual(len(metrics), 1)
@@ -1017,7 +1020,7 @@ class TestBundleMetrics(TankTestBase):
             self.assertEqual(data["event_properties"][EventMetric.KEY_APP], app.name)
             self.assertEqual(data["event_properties"][EventMetric.KEY_APP_VERSION], app.version)
             self.assertEqual(data["event_properties"][EventMetric.KEY_COMMAND], "Blah")
-            for fw in app.frameworks.itervalues():
+            for fw in six.itervalues(app.frameworks):
                 able_to_test_a_framework = True
                 fw.log_metric("Framework test")
                 metrics = metrics_queue.get_metrics()

@@ -12,6 +12,7 @@
 Test hook.
 """
 
+from __future__ import absolute_import
 from tank import Hook
 
 

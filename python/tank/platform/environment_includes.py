@@ -28,6 +28,7 @@ relative paths are always required and context based paths are always optional.
 """
 
 
+from __future__ import absolute_import
 import os
 import re
 import sys
@@ -42,6 +43,7 @@ from . import constants
 
 from ..util.yaml_cache import g_yaml_cache
 from ..util.includes import resolve_include
+import six
 
 log = LogManager.get_logger(__name__)
 
@@ -135,7 +137,7 @@ def _resolve_refs_r(lookup_dict, data):
         for (k,v) in data.items():
             processed_val[k] = _resolve_refs_r(lookup_dict, v)
         
-    elif isinstance(data, basestring) and data.startswith("@"):
+    elif isinstance(data, six.string_types) and data.startswith("@"):
         # this is a reference!
         
         ref_token = data[1:]
@@ -338,7 +340,7 @@ def find_reference(file_name, context, token, absolute_location=False):
                 # If the value of the token is an include, then we can
                 # recurse up, directly referencing the include name as
                 # the new token.
-                if isinstance(token_data, basestring) and token_data.startswith("@"):
+                if isinstance(token_data, six.string_types) and token_data.startswith("@"):
                     include_token = token_data
                 else:
                     # In the case where the data isn't itself an include,
@@ -351,7 +353,7 @@ def find_reference(file_name, context, token, absolute_location=False):
                         # Check to see if there's a location descriptor. If there
                         # is then we need to check to see if that's an include.
                         location = included_data[token][constants.ENVIRONMENT_LOCATION_KEY]
-                        if location and isinstance(location, basestring) and location.startswith("@"):
+                        if location and isinstance(location, six.string_types) and location.startswith("@"):
                             include_token = location
 
                 # If we have an include we need to resolve, we take the current

@@ -10,10 +10,11 @@
 
 from __future__ import with_statement, print_function
 
+from __future__ import absolute_import
 import os
 import sys
 import time
-import Queue
+import six.moves.queue
 import StringIO
 import shutil
 import contextlib
@@ -31,6 +32,7 @@ from tank import LogManager
 import tank
 
 from tank.util import StorageRoots
+from six.moves import range
 
 log = LogManager.get_logger(__name__)
 
@@ -814,7 +816,7 @@ class TestConcurrentShotgunSync(TankTestBase):
                 # update the local mockgun db that we have in memory
                 try:
                     self.tk.shotgun._db = queue.get_nowait()
-                except Queue.Empty:
+                except six.moves.queue.Empty:
                     pass
                 self.tk.synchronize_filesystem_structure()
         except Exception as e:
@@ -1203,7 +1205,7 @@ class TestPathCacheBatchOperation(TankTestBase):
         # insert dummy data so we can delete it
         folder_ids = []
         entity_type = "Shot"
-        for idx in xrange(3147):
+        for idx in range(3147):
             entity_id = idx
             entity_name = "name_%s" % idx
 
@@ -1323,7 +1325,7 @@ class TestPathCacheBatchOperation(TankTestBase):
 
         # note that the batch size has been dialled down in setup so this will
         # batch into groups of 11
-        folder_ids = range(111, 199)
+        folder_ids = list(range(111, 199))
 
         # run the method
         entities = self._pc._get_filesystem_location_entities(folder_ids)

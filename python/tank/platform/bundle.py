@@ -13,6 +13,7 @@ Base class for Abstract classes for Engines, Apps and Frameworks
 
 """
 
+from __future__ import absolute_import
 import os
 import re
 import sys
@@ -26,6 +27,7 @@ from ..errors import TankError, TankNoDefaultValueError
 from .errors import TankContextChangeNotSupportedError
 from . import constants
 from .import_stack import ImportStack
+import six
 
 core_logger = LogManager.get_logger(__name__)
 
@@ -1065,7 +1067,7 @@ def _post_process_settings_r(tk, key, value, schema, bundle=None):
     # first check for procedural overrides where instead of getting a value,
     # directly from the config, we call a hook to evaluate a config value
     # at runtime:
-    if isinstance(value, basestring) and value.startswith("hook:"):
+    if isinstance(value, six.string_types) and value.startswith("hook:"):
         # handle the special form where the value is computed in a hook.
         #
         # if the template parameter is on the form
@@ -1103,7 +1105,7 @@ def _post_process_settings_r(tk, key, value, schema, bundle=None):
         items = schema.get("items", {})
         # note - we assign the original values here because we
         processed_val = value
-        for (key, value_schema) in items.iteritems():
+        for (key, value_schema) in six.iteritems(items):
             processed_val[key] = _post_process_settings_r(
                 tk=tk,
                 key=key,

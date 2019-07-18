@@ -12,6 +12,7 @@
 This hook gets executed before and after the context changes in Toolkit.
 """
 
+from __future__ import absolute_import
 from tank import get_hook_baseclass
 
 

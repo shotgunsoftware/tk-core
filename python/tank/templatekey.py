@@ -12,12 +12,15 @@
 Classes for fields on TemplatePaths and TemplateStrings
 """
 
+from __future__ import absolute_import
 import re
 import sys
 import datetime
 from . import constants
 from .errors import TankError
 import collections
+import six
+from six.moves import zip
 
 class TemplateKey(object):
     """
@@ -81,7 +84,7 @@ class TemplateKey(object):
             self._choices = choices
         elif isinstance(choices, list) or isinstance(choices, set):
             # old style choices - labels and choices are the same:
-            self._choices = dict(zip(choices, choices))
+            self._choices = dict(list(zip(choices, choices)))
         else:
             self._choices = {}
 
@@ -183,7 +186,7 @@ class TemplateKey(object):
         """
         List of choices available, e.g. ``['ma', 'mb']``
         """
-        return self._choices.keys()
+        return list(self._choices.keys())
     
     @property
     def labelled_choices(self):
@@ -208,7 +211,7 @@ class TemplateKey(object):
             else:
                 value = self.default
         elif ignore_type:
-            return value if isinstance(value, basestring) else str(value)
+            return value if isinstance(value, six.string_types) else str(value)
 
         if self.validate(value):
             return self._as_string(value)
@@ -251,7 +254,7 @@ class TemplateKey(object):
         :returns: Bool
         """
         
-        str_value = value if isinstance(value, basestring) else str(value)
+        str_value = value if isinstance(value, six.string_types) else str(value)
 
         # We are not case sensitive
         if str_value.lower() in [str(x).lower() for x in self.exclusions]:
@@ -472,13 +475,13 @@ class StringKey(TemplateKey):
         :param value: value of any type to convert. Value is never None.
         :returns: string representation for this object.
         """
-        str_value = value if isinstance(value, basestring) else str(value)
+        str_value = value if isinstance(value, six.string_types) else str(value)
 
         if self._subset_regex:
             # process substring computation.
             # we want to do this in unicode.
 
-            if not isinstance(str_value, unicode):
+            if not isinstance(str_value, six.text_type):
                 # convert to unicode
                 input_is_utf8 = True
                 value_to_convert = str_value.decode("utf-8")
@@ -505,7 +508,7 @@ class StringKey(TemplateKey):
 
             # resolved value is now unicode. Convert it
             # so that it is consistent with input
-            if isinstance(resolved_value, unicode) and input_is_utf8:
+            if isinstance(resolved_value, six.text_type) and input_is_utf8:
                 # input was utf-8, regex resut is unicode, cast it back
                 str_value = resolved_value.encode("utf-8")
             else:
@@ -523,7 +526,7 @@ class StringKey(TemplateKey):
         :returns: True if valid, false if not.
         """
         u_value = value
-        if not isinstance(u_value, unicode):
+        if not isinstance(u_value, six.text_type):
             # handle non-ascii characters correctly by
             # decoding to unicode assuming utf-8 encoding
             u_value = value.decode("utf-8")
@@ -602,12 +605,12 @@ class TimestampKey(TemplateKey):
         # default value, so format_spec needs to be set first. But if I am testing format_spec
         # before calling the base class, then repr will crash since self.name won't have been set
         # yet.
-        if isinstance(format_spec, basestring) is False:
+        if isinstance(format_spec, six.string_types) is False:
             raise TankError("format_spec for <Sgtk TimestampKey %s> is not of type string: %s" %
                             (name, format_spec.__class__.__name__))
         self._format_spec = format_spec
 
-        if isinstance(default, basestring):
+        if isinstance(default, six.string_types):
             # if the user passes in now or utc, we'll generate the current time as the default time.
             if default.lower() == "now":
                 default = self.__get_current_time
@@ -671,7 +674,7 @@ class TimestampKey(TemplateKey):
 
         :returns: Bool
         """
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             # If we have a string we have to actually try to convert the string to see it if matches
             # the expected format.
             try:
@@ -796,7 +799,7 @@ class IntegerKey(TemplateKey):
         if format_spec is None:
             return
 
-        if not isinstance(format_spec, basestring):
+        if not isinstance(format_spec, six.string_types):
             msg = "format_spec for IntegerKey %s is not of type string: %s"
             raise TankError(msg % (name, format_spec))
 
@@ -857,7 +860,7 @@ class IntegerKey(TemplateKey):
 
     def validate(self, value):
         if value is not None:
-            if isinstance(value, basestring):
+            if isinstance(value, six.string_types):
                 # We have a string, make sure it loosely or strictly matches the format.
                 if self.strict_matching and not self._strictly_matches(value):
                     return False
@@ -1047,7 +1050,7 @@ class SequenceKey(IntegerKey):
         error_msg += "Valid format strings: %s\n" % full_format_strings
         
 
-        if isinstance(value, basestring) and value.startswith(self.FRAMESPEC_FORMAT_INDICATOR):
+        if isinstance(value, six.string_types) and value.startswith(self.FRAMESPEC_FORMAT_INDICATOR):
             # FORMAT: YXZ string - check that XYZ is in VALID_FORMAT_STRINGS
             pattern = self._extract_format_string(value)        
             if pattern in self.VALID_FORMAT_STRINGS:
@@ -1056,7 +1059,7 @@ class SequenceKey(IntegerKey):
                 self._last_error = error_msg
                 return False
                 
-        elif isinstance(value, basestring) and re.match(self.FLAME_PATTERN_REGEX, value):
+        elif isinstance(value, six.string_types) and re.match(self.FLAME_PATTERN_REGEX, value):
             # value is matching the flame-style sequence pattern
             # [1234-5678]
             return True
@@ -1075,12 +1078,12 @@ class SequenceKey(IntegerKey):
 
     def _as_string(self, value):
         
-        if isinstance(value, basestring) and value.startswith(self.FRAMESPEC_FORMAT_INDICATOR):
+        if isinstance(value, six.string_types) and value.startswith(self.FRAMESPEC_FORMAT_INDICATOR):
             # this is a FORMAT: XYZ - convert it to the proper resolved frame spec
             pattern = self._extract_format_string(value)
             return self._resolve_frame_spec(pattern, self.format_spec)
 
-        if isinstance(value, basestring) and re.match(self.FLAME_PATTERN_REGEX, value):
+        if isinstance(value, six.string_types) and re.match(self.FLAME_PATTERN_REGEX, value):
             # this is a flame style sequence token [1234-56773]
             return value
 
@@ -1107,7 +1110,7 @@ class SequenceKey(IntegerKey):
         """
         Returns XYZ given the string "FORMAT:    XYZ"
         """
-        if isinstance(value, basestring) and value.startswith(self.FRAMESPEC_FORMAT_INDICATOR):
+        if isinstance(value, six.string_types) and value.startswith(self.FRAMESPEC_FORMAT_INDICATOR):
             pattern = value.replace(self.FRAMESPEC_FORMAT_INDICATOR, "").strip()
         else:
             # passthrough
@@ -1189,7 +1192,7 @@ def make_keys(data):
         class_name = prepped_data.pop("type")
         KeyClass = names_classes.get(class_name)
         if not KeyClass:
-            raise TankError("Invalid type: '%s'. Valid types are: %s" % (class_name, names_classes.keys()))
+            raise TankError("Invalid type: '%s'. Valid types are: %s" % (class_name, list(names_classes.keys())))
 
         if "alias" in prepped_data:
             # The alias becomes the key's name and is used internally by Templates as the key's name

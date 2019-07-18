@@ -17,6 +17,7 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
+from __future__ import absolute_import
 from tank_vendor import shotgun_api3
 from .web_login_support import get_shotgun_authenticator_support_web_login
 from .ui import resources_rc # noqa

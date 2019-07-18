@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
+from __future__ import absolute_import
 from tank import Hook
 
 class FirstLevelDerived(Hook):

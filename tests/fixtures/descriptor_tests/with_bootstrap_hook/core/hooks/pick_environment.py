@@ -14,6 +14,7 @@ This file is almost always overridden by a standard config.
 
 """
 
+from __future__ import absolute_import
 from tank import Hook
 
 

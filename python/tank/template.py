@@ -13,6 +13,7 @@ Management of file and directory templates.
 
 """
 
+from __future__ import absolute_import
 import os
 import re
 import sys
@@ -21,6 +22,8 @@ from . import templatekey
 from .errors import TankError
 from . import constants
 from .template_path_parser import TemplatePathParser
+import six
+from six.moves import zip
 
 class Template(object):
     """
@@ -798,7 +801,7 @@ def _conform_template_data(template_data, template_name):
     """
     Takes data for single template and conforms it expected data structure.
     """
-    if isinstance(template_data, basestring):
+    if isinstance(template_data, six.string_types):
         template_data = {"definition": template_data}
     elif not isinstance(template_data, dict):
         raise TankError("template %s has data which is not a string or dictionary." % template_name)

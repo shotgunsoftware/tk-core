@@ -13,9 +13,10 @@ Logic for publishing files to Shotgun.
 """
 from __future__ import with_statement
 
+from __future__ import absolute_import
 import os
-import urlparse
-import urllib
+import six.moves.urllib.parse
+import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 import pprint
 
 from .publish_util import get_published_file_entity_type, get_cached_local_storages, find_publish
@@ -25,6 +26,7 @@ from ...log import LogManager
 from ..shotgun_path import ShotgunPath
 from .. import constants
 from .. import login
+import six
 
 log = LogManager.get_logger(__name__)
 
@@ -248,7 +250,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         sg_published_file_type = None
         # query shotgun for the published_file_type
         if published_file_type:
-            if not isinstance(published_file_type, basestring):
+            if not isinstance(published_file_type, six.string_types):
                 raise TankError("published_file_type must be a string")
 
             if published_file_entity_type == "PublishedFile":
@@ -429,7 +431,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
     #     scheme://netloc/path
     #
     path_is_url = False
-    res = urlparse.urlparse(path)
+    res = six.moves.urllib.parse.urlparse(path)
     if res.scheme:
         # handle Windows drive letters - note this adds a limitation
         # but one that is not likely to be a problem as single-character
@@ -460,7 +462,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
         # note: by applying a safe pattern like this, we guarantee that already quoted paths
         #       are not touched, e.g. quote('foo bar') == quote('foo%20bar')
         data["path"] = {
-            "url": urllib.quote(path, safe="%/:=&?~#+!$,;'@()*[]"),
+            "url": six.moves.urllib.parse.quote(path, safe="%/:=&?~#+!$,;'@()*[]"),
             "name": data["code"]  # same as publish name
         }
 
@@ -560,7 +562,7 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
                 )
 
                 # (see http://stackoverflow.com/questions/11687478/convert-a-filename-to-a-file-url)
-                file_url = urlparse.urljoin("file:", urllib.pathname2url(path))
+                file_url = six.moves.urllib.parse.urljoin("file:", six.moves.urllib.request.pathname2url(path))
                 log.debug("Converting '%s' -> '%s'" % (path, file_url))
                 data["path"] = {
                     "url": file_url,

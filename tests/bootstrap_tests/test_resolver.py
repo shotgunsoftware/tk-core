@@ -10,6 +10,7 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
 import itertools
 import os
 import sys
@@ -506,7 +507,7 @@ class TestResolverPriority(TestResolverBase):
         # so only the primary and the 3 sandboxes should show up.
         self.assertEqual(len(pcs), 4)
 
-        primaries = filter(lambda x: x["code"] == "Primary", pcs)
+        primaries = [x for x in pcs if x["code"] == "Primary"]
         self.assertEqual(len(primaries), 1)
         self.assertEqual(primaries[0]["project"], self._project)
         self.assertEqual(primaries[0]["plugin_ids"], None)

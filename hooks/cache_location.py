@@ -12,6 +12,7 @@
 Hook to control path cache and bundle cache folder creation.
 """
 
+from __future__ import absolute_import
 import sgtk
 import os
 from sgtk.util import filesystem, LocalFileStorageManager

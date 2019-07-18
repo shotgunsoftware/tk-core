@@ -9,10 +9,11 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import with_statement
+from __future__ import absolute_import
 import os
 import shutil
 import datetime
-import urlparse
+import six.moves.urllib.parse
 
 from mock import patch, MagicMock
 
@@ -90,13 +91,13 @@ class TestShotgunFindPublish(TankTestBase):
         paths = [os.path.join(self.project_root, "foo", "bar")]
         d = tank.util.find_publish(self.tk, paths)
         self.assertEqual(len(d), 1)
-        self.assertEqual(d.keys(), paths)
+        self.assertEqual(list(d.keys()), paths)
         # make sure we got the latest matching publish
         sg_data = d.get(paths[0])
         self.assertEqual(sg_data["id"], self.pub_2["id"])
         self.assertEqual(sg_data["type"], "PublishedFile")
         # make sure we are only getting the ID back.
-        self.assertEqual(sg_data.keys(), ["type", "id"])
+        self.assertEqual(list(sg_data.keys()), ["type", "id"])
 
     def test_most_recent_path(self):
         # check that dupes return the more recent record        
@@ -111,7 +112,7 @@ class TestShotgunFindPublish(TankTestBase):
                  os.path.join("tmp", "foo")]
         d = tank.util.find_publish(self.tk, paths)
         self.assertEqual(len(d), 1)
-        self.assertEqual(d.keys(), [ paths[0] ])
+        self.assertEqual(list(d.keys()), [ paths[0] ])
 
     def test_sequence_path(self):
         # make sequence template matching sequence publish
@@ -121,7 +122,7 @@ class TestShotgunFindPublish(TankTestBase):
         paths = [os.path.join(self.project_root, "foo", "seq_002.ext")]
         d = tank.util.find_publish(self.tk, paths)
         self.assertEqual(len(d), 1)
-        self.assertEqual(d.keys(), [ paths[0] ])
+        self.assertEqual(list(d.keys()), [ paths[0] ])
         sg_data = d.get(paths[0])
         self.assertEqual(sg_data["id"], self.pub_4["id"])
 
@@ -133,7 +134,7 @@ class TestShotgunFindPublish(TankTestBase):
         paths = [os.path.join(self.project_root, "foo", "seq_%03d.ext")]
         d = tank.util.find_publish(self.tk, paths)
         self.assertEqual(len(d), 1)
-        self.assertEqual(d.keys(), [ paths[0] ])
+        self.assertEqual(list(d.keys()), [ paths[0] ])
         sg_data = d.get(paths[0])
         self.assertEqual(sg_data["id"], self.pub_4["id"])
 
@@ -229,14 +230,14 @@ class TestMultiRoot(TankTestBase):
         paths = [os.path.join(self.alt_root_1, "foo", "bar")]
         d = tank.util.find_publish(self.tk, paths)
         self.assertEqual(len(d), 1)
-        self.assertEqual(d.keys(), paths)
+        self.assertEqual(list(d.keys()), paths)
 
         # make sure we got the latest matching publish
         sg_data = d.get(paths[0])
         self.assertEqual(sg_data["id"], self.pub_5["id"])
 
         # make sure we are only getting the ID back.
-        self.assertEqual(sg_data.keys(), ["type", "id"])
+        self.assertEqual(list(sg_data.keys()), ["type", "id"])
 
     def test_storage_misdirection(self):
 
@@ -265,7 +266,7 @@ class TestMultiRoot(TankTestBase):
         paths = [os.path.join(self.alt_root_3, "foo", "bar")]
         pub_data = tank.util.find_publish(self.tk, paths, fields=["path_cache_storage"])
         self.assertEqual(len(pub_data), 1)
-        self.assertEqual(pub_data.keys(), paths)
+        self.assertEqual(list(pub_data.keys()), paths)
         self.assertEqual(pub_data[paths[0]]["path_cache_storage"]["id"], self.alt_storage_3["id"])
 
         # querying root 4 path which is used by the "alternate_3" root in
@@ -274,7 +275,7 @@ class TestMultiRoot(TankTestBase):
         paths = [os.path.join(self.alt_root_4, "foo", "bar")]
         pub_data = tank.util.find_publish(self.tk, paths, fields=["path_cache_storage"])
         self.assertEqual(len(pub_data), 1)
-        self.assertEqual(pub_data.keys(), paths)
+        self.assertEqual(list(pub_data.keys()), paths)
         self.assertEqual(pub_data[paths[0]]["path_cache_storage"]["id"], self.alt_storage_4["id"])
 
 class TestShotgunDownloadUrl(ShotgunTestBase):
@@ -290,7 +291,7 @@ class TestShotgunDownloadUrl(ShotgunTestBase):
         # Construct a URL from the source file name
         # "file" will be used for the protocol, so this URL will look like
         # `file:///fixtures_root/config/hooks/toolkitty.png`
-        self.download_url = urlparse.urlunparse(
+        self.download_url = six.moves.urllib.parse.urlunparse(
             ("file", None, self.download_source, None, None, None)
         )
 
@@ -374,10 +375,10 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
         # Construct URLs from the source file name
         # "file" will be used for the protocol, so this URL will look like
         # `file:///fixtures_root/misc/zip/tank_core.zip`
-        self.good_zip_url = urlparse.urlunparse(
+        self.good_zip_url = six.moves.urllib.parse.urlunparse(
             ("file", None, self.download_source, None, None, None)
         )
-        self.bad_zip_url = urlparse.urlunparse(
+        self.bad_zip_url = six.moves.urllib.parse.urlunparse(
             ("file", None, self.download_source, None, None, None)
         )
 

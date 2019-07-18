@@ -8,12 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import absolute_import
 import os
 import sys
-import urlparse
+import six.moves.urllib.parse
 from . import filesystem
 from .. import LogManager
 from ..errors import TankError
+from six.moves import range
 
 log = LogManager.get_logger(__name__)
 
@@ -54,10 +56,10 @@ class LocalFileStorageManager(object):
     :constant PREFERENCES: Indicates a path that suitable for storing settings files and preferences.
     """
     # generation of path structures
-    (CORE_V17, CORE_V18) = range(2)
+    (CORE_V17, CORE_V18) = list(range(2))
 
     # supported types of paths
-    (LOGGING, CACHE, PERSISTENT, PREFERENCES) = range(4)
+    (LOGGING, CACHE, PERSISTENT, PREFERENCES) = list(range(4))
 
     @classmethod
     def get_global_root(cls, path_type, generation=CORE_V18):
@@ -217,7 +219,7 @@ class LocalFileStorageManager(object):
             )
 
         # get site only; https://www.FOO.com:8080 -> www.foo.com
-        base_url = urlparse.urlparse(hostname).netloc.split(":")[0].lower()
+        base_url = six.moves.urllib.parse.urlparse(hostname).netloc.split(":")[0].lower()
 
         if generation > cls.CORE_V17:
             # for 0.18, in order to apply further shortcuts to avoid hitting

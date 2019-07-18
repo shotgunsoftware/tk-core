@@ -6,6 +6,7 @@
 #
 # WARNING! All changes made in this file will be lost!
 
+from __future__ import absolute_import
 from . import QtCore, QtGui
 
 class Ui_Item(object):

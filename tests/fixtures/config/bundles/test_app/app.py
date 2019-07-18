@@ -12,6 +12,7 @@
 A simple app to support unit tests.
 """
 
+from __future__ import absolute_import
 from tank.platform import Application
 import tank
 

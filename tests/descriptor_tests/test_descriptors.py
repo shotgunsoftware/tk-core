@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import with_statement
+from __future__ import absolute_import
 import os
 import sgtk
 
@@ -28,6 +29,7 @@ from mock import Mock, patch
 
 from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
 from tank_vendor import yaml
+import six
 
 
 class TestCachedConfigDescriptor(ShotgunTestBase):
@@ -933,7 +935,7 @@ class TestFeaturesApi(unittest2.TestCase):
         }
 
         # Make sure every feature is at the expected version.
-        for feature, value in features.iteritems():
+        for feature, value in six.iteritems(features):
             self.assertEqual(desc.get_feature_info(feature), value)
 
         # Make sure there weren't new features introduced.

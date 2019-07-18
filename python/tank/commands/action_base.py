@@ -8,7 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import absolute_import
 from ..errors import TankError
+from six.moves import range
 
 
 class Action(object):
@@ -49,7 +51,7 @@ class Action(object):
     are executed when you run the inside the Shell engine. 
     """
     
-    GLOBAL, TK_INSTANCE, CTX, ENGINE = range(4)
+    GLOBAL, TK_INSTANCE, CTX, ENGINE = list(range(4))
     
     def __init__(self, name, mode, description, category):
         self.name = name

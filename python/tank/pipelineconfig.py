@@ -12,9 +12,10 @@
 Encapsulates the pipeline configuration and helps navigate and resolve paths
 across storages, configurations etc.
 """
+from __future__ import absolute_import
 import os
 import glob
-import cPickle as pickle
+import six.moves.cPickle as pickle
 
 from tank_vendor import yaml
 
@@ -31,6 +32,7 @@ from . import template_includes
 from . import LogManager
 
 from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
+import six
 
 log = LogManager.get_logger(__name__)
 
@@ -580,7 +582,7 @@ class PipelineConfiguration(object):
 
         current_os_path_lookup = {}
 
-        for root_name, sg_path in self._storage_roots.as_shotgun_paths.iteritems():
+        for root_name, sg_path in six.iteritems(self._storage_roots.as_shotgun_paths):
 
             # get current os path
             local_path = sg_path.current_os
@@ -710,7 +712,7 @@ class PipelineConfiguration(object):
 
         project_roots_lookup = {}
 
-        for root_name, sg_path in self._storage_roots.as_shotgun_paths.iteritems():
+        for root_name, sg_path in six.iteritems(self._storage_roots.as_shotgun_paths):
 
             # join the project name to the storage ShotgunPath
             project_root = sg_path.join(self._project_name)
@@ -738,7 +740,7 @@ class PipelineConfiguration(object):
 
         project_roots_lookup = {}
 
-        for root_name, sg_path in self._storage_roots.as_shotgun_paths.iteritems():
+        for root_name, sg_path in six.iteritems(self._storage_roots.as_shotgun_paths):
 
             # join the project name to the storage ShotgunPath
             project_root = sg_path.join(self._project_name)
@@ -881,7 +883,7 @@ class PipelineConfiguration(object):
 
         # For each token, check if the platform or the generic path key are specified
         # and replace the token if found.
-        for token, substitution in substitutions.iteritems():
+        for token, substitution in six.iteritems(substitutions):
             for key in ["path", ShotgunPath.get_shotgun_storage_key()]:
                 if key in descriptor_dict:
                     descriptor_dict[key] = descriptor_dict[key].replace(
@@ -920,7 +922,7 @@ class PipelineConfiguration(object):
         # methods do not require a connection.
         sg_connection = shotgun.get_deferred_sg_connection()
 
-        if isinstance(dict_or_uri, basestring):
+        if isinstance(dict_or_uri, six.string_types):
             descriptor_dict = descriptor_uri_to_dict(dict_or_uri)
         else:
             descriptor_dict = dict_or_uri

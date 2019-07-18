@@ -11,6 +11,7 @@
 # make sure that py25 has access to with statement
 from __future__ import with_statement
 
+from __future__ import absolute_import
 import os
 import sys
 import shutil
@@ -22,6 +23,7 @@ from ..util.version import is_version_older
 from .action_base import Action
 from .. import pipelineconfig_utils
 from .. import pipelineconfig_factory
+import six
 
 # these are the items that need to be copied across
 # when a configuration is upgraded to contain a core API
@@ -226,7 +228,7 @@ def do_localize(log, sg_connection, target_config_path, interaction_interface):
                     descriptor = env_obj.get_framework_descriptor(framework)
                     descriptors[descriptor.get_uri()] = descriptor
 
-            for idx, descriptor in enumerate(descriptors.itervalues()):
+            for idx, descriptor in enumerate(six.itervalues(descriptors)):
                 # print one based indices for more human friendly output
                 log.info(
                     "%s/%s: Copying %s..." %

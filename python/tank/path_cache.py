@@ -14,6 +14,7 @@ all Tank items in the file system are kept.
 
 """
 
+from __future__ import absolute_import
 import collections
 import sqlite3
 import sys
@@ -23,6 +24,8 @@ import itertools
 # use api json to cover py 2.5
 # todo - replace with proper external library  
 from tank_vendor import shotgun_api3  
+import six
+from six.moves import range
 json = shotgun_api3.shotgun.json
 
 from .platform.engine import show_global_busy, clear_global_busy 
@@ -262,7 +265,7 @@ class PathCache(object):
 
         if not root_name:
             
-            storages_str = ",".join( self._roots.values() )
+            storages_str = ",".join( list(self._roots.values()) )
             
             raise TankError("The path '%s' could not be split up into a project centric path for "
                             "any of the storages %s that are associated with this "
@@ -1702,7 +1705,7 @@ class PathCache(object):
         # now query shotgun for each of the types
         ids_in_shotgun = {}
         sg_valid_records = []
-        for (et, sg_records_for_et) in ids_to_look_for.iteritems():
+        for (et, sg_records_for_et) in six.iteritems(ids_to_look_for):
             
             log.info(" - Checking %s %ss in Shotgun..." % (len(sg_records_for_et), et)) 
             
@@ -1724,7 +1727,7 @@ class PathCache(object):
         if len(sg_valid_records) > 0:
             log.info("")
             log.info("Step 5 - Uploading path entries to shotgun.")
-            sg_batches = [ sg_valid_records[x:x+SG_BATCH_SIZE] for x in xrange(0, len(pc_data), SG_BATCH_SIZE)]
+            sg_batches = [ sg_valid_records[x:x+SG_BATCH_SIZE] for x in range(0, len(pc_data), SG_BATCH_SIZE)]
             event_log_description = "Path cache migration."
             for batch_idx, curr_batch in enumerate(sg_batches):
                 log.info("Uploading batch %d/%d to Shotgun..." % (batch_idx+1, len(sg_batches)))

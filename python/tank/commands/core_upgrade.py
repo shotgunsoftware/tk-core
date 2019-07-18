@@ -14,6 +14,7 @@ Tank command allowing to do core updates.
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
 from ..errors import TankError
 from .action_base import Action
 
@@ -29,6 +30,7 @@ from . import console_utils
 from ..util.version import is_version_newer, is_version_head
 
 from tank_vendor import yaml
+from six.moves import range
 
 
 # FIXME: This should be refactored into something that can be used by other commands.
@@ -236,7 +238,7 @@ class TankCoreUpdater(object):
         UP_TO_DATE,                   # all good, no update necessary
         UPDATE_POSSIBLE,              # more recent version exists
         UPDATE_BLOCKED_BY_SG          # more recent version exists but SG version is too low.
-    ) = range(3)
+    ) = list(range(3))
 
     def __init__(self, install_folder_root, logger, core_version=None):
         """

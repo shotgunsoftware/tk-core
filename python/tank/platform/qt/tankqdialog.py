@@ -13,6 +13,7 @@ Default implementation for the Tank Dialog
 
 """
 
+from __future__ import absolute_import
 from . import QtCore, QtGui
 from . import ui_tank_dialog
 from . import TankDialogBase
@@ -25,6 +26,7 @@ from ...errors import TankError
 import sys
 import os
 import inspect
+import six
 
 class TankQDialog(TankDialogBase):
     """
@@ -266,7 +268,7 @@ class TankQDialog(TankDialogBase):
                 else:
                     formatted = "%s" % p.get("name")
 
-                if isinstance(formatted, unicode):
+                if isinstance(formatted, six.text_type):
                     formatted = formatted.encode("utf-8")
 
                 return formatted

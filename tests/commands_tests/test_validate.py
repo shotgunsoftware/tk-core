@@ -14,6 +14,7 @@ Unit tests tank validate.
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
 import logging
 
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa

@@ -19,6 +19,8 @@ next to it in the file system. This is what it will attempt to install.
 
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 import stat
@@ -73,7 +75,7 @@ def __current_version_less_than(log, sgtk_install_root, ver):
         finally:
             fh.close()
         current_api_version = str(data.get("version"))
-    except Exception, e:
+    except Exception as e:
         # current version unknown
         log.warning("Could not determine the version of the current code: %s" % e)
         # not sure to do here - report that current version is NOT less than XYZ
@@ -107,7 +109,7 @@ def _copy_folder(log, src, dst):
     
     if not os.path.exists(dst):
         log.debug("mkdir 0777 %s" % dst)
-        os.mkdir(dst, 0777)
+        os.mkdir(dst, 0o777)
 
     names = os.listdir(src) 
     for name in names:
@@ -131,12 +133,12 @@ def _copy_folder(log, src, dst):
                 if dstname.endswith(".sh") or dstname.endswith(".bat") or dstname.endswith(".exe"):
                     try:
                         # make it readable and executable for everybody
-                        os.chmod(dstname, 0777)
+                        os.chmod(dstname, 0o777)
                         log.debug("CHMOD 777 %s" % dstname)
-                    except Exception, e:
+                    except Exception as e:
                         log.error("Can't set executable permissions on %s: %s" % (dstname, e))
         
-        except Exception, e: 
+        except Exception as e: 
             log.error("Can't copy %s to %s: %s" % (srcname, dstname, e)) 
     
     return files
@@ -197,9 +199,9 @@ def __copy_tank_cmd_binaries(src_dir, dst_dir, tank_scripts, log):
         log.info("   Updating '%s'" % dst_tank_script)
         src_tank_script = os.path.join(src_dir, tank_script)
         log.debug("  Copying '%s' -> '%s'" % (src_tank_script, dst_tank_script))
-        os.chmod(dst_tank_script, 0777)
+        os.chmod(dst_tank_script, 0o777)
         shutil.copy(src_tank_script, dst_tank_script)
-        os.chmod(dst_tank_script, 0775)
+        os.chmod(dst_tank_script, 0o775)
 
 def upgrade_tank(sgtk_install_root, log):
     """
@@ -269,7 +271,7 @@ def upgrade_tank(sgtk_install_root, log):
                             os.chmod(f, stat.S_IWRITE)
                     os.remove(f)
                     log.debug("Deleted %s" % f)
-                except Exception, e:
+                except Exception as e:
                     log.error("Could not delete file %s: %s" % (f, e))
             
         # create new core folder
@@ -291,6 +293,6 @@ if __name__ == "__main__":
     'tank core' command.
     
     """
-    print desc
+    print(desc)
     sys.exit(1)
 

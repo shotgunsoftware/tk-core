@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 # Toolkit core API version
+from __future__ import absolute_import
 __version__ = "HEAD"
 
 ########################################################################

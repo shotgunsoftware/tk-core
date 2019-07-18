@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import absolute_import
 import os
 import inspect
 
@@ -20,6 +21,7 @@ from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
 from ..util import ShotgunPath
+from six.moves import range
 
 log = LogManager.get_logger(__name__)
 
@@ -33,12 +35,12 @@ class ToolkitManager(object):
     # Constants used to make the manager bootstrapping:
     # - download and cache the config dependencies needed to run the engine being started in a specific environment.
     # - download and cache all the config dependencies needed to run the engine in any environment.
-    (CACHE_SPARSE, CACHE_FULL) = range(2)
+    (CACHE_SPARSE, CACHE_FULL) = list(range(2))
 
     # Constants used to indicate that the manager is:
     # - bootstrapping the toolkit (with method bootstrap_toolkit),
     # - starting up the engine (with method _start_engine).
-    (TOOLKIT_BOOTSTRAP_PHASE, ENGINE_STARTUP_PHASE) = range(2)
+    (TOOLKIT_BOOTSTRAP_PHASE, ENGINE_STARTUP_PHASE) = list(range(2))
 
     # List of constants representing the status of the progress bar when these event occurs during bootstrap.
     _RESOLVING_PROJECT_RATE = 0.0

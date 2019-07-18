@@ -10,6 +10,7 @@
 
 from __future__ import print_function
 
+from __future__ import absolute_import
 import os
 import sys
 import textwrap
@@ -27,6 +28,8 @@ from ..util.filesystem import ensure_folder_exists
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
 from .interaction import YesToEverythingInteraction
+import six
+from six.moves import input
 
 class SetupProjectAction(Action):
     """
@@ -337,7 +340,7 @@ class SetupProjectAction(Action):
         """
         evaluated_value = None
         while evaluated_value is None:
-            val = raw_input("Continue with project setup (Yes/No)? [Yes]: ")
+            val = input("Continue with project setup (Yes/No)? [Yes]: ")
             if val == "" or val.lower().startswith("y"):
                 evaluated_value = True
             elif val.lower().startswith("n"):
@@ -405,7 +408,7 @@ class SetupProjectAction(Action):
         log.info("")
         
         
-        config_name = raw_input("[%s]: " % constants.DEFAULT_CFG).strip()
+        config_name = input("[%s]: " % constants.DEFAULT_CFG).strip()
         if config_name == "":
             config_name = constants.DEFAULT_CFG
         return config_name
@@ -471,7 +474,7 @@ class SetupProjectAction(Action):
             log.info("")
             
         log.info("")
-        answer = raw_input("Please type in the id of the project to connect to or ENTER to exit: " )
+        answer = input("Please type in the id of the project to connect to or ENTER to exit: " )
         if answer == "":
             raise TankError("Aborted by user.")
         try:
@@ -528,7 +531,7 @@ class SetupProjectAction(Action):
         # now ask for a value and validate
         while True:
             log.info("")
-            proj_name = raw_input("Please enter a folder name [%s]: " % suggested_folder_name).strip()
+            proj_name = input("Please enter a folder name [%s]: " % suggested_folder_name).strip()
             if proj_name == "":
                 proj_name = suggested_folder_name
             
@@ -574,7 +577,7 @@ class SetupProjectAction(Action):
             if storages_valid:
                 # looks like folders exist on disk
                 
-                val = raw_input("Paths look valid. Continue? (Yes/No)? [Yes]: ")
+                val = input("Paths look valid. Continue? (Yes/No)? [Yes]: ")
                 if val == "" or val.lower().startswith("y"):
                     break
             else:
@@ -731,14 +734,14 @@ class SetupProjectAction(Action):
         curr_val = default
 
         if curr_val is None:
-            val = raw_input("%s : " % os_nice_name)
+            val = input("%s : " % os_nice_name)
             if val == "":
                 log.info("Skipping. This Pipeline configuration will not support %s." % os_nice_name)
             else:
                 curr_val = val.strip()
                 
         else:
-            val = raw_input("%s [%s]: " % (os_nice_name, curr_val))
+            val = input("%s [%s]: " % (os_nice_name, curr_val))
             if val != "":
                 curr_val = val.strip()
         return curr_val
@@ -828,7 +831,7 @@ class SetupProjectAction(Action):
         mapped_roots = []
 
         # loop over required storage roots
-        for (root_name, root_info) in required_roots.iteritems():
+        for (root_name, root_info) in six.iteritems(required_roots):
 
             log.info("%s" % (root_name,))
             log.info("-" * len(root_name))
@@ -873,7 +876,7 @@ class SetupProjectAction(Action):
                 suggested_storage_display = ": "
 
             # ask the user which storage to associate with this root
-            storage_to_use = raw_input(
+            storage_to_use = input(
                 "Which local storage would you like to associate root '%s'%s" %
                 (root_name, suggested_storage_display,)
             ).strip()
@@ -903,7 +906,7 @@ class SetupProjectAction(Action):
             if not current_os_path:
                 # the current os path for the selected storage is not populated.
                 # prompt the user and update the path in SG.
-                current_os_path = raw_input(
+                current_os_path = input(
                     "Please enter a path for this storage on the current OS: ")
 
                 if not current_os_path:

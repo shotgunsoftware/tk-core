@@ -10,6 +10,7 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
 import os
 import sys
 import copy
@@ -128,8 +129,8 @@ class TestGetProjectRoots(TankTestBase):
         root_file.write(yaml.dump(new_roots))
         root_file.close()
         pc = tank.pipelineconfig_factory.from_path(self.project_root)
-        self.assertEqual(pc.get_all_platform_data_roots().keys(), ["master"])
-        self.assertEqual(pc.get_data_roots().keys(), ["master"])
+        self.assertEqual(list(pc.get_all_platform_data_roots().keys()), ["master"])
+        self.assertEqual(list(pc.get_data_roots().keys()), ["master"])
         self.assertEqual(self.project_root, pc.get_primary_data_root())
 
 

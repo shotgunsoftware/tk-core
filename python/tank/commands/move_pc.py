@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import absolute_import
 from . import constants
 from ..errors import TankError
 
@@ -16,6 +17,7 @@ from .action_base import Action
 import sys
 import os
 import shutil
+from six.moves import input
 
 
 class MovePCAction(Action):
@@ -182,7 +184,7 @@ class MovePCAction(Action):
                  "updated after the move operation.")
         
         log.info("")
-        val = raw_input("Are you sure you want to move your configuration? [Yes/No] ")
+        val = input("Are you sure you want to move your configuration? [Yes/No] ")
         if not val.lower().startswith("y"):
             raise TankError("Aborted by User.")
         

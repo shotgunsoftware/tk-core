@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import with_statement
+from __future__ import absolute_import
 import os
 
 import sgtk
@@ -19,6 +20,7 @@ from sgtk.bootstrap import ToolkitManager
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
 from tank_test.tank_test_base import TankTestBase
+import six
 
 
 class TestErrorHandling(ShotgunTestBase):
@@ -175,7 +177,7 @@ class TestFunctionality(ShotgunTestBase):
         self.assertIsInstance(modified_settings, dict)
 
         # Make sure the unit test properly changes all the settings from their default values.
-        for k, v in modified_settings.iteritems():
+        for k, v in six.iteritems(modified_settings):
             self.assertNotEqual(v, clean_settings[k])
 
         # Restore the settings from the manager.

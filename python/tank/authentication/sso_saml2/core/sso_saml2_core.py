@@ -11,8 +11,9 @@
 Module to support Web login via a web browser and automated session renewal.
 """
 
+from __future__ import absolute_import
 import base64
-from Cookie import SimpleCookie
+from six.moves.http_cookies import SimpleCookie
 import logging
 import os
 import time

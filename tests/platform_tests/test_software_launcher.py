@@ -10,6 +10,7 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
 import logging
 import os
 
@@ -24,6 +25,7 @@ from tank.platform import SoftwareVersion
 from tank.platform import LaunchInformation
 
 from tank.errors import TankEngineInitError
+import six
 
 
 class TestEngineLauncher(TankTestBase):
@@ -273,7 +275,7 @@ class TestEngineLauncher(TankTestBase):
                 self.assertEqual(reason, "")
             else:
                 self.assertEqual(supported, False)
-                self.assertIsInstance(reason, basestring)
+                self.assertIsInstance(reason, six.string_types)
 
     def test_launcher_prepare_launch(self):
         prep_path = "/some/path/to/an/executable"

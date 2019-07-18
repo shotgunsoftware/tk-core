@@ -12,6 +12,7 @@
 Hook that gets executed every time a new PipelineConfiguration instance is created.
 """
 
+from __future__ import absolute_import
 from tank import Hook
 
 

@@ -14,6 +14,7 @@ Engine-related unit tests.
 
 from __future__ import with_statement, print_function
 
+from __future__ import absolute_import
 import os
 import sys
 import threading
@@ -29,6 +30,8 @@ import sgtk
 from sgtk.platform import engine
 from tank.errors import TankError
 import mock
+import six
+from six.moves import range
 
 
 class TestEngineBase(TankTestBase):
@@ -464,7 +467,7 @@ class TestRegisteredCommands(TestEngineBase):
         command_properties = engine.commands["test_command"].get("properties")
         self.assertIsInstance(command_properties, dict)
 
-        for property, reg_value in register_properties.iteritems():
+        for property, reg_value in six.iteritems(register_properties):
             self.assertEqual(command_properties[property], reg_value)
         self.assertIsNone(command_properties["prefix"])
 
@@ -547,7 +550,7 @@ class TestRegisteredCommands(TestEngineBase):
 
             self.assertIsInstance(engine.commands[command_key], dict)
             engine_command_properties = engine.commands[command_key]["properties"]
-            for property, reg_value in command_properties.iteritems():
+            for property, reg_value in six.iteritems(command_properties):
                 self.assertEqual(engine_command_properties[property], reg_value)
             self.assertEqual(engine_command_properties["prefix"], command_prefix)
 

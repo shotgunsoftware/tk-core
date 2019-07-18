@@ -13,6 +13,7 @@ Environment Settings Object and access.
 
 """
 
+from __future__ import absolute_import
 import os
 import sys
 import copy
@@ -26,6 +27,8 @@ from .errors import TankMissingEnvironmentFile
 
 from ..util.yaml_cache import g_yaml_cache
 from .. import LogManager
+import six
+from six.moves import range
 
 logger = LogManager.get_logger(__name__)
 
@@ -252,13 +255,13 @@ class Environment(object):
         """
         Returns all the engines contained in this environment file
         """
-        return self.__engine_settings.keys()
+        return list(self.__engine_settings.keys())
 
     def get_frameworks(self):
         """
         Returns all the frameworks contained in this environment file
         """
-        return self.__framework_settings.keys()
+        return list(self.__framework_settings.keys())
 
     def get_apps(self, engine):
         """
@@ -268,7 +271,7 @@ class Environment(object):
             raise TankError("Engine '%s' is not part of environment %s" % (engine, self._env_path))
 
         apps = []
-        engine_app_tuples = self.__app_settings.keys()
+        engine_app_tuples = list(self.__app_settings.keys())
         for (engine_name, app_name) in engine_app_tuples:
             if engine_name == engine:
                 apps.append(app_name)
@@ -615,7 +618,7 @@ class Environment(object):
             is determined by whether it is a string, and if so, it is an
             included value if it has an @ at its head.
             """
-            return isinstance(item, basestring) and item.startswith("@")
+            return isinstance(item, six.string_types) and item.startswith("@")
 
         if is_included(bundle_section):
             # The whole section is a reference! The token is just the include
@@ -747,7 +750,7 @@ class WritableEnvironment(InstalledEnvironment):
     content back to disk.
     """
 
-    (NONE, INCLUDE_DEFAULTS, STRIP_DEFAULTS) = range(3)
+    (NONE, INCLUDE_DEFAULTS, STRIP_DEFAULTS) = list(range(3))
     """Format enumeration to use when dumping an environment.
 
     NONE: Don't modify the settings.
@@ -1078,7 +1081,7 @@ class WritableEnvironment(InstalledEnvironment):
         :param settings: settings dictionary to update with the new values
         :parma new_data: new settings data to update into the settings dictionary
         """
-        for name, data in new_data.iteritems():
+        for name, data in six.iteritems(new_data):
             # if data is a dictionary then we may need to recurse to update nested settings:
             if isinstance(data, dict):
                 setting = settings.get(name)

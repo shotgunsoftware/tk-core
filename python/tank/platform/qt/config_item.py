@@ -8,9 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import urlparse
+from __future__ import absolute_import
+import six.moves.urllib.parse
 import os
-import urllib
+import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 import shutil
 import sys
 

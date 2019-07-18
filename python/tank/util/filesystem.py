@@ -11,6 +11,7 @@
 Utility methods for manipulating files and folders
 """
 
+from __future__ import absolute_import
 import os
 import re
 import sys
@@ -23,6 +24,7 @@ import subprocess
 from contextlib import contextmanager
 
 from .. import LogManager
+import six
 
 log = LogManager.get_logger(__name__)
 
@@ -343,7 +345,7 @@ def create_valid_filename(value):
     # strip trailing whitespace
     value = value.strip()
 
-    if isinstance(value, unicode):
+    if isinstance(value, six.text_type):
         # src is unicode, so return unicode
         return exp.sub("_", value)
     else:

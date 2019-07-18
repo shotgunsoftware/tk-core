@@ -20,6 +20,7 @@ at any point.
 """
 from __future__ import print_function
 
+from __future__ import absolute_import
 from . import session_cache
 from .. import LogManager
 from .errors import (
@@ -35,6 +36,7 @@ from .sso_saml2 import (
 from ..util.shotgun.connection import sanitize_url
 
 from getpass import getpass
+from six.moves import input
 
 logger = LogManager.get_logger(__name__)
 
@@ -134,7 +136,7 @@ class ConsoleAuthenticationHandlerBase(object):
 
         :returns: The user's text input.
         """
-        return raw_input(text).strip()
+        return input(text).strip()
 
     def _get_keyboard_input(self, label, default_value=""):
         """

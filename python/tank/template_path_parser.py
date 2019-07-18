@@ -12,8 +12,10 @@
 Parsing of template paths into values for specified keys using a list of static tokens
 """
 
+from __future__ import absolute_import
 import os
 from .errors import TankError
+from six.moves import range
 
 class TemplatePathParser(object):
     """
@@ -146,7 +148,7 @@ class TemplatePathParser(object):
         # disgard positions that can't be valid - e.g. where the position is greater than the
         # last possible position of any subsequent tokens:
         max_position = len(lower_path)+1
-        for ti in reversed(range(len(token_positions))):
+        for ti in reversed(list(range(len(token_positions)))):
             token_positions[ti] = [p for p in token_positions[ti] if p < max_position]
             max_position = max(token_positions[ti]) if token_positions[ti] else 0
 
@@ -329,7 +331,7 @@ class TemplatePathParser(object):
                                                                        token_positions, 
                                                                        keys, 
                                                                        skip_keys,
-                                                                       dict(key_values.items() 
+                                                                       dict(list(key_values.items()) 
                                                                             + [(key.name, possible_value_str)])
                                                                        )
 

@@ -10,6 +10,7 @@
 
 from __future__ import print_function
 
+from __future__ import absolute_import
 import os
 from .action_base import Action
 from ..errors import TankError
@@ -239,7 +240,7 @@ class ValidateConfigAction(Action):
         manifest = descriptor.configuration_schema
 
         for s in settings.keys():
-            if s not in manifest.keys():
+            if s not in list(manifest.keys()):
                 log.info("  WARNING - Parameter not needed: %s" % s)
 
         for s in manifest.keys():

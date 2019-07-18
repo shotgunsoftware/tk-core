@@ -27,6 +27,7 @@ This setting would look for a core hook named ``example_template_hook`` and exec
 See below for an example implementation and parameter descriptions.
 """
 
+from __future__ import absolute_import
 from tank import Hook
 
 

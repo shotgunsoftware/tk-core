@@ -10,6 +10,7 @@
 
 from __future__ import with_statement
 
+from __future__ import absolute_import
 import sys
 import os
 import StringIO
@@ -25,6 +26,7 @@ from tank.errors import TankError, TankHookMethodDoesNotExistError
 from tank.platform import application, constants, validation
 from tank.template import Template
 from tank.deploy import descriptor
+import six
 
 
 class TestApplication(TankTestBase):
@@ -75,7 +77,7 @@ class TestAppFrameworks(TestApplication):
         reported by framework.name, which is derived from the descriptor.
         """
         frameworks = self.engine.apps["test_app"].frameworks
-        self.assertEqual(["test_framework"], frameworks.keys())
+        self.assertEqual(["test_framework"], list(frameworks.keys()))
 
     def test_minimum_version(self):
         """
@@ -611,7 +613,7 @@ class TestBundleDataCache(TestApplication):
             ))
         )
         # Test frameworks
-        for fw in app.frameworks.itervalues():
+        for fw in six.itervalues(app.frameworks):
             fw_data_cache_path = fw.cache_location
             # We should have the project id in the path
             self.assertTrue(

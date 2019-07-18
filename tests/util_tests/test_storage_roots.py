@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import absolute_import
 import os
 
 from tank_test.tank_test_base import setUpModule # noqa
@@ -16,6 +17,7 @@ from tank_test.tank_test_base import ShotgunTestBase
 from tank.errors import TankError
 from tank.util import ShotgunPath
 from tank.util import StorageRoots
+import six
 
 
 class TestStorageRoots(ShotgunTestBase):
@@ -248,7 +250,7 @@ class TestStorageRoots(ShotgunTestBase):
 
         for config_root_folder in config_root_folders:
             storage_roots = StorageRoots.from_config(config_root_folder)
-            for root_name, sg_path in storage_roots.as_shotgun_paths.iteritems():
+            for root_name, sg_path in six.iteritems(storage_roots.as_shotgun_paths):
                 self.assertIsInstance(sg_path, ShotgunPath)
 
     def test_storage_roots_default(self):

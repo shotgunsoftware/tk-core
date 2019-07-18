@@ -13,6 +13,7 @@ Management of the current context, e.g. the current shotgun entity/step/task.
 
 """
 
+from __future__ import absolute_import
 import os
 import pickle
 import copy
@@ -27,6 +28,7 @@ from . import constants
 from .errors import TankError, TankContextDeserializationError
 from .path_cache import PathCache
 from .template import TemplatePath
+import six
 
 
 class Context(object):
@@ -621,7 +623,7 @@ class Context(object):
             # filter the list of fields to just those that don't have a 'None' value.
             # Note: A 'None' value for a field indicates an ambiguity and was set in the 
             # _fields_from_entity_paths method (!)
-            non_none_fields = dict([(key, value) for key, value in fields.iteritems() if value is not None])
+            non_none_fields = dict([(key, value) for key, value in six.iteritems(fields) if value is not None])
 
             # Determine additional field values by walking down the template tree
             fields.update(self._fields_from_template_tree(template, non_none_fields, entities))
@@ -1101,7 +1103,7 @@ class Context(object):
                     # previously/higher up in the template definition.  If we did then the entries that were found 
                     # may not be correct so we have to discard them!
                     found_mismatching_field = False
-                    for field_name, field_value in entity_fields.iteritems():
+                    for field_name, field_value in six.iteritems(entity_fields):
                         if field_name in known_fields:
                             # We found a field we already knew about...
                             if field_value != known_fields[field_name]:
@@ -1137,7 +1139,7 @@ class Context(object):
         :returns: A list of project root file paths as strings.
         :rtype: list
         """
-        return self.__tk.pipeline_configuration.get_data_roots().values()
+        return list(self.__tk.pipeline_configuration.get_data_roots().values())
 
 
 ################################################################################################
@@ -1789,7 +1791,7 @@ def _context_data_from_cache(tk, entity_type, entity_id):
     path_cache = PathCache(tk)
 
     # Grab all project roots
-    project_roots = tk.pipeline_configuration.get_data_roots().values()
+    project_roots = list(tk.pipeline_configuration.get_data_roots().values())
 
     # Special case for project as we have the primary data path, which 
     # always points at a project. We only check if the associated configuration

@@ -8,8 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import absolute_import
 import os
-import urlparse
+import six.moves.urllib.parse
 
 from .downloadable import IODescriptorDownloadable
 from ...util import filesystem, shotgun
@@ -17,6 +18,7 @@ from ...util.shotgun_entity import get_sg_entity_name_field
 from ...util.errors import ShotgunAttachmentDownloadError
 from ..errors import TankDescriptorError
 from ... import LogManager
+from six.moves import range
 
 log = LogManager.get_logger(__name__)
 
@@ -64,7 +66,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
     The latest version is defined as the current record available in Shotgun.
     """
 
-    (_MODE_ID_BASED, _MODE_NAME_BASED) = range(2)
+    (_MODE_ID_BASED, _MODE_NAME_BASED) = list(range(2))
 
     def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
@@ -149,7 +151,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
 
         # Firstly, because the bundle cache can be global, make sure we include the sg site name.
         # first, get site only; https://www.FOO.com:8080 -> www.foo.com
-        base_url = urlparse.urlparse(self._sg_connection.base_url).netloc.split(":")[0].lower()
+        base_url = six.moves.urllib.parse.urlparse(self._sg_connection.base_url).netloc.split(":")[0].lower()
         # make it as short as possible for hosted sites
         base_url = base_url.replace(".shotgunstudio.com", "")
 

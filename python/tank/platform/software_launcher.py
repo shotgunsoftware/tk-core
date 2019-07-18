@@ -13,6 +13,7 @@ Defines the base class for DCC application launchers all Toolkit engines
 should implement.
 """
 
+from __future__ import absolute_import
 import os
 import sys
 import glob
@@ -30,6 +31,7 @@ from . import validation
 
 from .bundle import resolve_setting_value
 from .engine import get_env_and_descriptor_for_engine
+import six
 
 # std core level logger
 core_logger = LogManager.get_logger(__name__)
@@ -329,7 +331,7 @@ class SoftwareLauncher(object):
 
         :returns: The substituted string, when "<name>" will yield "<value>".
         """
-        for key, value in tokens.iteritems():
+        for key, value in six.iteritems(tokens):
             template = template.replace("{%s}" % key, value)
         return template
 
@@ -407,7 +409,7 @@ class SoftwareLauncher(object):
         regex_pattern = self._format(
             regex_pattern,
             # Put () around the provided expressions so that they become capture groups.
-            dict((k, "(?P<%s>%s)" % (k, v)) for k, v in template_key_expressions.iteritems())
+            dict((k, "(?P<%s>%s)" % (k, v)) for k, v in six.iteritems(template_key_expressions))
         )
 
         # accumulate the software version objects to return. this will include
