@@ -11,6 +11,8 @@
 SSO/SAML2 Core utility functions.
 """
 
+# pylint: disable=line-too-long
+
 import base64
 import logging
 import urllib
@@ -58,8 +60,9 @@ def _decode_cookies(encoded_cookies):
         try:
             decoded_cookies = base64.b64decode(encoded_cookies)
             cookies.load(decoded_cookies)
+        # pylint: disable=invalid-name
         except TypeError as e:
-            get_logger().error("Unable to decode the cookies: %s" % e.message)
+            get_logger().error("Unable to decode the cookies: %s", e.message)
     return cookies
 
 

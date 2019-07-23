@@ -11,6 +11,9 @@
 SSO/SAML2 Utility functions.
 """
 
+# pylint: disable=invalid-name
+# pylint: disable=unused-import
+
 import time
 
 from tank_vendor import shotgun_api3
@@ -77,6 +80,7 @@ def _get_site_infos(url, http_proxy=None):
         else:
             get_logger().info("Infos for site '%s' found in cache", url)
             infos = INFOS_CACHE[url][1]
+    # pylint: disable=broad-except
     except Exception as e:
         # Silently ignore exceptions
         get_logger().debug("Unable to connect with %s, got exception '%s'", url, e)
