@@ -36,13 +36,13 @@ class ShotgunAuthenticator(object):
     A simple use case scenario would look something like this::
 
         # create an authenticator
-        sg = ShotgunAuthenticator()
+        sa = ShotgunAuthenticator()
 
         # Get a user object. If the authenticator system has already
         # stored a default user belonging to a default shotgun site,
         # it will simply return this. Otherwise, it will pop up a UI
         # asking the user to log in.
-        user = sg.get_user()
+        user = sa.get_user()
 
         # now the user object can be used to generate an authenticated
         # Shotgun connection.

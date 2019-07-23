@@ -11,7 +11,6 @@
 Integration with Shotgun API.
 """
 
-# pylint: disable=invalid-name
 # pylint: disable=line-too-long
 # pylint: disable=protected-access
 # pylint: disable=too-many-arguments
@@ -77,6 +76,7 @@ class SsoSaml2(object):
         }, use_watchdog)
         return success == 1
 
+    # pylint: disable=invalid-name
     def is_automatic_claims_renewal_active(self):
         """
         Trigger automatic renewal process of the SSO claims.

@@ -11,7 +11,6 @@
 Module to support Web login via a web browser and automated session renewal.
 """
 
-# pylint: disable=invalid-name
 # pylint: disable=line-too-long
 # pylint: disable=no-self-use
 # pylint: disable=too-many-instance-attributes
@@ -116,6 +115,7 @@ class SsoSaml2Core(object):
         self._logger = get_logger()
         self._logger.debug("Constructing SSO dialog: %s", window_title)
 
+        # pylint: disable=invalid-name
         QtCore = self._QtCore = qt_modules.get('QtCore')  # noqa
         QtGui = self._QtGui = qt_modules.get('QtGui')  # noqa
         QtNetwork = self._QtNetwork = qt_modules.get('QtNetwork')  # noqa
@@ -380,6 +380,7 @@ class SsoSaml2Core(object):
         session or when opening a connection to a new server.
         """
         self._logger.debug("Updating browser cookies from session")
+        # pylint: disable=invalid-name
         QtNetwork = self._QtNetwork  # noqa
 
         qt_cookies = []
@@ -622,6 +623,7 @@ class SsoSaml2Core(object):
         :returns: 1 if successful, 0 otherwise.
         """
         self._logger.debug("Web login attempt")
+        # pylint: disable=invalid-name
         QtCore = self._QtCore  # noqa
 
         if event_data is not None:
@@ -665,6 +667,7 @@ class SsoSaml2Core(object):
                        QtGui.QDialog.Accepted or QtGui.QDialog.Rejected
         """
         self._logger.debug("SSO dialog closed")
+        # pylint: disable=invalid-name
         QtGui = self._QtGui  # noqa
 
         if self.is_handling_event():

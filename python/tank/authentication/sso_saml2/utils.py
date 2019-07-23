@@ -11,7 +11,6 @@
 SSO/SAML2 Utility functions.
 """
 
-# pylint: disable=invalid-name
 # pylint: disable=unused-import
 
 import time
@@ -81,9 +80,9 @@ def _get_site_infos(url, http_proxy=None):
             get_logger().info("Infos for site '%s' found in cache", url)
             infos = INFOS_CACHE[url][1]
     # pylint: disable=broad-except
-    except Exception as e:
+    except Exception as exc:
         # Silently ignore exceptions
-        get_logger().debug("Unable to connect with %s, got exception '%s'", url, e)
+        get_logger().debug("Unable to connect with %s, got exception '%s'", url, exc)
 
     return infos
 
@@ -110,6 +109,7 @@ def _get_user_authentication_method(url, http_proxy=None):
     return user_authentication_method
 
 
+# pylint: disable=invalid-name
 def is_unified_login_flow_enabled_on_site(url, http_proxy=None):
     """
     Check to see if the web site uses the unified login flow.
@@ -145,6 +145,7 @@ def is_sso_enabled_on_site(url, http_proxy=None):
     return _get_user_authentication_method(url, http_proxy) == "saml2"
 
 
+# pylint: disable=invalid-name
 def is_autodesk_identity_enabled_on_site(url, http_proxy=None):
     """
     Check to see if the web site uses Autodesk Identity.
