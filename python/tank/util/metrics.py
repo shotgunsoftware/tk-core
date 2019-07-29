@@ -471,11 +471,16 @@ class MetricsDispatchWorkerThread(Thread):
 
         # Filter out metrics we don't want to send to the endpoint.
         filtered_metrics_data = []
+
         for metric in metrics:
             data = metric.data
             # As second pass re-structure unsupported events from supported groups
             # (see more complete comment below)
-            if not metric.is_supported_event:
+            if metric.is_supported_event:
+                # If this is a supported event, we just need to tack on the
+                # version of the core api being used.
+                data["event_properties"][EventMetric.KEY_CORE_VERSION] = self._engine.sgtk.version
+            else:
                 # Still log the event but change its name so it's easy to
                 # spot all unofficial events which are logged.
                 # Later we might want to simply discard them instead of logging
@@ -492,6 +497,7 @@ class MetricsDispatchWorkerThread(Thread):
                     EventMetric.KEY_ENGINE_VERSION: properties.get(EventMetric.KEY_ENGINE_VERSION),
                     EventMetric.KEY_HOST_APP: properties.get(EventMetric.KEY_HOST_APP),
                     EventMetric.KEY_HOST_APP_VERSION: properties.get(EventMetric.KEY_HOST_APP_VERSION),
+                    EventMetric.KEY_CORE_VERSION: self._engine.sgtk.version,
                 }
                 data["event_properties"] = new_properties
                 data["event_name"] = "Unknown Event"
@@ -619,6 +625,7 @@ class EventMetric(object):
     KEY_HOST_APP = "Host App"
     KEY_HOST_APP_VERSION = "Host App Version"
     KEY_PUBLISH_TYPE = "Publish Type"
+    KEY_CORE_VERSION = "Core Version"
 
     def __init__(self, group, name, properties=None):
         """

@@ -392,13 +392,17 @@ class EngineDescriptor(BundleDescriptor):
     Descriptor that describes a Toolkit Engine
     """
 
-    def __init__(self, sg_connection, io_descriptor):
+    def __init__(self, sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots):
         """
-        Use the factory method :meth:`create_descriptor` when
-        creating new descriptor objects.
+        .. note:: Use the factory method :meth:`create_descriptor` when
+                  creating new descriptor objects.
 
-        :param sg_descriptor: Connection to the current site.
+        :param sg_connection: Connection to the current site.
         :param io_descriptor: Associated IO descriptor.
+        :param bundle_cache_root_override: Override for root path to where
+            downloaded apps are cached.
+        :param fallback_roots: List of immutable fallback cache locations where
+            apps will be searched for.
         """
         super(EngineDescriptor, self).__init__(sg_connection, io_descriptor)
 
@@ -408,13 +412,17 @@ class AppDescriptor(BundleDescriptor):
     Descriptor that describes a Toolkit App
     """
 
-    def __init__(self, sg_connection, io_descriptor):
+    def __init__(self, sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots):
         """
-        Use the factory method :meth:`create_descriptor` when
-        creating new descriptor objects.
+        .. note:: Use the factory method :meth:`create_descriptor` when
+                  creating new descriptor objects.
 
-        :param sg_descriptor: Connection to the current site.
+        :param sg_connection: Connection to the current site.
         :param io_descriptor: Associated IO descriptor.
+        :param bundle_cache_root_override: Override for root path to where
+            downloaded apps are cached.
+        :param fallback_roots: List of immutable fallback cache locations where
+            apps will be searched for.
         """
         super(AppDescriptor, self).__init__(sg_connection, io_descriptor)
 
@@ -424,13 +432,17 @@ class FrameworkDescriptor(BundleDescriptor):
     Descriptor that describes a Toolkit Framework
     """
 
-    def __init__(self, sg_connection, io_descriptor):
+    def __init__(self, sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots):
         """
-        Use the factory method :meth:`create_descriptor` when
-        creating new descriptor objects.
+        .. note:: Use the factory method :meth:`create_descriptor` when
+                  creating new descriptor objects.
 
-        :param sg_descriptor: Connection to the current site.
+        :param sg_connection: Connection to the current site.
         :param io_descriptor: Associated IO descriptor.
+        :param bundle_cache_root_override: Override for root path to where
+            downloaded apps are cached.
+        :param fallback_roots: List of immutable fallback cache locations where
+            apps will be searched for.
         """
         super(FrameworkDescriptor, self).__init__(sg_connection, io_descriptor)
 

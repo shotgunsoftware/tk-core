@@ -16,7 +16,7 @@ from mock import patch, call
 
 import tank
 from tank import context, errors
-from tank_test.tank_test_base import TankTestBase, setUpModule
+from tank_test.tank_test_base import TankTestBase, setUpModule, only_run_on_windows, only_run_on_nix
 
 
 class TestShotgunRegisterPublish(TankTestBase):
@@ -71,6 +71,30 @@ class TestShotgunRegisterPublish(TankTestBase):
         self.path = os.path.join(self.project_root, "foo", "bar")
         self.name = "Test Publish"
         self.version = 1
+
+    def test_local_storage_disabled(self):
+        """
+        Checks that if local storage is disabled that we raise a more user friendly error
+        than a CRUD message.
+        """
+        with patch.object(
+            self.tk.shotgun, "create",
+            side_effect=Exception("[Attachment.local_storage] does not exist")
+        ):
+
+            if sys.platform == "win32":
+                local_path = r"x:\tmp\win\path\to\file.txt"
+            else:
+                local_path = "/tmp/nix/path/to/file.txt"
+
+            with self.assertRaisesRegex(tank.util.ShotgunPublishError, "Local File Linking seems to be turned off"):
+                tank.util.register_publish(
+                    self.tk,
+                    self.context,
+                    local_path,
+                    self.name,
+                    self.version
+                )
 
     def test_sequence_abstracted_path(self):
         """Test that if path supplied represents a sequence, the abstract version of that
@@ -461,6 +485,7 @@ class TestMultiRoot(TankTestBase):
 
 
 class TestCalcPathCache(TankTestBase):
+
     @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
     def test_case_difference(self, get_local_storage_roots):
         """
@@ -477,6 +502,81 @@ class TestCalcPathCache(TankTestBase):
         root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(self.tk, input_path)
         self.assertEqual("primary", root_name)
         self.assertEqual(expected, path_cache)
+
+    @only_run_on_windows
+    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    def test_path_normalization_win_drive_letter(self, get_local_storage_roots):
+        """
+        Ensures that a variety of different slash syntaxes are valid when splitting
+        a path into a storage + path cache field while using a windows drive letter path.
+        """
+        # note - this return value is guaranteed to be normalized
+        # so no need to test for edge cases
+        get_local_storage_roots.return_value = {"primary": "P:\\"}
+
+        input_paths = [
+            r"P:\project_code\3d\Assets",
+            r"P:/project_code/3d/Assets",
+            r"P://project_code//3d//Assets",
+            r"P:\\project_code\\3d\\Assets",
+        ]
+
+        for input_path in input_paths:
+            root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
+                self.tk,
+                input_path
+            )
+            self.assertEqual("primary", root_name)
+            self.assertEqual("project_code/3d/Assets", path_cache)
+
+    @only_run_on_windows
+    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    def test_path_normalization_win_unc(self, get_local_storage_roots):
+        """
+        Ensures that a variety of different slash syntaxes are valid when splitting
+        a path into a storage + path cache field while using a windows unc path
+        """
+        # note - this return value is guaranteed to be normalized
+        # so no need to test for edge cases
+        get_local_storage_roots.return_value = {"primary": "\\\\share"}
+
+        input_paths = [
+            r"\\share\project_code\3d\Assets",
+            r"//share/project_code/3d/Assets",
+        ]
+
+        for input_path in input_paths:
+            root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
+                self.tk,
+                input_path
+            )
+            self.assertEqual("primary", root_name)
+            self.assertEqual("project_code/3d/Assets", path_cache)
+
+    @only_run_on_nix
+    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    def test_path_normalization_nix(self, get_local_storage_roots):
+        """
+        Ensures that a variety of different slash syntaxes are valid when splitting
+        a path into a storage + path cache field while using linux or mac
+        """
+        # note - this return value is guaranteed to be normalized
+        # so no need to test for edge cases
+        get_local_storage_roots.return_value = {"primary": "/mnt"}
+
+        input_paths = [
+            r"/mnt\project_code\3d\Assets",
+            r"\mnt\project_code\3d\Assets",
+            r"/mnt/project_code//3d///Assets",
+        ]
+
+        for input_path in input_paths:
+            root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
+                self.tk,
+                input_path
+            )
+            self.assertEqual("primary", root_name)
+            self.assertEqual("project_code/3d/Assets", path_cache)
 
 
 class TestCalcPathCacheProjectWithSlash(TankTestBase):

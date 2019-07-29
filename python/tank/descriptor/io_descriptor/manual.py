@@ -22,15 +22,16 @@ class IODescriptorManual(IODescriptorBase):
     This descriptor type is largely deprecated. Please do not use.
     """
 
-    def __init__(self, descriptor_dict, bundle_type):
+    def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
         Constructor
 
         :param descriptor_dict: descriptor dictionary describing the bundle
+        :param sg_connection: Shotgun connection to associated site.
         :param bundle_type: The type of bundle. ex: Descriptor.APP
         :return: Descriptor instance
         """
-        super(IODescriptorManual, self).__init__(descriptor_dict)
+        super(IODescriptorManual, self).__init__(descriptor_dict, sg_connection, bundle_type)
 
         self._validate_descriptor(
             descriptor_dict,
@@ -38,7 +39,7 @@ class IODescriptorManual(IODescriptorBase):
             optional=[]
         )
 
-        self._type = bundle_type
+        self._bundle_type = bundle_type
         self._name = descriptor_dict.get("name")
         self._version = descriptor_dict.get("version")
 
@@ -81,7 +82,7 @@ class IODescriptorManual(IODescriptorBase):
         legacy_folder = self._get_legacy_bundle_install_folder(
             "manual",
             self._bundle_cache_root,
-            self._type,
+            self._bundle_type,
             self._name,
             self._version
         )

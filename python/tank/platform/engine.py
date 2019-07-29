@@ -1561,7 +1561,15 @@ class Engine(TankBundle):
             if os.path.isdir(font_dir):
 
                 # iterate over the font files and attempt to load them
-                for font_file_name in os.listdir(font_dir):
+                #
+                # NOTE: We're loading the ttf files in reverse order to work around
+                # a Windows 10 oddity in Qt5/PySide2. It appears as though Windows
+                # prefers the first ttf installed for a given font weight, so when
+                # we're setting weight in qss (publish2 is a good example), if we're
+                # going for a lighter-weight font, we end up getting condensed light
+                # instead of the regular style. So...we're going to install these in
+                # reverse order so that the regular light style is preferred.
+                for font_file_name in reversed(list(os.listdir(font_dir))):
 
                     # only process actual font files. It appears as though .ttf
                     # is the most common extension for use on win/mac/linux so
@@ -1572,12 +1580,23 @@ class Engine(TankBundle):
                     # the actual font file
                     font_file = os.path.join(font_dir, font_file_name)
 
-                    # load the font into the font db
-                    if QtGui.QFontDatabase.addApplicationFont(font_file) == -1:
-                        self.log_warning(
-                            "Unable to load font file: %s" % (font_file,))
-                    else:
-                        self.log_debug("Loaded font file: %s" % (font_file,))
+                    # rather than registering the file path with the QT
+                    # font system, first load the font data into memory
+                    # and then register that data.
+                    #
+                    # this is to avoid QT keeping an open file handle to
+                    # the font files - this causes issues on windows and
+                    # results in bootstrap changes sometimes not being 
+                    # picked up.                    
+                    with open(font_file, "rb") as fh:
+                        # load binary data into memory
+                        font_data = fh.read()
+                        # load the font into the font db
+                        if QtGui.QFontDatabase.addApplicationFontFromData(font_data) == -1:
+                            self.log_warning(
+                                "Unable to load font file: %s" % (font_file,))
+                        else:
+                            self.log_debug("Loaded font file into memory: %s" % (font_file,))
 
         self.__fonts_loaded = True
 
@@ -2156,6 +2175,16 @@ class Engine(TankBundle):
             QtGui.QPalette.Text,
             palette.color(QtGui.QPalette.Disabled, QtGui.QPalette.Base).lighter(250)
         )
+        palette.setBrush(
+            QtGui.QPalette.Disabled,
+            QtGui.QPalette.Link,
+            palette.color(QtGui.QPalette.Disabled, QtGui.QPalette.Base).lighter(250)
+        )
+        palette.setBrush(
+            QtGui.QPalette.Disabled,
+            QtGui.QPalette.LinkVisited,
+            palette.color(QtGui.QPalette.Disabled, QtGui.QPalette.Base).lighter(110)
+        )
 
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.WindowText, QtGui.QColor(200, 200, 200))
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Button, QtGui.QColor(75, 75, 75))
@@ -2165,6 +2194,8 @@ class Engine(TankBundle):
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Dark, QtGui.QColor(37, 37, 37))
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Mid, QtGui.QColor(45, 45, 45))
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Text, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Link, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.LinkVisited, QtGui.QColor(97, 97, 97))
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.BrightText, QtGui.QColor(37, 37, 37))
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Base, QtGui.QColor(42, 42, 42))
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Window, QtGui.QColor(68, 68, 68))
@@ -2183,6 +2214,8 @@ class Engine(TankBundle):
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Dark, QtGui.QColor(37, 37, 37))
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Mid, QtGui.QColor(45, 45, 45))
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Text, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Link, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.LinkVisited, QtGui.QColor(97, 97, 97))
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.BrightText, QtGui.QColor(37, 37, 37))
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Base, QtGui.QColor(42, 42, 42))
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Window, QtGui.QColor(68, 68, 68))
@@ -2286,25 +2319,23 @@ class Engine(TankBundle):
         THIS METHOD HAS BEEN DEPRECATED AND SHOULD NOT BE USED!
         Instead, call _initialize_standard_look_and_feel()
         **********************************************************************
-        
+
         For environments which do not have a well defined QT style sheet,
         Toolkit maintains a "standard style" which is similar to the look and
-        feel that Maya and Nuke has. 
-        
+        feel that Maya and Nuke has.
+
         This is intended to be used in conjunction with QTs cleanlooks mode.
         The init code inside an engine would typically look something like this:
-        
+
             QtGui.QApplication.setStyle("cleanlooks")
             qt_application = QtGui.QApplication([])
-            qt_application.setStyleSheet( self._get_standard_qt_stylesheet() )         
-        
+            qt_application.setStyleSheet( self._get_standard_qt_stylesheet() )
+
         :returns: The style sheet data, as a string.
         """
         css_file = self.__get_platform_resource_path("toolkit_std_dark.css")
-        f = open(css_file)
-        css_data = f.read()
-        f.close()
-        return css_data
+        with open(css_file) as f:
+            return f.read()
 
     def _register_shared_framework(self, instance_name, fw_obj):
         """

@@ -192,7 +192,10 @@ class TankQDialog(TankDialogBase):
             self.ui.label.setText(title)
             
         self.setWindowTitle("Shotgun: %s" % title)
-        
+        if os.path.exists(bundle.icon_256):
+            self._window_icon = QtGui.QIcon(bundle.icon_256)
+            self.setWindowIcon(self._window_icon)
+
         # set the visibility of the title bar:
         show_tk_title_bar = (not hasattr(self._widget, "hide_tk_title_bar") or not self._widget.hide_tk_title_bar)
         self.ui.top_group.setVisible(show_tk_title_bar)
@@ -418,7 +421,7 @@ class TankQDialog(TankDialogBase):
                 # here!
                 pass
             else:
-                # widget supressed the close!
+                # widget suppressed the close!
                 return
         else:
             # process 'done' so that the exit code

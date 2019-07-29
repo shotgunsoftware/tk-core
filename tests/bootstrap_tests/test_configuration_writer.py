@@ -75,13 +75,13 @@ class TestCoreInstallation(TestConfigurationWriterBase):
             )
         )
 
-        descriptor = MagicMock()
-        descriptor.associated_core_descriptor = {
-            "path": core_source_location,
-            "type": "path"
-        }
+        core_descriptor = sgtk.descriptor.create_descriptor(
+            self.mockgun,
+            sgtk.descriptor.Descriptor.CORE,
+            "sgtk:descriptor:path?path=%s" % self.tk_core_repo_root
+        )
 
-        cw.install_core(descriptor, [])
+        cw.install_core(core_descriptor)
 
         core_install_location = os.path.join(cw.path.current_os, "install", "core")
 

@@ -1,9 +1,16 @@
-# this is a comment at the top of the file
-include: ./includes/empty_config.yml
+frameworks:
+    test_framework_v1.x.x:
+        location:
+            type: dev
+            path: '$TK_TEST_FIXTURES/config/bundles/test_framework_v1'
+            version: v1.0.0
 
 engines:
-  # this is a comment after the engines section
     test_engine:
-        location: {'type': 'dev', 'path': '{CONFIG_FOLDER}/bundles/test_engine'}
+        location: {'type': 'dev', 'path': '$TK_TEST_FIXTURES/config/bundles/test_engine'}
         debug_logging: false
-        apps: {}
+
+        apps:
+            test_app:
+                # this is a comment in the test_app
+                location: {'type': 'dev', 'path': '$TK_TEST_FIXTURES/config/bundles/test_app'}

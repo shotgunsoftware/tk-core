@@ -20,7 +20,6 @@ from ..descriptor import Descriptor, create_descriptor, is_descriptor_version_mi
 
 from ..util import filesystem
 from ..util import StorageRoots
-from ..util import ShotgunPath
 from ..util.shotgun import connection
 from ..util.move_guard import MoveGuard
 
@@ -84,43 +83,15 @@ class ConfigurationWriter(object):
             create_placeholder_file=True
         )
 
-    def install_core(self, config_descriptor, bundle_cache_fallback_paths):
+    def install_core(self, core_descriptor):
         """
         Install a core into the given configuration.
 
         This will copy the core API from the given location into
         the configuration, effectively mimicing a localized setup.
 
-        :param config_descriptor: Config descriptor to use to determine core version
-        :param bundle_cache_fallback_paths: bundle cache search path
+        :param core_descriptor: Core descriptor to use to determine core version
         """
-        core_uri_or_dict = config_descriptor.associated_core_descriptor
-
-        if core_uri_or_dict is None:
-            # we don't have a core descriptor specified. Get latest from app store.
-            log.debug(
-                "Config does not have a core/core_api.yml file to define which core to use. "
-                "Will use the latest approved core in the app store."
-            )
-            core_uri_or_dict = constants.LATEST_CORE_DESCRIPTOR
-            # resolve latest core
-            use_latest = True
-        else:
-            # we have an exact core descriptor. Get a descriptor for it
-            log.debug("Config has a specific core defined in core/core_api.yml: %s" % core_uri_or_dict)
-            # when core is specified, check if it defines a specific version or not
-            use_latest = is_descriptor_version_missing(core_uri_or_dict)
-
-        core_descriptor = create_descriptor(
-            self._sg_connection,
-            Descriptor.CORE,
-            core_uri_or_dict,
-            fallback_roots=bundle_cache_fallback_paths,
-            resolve_latest=use_latest
-        )
-
-        # make sure we have our core on disk
-        core_descriptor.ensure_local()
         config_root_path = self._path.current_os
         core_target_path = os.path.join(config_root_path, "install", "core")
 
@@ -339,8 +310,9 @@ class ConfigurationWriter(object):
         )
 
         if os.path.exists(sg_code_location):
-            # warn if this file already exists
-            log.warning(
+            # We want to log that we're overwriting an existing file, but this file
+            # is almost exclusively auto generated, so we can do it as a debug.
+            log.debug(
                 "The file 'core/install_location.yml' exists in the configuration "
                 "but will be overwritten with an auto generated file."
             )

@@ -40,7 +40,15 @@ class TestCachedConfigDescriptor(ShotgunTestBase):
             def resolve_core_descriptor(self):
                 io_desc = Mock()
                 io_desc.get_manifest.return_value = dict()
-                return CoreDescriptor(io_desc)
+                sg_connection = Mock()
+                bundle_cache_root_override = None
+                fallback_roots = None
+                return CoreDescriptor(
+                    sg_connection,
+                    io_desc,
+                    bundle_cache_root_override,
+                    fallback_roots
+                )
 
         desc = CoreConfigDescriptorWithoutFeatures(None, None, None, None)
         self.assertIsNone(
@@ -55,7 +63,15 @@ class TestCachedConfigDescriptor(ShotgunTestBase):
             def resolve_core_descriptor(self):
                 io_desc = Mock()
                 io_desc.get_manifest.return_value = dict(features=dict(two="2"))
-                return CoreDescriptor(io_desc)
+                sg_connection = Mock()
+                bundle_cache_root_override = None
+                fallback_roots = None
+                return CoreDescriptor(
+                    sg_connection,
+                    io_desc,
+                    bundle_cache_root_override,
+                    fallback_roots
+                )
 
         desc = CoreConfigDescriptorWithFeatures(None, None, None, None)
 
@@ -194,7 +210,7 @@ class TestConfigDescriptor(TankTestBase):
         """
         Ensures installed pipeline configurations can't be copied.
         """
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             TankDescriptorError,
             "cannot be copied"
         ):
@@ -558,7 +574,7 @@ class TestDescriptorSupport(TankTestBase):
         )
 
         # invalids
-        self.assertRaisesRegexp(TankError,
+        self.assertRaisesRegex(TankError,
                                 "Incorrect version pattern '.*'. There should be no digit after a 'x'",
                                 desc._io_descriptor._find_latest_tag_by_pattern,
                                 ["v1.2.3", "v1.2.233", "v1.3.1"],
@@ -635,7 +651,7 @@ class TestConstraintValidation(unittest2.TestCase):
             ).check_version_constraints()
 
         self.assertEqual(len(ctx.exception.reasons), 1)
-        self.assertRegexpMatches(
+        self.assertRegex(
             ctx.exception.reasons[0], "Requires at least Shotgun .* but currently installed version is .*\."
         )
 
@@ -659,7 +675,7 @@ class TestConstraintValidation(unittest2.TestCase):
             ).check_version_constraints("v6.6.5")
 
         self.assertEqual(len(ctx.exception.reasons), 1)
-        self.assertRegexpMatches(
+        self.assertRegex(
             ctx.exception.reasons[0], "Requires at least Core API .* but currently installed version is v6.6.5"
         )
 
@@ -672,7 +688,7 @@ class TestConstraintValidation(unittest2.TestCase):
             ).check_version_constraints(core_version=None)
 
         self.assertEqual(len(ctx.exception.reasons), 1)
-        self.assertRegexpMatches(
+        self.assertRegex(
             ctx.exception.reasons[0], "Requires at least Core API .* but currently installed version is v6.6.5"
         )
 
@@ -699,7 +715,7 @@ class TestConstraintValidation(unittest2.TestCase):
                 engine_descriptor=SealedMock(version="v6.6.5", display_name="Tk Test")
             )
 
-        self.assertRegexpMatches(
+        self.assertRegex(
             ctx.exception.reasons[0],
             "Requires at least Engine .* but currently installed version is .*"
         )
@@ -734,7 +750,7 @@ class TestConstraintValidation(unittest2.TestCase):
                 )
             )
 
-        self.assertRegexpMatches(
+        self.assertRegex(
             ctx.exception.reasons[0], "Not compatible with engine .*. Supported engines are .*"
         )
 
@@ -762,7 +778,7 @@ class TestConstraintValidation(unittest2.TestCase):
             )
 
         self.assertEqual(len(ctx.exception.reasons), 1)
-        self.assertRegexpMatches(
+        self.assertRegex(
             ctx.exception.reasons[0],
             "Requires at least Shotgun Desktop.* but currently installed version is .*\."
         )
@@ -809,19 +825,33 @@ class TestConstraintValidation(unittest2.TestCase):
             ).check_version_constraints()
 
         self.assertEqual(len(ctx.exception.reasons), 3)
-        self.assertRegexpMatches(
+        self.assertRegex(
             ctx.exception.reasons[0],
             "Requires a minimal engine version but no engine was specified"
         )
-        self.assertRegexpMatches(
+        self.assertRegex(
             ctx.exception.reasons[1], "Bundle is compatible with a subset of engines but no engine was specified"
         )
-        self.assertRegexpMatches(
+        self.assertRegex(
             ctx.exception.reasons[2], "Requires at least Shotgun Desktop v3.3.4 but no version was specified"
         )
 
 
 class TestFeaturesApi(unittest2.TestCase):
+
+    def _create_core_desc(self, io_descriptor):
+        """
+        Helper method which creates an io_descriptor
+        """
+        sg_connection = Mock()
+        bundle_cache_root_override = None
+        fallback_roots = None
+        return sgtk.descriptor.CoreDescriptor(
+            sg_connection,
+            io_descriptor,
+            bundle_cache_root_override,
+            fallback_roots
+        )
 
     def test_missing_manifest(self):
         """
@@ -829,7 +859,7 @@ class TestFeaturesApi(unittest2.TestCase):
         """
         io_desc = Mock()
         io_desc.get_manifest.side_effect = TankMissingManifestError()
-        desc = sgtk.descriptor.CoreDescriptor(io_desc)
+        desc = self._create_core_desc(io_desc)
 
         self.assertEqual(desc.get_feature_info("missing", "value"), "value")
         self.assertIsNone(desc.get_feature_info("missing"))
@@ -841,7 +871,7 @@ class TestFeaturesApi(unittest2.TestCase):
         """
         io_desc = Mock()
         io_desc.get_manifest.return_value = {}
-        desc = sgtk.descriptor.CoreDescriptor(io_desc)
+        desc = self._create_core_desc(io_desc)
 
         self.assertEqual(desc.get_feature_info("missing", "value"), "value")
         self.assertIsNone(desc.get_feature_info("missing"))
@@ -853,7 +883,7 @@ class TestFeaturesApi(unittest2.TestCase):
         """
         io_desc = Mock()
         io_desc.get_manifest.return_value = dict(features={})
-        desc = sgtk.descriptor.CoreDescriptor(io_desc)
+        desc = self._create_core_desc(io_desc)
 
         self.assertEqual(desc.get_feature_info("missing", "value"), "value")
         self.assertIsNone(desc.get_feature_info("missing"))
@@ -866,7 +896,7 @@ class TestFeaturesApi(unittest2.TestCase):
         features = dict(two="2", foo="bar", zero=0)
         io_desc = Mock()
         io_desc.get_manifest.return_value = dict(features=features)
-        desc = sgtk.descriptor.CoreDescriptor(io_desc)
+        desc = self._create_core_desc(io_desc)
 
         self.assertEqual(desc.get_feature_info("two", 3), "2")
         self.assertEqual(desc.get_feature_info("two"), "2")
@@ -896,7 +926,7 @@ class TestFeaturesApi(unittest2.TestCase):
 
         io_desc = Mock()
         io_desc.get_manifest.return_value = info
-        desc = sgtk.descriptor.CoreDescriptor(io_desc)
+        desc = self._create_core_desc(io_desc)
 
         features = {
             "bootstrap.lean_config.version": 1

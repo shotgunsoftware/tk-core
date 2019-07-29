@@ -21,6 +21,7 @@ from .. import pipelineconfig_utils
 
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
+from .interaction import YesToEverythingInteraction
 
 class SetupProjectFactoryAction(Action):
     """
@@ -159,6 +160,18 @@ class SetupProjectWizard(object):
         :param force: Allow for the setting up of existing projects.
         """
         self._params.set_project_id(project_id, force)
+
+    def set_use_centralized_mode(self):
+        """
+        Specifies that the setup should creat a centralized config
+        """
+        self._params.set_distribution_mode(ProjectSetupParameters.CENTRALIZED_CONFIG)
+
+    def set_use_distributed_mode(self):
+        """
+        Specifies that the setup should create a distributed config.
+        """
+        self._params.set_distribution_mode(ProjectSetupParameters.DISTRIBUTED_CONFIG)
 
     def validate_config_uri(self, config_uri):
         """
@@ -373,16 +386,15 @@ class SetupProjectWizard(object):
 
     def get_default_configuration_location(self):
         """
-        Returns default suggested location for configurations.
+        Returns default suggested install location for configurations.
         Returns a dictionary with sys.platform style keys linux2/win32/darwin, e.g.
 
         { "darwin": "/foo/bar/project_name",
-          "linux2": "/foo/bar/project_name",
+          "linux2": None,
           "win32" : "c:\foo\bar\project_name"}
 
-        :returns: dictionary with paths
+        :returns: dictionary with paths or None
         """
-
         # the logic here is as follows:
         # 1. if the config comes from an existing project, base the config location on this
         # 2. if not, find the most recent primary pipeline config and base location on this
@@ -396,8 +408,11 @@ class SetupProjectWizard(object):
 
         if not data:
             # we are not based on an existing project. Instead pick the last primary config
+            # that is using storages (e.g. has got tank_name set)
             data = self._sg.find_one("PipelineConfiguration",
-                                     [["code", "is", "primary"]],
+                                     [["code", "is", "primary"],
+                                      ["project.Project.tank_name", "is_not", ""]
+                                      ],
                                      ["id", 
                                       "mac_path", 
                                       "windows_path", 
@@ -411,12 +426,16 @@ class SetupProjectWizard(object):
             # our very first project and cannot really suggest any config locations
             self._log.debug("No configs available to generate preview config values. Returning None.")            
             suggested_defaults = {"darwin": None, "linux2": None, "win32": None}
-            
+
+        elif data["project.Project.tank_name"] is None:
+            # the project we are basing this setup on did not use storages
+            suggested_defaults = {"darwin": None, "linux2": None, "win32": None}
+
         else:
             # now take the pipeline config paths, and try to replace the current project name
             # in these paths by the new project name
             self._log.debug("Basing config values on the following shotgun pipeline config: %s" % data)
-            
+
             # get the project path for this project
             old_project_disk_name = data["project.Project.tank_name"]  # e.g. 'foo/bar_baz'
             old_project_disk_name_win = old_project_disk_name.replace("/", "\\")  # e.g. 'foo\bar_baz'
@@ -522,10 +541,37 @@ class SetupProjectWizard(object):
 
         # the defaults is to localize and pick up current core API
         curr_core_path = pipelineconfig_utils.get_path_to_current_core()
+
+        try:
+            core_path_object = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
+        except TankError:
+            self._log.debug(
+                "Unable to resolve all OS paths for the current tk-core path. Forging ahead with "
+                "only the current OS's core location."
+            )
+
+            # We really only the current OS path to continue with the project setup
+            # anyway, so we'll fall back on that if we're in a situation where the
+            # config doesn't contain an install_locations.yml file, which is the
+            # most likely situation we'd be in here. That's an intentional omission
+            # from baked configurations, as an example, and we don't want to stop
+            # project setups if the process is being run from an environment running
+            # from a baked config.
+            if sys.platform.startswith("linux"):
+                path_args = [None, os.path.expandvars(curr_core_path), None]
+            elif sys.platform == "darwin":
+                path_args = [None, None, os.path.expandvars(curr_core_path)]
+            elif sys.platform == "win32":
+                path_args = [os.path.expandvars(curr_core_path), None, None]
+            else:
+                msg = "Unsupported OS detected: %s" % sys.platform
+                raise TankError(msg)
+
+            core_path_object = ShotgunPath(*path_args).as_system_dict()
         
         return_data = { "localize": True,
                         "using_runtime": True,
-                        "core_path" : pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path), 
+                        "core_path": core_path_object, 
                         "pipeline_config": None
                       }
         
@@ -582,6 +628,9 @@ class SetupProjectWizard(object):
         """
         Sets the desired core API to use. These values should be present for
         pre_setup_validation.
+
+        If a core has been provided by core_api.yml in the configuration, this
+        will take precedence.
         """
         # get core logic
         core_settings = self.get_core_settings()
@@ -636,28 +685,30 @@ class SetupProjectWizard(object):
         # and finally carry out the setup
         run_project_setup(self._log, self._sg, self._params)
 
-        # ---- check if we should run the localization afterwards
+        if self._params.get_distribution_mode() == ProjectSetupParameters.CENTRALIZED_CONFIG:
 
-        # note - when running via the wizard, toolkit script credentials are
-        # stripped out as the core is copied across as part of a localization if
-        # the site we are configuring supports the authentication module, ie,
-        # Shotgun 6.0.2 and greater.
+            # ---- check if we should run the localization afterwards
 
-        # this is primarily targeting the Shotgun desktop, meaning that even if
-        # the shotgun desktop's site configuration contains script credentials,
-        # these are not propagated into newly created toolkit projects.
+            # note - when running via the wizard, toolkit script credentials are
+            # stripped out as the core is copied across as part of a localization if
+            # the site we are configuring supports the authentication module, ie,
+            # Shotgun 6.0.2 and greater.
 
-        config_path = self._params.get_configuration_location(sys.platform)
+            # this is primarily targeting the Shotgun desktop, meaning that even if
+            # the shotgun desktop's site configuration contains script credentials,
+            # these are not propagated into newly created toolkit projects.
 
-        # if the new project's config has a core descriptor, then we should
-        # localize it to use that version of core. alternatively, if the current
-        # core being used is localized (as returned via `get_core_settings`),
-        # then localize the new core with it.
-        if (pipelineconfig_utils.has_core_descriptor(config_path) or
-            core_settings["localize"]):
-            core_localize.do_localize(
-                self._log,
-                self._sg,
-                config_path,
-                suppress_prompts=True
-            )
+            config_path = self._params.get_configuration_location(sys.platform)
+
+            # if the new project's config has a core descriptor, then we should
+            # localize it to use that version of core. alternatively, if the current
+            # core being used is localized (as returned via `get_core_settings`),
+            # then localize the new core with it.
+            if (pipelineconfig_utils.has_core_descriptor(config_path) or
+                    core_settings["localize"]):
+                core_localize.do_localize(
+                    self._log,
+                    self._sg,
+                    config_path,
+                    YesToEverythingInteraction()  # don't prompt
+                )

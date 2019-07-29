@@ -68,6 +68,15 @@ class TestAppFrameworks(TestApplication):
     Tests for framework related operations
     """
 
+    def test_frameworks_named_after_info_yml_name(self):
+        """
+        Ensures the framework in the .frameworks dictionary is named
+        after the name of the framework in info.yml and not as the one
+        reported by framework.name, which is derived from the descriptor.
+        """
+        frameworks = self.engine.apps["test_app"].frameworks
+        self.assertEqual(["test_framework"], frameworks.keys())
+
     def test_minimum_version(self):
         """
         Tests the min required frameworks for an app
@@ -311,14 +320,14 @@ class TestExecuteHook(TestApplication):
         app = self.engine.apps["test_app"]
         hook_expression = app.get_setting("test_hook_std")
         instance_1 = app.create_hook_instance(hook_expression)
-        self.assertEquals(instance_1.second_method(another_dummy_param=True), True)
+        self.assertEqual(instance_1.second_method(another_dummy_param=True), True)
         instance_2 = app.create_hook_instance(hook_expression)
-        self.assertNotEquals(instance_1, instance_2)
+        self.assertNotEqual(instance_1, instance_2)
 
         # ensure if no base_class arg supplied we have Hook as the base class
         base_classes = inspect.getmro(instance_2.__class__)
-        self.assertEquals(base_classes[-2], tank.Hook)
-        self.assertEquals(base_classes[-1], object)
+        self.assertEqual(base_classes[-2], tank.Hook)
+        self.assertEqual(base_classes[-1], object)
 
         # class to inject as a custom base class
         class Foobar(tank.Hook):
@@ -334,9 +343,9 @@ class TestExecuteHook(TestApplication):
         base_classes = inspect.getmro(instance_3.__class__)
 
         # ensure the last 3 classes in the order are Foobar, Hook, object
-        self.assertEquals(base_classes[-3], Foobar)
-        self.assertEquals(base_classes[-2], tank.Hook)
-        self.assertEquals(base_classes[-1], object)
+        self.assertEqual(base_classes[-3], Foobar)
+        self.assertEqual(base_classes[-2], tank.Hook)
+        self.assertEqual(base_classes[-1], object)
 
     def test_parent(self):
         """
@@ -345,7 +354,7 @@ class TestExecuteHook(TestApplication):
         app = self.engine.apps["test_app"]
         hook_expression = app.get_setting("test_hook_std")
         hook_instance = app.create_hook_instance(hook_expression)
-        self.assertEquals(hook_instance.parent, app)
+        self.assertEqual(hook_instance.parent, app)
 
     def test_sgtk(self):
         """
@@ -354,7 +363,7 @@ class TestExecuteHook(TestApplication):
         app = self.engine.apps["test_app"]
         hook_expression = app.get_setting("test_hook_std")
         hook_instance = app.create_hook_instance(hook_expression)
-        self.assertEquals(hook_instance.sgtk, app.sgtk)
+        self.assertEqual(hook_instance.sgtk, app.sgtk)
 
     def test_logger(self):
         """
@@ -378,7 +387,7 @@ class TestExecuteHook(TestApplication):
         stream.close()
         log.removeHandler(handler)
 
-        self.assertEquals(log_contents, "hello toolkitty\n")
+        self.assertEqual(log_contents, "hello toolkitty\n")
 
     def test_disk_location(self):
         """
@@ -386,7 +395,7 @@ class TestExecuteHook(TestApplication):
         """
         app = self.engine.apps["test_app"]
         disk_location = app.execute_hook_method("test_hook_std", "test_disk_location")
-        self.assertEquals(
+        self.assertEqual(
             disk_location,
             os.path.join(self.project_config, "hooks", "toolkitty.png")
         )
@@ -403,7 +412,7 @@ class TestExecuteHook(TestApplication):
 
         (disk_location_1, disk_location_2) = hook.test_inheritance_disk_location()
 
-        self.assertEquals(
+        self.assertEqual(
             disk_location_1,
             os.path.join(
                 self.project_config,
@@ -411,7 +420,7 @@ class TestExecuteHook(TestApplication):
                 "toolkitty.png"
             )
         )
-        self.assertEquals(
+        self.assertEqual(
             disk_location_2,
             os.path.join(
                 self.project_config,
@@ -423,7 +432,7 @@ class TestExecuteHook(TestApplication):
 
         # edge case: also make sure that if we call the method externally,
         # we get the location of self
-        self.assertEquals(
+        self.assertEqual(
             hook.disk_location,
             os.path.join(
                 self.project_config,
@@ -602,7 +611,7 @@ class TestBundleDataCache(TestApplication):
             ))
         )
         # Test frameworks
-        for name, fw in app.frameworks.iteritems():
+        for fw in app.frameworks.itervalues():
             fw_data_cache_path = fw.cache_location
             # We should have the project id in the path
             self.assertTrue(
@@ -613,9 +622,10 @@ class TestBundleDataCache(TestApplication):
             self.assertFalse(
                 "%sp%d" % (os.path.sep, app.context.project["id"]) in fw_data_cache_path
             )
+
             # The path should end with "/site/<bundle name>"
             self.assertTrue(
                 fw_data_cache_path.endswith("%ssite%s%s" % (
-                    os.path.sep, os.path.sep, name,
+                    os.path.sep, os.path.sep, fw.name,
                 ))
             )
