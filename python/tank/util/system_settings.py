@@ -14,7 +14,7 @@ System settings management.
 
 
 from __future__ import absolute_import
-import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
+from six.moves.urllib import request
 
 
 class SystemSettings(object):
@@ -48,7 +48,7 @@ class SystemSettings(object):
         # Note the following restriction: "getproxies" does not support the use of proxies which
         # require authentication (user and password) when looking for proxy information from
         # Mac OSX System Configuration or Windows Systems Registry.
-        system_proxies = urllib.getproxies()
+        system_proxies = request.getproxies()
 
         # Get the http proxy when it exists in the dictionary.
         proxy = system_proxies.get("http")

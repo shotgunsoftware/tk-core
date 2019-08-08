@@ -21,7 +21,7 @@ from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
 from ..util import ShotgunPath
-from six.moves import range
+from tank_vendor.shotgun_api3.lib.six.moves import range
 
 log = LogManager.get_logger(__name__)
 

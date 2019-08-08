@@ -26,7 +26,7 @@ from ...errors import TankError
 import sys
 import os
 import inspect
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 class TankQDialog(TankDialogBase):
     """

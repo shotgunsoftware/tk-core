@@ -24,14 +24,14 @@ from collections import deque
 from threading import Event, Thread, Lock
 import re
 import platform
-import six.moves.urllib.request, six.moves.urllib.error, six.moves.urllib.parse
+from tank_vendor.shotgun_api3.lib.six.moves import urllib
 from copy import deepcopy
 
 from . import constants
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
-from six.moves import range
+from tank_vendor.shotgun_api3.lib.six.moves import range
 json = shotgun_api3.shotgun.json
 
 
@@ -517,8 +517,8 @@ class MetricsDispatchWorkerThread(Thread):
         # handle proxy setup by pulling the proxy details from the main
         # shotgun connection
         if sg_connection.config.proxy_handler:
-            opener = six.moves.urllib.request.build_opener(sg_connection.config.proxy_handler)
-            six.moves.urllib.request.install_opener(opener)
+            opener = urllib.request.build_opener(sg_connection.config.proxy_handler)
+            urllib.request.install_opener(opener)
 
         # build the full endpoint url with the shotgun site url
         url = "%s/%s" % (sg_connection.base_url, self.API_ENDPOINT)
@@ -534,9 +534,9 @@ class MetricsDispatchWorkerThread(Thread):
 
         header = {"Content-Type": "application/json"}
         try:
-            request = six.moves.urllib.request.Request(url, payload_json, header)
-            six.moves.urllib.request.urlopen(request)
-        except six.moves.urllib.error.HTTPError as e:
+            request = urllib.request.Request(url, payload_json, header)
+            request.urlopen(request)
+        except urllib.error.HTTPError as e:
             # fire and forget, so if there's an error, ignore it.
             pass
 

@@ -21,7 +21,7 @@ from ..platform import validation
 from ..errors import TankError, TankNoDefaultValueError
 from ..descriptor import CheckVersionConstraintsError
 from ..platform.bundle import resolve_default_value
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 
 ##########################################################################################

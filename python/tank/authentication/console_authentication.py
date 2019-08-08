@@ -36,7 +36,7 @@ from .sso_saml2 import (
 from ..util.shotgun.connection import sanitize_url
 
 from getpass import getpass
-from six.moves import input
+from tank_vendor.shotgun_api3.lib.six.moves import input
 
 logger = LogManager.get_logger(__name__)
 

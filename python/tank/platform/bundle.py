@@ -27,7 +27,7 @@ from ..errors import TankError, TankNoDefaultValueError
 from .errors import TankContextChangeNotSupportedError
 from . import constants
 from .import_stack import ImportStack
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 core_logger = LogManager.get_logger(__name__)
 

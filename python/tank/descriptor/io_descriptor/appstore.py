@@ -14,12 +14,11 @@ Toolkit App Store Descriptor.
 
 from __future__ import absolute_import
 import os
-import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
+from tank_vendor.shotgun_api3.lib.six.moves import urllib
 import fnmatch
-import six.moves.urllib.request, six.moves.urllib.error, six.moves.urllib.parse
-import six.moves.http_client
+from tank_vendor.shotgun_api3.lib.six.moves import http_client
 from tank_vendor.shotgun_api3.lib import httplib2
-import six.moves.cPickle as pickle
+import tank_vendor.shotgun_api3.lib.six.moves.cPickle as pickle
 
 from ...util import shotgun
 from ...util import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError
@@ -38,8 +37,8 @@ from ...constants import SUPPORT_EMAIL
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
-import six
-from six.moves import range
+from tank_vendor.shotgun_api3.lib import six
+from tank_vendor.shotgun_api3.lib.six.moves import range
 json = shotgun_api3.shotgun.json
 
 log = LogManager.get_logger(__name__)
@@ -718,7 +717,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             # connect to the app store site
             try:
                 (script_name, script_key) = self.__get_app_store_key_from_shotgun()
-            except six.moves.urllib.error.HTTPError as e:
+            except urllib.error.HTTPError as e:
                 if e.code == 403:
                     # edge case alert!
                     # this is likely because our session token in shotgun has expired.
@@ -763,7 +762,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                 )
             # Connection errors can occur for a variety of reasons. For example, there is no
             # internet access or there is a proxy server blocking access to the Toolkit app store.
-            except (httplib2.HttpLib2Error, httplib2.socks.HTTPError, six.moves.http_client.HTTPException) as e:
+            except (httplib2.HttpLib2Error, httplib2.socks.HTTPError, http_client.HTTPException) as e:
                 raise TankAppStoreConnectionError(e)
             # In cases where there is a firewall/proxy blocking access to the app store, sometimes
             # the firewall will drop the connection instead of rejecting it. The API request will
@@ -832,13 +831,13 @@ class IODescriptorAppStore(IODescriptorDownloadable):
 
         # handle proxy setup by pulling the proxy details from the main shotgun connection
         if sg.config.proxy_handler:
-            opener = six.moves.urllib.request.build_opener(sg.config.proxy_handler)
-            six.moves.urllib.request.install_opener(opener)
+            opener = urllib.request.build_opener(sg.config.proxy_handler)
+            urllib.request.install_opener(opener)
 
         # now connect to our site and use a special url to retrieve the app store script key
         session_token = sg.get_session_token()
         post_data = {"session_token": session_token}
-        response = six.moves.urllib.request.urlopen("%s/api3/sgtk_install_script" % sg.base_url, six.moves.urllib.parse.urlencode(post_data))
+        response = urllib.request.urlopen("%s/api3/sgtk_install_script" % sg.base_url, parse.urlencode(post_data))
         html = response.read()
         data = json.loads(html)
 

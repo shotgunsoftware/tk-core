@@ -20,15 +20,14 @@ at any point.
 """
 
 from __future__ import absolute_import
-import six.moves.cPickle
-import six.moves.http_client
+from tank_vendor.shotgun_api3.lib.six.moves import cPickle, http_client
 from .shotgun_wrapper import ShotgunWrapper
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault, ProtocolError
 
 from . import session_cache
 from .errors import IncompleteCredentials
 from .. import LogManager
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 # Indirection to create ShotgunWrapper instances. Great for unit testing.
 _shotgun_instance_factory = ShotgunWrapper
@@ -306,7 +305,7 @@ class SessionUser(ShotgunUserImpl):
             # But if we get there, it means our session_token is still valid
             # as far as Shotgun is concerned.
             if (
-                e.errcode == six.moves.http_client.FOUND and
+                e.errcode == http_client.FOUND and
                 "location" in e.headers and
                 e.headers["location"].endswith("/saml/saml_login_request")
             ):
@@ -535,7 +534,7 @@ def serialize_user(user):
     """
     # Pickle the dictionary and inject the user type in the payload so we know
     # how to unpickle the user.
-    return six.moves.cPickle.dumps({
+    return cPickle.dumps({
         "type": user.__class__.__name__,
         "data": user.to_dict()
     })
@@ -551,7 +550,7 @@ def deserialize_user(payload):
     :returns: A ShotgunUser derived instance.
     """
     # Unpickle the dictionary
-    user_dict = six.moves.cPickle.loads(payload)
+    user_dict = cPickle.loads(payload)
 
     # Find which user type we have
     global __factories

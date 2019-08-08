@@ -18,15 +18,14 @@ from __future__ import absolute_import
 import os
 import re
 import sys
-import six.moves.urllib.parse
-import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
+from tank_vendor.shotgun_api3.lib.six.moves import urllib
 import pprint
 
 from .publish_util import get_cached_local_storages
 from ...log import LogManager
 from ..shotgun_path import ShotgunPath
 from ..errors import PublishPathNotDefinedError, PublishPathNotSupported
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 log = LogManager.get_logger(__name__)
 
@@ -256,7 +255,7 @@ def __resolve_url_link(tk, attachment_data):
     #  'type': 'Attachment',
     #  'url': 'file:///C:/Users/Manne%20Ohrstrom/Downloads/toolkitty.jpg'},
 
-    parsed_url = six.moves.urllib.parse.urlparse(attachment_data["url"])
+    parsed_url = urllib.parse.urlparse(attachment_data["url"])
 
     # url = "file:///path/to/some/file.txt"
     # ParseResult(
@@ -299,9 +298,9 @@ def __resolve_url_link(tk, attachment_data):
 
     if parsed_url.netloc:
         # unc path
-        resolved_path = six.moves.urllib.parse.unquote("//%s%s" % (parsed_url.netloc, parsed_url.path))
+        resolved_path = urllib.parse.unquote("//%s%s" % (parsed_url.netloc, parsed_url.path))
     else:
-        resolved_path = six.moves.urllib.parse.unquote(parsed_url.path)
+        resolved_path = urllib.parse.unquote(parsed_url.path)
 
     # python returns drive letter paths incorrectly and need adjusting.
     if re.match("^/[A-Za-z]:/", resolved_path):

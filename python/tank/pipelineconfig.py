@@ -15,7 +15,7 @@ across storages, configurations etc.
 from __future__ import absolute_import
 import os
 import glob
-import six.moves.cPickle as pickle
+import tank_vendor.shotgun_api3.lib.six.moves.cPickle as pickle
 
 from tank_vendor import yaml
 
@@ -32,7 +32,7 @@ from . import template_includes
 from . import LogManager
 
 from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 log = LogManager.get_logger(__name__)
 

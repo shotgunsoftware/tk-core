@@ -43,7 +43,7 @@ from . import constants
 
 from ..util.yaml_cache import g_yaml_cache
 from ..util.includes import resolve_include
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 log = LogManager.get_logger(__name__)
 

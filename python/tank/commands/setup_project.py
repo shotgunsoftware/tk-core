@@ -28,8 +28,8 @@ from ..util.filesystem import ensure_folder_exists
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
 from .interaction import YesToEverythingInteraction
-import six
-from six.moves import input
+from tank_vendor.shotgun_api3.lib import six
+from tank_vendor.shotgun_api3.lib.six.moves import input
 
 class SetupProjectAction(Action):
     """

@@ -10,7 +10,7 @@
 
 from __future__ import absolute_import
 import logging
-import six.moves.queue
+from tank_vendor.shotgun_api3.lib.six.moves import queue
 import sys
 
 class ToolkitEngineHandler(logging.Handler):
@@ -66,7 +66,7 @@ class ToolkitEngineLegacyHandler(logging.Handler):
         # avoiding super in order to be py25-compatible
         logging.Handler.__init__(self)
         self._engine = engine
-        self._inside_dispatch_stack = six.moves.queue.Queue()
+        self._inside_dispatch_stack = queue.Queue()
 
     @property
     def inside_dispatch(self):

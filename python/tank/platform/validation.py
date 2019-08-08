@@ -22,7 +22,7 @@ from ..template import TemplateString
 from .bundle import resolve_default_value
 from ..util.version import is_version_older, is_version_number
 from ..log import LogManager
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 # We're potentially running here in an environment with
 # no engine available via current_engine(), so we'll have

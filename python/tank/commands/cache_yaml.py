@@ -11,7 +11,7 @@
 from __future__ import absolute_import
 import os
 import fnmatch
-import six.moves.cPickle
+from tank_vendor.shotgun_api3.lib.six.moves import cPickle
 
 from .action_base import Action
 from ..errors import TankError
@@ -87,7 +87,7 @@ class CacheYamlAction(Action):
             raise TankError("Unable to open '%s' for writing: %s" % (pickle_path, e))
 
         try:
-            six.moves.cPickle.dump(items, fh)
+            cPickle.dump(items, fh)
         except Exception as e:
             raise TankError("Unable to dump pickled cache data: %s" % e)
 

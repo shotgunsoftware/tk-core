@@ -15,7 +15,7 @@ from ..errors import TankDescriptorError
 from .base import IODescriptorBase
 
 from ... import LogManager
-import six
+from tank_vendor.shotgun_api3.lib import six
 log = LogManager.get_logger(__name__)
 
 

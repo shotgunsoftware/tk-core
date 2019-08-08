@@ -13,7 +13,6 @@ from __future__ import with_statement
 from __future__ import absolute_import
 import sys
 import os
-import StringIO
 import shutil
 import logging
 import tempfile
@@ -26,7 +25,8 @@ from tank.errors import TankError, TankHookMethodDoesNotExistError
 from tank.platform import application, constants, validation
 from tank.template import Template
 from tank.deploy import descriptor
-import six
+from tank_vendor.shotgun_api3.lib import six
+from tank_vendor.shotgun_api3.lib.six import StringIO
 
 
 class TestApplication(TankTestBase):
@@ -372,7 +372,7 @@ class TestExecuteHook(TestApplication):
         tests the logger property for application hooks
         """
         # capture sync log to string
-        stream = StringIO.StringIO()
+        stream = StringIO()
         handler = logging.StreamHandler(stream)
 
         app = self.engine.apps["test_app"]

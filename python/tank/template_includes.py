@@ -35,7 +35,7 @@ from .errors import TankError
 from . import constants
 from .util import yaml_cache
 from .util.includes import resolve_include
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 
 def _get_includes(file_name, data):

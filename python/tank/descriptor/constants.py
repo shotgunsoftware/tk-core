@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from six.moves import range
+from tank_vendor.shotgun_api3.lib.six.moves import range
 # Copyright (c) 2016 Shotgun Software Inc.
 # 
 # CONFIDENTIAL AND PROPRIETARY

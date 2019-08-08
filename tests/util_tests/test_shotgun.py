@@ -13,7 +13,7 @@ from __future__ import absolute_import
 import os
 import shutil
 import datetime
-import six.moves.urllib.parse
+from tank_vendor.shotgun_api3.lib.six.moves import urllib
 
 from mock import patch, MagicMock
 
@@ -291,7 +291,7 @@ class TestShotgunDownloadUrl(ShotgunTestBase):
         # Construct a URL from the source file name
         # "file" will be used for the protocol, so this URL will look like
         # `file:///fixtures_root/config/hooks/toolkitty.png`
-        self.download_url = six.moves.urllib.parse.urlunparse(
+        self.download_url = urllib.parse.urlunparse(
             ("file", None, self.download_source, None, None, None)
         )
 
@@ -375,10 +375,10 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
         # Construct URLs from the source file name
         # "file" will be used for the protocol, so this URL will look like
         # `file:///fixtures_root/misc/zip/tank_core.zip`
-        self.good_zip_url = six.moves.urllib.parse.urlunparse(
+        self.good_zip_url = urllib.parse.urlunparse(
             ("file", None, self.download_source, None, None, None)
         )
-        self.bad_zip_url = six.moves.urllib.parse.urlunparse(
+        self.bad_zip_url = urllib.parse.urlunparse(
             ("file", None, self.download_source, None, None, None)
         )
 

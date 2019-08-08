@@ -19,8 +19,8 @@ import datetime
 from . import constants
 from .errors import TankError
 import collections
-import six
-from six.moves import zip
+from tank_vendor.shotgun_api3.lib import six
+from tank_vendor.shotgun_api3.lib.six.moves import zip
 
 class TemplateKey(object):
     """

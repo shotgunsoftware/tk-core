@@ -17,7 +17,7 @@ from tank_test.tank_test_base import ShotgunTestBase
 from tank.errors import TankError
 from tank.util import ShotgunPath
 from tank.util import StorageRoots
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 
 class TestStorageRoots(ShotgunTestBase):

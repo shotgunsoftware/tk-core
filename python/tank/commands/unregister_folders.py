@@ -17,8 +17,7 @@ from ..errors import TankError
 from .. import path_cache
 from .action_base import Action
 from ..util.login import get_current_user
-from six.moves import zip
-from six.moves import input
+from tank_vendor.shotgun_api3.lib.six.moves import input, zip
 
 class UnregisterFoldersAction(Action):
     """

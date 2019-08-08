@@ -14,7 +14,7 @@ import os
 import sgtk
 from sgtk import TankError
 from sgtk.platform import SoftwareLauncher, SoftwareVersion, LaunchInformation
-from six.moves import range
+from tank_vendor.shotgun_api3.lib.six.moves import range
 
 
 class TestLauncher(SoftwareLauncher):

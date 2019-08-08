@@ -17,7 +17,7 @@ import re
 
 from . import constants
 from ..errors import TankError
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 # A dictionary for Shotgun entities which do not store their name
 # in the standard "code" field.

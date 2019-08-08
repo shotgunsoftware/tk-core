@@ -18,7 +18,7 @@ import copy
 from ...errors import TankError
 
 from .expression_tokens import FilterExpressionToken, CurrentStepExpressionToken, CurrentTaskExpressionToken
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 
 def resolve_shotgun_filters(filters, sg_data):

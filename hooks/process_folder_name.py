@@ -27,7 +27,7 @@ is being used, for example:
 from __future__ import absolute_import
 from tank import Hook
 import re
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 
 class ProcessFolderName(Hook):

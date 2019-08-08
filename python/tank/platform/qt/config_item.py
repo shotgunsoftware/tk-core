@@ -9,9 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import absolute_import
-import six.moves.urllib.parse
 import os
-import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 import shutil
 import sys
 

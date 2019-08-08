@@ -12,7 +12,7 @@ from __future__ import print_function
 
 from __future__ import absolute_import
 import os
-import StringIO
+from tank_vendor.shotgun_api3.lib.six import StringIO
 
 from ..errors import TankError
 from .action_base import Action

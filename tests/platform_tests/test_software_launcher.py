@@ -25,7 +25,7 @@ from tank.platform import SoftwareVersion
 from tank.platform import LaunchInformation
 
 from tank.errors import TankEngineInitError
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 
 class TestEngineLauncher(TankTestBase):

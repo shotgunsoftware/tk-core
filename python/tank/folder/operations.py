@@ -18,7 +18,7 @@ from .configuration import FolderConfiguration
 from .folder_io import FolderIOReceiver
 from .folder_types import EntityLinkTypeMismatch
 from ..errors import TankError
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 
 def create_single_folder_item(tk, config_obj, io_receiver, entity_type, entity_id, sg_task_data, engine):

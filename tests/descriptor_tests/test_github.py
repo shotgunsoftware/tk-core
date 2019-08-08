@@ -13,7 +13,7 @@ import mock
 from mock import patch
 import os
 import re
-import six.moves.urllib.request, six.moves.urllib.error, six.moves.urllib.parse
+from tank_vendor.shotgun_api3.lib.six.moves import urllib
 
 import sgtk
 from sgtk.descriptor import Descriptor
@@ -93,7 +93,7 @@ class MockResponse(object):
         urllib2.urlopen() would normally throw.
         """
         if self.code != 200:
-            return six.moves.urllib.error.HTTPError(self._page_name, self.code, self.msg, self.headers, self)
+            return urllib.error.HTTPError(self._page_name, self.code, self.msg, self.headers, self)
         return None
 
 
@@ -186,7 +186,7 @@ class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
             desc = self._create_desc()
 
             # URLError from urllib2 should raise TankDescriptorError.
-            urlopen_mock.side_effect = six.moves.urllib.error.URLError("Some Exception")
+            urlopen_mock.side_effect = urllib.error.URLError("Some Exception")
             with self.assertRaises(sgtk.descriptor.TankDescriptorError):
                 desc.find_latest_version()
 
@@ -363,7 +363,7 @@ class TestGithubIODescriptorRemoteAccessCheck(GithubIODescriptorTestBase):
             self.assertEqual(desc.has_remote_access(), False)
 
             # No internet connection, no response from GH API, etc
-            urlopen_mock.side_effect = six.moves.urllib.error.URLError("Test exception.")
+            urlopen_mock.side_effect = urllib.error.URLError("Test exception.")
             self.assertEqual(desc.has_remote_access(), False)
 
     def test_github_api_proxied(self):
@@ -371,7 +371,7 @@ class TestGithubIODescriptorRemoteAccessCheck(GithubIODescriptorTestBase):
         Ensure that urllib2 calls install a proxy when the shotgun config has a proxy_handler.
         """
         try:
-            proxy_handler = six.moves.urllib.request.ProxyHandler({"http": "127.0.0.1"})
+            proxy_handler = urllib.request.ProxyHandler({"http": "127.0.0.1"})
             self.mockgun.config.proxy_handler = proxy_handler
             with patch(_TESTED_MODULE + ".urllib2.urlopen") as urlopen_mock:
                 with patch(_TESTED_MODULE + ".urllib2.install_opener") as install_opener_mock:

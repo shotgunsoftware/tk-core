@@ -18,7 +18,7 @@ from mock import patch, call
 import tank
 from tank import context, errors
 from tank_test.tank_test_base import TankTestBase, setUpModule, only_run_on_windows, only_run_on_nix
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 
 class TestShotgunRegisterPublish(TankTestBase):

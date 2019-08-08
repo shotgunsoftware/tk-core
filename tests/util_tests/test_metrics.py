@@ -33,11 +33,11 @@ import os
 import json
 import time
 import threading
-import six.moves.urllib.request, six.moves.urllib.error, six.moves.urllib.parse
+from tank_vendor.shotgun_api3.lib.six.moves import urllib
 import time
 import unittest2
-import six
-from six.moves import range
+from tank_vendor.shotgun_api3.lib import six
+from tank_vendor.shotgun_api3.lib.six.moves import range
 
 
 class TestEventMetric(ShotgunTestBase):
@@ -276,7 +276,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                 # TODO: find out what class type is 'something'
                 for something in mocked_call:
                     for instance in something:
-                        if isinstance(instance, six.moves.urllib.request.Request):
+                        if isinstance(instance, urllib.request.Request):
                             mocked_request_calls.append(instance)
 
         return mocked_request_calls

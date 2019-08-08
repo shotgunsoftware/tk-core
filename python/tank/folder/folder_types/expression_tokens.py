@@ -19,7 +19,7 @@ from __future__ import absolute_import
 import os
 
 from ...errors import TankError
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 
 class SymlinkToken(object):

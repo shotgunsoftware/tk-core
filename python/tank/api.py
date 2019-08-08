@@ -27,9 +27,8 @@ from . import pipelineconfig
 from . import pipelineconfig_utils
 from . import pipelineconfig_factory
 from . import LogManager
-import six
-from six.moves import range
-from six.moves import zip
+from tank_vendor.shotgun_api3.lib import six
+from tank_vendor.shotgun_api3.lib.six.moves import range, zip
 
 log = LogManager.get_logger(__name__)
 

@@ -12,8 +12,7 @@ from __future__ import absolute_import
 import os
 import re
 import cgi
-import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
-import six.moves.urllib.parse
+from tank_vendor.shotgun_api3.lib.six.moves import urllib
 import contextlib
 
 from .. import constants
@@ -23,8 +22,8 @@ from ...util.version import is_version_newer
 from ..errors import TankDescriptorError, TankMissingManifestError
 
 from tank_vendor import yaml
-import six
-from six.moves import map
+from tank_vendor.shotgun_api3.lib import six
+from tank_vendor.shotgun_api3.lib.six.moves import map
 
 log = LogManager.get_logger(__name__)
 
@@ -481,7 +480,7 @@ class IODescriptorBase(object):
                  in the item_keys parameter matched up by items in the
                  uri string.
         """
-        parsed_uri = six.moves.urllib.parse.urlparse(uri)
+        parsed_uri = urllib.parse.urlparse(uri)
 
         # example:
         #
@@ -580,7 +579,7 @@ class IODescriptorBase(object):
                 continue
 
             # note: for readability of windows and git paths, do not convert '/@:\'
-            quoted_value = six.moves.urllib.parse.quote(str(descriptor_dict[param]), safe="@/:\\")
+            quoted_value = urllib.parse.quote(str(descriptor_dict[param]), safe="@/:\\")
             qs_chunks.append("%s=%s" % (param, quoted_value))
 
         qs = "&".join(qs_chunks)

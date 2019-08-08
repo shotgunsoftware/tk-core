@@ -22,8 +22,8 @@ from . import templatekey
 from .errors import TankError
 from . import constants
 from .template_path_parser import TemplatePathParser
-import six
-from six.moves import zip
+from tank_vendor.shotgun_api3.lib import six
+from tank_vendor.shotgun_api3.lib.six.moves import zip
 
 class Template(object):
     """

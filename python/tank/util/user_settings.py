@@ -14,8 +14,7 @@ User settings management.
 
 from __future__ import absolute_import
 import os
-import six.moves.configparser
-import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
+from tank_vendor.shotgun_api3.lib.six.moves import configparser
 
 from .local_file_storage import LocalFileStorageManager
 from .errors import EnvironmentVariableFileLookupError, TankError
@@ -271,7 +270,7 @@ class UserSettings(Singleton):
 
         :returns: A ConfigParser instance with the contents from the configuration file.
         """
-        config = six.moves.configparser.SafeConfigParser()
+        config = configparser.SafeConfigParser()
         if os.path.exists(path):
             config.read(path)
         return config

@@ -20,7 +20,7 @@ from tank_test.tank_test_base import setUpModule # noqa
 from tank.authentication import session_cache
 from tank.util import LocalFileStorageManager
 from tank_vendor import yaml
-from six.moves import range
+from tank_vendor.shotgun_api3.lib.six.moves import range
 
 
 class SessionCacheTests(ShotgunTestBase):

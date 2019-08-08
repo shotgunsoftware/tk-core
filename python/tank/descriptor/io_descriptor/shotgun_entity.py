@@ -10,7 +10,7 @@
 
 from __future__ import absolute_import
 import os
-import six.moves.urllib.parse
+from tank_vendor.shotgun_api3.lib.six.moves import urllib
 
 from .downloadable import IODescriptorDownloadable
 from ...util import filesystem, shotgun
@@ -18,7 +18,7 @@ from ...util.shotgun_entity import get_sg_entity_name_field
 from ...util.errors import ShotgunAttachmentDownloadError
 from ..errors import TankDescriptorError
 from ... import LogManager
-from six.moves import range
+from tank_vendor.shotgun_api3.lib.six.moves import range
 
 log = LogManager.get_logger(__name__)
 
@@ -151,7 +151,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
 
         # Firstly, because the bundle cache can be global, make sure we include the sg site name.
         # first, get site only; https://www.FOO.com:8080 -> www.foo.com
-        base_url = six.moves.urllib.parse.urlparse(self._sg_connection.base_url).netloc.split(":")[0].lower()
+        base_url = urllib.parse.urlparse(self._sg_connection.base_url).netloc.split(":")[0].lower()
         # make it as short as possible for hosted sites
         base_url = base_url.replace(".shotgunstudio.com", "")
 

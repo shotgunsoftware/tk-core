@@ -18,7 +18,7 @@ from .. import path_cache
 from .. import folder
 
 from .action_base import Action
-from six.moves import input
+from tank_vendor.shotgun_api3.lib.six.moves import input
 
 
 class SynchronizePathCache(Action):

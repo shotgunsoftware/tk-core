@@ -16,7 +16,7 @@ Utility methods for unserializing JSON documents.
 from __future__ import absolute_import
 
 import json
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 
 def _convert_unicode_keys_to_string(input_value):

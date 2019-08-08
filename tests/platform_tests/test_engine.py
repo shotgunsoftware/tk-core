@@ -30,8 +30,8 @@ import sgtk
 from sgtk.platform import engine
 from tank.errors import TankError
 import mock
-import six
-from six.moves import range
+from tank_vendor.shotgun_api3.lib import six
+from tank_vendor.shotgun_api3.lib.six.moves import range
 
 
 class TestEngineBase(TankTestBase):

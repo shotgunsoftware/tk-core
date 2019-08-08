@@ -14,8 +14,8 @@ from __future__ import absolute_import
 import os
 import sys
 import time
-import six.moves.queue
-import StringIO
+from tank_vendor.shotgun_api3.lib.six.moves.queue import Empty
+from tank_vendor.shotgun_api3.lib.six import StringIO
 import shutil
 import contextlib
 import logging
@@ -32,7 +32,7 @@ from tank import LogManager
 import tank
 
 from tank.util import StorageRoots
-from six.moves import range
+from tank_vendor.shotgun_api3.lib.six.moves import range
 
 log = LogManager.get_logger(__name__)
 
@@ -52,7 +52,7 @@ def sync_path_cache(tk, force_full_sync=False):
     """
     
     # capture sync log to string
-    stream = StringIO.StringIO()
+    stream = StringIO()
     handler = logging.StreamHandler(stream)
     log = logging.getLogger("sgtk.core.path_cache")
     log.setLevel(logging.DEBUG)
@@ -816,7 +816,7 @@ class TestConcurrentShotgunSync(TankTestBase):
                 # update the local mockgun db that we have in memory
                 try:
                     self.tk.shotgun._db = queue.get_nowait()
-                except six.moves.queue.Empty:
+                except Empty:
                     pass
                 self.tk.synchronize_filesystem_structure()
         except Exception as e:

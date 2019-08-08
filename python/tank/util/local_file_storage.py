@@ -11,11 +11,11 @@
 from __future__ import absolute_import
 import os
 import sys
-import six.moves.urllib.parse
+from tank_vendor.shotgun_api3.lib.six.moves import urllib
 from . import filesystem
 from .. import LogManager
 from ..errors import TankError
-from six.moves import range
+from tank_vendor.shotgun_api3.lib.six.moves import range
 
 log = LogManager.get_logger(__name__)
 
@@ -219,7 +219,7 @@ class LocalFileStorageManager(object):
             )
 
         # get site only; https://www.FOO.com:8080 -> www.foo.com
-        base_url = six.moves.urllib.parse.urlparse(hostname).netloc.split(":")[0].lower()
+        base_url = urllib.parse.urlparse(hostname).netloc.split(":")[0].lower()
 
         if generation > cls.CORE_V17:
             # for 0.18, in order to apply further shortcuts to avoid hitting

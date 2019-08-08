@@ -17,7 +17,7 @@ from .configuration_writer import ConfigurationWriter
 from .. import LogManager
 from .. import constants
 
-import six.moves.cPickle as pickle
+import tank_vendor.shotgun_api3.lib.six.moves.cPickle as pickle
 
 from ..util import ShotgunPath
 from ..errors import TankFileDoesNotExistError

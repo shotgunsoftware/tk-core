@@ -12,7 +12,7 @@ from __future__ import absolute_import
 import os
 import collections
 import pprint
-import six.moves.cPickle as pickle
+import tank_vendor.shotgun_api3.lib.six.moves.cPickle as pickle
 
 from .errors import TankError, TankInitError
 from . import LogManager
@@ -23,7 +23,7 @@ from . import constants
 from . import pipelineconfig_utils
 from .pipelineconfig import PipelineConfiguration
 from .util import LocalFileStorageManager
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 log = LogManager.get_logger(__name__)
 

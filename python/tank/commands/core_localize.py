@@ -23,7 +23,7 @@ from ..util.version import is_version_older
 from .action_base import Action
 from .. import pipelineconfig_utils
 from .. import pipelineconfig_factory
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 # these are the items that need to be copied across
 # when a configuration is upgraded to contain a core API

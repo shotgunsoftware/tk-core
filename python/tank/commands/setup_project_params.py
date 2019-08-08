@@ -31,7 +31,7 @@ from ..descriptor import create_descriptor, Descriptor
 from tank_vendor import yaml
 
 from ..util import ShotgunPath
-from six.moves import range
+from tank_vendor.shotgun_api3.lib.six.moves import range
 
 
 

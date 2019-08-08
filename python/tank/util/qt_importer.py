@@ -16,7 +16,7 @@ from __future__ import absolute_import
 import os
 
 from ..log import LogManager
-from six.moves import range
+from tank_vendor.shotgun_api3.lib.six.moves import range
 logger = LogManager.get_logger(__name__)
 
 

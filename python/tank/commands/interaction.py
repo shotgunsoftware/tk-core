@@ -15,7 +15,7 @@ Interfaces for prompting the user for input during tank command execution.
 from __future__ import print_function
 from __future__ import absolute_import
 from .. import LogManager
-from six.moves import input
+from tank_vendor.shotgun_api3.lib.six.moves import input
 
 
 log = LogManager.get_logger(__name__)

@@ -36,7 +36,7 @@ from .. import LogManager
 import threading
 import sys
 import os
-from six.moves import range
+from tank_vendor.shotgun_api3.lib.six.moves import range
 
 # When importing qt_abstraction, a lot of code is executed to detects which
 # version of Qt is being used. Running business logic at import time is not

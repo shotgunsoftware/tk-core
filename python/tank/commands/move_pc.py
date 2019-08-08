@@ -17,7 +17,7 @@ from .action_base import Action
 import sys
 import os
 import shutil
-from six.moves import input
+from tank_vendor.shotgun_api3.lib.six.moves import input
 
 
 class MovePCAction(Action):
