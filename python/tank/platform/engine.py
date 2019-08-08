@@ -334,20 +334,11 @@ class Engine(TankBundle):
         running_method = getattr(self, method_name)
         base_method = getattr(Engine, method_name)
 
-        # now determine if the runtime implementation
-        # is the base class implementation or not
-        subclassed = False
-
-        if sys.version_info < (2,6):
-            # older pythons use im_func rather than __func__
-            if running_method.__func__ is not base_method.__func__:
-                subclassed = True
-        else:
-            # pyton 2.6 and above use __func__
-            if running_method.__func__ is not base_method.__func__:
-                subclassed = True
-
-        return subclassed
+        # This should be a safe way to test, and is both Python 2 and 3 compatible.
+        # the __func__ attribute of callables that was previously used was removed
+        # in Python 3.4, and rather than continue to use that only in python 2, we
+        # will use the universally available __module__ attribute.
+        return running_method.__module__ != base_method.__module__
 
     def __has_018_logging_support(self):
         """
