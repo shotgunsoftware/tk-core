@@ -278,7 +278,7 @@ class TestAppStoreConnectivity(ShotgunTestBase):
         self.assertEqual(mock.call_count, 0)
 
     @patch("tank_vendor.shotgun_api3.Shotgun")
-    @patch("urllib2.urlopen")
+    @patch("tank_vendor.shotgun_api3.lib.six.moves.urllib.request.urlopen")
     def test_disabling_access_to_app_store(self, urlopen_mock, shotgun_mock):
         """
         Tests that we can prevent connection to the app store based on usage

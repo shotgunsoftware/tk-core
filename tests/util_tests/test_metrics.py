@@ -222,7 +222,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._create_engine()
 
         # Patch & Mock the `urlopen` method
-        self._urlopen_mock = patch("urllib2.urlopen")
+        self._urlopen_mock = patch("tank_vendor.shotgun_api3.lib.six.moves.urllib.request.urlopen")
         self._mocked_method = self._urlopen_mock.start()
 
     def setUp(self):
@@ -250,11 +250,11 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # important to call base class so it can clean up memory
         super(TestMetricsDispatchWorkerThread, self).tearDown()
 
-    def _get_urllib2_request_calls(self, return_only_calls_after_reset=False):
+    def _get_urllib_request_calls(self, return_only_calls_after_reset=False):
         """
-        Helper test method that traverses `mock_calls` and return a list of `urllib2.Request` specific calls
+        Helper test method that traverses `mock_calls` and return a list of `urllib.Request` specific calls
 
-        :return: a list a `urllib2.Request` specific calls
+        :return: a list a `urllib.Request` specific calls
         """
 
         mocked_request_calls = []
@@ -272,7 +272,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                 if "call.reset()" in str(mocked_call):
                     found_reset = True
 
-            if found_reset and "urllib2.Request" in str(mocked_call):
+            if found_reset and "urllib.request.Request" in str(mocked_call):
                 # TODO: find out what class type is 'something'
                 for something in mocked_call:
                     for instance in something:
@@ -291,7 +291,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         :return: a list a metric dictionaries
         """
         metrics = []
-        for mocked_request in self._get_urllib2_request_calls(return_only_calls_after_reset):
+        for mocked_request in self._get_urllib_request_calls(return_only_calls_after_reset):
             data = json.loads(mocked_request.get_data())
             # Now that we have request data
             # Traverse the metrics to find the one we've logged above
@@ -333,13 +333,13 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # Simple flag just to differenciate one of two conditions:
         # a) didn't even find a mocked request call
         # b) a + didn't find expected metric
-        found_urllib2_request_call = False
+        found_urllib_request_call = False
 
         while time.time() < timeout:
             time.sleep(TestMetricsDispatchWorkerThread.SLEEP_INTERVAL)
 
-            for mocked_request in self._get_urllib2_request_calls():
-                found_urllib2_request_call = True
+            for mocked_request in self._get_urllib_request_calls():
+                found_urllib_request_call = True
                 data = json.loads(mocked_request.get_data())
                 # Now that we have request data
                 # Traverse the metrics to find the one we've logged above
@@ -363,7 +363,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                             # Tests all of the received metric properties that went through two conversions
                             return metric
 
-        if(found_urllib2_request_call):
+        if(found_urllib_request_call):
             self.fail("Timed out waiting for expected metric.")
         else:
             self.fail("Timed out waiting for a mocked urlopen request call.")
@@ -563,7 +563,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         """
         Test that logging metrics is not possible from an older version
         of toolkit as it can't even pass metric version check and therefore
-        won't call urllib2.urlopen mock calls
+        won't call urllib.urlopen mock calls
         """
 
         # Define a local server caps mock locally since it only
@@ -591,7 +591,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                           "should have been filtered out based on server caps. version.")
 
         #
-        # If we get here, this is SUCCESS as we didn't receive urllib2.Request calls
+        # If we get here, this is SUCCESS as we didn't receive urllib.Request calls
         #
 
     def test_misc_constants(self):
@@ -682,7 +682,10 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # For this test, we need to override that to something more specific.
         self._urlopen_mock.stop()
         self._urlopen_mock = None
-        self._urlopen_mock = patch("urllib2.urlopen", side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size)
+        self._urlopen_mock = patch(
+            "tank_vendor.shotgun_api3.lib.six.moves.urllib.request.urlopen",
+            side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size
+        )
         self._mocked_method = self._urlopen_mock.start()
 
         # We add 10 time the maximum number of events in the queue.
@@ -744,7 +747,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._urlopen_mock.stop()
         self._urlopen_mock = None
         self._urlopen_mock = patch(
-            "urllib2.urlopen",
+            "tank_vendor.shotgun_api3.lib.six.moves.urllib.request.urlopen",
             side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size
         )
         self._mocked_method = self._urlopen_mock.start()
@@ -1040,7 +1043,7 @@ class TestBundleMetrics(TankTestBase):
         # Make sure we tested at least one app with a framework
         self.assertTrue(able_to_test_a_framework)
 
-    @patch("urllib2.open")
+    @patch("urllib.open")
     def test_log_metrics_hook(self, patched):
         """
         Test the log_metric hook is fired when logging metrics

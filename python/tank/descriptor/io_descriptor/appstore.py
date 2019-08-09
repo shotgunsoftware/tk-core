@@ -837,7 +837,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         # now connect to our site and use a special url to retrieve the app store script key
         session_token = sg.get_session_token()
         post_data = {"session_token": session_token}
-        response = urllib.request.urlopen("%s/api3/sgtk_install_script" % sg.base_url, parse.urlencode(post_data))
+        response = urllib.request.urlopen("%s/api3/sgtk_install_script" % sg.base_url, urllib.parse.urlencode(post_data))
         html = response.read()
         data = json.loads(html)
 

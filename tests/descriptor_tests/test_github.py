@@ -26,7 +26,7 @@ _TESTED_CLASS = _TESTED_MODULE + ".IODescriptorGithubRelease"
 
 class MockResponse(object):
     """
-    An object that mocks the needed attributes/methods of the object returned by urllib2.urlopen().
+    An object that mocks the needed attributes/methods of the object returned by urllib.urlopen().
 
     It uses json and header files on disk to load the data for the url that should be mocked.
     """
@@ -47,7 +47,7 @@ class MockResponse(object):
             self.resp_data = response_file.read()
 
         # get the headers from {pagename}.header file in the fixtures dir and
-        # build a dictionary matching the expected headers from urllib2
+        # build a dictionary matching the expected headers from urllib
         header_path = os.path.join(fixtures_path, page_name + ".header")
         with open(header_path) as headers_file:
             # parse the status line
@@ -56,7 +56,7 @@ class MockResponse(object):
             status_message = " ".join(status_line[2:])
             # parse the rest of the headers
             headers = dict()
-            # grab key/value pairs out of headers from curl and build a dict like urllib2 does
+            # grab key/value pairs out of headers from curl and build a dict like urllib does
             # explain the regex better
             header_line_regex = r"(?P<key>[a-zA-Z\-]+): (?P<value>.+)"
             for line in headers_file:
@@ -90,7 +90,7 @@ class MockResponse(object):
     def get_exception(self):
         """
         If the page has a non-200 code, generate a HTTPError similar to the one that
-        urllib2.urlopen() would normally throw.
+        urllib.urlopen() would normally throw.
         """
         if self.code != 200:
             return urllib.error.HTTPError(self._page_name, self.code, self.msg, self.headers, self)
@@ -162,7 +162,7 @@ class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
         Test that the get_latest_version() method correctly finds the latest release,
         and loads the correct url from the Github API.
         """
-        with patch(_TESTED_MODULE + ".urllib2.urlopen") as urlopen_mock:
+        with patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
             # Make sure that the correct URL is requested, and the response is correctly
             # parsed for the latest tag name.
             urlopen_mock.return_value = MockResponse("releases_latest")
@@ -182,10 +182,10 @@ class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
         Test that the get_latest_version() method correctly responds as expected
         to a broken network connection and a 404 or 500 error from the Github API.
         """
-        with patch(_TESTED_MODULE + ".urllib2.urlopen") as urlopen_mock:
+        with patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
             desc = self._create_desc()
 
-            # URLError from urllib2 should raise TankDescriptorError.
+            # URLError from urllib should raise TankDescriptorError.
             urlopen_mock.side_effect = urllib.error.URLError("Some Exception")
             with self.assertRaises(sgtk.descriptor.TankDescriptorError):
                 desc.find_latest_version()
@@ -218,7 +218,7 @@ class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
 
         # Test with two pages of results, but the desired item on first page.
         # We should not request the second page.
-        with patch(_TESTED_MODULE + ".urllib2.urlopen") as urlopen_mock:
+        with patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
             urlopen_mock.side_effect = [MockResponse("releases"), MockResponse("releases_page_2")]
             desc2 = desc.find_latest_version(constraint_pattern="v1.2.x")
             urlopen_mock.assert_called_with(target_url_page_1)
@@ -227,7 +227,7 @@ class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
 
         # Now test again, but the desired item will be on the second page, make sure
         # we request it.
-        with patch(_TESTED_MODULE + ".urllib2.urlopen") as urlopen_mock:
+        with patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
             urlopen_mock.side_effect = [MockResponse("releases"), MockResponse("releases_page_2")]
             desc2 = desc.find_latest_version(constraint_pattern="v1.1.x")
             calls = [mock.call(target_url_page_1), mock.call(target_url_page_2)]
@@ -352,7 +352,7 @@ class TestGithubIODescriptorRemoteAccessCheck(GithubIODescriptorTestBase):
             o=self.default_location_dict["organization"],
             r=self.default_location_dict["repository"]
         )
-        with patch(_TESTED_MODULE + ".urllib2.urlopen") as urlopen_mock:
+        with patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
             # normal good response
             urlopen_mock.return_value = MockResponse("repo_root")
             self.assertEqual(desc.has_remote_access(), True)
@@ -368,13 +368,13 @@ class TestGithubIODescriptorRemoteAccessCheck(GithubIODescriptorTestBase):
 
     def test_github_api_proxied(self):
         """
-        Ensure that urllib2 calls install a proxy when the shotgun config has a proxy_handler.
+        Ensure that urllib calls install a proxy when the shotgun config has a proxy_handler.
         """
         try:
             proxy_handler = urllib.request.ProxyHandler({"http": "127.0.0.1"})
             self.mockgun.config.proxy_handler = proxy_handler
-            with patch(_TESTED_MODULE + ".urllib2.urlopen") as urlopen_mock:
-                with patch(_TESTED_MODULE + ".urllib2.install_opener") as install_opener_mock:
+            with patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
+                with patch(_TESTED_MODULE + ".urllib.request.install_opener") as install_opener_mock:
                     # Test that the proxy is installed for has_remote_access.
                     urlopen_mock.return_value = MockResponse("repo_root")
                     desc = self._create_desc()
