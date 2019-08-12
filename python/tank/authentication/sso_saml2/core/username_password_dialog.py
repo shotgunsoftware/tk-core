@@ -14,100 +14,131 @@ Module to support Web login via a web browser and automated session renewal.
 from __future__ import print_function
 
 # pylint: disable=import-error
-from PySide.QtGui import (
-    QApplication,
-    QDialog,
-    QGridLayout,
-    QLineEdit,
-    QLabel,
-    QDialogButtonBox,
-)
+try:
+    from .ui.qt_abstraction import QtGui
 
+    class UsernamePasswordDialog(QtGui.QDialog):
+        """Simple dialog to request a username and password from the user."""
 
-# pylint: disable=too-few-public-methods
-class UsernamePasswordDialog(QDialog):
-    """Simple dialog to request a username and password from the user."""
+        def __init__(self):
+            super(UsernamePasswordDialog, self).__init__()
 
-    def __init__(self):
-        super(UsernamePasswordDialog, self).__init__()
+            # For now we fix the GUI size.
+            self.setWindowTitle("Authentication Required")
+            self.setMinimumWidth(420)
+            self.setMinimumHeight(120)
 
-        # For now we fix the GUI size.
-        self.setWindowTitle("Authentication Required")
-        self.setMinimumWidth(420)
-        self.setMinimumHeight(120)
+            # set up the layout
+            form_grid_layout = QtGui.QGridLayout(self)
 
-        # set up the layout
-        form_grid_layout = QGridLayout(self)
+            # initialize the username combo box so that it is editable
+            self._edit_username = QtGui.QLineEdit(self)
 
-        # initialize the username combo box so that it is editable
-        self._edit_username = QLineEdit(self)
+            # initialize the password field so that it does not echo characters
+            self._edit_password = QtGui.QLineEdit(self)
+            self._edit_password.setEchoMode(QtGui.QLineEdit.Password)
 
-        # initialize the password field so that it does not echo characters
-        self._edit_password = QLineEdit(self)
-        self._edit_password.setEchoMode(QLineEdit.Password)
+            # initialize the labels
+            label_username = QtGui.QLabel(self)
+            label_password = QtGui.QLabel(self)
+            label_username.setText("Username:")
+            label_password.setText("Password:")
 
-        # initialize the labels
-        label_username = QLabel(self)
-        label_password = QLabel(self)
-        label_username.setText("Username:")
-        label_password.setText("Password:")
+            # initialize buttons
+            buttons = QtGui.QDialogButtonBox(self)
+            buttons.addButton(QtGui.QDialogButtonBox.Ok)
+            buttons.addButton(QtGui.QDialogButtonBox.Cancel)
+            buttons.button(QtGui.QDialogButtonBox.Ok).setText("Login")
+            buttons.button(QtGui.QDialogButtonBox.Cancel).setText("Cancel")
 
-        # initialize buttons
-        buttons = QDialogButtonBox(self)
-        buttons.addButton(QDialogButtonBox.Ok)
-        buttons.addButton(QDialogButtonBox.Cancel)
-        buttons.button(QDialogButtonBox.Ok).setText("Login")
-        buttons.button(QDialogButtonBox.Cancel).setText("Cancel")
+            # place components into the dialog
+            form_grid_layout.addWidget(label_username, 0, 0)
+            form_grid_layout.addWidget(self._edit_username, 0, 1)
+            form_grid_layout.addWidget(label_password, 1, 0)
+            form_grid_layout.addWidget(self._edit_password, 1, 1)
+            form_grid_layout.setRowStretch(2, 1)
+            form_grid_layout.addWidget(buttons, 3, 1)
 
-        # place components into the dialog
-        form_grid_layout.addWidget(label_username, 0, 0)
-        form_grid_layout.addWidget(self._edit_username, 0, 1)
-        form_grid_layout.addWidget(label_password, 1, 0)
-        form_grid_layout.addWidget(self._edit_password, 1, 1)
-        form_grid_layout.setRowStretch(2, 1)
-        form_grid_layout.addWidget(buttons, 3, 1)
+            self.setLayout(form_grid_layout)
 
-        self.setLayout(form_grid_layout)
+            buttons.button(QtGui.QDialogButtonBox.Ok).clicked.connect(self._on_enter_credentials)
+            buttons.button(QtGui.QDialogButtonBox.Cancel).clicked.connect(self.close)
 
-        buttons.button(QDialogButtonBox.Ok).clicked.connect(self._on_enter_credentials)
-        buttons.button(QDialogButtonBox.Cancel).clicked.connect(self.close)
+        @property
+        def username(self):
+            """Getter for username."""
+            return self._edit_username.text()
 
-    @property
-    def username(self):
-        """Getter for username."""
-        return self._edit_username.text()
+        @username.setter
+        def username(self, username):
+            """Setter for username."""
+            self._edit_username.setText(username)
 
-    @username.setter
-    def username(self, username):
-        """Setter for username."""
-        self._edit_username.setText(username)
+        @property
+        def password(self):
+            """Getter for password."""
+            return self._edit_password.text()
 
-    @property
-    def password(self):
-        """Getter for password."""
-        return self._edit_password.text()
+        @password.setter
+        def password(self, password):
+            """Setter for password."""
+            self._edit_password.setText(password)
 
-    @password.setter
-    def password(self, password):
-        """Setter for password."""
-        self._edit_password.setText(password)
+        def _on_enter_credentials(self):
+            """Callback when clicking Ok."""
+            if self._edit_username.text() == "":
+                self._edit_username.setFocus()
+                return
 
-    def _on_enter_credentials(self):
-        """Callback when clicking Ok."""
-        if self._edit_username.text() == "":
-            self._edit_username.setFocus()
-            return
+            if self._edit_password.text() == "":
+                self._edit_password.setFocus()
+                return
 
-        if self._edit_password.text() == "":
-            self._edit_password.setFocus()
-            return
+            self.accept()
+except ImportError:
+    class UsernamePasswordDialog(object):
+        """Minimalistic implementation."""
+        def __init__(self):
+            self._username = ""
+            self._password = ""
 
-        self.accept()
+        @property
+        def username(self):
+            """Getter for username."""
+            return self._username
+
+        @username.setter
+        def username(self, username):
+            """Setter for username."""
+            self._username = username
+
+        @property
+        def password(self):
+            """Getter for password."""
+            return self._password
+
+        @password.setter
+        def password(self, password):
+            """Setter for password."""
+            self._password = password
+
+        def show(self):
+            """Stub implementation"""
+            pass
+
+        def raise_(self):
+            """Stub implementation"""
+            pass
+
+        # pylint: disable=no-self-use
+        def exec_(self):
+            """Stub implementation"""
+            return 1
 
 
 def main():
     """Simple test"""
-    _ = QApplication([])
+    _ = QtGui.QApplication([])
     login_dialog = UsernamePasswordDialog()
     login_dialog.username = "TheUsername"
     login_dialog.password = "ThePassword"
