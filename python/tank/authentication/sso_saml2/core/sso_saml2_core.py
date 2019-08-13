@@ -25,7 +25,6 @@ from .errors import (
     SsoSaml2MissingQtNetwork,
     SsoSaml2MissingQtWebKit,
 )
-from .username_password_dialog import UsernamePasswordDialog
 from .utils import (
     _decode_cookies,
     _encode_cookies,
@@ -37,6 +36,14 @@ from .utils import (
     get_session_id,
     get_user_name,
 )
+
+try:
+    from .username_password_dialog import UsernamePasswordDialog
+except ImportError:
+    # Silently ignore the import error, as we are likely not in a Qt
+    # environment.
+    pass
+
 
 # Error messages for events.
 HTTP_CANT_CONNECT_TO_SHOTGUN = "Cannot Connect To Shotgun site."

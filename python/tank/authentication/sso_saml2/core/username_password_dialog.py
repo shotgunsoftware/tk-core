@@ -19,6 +19,10 @@ from ...ui.qt_abstraction import (
     QtGui,
 )
 
+# No point in proceeding if QtGui is None.
+if QtGui is None:
+    raise ImportError("Unable to import QtGui")
+
 
 class UsernamePasswordDialog(QtGui.QDialog):
     """Simple dialog to request a username and password from the user."""
