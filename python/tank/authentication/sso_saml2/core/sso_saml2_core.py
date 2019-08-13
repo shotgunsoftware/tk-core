@@ -14,8 +14,8 @@ Module to support Web login via a web browser and automated session renewal.
 import base64
 from Cookie import SimpleCookie
 import logging
-import platform
 import os
+import sys
 import time
 
 from .authentication_session_data import AuthenticationSessionData
@@ -569,10 +569,8 @@ class SsoSaml2Core(object):
         # We take for granted that if we are on Windows, proper NTLM negociation
         # is possible between the machine and the IdP. For other platforms, we
         # pop an authentication dialog.
-        if platform.system() != "Windows":
+        if sys.platform != "win32":
             auth_dialog = UsernamePasswordDialog()
-            auth_dialog.show()
-            auth_dialog.raise_()
             if auth_dialog.exec_():
                 authenticator.setUser(auth_dialog.username)
                 authenticator.setPassword(auth_dialog.password)
@@ -580,7 +578,7 @@ class SsoSaml2Core(object):
                 self._logger.debug("User prompted for username/password but canceled")
         else:
             # Setting the user to an empty string tells the QAuthenticator to
-            # negociate the authentication with the user's credentials.
+            # negotiate the authentication with the user's credentials.
             authenticator.setUser("")
 
     ############################################################################
