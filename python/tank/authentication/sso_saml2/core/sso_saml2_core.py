@@ -42,7 +42,7 @@ try:
 except ImportError:
     # Silently ignore the import error, as we are likely not in a Qt
     # environment.
-    pass
+    UsernamePasswordDialog = None
 
 
 # Error messages for events.
@@ -88,7 +88,7 @@ if (!Function.prototype.bind) (function(){
 
     if (this.prototype) {
       // Function.prototype doesn't have a prototype property
-      fNOP.prototype = this.prototype; 
+      fNOP.prototype = this.prototype;
     }
     fBound.prototype = new fNOP();
 
@@ -576,7 +576,7 @@ class SsoSaml2Core(object):
         # We take for granted that if we are on Windows, proper NTLM negociation
         # is possible between the machine and the IdP. For other platforms, we
         # pop an authentication dialog.
-        if sys.platform != "win32":
+        if sys.platform != "win32": and UsernamePasswordDialog is not None:
             auth_dialog = UsernamePasswordDialog()
             if auth_dialog.exec_():
                 authenticator.setUser(auth_dialog.username)
@@ -584,6 +584,8 @@ class SsoSaml2Core(object):
             else:
                 self._logger.debug("User prompted for username/password but canceled")
         else:
+            if UsernamePasswordDialog is None:
+                self._logger.debug("Unable to prompt user for username/password, due to missing username_password_dialog module")
             # Setting the user to an empty string tells the QAuthenticator to
             # negotiate the authentication with the user's credentials.
             authenticator.setUser("")
