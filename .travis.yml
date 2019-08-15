@@ -13,6 +13,12 @@
 language: python
 sudo: required
 
+# On Xenial, xvfb should be started using the services syntax.  Previously, we
+# had started it directly in the tests/run_travis.sh script.
+# See https://docs.travis-ci.com/user/gui-and-headless-browsers/#using-services-xvfb
+services:
+  - xvfb
+
 matrix:
   include:
   - python: "2.7"

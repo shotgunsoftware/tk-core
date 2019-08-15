@@ -32,11 +32,12 @@ if [[ $TRAVIS = true ]]; then
     pip install PySide==1.2.2 --no-index --find-links https://parkin.github.io/python-wheelhouse/;
     # Travis CI servers use virtualenvs, so we need to finish the install by the following
     python ~/virtualenv/python${TRAVIS_PYTHON_VERSION}/bin/pyside_postinstall.py -install
-    # Now we need to start the X server...
-    # Taken from: https://github.com/colmap/colmap/commit/606d3cd09931d78a3272f99b5e7a2cb6894e243e
-    export DISPLAY=:99.0
-    sh -e /etc/init.d/xvfb start
-    sleep 3
+    # Note: previously, we had started XVFB directly here, as done here:
+    # https://github.com/colmap/colmap/commit/606d3cd09931d78a3272f99b5e7a2cb6894e243e
+    # Starting with Xenial, a new syntax in the .travis.yml file is used to replace
+    # this, as described here:
+    # https://docs.travis-ci.com/user/gui-and-headless-browsers/#using-services-xvfb
+
     # Finally, tell Qt to run offscreen.
     export QT_QPA_PLATFORM=offscreen
 fi
