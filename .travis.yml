@@ -13,6 +13,9 @@
 language: python
 sudo: required
 
+# Force xenial dist, since between dists Travis will make CI-breaking changes
+dist: xenial
+
 # On Xenial, xvfb should be started using the services syntax.  Previously, we
 # had started it directly in the tests/run_travis.sh script.
 # See https://docs.travis-ci.com/user/gui-and-headless-browsers/#using-services-xvfb
