@@ -576,7 +576,7 @@ class SsoSaml2Core(object):
         # We take for granted that if we are on Windows, proper NTLM negociation
         # is possible between the machine and the IdP. For other platforms, we
         # pop an authentication dialog.
-        if sys.platform != "win32": and UsernamePasswordDialog is not None:
+        if sys.platform != "win32" and UsernamePasswordDialog is not None:
             auth_dialog = UsernamePasswordDialog()
             if auth_dialog.exec_():
                 authenticator.setUser(auth_dialog.username)
