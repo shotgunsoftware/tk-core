@@ -13,7 +13,9 @@ SSO/SAML2 Core utility functions.
 
 from __future__ import absolute_import
 import base64
+import binascii
 import logging
+from tank_vendor.shotgun_api3.lib import six
 from tank_vendor.shotgun_api3.lib.six.moves import urllib
 from tank_vendor.shotgun_api3.lib.six.moves.http_cookies import SimpleCookie
 
@@ -57,9 +59,11 @@ def _decode_cookies(encoded_cookies):
     if encoded_cookies:
         try:
             decoded_cookies = base64.b64decode(encoded_cookies)
-            cookies.load(decoded_cookies)
-        except TypeError as e:
-            get_logger().error("Unable to decode the cookies: %s" % e.message)
+            cookies.load(six.ensure_str(decoded_cookies))
+        except (TypeError, binascii.Error) as e:
+            # In Python 2 this raises a TypeError, while in 3 it will raise a
+            # binascii.Error.  Catch either and handle them the same.
+            get_logger().error("Unable to decode the cookies: %s" % str(e))
     return cookies
 
 
@@ -71,7 +75,7 @@ def _encode_cookies(cookies):
 
     :returns: An encoded string representing the cookie jar.
     """
-    encoded_cookies = base64.b64encode(cookies.output())
+    encoded_cookies = base64.b64encode(six.ensure_binary(cookies.output()))
     return encoded_cookies
 
 

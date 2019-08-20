@@ -15,9 +15,9 @@ across storages, configurations etc.
 from __future__ import absolute_import
 import os
 import glob
-import tank_vendor.shotgun_api3.lib.six.moves.cPickle as pickle
 
 from tank_vendor import yaml
+import tank_vendor.shotgun_api3.lib.six.moves.cPickle as pickle
 
 from .errors import TankError, TankUnreadableFileError
 from .util.version import is_version_older
@@ -26,6 +26,7 @@ from .platform.environment import InstalledEnvironment, WritableEnvironment
 from .util import shotgun, yaml_cache
 from .util import ShotgunPath
 from .util import StorageRoots
+from .util.pickle import retrieve_env_var_pickled
 from . import hook
 from . import pipelineconfig_utils
 from . import template_includes
@@ -231,7 +232,7 @@ class PipelineConfiguration(object):
         #
         if constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA in os.environ:
             try:
-                external_data = pickle.loads(os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA])
+                external_data = retrieve_env_var_pickled(constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA)
             except Exception as e:
                 log.warning("Could not load external config data from: %s" % e)
             finally:

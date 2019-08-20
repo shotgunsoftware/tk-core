@@ -146,9 +146,9 @@ class Template(object):
         :param key_name: Name of template key for which the check should be carried out
         :returns: True if key is optional, False if not.
         """
-        # the key is required if it's in the 
+        # the key is required if it's in the
         # minimum set of keys for this template
-        if key_name in min(self._keys):
+        if key_name in min(self._keys, key=lambda i: len(i.keys())):
             # this key is required
             return False
         else:
@@ -178,7 +178,7 @@ class Template(object):
         :rtype: list
         """
         # find shortest keys dictionary
-        keys = min(self._keys)
+        keys = min(self._keys, key=lambda i: len(i.keys()))
         return self._missing_keys(fields, keys, skip_defaults)
 
     def _missing_keys(self, fields, keys, skip_defaults):

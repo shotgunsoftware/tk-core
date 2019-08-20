@@ -409,7 +409,7 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
         # otherwise with wt mode, \n on windows will be turned into \n\r
         # which is not interpreted correctly by the jacascript code.
         f = open(cache_path, "wb")
-        f.write(data)
+        f.write(six.ensure_binary(data))
         f.close()
 
         # make sure cache file has proper permissions

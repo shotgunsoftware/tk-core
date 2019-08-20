@@ -27,6 +27,7 @@ from tank_test.tank_test_base import setUpModule # noqa
 import sgtk
 import tank
 from tank_vendor.shotgun_api3.lib.six.moves import range
+from tank_vendor.shotgun_api3.lib.six import b
 
 
 def _raise_exception(placeholder_a="default_a", placeholder_b="default_b"):
@@ -145,7 +146,7 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         # write 10 MB of data into the text file
         with open(text_file_path, "wb") as f:
             f.seek((1024 * 1024 * size) - 1)
-            f.write("\0")
+            f.write(b("\0"))
 
         zip_file_path = os.path.join(tempfile.gettempdir(), "%s_tank_source.zip" % uuid.uuid4().hex)
         try:

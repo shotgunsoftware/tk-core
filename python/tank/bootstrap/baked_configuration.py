@@ -10,6 +10,8 @@
 
 from __future__ import absolute_import
 import os
+import base64
+import zlib
 
 from .configuration import Configuration
 from .configuration_writer import ConfigurationWriter
@@ -17,9 +19,10 @@ from .configuration_writer import ConfigurationWriter
 from .. import LogManager
 from .. import constants
 
-import tank_vendor.shotgun_api3.lib.six.moves.cPickle as pickle
+from tank_vendor.shotgun_api3.lib import six
 
 from ..util import ShotgunPath
+from ..util.pickle import store_env_var_pickled
 from ..errors import TankFileDoesNotExistError
 from .. import pipelineconfig_utils
 
@@ -65,6 +68,15 @@ class BakedConfiguration(Configuration):
         super(BakedConfiguration, self).__init__(path, descriptor)
         self._path = path
         self._sg_connection = sg
+
+        # Ensure that project_id, plugin_id and pipeline_config_id are not binary.
+        if project_id is not None:
+            project_id = six.ensure_text(project_id)
+        if plugin_id is not None:
+            plugin_id = six.ensure_text(plugin_id)
+        if pipeline_config_id is not None:
+            pipeline_config_id = six.ensure_text(pipeline_config_id)
+
         self._project_id = project_id
         self._plugin_id = plugin_id
         self._pipeline_config_id = pipeline_config_id
@@ -123,7 +135,7 @@ class BakedConfiguration(Configuration):
         }
 
         log.debug("Setting External config data: %s" % pipeline_config)
-        os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA] = pickle.dumps(pipeline_config)
+        store_env_var_pickled(constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA, pipeline_config)
 
         path = self._path.current_os
         try:

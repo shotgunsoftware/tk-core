@@ -481,7 +481,7 @@ class StringKey(TemplateKey):
             # process substring computation.
             # we want to do this in unicode.
 
-            if not isinstance(str_value, six.text_type):
+            if isinstance(str_value, six.binary_type):
                 # convert to unicode
                 input_is_utf8 = True
                 value_to_convert = str_value.decode("utf-8")
@@ -500,7 +500,7 @@ class StringKey(TemplateKey):
             elif self._subset_format:
                 # we have an explicit format string we want to apply to the
                 # match. Do the formatting as unicode.
-                resolved_value = self._subset_format.decode("utf-8").format(*match.groups())
+                resolved_value = six.ensure_text(self._subset_format).format(*match.groups())
 
             else:
                 # we have a match object. concatenate the groups
@@ -557,7 +557,7 @@ class StringKey(TemplateKey):
             if self._subset_format:
                 try:
                     # perform the formatting in unicode space to cover all cases
-                    self._subset_format.decode("utf-8").format(*regex_match.groups())
+                    six.ensure_text(self._subset_format).format(*regex_match.groups())
                 except Exception as e:
                     self._last_error = "%s Illegal value '%s' does not fit subset '%s' with format '%s': %s" % (
                         self,

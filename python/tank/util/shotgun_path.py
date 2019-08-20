@@ -224,6 +224,16 @@ class ShotgunPath(object):
         # If we're different than an empty path, we're not zero!
         return True if self.windows or self.linux or self.macosx else False
 
+    def __bool__(self):
+        """
+        Checks if one or more of the OSes have a path specified.
+
+        :returns: True if one or more of the OSes has a path specified. False if all are None.
+        """
+        # In python 3 __bool__ replaces __nonzero__.  For compatiblity we will define
+        # both, and return the result of __nonzero__ here.
+        return self.__nonzero__()
+
     def __repr__(self):
         return "<Path win:'%s', linux:'%s', macosx:'%s'>" % (
             self._windows_path,

@@ -15,6 +15,8 @@ from .git import IODescriptorGit
 from ..errors import TankDescriptorError
 from ... import LogManager
 
+from tank_vendor.shotgun_api3.lib import six
+
 log = LogManager.get_logger(__name__)
 
 
@@ -57,7 +59,7 @@ class IODescriptorGitTag(IODescriptorGit):
 
         # path is handled by base class - all git descriptors
         # have a path to a repo
-        self._version = descriptor_dict.get("version")
+        self._version = six.ensure_str(descriptor_dict.get("version"))
         self._sg_connection = sg_connection
         self._bundle_type = bundle_type
 
@@ -207,7 +209,7 @@ class IODescriptorGitTag(IODescriptorGit):
             # clone the repo, list all tags
             # for the repository, across all branches
             commands = ["tag"]
-            git_tags = self._tmp_clone_then_execute_git_commands(commands).split("\n")
+            git_tags = six.ensure_text(self._tmp_clone_then_execute_git_commands(commands)).split("\n")
 
         except Exception as e:
             raise TankDescriptorError(

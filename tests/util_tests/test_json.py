@@ -43,7 +43,7 @@ class JSONTests(TestCase):
 
         :returns: Value that was loaded back from the file.
         """
-        with tempfile.TemporaryFile() as fp:
+        with tempfile.TemporaryFile(mode='w+') as fp:
             json.dump(value, fp)
             # Return at the beginning of the file so the load method can read
             # something.

@@ -59,8 +59,8 @@ def load(
     See the documentation for :func:`json.load` to learn more about this method.
     """
     loaded_value = json.load(
-        fp, encoding, cls, object_hook, parse_float,
-        parse_int, parse_constant, **kw
+        fp, encoding=encoding, cls=cls, object_hook=object_hook, parse_float=parse_float,
+        parse_int=parse_int, parse_constant=parse_constant, **kw
     )
 
     return _convert_unicode_keys_to_string(loaded_value)
@@ -81,8 +81,8 @@ def loads(
     See the documentation for :func:`json.loads` to learn more about this method.
     """
     loaded_value = json.loads(
-        s, encoding, cls, object_hook, parse_float,
-        parse_int, parse_constant, **kw
+        s, encoding=encoding, cls=cls, object_hook=object_hook, parse_float=parse_float,
+        parse_int=parse_int, parse_constant=parse_constant, **kw
     )
 
     return _convert_unicode_keys_to_string(loaded_value)

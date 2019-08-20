@@ -11,8 +11,6 @@
 from __future__ import absolute_import
 import os
 import re
-import cgi
-from tank_vendor.shotgun_api3.lib.six.moves import urllib
 import contextlib
 
 from .. import constants
@@ -23,7 +21,7 @@ from ..errors import TankDescriptorError, TankMissingManifestError
 
 from tank_vendor import yaml
 from tank_vendor.shotgun_api3.lib import six
-from tank_vendor.shotgun_api3.lib.six.moves import map
+from tank_vendor.shotgun_api3.lib.six.moves import map, urllib
 
 log = LogManager.get_logger(__name__)
 
@@ -531,11 +529,7 @@ class IODescriptorBase(object):
         descriptor_dict["type"] = split_path[1]
 
         # now pop remaining keys into a dict and key by item_keys
-        # note: using deprecated cfg method for 2.5 compatibility
-        # example:
-        # >>> cgi.parse_qs("path=foo&version=v1.2.3")
-        # {'path': ['foo'], 'version': ['v1.2.3']}
-        for (param, value) in six.iteritems(cgi.parse_qs(query)):
+        for (param, value) in six.iteritems(urllib.parse.parse_qs(query)):
             if len(value) > 1:
                 raise TankDescriptorError("Invalid uri '%s' - duplicate parameters" % uri)
             descriptor_dict[param] = value[0]

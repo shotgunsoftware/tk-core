@@ -292,7 +292,13 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         """
         metrics = []
         for mocked_request in self._get_urllib_request_calls(return_only_calls_after_reset):
-            data = json.loads(mocked_request.get_data())
+            # get_data was removed in Python 3.4. since we're testing against 3.6 and
+            # 3.7, this should be sufficient.
+            if six.PY3:
+                data = mocked_request.data
+            else:
+                data = mocked_request.get_data()
+            data = json.loads(data)
             # Now that we have request data
             # Traverse the metrics to find the one we've logged above
             if "metrics" in data:
@@ -340,7 +346,13 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
             for mocked_request in self._get_urllib_request_calls():
                 found_urllib_request_call = True
-                data = json.loads(mocked_request.get_data())
+                # get_data was removed in Python 3.4. since we're testing against 3.6 and
+                # 3.7, this should be sufficient.
+                if six.PY3:
+                    data = mocked_request.data
+                else:
+                    data = mocked_request.get_data()
+                data = json.loads(data)
                 # Now that we have request data
                 # Traverse the metrics to find the one we've logged above
                 if "metrics" in data:

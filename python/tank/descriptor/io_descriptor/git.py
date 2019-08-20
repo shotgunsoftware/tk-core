@@ -22,6 +22,8 @@ from ...util.process import subprocess_check_output, SubprocessCalledProcessErro
 from ..errors import TankError
 from ...util import filesystem
 
+from tank_vendor.shotgun_api3.lib import six
+
 log = LogManager.get_logger(__name__)
 
 
@@ -227,7 +229,7 @@ class IODescriptorGit(IODescriptorDownloadable):
                     )
 
                     # note: it seems on windows, the result is sometimes wrapped in single quotes.
-                    output = output.strip().strip("'")
+                    output = output.strip().strip(six.ensure_binary("'"))
 
                 except SubprocessCalledProcessError as e:
                     raise TankGitError(
