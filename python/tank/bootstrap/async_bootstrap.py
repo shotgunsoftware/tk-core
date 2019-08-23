@@ -25,67 +25,10 @@ class AsyncBootstrapWrapper(QtCore.QObject):
     of an :class:`~sgtk.platform.Engine` instance in the main application thread.
     """
 
-    def __init__(self, toolkit_manager, engine_name, entity, completed_callback, failed_callback, parent=None):
+    def SomeBadlyNamedMethod(self):
         """
-        Initializes an instance of the asynchronous bootstrap wrapper.
-
-        The callback functions used to signify the completion and the failure of the bootstrap
-        must have the following signatures:
-
-            ``completed_callback(engine)``
-
-            where:
-            - ``engine`` is the launched :class:`~sgtk.platform.Engine` instance.
-
-            ``failed_callback(phase, exception)``
-
-            where:
-            - ``phase`` is the bootstrap phase that raised the exception,
-                        ``ToolkitManager.TOOLKIT_BOOTSTRAP_PHASE`` or ``ToolkitManager.ENGINE_STARTUP_PHASE``.
-                        Using this phase, the callback can decide if the toolkit core needs
-                        to be re-imported to ensure usage of a swapped in version.
-            - ``exception`` is the python exception raised while bootstrapping.
-
-        :param toolkit_manager: :class:`~sgtk.bootstrap.ToolkitManager` instance bootstrapping the engine.
-        :param engine_name: Name of the engine to launch.
-        :param entity: Shotgun entity used to resolve a project context.
-        :type entity: Dictionary with keys ``type`` and ``id``, or ``None`` for the site.
-        :param completed_callback: Callback function that handles cleanup after successful completion of the bootstrap.
-        :param failed_callback: Callback function that handles cleanup after failed completion of the bootstrap.
-        :param parent: The parent object that will be used for for the bootstrapper.
+        Demo
         """
-
-        super(AsyncBootstrapWrapper, self).__init__(parent=parent)
-
-        self._toolkit_manager = toolkit_manager
-        self._engine_name = engine_name
-        self._entity = entity
-        self._completed_callback = completed_callback
-        self._failed_callback = failed_callback
-
-        # Create a worker that can bootstrap the toolkit asynchronously in a background thread.
-        self._worker = _BootstrapToolkitWorker(self._toolkit_manager, engine_name, entity)
-
-        # This QThread object will live in the main thread, not in the new thread it will manage.
-        self._thread = QtCore.QThread(parent=self)
-
-        # Make the worker operate with the new thread affinity and use the QThread object event loop.
-        self._worker.moveToThread(self._thread)
-
-        # Start to work when the QThread object will have started its event loop in its new thread context.
-        self._thread.started.connect(self._worker.work)
-
-        # Make the worker report on the toolkit bootstrap progress.
-        self._worker.progressing.connect(self._progress_bootstrap)
-
-        # Handle completion of the toolkit bootstrap by the worker.
-        self._worker.completed.connect(self._complete_bootstrap)
-
-        # Handle failure of the toolkit bootstrap by the worker.
-        self._worker.failed.connect(self._fail_bootstrap)
-
-        # Make the QThread object exit its event loop when the work will be done.
-        self._worker.done.connect(self._thread.quit)
 
     def bootstrap(self):
         """
