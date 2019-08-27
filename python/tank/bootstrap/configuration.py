@@ -99,9 +99,9 @@ class Configuration(object):
         # However if we really want to read the core from somewhere else (ex: the bundle_cache), we need a more efficient
         # way of determining it's location. Environment variable is the go-to solution for this.
         if 'SQ_TK_CORE_LOCATION' in os.environ:
-            core_path = os.path.join(os.environ['SQ_TK_CORE_LOCATION'], "python")
+            python_core_path = os.path.join(os.environ['SQ_TK_CORE_LOCATION'], "python")
         else:
-            core_path = pipelineconfig_utils.get_core_python_path_for_config(path)
+            python_core_path = pipelineconfig_utils.get_core_python_path_for_config(path)
 
         # Get the user before the core swapping and serialize it.
         from ..authentication import serialize_user, ShotgunSamlUser
