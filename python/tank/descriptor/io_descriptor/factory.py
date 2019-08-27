@@ -119,7 +119,7 @@ def create_io_descriptor(
         descriptor = IODescriptorPath(descriptor_dict, sg, descriptor_type)
     
     elif descriptor_dict.get("type") == "rez":
-        descriptor = IODescriptorRez(descriptor_dict)
+        descriptor = IODescriptorRez(descriptor_dict, sg, descriptor_type)
 
     else:
         raise TankDescriptorError("Unknown descriptor type for '%s'" % descriptor_dict)

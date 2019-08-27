@@ -41,7 +41,7 @@ class IODescriptorRez(IODescriptorBase):
     If name is not specified and path is /tmp/foo/bar, the name will set to 'bar'
     """
 
-    def __init__(self, descriptor_dict):
+    def __init__(self, descriptor_dict, sg, descriptor_type):
         """
         Constructor
 
@@ -49,7 +49,7 @@ class IODescriptorRez(IODescriptorBase):
         :return: Descriptor instance
         """
 
-        super(IODescriptorRez, self).__init__(descriptor_dict)
+        super(IODescriptorRez, self).__init__(descriptor_dict, sg, descriptor_type)
 
         self._validate_descriptor(
             descriptor_dict,
