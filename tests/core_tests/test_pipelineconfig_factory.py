@@ -38,7 +38,7 @@ class TestTankFromPath(TankTestBase):
         os.mkdir(os.path.join(self.project_root, "child_dir"))
         result = tank.tank_from_path(child_path)
         self.assertIsInstance(result, Tank)
-        self.assertEquals(result.project_path, self.project_root)
+        self.assertEqual(result.project_path, self.project_root)
 
     def test_alternate_branch(self):
         """
@@ -48,7 +48,7 @@ class TestTankFromPath(TankTestBase):
         child_path = os.path.join(self.alt_root_1, "child_dir")
         result = tank.tank_from_path(child_path)
         self.assertIsInstance(result, Tank)
-        self.assertEquals(result.project_path, self.project_root)
+        self.assertEqual(result.project_path, self.project_root)
 
     def test_bad_path(self):
         """
@@ -80,7 +80,7 @@ class TestArchivedProjects(TankTestBase):
         """
         Tests that archived projects are not visible
         """
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             TankInitError,
             "No pipeline configurations associated with Project %s" % self.project["id"],
             sgtk.sgtk_from_entity,
@@ -93,8 +93,8 @@ class TestArchivedProjects(TankTestBase):
 
         result = tank.tank_from_entity("Project", self.project["id"])
         self.assertIsInstance(result, Tank)
-        self.assertEquals(result.project_path, self.project_root)
-        self.assertEquals(result.pipeline_configuration.get_shotgun_id(), self.sg_pc_entity["id"])
+        self.assertEqual(result.project_path, self.project_root)
+        self.assertEqual(result.pipeline_configuration.get_shotgun_id(), self.sg_pc_entity["id"])
 
 
 class TestTankFromEntity(TankTestBase):
@@ -146,7 +146,7 @@ class TestTankFromEntity(TankTestBase):
         """
         Test from project which does not have a pipeline configuration
         """
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             TankInitError,
             "No pipeline configurations associated with Project 1791284",
             sgtk.sgtk_from_entity,
@@ -158,7 +158,7 @@ class TestTankFromEntity(TankTestBase):
         """
         Test from project which does not have a pipeline configuration
         """
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             TankInitError,
             ".* is not associated with a project",
             sgtk.sgtk_from_entity,
@@ -172,8 +172,8 @@ class TestTankFromEntity(TankTestBase):
         """
         result = tank.tank_from_entity("Project", self.project["id"])
         self.assertIsInstance(result, Tank)
-        self.assertEquals(result.project_path, self.project_root)
-        self.assertEquals(result.pipeline_configuration.get_shotgun_id(), self.sg_pc_entity["id"])
+        self.assertEqual(result.project_path, self.project_root)
+        self.assertEqual(result.pipeline_configuration.get_shotgun_id(), self.sg_pc_entity["id"])
 
     def test_from_shot(self):
         """
@@ -181,14 +181,14 @@ class TestTankFromEntity(TankTestBase):
         """
         result = tank.tank_from_entity("Shot", self.shot["id"])
         self.assertIsInstance(result, Tank)
-        self.assertEquals(result.project_path, self.project_root)
-        self.assertEquals(result.pipeline_configuration.get_shotgun_id(), self.sg_pc_entity["id"])
+        self.assertEqual(result.project_path, self.project_root)
+        self.assertEqual(result.pipeline_configuration.get_shotgun_id(), self.sg_pc_entity["id"])
 
     def test_from_project_with_no_pipeline_config(self):
         """
         Test from project which does not have a pipeline configuration
         """
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             TankInitError,
             "No pipeline configurations associated with Project %s" % self.other_project["id"],
             sgtk.sgtk_from_entity,
@@ -200,7 +200,7 @@ class TestTankFromEntity(TankTestBase):
         """
         Test from shot which does not have a pipeline configuration
         """
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             TankInitError,
             "No pipeline configurations associated with Shot %s" % self.other_shot["id"],
             sgtk.sgtk_from_entity,
@@ -233,8 +233,8 @@ class TestTankFromPathDuplicatePcPaths(TankTestBase):
         """
         Test primary dupes
         """
-        self.assertRaisesRegexp(TankInitError,
-                                ".* is associated with more than one Primary pipeline configuration",
+        self.assertRaisesRegex(TankInitError,
+                                ".* is associated with more than one centralized Primary pipeline configuration",
                                 sgtk.sgtk_from_path,
                                 self.project_root)
 
@@ -242,8 +242,8 @@ class TestTankFromPathDuplicatePcPaths(TankTestBase):
         """
         Test primary dupes
         """
-        self.assertRaisesRegexp(TankInitError,
-                                ".* is associated with more than one Primary pipeline configuration",
+        self.assertRaisesRegex(TankInitError,
+                                ".* is associated with more than one centralized Primary pipeline configuration",
                                 sgtk.sgtk_from_entity,
                                 "Project",
                                 self.project["id"])
@@ -277,7 +277,7 @@ class TestSharedCoreWithSiteWideConfigs(TankTestBase):
             self.pipeline_configuration.get_shotgun_id(),
             {"code": "Secondary"}
         )
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             TankInitError,
             "does not have a Primary pipeline configuration!"
         ):
@@ -293,9 +293,10 @@ class TestSharedCoreWithSiteWideConfigs(TankTestBase):
             {"windows_path": None, "linux_path": None, "mac_path": None}
         )
         # We do not support site-wide pipeline configurations from shared cores.
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             TankInitError,
-            "cannot be instantiated because it does not have an absolute path"
+            "cannot be instantiated because it is a distributed config. "
+            "To launch this kind of configuration, use the Bootstrap API instead."
         ):
             sgtk.sgtk_from_path(self.project_root)
 
@@ -548,11 +549,11 @@ class TestTankFromWithSiteConfig(TankTestBase):
         os.environ["TANK_CURRENT_PC"] = self.pipeline_config_root
         try:
             result = tank.tank_from_path(self.project_root)
-            self.assertEquals(result.project_path, self.project_root)
-            self.assertEquals(result.pipeline_configuration.get_path(), self.pipeline_config_root)
+            self.assertEqual(result.project_path, self.project_root)
+            self.assertEqual(result.pipeline_configuration.get_path(), self.pipeline_config_root)
 
             self._invalidate_pipeline_configuration_yml()
-            with self.assertRaisesRegexp(
+            with self.assertRaisesRegex(
                 TankInitError,
                 "however that is not associated with the pipeline configuration"
             ):
@@ -567,11 +568,11 @@ class TestTankFromWithSiteConfig(TankTestBase):
         os.environ["TANK_CURRENT_PC"] = self.pipeline_config_root
         try:
             result = tank.tank_from_entity("Project", self.project["id"])
-            self.assertEquals(result.project_path, self.project_root)
-            self.assertEquals(result.pipeline_configuration.get_path(), self.pipeline_config_root)
+            self.assertEqual(result.project_path, self.project_root)
+            self.assertEqual(result.pipeline_configuration.get_path(), self.pipeline_config_root)
 
             self._invalidate_pipeline_configuration_yml()
-            with self.assertRaisesRegexp(
+            with self.assertRaisesRegex(
                 TankInitError,
                 "however that is not associated with the pipeline configuration"
             ):
@@ -795,8 +796,8 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         if not os.path.exists(test_path_dir):
             os.makedirs(test_path_dir)
 
-        self.assertRaisesRegexp(TankInitError,
-                                ".* is associated with more than one Primary pipeline configuration",
+        self.assertRaisesRegex(TankInitError,
+                                ".* is associated with more than one centralized Primary pipeline configuration",
                                 sgtk.sgtk_from_path,
                                 test_path)
 
@@ -834,7 +835,7 @@ class TestTankFromPathOverlapStorage(TankTestBase):
 
 class TestTankFromPathPCWithProjectWithoutTankName(TankTestBase):
     """
-    Tests edge case where getting path for classic/installed project and another
+    Tests edge case where getting path for centralized project and another
     project exists without a tank name.
     """
 

@@ -35,8 +35,14 @@ PIPELINECONFIG_FILE = "pipeline_configuration.yml"
 # Shotgun: The entity that represents Pipeline Configurations in Shotgun
 PIPELINE_CONFIGURATION_ENTITY = "PipelineConfiguration"
 
+# field to which configs should be uploaded in Shotgun
+PIPELINE_CONFIGURATION_UPLOAD_FIELD = "uploaded_config"
+
 # the name of the primary pipeline configuration
 PRIMARY_PIPELINE_CONFIG_NAME = "Primary"
+
+# the plugin id pattern to use by default in shotgun
+DEFAULT_PLUGIN_ID = "basic.*"
 
 # The name of the default config
 DEFAULT_CFG = "tk-config-default2"

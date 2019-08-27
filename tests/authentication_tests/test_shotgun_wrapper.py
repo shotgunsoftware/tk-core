@@ -69,7 +69,7 @@ class ShotgunWrapperTests(ShotgunTestBase):
         renew_session_mock.side_effect = ShotgunAuthenticationError("This is coming from renew_session_mock.")
 
         user = user_impl.SessionUser("https://host.shotgunstudio.com", "login", "session", "proxy")
-        with self.assertRaisesRegexp(ShotgunAuthenticationError, "This is coming from renew_session_mock."):
+        with self.assertRaisesRegex(ShotgunAuthenticationError, "This is coming from renew_session_mock."):
             user.create_sg_connection()._call_rpc()
 
         # Make sure we tried to renew the sesion

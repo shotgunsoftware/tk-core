@@ -190,7 +190,9 @@ class PathCache(object):
                 constants.CACHE_LOCATION_HOOK_NAME,
                 "get_path_cache_path",
                 project_id=self._tk.pipeline_configuration.get_project_id(),
-                plugin_id=self._tk.pipeline_configuration.get_plugin_id(),
+                # Do NOT use the plugin_id as a suffix for the path cache folder. This would
+                # prevent a path cache sync from an engine to be reused by another plugiin.
+                plugin_id=None,
                 pipeline_configuration_id=self._tk.pipeline_configuration.get_shotgun_id()
             )
 

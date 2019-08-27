@@ -14,6 +14,7 @@ import pprint
 
 from . import constants
 
+from ..descriptor import create_descriptor, Descriptor
 from .errors import TankBootstrapError, TankMissingTankNameError
 
 from ..util import filesystem
@@ -21,7 +22,6 @@ from ..util import filesystem
 from tank_vendor import yaml
 from .configuration import Configuration
 from .configuration_writer import ConfigurationWriter
-
 from .. import LogManager
 
 log = LogManager.get_logger(__name__)
@@ -35,14 +35,14 @@ class CachedConfiguration(Configuration):
     """
 
     def __init__(
-            self,
-            path,
-            sg,
-            descriptor,
-            project_id,
-            plugin_id,
-            pipeline_config_id,
-            bundle_cache_fallback_paths
+        self,
+        path,
+        sg,
+        descriptor,
+        project_id,
+        plugin_id,
+        pipeline_config_id,
+        bundle_cache_fallback_paths
     ):
         """
         :param path: ShotgunPath object describing the path to this configuration
@@ -182,13 +182,11 @@ class CachedConfiguration(Configuration):
 
         # Pass 1:
         # first check if there is any config at all
-        # probe for info.yaml manifest file
-        sg_config_file = os.path.join(
+        sg_config_folder = os.path.join(
             self._path.current_os,
-            "config",
-            constants.BUNDLE_METADATA_FILE
+            "config"
         )
-        if not os.path.exists(sg_config_file):
+        if not os.path.exists(sg_config_folder):
             return self.LOCAL_CFG_MISSING
 
         if self._config_writer.is_transaction_pending():
@@ -203,17 +201,15 @@ class CachedConfiguration(Configuration):
             # not sure what version this is.
             return self.LOCAL_CFG_INVALID
 
-        fh = open(config_info_file, "rt")
         try:
-            data = yaml.load(fh)
-            deploy_generation = data["deploy_generation"]
-            descriptor_dict = data["config_descriptor"]
+            with open(config_info_file, "rt") as fh:
+                data = yaml.load(fh)
+                deploy_generation = data["deploy_generation"]
+                descriptor_dict = data["config_descriptor"]
         except Exception as e:
             # yaml info not valid.
             log.warning("Cannot parse file '%s' - ignoring. Error: %s" % (config_info_file, e))
             return self.LOCAL_CFG_INVALID
-        finally:
-            fh.close()
 
         if deploy_generation != constants.BOOTSTRAP_LOGIC_GENERATION:
             # different format or logic of the deploy itself.
@@ -276,10 +272,18 @@ class CachedConfiguration(Configuration):
         try:
 
             # make sure the config is locally available.
+
+            # Do not separate these three lines of code or reorder them.
+            # In order to make sure the bootstrap hook is invoked ASAP, we should
+            # first make sure the config is local, then automatically instantiate
+            # the bootstrap hook and finally download the core with that hook if
+            # possible.
             self._descriptor.ensure_local()
+            self._try_initialize_configuration_cacher()
+            core_descriptor = self._ensure_core_local()
 
             # Log information about the core being setup with this config.
-            self._log_core_information()
+            self._log_core_information(core_descriptor)
 
             # compatibility checks
             self._verify_descriptor_compatible()
@@ -323,10 +327,7 @@ class CachedConfiguration(Configuration):
             self._config_writer.update_roots_file(self._descriptor)
 
             # and lastly install core
-            self._config_writer.install_core(
-                self._descriptor,
-                self._bundle_cache_fallback_paths
-            )
+            self._config_writer.install_core(core_descriptor)
 
         except Exception as e:
 
@@ -386,6 +387,40 @@ class CachedConfiguration(Configuration):
 
         self._config_writer.end_transaction()
 
+    def _ensure_core_local(self):
+        """
+        Ensures that the core for the current config has been cached to disk.
+
+        :returns: The core descriptor for the current config.
+        :rtype: :class:`~sgtk.descriptor.CoreDescriptor`
+        """
+
+        if not self._descriptor.associated_core_descriptor:
+            log.debug(
+                "Config does not have a core/core_api.yml file to define which core to use. "
+                "Will use the latest approved core in the app store."
+            )
+            core_descriptor = create_descriptor(
+                self._sg_connection,
+                Descriptor.CORE,
+                constants.LATEST_CORE_DESCRIPTOR,
+                fallback_roots=self._bundle_cache_fallback_paths,
+                resolve_latest=True
+            )
+        else:
+            # we have an exact core descriptor. Get a descriptor for it
+            log.debug(
+                "Config has a specific core defined in core/core_api.yml: %s" %
+                self._descriptor.associated_core_descriptor
+            )
+            core_descriptor = self._descriptor.resolve_core_descriptor()
+
+        # Look in the config if there is a create_descriptor hook.
+        if core_descriptor.exists_local() is False:
+            self._download_bundle(core_descriptor)
+
+        return core_descriptor
+
     def _verify_descriptor_compatible(self):
         """
         Ensures the config we're booting into understands the newer Shotgun descriptor.
@@ -401,42 +436,81 @@ class CachedConfiguration(Configuration):
                     "core/core_api.yml file in your configuration."
                 )
 
-    def _log_core_information(self):
+    def _log_core_information(self, core_information):
         """
         Logs features from core we're about to bootstrap into. This is useful for QA.
         """
         try:
-            if not self._descriptor.associated_core_descriptor:
-                log.debug(
-                    "The core associated with '%s' is not specified. The most recent "
-                    "core from the Toolkit app store will be download.", self._descriptor
-                )
+            features = core_information.get_features_info()
+            log.debug(
+                "The core '%s' associated with '%s' has the following feature information:",
+                core_information, self._descriptor
+            )
+            if features:
+                log.debug(pprint.pformat(features))
             else:
-                features = self._descriptor.resolve_core_descriptor().get_features_info()
-                log.debug(
-                    "The core '%s' associated with '%s' has the following feature information:",
-                    self._descriptor.resolve_core_descriptor(), self._descriptor
-                )
-                if features:
-                    log.debug(pprint.pformat(features))
-                else:
-                    log.debug("This version of core can't report features.")
+                log.debug("This version of core can't report features.")
         except Exception as ex:
             # Do not let an error in here trip the bootstrap, but do report.
             log.warning(
                 "The core '%s' associated with '%s' couldn't report its features: %s.",
-                self._descriptor.resolve_core_descriptor(), self._descriptor, ex
+                core_information, self._descriptor, ex
             )
 
-    @property
-    def requires_dynamic_bundle_caching(self):
+    def cache_bundles(self, pipeline_configuration, engine_constraint, progress_cb):
         """
-        If True, indicates that pipeline configuration relies on dynamic caching
-        of bundles to operate. If False, the configuration has its own bundle
-        cache.
+        Caches bundles from the configuration.
+
+        If ``engine_constraint`` is set, only the bundles for that engine instance will be cached.
+
+        :param pipeline_configuration: PipelineConfiguration we're bootstrapping into.
+        :param engine_constraint: Name of the engine to constrain the caching to.
+        :param progress_cb: Callback to invoke to report progress on bundle caching. The expected
+            signature is: ``def progress_cb(message, current_bundle_idx, nb_total_bundles)``
+
         """
-        # CachedConfiguration always depend on the global bundle cache.
-        return True
+        log.debug("Checking that all bundles are cached locally...")
+
+        if engine_constraint:
+            # Download and cache the sole config dependencies needed to run the engine being started,
+            log.debug("caching_policy is CACHE_SPARSE - only check items associated with %s" % engine_constraint)
+        else:
+            # download and cache the entire config
+            log.debug("caching_policy is CACHE_FULL - will download all items defined in the config")
+
+        # Reinitialize the configuration cacher so we use the new swapped core's.
+        self._try_initialize_configuration_cacher()
+
+        descriptors = {}
+        # pass 1 - populate list of all descriptors
+        for env_name in pipeline_configuration.get_environments():
+            env_obj = pipeline_configuration.get_environment(env_name)
+            for engine in env_obj.get_engines():
+                if engine_constraint is None or engine == engine_constraint:
+                    descriptor = env_obj.get_engine_descriptor(engine)
+                    descriptors[descriptor.get_uri()] = descriptor
+                    for app in env_obj.get_apps(engine):
+                        descriptor = env_obj.get_app_descriptor(engine, app)
+                        descriptors[descriptor.get_uri()] = descriptor
+
+            for framework in env_obj.get_frameworks():
+                descriptor = env_obj.get_framework_descriptor(framework)
+                descriptors[descriptor.get_uri()] = descriptor
+
+        # pass 2 - download all apps
+        for idx, descriptor in enumerate(descriptors.values()):
+            if not descriptor.exists_local():
+                message = "Downloading %s (%s of %s)..." % (descriptor, idx + 1, len(descriptors))
+                progress_cb(message, idx, len(descriptors))
+                try:
+                    self._download_bundle(descriptor)
+                except Exception as e:
+                    log.error("Downloading %r failed to complete successfully. This bundle will be skipped.", e)
+                    log.exception(e)
+            else:
+                message = "Checking %s (%s of %s)." % (descriptor, idx + 1, len(descriptors))
+                log.debug("%s exists locally at '%s'.", descriptor, descriptor.get_path())
+                progress_cb(message, idx, len(descriptors))
 
     def _cleanup_backup_folders(self, config_backup_folder_path, core_backup_folder_path):
         """
@@ -453,3 +527,31 @@ class CachedConfiguration(Configuration):
                     log.debug("Deleted backup folder: %s", path)
                 except Exception as e:
                     log.warning("Failed to clean up temporary backup folder '%s': %s" % (path, e))
+
+    def _try_initialize_configuration_cacher(self):
+        """
+        Try to import the configuration cacher.
+
+        This will import the one available with the currently in use Toolkit core, if one is
+        available.
+        """
+        try:
+            from sgtk.bootstrap.bundle_downloader import BundleDownloader
+            self._bundle_downloader = BundleDownloader(
+                self._sg_connection, self._pipeline_config_id, self._descriptor
+            )
+        except ImportError:
+            self._bundle_downloader = None
+
+    def _download_bundle(self, descriptor):
+        """
+        Downloads the bundle through the BundleDownloader if available.
+
+        :param descriptor: Descriptor of the bundle to download.
+        """
+        # If we don't have any cacher, this is because we're using an older core.
+        # In that case, use the download_local method directly on the descriptor.
+        if self._bundle_downloader:
+            self._bundle_downloader.download_bundle(descriptor)
+        else:
+            descriptor.download_local()

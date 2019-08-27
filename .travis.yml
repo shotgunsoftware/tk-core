@@ -11,6 +11,16 @@
 # travis-ci.org CI unit tests integration configuration file.
 
 language: python
+sudo: required
+
+# Force xenial dist, since between dists Travis will make CI-breaking changes
+dist: xenial
+
+# On Xenial, xvfb should be started using the services syntax.  Previously, we
+# had started it directly in the tests/run_travis.sh script.
+# See https://docs.travis-ci.com/user/gui-and-headless-browsers/#using-services-xvfb
+services:
+  - xvfb
 
 matrix:
   include:
@@ -26,4 +36,5 @@ install:
 
 # command to run tests
 script: tests/run_travis.sh
-after_success: coveralls
+# Only run coveralls if we actually ran tests. Otherwise this breaks coveralls it seems.
+after_success: test $SHOTGUN_COMPILE_ONLY = 0 && coveralls

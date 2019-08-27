@@ -134,7 +134,7 @@ class TestApi(ShotgunTestBase):
         self.assertEqual(d.get_uri(), "sgtk:descriptor:app_store?name=tk-testbundlefactory&version=v0.2.3")
 
         # test opting out of the local fallback
-        with self.assertRaisesRegexp(tank.descriptor.TankDescriptorError, "Could not get latest version of"):
+        with self.assertRaisesRegex(tank.descriptor.TankDescriptorError, "Could not get latest version of"):
             sgtk.descriptor.create_descriptor(
                 self.mockgun,
                 sgtk.descriptor.Descriptor.CONFIG,
@@ -173,12 +173,23 @@ class TestApi(ShotgunTestBase):
         self._touch_info_yaml(app_root_path)
         self.assertEqual(d.get_path(), app_root_path)
 
-    def _test_uri(self, uri, location_dict):
-
+    def _test_uri_to_dict(self, uri, location_dict):
+        """
+        Tests conversion from dict to uri
+        :param uri: descriptor uri
+        :param location_dict: expected descriptor dict
+        """
         computed_dict = sgtk.descriptor.descriptor_uri_to_dict(uri)
+        self.assertEqual(location_dict, computed_dict)
+
+    def _test_dict_to_uri(self, uri, location_dict):
+        """
+        Tests conversion from uri to dict
+        :param uri: descriptor uri
+        :param location_dict: expected descriptor dict
+        """
         computed_uri = sgtk.descriptor.descriptor_dict_to_uri(location_dict)
         self.assertEqual(uri, computed_uri)
-        self.assertEqual(location_dict, computed_dict)
 
     def test_descriptor_uris(self):
         """
@@ -186,23 +197,38 @@ class TestApi(ShotgunTestBase):
         """
         uri = "sgtk:descriptor:app_store?name=tk-bundle&version=v0.1.2"
         dict = {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
-        self._test_uri(uri, dict)
+        self._test_uri_to_dict(uri, dict)
+        self._test_dict_to_uri(uri, dict)
 
         uri = "sgtk:descriptor:path?path=/foo/bar"
         dict = {"type": "path", "path": "/foo/bar"}
-        self._test_uri(uri, dict)
+        self._test_uri_to_dict(uri, dict)
+        self._test_dict_to_uri(uri, dict)
 
-        uri = "sgtk:descriptor:app_store?name=tk-bundle&version=v0.1.2"
-        dict = {"type": "app_store", "version": "v0.1.2", "name": "tk-bundle"}
-        self._test_uri(uri, dict)
+        uri = "sgtk:descriptor:git?path=git@github.com:shotgunsoftware/tk-core.git&version=v0.1.2"
+        dict = {"type": "git", "version": "v0.1.2", "path": "git@github.com:shotgunsoftware/tk-core.git"}
+        self._test_uri_to_dict(uri, dict)
+        self._test_dict_to_uri(uri, dict)
 
+        uri = "sgtk:descriptor:path?path=C:\\foo\\bar"
+        dict = {"type": "path", "path": "C:\\foo\\bar"}
+        self._test_uri_to_dict(uri, dict)
+        self._test_dict_to_uri(uri, dict)
+
+        # test that escaped uris can be correctly converted to dicts
         uri = "sgtk:descriptor:git?path=https%3A//github.com/shotgunsoftware/tk-core.git&version=v0.1.2"
         dict = {"type": "git", "version": "v0.1.2", "path": "https://github.com/shotgunsoftware/tk-core.git"}
-        self._test_uri(uri, dict)
+        self._test_uri_to_dict(uri, dict)
 
-        uri = "sgtk:descriptor:git?path=git%40github.com%3Ashotgunsoftware/tk-core.git&version=v0.1.2"
-        dict = {"type": "git", "version": "v0.1.2", "path": "git@github.com:shotgunsoftware/tk-core.git"}
-        self._test_uri(uri, dict)
+        uri = "sgtk:descriptor:path?path=C%3A%5Cfoo%5Cbar"
+        dict = {"type": "path", "path": "C:\\foo\\bar"}
+        self._test_uri_to_dict(uri, dict)
+
+        # test that special characters used by parsing logic are escaped correctly
+        uri = "sgtk:descriptor:git?path=bad_path%26with%3Dspecial%3Fchars&version=v0.1.2"
+        dict = {"type": "git", "version": "v0.1.2", "path": "bad_path&with=special?chars"}
+        self._test_dict_to_uri(uri, dict)
+        self._test_uri_to_dict(uri, dict)
 
     def test_backwards_compatible(self):
         """

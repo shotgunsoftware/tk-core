@@ -16,6 +16,11 @@ from .import_handler import CoreImportHandler
 from ..log import LogManager
 from .. import pipelineconfig_utils
 from .. import constants
+from ..authentication import (
+    get_shotgun_authenticator_support_web_login,
+    serialize_user,
+    ShotgunSamlUser,
+)
 
 log = LogManager.get_logger(__name__)
 
@@ -25,7 +30,10 @@ class Configuration(object):
     An abstraction representation around a toolkit configuration.
     """
 
-    (LOCAL_CFG_UP_TO_DATE, LOCAL_CFG_MISSING, LOCAL_CFG_DIFFERENT, LOCAL_CFG_INVALID) = range(4)
+    LOCAL_CFG_UP_TO_DATE = "LOCAL_CFG_UP_TO_DATE"
+    LOCAL_CFG_MISSING = "LOCAL_CFG_MISSING"
+    LOCAL_CFG_DIFFERENT = "LOCAL_CFG_DIFFERENT"
+    LOCAL_CFG_INVALID = "LOCAL_CFG_INVALID"
 
     def __init__(self, path, descriptor):
         """
@@ -86,6 +94,8 @@ class Configuration(object):
         """
         Returns a tk instance for this configuration.
 
+        It swaps the core out if needed and ensure we use the right login.
+
         :param sg_user: Authenticated Shotgun user to associate
                         the tk instance with.
 
@@ -104,8 +114,11 @@ class Configuration(object):
             python_core_path = pipelineconfig_utils.get_core_python_path_for_config(path)
 
         # Get the user before the core swapping and serialize it.
-        from ..authentication import serialize_user, ShotgunSamlUser
         serialized_user = serialize_user(sg_user)
+
+        # Caching support for the Web authentication flow.
+        support_web_login = get_shotgun_authenticator_support_web_login()
+        log.debug("Caching the old core's support of the Unified Login Flow: %s" % support_web_login)
 
         # Stop claims renewal before swapping core, but only if the claims loop
         # is actually active.
@@ -123,6 +136,18 @@ class Configuration(object):
 
         sg_user = self._set_authenticated_user(sg_user, sg_user.login, serialized_user)
 
+        if support_web_login:
+            try:
+                from ..authentication import set_shotgun_authenticator_support_web_login
+                log.debug("This core fully supports the Unified Login Flow.")
+                set_shotgun_authenticator_support_web_login(support_web_login)
+            except ImportError:
+                log.warning(
+                    "This swapped core does not support the Unified Login Flow,"
+                    "but the original core did. This may lead to problems with"
+                    "session renewal or re-authentication."
+                )
+
         # If we're swapping into a core that supports authentication, restart claims renewal. Note
         # that here we're not testing that the API supports claims renewal as to not complexify this
         # code any further. We're assuming it does support claims renewal. If it doesn't that's a
@@ -138,6 +163,15 @@ class Configuration(object):
             sg_user.start_claims_renewal()
 
         return self._tank_from_path(path), sg_user
+
+    def cache_bundles(self, pipeline_configuration, engine_constraint, progress_cb):
+        """
+        Caches bundles for the configuration.
+
+        Default implementation is valid for a configuration which has an already pre-populated
+        local bundle cache.
+        """
+        log.debug("Configuration has local bundle cache, skipping bundle caching.")
 
     def _tank_from_path(self, path):
         """

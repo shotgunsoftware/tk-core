@@ -127,7 +127,7 @@ class BakedConfiguration(Configuration):
         path = self._path.current_os
         try:
             python_core_path = pipelineconfig_utils.get_core_python_path_for_config(path)
-        except TankFileDoesNotExistError as e:
+        except TankFileDoesNotExistError:
             # For baked config we allow a globally installed tk-core to be used
             python_core_path = self._get_current_core_python_path()
             log.debug(
@@ -172,7 +172,7 @@ class BakedConfiguration(Configuration):
 
         config_writer.ensure_project_scaffold()
         config_descriptor.copy(os.path.join(path, "config"))
-        config_writer.install_core(config_descriptor, bundle_cache_fallback_paths=[])
+        config_writer.install_core(config_descriptor.resolve_core_descriptor())
 
         # write the pipeline_config.yml file but do not include the
         # source_descriptor - setting this to None indicates
@@ -184,6 +184,11 @@ class BakedConfiguration(Configuration):
             bundle_cache_fallback_paths=[],
             source_descriptor=None
         )
+
+        # Same thing here as above for the install_location file. We don't really
+        # need the tank command and interpreter_*.cfg files for the config itself,
+        # but other logic in tk-core relies on them existing.
+        config_writer.create_tank_command()
 
     @property
     def requires_dynamic_bundle_caching(self):

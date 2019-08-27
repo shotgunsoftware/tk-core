@@ -148,6 +148,16 @@ sgtk.util.filesystem
 .. autofunction:: create_valid_filename
 .. autofunction:: get_unused_path
 
+.. currentmodule:: sgtk.util.json
+
+
+sgtk.util.json
+-----------------------------------
+
+.. autofunction:: load
+.. autofunction:: loads
+
+
 ShotgunPath
 -----------------------------------
 
@@ -173,15 +183,23 @@ and convenience methods:
 .. autofunction:: resolve_publish_path(tk, sg_publish_data)
 
 .. autofunction:: find_publish(tk, list_of_paths, f ilters=None, fields=None)
-.. autofunction:: download_url(sg, url, location)
 .. autofunction:: create_event_log_entry(tk, context, event_type, description, metadata=None)
 .. autofunction:: get_entity_type_display_name
 .. autofunction:: get_published_file_entity_type
 .. autofunction:: get_sg_entity_name_field
 
+File Download Related
+=============================
+
+.. autofunction:: download_url(sg, url, location)
+.. currentmodule:: sgtk.util.shotgun
+.. autofunction:: download_and_unpack_attachment(sg, attachment_id, target, retries=5, auto_detect_bundle=False)
+.. autofunction:: download_and_unpack_url(sg, url, target, retries=5, auto_detect_bundle=False)
+
 Miscellaneous
 =============================
 
+.. currentmodule:: sgtk.util
 .. autofunction:: append_path_to_env_var
 .. autofunction:: prepend_path_to_env_var
 .. autofunction:: get_current_user

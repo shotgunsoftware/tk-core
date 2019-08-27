@@ -129,3 +129,8 @@ Exception Classes
     :inherited-members:
     :members:
 
+.. autoclass:: ConsoleLoginNotSupportedError
+    :show-inheritance:
+    :inherited-members:
+    :members:
+

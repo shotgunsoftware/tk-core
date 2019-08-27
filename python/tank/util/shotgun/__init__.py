@@ -25,5 +25,7 @@ from .publish_util import \
 
 from .publish_creation import register_publish
 from .publish_resolve import resolve_publish_path
-from .download import download_url, download_and_unpack_attachment
-
+from .download import \
+    download_url, \
+    download_and_unpack_attachment, \
+    download_and_unpack_url

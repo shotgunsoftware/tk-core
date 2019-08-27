@@ -10,16 +10,12 @@
 
 from __future__ import with_statement
 
-import cStringIO as StringIO
 import itertools
-import logging
 import os
 import sys
-import contextlib
 from mock import patch
 import sgtk
 from sgtk.util import ShotgunPath
-from sgtk import LogManager
 
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import TankTestBase
@@ -380,14 +376,14 @@ class TestResolverPriority(TestResolverBase):
         """
         return self._create_pc("Development", None, self.SITE_SANDBOX_PC_PATH, [self._john_smith], plugin_ids="foo.*")
 
-    def _create_project_classic_pc(self):
+    def _create_project_centralized_pc(self):
         """
         Creates a non-plugin-based pipeline configuration for a project. The paths will
         be set to PROJECT_PC_PATH
         """
         return self._create_pc("Primary", self._project, self.PROJECT_PC_PATH)
 
-    def _create_project_classic_sandbox_pc(self):
+    def _create_project_centralized_sandbox_pc(self):
         """
         Creates a non-plugin-based pipeline configuration sandbox for a project and a user.
         The paths will be set to PROJECT_PC_PATH
@@ -492,21 +488,21 @@ class TestResolverPriority(TestResolverBase):
                 pc["project"] is not None or pc["code"] != "Primary"
             )
 
-    def test_classic_primary_overrides_all_other_primaries(self):
+    def test_centralized_primary_overrides_all_other_primaries(self):
         """
-        Makes sure a Toolkit classic pipeline configuration overrides other primaries.
+        Makes sure a Toolkit centralized pipeline configuration overrides other primaries.
         """
         self._create_project_sandbox_pc()
         self._create_project_pc()
         self._create_site_sandbox_pc()
         self._create_site_pc()
-        self._create_project_classic_pc()
-        self._create_project_classic_sandbox_pc()
+        self._create_project_centralized_pc()
+        self._create_project_centralized_sandbox_pc()
 
         pcs = self.resolver.find_matching_pipeline_configurations(
             None, "john.smith", self.mockgun
         )
-        # plugin-based site and project configs are hidden by the classic primary,
+        # plugin-based site and project configs are hidden by the centralized primary,
         # so only the primary and the 3 sandboxes should show up.
         self.assertEqual(len(pcs), 4)
 
@@ -800,7 +796,6 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         self.assertEqual(len(pcs), 1)
         self.assertEqual(pcs[0]["id"], pc_id)
 
-
         # Not clear the plugin fields and the pipeline should not be reported by
         # find_matching_pipeline_configurations.
         self.mockgun.update(
@@ -813,6 +808,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
 
         pcs = self.resolver.find_matching_pipeline_configurations(None, "john.smith", self.mockgun)
         self.assertListEqual(pcs, [])
+
 
 class TestResolverSiteConfig(TestResolverBase):
     """
@@ -880,7 +876,7 @@ class TestResolvedConfiguration(TankTestBase):
         """
         Makes sure an installed configuration is resolved.
         """
-        # note: this is using the classic config that is part of the
+        # note: this is using the centralized config that is part of the
         #       std test fixtures.
         config = self._resolver.resolve_shotgun_configuration(
             self.tk.pipeline_configuration.get_shotgun_id(),
@@ -892,7 +888,6 @@ class TestResolvedConfiguration(TankTestBase):
             config,
             sgtk.bootstrap.resolver.InstalledConfiguration
         )
-        self.assertEqual(config.requires_dynamic_bundle_caching, False)
 
     def test_resolve_baked_configuration(self):
         """
@@ -910,7 +905,6 @@ class TestResolvedConfiguration(TankTestBase):
             config,
             sgtk.bootstrap.resolver.BakedConfiguration
         )
-        self.assertEqual(config.requires_dynamic_bundle_caching, False)
 
     def test_resolve_cached_configuration(self):
         """
@@ -928,7 +922,6 @@ class TestResolvedConfiguration(TankTestBase):
             config,
             sgtk.bootstrap.resolver.CachedConfiguration
         )
-        self.assertEqual(config.requires_dynamic_bundle_caching, True)
 
 
 class TestResolvedLatestConfiguration(TankTestBase):
@@ -959,7 +952,7 @@ class TestResolvedLatestConfiguration(TankTestBase):
             self.mockgun
         )
 
-        self.assertEquals(
+        self.assertEqual(
             config.descriptor.get_uri(),
             "sgtk:descriptor:app_store?name=latest_test&version=v0.1.0"
         )
@@ -973,7 +966,7 @@ class TestResolvedLatestConfiguration(TankTestBase):
             self.mockgun
         )
 
-        self.assertEquals(
+        self.assertEqual(
             config.descriptor.get_uri(),
             "sgtk:descriptor:app_store?name=latest_test&version=v0.1.1"
         )
@@ -984,7 +977,7 @@ class TestResolvedLatestConfiguration(TankTestBase):
             self.mockgun
         )
 
-        self.assertEquals(
+        self.assertEqual(
             config.descriptor.get_uri(),
             "sgtk:descriptor:app_store?name=latest_test&version=v0.1.0"
         )
@@ -994,7 +987,7 @@ class TestResolvedLatestConfiguration(TankTestBase):
             self.mockgun
         )
 
-        self.assertEquals(
+        self.assertEqual(
             config.descriptor.get_uri(),
             "sgtk:descriptor:app_store?name=latest_test&version=v0.1.1"
         )
@@ -1025,7 +1018,7 @@ class TestResolveWithFilter(TestResolverBase):
         """
         Resolve a non-existent pipeline configuration by id should fail.
         """
-        with self.assertRaisesRegexp(sgtk.bootstrap.TankBootstrapError, "Pipeline configuration with id"):
+        with self.assertRaisesRegex(sgtk.bootstrap.TankBootstrapError, "Pipeline configuration with id"):
             self.resolver.resolve_shotgun_configuration(
                 pipeline_config_identifier=42,
                 fallback_config_descriptor=self.config_1,
@@ -1133,7 +1126,7 @@ class TestErrorHandling(TestResolverBase):
             }
         )
 
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             sgtk.bootstrap.TankBootstrapError,
             "The Shotgun pipeline configuration with id %s has no source location specified for "
             "your operating system." % pc_id
@@ -1182,7 +1175,7 @@ class TestErrorHandling(TestResolverBase):
         ).as_shotgun_dict()
         expected_descriptor_dict["type"] = "path"
 
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             sgtk.bootstrap.TankBootstrapError,
             "Installed pipeline configuration '.*' does not exist on disk!"
         ):

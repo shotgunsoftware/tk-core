@@ -24,6 +24,7 @@ from sgtk.authentication import ShotgunAuthenticator, ShotgunSamlUser
 from sgtk.authentication.user_impl import SessionUser
 import sgtk
 import tank_vendor
+from tank_vendor import yaml
 
 REPO_ROOT = os.path.normpath(
     os.path.join(
@@ -251,6 +252,7 @@ class TestSSOClaims(TestConfigurationBase):
         # thread startup and shutdown, we only want to ensure they are invoked.
         for mocked_method in [
             "tank.bootstrap.import_handler.CoreImportHandler.swap_core",
+            "tank.bootstrap.cached_configuration.CachedConfiguration._ensure_core_local",
             "tank.bootstrap.configuration_writer.ConfigurationWriter.install_core",
             "tank.bootstrap.configuration_writer.ConfigurationWriter.create_tank_command",
         ]:
@@ -354,7 +356,7 @@ class TestInvalidInstalledConfiguration(TankTestBase):
         """
         Makes sure an installed configuration is resolved.
         """
-        # note: this is using the classic config that is part of the
+        # note: this is using the centralized config that is part of the
         #       std test fixtures.
         config = self._resolver.resolve_shotgun_configuration(
             self.sg_pc_entity["id"],
@@ -367,7 +369,7 @@ class TestInvalidInstalledConfiguration(TankTestBase):
             sgtk.bootstrap.resolver.InstalledConfiguration
         )
 
-        self.assertEquals(config.status(), config.LOCAL_CFG_UP_TO_DATE)
+        self.assertEqual(config.status(), config.LOCAL_CFG_UP_TO_DATE)
 
         # now get rid of some stuff from our fixtures to emulate
         # a config which was downloaded directly from github and not
@@ -380,7 +382,7 @@ class TestInvalidInstalledConfiguration(TankTestBase):
             os.path.join(self.pipeline_config_root, "config", "core", "install_location.yml")
         )
 
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
                 sgtk.bootstrap.TankBootstrapError,
                 "Cannot find required system file"):
             config.status()
@@ -408,7 +410,8 @@ class TestBakedConfiguration(TestConfigurationBase):
 
     @patch("tank.authentication.ShotgunAuthenticator.get_user")
     @patch("sgtk.bootstrap.configuration_writer.ConfigurationWriter.install_core")
-    def test_build_and_use(self, core_install_mock, get_user_mock):
+    @patch("sgtk.bootstrap.configuration_writer.ConfigurationWriter.create_tank_command")
+    def test_build_and_use(self, core_install_mock, get_user_mock, create_tank_command_mock):
         """
         Test baking a plugin and bootstrapping it with current tk-core.
         """
@@ -442,10 +445,8 @@ class TestBakedConfiguration(TestConfigurationBase):
 
 class TestCachedConfiguration(ShotgunTestBase):
 
-    def test_verifies_tank_name(self):
-        """
-        Ensures that missing tank name on project is detected when using roots.
-        """
+    def setUp(self):
+        super(TestCachedConfiguration, self).setUp()
 
         # Reset the tank_name and create a storage named after the one in the config.
         self.mockgun.update("Project", self.project["id"], {"tank_name": None})
@@ -453,8 +454,10 @@ class TestCachedConfiguration(ShotgunTestBase):
 
         # Initialize a cached configuration pointing to the config.
         config_root = os.path.join(self.fixtures_root, "bootstrap_tests", "config")
-        cached_config = CachedConfiguration(
-            self.tank_temp,
+
+        self._temp_config_root = os.path.join(self.tank_temp, self.short_test_name)
+        self._cached_config = CachedConfiguration(
+            sgtk.util.ShotgunPath.from_current_os_path(self._temp_config_root),
             self.mockgun,
             sgtk.descriptor.create_descriptor(
                 self.mockgun,
@@ -467,10 +470,118 @@ class TestCachedConfiguration(ShotgunTestBase):
             []
         )
 
+        # Due to this being a test that runs offline, we can't use anything other than a
+        # path descriptor, which means that it is mutable. Because LOCAL_CFG_DIFFERENT
+        # is actually returned by three different code paths, the only way to ensure that
+        # we are indeed in the up to date state, which means everything is ready to do, is
+        # to cheat and make the descriptor immutable by monkey-patching it.
+        self._cached_config._descriptor.is_immutable = lambda: True
+        # Seems up the test tremendously since installing core becomes a noop.
+        self._cached_config._config_writer.install_core = lambda _: None
+        self._cached_config._config_writer.create_tank_command = lambda: None
+
+    def test_verifies_tank_name(self):
+        """
+        Ensures that missing tank name on project is detected when using roots.
+        """
         # Make sure that the missing tank name is detected.
         with self.assertRaises(sgtk.bootstrap.TankMissingTankNameError):
-            cached_config.verify_required_shotgun_fields()
+            self._cached_config.verify_required_shotgun_fields()
 
         # Ensure our change is backwards compatible.
         with self.assertRaises(sgtk.bootstrap.TankBootstrapError):
-            cached_config.verify_required_shotgun_fields()
+            self._cached_config.verify_required_shotgun_fields()
+
+    def test_ensure_config_not_missing_after_update(self):
+        """
+        Ensures once a configuration is written that is ready.
+        """
+        self.assertEqual(self._cached_config.status(), self._cached_config.LOCAL_CFG_MISSING)
+        self._cached_config.update_configuration()
+        self.assertEqual(self._cached_config.status(), self._cached_config.LOCAL_CFG_UP_TO_DATE)
+
+    def test_ensure_config_half_written_is_invalid(self):
+        """
+        Ensures a failure during bootstrap is detected and renders the configuration invalid.
+        """
+        self.assertEqual(self._cached_config.status(), self._cached_config.LOCAL_CFG_MISSING)
+        # Force put the configuration in an inconsistent state.
+        self._cached_config._config_writer.start_transaction()
+
+        # Create the config folder so it isn't barely missing.
+        os.makedirs(os.path.join(self._temp_config_root, "config"))
+
+        self.assertEqual(self._cached_config.status(), self._cached_config.LOCAL_CFG_INVALID)
+
+    def test_missing_deployment_file(self):
+        """
+        Ensures a missing deployment file results in an invalid config status.
+        """
+        self._cached_config.update_configuration()
+        # Using a path descriptor will always give different.
+        self.assertEqual(self._cached_config.status(), self._cached_config.LOCAL_CFG_UP_TO_DATE)
+        os.remove(self._cached_config._config_writer.get_descriptor_metadata_file())
+        self.assertEqual(self._cached_config.status(), self._cached_config.LOCAL_CFG_INVALID)
+
+    def test_generation_number_mismatch(self):
+        """
+        Ensures a generation number mismatch will generate a different config status.
+        """
+        self._cached_config.update_configuration()
+        # Using a path descriptor will always give different.
+        self.assertEqual(self._cached_config.status(), self._cached_config.LOCAL_CFG_UP_TO_DATE)
+        self._update_deploy_file(generation=9999999)
+        self.assertEqual(self._cached_config.status(), self._cached_config.LOCAL_CFG_DIFFERENT)
+
+    def test_different_descriptor(self):
+        """
+        Ensures a descriptor mismatch will generate a different config status.
+        """
+        self._cached_config.update_configuration()
+        # Using a path descriptor will always give different.
+        self.assertEqual(self._cached_config.status(), self._cached_config.LOCAL_CFG_UP_TO_DATE)
+        self._update_deploy_file(descriptor={"type": "app_store", "name": "tk-config-basic", "version": "v1.0.0"})
+        self.assertEqual(self._cached_config.status(), self._cached_config.LOCAL_CFG_DIFFERENT)
+
+    def test_corrupted_file(self):
+        """
+        Ensures a corrupted deploy file will generates an invalid status.
+        """
+        self._cached_config.update_configuration()
+        # Using a path descriptor will always give different.
+        self.assertEqual(self._cached_config.status(), self._cached_config.LOCAL_CFG_UP_TO_DATE)
+        self._update_deploy_file(corrupt=True)
+        self.assertEqual(self._cached_config.status(), self._cached_config.LOCAL_CFG_INVALID)
+
+    def test_mutable_descriptors(self):
+        """
+        Ensures a mutable descriptor will yield a different config status.
+        """
+        self._cached_config.update_configuration()
+        self.assertEqual(self._cached_config.status(), self._cached_config.LOCAL_CFG_UP_TO_DATE)
+        # Now force the descriptor to report that is is not immutable, the status will then be considered
+        # as different since we can't assume everything has stayed the same.
+        self._cached_config._descriptor.is_immutable = lambda: False
+        self.assertEqual(self._cached_config.status(), self._cached_config.LOCAL_CFG_DIFFERENT)
+
+    def _update_deploy_file(self, generation=None, descriptor=None, corrupt=False):
+        """
+        Updates the deploy file.
+
+        :param generation: If set, will update the generation number of the config.
+        :param descriptor: If set, will update the descriptor of the config.
+        :param corrupt: If set, will corrupt the configuration file.
+        """
+        path = self._cached_config._config_writer.get_descriptor_metadata_file()
+        if corrupt:
+            data = "corrupted"
+        else:
+            with open(path, "rt") as fh:
+                data = yaml.load(fh)
+                if generation is not None:
+                    data["deploy_generation"] = generation
+                if descriptor is not None:
+                    data["config_descriptor"] = descriptor
+
+        with open(path, "wt") as fh:
+            yaml.dump(data, fh)

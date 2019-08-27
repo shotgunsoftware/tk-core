@@ -80,7 +80,7 @@ class DesktopMigration(Action):
         log.info(_MESSAGE)
 
         # Make sure the user really wants to go forward with the migration.
-        do_migration = console_utils.ask_yn_question("Do you want to continue?")
+        do_migration = self._interaction_interface.ask_yn_question("Do you want to continue?")
 
         if not do_migration:
             log.info("Migration aborted.")

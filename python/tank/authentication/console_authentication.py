@@ -22,15 +22,33 @@ from __future__ import print_function
 
 from . import session_cache
 from .. import LogManager
-from .errors import AuthenticationError, AuthenticationCancelled, ConsoleLoginWithSSONotSupportedError
-from tank_vendor import shotgun_api3
+from .errors import (
+    AuthenticationError,
+    AuthenticationCancelled,
+    ConsoleLoginNotSupportedError,
+)
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
-from .sso_saml2 import is_sso_enabled_on_site
+from .sso_saml2 import (
+    is_autodesk_identity_enabled_on_site,
+    is_sso_enabled_on_site,
+)
 from ..util.shotgun.connection import sanitize_url
 
 from getpass import getpass
 
 logger = LogManager.get_logger(__name__)
+
+
+def _assert_console_session_is_supported(hostname, http_proxy):
+    """
+    Simple utility method which will raise an exception if using a
+    username/password pair is not supported by the Shotgun server.
+    Which is the case when using SSO or Autodesk Identity.
+    """
+    if is_sso_enabled_on_site(hostname, http_proxy):
+        raise ConsoleLoginNotSupportedError(hostname, "Single Sign-On")
+    if is_autodesk_identity_enabled_on_site(hostname, http_proxy):
+        raise ConsoleLoginNotSupportedError(hostname, "Autodesk Identity")
 
 
 class ConsoleAuthenticationHandlerBase(object):
@@ -165,8 +183,7 @@ class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
         """
         print("%s, your current session has expired." % login)
 
-        if is_sso_enabled_on_site(shotgun_api3, hostname, http_proxy):
-            raise ConsoleLoginWithSSONotSupportedError(hostname)
+        _assert_console_session_is_supported(hostname, http_proxy)
 
         print("Please enter your password to renew your session for %s" % hostname)
         return hostname, login, self._get_password()
@@ -195,15 +212,13 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
         :returns: A tuple of (login, password) strings.
         """
         if self._fixed_host:
-            if is_sso_enabled_on_site(shotgun_api3, hostname, http_proxy):
-                raise ConsoleLoginWithSSONotSupportedError(hostname)
+            _assert_console_session_is_supported(hostname, http_proxy)
             print("Please enter your login credentials for %s" % hostname)
 
         else:
             print("Please enter your login credentials.")
             hostname = self._get_keyboard_input("Host", hostname)
-            if is_sso_enabled_on_site(shotgun_api3, hostname, http_proxy):
-                raise ConsoleLoginWithSSONotSupportedError(hostname)
+            _assert_console_session_is_supported(hostname, http_proxy)
 
         login = self._get_keyboard_input("Login", login)
         password = self._get_password()
