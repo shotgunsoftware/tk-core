@@ -217,7 +217,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
     :returns: The created entity dictionary.
     """
     log.debug(
-        "Publish: Begin register publish for context %s and path %s" % (context, path)
+        "Publish: Begin register publish for context {0} and path {1}".format(context, path)
     )
     entity = None
     try:
@@ -473,12 +473,12 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
 
         # Make path platform agnostic and determine if it belongs
         # to a storage that is associated with this toolkit config.
-        storage_name, path_cache = _calc_path_cache(tk, path)
+        root_name, path_cache = _calc_path_cache(tk, path)
 
         if path_cache:
             # there is a toolkit storage mapping defined for this storage
             log.debug(
-                "The path '%s' is associated with config root '%s'." % (path, storage_name)
+                "The path '%s' is associated with config root '%s'." % (path, root_name)
             )
 
             # check if the shotgun server supports the storage and relative_path parameters which
@@ -491,8 +491,9 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
             )
 
             if supports_specific_storage_syntax:
-                # explicitly pass relative path and storage to shotgun
-                storage = tk.shotgun.find_one("LocalStorage", [["code", "is", storage_name]])
+
+                # get corresponding SG local storage for the matching root name
+                storage = tk.pipeline_configuration.get_local_storage_for_root(root_name)
 
                 if storage is None:
                     # there is no storage in Shotgun that matches the one toolkit expects.
@@ -500,10 +501,12 @@ def _create_published_file(tk, context, path, name, version_number, task, commen
                     # magically picks up the publishes and associates with them. In this case,
                     # issue a warning and fall back on the server-side functionality
                     log.warning(
-                        "Could not find the expected storage '%s' in Shotgun to associate "
-                        "publish '%s' with - falling back to Shotgun's built-in storage "
-                        "resolution logic. It is recommended that you add the '%s' storage "
-                        "to Shotgun" % (storage_name, path, storage_name))
+                        "Could not find the expected storage for required root "
+                        "'%s' in Shotgun to associate publish '%s' with. "
+                        "Falling back to Shotgun's built-in storage resolution "
+                        "logic. It is recommended that you explicitly map a "
+                        "local storage to required root '%s'." %
+                        (root_name, path, root_name))
                     data["path"] = {"local_path": path}
 
                 else:
@@ -684,28 +687,59 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
 def _calc_path_cache(tk, path):
     """
     Calculates root path name and relative path (including project directory).
-    returns (root_name, path_cache)
+    returns (root_name, path_cache). The relative path is always using forward
+    slashes.
 
     If the location cannot be computed, because the path does not belong
     to a valid root, (None, None) is returned.
+
+    Examples:
+
+        - Primary Root name: X:\mnt\projects
+        - Project name: project_b
+        - Path: X:\mnt\projects\project_b\path\to\file.ma
+        - Returns: (Primary, 'project_b/path/to/file.ma')
+
+        - Primary Root name: /mnt/projects
+        - Project name: client_a/project_b
+        - Path: /mnt/projects/client_a/project_b/path/to/file.ma
+        - Returns: (Primary, 'client_a/project_b/path/to/file.ma')
+
+    :param tk: Toolkit API instance
+    :param str path: Path to normalize.
+    :returns: (root_name, path_cache)
     """
-    # paths may be c:/foo in Maya on Windows - don't rely on os.sep here!
+    # Note: paths may be c:/foo in Maya on Windows - don't rely on os.sep here!
 
-    # normalize input path first c:\foo -> c:/foo
-    norm_path = path.replace(os.sep, "/")
+    # normalize input path to remove double slashes etc.
+    norm_path = ShotgunPath.normalize(path)
 
-    # get roots - don't assume data is returned on any particular form
-    # may return c:\foo, c:/foo or /foo - assume that we need to normalize this path
-    roots = tk.pipeline_configuration.get_data_roots()
+    # normalize to only use forward slashes
+    norm_path = norm_path.replace("\\", "/")
 
-    for root_name, root_path in roots.items():
-        norm_root_path = root_path.replace(os.sep, "/")
+    # get roots - dict keyed by storage name
+    storage_roots = tk.pipeline_configuration.get_local_storage_roots()
 
-        if norm_path.lower().startswith(norm_root_path.lower()):
-            norm_parent_dir = os.path.dirname(norm_root_path)
+    # get project name, typically a a-z string but can contain
+    # forward slashes, e.g. 'my_project', or 'client_a/proj_b'
+    project_disk_name = tk.pipeline_configuration.get_project_disk_name()
+
+    for root_name, root_path in storage_roots.items():
+
+        root_path_obj = ShotgunPath.from_current_os_path(root_path)
+        # normalize the root path
+        norm_root_path = root_path_obj.current_os.replace(os.sep, "/")
+
+        # append project and normalize
+        proj_path = root_path_obj.join(project_disk_name).current_os
+        proj_path = proj_path.replace(os.sep, "/")
+
+        if norm_path.lower().startswith(proj_path.lower()):
+            # our path matches this storage!
+
             # Remove parent dir plus "/" - be careful to handle the case where
             # the parent dir ends with a '/', e.g. 'T:/' for a Windows drive
-            path_cache = norm_path[len(norm_parent_dir):].lstrip("/")
+            path_cache = norm_path[len(norm_root_path):].lstrip("/")
             log.debug(
                 "Split up path '%s' into storage %s and relative path '%s'" % (path, root_name, path_cache)
             )
@@ -714,7 +748,6 @@ def _calc_path_cache(tk, path):
     # not found, return None values
     log.debug("Unable to split path '%s' into a storage and a relative path." % path)
     return None, None
-
 
 
 def group_by_storage(tk, list_of_paths):

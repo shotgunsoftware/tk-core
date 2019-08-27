@@ -200,10 +200,14 @@ class SessionCacheTests(ShotgunTestBase):
         Makes sure current host is saved appropriately.
         """
         # Write the host and make sure we read it back.
-        # Use mixed case to make sure we are case preserving
+        #
+        # Use mixed case to make sure we are not case preserving. If we did,
+        # as we used to, we would run into problems with some site url
+        # comparisons incorrectly determining that hOsT.shotgunstudio.com
+        # isn't the same site as host.shotgunstudio.com.
         host = "https://hOsT.shotgunstudio.com"
         session_cache.set_current_host(host)
-        self.assertEqual(session_cache.get_current_host(), host)
+        self.assertEqual(session_cache.get_current_host(), host.lower())
 
         # Update the host and make sure we read it back.
         other_host = "https://other_host.shotgunstudio.com"

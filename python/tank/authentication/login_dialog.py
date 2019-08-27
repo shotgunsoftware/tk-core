@@ -23,10 +23,10 @@ from .ui import login_dialog
 from . import session_cache
 from ..util.shotgun import connection
 from ..util import login
-from .shotgun_shared import Saml2Sso, is_sso_enabled_on_site, Saml2SsoMissingQtModuleError
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit
-from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
+from tank_vendor import shotgun_api3
+from .sso_saml2 import SsoSaml2Toolkit, SsoSaml2MissingQtModuleError, is_sso_enabled_on_site
 from .. import LogManager
 
 logger = LogManager.get_logger(__name__)
@@ -51,13 +51,14 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
     to avoid blocking the main GUI thread.
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, http_proxy=None):
         """
         Constructor.
         """
         QtCore.QThread.__init__(self, parent)
         self._url_to_test = ""
         self._sso_enabled = False
+        self._http_proxy = http_proxy
 
     @property
     def sso_enabled(self):
@@ -81,7 +82,7 @@ class QuerySiteAndUpdateUITask(QtCore.QThread):
         """
         Runs the thread.
         """
-        self.sso_enabled = is_sso_enabled_on_site(self.url_to_test)
+        self.sso_enabled = is_sso_enabled_on_site(shotgun_api3, self.url_to_test, self._http_proxy)
 
 
 class LoginDialog(QtGui.QDialog):
@@ -118,10 +119,10 @@ class LoginDialog(QtGui.QDialog):
             "QtWebKit": QtWebKit,
         }
         try:
-            self._saml2_sso = Saml2Sso("SSO Login", qt_modules=qt_modules)
-        except Saml2SsoMissingQtModuleError as e:
-            logger.error("SSO login not supported due to missing Qt module: %s" % e)
-            self._saml2_sso = None
+            self._sso_saml2 = SsoSaml2Toolkit("SSO Login", qt_modules=qt_modules)
+        except SsoSaml2MissingQtModuleError as e:
+            logger.info("SSO login not supported due to missing Qt module: %s" % e)
+            self._sso_saml2 = None
 
         hostname = hostname or ""
         login = login or ""
@@ -223,7 +224,7 @@ class LoginDialog(QtGui.QDialog):
         self.ui.site.activated.connect(self._on_site_changed)
         self.ui.site.lineEdit().editingFinished.connect(self._on_site_changed)
 
-        self._query_task = QuerySiteAndUpdateUITask(self)
+        self._query_task = QuerySiteAndUpdateUITask(self, http_proxy)
         self._query_task.finished.connect(self._toggle_sso)
         self._update_ui_according_to_sso_support()
 
@@ -231,6 +232,13 @@ class LoginDialog(QtGui.QDialog):
         # flickering GUI.
         if not self._query_task.wait(THREAD_WAIT_TIMEOUT_MS):
             logger.warning("Timed out awaiting check for SSO support on the site: %s" % self._get_current_site())
+
+    def __del__(self):
+        """
+        Destructor.
+        """
+        # We want to clean up any running qthread.
+        self._query_task.wait()
 
     def _get_current_site(self):
         """
@@ -255,7 +263,7 @@ class LoginDialog(QtGui.QDialog):
         Updates the GUI if SSO is supported or not, hiding or showing the username/password fields.
         """
         # Only update the GUI if we were able to initialize the sam2sso module.
-        if self._saml2_sso:
+        if self._sso_saml2:
             self._query_task.url_to_test = self._get_current_site()
             self._query_task.start()
 
@@ -365,7 +373,16 @@ class LoginDialog(QtGui.QDialog):
         """
         Displays the window modally.
         """
-        self.show()
+        # This fixes a weird bug on Qt where calling show() and exec_() might lead
+        # to having an invisible modal QDialog and this state freezes the host
+        # application. (Require a `pkill -9 applicationName`). The fix in our case
+        # is pretty simple, we just have to not call show() before the call to
+        # exec_() since it implicitly call exec_().
+        #
+        # This bug is described here: https://bugreports.qt.io/browse/QTBUG-48248
+        if QtCore.__version__.startswith("4."):
+            self.show()
+
         self.raise_()
         self.activateWindow()
 
@@ -383,23 +400,25 @@ class LoginDialog(QtGui.QDialog):
         :returns: A tuple of (hostname, username and session token) string if the user authenticated
                   None if the user cancelled.
         """
-        if self._session_metadata and self._saml2_sso:
-            res = self._saml2_sso.on_sso_login_attempt({
-                "host": self._get_current_site(),
-                "cookies": self._session_metadata,
-                "product": PRODUCT_IDENTIFIER
-            }, use_watchdog=True)
+        if self._session_metadata and self._sso_saml2:
+            res = self._sso_saml2.login_attempt(
+                host=self._get_current_site(),
+                http_proxy=self._http_proxy,
+                cookies=self._session_metadata,
+                product=PRODUCT_IDENTIFIER,
+                use_watchdog=True
+            )
             # If the offscreen session renewal failed, show the GUI as a failsafe
             if res == QtGui.QDialog.Accepted:
-                return self._saml2_sso.get_session_data()
+                return self._sso_saml2.get_session_data()
             else:
                 return None
 
         res = self.exec_()
 
         if res == QtGui.QDialog.Accepted:
-            if self._session_metadata and self._saml2_sso:
-                return self._saml2_sso.get_session_data()
+            if self._session_metadata and self._sso_saml2:
+                return self._sso_saml2.get_session_data()
             return (self._get_current_site(),
                     self._get_current_user(),
                     self._new_session_token,
@@ -455,7 +474,7 @@ class LoginDialog(QtGui.QDialog):
 
         try:
             self._authenticate(self.ui.message, site, login, password)
-        except MissingTwoFactorAuthenticationFault:
+        except shotgun_api3.MissingTwoFactorAuthenticationFault:
             # We need a two factor authentication code, move to the next page.
             self.ui.stackedWidget.setCurrentWidget(self.ui._2fa_page)
         except Exception as e:
@@ -471,22 +490,23 @@ class LoginDialog(QtGui.QDialog):
         :param password: Password to use with the login.
         :param auth_code: Optional two factor authentication code.
 
-        :raises MissingTwoFactorAuthenticationFault: Raised if auth_code was None but was required
+        :raises shotgun_api3.MissingTwoFactorAuthenticationFault: Raised if auth_code was None but was required
             by the server.
         """
         success = False
         try:
-            if self._use_sso and self._saml2_sso:
-                res = self._saml2_sso.on_sso_login_attempt({
-                    "host": site,
-                    "cookies": self._session_metadata,
-                    "product": PRODUCT_IDENTIFIER
-                })
+            if self._use_sso and self._sso_saml2:
+                res = self._sso_saml2.login_attempt(
+                    host=site,
+                    http_proxy=self._http_proxy,
+                    cookies=self._session_metadata,
+                    product=PRODUCT_IDENTIFIER
+                )
                 if res == QtGui.QDialog.Accepted:
-                    self._new_session_token = self._saml2_sso._session.session_id
-                    self._session_metadata = self._saml2_sso._session.cookies
+                    self._new_session_token = self._sso_saml2.session_id
+                    self._session_metadata = self._sso_saml2.cookies
                 else:
-                    error_msg = self._saml2_sso.get_session_error()
+                    error_msg = self._sso_saml2.session_error
                     if error_msg:
                         raise AuthenticationError(error_msg)
                     return

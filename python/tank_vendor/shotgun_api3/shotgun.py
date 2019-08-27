@@ -46,6 +46,7 @@ import urllib
 import urllib2      # used for image upload
 import urlparse
 import shutil       # used for attachment download
+import httplib      # Used for secure file upload.
 
 # use relative import for versions >=2.5 and package import for python versions <2.5
 if (sys.version_info[0] > 2) or (sys.version_info[0] == 2 and sys.version_info[1] >= 6):
@@ -91,7 +92,7 @@ except ImportError, e:
 
 # ----------------------------------------------------------------------------
 # Version
-__version__ = "3.0.35"
+__version__ = "3.0.36"
 
 # ----------------------------------------------------------------------------
 # Errors
@@ -331,7 +332,11 @@ class _Config(object):
     Container for the client configuration.
     """
 
-    def __init__(self):
+    def __init__(self, sg):
+        """
+        :param sg: Shotgun connection.
+        """
+        self._sg = sg
         self.max_rpc_attempts = 3
         # From http://docs.python.org/2.6/library/httplib.html:
         # If the optional timeout parameter is given, blocking operations
@@ -340,7 +345,7 @@ class _Config(object):
         self.timeout_secs = None
         self.api_ver = 'api3'
         self.convert_datetimes_to_utc = True
-        self.records_per_page = 500
+        self._records_per_page = None
         self.api_key = None
         self.script_name = None
         self.user_login = None
@@ -370,6 +375,17 @@ class _Config(object):
         self.session_token = None
         self.authorization = None
         self.no_ssl_validation = False
+
+    @property
+    def records_per_page(self):
+        """
+        The records per page value from the server.
+        """
+        if self._records_per_page is None:
+            # Check for api_max_entities_per_page in the server info and change the record per page
+            # value if it is supplied.
+            self._records_per_page = self._sg.server_info.get('api_max_entities_per_page') or 500
+        return self._records_per_page
 
 
 class Shotgun(object):
@@ -519,7 +535,7 @@ class Shotgun(object):
             if connect:
                 raise ValueError("must provide login/password, session_token or script_name/api_key")
 
-        self.config = _Config()
+        self.config = _Config(self)
         self.config.api_key = api_key
         self.config.script_name = script_name
         self.config.user_login = login
@@ -596,9 +612,6 @@ class Shotgun(object):
         # call to server will only be made once and will raise error
         if connect:
             self.server_caps
-
-        # Check for api_max_entities_per_page in the server info and change the record per page value if it is supplied.
-        self.config.records_per_page = self.server_info.get('api_max_entities_per_page') or self.config.records_per_page
 
         # When using auth_token in a 2FA scenario we need to switch to session-based
         # authentication because the auth token will no longer be valid after a first use.
@@ -2512,6 +2525,13 @@ class Shotgun(object):
                             match = re.search('<Message>(.*)</Message>', xml)
                             if match:
                                 err += ' - %s' % (match.group(1))
+                elif e.code == 409 or e.code == 410:
+                    # we may be dealing with a file that is pending/failed a malware scan, e.g:
+                    # 409: This file is undergoing a malware scan, please try again in a few minutes
+                    # 410: File scanning has detected malware and the file has been quarantined
+                    lines = e.readlines()
+                    if lines:
+                        err += "\n%s\n" % ''.join(lines)
             raise ShotgunFileDownloadError(err)
         else:
             if file_path:
@@ -3015,11 +3035,15 @@ class Shotgun(object):
         """
         Build urllib2 opener with appropriate proxy handler.
         """
+        handlers = []
+        if self.__ca_certs and not NO_SSL_VALIDATION:
+            handlers.append(CACertsHTTPSHandler(self.__ca_certs))
+
         if self.config.proxy_handler:
-            opener = urllib2.build_opener(self.config.proxy_handler, handler)
-        else:
-            opener = urllib2.build_opener(handler)
-        return opener
+            handlers.append(self.config.proxy_handler)
+
+        handlers.append(handler)
+        return urllib2.build_opener(*handlers)
 
     def _turn_off_ssl_validation(self):
         """
@@ -3368,7 +3392,7 @@ class Shotgun(object):
                 raise MissingTwoFactorAuthenticationFault(sg_response.get("message", "Unknown 2FA Authentication Error"))
             elif sg_response.get("error_code") == ERR_SSO:
                 raise UserCredentialsNotAllowedForSSOAuthenticationFault(
-                    sg_response.get("message", "Authentication using username/password is not supported for an SSO-enabled Shotgun site")
+                    sg_response.get("message", "Authentication using username/password is not allowed for an SSO-enabled Shotgun site")
                 )
             else:
                 # raise general Fault
@@ -3791,8 +3815,52 @@ class Shotgun(object):
 
         return result
 
-# Helpers from the previous API, left as is.
 
+class CACertsHTTPSConnection(httplib.HTTPConnection):
+    """"
+    This class allows to create an HTTPS connection that uses the custom certificates
+    passed in.
+    """
+
+    default_port = httplib.HTTPS_PORT
+
+    def __init__(self, *args, **kwargs):
+        """
+        :param args: Positional arguments passed down to the base class.
+        :param ca_certs: Path to the custom CA certs file.
+        :param kwargs: Keyword arguments passed down to the bas class
+        """
+        # Pop that argument,
+        self.__ca_certs = kwargs.pop("ca_certs")
+        httplib.HTTPConnection.__init__(self, *args, **kwargs)
+
+    def connect(self):
+        "Connect to a host on a given (SSL) port."
+        httplib.HTTPConnection.connect(self)
+        # Now that the regular HTTP socket has been created, wrap it with our SSL certs.
+        self.sock = ssl.wrap_socket(
+            self.sock,
+            ca_certs=self.__ca_certs,
+            cert_reqs=ssl.CERT_REQUIRED
+        )
+
+
+class CACertsHTTPSHandler(urllib2.HTTPSHandler):
+    """
+    Handler that ensures https connections are created with the custom CA certs.
+    """
+    def __init__(self, cacerts):
+        urllib2.HTTPSHandler.__init__(self)
+        self.__ca_certs = cacerts
+
+    def https_open(self, req):
+        return self.do_open(self.create_https_connection, req)
+
+    def create_https_connection(self, *args, **kwargs):
+        return CACertsHTTPSConnection(*args, ca_certs=self.__ca_certs, **kwargs)
+
+
+# Helpers from the previous API, left as is.
 # Based on http://code.activestate.com/recipes/146306/
 class FormPostHandler(urllib2.BaseHandler):
     """

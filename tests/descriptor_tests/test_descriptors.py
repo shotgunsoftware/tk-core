@@ -40,7 +40,15 @@ class TestCachedConfigDescriptor(ShotgunTestBase):
             def resolve_core_descriptor(self):
                 io_desc = Mock()
                 io_desc.get_manifest.return_value = dict()
-                return CoreDescriptor(io_desc)
+                sg_connection = Mock()
+                bundle_cache_root_override = None
+                fallback_roots = None
+                return CoreDescriptor(
+                    sg_connection,
+                    io_desc,
+                    bundle_cache_root_override,
+                    fallback_roots
+                )
 
         desc = CoreConfigDescriptorWithoutFeatures(None, None, None, None)
         self.assertIsNone(
@@ -55,7 +63,15 @@ class TestCachedConfigDescriptor(ShotgunTestBase):
             def resolve_core_descriptor(self):
                 io_desc = Mock()
                 io_desc.get_manifest.return_value = dict(features=dict(two="2"))
-                return CoreDescriptor(io_desc)
+                sg_connection = Mock()
+                bundle_cache_root_override = None
+                fallback_roots = None
+                return CoreDescriptor(
+                    sg_connection,
+                    io_desc,
+                    bundle_cache_root_override,
+                    fallback_roots
+                )
 
         desc = CoreConfigDescriptorWithFeatures(None, None, None, None)
 
@@ -67,6 +83,35 @@ class TestCachedConfigDescriptor(ShotgunTestBase):
         self.assertEqual(
             desc.get_associated_core_feature_info("foo", "bar"),
             "bar"
+        )
+
+    def test_self_contained_config_core_descriptor(self):
+        """
+        Ensures that a configuration with a local bundle cache can return a core
+        descriptor that points inside the configuration if the core is cached there.
+        """
+        config_root = os.path.join(self.tank_temp, "self_contained_config")
+        core_location = os.path.join(
+            config_root, "bundle_cache", "app_store", "tk-core", "v0.18.133"
+        )
+        self.create_file(
+            os.path.join(core_location, "info.yml"),
+            ""
+        )
+        self.create_file(
+            os.path.join(config_root, "core", "core_api.yml"),
+            yaml.dump({"location": {"type": "app_store", "name": "tk-core", "version": "v0.18.133"}})
+        )
+
+        config_desc = create_descriptor(
+            self.mockgun,
+            Descriptor.CONFIG,
+            "sgtk:descriptor:path?path={0}".format(config_root)
+        )
+        core_desc = config_desc.resolve_core_descriptor()
+        self.assertEqual(
+            core_desc.get_path(),
+            core_location
         )
 
     def test_cached_config_associated_core_descriptor(self):
@@ -330,8 +375,7 @@ class TestDescriptorSupport(TankTestBase):
         }
 
         path = os.path.join(
-            self.install_root, "sg", "unit_test_mock_sg",
-            "PipelineConfiguration.sg_config", "p123_primary", "v456"
+            self.install_root, "sg", "unit_test_mock_sg", "v456"
         )
         self._create_info_yaml(path)
 
@@ -795,13 +839,27 @@ class TestConstraintValidation(unittest2.TestCase):
 
 class TestFeaturesApi(unittest2.TestCase):
 
+    def _create_core_desc(self, io_descriptor):
+        """
+        Helper method which creates an io_descriptor
+        """
+        sg_connection = Mock()
+        bundle_cache_root_override = None
+        fallback_roots = None
+        return sgtk.descriptor.CoreDescriptor(
+            sg_connection,
+            io_descriptor,
+            bundle_cache_root_override,
+            fallback_roots
+        )
+
     def test_missing_manifest(self):
         """
         Ensures a missing manifest is handled properly.
         """
         io_desc = Mock()
         io_desc.get_manifest.side_effect = TankMissingManifestError()
-        desc = sgtk.descriptor.CoreDescriptor(io_desc)
+        desc = self._create_core_desc(io_desc)
 
         self.assertEqual(desc.get_feature_info("missing", "value"), "value")
         self.assertIsNone(desc.get_feature_info("missing"))
@@ -813,7 +871,7 @@ class TestFeaturesApi(unittest2.TestCase):
         """
         io_desc = Mock()
         io_desc.get_manifest.return_value = {}
-        desc = sgtk.descriptor.CoreDescriptor(io_desc)
+        desc = self._create_core_desc(io_desc)
 
         self.assertEqual(desc.get_feature_info("missing", "value"), "value")
         self.assertIsNone(desc.get_feature_info("missing"))
@@ -825,7 +883,7 @@ class TestFeaturesApi(unittest2.TestCase):
         """
         io_desc = Mock()
         io_desc.get_manifest.return_value = dict(features={})
-        desc = sgtk.descriptor.CoreDescriptor(io_desc)
+        desc = self._create_core_desc(io_desc)
 
         self.assertEqual(desc.get_feature_info("missing", "value"), "value")
         self.assertIsNone(desc.get_feature_info("missing"))
@@ -838,7 +896,7 @@ class TestFeaturesApi(unittest2.TestCase):
         features = dict(two="2", foo="bar", zero=0)
         io_desc = Mock()
         io_desc.get_manifest.return_value = dict(features=features)
-        desc = sgtk.descriptor.CoreDescriptor(io_desc)
+        desc = self._create_core_desc(io_desc)
 
         self.assertEqual(desc.get_feature_info("two", 3), "2")
         self.assertEqual(desc.get_feature_info("two"), "2")
@@ -868,7 +926,7 @@ class TestFeaturesApi(unittest2.TestCase):
 
         io_desc = Mock()
         io_desc.get_manifest.return_value = info
-        desc = sgtk.descriptor.CoreDescriptor(io_desc)
+        desc = self._create_core_desc(io_desc)
 
         features = {
             "bootstrap.lean_config.version": 1

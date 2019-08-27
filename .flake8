@@ -41,8 +41,9 @@ exclude =
     python/tank/__init__.py,
     python/tank/*/__init__.py,
     # Skip the auto-generated ui file.
-    python/tank/authentication/ui/login_dialog.py
-    python/tank/authentication/ui/resources_rc.py
+    python/tank/authentication/ui/login_dialog.py,
+    python/tank/authentication/ui/resources_rc.py,
+    python/tank/authentication/sso_saml2/*,
     tests/python
 
 # toolkit exceptions

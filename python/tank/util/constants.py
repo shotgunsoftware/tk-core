@@ -37,9 +37,6 @@ PROCESS_FOLDER_NAME_HOOK_NAME = "process_folder_name"
 VALID_SG_ENTITY_NAME_EXPLANATION = ("letters, numbers and the characters period(.), "
                                     "dash(-) and underscore(_)")
 
-# regex pattern that all project folder names must validate against
-VALID_SG_PROJECT_NAME_REGEX = "^[\w\-\./]+$"
-
 # regex pattern that all folder names must validate against
 VALID_SG_ENTITY_NAME_REGEX = "^[\w\-\.]+$"
 
@@ -48,4 +45,3 @@ SHOTGUN_SCHEMA_CACHE_KEY = "shotgun_schema"
 
 # tk instance cache of sg local storages
 SHOTGUN_LOCAL_STORAGES_CACHE_KEY = "shotgun_local_storages"
-

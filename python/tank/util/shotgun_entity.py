@@ -9,10 +9,9 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Utilities relating to shotgun entities 
+Utilities relating to Shotgun entities
 """
 
-import copy
 import re
 
 from . import constants
@@ -34,15 +33,16 @@ def get_sg_entity_name_field(entity_type):
     """
     Return the Shotgun name field to use for the specified entity type.
 
-    :param entity_type: The entity type to get the name field for.
+    :param str entity_type: The entity type to get the name field for.
     :returns: The name field for the specified entity type.
     """
     # Deal with some known special cases and assume "code" for anything else.
     return SG_ENTITY_SPECIAL_NAME_FIELDS.get(entity_type, "code")
 
+
 def sg_entity_to_string(tk, sg_entity_type, sg_id, sg_field_name, data):
     """
-    Generates a string value given a shotgun value.
+    Generates a string value given a Shotgun value.
     This logic is in a hook but it typically does conversions such as:
     
     * "foo" ==> "foo"
@@ -53,10 +53,10 @@ def sg_entity_to_string(tk, sg_entity_type, sg_id, sg_field_name, data):
     This method may also raise exceptions in the case the string value is not valid.
     
     :param tk: Sgtk api instance
-    :param sg_entity_type: the shotgun entity type e.g. 'Shot'
-    :param sg_id: The shotgun id for the record, e.g 1234
+    :param sg_entity_type: the Shotgun entity type e.g. 'Shot'
+    :param sg_id: The Shotgun id for the record, e.g 1234
     :param sg_field_name: The field to generate value for, e.g. 'sg_sequence'
-    :param data: The shotgun entity data chunk that should be converted to a string.
+    :param data: The Shotgun entity data chunk that should be converted to a string.
     """
     # call out to core hook
     return tk.execute_core_hook(constants.PROCESS_FOLDER_NAME_HOOK_NAME, 
@@ -68,35 +68,37 @@ def sg_entity_to_string(tk, sg_entity_type, sg_id, sg_field_name, data):
 
 class EntityExpression(object):
     """
-    Represents a name expression for a shotgun entity.
-    A name expression converts a pattern and a set of shotgun data into a string:
+    Represents a name expression for a Shotgun entity.
+    A name expression converts a pattern and a set of Shotgun data into a string:
       
     Expression                 Shotgun Entity Data                          String Result
     ----------------------------------------------------------------------------------------
     * "code"                 + {"code": "foo_bar"}                      ==> "foo_bar"
-    * "{code}_{asset_type}"  + {"code": "foo_bar", "asset_type": "car"} ==> "foo_bar_car" 
+    * "{code}_{asset_type}"  + {"code": "foo_bar", "asset_type": "car"} ==> "foo_bar_car"
+    * "{code}/{asset_type}"  + {"code": "foo_bar", "asset_type": "car"} ==> "foo_bar/car"
     
     Optional fields are [bracketed]:
     
     * "{code}[_{asset_type}]" + {"code": "foo_bar", "asset_type": "car"} ==> "foo_bar_car"
     * "{code}[_{asset_type}]" + {"code": "foo_bar", "asset_type": None} ==> "foo_bar"
-    
-    It it is always connected to a specific shotgun entity type and 
-    the fields need to be shotgun fields that exists for that entity type.
+
+    Regular expressions can be used to evaluate substrings:
+
+    * "{code:^([^_]+)}/{code:^[^_]+(.+)}" + {"code": "foo_bar"} ==> "foo/bar"
+
+    It it is always connected to a specific Shotgun entity type and
+    the fields need to be Shotgun fields that exists for that entity type.
     """
     
     def __init__(self, tk, entity_type, field_name_expr):
         """
-        Constructor.
-        
-        :param entity_type: the shotgun entity type this is connected to
-        :param field_name_expr: string representing the expression
+        :param str entity_type: Associated Shotgun entity type.
+        :param str field_name_expr: Expression, e.g. '{code}/foo'
         """
-        
         self._tk = tk
         self._entity_type = entity_type
         self._field_name_expr = field_name_expr
-        
+
         # now validate
         if "{" not in field_name_expr:
             # simple form - surround with brackets to turn into a expression
@@ -108,86 +110,137 @@ class EntityExpression(object):
         # We want them most inclusive(longest) version first
         self._sorted_exprs = sorted(expr_variations, key=lambda x: len(x), reverse=True)
 
-        # now extract and store a bunch of data for each variation.
+        # Extract and store a bunch of data for each variation.
         self._variations = {}
-        for v in expr_variations:
+        for expr_variation in expr_variations:
             
-            try:            
-                # find all field names ["xx", "yy", "zz.xx"] from "{xx}_{yy}_{zz.xx}"
-                fields = set(re.findall('{([^}^{]*)}', v))
+            try:
+                # find all field names, for example:
+                # "{xx}_{yy}_{zz.xx}" ----> ["xx", "yy", "zz.xx"]
+                # "{code:([^_]+)}_{yy}" --> ["code:([^_]+)", "yy"]
+                fields = set(re.findall('{([^}]*)}', expr_variation))
             except Exception as error:
-                raise TankError("Could not parse the configuration field '%s' - Error: %s" % (field_name_expr, error) )
+                raise TankError(
+                    "Could not parse the configuration field '%s' - "
+                    "Error: %s" % (field_name_expr, error)
+                )
 
-            # now look for any field which contains a dot - these are all deep links.
-            # for example: sg_sequence.Sequence.code
-            # extract the actual link field from each one and put in entity_links set
-            # (in the above case, that would be sg_sequence)
-            entity_links = set()
-            for field in fields:
-                if "." in field:
-                    entity_links.add( field.split(".")[0] )
-                
+            # Go over fields strings and resolve tokens
+
+            # parsing 'sg_sequence.Sequence.code:^([^_]+)' resolves into
+            # {
+            #   'full_field_name': 'sg_sequence.Sequence.code',
+            #   'link_field_name': 'sg_sequence',
+            #   'regex_obj': <regex obj>
+            # }
+
+            # parsing 'code' resolves into
+            # {
+            #   'full_field_name': 'code',
+            #   'link_field_name': None,
+            #   'regex_obj': None
+            # }
+
+            resolved_fields = []
+            for field_token_expression in fields:
+                full_field_name = None
+                link_field_name = None
+                regex_obj = None
+
+                if ":" in field_token_expression:
+                    (full_field_name, regex) = field_token_expression.split(":", 1)
+
+                    try:
+                        regex_obj = re.compile(regex, re.UNICODE)
+                    except Exception as e:
+                        raise TankError(
+                            "Could not parse regex in configuration "
+                            "field '%s': %s" % (field_name_expr, e)
+                        )
+                else:
+                    full_field_name = field_token_expression
+
+                # extract the link for deep query fields
+                if "." in full_field_name:
+                    link_field_name = full_field_name.split(".")[0]
+
+                resolved_fields.append(
+                    {
+                        "token": field_token_expression,
+                        "full_field_name": full_field_name,
+                        "link_field_name": link_field_name,
+                        "regex_obj": regex_obj
+                    }
+                )
+
             # add this to our variations dict
-            self._variations[v] = {"entity_links": entity_links, "fields": fields}
-                
-    
+            self._variations[expr_variation] = resolved_fields
+
     def _get_expression_variations(self, definition):
         """
         Returns all possible optional variations for an expression.
         
-        "{manne}"               ==> ['{manne}']
-        "{manne}_{ludde}"       ==> ['{manne}_{ludde}']
-        "{manne}[_{ludde}]"     ==> ['{manne}', '{manne}_{ludde}']
-        "{manne}_[{foo}_{bar}]" ==> ['{manne}_', '{manne}_{foo}_{bar}']
-        
+        "{foo}"               ==> ['{foo}']
+        "{foo:[xxx]}_{bar}"   ==> ['{foo:[xxx]}_{bar}']
+        "{foo}[_{bar}]"       ==> ['{foo}', '{foo}_{bar}']
+        "{foo}_[{bar}_{baz}]" ==> ['{foo}_', '{foo}_{bar}_{baz}']
+
+        :param str definition: Expression to process.
+        :returns: List of variations. See example above.
         """
-        # split definition by optional sections
-        tokens = re.split("(\[[^]]*\])", definition)
+        # Split definition by optional sections
+        # Look for square brackets that contains at least one
+        # {expression} and ignore any square bracket inside
+        # expressions:
+        tokens = re.split("(\[[^\]]*\{.*\}[^\]]*\])", definition)
         # seed with empty string
-        definitions = ['']
+        definitions = [""]
         for token in tokens:
             temp_definitions = []
-            # regex return some blank strings, skip them
-            if token == '':
+            if token == "":
+                # regex return some blank strings, skip them
                 continue
-            if token.startswith('['):
-                # check that optional contains a key
-                if not re.search("{*[a-zA-Z_ 0-9]+}", token): 
-                    raise TankError("Optional sections must include a key definition.")
+            if token.startswith("["):
                 # Add definitions skipping this optional value
                 temp_definitions = definitions[:]
                 # strip brackets from token
-                token = re.sub('[\[\]]', '', token)
-            # check non-optional contains no dangleing brackets
-            if re.search("[\[\]]", token): 
-                raise TankError("Square brackets are not allowed outside of optional section definitions.")
+                token = token[1:-1]
             # make defintions with token appended
             for definition in definitions:
                 temp_definitions.append(definition + token)
             definitions = temp_definitions
+
         return definitions
-    
-    
+
     def get_shotgun_fields(self):
         """
-        Returns the shotgun fields that are needed in order to 
+        Returns the Shotgun fields that are needed in order to
         build this name expression. Returns all fields, including optional.
         
-        :returns: set of shotgun field names
+        :returns: Set of Shotgun field names, e.g. ('code', 'sg_sequence.Sequence.code')
         """        
-        # use the longest exprssion - this contains the most fields
+        # use the longest expression - this contains the most fields
         longest_expr = self._sorted_exprs[0]
-        return copy.copy(self._variations[longest_expr]["fields"])
+        field_defs = self._variations[longest_expr]
+        field_names = [field["full_field_name"] for field in field_defs]
+        return set(field_names)
     
     def get_shotgun_link_fields(self):
         """
         Returns a list of all entity links that are used in the name expression, 
         including optional ones.
-        For example, if a name expression for a Shot is {code}_{sg_sequence.Sequence.code},
-        the link fields for this expression is sg_sequence. 
+        For example, if a name expression for a Shot is '{code}_{sg_sequence.Sequence.code}',
+        the link fields for this expression is ['sg_sequence'].
+
+        :returns: Set of link fields, e.g. ('sg_sequence', 'entity')
         """
+        # use the longest exprssion - this contains the most fields
         longest_expr = self._sorted_exprs[0]
-        return copy.copy(self._variations[longest_expr]["entity_links"])
+        field_defs = self._variations[longest_expr]
+        link_names = [
+            field["link_field_name"] for field in field_defs if field["link_field_name"] is not None
+        ]
+        return set(link_names)
 
     def generate_name(self, values):
         """
@@ -196,10 +249,9 @@ class EntityExpression(object):
         Assumes the name will be used as a folder name and validates
         that the evaluated expression is suitable for disk use.
         
-        :param values: dictionary of values to use 
-        :returns: fully resolved name string
+        :param dict values: Dictionary of values to use.
+        :returns: Fully resolved name string.
         """
-                
         # first make sure that each field is valid
         for field_name in self.get_shotgun_fields():
             if field_name not in values:
@@ -223,9 +275,9 @@ class EntityExpression(object):
             
             # try to make a nice descriptive name if possible
             if "code" in values:
-                nice_name = "%s %s (id %s)" % (self._entity_type, values["code"], values["id"])
+                nice_name = "%s %s (id %s)" % (self._entity_type, values["code"], values.get("id"))
             else:
-                nice_name = "%s %s" % (self._entity_type, values["id"])
+                nice_name = "%s id %s" % (self._entity_type, values.get("id"))
             
             raise TankError("Folder Configuration Error. Could not create folders for %s! "
                             "The expression %s refers to one or more values that are blank "
@@ -234,7 +286,6 @@ class EntityExpression(object):
         
         return val 
 
-    
     def _generate_name(self, expression, values):
         """
         Generates a name given some fields.
@@ -243,66 +294,127 @@ class EntityExpression(object):
         that the evaluated expression is suitable for disk use.
         
         :param values: dictionary of values to use 
-        :returns: fully resolved name string
+        :returns: fully resolved name string or None if it cannot be resolved.
         """
+        field_defs = self._variations[expression]
 
-        fields = self._variations[expression]["fields"]
-        
-        # convert shotgun values to string values
+        # convert Shotgun values to string values
+        # key these by their full expression
         str_data = {}
-        
-        # get the shotgun id from the shotgun entity dict
+
+        # get the Shotgun id from the Shotgun entity dict
         sg_id = values.get("id")
         
         # first make sure that each field is valid
-        for field_name in fields:
-            # get value from shotgun data dict
-            raw_val = values.get(field_name)
+        for field_def in field_defs:
+
+            full_sg_field_name = field_def["full_field_name"]
+            token = field_def["token"]
+
+            # get value from Shotgun data dict
+            raw_val = values.get(full_sg_field_name)
             if raw_val is None:
                 # cannot resolve this!
                 return None
-                
-            # now cast the value to a string
-            str_data[field_name] = sg_entity_to_string(self._tk, self._entity_type, sg_id, field_name, raw_val)
-            
-        
-        # change format from {xxx} to %(xxx)s for value substitution.
-        adjusted_expr = expression.replace("{", "%(").replace("}", ")s")
 
-        # just to be sure, make sure to catch any exceptions here
-        # and produce a more sensible error message.
-        try:
-            val = adjusted_expr % (str_data)
-        except Exception as error:
-            raise TankError("Could not populate values for the expression '%s' - please "
-                            "contact support! Error message: %s. "
-                            "Data: %s" % (expression, error, str_data))
-            
+            # now cast the value to a string
+            str_value = sg_entity_to_string(
+                self._tk,
+                self._entity_type,
+                sg_id,
+                full_sg_field_name,
+                raw_val
+            )
+
+            # see if we need to transform it via regex
+            if field_def["regex_obj"]:
+                str_value = self._process_regex(
+                    str_value,
+                    field_def["regex_obj"],
+                )
+
+            str_data[token] = str_value
+
+        # Now str_data looks something like
+        # {'code': 'hello', 'code:^(.)': 'h'}.
+        #
+        # Replace tokens in the string with actual values:
+        resolved_expression = expression
+        for token, value in str_data.iteritems():
+            resolved_expression = resolved_expression.replace("{%s}" % token, value)
+
         # now validate the entire value!
-        if not self._validate_name(val):
-            # not valid!!!
-            msg = ("The format string '%s' used in the configuration "
-                   "does not generate a valid folder name ('%s')! Valid "
-                   "values are %s." % (expression, val, constants.VALID_SG_ENTITY_NAME_EXPLANATION))
-            raise TankError(msg)      
-            
-        return val
+        if not self._validate_name(resolved_expression):
+            raise TankError(
+                "The format string '%s' used in the configuration "
+                "does not generate a valid folder name ('%s')! Valid "
+                "values are %s." % (
+                    expression,
+                    resolved_expression,
+                    constants.VALID_SG_ENTITY_NAME_EXPLANATION
+                )
+            )
+        return resolved_expression
 
     def _validate_name(self, name):
         """
         Check that the name meets basic file system naming standards.
-        """    
-        
-        if self._entity_type == "Project":
-            # allow slashes in project names
-            exp = re.compile(constants.VALID_SG_PROJECT_NAME_REGEX, re.UNICODE)
-        else:
-            exp = re.compile(constants.VALID_SG_ENTITY_NAME_REGEX, re.UNICODE)    
-        
-        if isinstance(name, unicode):
-            return bool(exp.match(name))
-        else:
-            # try decoding from utf-8:
-            u_name = name.decode("utf-8")
-            return bool(exp.match(u_name))
 
+        :returns: True if valid, false otherwise
+        """
+        exp = re.compile(constants.VALID_SG_ENTITY_NAME_REGEX, re.UNICODE)
+
+        # split into sub-segments based on slash
+        # and validate each one separately
+        if name is None:
+            return False
+
+        # iterate over all tokens and validate
+        for folder_subgroup in name.split("/"):
+            if isinstance(folder_subgroup, unicode):
+                u_name = folder_subgroup
+            else:
+                # try decoding from utf-8:
+                u_name = folder_subgroup.decode("utf-8")
+
+            if exp.match(u_name) is None:
+                return False
+
+        return True
+
+    def _process_regex(self, value, regex_obj):
+        """
+        Processes the given string value with the given regex.
+
+        :param value: Value to process, either unicode or str.
+        :param regex_obj: Regex object.
+        :return: Processed value, same type as value input parameter.
+            If input is None, an empty string is returned.
+        """
+        if value is None:
+            return ""
+
+        # perform the regex calculation in unicode space
+        if not isinstance(value, unicode):
+            input_is_utf8 = True
+            value_to_convert = value.decode("utf-8")
+        else:
+            input_is_utf8 = False
+            value_to_convert = value
+
+        # now perform extraction
+        match = regex_obj.match(value_to_convert)
+        if match is None:
+            # no match. return empty string
+            resolved_value = u""
+        else:
+            # we have a match object. concatenate the groups
+            resolved_value = "".join(match.groups())
+
+        # resolved value is now unicode. Convert it
+        # so that it is consistent with input
+        if isinstance(resolved_value, unicode) and input_is_utf8:
+            # input was utf-8, regex result is unicode, cast it back
+            return resolved_value.encode("utf-8")
+        else:
+            return resolved_value

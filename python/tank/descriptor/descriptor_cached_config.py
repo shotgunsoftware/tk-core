@@ -12,7 +12,6 @@ from __future__ import with_statement
 
 import os
 
-
 from tank_vendor import yaml
 
 from . import constants

@@ -12,6 +12,7 @@ from __future__ import with_statement
 
 import uuid
 import os
+import sys
 from mock import patch
 
 from tank_test.tank_test_base import setUpModule # noqa
@@ -23,7 +24,6 @@ from sgtk.authentication import ShotgunAuthenticator, ShotgunSamlUser
 from sgtk.authentication.user_impl import SessionUser
 import sgtk
 import tank_vendor
-
 
 REPO_ROOT = os.path.normpath(
     os.path.join(
@@ -384,3 +384,93 @@ class TestInvalidInstalledConfiguration(TankTestBase):
                 sgtk.bootstrap.TankBootstrapError,
                 "Cannot find required system file"):
             config.status()
+
+
+class TestBakedConfiguration(TestConfigurationBase):
+    def setUp(self):
+        super(TestBakedConfiguration, self).setUp()
+        self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
+        self._build_plugin_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "..", "developer", "build_plugin.py")
+        )
+        sys.path.append(os.path.dirname(self._build_plugin_path))
+
+    def tearDown(self):
+        super(TestBakedConfiguration, self).tearDown()
+        if os.path.dirname(self._build_plugin_path) in sys.path:
+            sys.path.remove(os.path.dirname(self._build_plugin_path))
+        # Tear down the running engine, if any
+        current_engine = sgtk.platform.current_engine()
+        if current_engine:
+            current_engine.destroy()
+        if sgtk.constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA in os.environ:
+            del os.environ[sgtk.constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA]
+
+    @patch("tank.authentication.ShotgunAuthenticator.get_user")
+    @patch("sgtk.bootstrap.configuration_writer.ConfigurationWriter.install_core")
+    def test_build_and_use(self, core_install_mock, get_user_mock):
+        """
+        Test baking a plugin and bootstrapping it with current tk-core.
+        """
+        default_user = self._create_session_user("default_user")
+        get_user_mock.return_value = default_user
+        # Bake the plugin
+        import build_plugin
+        plugin_path = os.path.join(self.fixtures_root, "bootstrap_tests", "test_plugin")
+        bake_folder = os.path.join(self.tank_temp, "test_baked")
+        build_plugin.build_plugin(
+            self.mockgun,
+            plugin_path,
+            bake_folder,
+            do_bake=True,
+            use_system_core=True,
+        )
+        # And try to bootstrap it
+        # The config name and version is controlled by the
+        # fixtures/bootstrap_tests/test_plugin/info.yml file.
+        bootstrap_script = os.path.join(bake_folder, "tk-config-boottest-v1.2.3", "bootstrap.py")
+        # Define some globals needed by the bootstrap script
+        global_namespace = {
+            "__file__": bootstrap_script,
+            "__name__": "__main__",
+        }
+        with open(bootstrap_script, "rb") as pf:
+            exec(compile(pf.read(), bootstrap_script, "exec"), global_namespace)
+        self.assertNotEqual(sgtk.platform.current_engine(), None)
+        sgtk.platform.current_engine().destroy()
+
+
+class TestCachedConfiguration(ShotgunTestBase):
+
+    def test_verifies_tank_name(self):
+        """
+        Ensures that missing tank name on project is detected when using roots.
+        """
+
+        # Reset the tank_name and create a storage named after the one in the config.
+        self.mockgun.update("Project", self.project["id"], {"tank_name": None})
+        self.mockgun.create("LocalStorage", {"code": "primary"})
+
+        # Initialize a cached configuration pointing to the config.
+        config_root = os.path.join(self.fixtures_root, "bootstrap_tests", "config")
+        cached_config = CachedConfiguration(
+            self.tank_temp,
+            self.mockgun,
+            sgtk.descriptor.create_descriptor(
+                self.mockgun,
+                sgtk.descriptor.Descriptor.CONFIG,
+                "sgtk:descriptor:path?path={0}".format(config_root)
+            ),
+            self.project["id"],
+            "basic.*",
+            None,
+            []
+        )
+
+        # Make sure that the missing tank name is detected.
+        with self.assertRaises(sgtk.bootstrap.TankMissingTankNameError):
+            cached_config.verify_required_shotgun_fields()
+
+        # Ensure our change is backwards compatible.
+        with self.assertRaises(sgtk.bootstrap.TankBootstrapError):
+            cached_config.verify_required_shotgun_fields()

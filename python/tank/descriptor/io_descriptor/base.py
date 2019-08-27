@@ -338,29 +338,41 @@ class IODescriptorBase(object):
         """
         self._is_copiable = copiable
 
-    def copy(self, target_path):
+    def copy(self, target_path, skip_list=None):
         """
         Copy the contents of the descriptor to an external location, if supported.
 
         :param target_path: target path to copy the descriptor to.
+        :param skip_list: List of folders or files that should not be copied into the destination.
+
+        .. note::
+            The folders or files specified must be at the root of the bundle.
         """
         if self._is_copiable:
-            self._copy(target_path)
+            self._copy(target_path, skip_list)
         else:
             raise TankDescriptorError("%r cannot be copied." % self)
 
-    def _copy(self, target_path):
+    def _copy(self, target_path, skip_list=None):
         """
         Copy the contents of the descriptor to an external location, if supported.
 
         :param target_path: target path to copy the descriptor to.
+        :param skip_list: List of folders or files that should not be copied into the destination.
+
+        .. note::
+            The folders or files specified must be at the root of the bundle.
         """
         log.debug("Copying %r -> %s" % (self, target_path))
         # base class implementation does a straight copy
         # make sure config exists
         self.ensure_local()
         # copy descriptor in
-        filesystem.copy_folder(self.get_path(), target_path)
+        filesystem.copy_folder(
+            self.get_path(),
+            target_path,
+            skip_list=(skip_list or []) + filesystem.SKIP_LIST_DEFAULT
+        )
 
     def get_manifest(self, file_location):
         """

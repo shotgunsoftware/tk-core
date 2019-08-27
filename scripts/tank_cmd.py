@@ -18,12 +18,13 @@ import string
 import tank
 import textwrap
 import datetime
-from tank import TankError
+from tank.errors import TankError, TankInitError
 from tank.commands.tank_command import get_actions, run_action
 from tank.commands.clone_configuration import clone_pipeline_configuration_html
 from tank.commands.core_upgrade import TankCoreUpdater
 from tank.commands.action_base import Action
 from tank.util import shotgun
+from tank.util import shotgun_entity
 from tank.platform import constants as platform_constants
 from tank.authentication import ShotgunAuthenticator
 from tank.authentication import AuthenticationError
@@ -736,22 +737,6 @@ def _shotgun_run_action(install_root, pipeline_config_root, is_localized, action
 ###############################################################################################
 # Shell Actions Management
 
-def _get_sg_name_field(entity_type):
-    """
-    Returns the standard Shotgun name field given an entity type.
-
-    :param entity_type: shotgun entity type
-    :returns: name field as string
-    """
-    name_field = "code"
-    if entity_type == "Project":
-        name_field = "name"
-    elif entity_type == "Task":
-        name_field = "content"
-    elif entity_type == "HumanUser":
-        name_field = "login"
-    return name_field
-
 def _resolve_shotgun_pattern(entity_type, name_pattern):
     """
     Resolve a pattern given an entity. Search the 'name' field
@@ -763,7 +748,7 @@ def _resolve_shotgun_pattern(entity_type, name_pattern):
     :returns: (entity id, name)
     """
 
-    name_field = _get_sg_name_field(entity_type)
+    name_field = shotgun_entity.get_sg_entity_name_field(entity_type)
 
     sg = shotgun.get_sg_connection()
 
@@ -815,7 +800,7 @@ def _list_commands(tk, ctx):
         logger.info("%s Commands" % cat)
         logger.info("=" * 50)
         logger.info("")
-        for cmd in by_category[cat]:
+        for cmd in sorted(by_category[cat], key=lambda c: c.name):
             logger.info(cmd.name)
             logger.info("-" * len(cmd.name))
             logger.info(cmd.description)
@@ -911,7 +896,7 @@ def _resolve_shotgun_entity(entity_type, entity_search_token, constrain_by_proje
     """
 
     sg = shotgun.get_sg_connection()
-    name_field = _get_sg_name_field(entity_type)
+    name_field = shotgun_entity.get_sg_entity_name_field(entity_type)
 
     try:
         # build up filters
@@ -1224,7 +1209,7 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
             # first look if there is an exact match for it.
             # If not, assume it is an id.
             sg = shotgun.get_sg_connection()
-            name_field = _get_sg_name_field(entity_type)
+            name_field = shotgun_entity.get_sg_entity_name_field(entity_type)
 
             # first try by name - e.g. a shot named "123"
             filters = [[name_field, "is", entity_search_token]]
@@ -1263,8 +1248,24 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
             entity_id = _resolve_shotgun_entity(entity_type, entity_search_token, project_id)
 
         # now initialize toolkit and set up the context.
-        tk = tank.tank_from_entity(entity_type, entity_id)
+        try:
+            tk = tank.tank_from_entity(entity_type, entity_id)
+        except TankInitError as exc:
+            # If we failed to get an object back, a likely cause is that the entity
+            # has been retired. In the situation where an unregister_folders command
+            # is being called, we can give the user some better feedback concerning
+            # how to unregister the folder using the path instead of the entity.
+            if command == "unregister_folders":
+                raise TankInitError(
+                    "%s If you want to unregister folders associated with this "
+                    "entity, you can do so by calling the unregister_folders "
+                    "command on the associated path instead: "
+                    "\"tank unregister_folders /path/to/folder\"" % exc.message
+                )
+            raise
+
         ctx = tk.context_from_entity(entity_type, entity_id)
+
 
     logger.debug("Sgtk API and Context resolve complete.")
     logger.debug("Sgtk API: %s" % tk)

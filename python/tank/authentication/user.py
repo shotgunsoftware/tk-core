@@ -12,9 +12,9 @@ import os
 import threading
 import time
 
+from . import sso_saml2
 from . import interactive_authentication
 from . import user_impl
-from . import shotgun_shared
 from .. import LogManager
 from .errors import AuthenticationCancelled
 
@@ -22,7 +22,7 @@ from .errors import AuthenticationCancelled
 logger = LogManager.get_logger(__name__)
 
 # Ensure that the SSO-related logging will be merged in our loggin.
-shotgun_shared.set_logger_parent(logger)
+sso_saml2.set_logger_parent(logger)
 
 
 class ShotgunUser(object):
@@ -179,7 +179,7 @@ class ShotgunSamlUser(ShotgunUser):
 
         :returns: The claims expiration time, expressed as the number of seconds since epoch.
         """
-        return shotgun_shared.get_saml_claims_expiration(self._impl.get_session_metadata())
+        return sso_saml2.get_saml_claims_expiration(self._impl.get_session_metadata())
 
     def _do_automatic_claims_renewal(self, preemtive_renewal_threshold=0.9):
         """

@@ -11,13 +11,13 @@
 import os
 import copy
 
+from ..log import LogManager
 from ..util import filesystem
 from .io_descriptor import create_io_descriptor
 from .errors import TankDescriptorError
 from ..util import LocalFileStorageManager
 from . import constants
 
-from ..log import LogManager
 
 logger = LogManager.get_logger(__name__)
 
@@ -78,11 +78,6 @@ def create_descriptor(
     :returns: :class:`Descriptor` object
     :raises: :class:`TankDescriptorError`
     """
-    from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
-    from .descriptor_cached_config import CachedConfigDescriptor
-    from .descriptor_installed_config import InstalledConfigDescriptor
-    from .descriptor_core import CoreDescriptor
-
     # use the environment variable if set - if not, fall back on the override or default locations
     if os.environ.get(constants.BUNDLE_CACHE_PATH_ENV_VAR):
         bundle_cache_root_override = os.path.expanduser(
@@ -113,29 +108,13 @@ def create_descriptor(
     )
 
     # now create a high level descriptor and bind that with the low level descriptor
-    if descriptor_type == Descriptor.APP:
-        return AppDescriptor(sg_connection, io_descriptor)
-
-    elif descriptor_type == Descriptor.ENGINE:
-        return EngineDescriptor(sg_connection, io_descriptor)
-
-    elif descriptor_type == Descriptor.FRAMEWORK:
-        return FrameworkDescriptor(sg_connection, io_descriptor)
-
-    elif descriptor_type == Descriptor.CONFIG:
-        return CachedConfigDescriptor(
-            sg_connection, bundle_cache_root_override, fallback_roots, io_descriptor
-        )
-
-    elif descriptor_type == Descriptor.INSTALLED_CONFIG:
-        return InstalledConfigDescriptor(
-            sg_connection, bundle_cache_root_override, fallback_roots, io_descriptor
-        )
-
-    elif descriptor_type == Descriptor.CORE:
-        return CoreDescriptor(io_descriptor)
-    else:
-        raise TankDescriptorError("Unsupported descriptor type %s" % descriptor_type)
+    return Descriptor.create(
+        sg_connection,
+        descriptor_type,
+        io_descriptor,
+        bundle_cache_root_override,
+        fallback_roots
+    )
 
 
 def _get_default_bundle_cache_root():
@@ -162,10 +141,47 @@ class Descriptor(object):
 
     (APP, FRAMEWORK, ENGINE, CONFIG, CORE, INSTALLED_CONFIG) = range(6)
 
+    _factory = {}
+
+    @classmethod
+    def register_descriptor_factory(cls, descriptor_type, subclass):
+        """
+        Registers a descriptor subclass with the :meth:`create` factory.
+        This is an internal method that should not be called by external
+        code.
+
+        :param descriptor_type: Either ``Descriptor.APP``, ``CORE``,
+            ``CONFIG``, ``INSTALLED_CONFIG``, ``ENGINE`` or ``FRAMEWORK``
+        :param subclass: Class deriving from Descriptor to associate.
+        """
+        cls._factory[descriptor_type] = subclass
+
+    @classmethod
+    def create(cls, sg_connection, descriptor_type, io_descriptor, bundle_cache_root_override, fallback_roots):
+        """
+        Factory method used by :meth:`create_descriptor`. This is an internal
+        method that should not be called by external code.
+
+        :param descriptor_type: Either ``Descriptor.APP``, ``CORE``,
+            ``CONFIG``, ``INSTALLED_CONFIG``, ``ENGINE`` or ``FRAMEWORK``
+        :param sg_connection: Shotgun connection to associated site
+        :param io_descriptor: Associated low level descriptor transport object.
+        :param bundle_cache_root_override: Override for root path to where
+            downloaded apps are cached.
+        :param fallback_roots: List of immutable fallback cache locations where
+            apps will be searched for.
+        :returns: Instance of class deriving from :class:`Descriptor`
+        :raises: TankDescriptorError
+        """
+        if descriptor_type not in cls._factory:
+            raise TankDescriptorError("Unsupported descriptor type %s" % descriptor_type)
+        class_obj = cls._factory[descriptor_type]
+        return class_obj(sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots)
+
     def __init__(self, io_descriptor):
         """
-        Use the factory method :meth:`create_descriptor` when
-        creating new descriptor objects.
+        .. note:: Use the factory method :meth:`create_descriptor` when
+                  creating new descriptor objects.
 
         :param io_descriptor: Associated IO descriptor.
         """
@@ -230,7 +246,7 @@ class Descriptor(object):
 
     def copy(self, target_folder):
         """
-        Copy the config descriptor into the specified target location
+        Copy the config descriptor into the specified target location.
 
         :param target_folder: Folder to copy the descriptor to
         """

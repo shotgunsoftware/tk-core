@@ -1,0 +1,4 @@
+primary:
+  linux_path: /tmp/primary
+  mac_path: /tmp/primary
+  windows_path: "X:\\tmp\\primary"

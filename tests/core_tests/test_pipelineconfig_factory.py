@@ -15,8 +15,10 @@ import sgtk
 import tank
 from tank.api import Tank
 from tank.errors import TankInitError
-
-from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
+from sgtk.util import ShotgunPath
+from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule # noqa
+from mock import patch
+import cPickle as pickle
 
 
 class TestTankFromPath(TankTestBase):
@@ -222,9 +224,8 @@ class TestTankFromPathDuplicatePcPaths(TankTestBase):
             "code": "Primary",
             "id": 123456,
             "project": self.project,
-            "windows_path": self.pipeline_config_root,
-            "mac_path": self.pipeline_config_root,
-            "linux_path": self.pipeline_config_root}
+            ShotgunPath.get_shotgun_storage_key(): self.project_root,
+        }
 
         self.add_to_sg_mock_db(self.overlapping_pc)
 
@@ -246,6 +247,354 @@ class TestTankFromPathDuplicatePcPaths(TankTestBase):
                                 sgtk.sgtk_from_entity,
                                 "Project",
                                 self.project["id"])
+
+
+class TestSharedCoreWithSiteWideConfigs(TankTestBase):
+
+    def test_multiple_primaries(self):
+        """
+        Ensures that a site-level primary is not considered for a shared-core for a project.
+        """
+        self.mockgun.create(
+            "PipelineConfiguration",
+            {
+                "code": "Primary",
+                "mac_path": "/a/b/c",
+                "windows_path": "C:\\b\\a",
+                "linux_path": "/a/b/c"
+            }
+        )
+
+        sgtk.sgtk_from_path(self.project_root)
+        sgtk.sgtk_from_entity(self.project["type"], self.project["id"])
+
+    def test_no_primary(self):
+        """
+        Ensures error is raised if there are no primary available.
+        """
+        self.mockgun.update(
+            "PipelineConfiguration",
+            self.pipeline_configuration.get_shotgun_id(),
+            {"code": "Secondary"}
+        )
+        with self.assertRaisesRegexp(
+            TankInitError,
+            "does not have a Primary pipeline configuration!"
+        ):
+            sgtk.sgtk_from_path(self.project_root)
+
+    def test_no_path(self):
+        """
+        Ensures error is raised if the primary has no path set.
+        """
+        self.mockgun.update(
+            "PipelineConfiguration",
+            self.pipeline_configuration.get_shotgun_id(),
+            {"windows_path": None, "linux_path": None, "mac_path": None}
+        )
+        # We do not support site-wide pipeline configurations from shared cores.
+        with self.assertRaisesRegexp(
+            TankInitError,
+            "cannot be instantiated because it does not have an absolute path"
+        ):
+            sgtk.sgtk_from_path(self.project_root)
+
+
+class TestPipelineConfigurationEnumeration(ShotgunTestBase):
+    """
+    Tests pipeline configuration enumeration.
+    """
+
+    def setUp(self):
+        super(TestPipelineConfigurationEnumeration, self).setUp()
+
+        # Clean Mockgun of existing project and pipeline configurations. We want a clean slate.
+        self.mockgun.delete("PipelineConfiguration", self.sg_pc_entity["id"])
+        self.mockgun.delete("Project", self.project["id"])
+
+        # Create two projects with different tank names.
+        self.project_with_tank_name = self.mockgun.create(
+            "Project", {"name": "WithTankName", "tank_name": "with_tank_name"}
+        )
+        self.project_with_another_tank_name = self.mockgun.create(
+            "Project", {"name": "WithAnotherTankName", "tank_name": "with_another_tank_name"}
+        )
+
+        # Create four different kinds of pipeline configurations, 2 site wide ones and 2 project specific ones.
+        self.site_wide_path = self.mockgun.create(
+            "PipelineConfiguration",
+            {
+                "code": "SiteWidePath",
+                "windows_path": os.path.join(self.tank_temp, "site_wide_path"),
+                "linux_path": os.path.join(self.tank_temp, "site_wide_path"),
+                "mac_path": os.path.join(self.tank_temp, "site_wide_path"),
+                "project": None
+            }
+        )
+
+        self.site_wide_desc = self.mockgun.create(
+            "PipelineConfiguration",
+            {
+                "code": "SiteWideDescriptor",
+                "descriptor": "sgtk:descriptor:path?path=" + os.path.join(self.tank_temp, "site_wide_descriptor"),
+                "plugin_ids": "basic.*",
+                "project": None,
+                "windows_path": None,
+                "linux_path": None,
+                "mac_path": None
+            }
+        )
+        # Remove some values from the resulting dict, this will make validation easier in the tests.
+        self.site_wide_desc = self._remove_items(self.site_wide_desc, ["plugin_ids", "descriptor"])
+
+        self.proj_spec_path = self.mockgun.create(
+            "PipelineConfiguration",
+            {
+                "code": "ProjectSpecificPath",
+                "windows_path": os.path.join(self.tank_temp, "site_wide_path"),
+                "linux_path": os.path.join(self.tank_temp, "site_wide_path"),
+                "mac_path": os.path.join(self.tank_temp, "site_wide_path"),
+                "project": self.project_with_tank_name
+            }
+        )
+
+        self.proj_spec_desc = self.mockgun.create(
+            "PipelineConfiguration",
+            {
+                "code": "ProjectSpecificDescriptor",
+                "descriptor": "sgtk:descriptor:path?path=" + os.path.join(
+                    self.tank_temp, "project_specific_descriptor"
+                ),
+                "plugin_ids": "basic.*",
+                "project": self.project_with_tank_name,
+                "windows_path": None,
+                "linux_path": None,
+                "mac_path": None
+            }
+        )
+        # Remove some values from the resulting dict, this will make validation easier in the tests.
+        self.proj_spec_desc = self._remove_items(self.proj_spec_desc, ["plugin_ids", "descriptor"])
+
+        # Retrieve all the pipeline configuration info.
+        self._sg_data = sgtk.pipelineconfig_factory._get_pipeline_configs(True)
+
+        self.maxDiff = None
+
+    def test_get_pipeline_configs(self):
+        """
+        Make sure _get_pipeline_configs actually returns all pipeline configurations.
+        """
+        self.assertEqual(
+            self._sg_data["projects"],
+            dict((proj["id"], proj) for proj in [self.project_with_tank_name, self.project_with_another_tank_name])
+        )
+        self.assertEqual(
+            self._sg_data["pipeline_configurations"],
+            [
+                self.site_wide_path,
+                self.site_wide_desc,
+                self.proj_spec_path,
+                self.proj_spec_desc
+            ]
+        )
+        self.assertEqual(
+            self._sg_data["local_storages"], [self._remove_items(self.primary_storage, "__retired")]
+        )
+
+    def test_get_pipeline_configs_from_path(self):
+        """
+        Makes sure _get_pipeline_configs_from_path can match a path to the right list of possible pipelines.
+        """
+        # The path is the same for all platforms.
+        project_root = os.path.join(self.primary_storage["windows_path"], "with_tank_name")
+
+        # Get the pipelines matching the WithTankName project.
+        pcs = sgtk.pipelineconfig_factory._get_pipeline_configs_for_path(project_root, self._sg_data)
+
+        # Side wide pipeline and project specific pipelines should all match.
+        self.assertEqual(
+            pcs,
+            [
+                self.site_wide_path,
+                self.site_wide_desc,
+                self.proj_spec_path,
+                self.proj_spec_desc
+            ]
+        )
+
+        # The path is the same for all platforms.
+        project_root = os.path.join(self.primary_storage["windows_path"], "with_another_tank_name")
+
+        # Get the pipelines matching the WithTankName project.
+        pcs = sgtk.pipelineconfig_factory._get_pipeline_configs_for_path(project_root, self._sg_data)
+
+        # Only site-wide should match. project specific should not since they are for another project.
+        self.assertEqual(
+            pcs,
+            [
+                self.site_wide_path,
+                self.site_wide_desc
+            ]
+        )
+
+    def test_get_pipeline_configs_for_project(self):
+        """
+        Makes sure _get_pipeline_configs_for_project can match a path to the right list of possible pipelines.
+        """
+        pcs = sgtk.pipelineconfig_factory._get_pipeline_configs_for_project(
+            self.project_with_tank_name["id"], self._sg_data
+        )
+
+        self.assertEqual(
+            pcs,
+            [
+                self.site_wide_path,
+                self.site_wide_desc,
+                self.proj_spec_path,
+                self.proj_spec_desc
+            ]
+        )
+
+        pcs = sgtk.pipelineconfig_factory._get_pipeline_configs_for_project(
+            self.project_with_another_tank_name["id"], self._sg_data
+        )
+
+        self.assertEqual(
+            pcs,
+            [
+                self.site_wide_path,
+                self.site_wide_desc
+            ]
+        )
+
+    def _remove_items(self, dictionary, keys_to_remove):
+        """
+        Creates a new dictionary with a given set of keys removed.
+
+        :param dictionary: Dictionary to clean.
+        :param keys_to_remove: List of keys to remove.
+
+        :returns: A new dictionary without the keys specified.
+        """
+        return dict(
+            (k, v) for k, v in dictionary.iteritems() if k not in keys_to_remove
+        )
+
+
+class TestLookupCache(ShotgunTestBase):
+
+    def test_cache_lookup_for_pipeline_configs(self):
+        """
+        The cache's schema has changed, ensure it stays backwards compatible.
+        """
+        with patch("tank.util.shotgun.get_sg_connection", return_value=self.mockgun) as mock:
+            # Force read from Shotgun, a connection must be made to Shotgun.
+            mock.reset_mock()
+            sgtk.pipelineconfig_factory._get_pipeline_configs(True)
+            self.assertTrue(mock.called)
+
+            # Do not force read from Shotgun, there should be a cache hit.
+            mock.reset_mock()
+            sgtk.pipelineconfig_factory._get_pipeline_configs(False)
+            self.assertFalse(mock.called)
+
+            cache_data = sgtk.pipelineconfig_factory._load_lookup_cache()
+            # The new paths_v2 sections should be in there.
+            self.assertIn("paths_v2", cache_data)
+
+            # Remove the paths
+            cache_data.pop("paths_v2")
+
+            with open(sgtk.pipelineconfig_factory._get_cache_location(), "wb") as fh:
+                pickle.dump(cache_data, fh)
+
+            # Do not force read from Shotgun, but since the cache is not present
+            # it should be loaded from Shotgun.
+            mock.reset_mock()
+            sgtk.pipelineconfig_factory._get_pipeline_configs(False)
+            self.assertTrue(mock.called)
+
+
+class TestTankFromWithSiteConfig(TankTestBase):
+    """
+    Tests tank.tank_from_* with site configurations.
+    """
+    def setUp(self):
+        super(TestTankFromWithSiteConfig, self).setUp()
+        # Turn the config into a site configuration.
+        self.mockgun.update(
+            "PipelineConfiguration",
+            self.sg_pc_entity["id"],
+            {
+                "windows_path": None,
+                "linux_path": None,
+                "mac_path": None,
+                "project": None
+            }
+        )
+
+        self.mockgun.create(
+            "PipelineConfiguration",
+            {
+                "code": "NoPath",
+                "project": self.project
+            }
+        )
+
+    def test_from_path(self):
+        """
+        Ensures tank_from_path will resolve site wide configs.
+        """
+        os.environ["TANK_CURRENT_PC"] = self.pipeline_config_root
+        try:
+            result = tank.tank_from_path(self.project_root)
+            self.assertEquals(result.project_path, self.project_root)
+            self.assertEquals(result.pipeline_configuration.get_path(), self.pipeline_config_root)
+
+            self._invalidate_pipeline_configuration_yml()
+            with self.assertRaisesRegexp(
+                TankInitError,
+                "however that is not associated with the pipeline configuration"
+            ):
+                tank.tank_from_path(self.project_root)
+        finally:
+            del os.environ["TANK_CURRENT_PC"]
+
+    def test_from_entity(self):
+        """
+        Ensures tank_from_entity will resolve site wide configs.
+        """
+        os.environ["TANK_CURRENT_PC"] = self.pipeline_config_root
+        try:
+            result = tank.tank_from_entity("Project", self.project["id"])
+            self.assertEquals(result.project_path, self.project_root)
+            self.assertEquals(result.pipeline_configuration.get_path(), self.pipeline_config_root)
+
+            self._invalidate_pipeline_configuration_yml()
+            with self.assertRaisesRegexp(
+                TankInitError,
+                "however that is not associated with the pipeline configuration"
+            ):
+                tank.tank_from_entity("Project", self.project["id"])
+        finally:
+            del os.environ["TANK_CURRENT_PC"]
+
+    def _invalidate_pipeline_configuration_yml(self):
+        """
+        Updates pipeline_configuration.yml to point to a pipeline configuration id
+        that doesn't match.
+        """
+        pc_yml = os.path.join(self.pipeline_config_root, "config", "core", "pipeline_configuration.yml")
+        pc_yml_data = (
+            "{ project_name: %s, use_shotgun_path_cache: true, pc_id: %d, "
+            "project_id: %d, pc_name: %s}\n\n" % (
+                self.project["tank_name"],
+                9595,
+                self.project["id"],
+                self.sg_pc_entity["code"]
+            )
+        )
+        self.create_file(pc_yml, pc_yml_data)
 
 
 class TestTankFromEntityWithMixedSlashes(TankTestBase):
@@ -290,7 +639,7 @@ class TestTankFromPathWindowsNoSlash(TankTestBase):
         super(TestTankFromPathWindowsNoSlash, self).setUp(
             parameters={"project_tank_name": self.PROJECT_NAME}
         )
-        
+
         # set up std fixtures
         self.setup_fixtures()
 
@@ -482,6 +831,7 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         else:
             os.environ["TANK_CURRENT_PC"] = old_tank_current_pc
 
+
 class TestTankFromPathPCWithProjectWithoutTankName(TankTestBase):
     """
     Tests edge case where getting path for classic/installed project and another
@@ -526,4 +876,4 @@ class TestTankFromPathPCWithProjectWithoutTankName(TankTestBase):
         # this will raise if an exception occurs. prior to the associated fix
         # (#46590), if there was a project defined for the site without a
         # tank_name set, this code would fail.
-        config = sgtk.pipelineconfig_factory.from_path(path)
+        sgtk.pipelineconfig_factory.from_path(path)

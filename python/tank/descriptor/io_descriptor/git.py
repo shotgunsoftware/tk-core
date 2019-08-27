@@ -225,14 +225,18 @@ class IODescriptorGit(IODescriptorDownloadable):
             can_connect = False
         return can_connect
 
-    def _copy(self, target_path):
+    def _copy(self, target_path, skip_list=None):
         """
         Copy the contents of the descriptor to an external location
 
         Subclassed git implementation which includes .git folders
-        in the copy.
+        in the copy, unless they are specifically skipped by the skip_list.
 
         :param target_path: target path to copy the descriptor to.
+        :param skip_list: List of folders or files that should not be copied into the destination.
+
+        .. note::
+            The folders or files specified must be at the root of the bundle.
         """
         log.debug("Copying %r -> %s" % (self, target_path))
         # make sure item exists locally
@@ -244,5 +248,6 @@ class IODescriptorGit(IODescriptorDownloadable):
         filesystem.copy_folder(
             self.get_path(),
             target_path,
-            skip_list=[]
+            # Make we do not pass none or we will be getting the default skip list.
+            skip_list=skip_list or []
         )

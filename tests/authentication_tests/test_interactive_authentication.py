@@ -19,7 +19,7 @@ import contextlib
 import sys
 
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase, skip_if_pyside_missing, interactive
+from tank_test.tank_test_base import ShotgunTestBase, skip_if_pyside_missing, skip_if_on_travis_ci, interactive
 from mock import patch
 from tank.authentication import (
     console_authentication,
@@ -70,6 +70,7 @@ class InteractiveTests(ShotgunTestBase):
 
         ld.show()
         ld.raise_()
+        ld.activateWindow()
 
         QApplication.processEvents()
 
@@ -83,7 +84,7 @@ class InteractiveTests(ShotgunTestBase):
             self._prepare_window(ld)
             yield ld
 
-    @skip_if_pyside_missing
+    @skip_if_on_travis_ci("Offscreen XServer doesn't do focus changes.")
     def test_focus(self):
         """
         Make sure that the site and user fields are disabled when doing session renewal
@@ -296,7 +297,7 @@ class InteractiveTests(ShotgunTestBase):
         """
         handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
         self.assertEqual(
-            handler._get_user_credentials(None, None),
+            handler._get_user_credentials(None, None, None),
             ("https://test.shotgunstudio.com", "username", " password ")
         )
         self.assertEqual(
@@ -319,9 +320,9 @@ class InteractiveTests(ShotgunTestBase):
         """
         handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
         with self.assertRaises(ConsoleLoginWithSSONotSupportedError):
-            handler._get_user_credentials(None, None)
+            handler._get_user_credentials(None, None, None)
 
-    @skip_if_pyside_missing
+    @skip_if_on_travis_ci("Offscreen XServer doesn't do focus changes.")
     def test_ui_auth_with_whitespace(self):
         """
         Makes sure that the ui strips out whitespaces.

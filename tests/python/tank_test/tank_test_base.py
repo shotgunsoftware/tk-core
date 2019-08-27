@@ -58,6 +58,32 @@ def interactive(func):
     )(func)
 
 
+def only_run_on_windows(func):
+    """
+    Decorator that allows to skip a test if not running on windows.
+    :param func: Function to be decorated.
+    :returns: The decorated function.
+    """
+    running_nix = sys.platform != "win32"
+    return unittest.skipIf(
+        running_nix,
+        "Windows only test."
+    )(func)
+
+
+def only_run_on_nix(func):
+    """
+    Decorator that allows to skip a test if not running on linux/macosx.
+    :param func: Function to be decorated.
+    :returns: The decorated function.
+    """
+    running_windows = sys.platform == "win32"
+    return unittest.skipIf(
+        running_windows,
+        "Linux/Macosx only test."
+    )(func)
+
+
 def _is_git_missing():
     """
     Tests is git is available in PATH
@@ -71,6 +97,16 @@ def _is_git_missing():
         # no git!
         pass
     return git_missing
+
+
+def skip_if_on_travis_ci(reason):
+    """
+    Skips a test if we're on travis-ci and display the error.
+    :returns: The decorated function.
+    """
+    def wrapper(func):
+        return unittest.skipIf("TRAVIS" in os.environ, reason)(func)
+    return wrapper
 
 
 def skip_if_git_missing(func):
@@ -266,6 +302,13 @@ class TankTestBase(unittest.TestCase):
         return "%s (%s)" % (
             self._testMethodName, unittest.util.strclass(self.__class__) + "." + self._testMethodName
         )
+
+    @property
+    def short_test_name(self):
+        """
+        Name of the current test function.
+        """
+        return self.id().rsplit(".", 1)[-1]
 
     @timer.clock_func("TankTestBase.setUp")
     def setUp(self, parameters=None):
@@ -572,6 +615,14 @@ class TankTestBase(unittest.TestCase):
                                                             do post processing of your fixtures or config
                                                             and don't want to load templates into the tk
                                                             instance just yet.
+
+                           - 'installed_config': False - Tells the fixtures loader to create an installed
+                                                         configuration instead of a cached one from
+                                                         the configuration passed in. By default,
+                                                         a cached configuration is created. Note that
+                                                         if a custom core is passed in, an installed
+                                                         configuration is always set up, as the configuration
+                                                         will be pieced of different locations on disk.
         """
         # setup_multi_root_fixtures invokes setup_fixtures, which inflates our timing statistics.
         # So we'll have the actual implementation of setup_fixtures in a private method
@@ -590,22 +641,43 @@ class TankTestBase(unittest.TestCase):
 
         # first figure out core location
         if "core" in parameters:
+            # This config is not simple, as it is piece from a env and hooks folder from one
+            # location and the core from another.
+            simple_config = False
             # convert slashes to be windows friendly
             core_path_suffix = parameters["core"].replace("/", os.sep)
             core_source = os.path.join(config_root, core_path_suffix)
         else:
+            # This config is simple, as it is based on a config that is layed out into a single folder.
+            simple_config = True
             # use the default core fixture
             core_source = os.path.join(config_root, "core")
 
-        # copy core over to target
-        core_target = os.path.join(self.project_config, "core")
-        self._copy_folder(core_source, core_target)
-        # now copy the rest of the config fixtures
-        for config_folder in ["env", "hooks", "bundles"]:
-            config_source = os.path.join(config_root, config_folder)
-            if os.path.exists(config_source):
-                config_target = os.path.join(self.project_config, config_folder)
-                self._copy_folder(config_source, config_target)
+        # Check if the tests wants the files to be copied.
+        installed_config = parameters.get("installed_config", False)
+
+        # If the config is not simple of the tests wants the files to be copied
+        if not simple_config or installed_config:
+            # copy core over to target
+            core_target = os.path.join(self.project_config, "core")
+            self._copy_folder(core_source, core_target)
+            # now copy the rest of the config fixtures
+            for config_folder in ["env", "hooks", "bundles"]:
+                config_source = os.path.join(config_root, config_folder)
+                if os.path.exists(config_source):
+                    config_target = os.path.join(self.project_config, config_folder)
+                    self._copy_folder(config_source, config_target)
+        else:
+            # We're going to be using a cached configuration, so set up the source_descriptor.
+            pc_yml_location = os.path.join(self.pipeline_config_root, "config", "core", "pipeline_configuration.yml")
+            with open(pc_yml_location, "r") as fh:
+                pc_data = yaml.safe_load(fh)
+            pc_data["source_descriptor"] = {"path": config_root, "type": "path"}
+            with open(pc_yml_location, "w") as fh:
+                fh.write(yaml.dump(pc_data))
+
+            # Update where the config root variable points to.
+            self.project_config = config_root
 
         # need to reload the pipeline config to respect the config data from
         # the fixtures
@@ -639,6 +711,8 @@ class TankTestBase(unittest.TestCase):
         project_name = os.path.basename(self.project_root)
         self.alt_root_1 = os.path.join(self.tank_temp, "alternate_1", project_name)
         self.alt_root_2 = os.path.join(self.tank_temp, "alternate_2", project_name)
+        self.alt_root_3 = os.path.join(self.tank_temp, "alternate_3", project_name)
+        self.alt_root_4 = os.path.join(self.tank_temp, "alternate_4", project_name)
 
         # add local storages to represent the alternate root points
         self.alt_storage_1 = {"type": "LocalStorage",
@@ -657,13 +731,38 @@ class TankTestBase(unittest.TestCase):
                               "mac_path": os.path.join(self.tank_temp, "alternate_2")}
         self.add_to_sg_mock_db(self.alt_storage_2)
 
+        self.alt_storage_3 = {"type": "LocalStorage",
+                              "id": 7780,
+                              "code": "alternate_3",
+                              "windows_path": os.path.join(self.tank_temp, "alternate_3"),
+                              "linux_path": os.path.join(self.tank_temp, "alternate_3"),
+                              "mac_path": os.path.join(self.tank_temp, "alternate_3")}
+        self.add_to_sg_mock_db(self.alt_storage_3)
+
+        self.alt_storage_4 = {"type": "LocalStorage",
+                              "id": 7781,
+                              "code": "alternate_4",
+                              "windows_path": os.path.join(self.tank_temp, "alternate_4"),
+                              "linux_path": os.path.join(self.tank_temp, "alternate_4"),
+                              "mac_path": os.path.join(self.tank_temp, "alternate_4")}
+        self.add_to_sg_mock_db(self.alt_storage_4)
+
         # Write roots file
-        roots = {"primary": {}, "alternate_1": {}, "alternate_2": {}}
+        roots = {"primary": {}, "alternate_1": {}, "alternate_2": {}, "alternate_3": {}, "alternate_4": {}}
         for os_name in ["windows_path", "linux_path", "mac_path"]:
             # TODO make os specific roots
             roots["primary"][os_name]     = os.path.dirname(self.project_root)
             roots["alternate_1"][os_name] = os.path.dirname(self.alt_root_1)
             roots["alternate_2"][os_name] = os.path.dirname(self.alt_root_2)
+
+            # NOTE: swap the mapped roots
+            roots["alternate_3"][os_name] = os.path.dirname(self.alt_root_4)
+            roots["alternate_4"][os_name] = os.path.dirname(self.alt_root_3)
+
+        # swap the mapped storage ids
+        roots["alternate_3"]["shotgun_storage_id"] = 7781  # local storage 4
+        roots["alternate_4"]["shotgun_storage_id"] = 7780  # local storage 3
+
         roots_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")
         roots_file = open(roots_path, "w")
         roots_file.write(yaml.dump(roots))

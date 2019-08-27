@@ -72,19 +72,13 @@ class TestEngineLauncher(TankTestBase):
         )
 
         # Verify that engines without startup.py files will return None
-        startup_plugin = os.path.join(
-            self.pipeline_config_root, "config", "bundles", "test_engine", "startup.py"
-        )
-        startup_copy = startup_plugin.replace("startup.py", "startup_copy.py")
-        os.rename(startup_plugin, startup_copy)
-        launcher = create_engine_launcher(self.tk, self.context, self.engine_name)
+        launcher = create_engine_launcher(self.tk, self.context, "incomplete_engine")
         self.assertEqual(launcher, None)
 
         # Verify valid input results in a valid SoftwareLauncher
         expected_disk_location = os.path.join(
-            self.pipeline_config_root, "config", "bundles", "test_engine"
+            self.project_config, "bundles", "test_engine"
         )
-        os.rename(startup_copy, startup_plugin)
 
         versions_list = [1, 2, 3, 4]
         products_list = ["A", "B", "C"]
@@ -286,7 +280,7 @@ class TestEngineLauncher(TankTestBase):
         prep_args = "-t 1-20 --show_all -v --select parts"
         open_file = "open_this_file.ext"
         startup_path = os.path.join(
-            self.pipeline_config_root, "config", "bundles", "test_engine", "startup"
+            self.project_config, "bundles", "test_engine", "startup"
         )
 
         launcher = create_engine_launcher(self.tk, self.context, self.engine_name)

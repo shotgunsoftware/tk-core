@@ -11,23 +11,12 @@
 from __future__ import with_statement
 import os
 import sys
-import datetime
-import threading
-import urlparse
-import unittest2 as unittest
-import logging
 
 from mock import patch, call
 
 import tank
 from tank import context, errors
-from tank_test.tank_test_base import TankTestBase, setUpModule
-from tank.template import TemplatePath
-from tank.templatekey import SequenceKey
-from tank.authentication.user import ShotgunUser
-from tank.authentication.user_impl import SessionUser
-from tank.descriptor import Descriptor
-from tank.descriptor.io_descriptor.appstore import IODescriptorAppStore
+from tank_test.tank_test_base import TankTestBase, setUpModule, only_run_on_windows, only_run_on_nix
 
 
 class TestShotgunRegisterPublish(TankTestBase):
@@ -411,17 +400,77 @@ class TestShotgunRegisterPublish(TankTestBase):
         self.assertTrue(cm.exception.entity["type"]==tank.util.get_published_file_entity_type(self.tk))
 
 
+class TestMultiRoot(TankTestBase):
+
+    def setUp(self):
+        super(TestMultiRoot, self).setUp()
+        self.setup_multi_root_fixtures()
+
+        self.shot = {"type": "Shot",
+                     "name": "shot_name",
+                     "id": 2,
+                     "project": self.project}
+        self.step = {"type": "Step", "name": "step_name", "id": 4}
+
+        context_data = {
+            "tk": self.tk,
+            "project": self.project,
+            "entity": self.shot,
+            "step": self.step,
+        }
+
+        self.context = context.Context(**context_data)
+        self.path = os.path.join(self.project_root, "foo", "bar")
+        self.name = "Test Publish"
+        self.version = 1
+
+        # mock server caps so we can test local storage mapping for publishes
+        class server_capsMock:
+            def __init__(self):
+                self.version = (7, 0, 1)
+        self.mockgun.server_caps = server_capsMock()
+
+        # Prevents an actual connection to a Shotgun site.
+        self._server_caps_mock = patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
+        self._server_caps_mock.start()
+        self.addCleanup(self._server_caps_mock.stop)
+
+    def test_storage_misdirection(self):
+
+        # publish a file to root 3 path. should map to alt 4 storage
+        publish_data = tank.util.register_publish(
+            self.tk,
+            self.context,
+            os.path.join(self.alt_root_3, "foo", "bar"),
+            self.name,
+            self.version,
+            dry_run=True
+        )
+        self.assertTrue(publish_data["path"]["local_storage"]["id"], 7780)
+
+        # publish a file to root 4 path. should map to alt 3 storage
+        publish_data = tank.util.register_publish(
+            self.tk,
+            self.context,
+            os.path.join(self.alt_root_4, "foo", "bar"),
+            self.name,
+            self.version,
+            dry_run=True
+        )
+        self.assertTrue(publish_data["path"]["local_storage"]["id"], 7781)
+
+
 class TestCalcPathCache(TankTestBase):
-    
-    @patch("tank.pipelineconfig.PipelineConfiguration.get_data_roots")
-    def test_case_difference(self, get_data_roots):
+
+    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    def test_case_difference(self, get_local_storage_roots):
         """
         Case that root case is different between input path and that in roots file.
         Bug Ticket #18116
         """
-        get_data_roots.return_value = {"primary" : self.project_root}
-        
-        relative_path = os.path.join("Some","Path")
+        get_local_storage_roots.return_value = {"primary": self.tank_temp}
+
+        relative_path = os.path.join("Some", "Path")
         wrong_case_root = self.project_root.swapcase()
         expected = os.path.join(os.path.basename(wrong_case_root), relative_path).replace(os.sep, "/")
 
@@ -430,4 +479,103 @@ class TestCalcPathCache(TankTestBase):
         self.assertEqual("primary", root_name)
         self.assertEqual(expected, path_cache)
 
+    @only_run_on_windows
+    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    def test_path_normalization_win_drive_letter(self, get_local_storage_roots):
+        """
+        Ensures that a variety of different slash syntaxes are valid when splitting
+        a path into a storage + path cache field while using a windows drive letter path.
+        """
+        # note - this return value is guaranteed to be normalized
+        # so no need to test for edge cases
+        get_local_storage_roots.return_value = {"primary": "P:\\"}
+
+        input_paths = [
+            r"P:\project_code\3d\Assets",
+            r"P:/project_code/3d/Assets",
+            r"P://project_code//3d//Assets",
+            r"P:\\project_code\\3d\\Assets",
+        ]
+
+        for input_path in input_paths:
+            root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
+                self.tk,
+                input_path
+            )
+            self.assertEqual("primary", root_name)
+            self.assertEqual("project_code/3d/Assets", path_cache)
+
+    @only_run_on_windows
+    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    def test_path_normalization_win_unc(self, get_local_storage_roots):
+        """
+        Ensures that a variety of different slash syntaxes are valid when splitting
+        a path into a storage + path cache field while using a windows unc path
+        """
+        # note - this return value is guaranteed to be normalized
+        # so no need to test for edge cases
+        get_local_storage_roots.return_value = {"primary": "\\\\share"}
+
+        input_paths = [
+            r"\\share\project_code\3d\Assets",
+            r"//share/project_code/3d/Assets",
+        ]
+
+        for input_path in input_paths:
+            root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
+                self.tk,
+                input_path
+            )
+            self.assertEqual("primary", root_name)
+            self.assertEqual("project_code/3d/Assets", path_cache)
+
+    @only_run_on_nix
+    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    def test_path_normalization_nix(self, get_local_storage_roots):
+        """
+        Ensures that a variety of different slash syntaxes are valid when splitting
+        a path into a storage + path cache field while using linux or mac
+        """
+        # note - this return value is guaranteed to be normalized
+        # so no need to test for edge cases
+        get_local_storage_roots.return_value = {"primary": "/mnt"}
+
+        input_paths = [
+            r"/mnt\project_code\3d\Assets",
+            r"\mnt\project_code\3d\Assets",
+            r"/mnt/project_code//3d///Assets",
+        ]
+
+        for input_path in input_paths:
+            root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
+                self.tk,
+                input_path
+            )
+            self.assertEqual("primary", root_name)
+            self.assertEqual("project_code/3d/Assets", path_cache)
+
+
+class TestCalcPathCacheProjectWithSlash(TankTestBase):
+
+    def setUp(self):
+        """Sets up entities in mocked shotgun database and creates Mock objects
+        to pass in as callbacks to Schema.create_folders. The mock objects are
+        then queried to see what paths the code attempted to create.
+        """
+        super(TestCalcPathCacheProjectWithSlash, self).setUp({'project_tank_name': 'foo/bar'})
+
+    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    def test_multi_project_root(self, get_local_storage_roots):
+        """
+        Testing path cache calculations for project names with slashes
+        """
+        get_local_storage_roots.return_value = {"primary": self.tank_temp}
+
+        relative_path = os.path.join("Some", "Path")
+        expected = os.path.join("foo", "bar", relative_path).replace(os.sep, "/")
+        input_path = os.path.join(self.project_root, relative_path)
+
+        root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(self.tk, input_path)
+        self.assertEqual("primary", root_name)
+        self.assertEqual(expected, path_cache)
 

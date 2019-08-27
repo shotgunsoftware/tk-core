@@ -24,12 +24,13 @@ class TestGetProjectRoots(TankTestBase):
     
     def setUp(self):
         super(TestGetProjectRoots, self).setUp()
-        self.setup_fixtures()
-        self.root_file_path = os.path.join(self.project_config, "core", "roots.yml")
-        project_name = os.path.basename(self.project_root)
-        #TODO make os specific paths
-        
-        self.roots = {"primary":{}, "publish": {}, "render": {}}
+
+        # Tests are updating the roots.yml file, so we'll turn this into an installed configuration.
+        self.setup_fixtures(parameters={"installed_config": True})
+        self.root_file_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")
+
+        # TODO make os specific paths
+        self.roots = {"primary": {}, "publish": {}, "render": {}}
         for os_name in ["linux_path", "mac_path"]:
             self.roots["primary"][os_name] = os.path.dirname(self.project_root).replace(os.sep, "/")
             self.roots["publish"][os_name] = os.path.join(self.tank_temp, "publish").replace(os.sep, "/")
@@ -118,7 +119,7 @@ class TestGetProjectRoots(TankTestBase):
         root_file.close()
         # We should get a TankError if we don't have a primary storage in a
         # multi-roots file.
-        with self.assertRaisesRegexp(TankError, "Could not find a primary storage"):
+        with self.assertRaisesRegexp(TankError, "Could not identify a default storage"):
             pc = tank.pipelineconfig_factory.from_path(self.project_root)
         # Only keep the master storage
         del new_roots["publish"]

@@ -16,7 +16,7 @@ class Project(Entity):
     """
     The root point. Represents a shotgun project.
     """
-    
+
     @classmethod
     def create(cls, tk, schema_config_project_folder, metadata):
         """

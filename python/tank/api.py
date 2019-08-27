@@ -160,8 +160,8 @@ class Sgtk(object):
     @property
     def configuration_descriptor(self):
         """
-        The configuration descriptor represents the source of the environments associated
-        with this pipeline configuration.
+        The :class:`~sgtk.descriptor.ConfigDescriptor` which represents the
+        source of the environments associated with this pipeline configuration.
         """
         return self.__pipeline_config.get_configuration_descriptor()
 
@@ -175,13 +175,12 @@ class Sgtk(object):
     @property
     def project_path(self):
         """
-        Path to the primary data directory for a project.
+        Path to the default data directory for a project.
 
         Toolkit Projects that utilize the template system to read and write data
-        to disk will use a number of Shotgun local storages as part of their setup
-        to define where data should be stored on disk. One of these storages
-        are identified as the 'primary' storage root and this is the value
-        returned by this property.
+        to disk will use a number of Shotgun local storages as part of their
+        setup to define where data should be stored on disk. One of these
+        storages is identified as the default storage.
 
         :raises: :class:`TankError` if the configuration doesn't use storages.
         """
@@ -190,27 +189,31 @@ class Sgtk(object):
     @property
     def roots(self):
         """
-        Returns a dictionary of root names to root paths.
+        Returns a dictionary of storage root names to storage root paths.
 
         Toolkit Projects that utilize the template system to read and write data
-        to disk will use a number of Shotgun local storages as part of their setup
-        to define where data should be stored on disk. This method returns a dictionary
-        keyed by storage root name with the value being the path on the current
-        operating system platform::
+        to disk will use one or more Shotgun local storages as part of their
+        setup to define where data should be stored on disk. This method returns
+        a dictionary keyed by storage root name with the value being the path
+        on the current operating system platform::
 
-            {"primary": "/studio/my_project", "textures": "/textures/my_project"}
+            {
+                "work": "/studio/work/my_project",
+                "textures": "/studio/textures/my_project"
+            }
 
         These items reflect the Local Storages that you have set up in Shotgun.
-        Each project in the Pipeline Toolkit is connected to a number of these
+
+        Each project using the template system is connected to a number of these
         storages - these storages define the root points for all the different
         data locations for your project. So for example, if you have a mount
         point for textures, one for renders and one for production data such
         as scene files, you can set up a multi root configuration which uses
         three Local Storages in Shotgun. This method returns the project
-        storage locations for the current project. The key is the name of the local
-        storage, the way it is defined in Shotgun. The value is the path which is defined in the
-        Shotgun Local storage definition for the current operating system,
-        concatenated with the project folder name.
+        storage locations for the current project. The key is the name of the
+        local storage as defined in your configuration. The value is the path
+        which is defined in the associated Shotgun Local storage definition for
+        the current operating system, concatenated with the project folder name.
         """
         return self.__pipeline_config.get_data_roots()
 
@@ -343,6 +346,25 @@ class Sgtk(object):
         from . import commands
         return commands.get_command(command_name, self)
         
+    def templates_from_path(self, path):
+        """
+        Finds templates that matches the given path::
+
+            >>> import sgtk
+            >>> tk = sgtk.sgtk_from_path("/studio/project_root")
+            >>> tk.templates_from_path("/studio/my_proj/assets/Car/Anim/work")
+            <Sgtk Template maya_asset_project: assets/%(Asset)s/%(Step)s/work>
+
+
+        :param path: Path to match against a template
+        :returns: list of :class:`TemplatePath` or [] if no match could be found.
+        """
+        matched_templates = []
+        for key, template in self.templates.items():
+            if template.validate(path):
+                matched_templates.append(template)
+        return matched_templates
+            
     def template_from_path(self, path):
         """
         Finds a template that matches the given path::
@@ -356,11 +378,8 @@ class Sgtk(object):
         :param path: Path to match against a template
         :returns: :class:`TemplatePath` or None if no match could be found.
         """
-        matched_templates = []
-        for key, template in self.templates.items():
-            if template.validate(path):
-                matched_templates.append(template)
-
+        matched_templates = self.templates_from_path(path)
+        
         if len(matched_templates) == 0:
             return None
         elif len(matched_templates) == 1:
@@ -683,13 +702,13 @@ class Sgtk(object):
     def context_from_entity_dictionary(self, entity_dictionary):
         """
         Derives a context from a shotgun entity dictionary. This will try to use any
-        linked information available in the dictionary where possible but if it can't 
+        linked information available in the dictionary where possible but if it can't
         determine a valid context then it will fall back to :meth:`context_from_entity` which
         may result in a Shotgun path cache query and be considerably slower.
 
         The following values for ``entity_dictionary`` will result in a context being
         created without falling back to a potential Shotgun query - each entity in the
-        dictionary (including linked entities) must have the fields: 'type', 'id' and 
+        dictionary (including linked entities) must have the fields: 'type', 'id' and
         'name' (or the name equivalent for specific entity types, e.g. 'content' for
         Step entities, 'code' for Shot entities, etc.)::
 
@@ -705,6 +724,12 @@ class Sgtk(object):
              "step": {"type": "Step", "id": 101112, "name": "Anm"}
             }
 
+            {"type": "PublishedFile", "id": 42, "code": "asset.ma",
+             "task": {type": "Task", "id": 789, "content": "Animation"}
+             "project": {"type": "Project", "id": 123, "name": "My Project"}
+             "entity": {"type": "Shot", "id": 456, "name": "Shot 001"}
+            }
+
         The following values for ``entity_dictionary`` don't contain enough information to
         fully form a context so the code will fall back to :meth:`context_from_entity` which
         may then result in a Shotgun query to retrieve the missing information::
@@ -718,6 +743,13 @@ class Sgtk(object):
             # missing linked project name and linked step
             {"type": "Task", "id": 789, "content": "Animation",
              "project": {"type": "Project", "id": 123}}
+             "entity": {"type": "Shot", "id": 456, "name": "Shot 001"}
+            }
+
+            # Missing publish name.
+            {"type": "PublishedFile", "id": 42,
+             "task": {type": "Task", "id": 789, "content": "Animation"}
+             "project": {"type": "Project", "id": 123, "name": "My Project"}
              "entity": {"type": "Shot", "id": 456, "name": "Shot 001"}
             }
 

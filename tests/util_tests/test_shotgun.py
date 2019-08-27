@@ -197,9 +197,11 @@ class TestShotgunFindPublish(TankTestBase):
 
 class TestMultiRoot(TankTestBase):
 
-    def test_multi_root(self):
-
+    def setUp(self):
+        super(TestMultiRoot, self).setUp()
         self.setup_multi_root_fixtures()
+
+    def test_multi_root(self):
 
         project_name = os.path.basename(self.project_root)
 
@@ -225,6 +227,44 @@ class TestMultiRoot(TankTestBase):
         # make sure we are only getting the ID back.
         self.assertEqual(sg_data.keys(), ["type", "id"])
 
+    def test_storage_misdirection(self):
+
+        project_name = os.path.basename(self.project_root)
+
+        # define 2 publishes with the same path, different storages
+        self.pub_6 = {"type": "PublishedFile",
+                      "id": 6,
+                      "code": "storage misdirection",
+                      "path_cache": "%s/foo/bar" % project_name,
+                      "created_at": datetime.datetime(2012, 10, 12, 12, 1),
+                      "path_cache_storage": self.alt_storage_3}
+
+        self.pub_7 = {"type": "PublishedFile",
+                      "id": 7,
+                      "code": "storage misdirection2",
+                      "path_cache": "%s/foo/bar" % project_name,
+                      "created_at": datetime.datetime(2012, 10, 12, 12, 1),
+                      "path_cache_storage": self.alt_storage_4}
+
+        self.add_to_sg_mock_db([self.pub_6, self.pub_7])
+
+        # querying root 3 path which is used by the "alternate_4" root in
+        # roots.yml. the returned data should point to local storage 3 which
+        # alt root 4 points to explicitly.
+        paths = [os.path.join(self.alt_root_3, "foo", "bar")]
+        pub_data = tank.util.find_publish(self.tk, paths, fields=["path_cache_storage"])
+        self.assertEqual(len(pub_data), 1)
+        self.assertEqual(pub_data.keys(), paths)
+        self.assertEqual(pub_data[paths[0]]["path_cache_storage"]["id"], self.alt_storage_3["id"])
+
+        # querying root 4 path which is used by the "alternate_3" root in
+        # roots.yml. the returned data should point to local storage 4 which
+        # alt root 3 points to explicitly.
+        paths = [os.path.join(self.alt_root_4, "foo", "bar")]
+        pub_data = tank.util.find_publish(self.tk, paths, fields=["path_cache_storage"])
+        self.assertEqual(len(pub_data), 1)
+        self.assertEqual(pub_data.keys(), paths)
+        self.assertEqual(pub_data[paths[0]]["path_cache_storage"]["id"], self.alt_storage_4["id"])
 
 class TestShotgunDownloadUrl(ShotgunTestBase):
 
@@ -243,7 +283,7 @@ class TestShotgunDownloadUrl(ShotgunTestBase):
 
         # Temporary destination to "download" source file to.
         self.download_destination = os.path.join(
-            self.tank_temp, self.id(), "config", "foo",
+            self.tank_temp, self.short_test_name, "config", "foo",
             "test_shotgun_download_url.png"
         )
         os.makedirs(os.path.dirname(self.download_destination))
@@ -302,21 +342,3 @@ class TestShotgunDownloadUrl(ShotgunTestBase):
         self.assertEqual(self.download_destination, full_path)
 
 
-class TestShotgunUtils(unittest.TestCase):
-    """
-    Test various Shotgun utilities and helpers
-    """
-    def test_entity_name_field(self):
-        """
-        Test retrieving the right "name" field for various entity types.
-        """
-        # Test most standard entities, and check that custom entities use "code"
-        for entity_type in ["Sequence", "Shot", "Asset", "CustomXXXXEntity"]:
-            self.assertEqual(
-                get_sg_entity_name_field(entity_type), "code"
-            )
-        # Test most standard entities where the name is in a "name" field.
-        for entity_type in ["HumanUser", "Project"]:
-            self.assertEqual(
-                get_sg_entity_name_field(entity_type), "name"
-            )

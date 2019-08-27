@@ -22,6 +22,7 @@ from tank.commands import get_command
 from tank.bootstrap.configuration_writer import ConfigurationWriter
 from tank.descriptor import Descriptor, create_descriptor
 from tank_vendor import yaml
+from tank.util import ShotgunPath
 
 
 class TestPipelineConfig(TankTestBase):
@@ -143,7 +144,9 @@ class TestPipelineConfig(TankTestBase):
         """
         Makes sure we are using the pipeline configuration form the fixture
         """
-        self.setup_fixtures(name="fixture_tests")
+        # The fixture contains a pipeline_configuration.yml file that needs to be copied into the
+        # pipeline_configuration_root, so we'll copy the configuration into it.
+        self.setup_fixtures(name="fixture_tests", parameters={"installed_config": True})
         self.assertEqual(
             self.tk.pipeline_configuration.get_shotgun_id(),
             42
@@ -170,6 +173,45 @@ class TestConfigLocations(TankTestBase):
     def setUp(self):
         super(TestConfigLocations, self).setUp({"primary_root_name": "primary"})
         self._project = self.mockgun.create("Project", {"name": "config_locations_test"})
+
+    def test_token_resolution_with_installed_configuration(self):
+        """
+        Tests an installed configuration's resolving of the CONFIG_FOLDER and PIPELINE_CONFIG
+        """
+        self.setup_fixtures(parameters={"installed_config": True})
+
+        # For path and the platform specific path token...
+        for path_key in ["path", ShotgunPath.get_shotgun_storage_key()]:
+            # For both path based descriptors..
+            for desc_type in ["path", "dev"]:
+                # For both tokens that can point to the bunldes that have been copied inside the
+                # pipeline configuration...
+                for desc_str in [
+                    "sgtk:descriptor:%s?%s={PIPELINE_CONFIG}/config/bundles/test_app" % (desc_type, path_key),
+                    "sgtk:descriptor:%s?%s={CONFIG_FOLDER}/bundles/test_app" % (desc_type, path_key)
+                ]:
+                    desc = self.tk.pipeline_configuration.get_app_descriptor(desc_str)
+                    # Ensure the bundle is resolved inside the installed configuration.
+                    self.assertEqual(
+                        desc.get_path(), os.path.join(self.pipeline_config_root, "config", "bundles", "test_app")
+                    )
+
+    def test_token_resolution_with_cached_configuration(self):
+        """
+        Tests a cached configuration's resolving of the CONFIG_FOLDER
+        """
+        self.setup_fixtures()
+
+        # For path and the platform specific path token...
+        for path_key in ["path", ShotgunPath.get_shotgun_storage_key()]:
+            # For both path based descriptors...
+            for desc_type in ["path", "dev"]:
+                desc_str = "sgtk:descriptor:%s?%s={CONFIG_FOLDER}/bundles/test_app" % (desc_type, path_key)
+                desc = self.tk.pipeline_configuration.get_app_descriptor(desc_str)
+                # Ensure the bundle is resolved inside the source configuration.
+                self.assertEqual(
+                    desc.get_path(), os.path.join(self.fixtures_root, "config", "bundles", "test_app")
+                )
 
     def test_classic_config_with_studio_core(self):
         """
@@ -299,7 +341,7 @@ class TestConfigLocations(TankTestBase):
             os.path.join(autogen_files_root, "config", "core", "pipeline_configuration.yml")
         )
         self.assertEqual(
-            pc._get_roots_metadata_location(),
+            pc._storage_roots.roots_file,
             os.path.join(autogen_files_root, "config", "core", "roots.yml")
         )
         self.assertEqual(

@@ -24,4 +24,35 @@ if [[ $SHOTGUN_COMPILE_ONLY -eq 1 ]]; then
     exit 0
 fi
 
-PYTHONPATH=tests/python/third_party python -3 tests/python/third_party/coverage run tests/run_tests.py
+if [[ $TRAVIS = true ]]; then
+    # PySide is tricky to install and run. Let's get a wheel from someone who already compiled it for
+    # Travis.
+    # Taken from: https://stackoverflow.com/questions/24489588/how-can-i-install-pyside-on-travis
+    sudo apt-get install libqt4-dev
+    pip install PySide==1.2.2 --no-index --find-links https://parkin.github.io/python-wheelhouse/;
+    # Travis CI servers use virtualenvs, so we need to finish the install by the following
+    python ~/virtualenv/python${TRAVIS_PYTHON_VERSION}/bin/pyside_postinstall.py -install
+    # Now we need to start the X server...
+    # Taken from: https://github.com/colmap/colmap/commit/606d3cd09931d78a3272f99b5e7a2cb6894e243e
+    export DISPLAY=:99.0
+    sh -e /etc/init.d/xvfb start
+    sleep 3
+    # Finally, tell Qt to run offscreen.
+    export QT_QPA_PLATFORM=offscreen
+fi
+
+export PYTHONPATH=tests/python/third_party:tests/python:python
+
+# Insert the event type and python version, since we can be running multiple builds at the same time.
+export SHOTGUN_TEST_ENTITY_SUFFIX="travis_${TRAVIS_EVENT_TYPE}_${TRAVIS_PYTHON_VERSION}"
+
+python tests/python/third_party/coverage run tests/run_tests.py
+
+# Run these tests only if the integration tests environment variables are set.
+if [ -z ${SHOTGUN_HOST+x} ]; then
+    echo "Skipping integration tests, SHOTGUN_HOST is not set."
+else
+    python tests/python/third_party/coverage run -a tests/integration_tests/offline_workflow.py
+    python tests/python/third_party/coverage run -a tests/integration_tests/tank_commands.py
+    python tests/python/third_party/coverage run -a tests/integration_tests/multi_bootstrap.py
+fi

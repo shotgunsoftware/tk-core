@@ -40,6 +40,19 @@ def _cache_descriptor(sg, desc_type, desc_dict, target_path):
     desc.clone_cache(target_path)
 
 
+def _should_skip_caching(desc):
+    """
+    Returns if a descriptor's content should not be cached.
+
+    We should not attempt to cache descriptors that are path-based. Not only they don't
+    need to be cached, but they might be using special tokens like CONFIG_FOLDER
+    that can't be understood outside a pipeline configuration.
+
+    :returns: ``True`` if the contents should be skipped, ``False`` otherwise.
+    """
+    return desc["type"] in ["dev", "path"]
+
+
 def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
     """
     Iterates over all environments within the given configuration descriptor
@@ -67,28 +80,37 @@ def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
         env = environment.Environment(env_path)
 
         for eng in env.get_engines():
+            desc = env.get_engine_descriptor_dict(eng)
+            if _should_skip_caching(desc):
+                continue
             # resolve descriptor and clone cache into bundle cache
             _cache_descriptor(
                 sg_connection,
                 Descriptor.ENGINE,
-                env.get_engine_descriptor_dict(eng),
+                desc,
                 bundle_cache_root
             )
 
             for app in env.get_apps(eng):
+                desc = env.get_app_descriptor_dict(eng, app)
+                if _should_skip_caching(desc):
+                    continue
                 # resolve descriptor and clone cache into bundle cache
                 _cache_descriptor(
                     sg_connection,
                     Descriptor.APP,
-                    env.get_app_descriptor_dict(eng, app),
+                    desc,
                     bundle_cache_root
                 )
 
         for framework in env.get_frameworks():
+            desc = env.get_framework_descriptor_dict(framework)
+            if _should_skip_caching(desc):
+                continue
             _cache_descriptor(
                 sg_connection,
                 Descriptor.FRAMEWORK,
-                env.get_framework_descriptor_dict(framework),
+                desc,
                 bundle_cache_root
             )
 

@@ -87,7 +87,11 @@ class Entity(Folder):
         
         self._tk = tk
         self._entity_type = entity_type
-        self._entity_expression = shotgun_entity.EntityExpression(self._tk, self._entity_type, field_name_expression)
+        self._entity_expression = shotgun_entity.EntityExpression(
+            self._tk,
+            self._entity_type,
+            field_name_expression
+        )
         self._filters = filters
         self._create_with_parent = create_with_parent    
 
@@ -190,14 +194,16 @@ class Entity(Folder):
             # we have a constraint!
             entity_id = sg_data[my_sg_data_key]["id"]
             # add the id constraint to the filters
-            resolved_filters["conditions"].append({ "path": "id", "relation": "is", "values": [entity_id] })
+            resolved_filters["conditions"].append(
+                {"path": "id", "relation": "is", "values": [entity_id]}
+            )
             # get data - can be None depending on external filters
 
         # figure out which fields to retrieve
         fields = self._entity_expression.get_shotgun_fields()
         
         # add any shotgun link fields used in the expression
-        fields.update( self._entity_expression.get_shotgun_link_fields() )
+        fields.update(self._entity_expression.get_shotgun_link_fields())
         
         # always retrieve the name field for the entity
         fields.add(shotgun_entity.get_sg_entity_name_field(self._entity_type))
@@ -298,14 +304,9 @@ class Entity(Folder):
                     additional_filters.append(condition)
             
             # add some extra fields apart from the stuff in the config
-            if self._entity_type == "Project":
-                fields_to_retrieve.append("name")
-            elif self._entity_type == "Task":
-                fields_to_retrieve.append("content")
-            elif self._entity_type == "HumanUser":
-                fields_to_retrieve.append("login")
-            else:
-                fields_to_retrieve.append("code")
+            field_name = shotgun_entity.get_sg_entity_name_field(self._entity_type)
+            fields_to_retrieve.append(field_name)
+
             
             # TODO: AND the id query with this folder's query to make sure this path is
             # valid for the current entity. Throw error if not so driver code knows to 
@@ -339,19 +340,10 @@ class Entity(Folder):
                     raise EntityLinkTypeMismatch()
             
             # and append the 'name field' which is always needed.
-            name = None # used for error reporting
-            if self._entity_type == "Project":
-                name = rec["name"]
-                tokens[ my_sg_data_key ]["name"] = rec["name"]
-            elif self._entity_type == "Task":
-                name = rec["content"]
-                tokens[ my_sg_data_key ]["content"] = rec["content"]
-            elif self._entity_type == "HumanUser":
-                name = rec["login"]
-                tokens[ my_sg_data_key ]["login"] = rec["login"]
-            else:
-                name = rec["code"]
-                tokens[ my_sg_data_key ]["code"] = rec["code"]
+            # we are OK with getting back a None value as its used for error reporting
+            name = rec.get(field_name)
+            if name is not None:
+                tokens[my_sg_data_key][field_name] = name
 
             # Step through our token key map and process
             #

@@ -14,6 +14,14 @@ environment:
   matrix:
     - PYTHON: "C:\\Python26"
 
+  # To update these values, visit AppVeyor's site, click the user icon and scroll down to Encrypt Data.
+  SHOTGUN_HOST:
+    secure: 1klEyyzGkwq7KyTgI+9nqiqCNcdOXLVR/P8nXGgKu2kLke3ui81KhoAkckJqa9da
+  SHOTGUN_SCRIPT_NAME:
+    secure: snTNqoprEkQTVQD3cK9mpQ==
+  SHOTGUN_SCRIPT_KEY:
+    secure: 59Vs3pq1DhG2V7z4hGKNMAmiKC41wW8dnfw4fe47KTHWTSmXbgsjPW4vPyeO2JRUxKEseQOBn+7jVdeb7XWIE9LgP9n34/lWTyblJGvfqyM=
+
 build: off
 
 test_script:
@@ -24,4 +32,4 @@ test_script:
   # Note that you must use the environment variable %PYTHON% to refer to
   # the interpreter you're using - Appveyor does not do anything special
   # to put the Python version you want to use on PATH.
-  - "%PYTHON%\\python.exe tests\\run_tests.py"
+  - "tests\\run_appveyor.bat"

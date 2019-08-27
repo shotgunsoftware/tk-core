@@ -1062,6 +1062,29 @@ def _post_process_settings_r(tk, key, value, schema, bundle=None):
     """
     settings_type = schema.get("type")
 
+    # first check for procedural overrides where instead of getting a value,
+    # directly from the config, we call a hook to evaluate a config value
+    # at runtime:
+    if isinstance(value, basestring) and value.startswith("hook:"):
+        # handle the special form where the value is computed in a hook.
+        #
+        # if the template parameter is on the form
+        # a) hook:foo_bar
+        # b) hook:foo_bar:testing1:testing2
+        #
+        # The following hook will be called
+        # a) core hook 'foo_bar' with parameters []
+        # b) core hook 'foo_bar' with parameters ['testing1', 'testing2']
+        #
+        chunks = value.split(":")
+        hook_name = chunks[1]
+        params = chunks[2:]
+        processed_val = tk.execute_core_hook(
+            hook_name, setting=key, bundle_obj=bundle, extra_params=params
+        )
+        return processed_val
+
+    # No procedural overrides in place - instead handle the value based on type
     if settings_type == "list":
         processed_val = []
         value_schema = schema["values"]
@@ -1096,24 +1119,6 @@ def _post_process_settings_r(tk, key, value, schema, bundle=None):
         config_folder = tk.pipeline_configuration.get_config_location()
         adjusted_value = value.replace("/", os.path.sep)
         processed_val = os.path.join(config_folder, adjusted_value)
-
-    elif isinstance(value, basestring) and value.startswith("hook:"):
-        # handle the special form where the value is computed in a hook.
-        #
-        # if the template parameter is on the form
-        # a) hook:foo_bar
-        # b) hook:foo_bar:testing:testing
-        #
-        # The following hook will be called
-        # a) foo_bar with parameters []
-        # b) foo_bar with parameters [testing, testing]
-        #
-        chunks = value.split(":")
-        hook_name = chunks[1]
-        params = chunks[2:]
-        processed_val = tk.execute_core_hook(
-            hook_name, setting=key, bundle_obj=bundle, extra_params=params
-        )
 
     else:
         # pass-through
@@ -1241,7 +1246,6 @@ def _resolve_default_hook_value(value, engine_name=None):
     :param value: The unresolved default value for the hook
     :param engine_name: The name of the engine for engine-specific hook values
     :return: The resolved hook default value.
-
     """
 
     if not value:

@@ -18,12 +18,17 @@ class CoreDescriptor(Descriptor):
     Descriptor object which describes a Toolkit Core API version.
     """
 
-    def __init__(self, io_descriptor):
+    def __init__(self, sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots):
         """
-        Use the factory method :meth:`create_descriptor` when
-        creating new descriptor objects.
+        .. note:: Use the factory method :meth:`create_descriptor` when
+                  creating new descriptor objects.
 
+        :param sg_connection: Connection to the current site.
         :param io_descriptor: Associated IO descriptor.
+        :param bundle_cache_root_override: Override for root path to where
+            downloaded apps are cached.
+        :param fallback_roots: List of immutable fallback cache locations where
+            apps will be searched for.
         """
         super(CoreDescriptor, self).__init__(io_descriptor)
 
@@ -78,3 +83,11 @@ class CoreDescriptor(Descriptor):
         except TankMissingManifestError:
             return {}
         return manifest.get("features") or {}
+
+    def copy(self, target_folder):
+        """
+        Copy the config descriptor into the specified target location.
+
+        :param target_folder: Folder to copy the descriptor to
+        """
+        self._io_descriptor.copy(target_folder, skip_list=["tests", "docs"])

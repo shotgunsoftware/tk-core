@@ -7,7 +7,9 @@ frameworks:
     test_framework_v1.x.x:
         location:
             type: dev
-            path: '{PIPELINE_CONFIG}/config/bundles/test_framework'
+            # Add _v1 to the folder name to ensure the name is picked from the app that has
+            # the dependency and not from the descriptor.
+            path: '{CONFIG_FOLDER}/bundles/test_framework_v1'
             version: v1.0.0
 
 engines:
@@ -16,14 +18,18 @@ engines:
         apps: 
         location: '@engine.location'
 
+    incomplete_engine:
+        apps: {}
+        location: '@incomplete_engine.location'
+
     test_engine:
-        location: {'type': 'dev', 'path': '{PIPELINE_CONFIG}/config/bundles/test_engine'}
+        location: {'type': 'dev', 'path': '{CONFIG_FOLDER}/bundles/test_engine'}
         debug_logging: false
 
         apps:
             test_app:
                 # this is a comment in the test_app
-                location: {'type': 'dev', 'path': '{PIPELINE_CONFIG}/config/bundles/test_app'}
+                location: {'type': 'dev', 'path': '{CONFIG_FOLDER}/bundles/test_app'}
                 test_str: a
                 test_int: 1
                 test_float: 1.1
@@ -112,6 +118,10 @@ engines:
                         test_list:
                             -   test_str: ba
                             -   test_str: bb
+
+                test_str_evaluator: hook:test_evaluator
+                test_int_evaluator: hook:test_evaluator
+                test_simple_dictionary_evaluator: hook:test_evaluator:param
 
             disabled_app:
                 location: {'type': 'dev', 'path': 'DISABLED_APP_LOCATION', 'disabled': True}

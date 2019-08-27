@@ -10,6 +10,7 @@
 
 """Shotgun Authenticator."""
 
+from .sso_saml2 import has_sso_info_in_cookies
 from . import interactive_authentication
 from . import user
 from . import user_impl
@@ -17,7 +18,6 @@ from . import session_cache
 from .errors import IncompleteCredentials
 from .defaults_manager import DefaultsManager
 from .. import LogManager
-from .shotgun_shared import has_sso_info_in_cookies
 
 logger = LogManager.get_logger(__name__)
 

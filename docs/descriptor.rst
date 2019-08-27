@@ -105,6 +105,9 @@ Descriptors that are downloaded (cached) to the local disk are called **download
 The **app_store**, **shotgun**, **git** and **git_branch** descriptors are downloadable descriptors,
 while the **path**, **dev** and **manual** descriptors are accessed directly from the specified path.
 
+
+.. _app_store_descriptor:
+
 The Shotgun App store
 =====================
 
@@ -146,6 +149,8 @@ targeting that particular DCC version. If you for example are running a plugin b
 v2017 of a DCC, the plugin can be set up to track against the latest released version of
 ``sgtk:descriptor:app_store?name=tk-config-dcc&label=v2017``. In this case, when the descriptor is checking
 for the latest available version in the app store, only versions labelled with v2017 will be taken into account.
+
+.. _git_descriptors:
 
 Tracking against tags in git
 =============================
@@ -366,11 +371,45 @@ Home directory `~` syntax will be expanded:
 
     sgtk:descriptor:path?path=%7E/path/to/app
 
-Sometimes it can be useful to organize your development sandbox relative to a pipeline configuration.
-If all developers in the studio share a convention where they for example have a ``dev`` folder inside
-their pipeline configuration dev sandboxes, it becomes easy to exchange environment configs.
-You can achieve this by using the special token ``{PIPELINE_CONFIG}`` which will resolve into the
-local path to the pipeline configuration:
+
+Sometimes it may be useful to distribute application code within the configuration for applications
+that may not be accessible through the traditional distribution mechanism for Toolkit applications
+like the :ref:`App Store<app_store_descriptor>` or the various :ref:`Git<git_descriptors>`
+descriptor types. Although we recommend in those case to use the :ref:`local bundle
+caches<local_bundle_caches>`, it may not always be desirable. In those cases, it is possible to
+package the application code alongside the ``env`` or ``hooks`` folder and refer to it with the
+``CONFIG_FOLDER`` token:
+
+.. code-block:: yaml
+
+    {
+        type: dev,
+        path: {CONFIG_FOLDER}/dev/tk-nuke-myapp
+    }
+
+.. code-block:: yaml
+
+    sgtk:descriptor:dev?path=%7BCONFIG_FOLDER%7D/dev/tk-nuke-myapp
+
+
+When using an installed pipeline configuration, this will refer to
+``{PIPELINE_ROOT}/config``. When using a cached or baked pipeline configuration, it will point where
+the bundle was found in one of the bundle caches.
+
+.. image:: ./resources/descriptor/config_folder_token.png
+
+.. note::
+    If you don't know if your configuration will be used with an installed, baked or cached pipeline
+    configuration, we recommend the use of the ``CONFIG_FOLDER`` token as it allows to resolve where
+    the configuration's files will be located as the pipeline configuration may or may not contain
+    the ``config`` folder depending on usage.
+
+
+When using an installed pipeline configuration, it can be useful to organize your development
+sandbox relative to a pipeline configuration. If all developers in the studio share a convention
+where they for example have a ``dev`` folder inside their pipeline configuration dev sandboxes, it
+becomes easy to exchange environment configs. You can achieve this by using the special token
+``{PIPELINE_CONFIG}`` which will resolve into the local path to the pipeline configuration:
 
 .. code-block:: yaml
 
@@ -382,6 +421,12 @@ local path to the pipeline configuration:
 .. code-block:: yaml
 
     sgtk:descriptor:dev?path=%7BPIPELINE_CONFIG%7D/dev/tk-nuke-myapp
+
+.. note::
+    The ``PIPELINE_CONFIG`` refers to the root of the pipeline configuration, which for cached or baked
+    pipeline configurations do not contain the ``config`` folder with all the environment and hook files.
+    If you wish to refer to elements inside the ``config`` folder and wish the configuration to be usable
+    both with installed, baked or cached configuration, we recommend you use the ``CONFIG_FOLDER`` token.
 
 
 Pointing at a file attachment in Shotgun
@@ -527,6 +572,7 @@ AppDescriptor
 .. autoclass:: AppDescriptor
     :inherited-members:
     :members:
+    :exclude-members: create, register_descriptor_factory
 
 EngineDescriptor
 ================================================
@@ -534,6 +580,7 @@ EngineDescriptor
 .. autoclass:: EngineDescriptor
     :inherited-members:
     :members:
+    :exclude-members: create, register_descriptor_factory
 
 FrameworkDescriptor
 ================================================
@@ -541,6 +588,7 @@ FrameworkDescriptor
 .. autoclass:: FrameworkDescriptor
     :inherited-members:
     :members:
+    :exclude-members: create, register_descriptor_factory
 
 ConfigDescriptor
 ================================================
@@ -549,7 +597,9 @@ ConfigDescriptor
     :inherited-members:
     :members:
     :exclude-members: get_config_folder,
-        resolve_core_descriptor
+        resolve_core_descriptor,
+        create,
+        register_descriptor_factory
 
 CoreDescriptor
 ================================================
@@ -557,7 +607,9 @@ CoreDescriptor
 .. autoclass:: CoreDescriptor
     :inherited-members:
     :members:
-    :exclude-members: get_features_info
+    :exclude-members: get_features_info,
+        create,
+        register_descriptor_factory
 
 Exceptions
 ================================================
