@@ -20,6 +20,7 @@ from tank import TankError
 from tank import hook
 from tank import path_cache
 from tank import folder
+from tank_vendor.shotgun_api3.lib.six import b, ensure_str, ensure_text
 from tank_test.tank_test_base import *
 
 from . import assert_paths_to_create, execute_folder_creation_proxy
@@ -252,24 +253,27 @@ class TestSchemaCreateFolders(TankTestBase):
         # define paths we expect for entities
         if not sequence_name:
             sequence_name = self.seq["code"]
+        sequence_name = ensure_str(sequence_name)
 
-        static_seq = os.path.join(self.project_root, "sequences")        
+        static_seq = os.path.join(ensure_str(self.project_root), "sequences")
 
-        expected_paths = [self.project_root, 
-                          os.path.join(self.project_root, "reference"),
-                          os.path.join(self.project_root, "scenes"),
-                          os.path.join(self.project_root, "assets"),
-                          os.path.join(self.project_root, "reference", "artwork"),
-                          os.path.join(self.project_root, "reference", "footage"),                          
+        project_root = ensure_str(self.project_root)
+        expected_paths = [project_root,
+                          os.path.join(project_root, "reference"),
+                          os.path.join(project_root, "scenes"),
+                          os.path.join(project_root, "assets"),
+                          os.path.join(project_root, "reference", "artwork"),
+                          os.path.join(project_root, "reference", "footage"),
                           static_seq]
 
-        sequence_path = os.path.join(self.project_root, "sequences", sequence_name)
+        sequence_path = os.path.join(project_root, "sequences", sequence_name)
         if not shot_name:
             shot_name = self.shot["code"]
+        shot_name = ensure_str(shot_name)
         shot_path = os.path.join(sequence_path, shot_name)
 
-        step_path = os.path.join(shot_path, self.step["short_name"])
-        expected_paths.extend( [sequence_path, shot_path, step_path] )
+        step_path = os.path.join(shot_path, ensure_str(self.step["short_name"]))
+        expected_paths.extend([sequence_path, shot_path, step_path])
         # add non-entity paths
         expected_paths.append(os.path.join(step_path, "publish"))
         expected_paths.append(os.path.join(step_path, "images"))

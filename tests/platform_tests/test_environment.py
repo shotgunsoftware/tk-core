@@ -436,7 +436,9 @@ class TestRuamelParser(TankTestBase):
         # python, replace the FLOAT_VALUE keyword in the expected fixture
         # with whatever the current version of python is expecting
         expected_env = [l.replace("FLOAT_VALUE", repr(1.1)) for l in expected_env]
-        self.assertEqual(updated_env, expected_env)
+        # additionally, convert the lines to sets so that the test does not
+        # depend on the order of a dictionary.
+        self.assertEqual(set(updated_env), set(expected_env))
 
 
 
