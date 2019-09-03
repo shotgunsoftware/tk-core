@@ -16,6 +16,8 @@ import json
 from unittest2 import TestCase
 from sgtk.util import json as tk_json
 
+from tank_vendor.shotgun_api3.lib import six
+
 
 class JSONTests(TestCase):
     """
@@ -62,39 +64,71 @@ class JSONTests(TestCase):
         if "u'" in repr(value):
             raise Exception("unicode string found in %r" % value)
 
-    def test_repr_generates_u_strings(self):
+    def _assert_no_bytes(self, value):
         """
-        Ensures the unicode detection method actually works.
-        """
-        self._assert_no_unicode({})
-        self._assert_no_unicode(1)
-        self._assert_no_unicode(False)
-        self._assert_no_unicode(None)
-        self._assert_no_unicode(self.kanji)
-        self._assert_no_unicode({"k": "v"})
+        Ensures there is no bytes anywhere inside the value.
 
-        with self.assertRaisesRegex(Exception, "unicode string found in u'allo'"):
-            self._assert_no_unicode(u"allo")
+        Just make sure there the string "b'" is not in the original value. ;)
+        """
+        # Get the repr of the value. If there is a bytes object,
+        # we'll get a b'value' somewhere in the output, which means
+        # it contains bytes.
+        if "b'" in repr(value):
+            raise Exception("bytes found in %r" % value)
+
+    def test_repr_detection(self):
+        """
+        Ensures the unicode or bytes detection method actually works.
+        """
+        if six.PY2:
+            self._assert_no_unicode({})
+            self._assert_no_unicode(1)
+            self._assert_no_unicode(False)
+            self._assert_no_unicode(None)
+            self._assert_no_unicode(self.kanji)
+            self._assert_no_unicode({"k": "v"})
+
+            with self.assertRaisesRegex(Exception, "unicode string found in u'allo'"):
+                self._assert_no_unicode(u"allo")
+        elif six.PY3:
+            self._assert_no_bytes({})
+            self._assert_no_bytes(1)
+            self._assert_no_bytes(False)
+            self._assert_no_bytes(None)
+            self._assert_no_bytes(self.kanji)
+            self._assert_no_bytes({"k": "v"})
+
+            with self.assertRaisesRegex(Exception, "bytes found in b'allo'"):
+                self._assert_no_bytes(b"allo")
 
     def test_scalar_values(self):
         """
         Ensures we can properly encode scalar values.
         """
+        if six.PY2:
+            # In the case of Python2, ensure that we get str instances back with
+            # no unicode after loading.
+            assertion = self._assert_no_unicode_after_load
+        else:
+            # For Python3 and above, ensure that no bytes objects are returned
+            # after loading.
+            assertion = self._assert_no_bytes_after_load
+
         # Integer
-        self._assert_no_unicode_after_load(1)
+        assertion(1)
         # BigNum
-        self._assert_no_unicode_after_load(100000000000000000000000)
+        assertion(100000000000000000000000)
         # Floats
-        self._assert_no_unicode_after_load(1.0)
+        assertion(1.0)
         # Booleans
-        self._assert_no_unicode_after_load(True)
-        self._assert_no_unicode_after_load(False)
+        assertion(True)
+        assertion(False)
         # None
-        self._assert_no_unicode_after_load(None)
+        assertion(None)
         # Strings
-        self._assert_no_unicode_after_load("a")
-        self._assert_no_unicode_after_load(u"b")
-        self._assert_no_unicode_after_load(self.kanji)
+        assertion("a")
+        assertion(u"a")
+        assertion(self.kanji)
 
     def test_array_values(self):
         """
@@ -130,4 +164,16 @@ class JSONTests(TestCase):
             converted_value = converter(original_value)
 
             self._assert_no_unicode(converted_value)
+            self.assertEqual(original_value, converted_value)
+
+    def _assert_no_bytes_after_load(self, original_value, converter=None):
+        """
+        Ensures the values are the same after the serialize/unserialize and that the
+        strings are all text and not binary.
+        """
+        # We need to test serialization to disk and to string for the input.
+        for converter in [self._value_to_string_to_value, self._value_to_file_to_value]:
+            converted_value = converter(original_value)
+
+            self._assert_no_bytes(converted_value)
             self.assertEqual(original_value, converted_value)

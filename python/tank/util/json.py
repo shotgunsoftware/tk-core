@@ -29,8 +29,8 @@ def _convert_unicode_keys_to_string(input_value):
     :returns: A value with utf-8 encoded :class:`str` instances.
     """
 
-    if isinstance(input_value, six.text_type):
-        return input_value.encode("utf8")
+    if isinstance(input_value, (six.text_type, six.binary_type)):
+        return six.ensure_str(input_value)
 
     if isinstance(input_value, list):
         return [_convert_unicode_keys_to_string(item) for item in input_value]
