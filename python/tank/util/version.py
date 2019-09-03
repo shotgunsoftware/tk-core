@@ -89,14 +89,32 @@ def _compare_versions(a, b):
     # In Python 3, LooseVersion comparisons between versions where a non-numeric
     # version component is compared to a numeric one fail.  We'll work around this
     # as follows:
-    version_expr = re.compile(r"\d+\.\d+\.\d+$")
-    if version_expr.match(a) and version_expr.match(b):
-        # in the case of two correctly formed numeric versions, use LooseVersion
-        # for comparison.
+    # First, try to use LooseVersion for comparison.  This should work in
+    # most cases.
+    try:
         return LooseVersion(a) > LooseVersion(b)
-    elif version_expr.match(a) or version_expr.match(b):
+    except TypeError:
         # To mimick the behavior in Python 2.7 as closely as possible, we will
-        # consider whichever version is non-numeric as newer.
-        return is_version_number(a)
+        # If LooseVersion comparison didn't work, try to extract a numeric
+        # version from both versions for comparison
+        version_expr = re.compile(r"^((?:\d+)(?:\.\d+)*)(.+)$")
+        match_a = version_expr.match(a)
+        match_b = version_expr.match(b)
+        if match_a and match_b:
+            # If we could get two numeric versions, generate LooseVersions for
+            # them.
+            ver_a = LooseVersion(match_a.group(1))
+            ver_b = LooseVersion(match_b.group(1))
+            if ver_a != ver_b:
+                # If they're not identical, return based on this comparison
+                return ver_a > ver_b
+            else:
+                # If the numeric versions do match, do a string comparsion for
+                # the rest.
+                return match_a.group(2) > match_b.group(2)
+        elif match_a or match_b:
+            # If only one had a numeric version, treat that as the newer version.
+            return bool(match_a)
+
     # In the case that both versions are non-numeric, do a string comparison.
     return a > b
