@@ -548,8 +548,8 @@ class TestUrlWithEnvVars(TankTestBase):
         os.environ["SHOTGUN_PATH_LINUX"] = "/linux"
 
         os.environ["SHOTGUN_PATH_WINDOWS_2"] = "X:\\"
-        os.environ["SHOTGUN_PATH_MAC_2"] = "/mac2"
-        os.environ["SHOTGUN_PATH_LINUX_2"] = "/linux2"
+        os.environ["SHOTGUN_PATH_MAC_2"] = "/altmac"
+        os.environ["SHOTGUN_PATH_LINUX_2"] = "/altlinux"
 
     def tearDown(self):
 
@@ -636,8 +636,8 @@ class TestUrlWithEnvVars(TankTestBase):
         # final paths
         expected_path = {
             "win32": r"X:\path\to\file",
-            "linux2": "/linux2/path/to/file",
-            "darwin": "/mac2/path/to/file",
+            "linux2": "/altlinux/path/to/file",
+            "darwin": "/altmac/path/to/file",
         }[sys.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
@@ -652,7 +652,7 @@ class TestUrlWithEnvVars(TankTestBase):
             "type": "PublishedFile",
             "code": "foo",
             "path": {
-                "url": "file:///linux2/path/to/file",
+                "url": "file:///altlinux/path/to/file",
                 "type": "Attachment",
                 "name": "bar.baz",
                 "link_type": "web",
@@ -663,8 +663,8 @@ class TestUrlWithEnvVars(TankTestBase):
         # final paths
         expected_path = {
             "win32": r"X:\path\to\file",
-            "linux2": "/linux2/path/to/file",
-            "darwin": "/mac2/path/to/file",
+            "linux2": "/altlinux/path/to/file",
+            "darwin": "/altmac/path/to/file",
         }[sys.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
