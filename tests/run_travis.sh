@@ -25,13 +25,18 @@ if [[ $SHOTGUN_COMPILE_ONLY -eq 1 ]]; then
 fi
 
 if [[ $TRAVIS = true ]]; then
-    # PySide is tricky to install and run. Let's get a wheel from someone who already compiled it for
-    # Travis.
-    # Taken from: https://stackoverflow.com/questions/24489588/how-can-i-install-pyside-on-travis
-    sudo apt-get install libqt4-dev
-    pip install PySide==1.2.2 --no-index --find-links https://parkin.github.io/python-wheelhouse/;
-    # Travis CI servers use virtualenvs, so we need to finish the install by the following
-    python ~/virtualenv/python${TRAVIS_PYTHON_VERSION}/bin/pyside_postinstall.py -install
+
+    if [[ $QT_TEST_VER = 4 ]]; then
+        # PySide is tricky to install and run. Let's get a wheel from someone who already compiled it for
+        # Travis.
+        # Taken from: https://stackoverflow.com/questions/24489588/how-can-i-install-pyside-on-travis
+        sudo apt-get install libqt4-dev
+        pip install PySide==1.2.2 --no-index --find-links https://parkin.github.io/python-wheelhouse/;
+        # Travis CI servers use virtualenvs, so we need to finish the install by the following
+        python ~/virtualenv/python${TRAVIS_PYTHON_VERSION}/bin/pyside_postinstall.py -install
+    elif [[ $QT_TEST_VER = 5 ]]; then
+        pip install PySide2==5.13.1
+    fi
     # Note: previously, we had started XVFB directly here, as done here:
     # https://github.com/colmap/colmap/commit/606d3cd09931d78a3272f99b5e7a2cb6894e243e
     # Starting with Xenial, a new syntax in the .travis.yml file is used to replace
