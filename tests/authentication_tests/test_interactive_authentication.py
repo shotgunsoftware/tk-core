@@ -285,7 +285,7 @@ class InteractiveTests(ShotgunTestBase):
             bg.wait()
 
     @patch(
-        "__builtin__.raw_input",
+        "tank.authentication.console_authentication.input",
         side_effect=["  https://test.shotgunstudio.com ", "  username   ", " 2fa code "]
     )
     @patch(
@@ -307,7 +307,7 @@ class InteractiveTests(ShotgunTestBase):
         )
 
     @patch(
-        "__builtin__.raw_input",
+        "tank.authentication.console_authentication.input",
         side_effect=["  https://test-sso.shotgunstudio.com "]
     )
     @patch(
@@ -325,7 +325,7 @@ class InteractiveTests(ShotgunTestBase):
             handler._get_user_credentials(None, None, None)
 
     @patch(
-        "__builtin__.raw_input",
+        "tank.authentication.console_authentication.input",
         side_effect=["  https://test-sso.shotgunstudio.com "]
     )
     @patch(
@@ -342,7 +342,7 @@ class InteractiveTests(ShotgunTestBase):
             handler._get_user_credentials(None, None, None)
 
     @patch(
-        "__builtin__.raw_input",
+        "tank.authentication.console_authentication.input",
         side_effect=["  https://test-identity.shotgunstudio.com "]
     )
     @patch(
