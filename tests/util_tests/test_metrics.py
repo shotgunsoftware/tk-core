@@ -33,11 +33,10 @@ import os
 import json
 import time
 import threading
-from tank_vendor.shotgun_api3.lib.six.moves import urllib
 import time
 import unittest2
 from tank_vendor.shotgun_api3.lib import six
-from tank_vendor.shotgun_api3.lib.six.moves import range
+from tank_vendor.shotgun_api3.lib.six.moves import range, urllib
 
 
 class TestEventMetric(ShotgunTestBase):
@@ -272,12 +271,16 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                 if "call.reset()" in str(mocked_call):
                     found_reset = True
 
-            if found_reset and "urllib.request.Request" in str(mocked_call):
+            # Quick sanity check to ensure that the mocked call includes a
+            # Request call.  Don't use the full module name since it varies from
+            # Python 2 to 3.  The isinstance check below will prevent any false
+            # positives.
+            if found_reset and 'Request' in str(mocked_call):
                 # TODO: find out what class type is 'something'
-                for something in mocked_call:
-                    for instance in something:
-                        if isinstance(instance, urllib.request.Request):
-                            mocked_request_calls.append(instance)
+                for args in mocked_call:
+                    for arg in args:
+                        if isinstance(arg, urllib.request.Request):
+                            mocked_request_calls.append(arg)
 
         return mocked_request_calls
 
@@ -566,8 +569,8 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
             EventMetric.GROUP_TOOLKIT,
             "Test test_end_to_end",
             properties={
-                "Name with accents": "Éric Hébert",
-                "String with tricky characters": "''\"\\//%%$$?&?$^^,¨¨`"
+                "Name with accents": "Ã‰ric HÃ©bert",
+                "String with tricky characters": "''\"\\//%%$$?&?$^^,Â¨Â¨`"
             }
         )
 
