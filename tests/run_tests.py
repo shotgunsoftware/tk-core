@@ -14,6 +14,7 @@ import sys
 import os
 import glob
 import tempfile
+import traceback
 from optparse import OptionParser
 
 
@@ -294,6 +295,8 @@ if __name__ == "__main__":
 
     except Exception as e:
         print("Unexpected exception: %s" % e)
+        # Print the traceback for the raised Exception to allow better debugging.
+        traceback.print_exc()
         # signal failure
         exit_val = 1
 
