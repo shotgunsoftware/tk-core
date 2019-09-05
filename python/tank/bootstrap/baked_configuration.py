@@ -9,8 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import base64
-import zlib
 
 from .configuration import Configuration
 from .configuration_writer import ConfigurationWriter
