@@ -135,6 +135,19 @@ class Template(object):
         # First keys should be most inclusive
         return self._keys[0].copy()
 
+    @property
+    def ordered_keys(self):
+        """
+        The keys that this template is using in the order they appear. For a
+        template ``shots/{Shot}/{Step}/pub/{name}.v{version}.ma``, the keys are
+        ``{Shot}``, ``{Step}`` and ``{name}``.
+
+        :returns: a list of class:`TemplateKey` objects.
+        """
+        # First keys should be most inclusive.  Return a copy of the list by
+        # instantiating a new list from it.
+        return list(self._ordered_keys[0])
+
     def is_optional(self, key_name):
         """
         Returns true if the given key name is optional for this template.

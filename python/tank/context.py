@@ -1033,10 +1033,11 @@ class Context(object):
         path_cache = PathCache(self.__tk)
         try:
             for template in templates:
-                # iterate over all keys in the {key_name:key} dictionary for the template
-                # looking for any that represent context entities (key name == entity type)
-                template_key_dict = template.keys
-                for key_name in template_key_dict.keys():
+                # iterate over all keys in the list of keys for the template
+                # from lowest to highest looking for any that represent context
+                # entities (key name == entity type)
+                for key in reversed(template.ordered_keys):
+                    key_name = key.name
                     # Check to see if we already have a value for this key: 
                     if key_name in known_fields or key_name in found_fields:
                         # already have a value so skip
@@ -1046,9 +1047,11 @@ class Context(object):
                         # key doesn't represent an entity so skip
                         continue
 
+
                     # find fields for any paths associated with this entity by looking in the path cache:
                     entity_fields = _values_from_path_cache(context_entities[key_name], template, path_cache, 
                                                            required_fields=found_fields)
+                
 
                     # entity_fields may contain additional fields that correspond to entities
                     # so we should be sure to validate these as well if we can.
