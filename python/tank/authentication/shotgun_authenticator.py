@@ -10,7 +10,6 @@
 
 """Shotgun Authenticator."""
 
-from __future__ import absolute_import
 from .sso_saml2 import (
     has_sso_info_in_cookies,
     has_unified_login_flow_info_in_cookies,

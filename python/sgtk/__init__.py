@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
-from __future__ import absolute_import
 ALT_API_NAME = "tank"
 THIS_MODULE_NAME = "sgtk"
 

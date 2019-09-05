@@ -18,7 +18,6 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-from __future__ import absolute_import
 from .qt_abstraction import QtGui
 from .qt5_like_line_edit import Qt5LikeLineEdit
 from .completion_filter_proxy import CompletionFilterProxy

@@ -10,7 +10,6 @@
 """
 Authentication Session abstraction.
 """
-from __future__ import absolute_import
 from tank_vendor.shotgun_api3.lib import six
 
 

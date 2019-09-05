@@ -12,7 +12,6 @@
 Method to unregister folders from the path cache
 """
 
-from __future__ import absolute_import
 from ..errors import TankError
 from .. import path_cache
 from .action_base import Action

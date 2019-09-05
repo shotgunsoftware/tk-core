@@ -12,7 +12,6 @@
 Tests of class TemplateString
 """
 
-from __future__ import absolute_import
 import os
 
 from tank_test.tank_test_base import ShotgunTestBase, setUpModule # noqa

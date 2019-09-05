@@ -15,7 +15,6 @@ Unit tests tank updates.
 from __future__ import with_statement
 
 
-from __future__ import absolute_import
 from tank_test.tank_test_base import ShotgunTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.mock_appstore import MockStore, TankMockStoreDescriptor, patch_app_store

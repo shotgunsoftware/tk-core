@@ -19,7 +19,6 @@ are not part of the public Sgtk API.
 ###############################################################################
 # imports
 
-from __future__ import absolute_import
 from collections import deque
 from threading import Event, Thread, Lock
 import re

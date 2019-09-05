@@ -12,7 +12,6 @@
 Utility methods that are specific to tank commands
 """
 
-from __future__ import absolute_import
 from . import constants
 
 def should_use_legacy_yaml_parser(args):

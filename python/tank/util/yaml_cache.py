@@ -15,7 +15,6 @@ unless it's changed on disk.
 
 from __future__ import with_statement
 
-from __future__ import absolute_import
 import os
 import copy
 import threading

@@ -12,7 +12,6 @@
 Utilities relating to Shotgun entities
 """
 
-from __future__ import absolute_import
 import re
 
 from . import constants

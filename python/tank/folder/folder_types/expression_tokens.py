@@ -15,7 +15,6 @@ The classes below are typically used when the folder creation configuration cont
 dynamic tokens such as $something.
 """
 
-from __future__ import absolute_import
 import os
 
 from ...errors import TankError

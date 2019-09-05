@@ -13,7 +13,6 @@ Default implementation for the Tank Dialog
 
 """
 
-from __future__ import absolute_import
 from . import QtCore, QtGui
 from . import ui_tank_dialog
 from . import TankDialogBase

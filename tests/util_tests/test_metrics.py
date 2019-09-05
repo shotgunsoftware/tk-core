@@ -11,7 +11,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
-from __future__ import absolute_import
 from mock import patch
 
 from tank.util.metrics import (

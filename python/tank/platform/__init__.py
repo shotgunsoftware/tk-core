@@ -10,7 +10,6 @@
 
 
 # Engine management
-from __future__ import absolute_import
 from .engine import start_engine, current_engine, get_engine_path, find_app_settings
 from .errors import (
     TankEngineInitError,

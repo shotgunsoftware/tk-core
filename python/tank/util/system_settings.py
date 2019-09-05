@@ -13,7 +13,6 @@ System settings management.
 """
 
 
-from __future__ import absolute_import
 from tank_vendor.shotgun_api3.lib.six.moves import urllib
 
 

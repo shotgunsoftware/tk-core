@@ -13,7 +13,6 @@ Methods for handling of the tank command
 
 """
 
-from __future__ import absolute_import
 import logging
 
 from .action_base import Action

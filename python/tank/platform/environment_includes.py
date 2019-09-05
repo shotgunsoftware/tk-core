@@ -28,7 +28,6 @@ relative paths are always required and context based paths are always optional.
 """
 
 
-from __future__ import absolute_import
 import os
 import re
 import sys

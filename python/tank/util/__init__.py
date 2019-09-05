@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
-from __future__ import absolute_import
 from .shotgun import register_publish
 from .shotgun import resolve_publish_path
 from .shotgun import find_publish

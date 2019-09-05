@@ -15,7 +15,6 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
-from __future__ import absolute_import
 from tank_vendor.shotgun_api3.lib.six.moves import http_client
 
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault

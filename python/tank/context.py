@@ -13,7 +13,6 @@ Management of the current context, e.g. the current shotgun entity/step/task.
 
 """
 
-from __future__ import absolute_import
 import os
 import pickle
 import copy

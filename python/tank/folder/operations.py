@@ -13,7 +13,6 @@ Main entry points for folder creation.
 
 """
 
-from __future__ import absolute_import
 from .configuration import FolderConfiguration
 from .folder_io import FolderIOReceiver
 from .folder_types import EntityLinkTypeMismatch

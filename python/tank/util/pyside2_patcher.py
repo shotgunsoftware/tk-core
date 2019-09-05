@@ -14,7 +14,6 @@ PySide 2 backwards compatibility layer for use with PySide 1 code.
 
 from __future__ import with_statement
 
-from __future__ import absolute_import
 import os
 import functools
 import imp

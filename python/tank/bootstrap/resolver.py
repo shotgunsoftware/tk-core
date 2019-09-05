@@ -13,7 +13,6 @@ Resolver module. This module provides a way to resolve a pipeline configuration
 on disk.
 """
 
-from __future__ import absolute_import
 import sys
 import os
 import fnmatch

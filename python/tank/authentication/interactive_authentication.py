@@ -26,7 +26,6 @@ at any point.
 
 from __future__ import with_statement
 
-from __future__ import absolute_import
 from .errors import AuthenticationCancelled
 from .console_authentication import ConsoleLoginHandler, ConsoleRenewSessionHandler
 from .ui_authentication import UiAuthenticationHandler

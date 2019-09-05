@@ -13,7 +13,6 @@ Environment Settings Object and access.
 
 """
 
-from __future__ import absolute_import
 import os
 import sys
 import copy

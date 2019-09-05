@@ -18,7 +18,6 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-from __future__ import absolute_import
 from .errors import AuthenticationCancelled, ShotgunAuthenticationError
 from . import invoker
 from .. import LogManager

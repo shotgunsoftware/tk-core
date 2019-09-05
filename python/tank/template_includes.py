@@ -28,7 +28,6 @@ c:\foo\bar\hello.yml - absolute path, windows
 
 """
 
-from __future__ import absolute_import
 import os
 
 from .errors import TankError

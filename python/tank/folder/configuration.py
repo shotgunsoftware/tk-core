@@ -13,7 +13,6 @@ Handles the creation of a configuration object structure based on the folder con
 
 """
 
-from __future__ import absolute_import
 import os
 import fnmatch
 

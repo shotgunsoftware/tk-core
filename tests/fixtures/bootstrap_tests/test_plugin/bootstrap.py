@@ -9,7 +9,6 @@
 # the prior written consent of Autodesk, Inc.
 # *****************************************************************************
 
-from __future__ import absolute_import
 import os
 import imp
 import time

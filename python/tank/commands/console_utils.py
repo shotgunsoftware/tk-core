@@ -13,7 +13,6 @@ Various helper methods relating to user interaction via the shell.
 """
 from __future__ import print_function
 
-from __future__ import absolute_import
 import textwrap
 
 from .. import pipelineconfig_utils

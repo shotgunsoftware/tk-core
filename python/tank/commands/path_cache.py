@@ -12,7 +12,6 @@
 Methods relating to the path cache
 """
 
-from __future__ import absolute_import
 from ..errors import TankError
 from .. import path_cache
 from .. import folder

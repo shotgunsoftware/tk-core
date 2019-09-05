@@ -12,7 +12,6 @@
 Encapsulates the pipeline configuration and helps navigate and resolve paths
 across storages, configurations etc.
 """
-from __future__ import absolute_import
 import os
 import glob
 

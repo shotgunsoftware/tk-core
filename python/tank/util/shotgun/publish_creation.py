@@ -13,7 +13,6 @@ Logic for publishing files to Shotgun.
 """
 from __future__ import with_statement
 
-from __future__ import absolute_import
 import os
 from tank_vendor.shotgun_api3.lib.six.moves import urllib
 import pprint

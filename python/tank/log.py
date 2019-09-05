@@ -221,7 +221,6 @@ For more information, see https://docs.python.org/2/library/logging.handlers.htm
 """
 
 
-from __future__ import absolute_import
 import logging
 from logging.handlers import RotatingFileHandler
 import os

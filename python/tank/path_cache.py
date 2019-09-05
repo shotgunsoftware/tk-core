@@ -14,7 +14,6 @@ all Tank items in the file system are kept.
 
 """
 
-from __future__ import absolute_import
 import collections
 import sqlite3
 import sys

@@ -12,7 +12,6 @@
 A simple engine to support unit tests.
 """
 
-from __future__ import absolute_import
 from tank.platform import Engine
 import sys
 

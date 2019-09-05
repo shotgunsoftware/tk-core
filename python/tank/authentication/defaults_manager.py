@@ -8,7 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import absolute_import
 from . import session_cache
 from ..util.user_settings import UserSettings
 from ..util.system_settings import SystemSettings

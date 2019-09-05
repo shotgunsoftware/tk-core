@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
-from __future__ import absolute_import
 from .. import pipelineconfig_utils
 from ..util import ShotgunPath
 from . import constants

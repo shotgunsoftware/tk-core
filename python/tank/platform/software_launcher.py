@@ -13,7 +13,6 @@ Defines the base class for DCC application launchers all Toolkit engines
 should implement.
 """
 
-from __future__ import absolute_import
 import os
 import sys
 import glob

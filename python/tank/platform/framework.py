@@ -13,7 +13,6 @@ Defines the base class for all Tank Frameworks.
 
 """
 
-from __future__ import absolute_import
 import os
 
 from ..util.loader import load_plugin

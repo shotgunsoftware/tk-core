@@ -15,7 +15,6 @@ zipped config can be bootstrap into without requiring to download anything from 
 
 from __future__ import print_function
 
-from __future__ import absolute_import
 import unittest2
 import os
 import sys

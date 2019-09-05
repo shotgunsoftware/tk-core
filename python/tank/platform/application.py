@@ -13,7 +13,6 @@ Defines the base class for all Tank Apps.
 
 """
 
-from __future__ import absolute_import
 import os
 import sys
 

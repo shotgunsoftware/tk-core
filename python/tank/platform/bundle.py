@@ -13,7 +13,6 @@ Base class for Abstract classes for Engines, Apps and Frameworks
 
 """
 
-from __future__ import absolute_import
 import os
 import re
 import sys

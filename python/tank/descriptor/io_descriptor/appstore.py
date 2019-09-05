@@ -12,7 +12,6 @@
 Toolkit App Store Descriptor.
 """
 
-from __future__ import absolute_import
 import os
 from tank_vendor.shotgun_api3.lib.six.moves import urllib
 import fnmatch

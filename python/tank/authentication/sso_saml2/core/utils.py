@@ -11,7 +11,6 @@
 SSO/SAML2 Core utility functions.
 """
 
-from __future__ import absolute_import
 import base64
 import binascii
 import logging

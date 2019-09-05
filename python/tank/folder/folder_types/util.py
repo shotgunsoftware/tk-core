@@ -12,7 +12,6 @@
 Utility methods related to folder creation
 """
 
-from __future__ import absolute_import
 import copy
 
 from ...errors import TankError

@@ -21,7 +21,6 @@ Returns a dict with two keys:
 
 """
 
-from __future__ import absolute_import
 from tank import Hook
 
 class ContextAdditionalEntities(Hook):

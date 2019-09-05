@@ -12,7 +12,6 @@
 Classes for fields on TemplatePaths and TemplateStrings
 """
 
-from __future__ import absolute_import
 import re
 import sys
 import datetime

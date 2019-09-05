@@ -19,7 +19,6 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-from __future__ import absolute_import
 from tank_vendor.shotgun_api3.lib.six.moves import cPickle, http_client
 from .shotgun_wrapper import ShotgunWrapper
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault, ProtocolError

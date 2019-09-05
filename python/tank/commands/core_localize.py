@@ -11,7 +11,6 @@
 # make sure that py25 has access to with statement
 from __future__ import with_statement
 
-from __future__ import absolute_import
 import os
 import sys
 import shutil

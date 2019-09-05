@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import with_statement
-from __future__ import absolute_import
 import base64
 
 from tank_test.tank_test_base import setUpModule # noqa

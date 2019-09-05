@@ -20,7 +20,6 @@ at any point.
 """
 from __future__ import print_function
 
-from __future__ import absolute_import
 from . import session_cache
 from .. import LogManager
 from .errors import (
