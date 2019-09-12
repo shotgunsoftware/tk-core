@@ -18,8 +18,9 @@ import os
 import functools
 import imp
 import subprocess
-import sys
 import webbrowser
+
+from tank_vendor.shotgun_api3.lib import sgsix
 
 from .. import constants
 
@@ -281,16 +282,16 @@ class PySide2Patcher(object):
                 if url.isLocalFile():
                     url = url.toLocalFile().encode("utf-8")
 
-                    if sys.platform == "darwin":
+                    if sgsix.platform == "darwin":
                         return subprocess.call(["open", url]) == 0
-                    elif sys.platform == "win32":
+                    elif sgsix.platform == "win32":
                         os.startfile(url)
                         # Start file returns None, so this is the best we can do.
                         return os.path.exists(url)
-                    elif sys.platform.startswith("linux"):
+                    elif sgsix.platform.startswith("linux"):
                         return subprocess.call(["xdg-open", url]) == 0
                     else:
-                        raise ValueError("Unknown platform: %s" % sys.platform)
+                        raise ValueError("Unknown platform: %s" % sgsix.platform)
                 else:
                     # According to webbrowser.py code logic, when open_new_tab() can find
                     # and launch a suitable browser, it returns True; otherwise it either

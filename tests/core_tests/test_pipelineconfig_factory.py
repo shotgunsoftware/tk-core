@@ -19,7 +19,7 @@ from sgtk.util import ShotgunPath
 from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule # noqa
 from mock import patch
 import tank_vendor.shotgun_api3.lib.six.moves.cPickle as pickle
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor.shotgun_api3.lib import six, sgsix
 
 
 class TestTankFromPath(TankTestBase):
@@ -791,7 +791,7 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         probe_path["darwin"] = "/tmp/foo/bar/test.ma"
         probe_path["linux2"] = "/tmp/foo/bar/test.ma"
 
-        test_path = probe_path[sys.platform]
+        test_path = probe_path[sgsix.platform]
         test_path_dir = os.path.dirname(test_path)
 
         if not os.path.exists(test_path_dir):
@@ -819,7 +819,7 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         probe_path["darwin"] = "/tmp/foo/bar/test.ma"
         probe_path["linux2"] = "/tmp/foo/bar/test.ma"
 
-        test_path = probe_path[sys.platform]
+        test_path = probe_path[sgsix.platform]
         test_path_dir = os.path.dirname(test_path)
 
         if not os.path.exists(test_path_dir):

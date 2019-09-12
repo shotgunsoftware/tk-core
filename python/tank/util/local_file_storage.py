@@ -14,6 +14,7 @@ from tank_vendor.shotgun_api3.lib.six.moves import urllib
 from . import filesystem
 from .. import LogManager
 from ..errors import TankError
+from tank_vendor.shotgun_api3.lib import sgsix
 from tank_vendor.shotgun_api3.lib.six.moves import range
 
 log = LogManager.get_logger(__name__)
@@ -115,7 +116,7 @@ class LocalFileStorageManager(object):
                 else:
                     raise ValueError("Unsupported path type!")
             # current generation of paths
-            elif sys.platform == "darwin":
+            elif sgsix.platform == "darwin":
                 if path_type == cls.CACHE:
                     return os.path.expanduser("~/Library/Caches/Shotgun")
                 elif path_type == cls.PERSISTENT:
@@ -127,7 +128,7 @@ class LocalFileStorageManager(object):
                 else:
                     raise ValueError("Unsupported path type!")
 
-            elif sys.platform == "win32":
+            elif sgsix.platform == "win32":
                 app_data = os.environ.get("APPDATA", "APPDATA_NOT_SET")
                 if path_type == cls.CACHE:
                     return os.path.join(app_data, "Shotgun")
@@ -140,7 +141,7 @@ class LocalFileStorageManager(object):
                 else:
                     raise ValueError("Unsupported path type!")
 
-            elif sys.platform.startswith("linux"):
+            elif sgsix.platform.startswith("linux"):
                 if path_type == cls.CACHE:
                     return os.path.expanduser("~/.shotgun")
                 elif path_type == cls.PERSISTENT:
@@ -153,12 +154,12 @@ class LocalFileStorageManager(object):
                     raise ValueError("Unsupported path type!")
 
             else:
-                raise ValueError("Unknown platform: %s" % sys.platform)
+                raise ValueError("Unknown platform: %s" % sgsix.platform)
 
         if generation == cls.CORE_V17:
 
             # previous generation of paths
-            if sys.platform == "darwin":
+            if sgsix.platform == "darwin":
                 if path_type == cls.CACHE:
                     return os.path.expanduser("~/Library/Caches/Shotgun")
                 elif path_type == cls.PERSISTENT:
@@ -168,7 +169,7 @@ class LocalFileStorageManager(object):
                 else:
                     raise ValueError("Unsupported path type!")
 
-            elif sys.platform == "win32":
+            elif sgsix.platform == "win32":
                 if path_type == cls.CACHE:
                     return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun")
                 elif path_type == cls.PERSISTENT:
@@ -178,7 +179,7 @@ class LocalFileStorageManager(object):
                 else:
                     raise ValueError("Unsupported path type!")
 
-            elif sys.platform.startswith("linux"):
+            elif sgsix.platform.startswith("linux"):
                 if path_type == cls.CACHE:
                     return os.path.expanduser("~/.shotgun")
                 elif path_type == cls.PERSISTENT:
@@ -189,7 +190,7 @@ class LocalFileStorageManager(object):
                     raise ValueError("Unsupported path type!")
 
             else:
-                raise ValueError("Unknown platform: %s" % sys.platform)
+                raise ValueError("Unknown platform: %s" % sgsix.platform)
 
     @classmethod
     def get_site_root(cls, hostname, path_type, generation=CORE_V18):

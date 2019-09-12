@@ -367,7 +367,7 @@ class SetupProjectWizard(object):
             for s in self._params.get_required_storages():
 
                 # get the full path
-                proj_path = self._params.preview_project_path(s, project_disk_name, sys.platform)
+                proj_path = self._params.preview_project_path(s, project_disk_name, sgsix.platform)
 
                 if not os.path.exists(proj_path):
                     self._log.info("Creating project folder '%s'..." % proj_path)
@@ -557,14 +557,14 @@ class SetupProjectWizard(object):
             # from baked configurations, as an example, and we don't want to stop
             # project setups if the process is being run from an environment running
             # from a baked config.
-            if sys.platform.startswith("linux"):
+            if sgsix.platform.startswith("linux"):
                 path_args = [None, os.path.expandvars(curr_core_path), None]
-            elif sys.platform == "darwin":
+            elif sgsix.platform == "darwin":
                 path_args = [None, None, os.path.expandvars(curr_core_path)]
-            elif sys.platform == "win32":
+            elif sgsix.platform == "win32":
                 path_args = [os.path.expandvars(curr_core_path), None, None]
             else:
-                msg = "Unsupported OS detected: %s" % sys.platform
+                msg = "Unsupported OS detected: %s" % sgsix.platform
                 raise TankError(msg)
 
             core_path_object = ShotgunPath(*path_args).as_system_dict()
@@ -698,7 +698,7 @@ class SetupProjectWizard(object):
             # the shotgun desktop's site configuration contains script credentials,
             # these are not propagated into newly created toolkit projects.
 
-            config_path = self._params.get_configuration_location(sys.platform)
+            config_path = self._params.get_configuration_location(sgsix.platform)
 
             # if the new project's config has a core descriptor, then we should
             # localize it to use that version of core. alternatively, if the current

@@ -15,13 +15,12 @@ Management of file and directory templates.
 
 import os
 import re
-import sys
 
 from . import templatekey
 from .errors import TankError
 from . import constants
 from .template_path_parser import TemplatePathParser
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor.shotgun_api3.lib import six, sgsix
 from tank_vendor.shotgun_api3.lib.six.moves import zip
 
 class Template(object):
@@ -565,6 +564,7 @@ class TemplatePath(Template):
             return os.path.join(self.root_path, relative_path) if relative_path else self.root_path
     
         else:
+            platform = sgsix.normalize_platform(platform)
             # caller has requested a path for another OS
             if self._per_platform_roots is None:
                 # it's possible that the additional os paths are not set for a template
@@ -759,7 +759,7 @@ def make_template_paths(data, keys, all_per_platform_roots, default_root=None):
                             "template should be in the strings section "
                             "instead?" % (template_name, definition))
 
-        root_path = all_per_platform_roots.get(root_name, {}).get(sys.platform)
+        root_path = all_per_platform_roots.get(root_name, {}).get(sgsix.platform)
         if root_path is None:
             raise TankError("Undefined Shotgun storage! The local file storage '%s' is not defined for this "
                             "operating system." % root_name)

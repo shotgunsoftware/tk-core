@@ -16,7 +16,7 @@ from __future__ import with_statement
 
 import os
 import re
-import sys
+from tank_vendor.shotgun_api3.lib import sgsix
 from tank_vendor.shotgun_api3.lib.six.moves import urllib
 import pprint
 
@@ -162,7 +162,7 @@ def __resolve_local_file_link(tk, attachment_data):
     # look for override env var for our local os
     storage_name = attachment_data["local_storage"]["name"].upper()
     storage_id = attachment_data["local_storage"]["id"]
-    os_name = {"win32": "WINDOWS", "linux2": "LINUX", "darwin": "MAC"}[sys.platform]
+    os_name = {"win32": "WINDOWS", "linux2": "LINUX", "darwin": "MAC"}[sgsix.platform]
     env_var_name = "SHOTGUN_PATH_%s_%s" % (os_name, storage_name)
     log.debug("Looking for override env var '%s'" % env_var_name)
 

@@ -13,9 +13,9 @@ from ..errors import TankError
 
 from .action_base import Action
 
-import sys
 import os
 import shutil
+from tank_vendor.shotgun_api3.lib import sgsix
 from tank_vendor.shotgun_api3.lib.six.moves import input
 
 
@@ -168,7 +168,7 @@ class MovePCAction(Action):
         log.info("")
         log.info("")
         
-        if modifications[sys.platform]:
+        if modifications[sgsix.platform]:
             copy_files = True
             log.info("The configuration will be moved to reflect the specified path changes.")
         else:
@@ -189,7 +189,7 @@ class MovePCAction(Action):
         
         # ok let's do it!
         local_source_path = self.tk.pipeline_configuration.get_path()
-        local_target_path = new_paths[sys.platform]
+        local_target_path = new_paths[sgsix.platform]
         
         if copy_files:
             

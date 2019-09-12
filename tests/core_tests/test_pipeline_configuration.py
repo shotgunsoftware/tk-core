@@ -291,7 +291,7 @@ class TestConfigLocations(TankTestBase):
         # We have to patch these methods because the core doesn't actually exist on disk for the tests.
         with patch("sgtk.pipelineconfig_utils.get_path_to_current_core", return_value=core_root):
             with patch("sgtk.pipelineconfig_utils.resolve_all_os_paths_to_core", return_value={
-                "linux2": core_root if sys.platform == "linux2" else None,
+                "linux2": core_root if sys.platform.startswith("linux") else None,
                 "win32": core_root if sys.platform == "win32" else None,
                 "darwin": core_root if sys.platform == "darwin" else None
             }):
@@ -304,7 +304,7 @@ class TestConfigLocations(TankTestBase):
                         project_folder_name=project_folder_name,
                         config_path_mac=config_root if sys.platform == "darwin" else None,
                         config_path_win=config_root if sys.platform == "win32" else None,
-                        config_path_linux=config_root if sys.platform == "linux2" else None,
+                        config_path_linux=config_root if sys.platform.startswith("linux") else None,
                         check_storage_path_exists=False,
                     )
                 )
@@ -348,7 +348,7 @@ class TestConfigLocations(TankTestBase):
             pc.get_all_os_paths(),
             tank.util.ShotgunPath(
                 autogen_files_root if sys.platform == "win32" else None,
-                autogen_files_root if sys.platform == "linux2" else None,
+                autogen_files_root if sys.platform.startswith("linux") else None,
                 autogen_files_root if sys.platform == "darwin" else None
             )
         )

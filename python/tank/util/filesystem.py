@@ -23,7 +23,7 @@ import subprocess
 from contextlib import contextmanager
 
 from .. import LogManager
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor.shotgun_api3.lib import six, sgsix
 
 log = LogManager.get_logger(__name__)
 
@@ -550,7 +550,7 @@ def _open_file_browser_for_folder(path):
         )
 
     # get the setting
-    system = sys.platform
+    system = sgsix.platform
 
     # build the commands for opening the folder on the various OS's
     if system.startswith("linux"):

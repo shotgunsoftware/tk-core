@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
+from tank_vendor.shotgun_api3.lib import sgsix
 
 import sys
 import sgtk
@@ -160,7 +161,7 @@ class TestHookGetPublishPath(TankTestBase):
             "win32": sg_dict["path"]["local_path_windows"],
             "linux2": sg_dict["path"]["local_path_linux"],
             "darwin": sg_dict["path"]["local_path_mac"],
-        }[sys.platform]
+        }[sgsix.platform]
         sg_dict["path"]["local_path"] = local_path
 
         if sys.platform == "win32":

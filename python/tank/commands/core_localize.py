@@ -22,7 +22,7 @@ from ..util.version import is_version_older
 from .action_base import Action
 from .. import pipelineconfig_utils
 from .. import pipelineconfig_factory
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor.shotgun_api3.lib import six, sgsix
 
 # these are the items that need to be copied across
 # when a configuration is upgraded to contain a core API
@@ -327,17 +327,17 @@ class ShareCoreAction(Action):
         # note how the current platform's default value is None in order to make that required
         self.parameters["core_path_mac"] = { "description": ("The path on disk where the core API should be "
                                                              "installed on Macosx."),
-                                             "default": ( None if sys.platform == "darwin" else "" ),
+                                             "default": ( None if sgsix.platform == "darwin" else "" ),
                                              "type": "str" }
 
         self.parameters["core_path_win"] = { "description": ("The path on disk where the core API should be "
                                                              "installed on Windows."),
-                                             "default": ( None if sys.platform == "win32" else "" ),
+                                             "default": ( None if sgsix.platform == "win32" else "" ),
                                              "type": "str" }
 
         self.parameters["core_path_linux"] = { "description": ("The path on disk where the core API should be "
                                                                "installed on Linux."),
-                                               "default": ( None if sys.platform == "linux2" else "" ),
+                                               "default": ( None if sgsix.platform == "linux2" else "" ),
                                                "type": "str" }
 
 
@@ -535,7 +535,7 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, interaction_int
 
     # we need to have at least a path for the current os, otherwise we cannot introspect the API
     lookup = {"win32": windows_path, "linux2": linux_path, "darwin": mac_path}
-    new_core_path_local = lookup[sys.platform]
+    new_core_path_local = lookup[sgsix.platform]
 
     if not new_core_path_local:
         raise TankError("You must specify a path to the core API for your current operating system.")

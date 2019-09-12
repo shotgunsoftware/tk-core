@@ -8,7 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import sys
 import os
 import re
 import tempfile
@@ -30,6 +29,7 @@ from ..descriptor import create_descriptor, Descriptor
 from tank_vendor import yaml
 
 from ..util import ShotgunPath
+from tank_vendor.shotgun_api3.lib import sgsix
 from tank_vendor.shotgun_api3.lib.six.moves import range
 
 
@@ -235,12 +235,12 @@ class ProjectSetupParameters(object):
                                 "In order to fix this, please navigate to the Site Preferences in Shotgun "
                                 "and set up a new local file storage." % storage_name)
 
-            elif storage_data[storage_name][sys.platform] is None:
+            elif storage_data[storage_name][sgsix.platform] is None:
                 raise TankError("The Shotgun Local File Storage '%s' does not have a path defined "
                                 "for the current operating system!" % storage_name)
 
             elif check_storage_path and not storage_data[storage_name]["exists_on_disk"]:
-                local_path = storage_data[storage_name][sys.platform]
+                local_path = storage_data[storage_name][sgsix.platform]
                 raise TankError("The path on disk '%s' defined in the Shotgun Local File Storage '%s' does "
                                 "not exist!" % (local_path, storage_name))
 
@@ -377,7 +377,7 @@ class ProjectSetupParameters(object):
         if storage_name not in self._storage_data:
             raise TankError("Configuration template does not contain a storage with name '%s'!" % storage_name)
 
-        return self._storage_data.get(storage_name).get(platform)
+        return self._storage_data.get(storage_name).get(sgsix.normalize_platform(platform))
 
     def update_storage_root(self, config_uri, root_name, storage_data):
         """
@@ -728,7 +728,7 @@ class ProjectSetupParameters(object):
                                 "underscores and dashes." % base_name)
 
         # get the location of the configuration
-        config_path_current_os = config_path[sys.platform]
+        config_path_current_os = config_path[sgsix.platform]
 
         if config_path_current_os is None or config_path_current_os == "":
             raise TankError("Please specify a configuration path for your current operating system!")
@@ -791,13 +791,13 @@ class ProjectSetupParameters(object):
         Returns the path to the configuration for a given platform.
         The path returned has not been validated and may not be correct nor exist.
 
-        :param platform: Os platform as a string, sys.platform style (e.g. linux2/win32/darwin)
+        :param platform: Os platform as a string, sys.platform style (e.g. linux/win32/darwin)
         :returns: path to pipeline configuration.
         """
         if self._config_path is None:
             raise TankError("No configuration location has been set!")
 
-        return self._config_path[platform]
+        return self._config_path[sgsix.normalize_platform(platform)]
 
 
     ################################################################################################################
@@ -825,10 +825,10 @@ class ProjectSetupParameters(object):
         Note that values returned can be none in case the core API location
         has not been defined on a platform.
 
-        :param platform: Os platform as a string, sys.platform style (e.g. linux2/win32/darwin)
+        :param platform: Os platform as a string, sys.platform style (e.g. linux/win32/darwin)
         :returns: path to pipeline configuration.
         """
-        return self._core_path[platform]
+        return self._core_path[sgsix.normalize_platform(platform)]
 
 
     ################################################################################################################
@@ -844,7 +844,7 @@ class ProjectSetupParameters(object):
         if self._core_path is None:
             raise TankError("Need to define a core location!")
 
-        if self._core_path[sys.platform] is None:
+        if self._core_path[sgsix.platform] is None:
             raise TankError("The core API you are trying to use in conjunction with this project "
                             "has not been set up to operate on the current operating system. Please update "
                             "the install_location.yml file and try again.")
@@ -874,12 +874,12 @@ class ProjectSetupParameters(object):
 
             # make sure that the storage location is not the same folder
             # as the pipeline config location. That will confuse tank.
-            config_path_current_os = self.get_configuration_location(sys.platform)
+            config_path_current_os = self.get_configuration_location(sgsix.platform)
             for storage_name in self.get_required_storages():
 
                 # get the project path for this storage
                 # note! at this point, the storage root has been checked and exists on disk.
-                project_path_local_os = self.get_project_path(storage_name, sys.platform)
+                project_path_local_os = self.get_project_path(storage_name, sgsix.platform)
 
                 if config_path_current_os == project_path_local_os:
                     raise TankError(
@@ -892,7 +892,7 @@ class ProjectSetupParameters(object):
 
             # get the project path for this storage
             # note! at this point, the storage root has been checked and exists on disk.
-            project_path_local_os = self.get_project_path(storage_name, sys.platform)
+            project_path_local_os = self.get_project_path(storage_name, sgsix.platform)
 
             if not os.path.exists(project_path_local_os):
                 raise TankError("The Project path %s for storage %s does not exist on disk! "
@@ -904,7 +904,7 @@ class ProjectSetupParameters(object):
         if required_core_version:
 
             # now figure out the version of the desired API
-            api_location = self.get_associated_core_path(sys.platform)
+            api_location = self.get_associated_core_path(sgsix.platform)
             curr_core_version = pipelineconfig_utils.get_core_api_version(api_location)
 
             if is_version_newer(required_core_version, curr_core_version):

@@ -27,7 +27,7 @@ from ..util.filesystem import ensure_folder_exists
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
 from .interaction import YesToEverythingInteraction
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor.shotgun_api3.lib import six, sgsix
 from tank_vendor.shotgun_api3.lib.six.moves import input
 
 class SetupProjectAction(Action):
@@ -101,17 +101,17 @@ class SetupProjectAction(Action):
         # note how the current platform's default value is None in order to make that required
         self.parameters["config_path_mac"] = { "description": ("The path on disk where the configuration should be "
                                                                "installed on Macosx."),
-                                               "default": ( None if sys.platform == "darwin" else "" ),
+                                               "default": ( None if sgsix.platform == "darwin" else "" ),
                                                "type": "str" }
 
         self.parameters["config_path_win"] = { "description": ("The path on disk where the configuration should be "
                                                                "installed on Windows."),
-                                               "default": ( None if sys.platform == "win32" else "" ),
+                                               "default": ( None if sgsix.platform == "win32" else "" ),
                                                "type": "str" }
 
         self.parameters["config_path_linux"] = { "description": ("The path on disk where the configuration should be "
                                                                "installed on Linux."),
-                                               "default": ( None if sys.platform == "linux2" else "" ),
+                                               "default": ( None if sgsix.platform == "linux2" else "" ),
                                                "type": "str" }
         
         # Special setting used by older versins of shotgun desktop app
@@ -189,7 +189,7 @@ class SetupProjectAction(Action):
 
         if params.get_distribution_mode() == ProjectSetupParameters.CENTRALIZED_CONFIG:
 
-            config_path = params.get_configuration_location(sys.platform)
+            config_path = params.get_configuration_location(sgsix.platform)
 
             # if the new project's config has a core descriptor, then we should
             # localize it to use that version of core. alternatively, if the current
@@ -278,7 +278,7 @@ class SetupProjectAction(Action):
         # and finally carry out the setup
         run_project_setup(log, sg, params)
 
-        config_path = params.get_configuration_location(sys.platform)
+        config_path = params.get_configuration_location(sgsix.platform)
 
         # if the new project's config has a core descriptor, then we should
         # localize it to use that version of core. alternatively, if the current
@@ -510,7 +510,7 @@ class SetupProjectAction(Action):
         log.info("defined in the Shotgun Site Preferences:")
         log.info("")
         for storage_name in params.get_required_storages():
-            current_os_path = params.get_storage_path(storage_name, sys.platform)
+            current_os_path = params.get_storage_path(storage_name, sgsix.platform)
             log.info(" - %s: '%s'" % (storage_name, current_os_path))
         
         # first, display a preview
@@ -522,7 +522,7 @@ class SetupProjectAction(Action):
         log.info("the following folders would need to exist on disk:")
         log.info("")
         for storage_name in params.get_required_storages():
-            proj_path = params.preview_project_path(storage_name, suggested_folder_name, sys.platform)            
+            proj_path = params.preview_project_path(storage_name, suggested_folder_name, sgsix.platform)            
             log.info(" - %s: %s" % (storage_name, proj_path))
 
         log.info("")
@@ -548,7 +548,7 @@ class SetupProjectAction(Action):
             storages_valid = True
             for storage_name in params.get_required_storages():
                 
-                proj_path = params.preview_project_path(storage_name, proj_name, sys.platform)
+                proj_path = params.preview_project_path(storage_name, proj_name, sgsix.platform)
                 
                 if os.path.exists(proj_path):
                     log.info(" - %s: %s [OK]" % (storage_name, proj_path))
@@ -640,7 +640,7 @@ class SetupProjectAction(Action):
         # our default on that. If only a single storage is available, we just use it.
         storage_names = params.get_required_storages()
         default_storage_name = params.default_storage_name
-        primary_local_path = params.get_storage_path(default_storage_name, sys.platform)
+        primary_local_path = params.get_storage_path(default_storage_name, sgsix.platform)
         
         curr_core_path = pipelineconfig_utils.get_path_to_current_core()
         core_locations = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
@@ -654,13 +654,13 @@ class SetupProjectAction(Action):
             # a default parameter.
             pass
 
-        elif core_locations[sys.platform] is None:
+        elif core_locations[sgsix.platform] is None:
             # edge case: the shared core location that we are trying to install from
             # is not set up to work with this operating system. In that case, skip
             # default generation 
             pass
         
-        elif os.path.abspath(os.path.join(core_locations[sys.platform], "..")).lower() == primary_local_path.lower():
+        elif os.path.abspath(os.path.join(core_locations[sgsix.platform], "..")).lower() == primary_local_path.lower():
             # ok the parent of the install root matches the primary storage - means OLD STYLE (pre core 0.12)
             #
             # in this setup, we would have the following structure: 

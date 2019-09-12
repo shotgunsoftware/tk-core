@@ -35,6 +35,7 @@ from .. import LogManager
 import threading
 import sys
 import os
+from tank_vendor.shotgun_api3.lib import sgsix
 from tank_vendor.shotgun_api3.lib.six.moves import range
 
 # When importing qt_abstraction, a lot of code is executed to detects which
@@ -59,7 +60,7 @@ def _get_current_os_user():
 
     :returns: The username string.
     """
-    if sys.platform == "win32":
+    if sgsix.platform == "win32":
         # http://stackoverflow.com/questions/117014/how-to-retrieve-name-of-current-windows-user-ad-or-local-using-python
         return os.environ.get("USERNAME", None)
     else:

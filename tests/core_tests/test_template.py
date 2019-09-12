@@ -10,7 +10,6 @@
 
 import copy
 import os
-import sys
 import time
 
 import unittest2
@@ -20,6 +19,8 @@ from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule 
 from tank.template import Template, TemplatePath, TemplateString
 from tank.template import make_template_paths, make_template_strings
 from tank.templatekey import (TemplateKey, StringKey, IntegerKey, SequenceKey, TimestampKey)
+
+from tank_vendor.shotgun_api3.lib import sgsix
 
 
 class TestTemplate(unittest2.TestCase):
@@ -316,7 +317,7 @@ class TestMakeTemplatePaths(ShotgunTestBase):
         prim_template = result.get("template_name")
         alt_templatte = result.get("another_template")
         self.assertEqual(self.project_root, prim_template.root_path)
-        self.assertEqual(modified_roots["alternate_1"][sys.platform], alt_templatte.root_path)
+        self.assertEqual(modified_roots["alternate_1"][sgsix.platform], alt_templatte.root_path)
 
         # Now test with the primary root name not specified, tk-core will assume
         # a "primary" root name, so make sure we have one.
@@ -335,7 +336,7 @@ class TestMakeTemplatePaths(ShotgunTestBase):
         prim_template = result.get("template_name")
         alt_templatte = result.get("another_template")
         self.assertEqual(self.project_root, prim_template.root_path)
-        self.assertEqual(modified_roots["alternate_1"][sys.platform], alt_templatte.root_path)
+        self.assertEqual(modified_roots["alternate_1"][sgsix.platform], alt_templatte.root_path)
 
 
 class TestMakeTemplateStrings(ShotgunTestBase):

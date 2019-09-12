@@ -17,6 +17,7 @@ from mock import patch, call
 import sgtk
 from tank import context, errors
 from tank_test.tank_test_base import TankTestBase, setUpModule
+from tank_vendor.shotgun_api3.lib import sgsix
 
 
 class TestCoreHook(TankTestBase):
@@ -232,7 +233,7 @@ class TestLocalFileLink(TankTestBase):
             "win32": sg_dict["path"]["local_path_windows"],
             "linux2": sg_dict["path"]["local_path_linux"],
             "darwin": sg_dict["path"]["local_path_mac"],
-        }[sys.platform]
+        }[sgsix.platform]
         sg_dict["path"]["local_path"] = local_path
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
@@ -275,7 +276,7 @@ class TestLocalFileLink(TankTestBase):
             "win32": sg_dict["path"]["local_path_windows"],
             "linux2": sg_dict["path"]["local_path_linux"],
             "darwin": sg_dict["path"]["local_path_mac"],
-        }[sys.platform]
+        }[sgsix.platform]
         sg_dict["path"]["local_path"] = local_path
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
@@ -314,7 +315,7 @@ class TestLocalFileLinkRaises(TankTestBase):
             "win32": "windows_path",
             "linux2": "linux_path",
             "darwin": "mac_path",
-        }[sys.platform]
+        }[sgsix.platform]
 
         self.storage[current_path_field] = None
         self.add_to_sg_mock_db([self.storage])
@@ -346,7 +347,7 @@ class TestLocalFileLinkRaises(TankTestBase):
             "win32": "local_path_windows",
             "linux2": "local_path_linux",
             "darwin": "local_path_mac",
-        }[sys.platform]
+        }[sgsix.platform]
 
         sg_dict["path"][current_path_field] = None
 
@@ -405,7 +406,7 @@ class TestLocalFileLinkEnvVarOverride(TankTestBase):
             "win32": "windows_path",
             "linux2": "linux_path",
             "darwin": "mac_path",
-        }[sys.platform]
+        }[sgsix.platform]
 
         self.storage[current_path_field] = None
         self.add_to_sg_mock_db([self.storage])
@@ -432,15 +433,15 @@ class TestLocalFileLinkEnvVarOverride(TankTestBase):
             }
         }
 
-        if sys.platform == "win32":
+        if sgsix.platform == "win32":
             os.environ["SHOTGUN_PATH_WINDOWS_HOME"] = "Y:\\"
             local_path = r"Y:\path\to\file.ext"
             sg_dict["path"]["local_path_windows"] = None
-        elif sys.platform == "darwin":
+        elif sgsix.platform == "darwin":
             os.environ["SHOTGUN_PATH_MAC_HOME"] = "/local_override"
             local_path = "/local_override/path/to/file.ext"
             sg_dict["path"]["local_path_mac"] = None
-        elif sys.platform.startswith("linux"):
+        elif sgsix.platform.startswith("linux"):
             os.environ["SHOTGUN_PATH_LINUX_HOME"] = "/local_override"
             local_path = "/local_override/path/to/file.ext"
             sg_dict["path"]["local_path_linux"] = None
@@ -480,7 +481,7 @@ class TestUrlNoStorages(TankTestBase):
         }
 
         local_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
-        if sys.platform == "win32":
+        if sgsix.platform == "win32":
             self.assertEqual(r"\foo \bar.baz", local_path)
         else:
             self.assertEqual("/foo /bar.baz", local_path)
@@ -503,7 +504,7 @@ class TestUrlNoStorages(TankTestBase):
         }
 
         local_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
-        if sys.platform == "win32":
+        if sgsix.platform == "win32":
             self.assertEqual(r"C:\foo\bar\baz", local_path)
         else:
             self.assertEqual("C:/foo/bar/baz", local_path)
@@ -526,7 +527,7 @@ class TestUrlNoStorages(TankTestBase):
         }
 
         local_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
-        if sys.platform == "win32":
+        if sgsix.platform == "win32":
             self.assertEqual(r"\\share\foo\bar\baz", local_path)
         else:
             self.assertEqual("//share/foo/bar/baz", local_path)
@@ -583,7 +584,7 @@ class TestUrlWithEnvVars(TankTestBase):
             "win32": r"\storage_3\bar.baz",
             "linux2": "/storage_3/bar.baz",
             "darwin": "/storage_3/bar.baz",
-        }[sys.platform]
+        }[sgsix.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
@@ -610,7 +611,7 @@ class TestUrlWithEnvVars(TankTestBase):
             "win32": r"\\share\path\to\file",
             "linux2": "/linux/path/to/file",
             "darwin": "/mac/path/to/file",
-        }[sys.platform]
+        }[sgsix.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
@@ -637,7 +638,7 @@ class TestUrlWithEnvVars(TankTestBase):
             "win32": r"X:\path\to\file",
             "linux2": "/altlinux/path/to/file",
             "darwin": "/altmac/path/to/file",
-        }[sys.platform]
+        }[sgsix.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
@@ -664,7 +665,7 @@ class TestUrlWithEnvVars(TankTestBase):
             "win32": r"X:\path\to\file",
             "linux2": "/altlinux/path/to/file",
             "darwin": "/altmac/path/to/file",
-        }[sys.platform]
+        }[sgsix.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
@@ -724,7 +725,7 @@ class TestUrlWithStorages(TankTestBase):
             "win32": r"\storage_3\bar.baz",
             "linux2": "/storage_3/bar.baz",
             "darwin": "/storage_3/bar.baz",
-        }[sys.platform]
+        }[sgsix.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
@@ -752,7 +753,7 @@ class TestUrlWithStorages(TankTestBase):
             "win32": r"\\storage2_win\path\to\file",
             "linux2": "/storage2_linux/path/to/file",
             "darwin": "/storage2_mac/path/to/file",
-        }[sys.platform]
+        }[sgsix.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
@@ -779,7 +780,7 @@ class TestUrlWithStorages(TankTestBase):
             "win32": r"x:\storage1_win\path\to\file",
             "linux2": "/storage1_linux/path/to/file",
             "darwin": "/storage1_mac/path/to/file",
-        }[sys.platform]
+        }[sgsix.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
@@ -807,7 +808,7 @@ class TestUrlWithStorages(TankTestBase):
             "win32": r"x:\storage1_win\path\to\file",
             "linux2": "/storage1_linux/path/to/file",
             "darwin": "/storage1_mac/path/to/file",
-        }[sys.platform]
+        }[sgsix.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
@@ -859,7 +860,7 @@ class TestUrlWithStoragesAndOverrides(TankTestBase):
             "win32": r"\\storage_win\path\to\file",
             "linux2": "/storage_linux/path/to/file",
             "darwin": "/storage_mac/path/to/file",
-        }[sys.platform]
+        }[sgsix.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
@@ -922,7 +923,7 @@ class TestUrlWithStoragesAndOverrides2(TankTestBase):
             "win32": r"x:\storage_win\path\to\file",
             "linux2": "/storage_linux/path/to/file",
             "darwin": "/storage_mac/path/to/file",
-        }[sys.platform]
+        }[sgsix.platform]
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)

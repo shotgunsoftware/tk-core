@@ -14,6 +14,7 @@ from . import constants
 from ..util import filesystem
 
 from tank_vendor import yaml
+from tank_vendor.shotgun_api3.lib import sgsix
 
 from .action_base import Action
 
@@ -54,15 +55,15 @@ class CloneConfigAction(Action):
         
         # note how the current platform's default value is None in order to make that required
         self.parameters["path_mac"] = { "description": "Path to the new configuration on Macosx.",
-                                        "default": ( None if sys.platform == "darwin" else "" ),
+                                        "default": ( None if sgsix.platform == "darwin" else "" ),
                                         "type": "str" }
 
         self.parameters["path_win"] = { "description": "Path to the new configuration on Windows.",
-                                        "default": ( None if sys.platform == "win32" else "" ),
+                                        "default": ( None if sgsix.platform == "win32" else "" ),
                                         "type": "str" }
 
         self.parameters["path_linux"] = { "description": "Path to the new configuration on Linux.",
-                                          "default": ( None if sys.platform == "linux2" else "" ),
+                                          "default": ( None if sgsix.platform == "linux2" else "" ),
                                           "type": "str" }
         
         self.parameters["return_value"] = { "description": "Returns the id of the created Pipeline Configuration",
@@ -134,7 +135,7 @@ def clone_pipeline_configuration_html(log, tk, source_pc_id, user_id, new_name, 
         log.info("In order to change this pipeline configuration to use its own independent version "
                  "of the Toolkit API, you can execute the following command: ")
     
-        if sys.platform == "win32":
+        if sgsix.platform == "win32":
             tank_cmd = os.path.join(target_folder, "tank.bat")
         else:
             tank_cmd = os.path.join(target_folder, "tank")
@@ -163,7 +164,7 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
         "linux2": target_linux,
         "win32": target_win,
         "darwin": target_mac
-    }[sys.platform]
+    }[sgsix.platform]
     
     log.debug("Cloning %s -> %s" % (source_folder, target_folder))
     
