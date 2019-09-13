@@ -29,7 +29,7 @@ import unittest2
 
 import sgtk
 from sgtk.util.filesystem import safe_delete_folder
-from tank_vendor.shotgun_api3.lib import sgsix
+from tank_vendor.shotgun_api3.lib import six, sgsix
 
 
 class SgtkIntegrationTest(unittest2.TestCase):
@@ -320,7 +320,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
         before = time.time()
         stdout = None
         try:
-            stdout, _ = proc.communicate(user_input)
+            stdout, _ = proc.communicate(six.ensure_binary(user_input))
         finally:
             print("tank command ran in %.2f seconds." % (time.time() - before))
             print("tank command return code", proc.returncode)
