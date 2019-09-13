@@ -58,6 +58,8 @@ coverage run tests/run_tests.py
 # Run these tests only if the integration tests environment variables are set.
 if [ -z ${SHOTGUN_HOST+x} ]; then
     echo "Skipping integration tests, SHOTGUN_HOST is not set."
+elif [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; then
+    echo "Skipping integration tests. The integration tests are not yet Python3 compatible."
 else
     python tests/integration_tests/run_integration_tests.py --with-coverage
 fi
