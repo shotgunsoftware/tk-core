@@ -1039,7 +1039,6 @@ class SequenceKey(IntegerKey):
                                           exclusions=exclusions,
                                           abstract=abstract)
 
-
     def validate(self, value):
 
         # use a std error message
@@ -1050,7 +1049,7 @@ class SequenceKey(IntegerKey):
 
         if isinstance(value, six.string_types) and value.startswith(self.FRAMESPEC_FORMAT_INDICATOR):
             # FORMAT: YXZ string - check that XYZ is in VALID_FORMAT_STRINGS
-            pattern = self._extract_format_string(value)        
+            pattern = self._extract_format_string(value)
             if pattern in self.VALID_FORMAT_STRINGS:
                 return True
             else:

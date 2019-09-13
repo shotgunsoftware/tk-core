@@ -17,7 +17,6 @@ import os
 import sys
 import uuid
 from tank_vendor.shotgun_api3.lib.six.moves import urllib
-from tank_vendor.shotgun_api3.lib import six
 import time
 import tempfile
 import zipfile

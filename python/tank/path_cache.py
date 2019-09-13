@@ -1726,7 +1726,7 @@ class PathCache(object):
         if len(sg_valid_records) > 0:
             log.info("")
             log.info("Step 5 - Uploading path entries to shotgun.")
-            sg_batches = [sg_valid_records[x:x+SG_BATCH_SIZE] for x in range(0, len(pc_data), SG_BATCH_SIZE)]
+            sg_batches = [sg_valid_records[x:x + SG_BATCH_SIZE] for x in range(0, len(pc_data), SG_BATCH_SIZE)]
             event_log_description = "Path cache migration."
             for batch_idx, curr_batch in enumerate(sg_batches):
                 log.info("Uploading batch %d/%d to Shotgun..." % (batch_idx+1, len(sg_batches)))

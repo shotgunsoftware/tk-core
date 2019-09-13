@@ -410,8 +410,7 @@ class SetupProjectAction(Action):
         if config_name == "":
             config_name = constants.DEFAULT_CFG
         return config_name
-        
-    
+
     def _select_project(self, log, sg, show_initialized_projects):
         """
         Returns the project id and name for a project for which setup should be done.
