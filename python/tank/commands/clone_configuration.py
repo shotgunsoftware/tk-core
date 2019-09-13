@@ -55,15 +55,15 @@ class CloneConfigAction(Action):
         
         # note how the current platform's default value is None in order to make that required
         self.parameters["path_mac"] = { "description": "Path to the new configuration on Macosx.",
-                                        "default": ( None if sgsix.platform == "darwin" else "" ),
+                                        "default": (None if sgsix.platform == "darwin" else ""),
                                         "type": "str" }
 
         self.parameters["path_win"] = { "description": "Path to the new configuration on Windows.",
-                                        "default": ( None if sgsix.platform == "win32" else "" ),
+                                        "default": (None if sgsix.platform == "win32" else ""),
                                         "type": "str" }
 
         self.parameters["path_linux"] = { "description": "Path to the new configuration on Linux.",
-                                          "default": ( None if sgsix.platform == "linux2" else "" ),
+                                          "default": (None if sgsix.platform == "linux2" else ""),
                                           "type": "str" }
         
         self.parameters["return_value"] = { "description": "Returns the id of the created Pipeline Configuration",

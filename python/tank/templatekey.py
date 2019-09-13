@@ -1047,7 +1047,6 @@ class SequenceKey(IntegerKey):
         error_msg = "%s Illegal value '%s', expected an Integer, a frame spec or format spec.\n" % (self, value)
         error_msg += "Valid frame specs: %s\n" % str(self._frame_specs)
         error_msg += "Valid format strings: %s\n" % full_format_strings
-        
 
         if isinstance(value, six.string_types) and value.startswith(self.FRAMESPEC_FORMAT_INDICATOR):
             # FORMAT: YXZ string - check that XYZ is in VALID_FORMAT_STRINGS

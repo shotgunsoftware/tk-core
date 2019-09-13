@@ -19,10 +19,11 @@ from tank import TankError
 from tank import hook
 from tank import path_cache
 from tank import folder
-from tank_vendor.shotgun_api3.lib.six import b, ensure_str, ensure_text
+from tank_vendor.shotgun_api3.lib.six import b, ensure_str
 from tank_test.tank_test_base import *
 
 from . import assert_paths_to_create, execute_folder_creation_proxy
+
 
 class TestSchemaCreateFolders(TankTestBase):
     

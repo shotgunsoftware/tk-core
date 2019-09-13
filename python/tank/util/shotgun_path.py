@@ -271,7 +271,7 @@ class ShotgunPath(object):
         return not is_equal
 
     def _sanitize_path(self, path, separator):
-        """
+        r"""
         Multi-platform sanitize and clean up of paths.
 
         The following modifications will be carried out:

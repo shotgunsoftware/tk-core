@@ -111,7 +111,7 @@ class InstalledConfigDescriptor(ConfigDescriptor):
             return {}
 
     def get_config_folder(self):
-        """
+        r"""
         Returns the path to the ``config`` folder inside the pipeline configuration.
 
         For example, for a configuration at ``\\server\mount\shotgun\project\pipeline``,

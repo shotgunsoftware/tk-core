@@ -123,11 +123,11 @@ def __setup_sg_auth_and_proxy(sg):
     """
     # Importing this module locally to reduce clutter and facilitate clean up when/if this
     # functionality gets ported back into the Shotgun API.
-    import tank_vendor.shotgun_api3.lib.six.moves.http_cookiejar
+    from tank_vendor.shotgun_api3.lib.six.moves import http_cookiejar
 
     sid = sg.get_session_token()
-    cj = six.moves.http_cookiejar.LWPCookieJar()
-    c = six.moves.http_cookiejar.Cookie('0', '_session_id', sid, None, False,
+    cj = http_cookiejar.LWPCookieJar()
+    c = http_cookiejar.Cookie('0', '_session_id', sid, None, False,
         sg.config.server, False, False, "/", True, False, None, True,
         None, None, {})
     cj.set_cookie(c)

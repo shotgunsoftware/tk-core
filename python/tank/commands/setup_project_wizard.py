@@ -9,7 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import sys
 from distutils.version import StrictVersion
 
 from .action_base import Action
@@ -22,6 +21,8 @@ from .. import pipelineconfig_utils
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
 from .interaction import YesToEverythingInteraction
+from tank_vendor.shotgun_api3.lib import sgsix
+
 
 class SetupProjectFactoryAction(Action):
     """

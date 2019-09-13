@@ -327,17 +327,17 @@ class ShareCoreAction(Action):
         # note how the current platform's default value is None in order to make that required
         self.parameters["core_path_mac"] = { "description": ("The path on disk where the core API should be "
                                                              "installed on Macosx."),
-                                             "default": ( None if sgsix.platform == "darwin" else "" ),
+                                             "default": (None if sgsix.platform == "darwin" else ""),
                                              "type": "str" }
 
         self.parameters["core_path_win"] = { "description": ("The path on disk where the core API should be "
                                                              "installed on Windows."),
-                                             "default": ( None if sgsix.platform == "win32" else "" ),
+                                             "default": (None if sgsix.platform == "win32" else ""),
                                              "type": "str" }
 
         self.parameters["core_path_linux"] = { "description": ("The path on disk where the core API should be "
                                                                "installed on Linux."),
-                                               "default": ( None if sgsix.platform == "linux2" else "" ),
+                                               "default": (None if sgsix.platform == "linux2" else ""),
                                                "type": "str" }
 
 

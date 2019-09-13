@@ -535,7 +535,7 @@ class MetricsDispatchWorkerThread(Thread):
         try:
             request = urllib.request.Request(url, payload_json, header)
             urllib.request.urlopen(request)
-        except urllib.error.HTTPError as e:
+        except urllib.error.HTTPError:
             # fire and forget, so if there's an error, ignore it.
             pass
 

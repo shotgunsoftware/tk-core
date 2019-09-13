@@ -490,7 +490,7 @@ def _get_pipeline_configuration_data(sg_pipeline_configs):
 
 
 def _get_pipeline_configs_for_path(path, data):
-    """
+    r"""
     Given a path on disk and a cache data structure, return a list of
     associated pipeline configurations.
 

@@ -304,9 +304,9 @@ class SessionUser(ShotgunUserImpl):
             # But if we get there, it means our session_token is still valid
             # as far as Shotgun is concerned.
             if (
-                e.errcode == http_client.FOUND and
-                "location" in e.headers and
-                e.headers["location"].endswith("/saml/saml_login_request")
+                e.errcode == http_client.FOUND
+                and "location" in e.headers
+                and e.headers["location"].endswith("/saml/saml_login_request")
             ):
                 # If we get here, the session_token is still valid.
                 logger.debug("The SAML claims have expired. But the session_token is still valid")

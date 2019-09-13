@@ -451,7 +451,7 @@ def shotgun_cache_actions(pipeline_config_root, args):
         _write_shotgun_cache(tk, entity_type, cache_file_name)
     except TankError as e:
         logger.error("Error writing shotgun cache file: %s" % e)
-    except Exception as e:
+    except Exception:
         logger.exception("A general error occurred.")
     num_log_messages_after = formatter.get_num_errors()
 
@@ -1675,7 +1675,7 @@ if __name__ == "__main__":
         logger.info("")
         exit_code = 5
 
-    except KeyboardInterrupt as e:
+    except KeyboardInterrupt:
         logger.info("")
         logger.info("Exiting.")
         exit_code = 6

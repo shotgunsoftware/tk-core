@@ -101,17 +101,17 @@ class SetupProjectAction(Action):
         # note how the current platform's default value is None in order to make that required
         self.parameters["config_path_mac"] = { "description": ("The path on disk where the configuration should be "
                                                                "installed on Macosx."),
-                                               "default": ( None if sgsix.platform == "darwin" else "" ),
+                                               "default": (None if sgsix.platform == "darwin" else ""),
                                                "type": "str" }
 
         self.parameters["config_path_win"] = { "description": ("The path on disk where the configuration should be "
                                                                "installed on Windows."),
-                                               "default": ( None if sgsix.platform == "win32" else "" ),
+                                               "default": (None if sgsix.platform == "win32" else ""),
                                                "type": "str" }
 
         self.parameters["config_path_linux"] = { "description": ("The path on disk where the configuration should be "
                                                                "installed on Linux."),
-                                               "default": ( None if sgsix.platform == "linux2" else "" ),
+                                               "default": (None if sgsix.platform == "linux2" else ""),
                                                "type": "str" }
         
         # Special setting used by older versins of shotgun desktop app
@@ -405,8 +405,7 @@ class SetupProjectAction(Action):
         log.info("You can also enter an url pointing to a git repository. Toolkit will then "
                  "clone this repository and base the config on its content.")
         log.info("")
-        
-        
+
         config_name = input("[%s]: " % constants.DEFAULT_CFG).strip()
         if config_name == "":
             config_name = constants.DEFAULT_CFG
@@ -473,7 +472,7 @@ class SetupProjectAction(Action):
             log.info("")
             
         log.info("")
-        answer = input("Please type in the id of the project to connect to or ENTER to exit: " )
+        answer = input("Please type in the id of the project to connect to or ENTER to exit: ")
         if answer == "":
             raise TankError("Aborted by user.")
         try:

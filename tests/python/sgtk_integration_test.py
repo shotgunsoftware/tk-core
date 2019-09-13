@@ -326,7 +326,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
             print("tank command return code", proc.returncode)
             if stdout:
                 print("tank command output:")
-                print(stdout)
+                print(six.ensure_text(stdout))
 
     def remove_files(self, *files):
         """
