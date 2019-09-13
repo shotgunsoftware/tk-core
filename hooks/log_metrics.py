@@ -11,7 +11,6 @@
 """
 Hook that gets executed every time Toolkit logs user metrics."""
 
-from __future__ import absolute_import
 from tank import Hook
 
 

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from __future__ import print_function
 
 # Emitter expects events obeying the following grammar:

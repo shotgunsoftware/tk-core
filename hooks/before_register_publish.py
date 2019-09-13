@@ -14,7 +14,6 @@ This hook makes it possible to add custom fields to a publish before it gets cre
 as well as modifying the content that is being pushed to Shotgun.
 """
 
-from __future__ import absolute_import
 from tank import Hook
 
 

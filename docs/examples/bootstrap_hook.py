@@ -12,7 +12,6 @@
 # when editing it.
 
 # Everything after this line will be part of the documentation. #documentationStart
-from __future__ import absolute_import
 from sgtk import get_hook_baseclass
 from sgtk.util.shotgun import download_and_unpack_attachment
 

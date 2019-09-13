@@ -19,7 +19,6 @@ Hook which provides advanced customization of context creation.
     Email support@shotgunsoftware.com if you have any questions about how to
     migrate away from this hook.
 """
-from __future__ import absolute_import
 from tank import Hook
 
 

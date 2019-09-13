@@ -13,7 +13,6 @@ This hook is invoked during folder creation when :meth:`sgtk.Sgtk.create_filesys
 called.
 """
 
-from __future__ import absolute_import
 from tank import Hook
 import os
 import sys

@@ -12,7 +12,6 @@
 Hook that gets executed every time an engine has been fully initialized.
 """
 
-from __future__ import absolute_import
 from tank import Hook
 
 

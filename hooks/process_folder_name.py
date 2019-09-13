@@ -24,7 +24,6 @@ is being used, for example:
        raise TankError("Shot names cannot start with AA!")
 """
 
-from __future__ import absolute_import
 from tank import Hook
 import re
 from tank_vendor.shotgun_api3.lib import six
