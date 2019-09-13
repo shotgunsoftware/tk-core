@@ -59,7 +59,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
     _app_store_connections = {}
 
     # internal app store mappings
-    (APP, FRAMEWORK, ENGINE, CONFIG, CORE) = list(range(5))
+    (APP, FRAMEWORK, ENGINE, CONFIG, CORE) = range(5)
 
     _APP_STORE_OBJECT = {
         constants.DESCRIPTOR_APP: constants.TANK_APP_ENTITY_TYPE,

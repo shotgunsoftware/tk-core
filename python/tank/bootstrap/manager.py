@@ -34,7 +34,7 @@ class ToolkitManager(object):
     # Constants used to make the manager bootstrapping:
     # - download and cache the config dependencies needed to run the engine being started in a specific environment.
     # - download and cache all the config dependencies needed to run the engine in any environment.
-    (CACHE_SPARSE, CACHE_FULL) = list(range(2))
+    (CACHE_SPARSE, CACHE_FULL) = range(2)
 
     # Constants used to indicate that the manager is:
     # - bootstrapping the toolkit (with method bootstrap_toolkit),

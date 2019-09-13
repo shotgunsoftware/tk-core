@@ -57,7 +57,7 @@ class ProjectSetupParameters(object):
     - run project setup!
     """
 
-    (CENTRALIZED_CONFIG, DISTRIBUTED_CONFIG) = list(range(2))
+    (CENTRALIZED_CONFIG, DISTRIBUTED_CONFIG) = range(2)
 
     def __init__(self, log, sg):
         """

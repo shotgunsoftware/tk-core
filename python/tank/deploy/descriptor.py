@@ -23,7 +23,7 @@ class AppDescriptor(object):
     """
     Kept for backwards compatibility reasons for get_from_location_and_paths()
     """
-    APP, ENGINE, FRAMEWORK = list(range(3))
+    APP, ENGINE, FRAMEWORK = range(3)
 
 
 def get_from_location_and_paths(app_or_engine, pc_path, bundle_install_path, location_dict):

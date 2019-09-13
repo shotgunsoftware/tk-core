@@ -147,7 +147,7 @@ class TemplatePathParser(object):
         # disgard positions that can't be valid - e.g. where the position is greater than the
         # last possible position of any subsequent tokens:
         max_position = len(lower_path)+1
-        for ti in reversed(list(range(len(token_positions)))):
+        for ti in reversed(range(len(token_positions))):
             token_positions[ti] = [p for p in token_positions[ti] if p < max_position]
             max_position = max(token_positions[ti]) if token_positions[ti] else 0
 

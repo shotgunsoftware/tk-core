@@ -749,7 +749,7 @@ class WritableEnvironment(InstalledEnvironment):
     content back to disk.
     """
 
-    (NONE, INCLUDE_DEFAULTS, STRIP_DEFAULTS) = list(range(3))
+    (NONE, INCLUDE_DEFAULTS, STRIP_DEFAULTS) = range(3)
     """Format enumeration to use when dumping an environment.
 
     NONE: Don't modify the settings.

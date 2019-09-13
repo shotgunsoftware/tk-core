@@ -65,7 +65,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
     The latest version is defined as the current record available in Shotgun.
     """
 
-    (_MODE_ID_BASED, _MODE_NAME_BASED) = list(range(2))
+    (_MODE_ID_BASED, _MODE_NAME_BASED) = range(2)
 
     def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """

@@ -237,7 +237,7 @@ class TankCoreUpdater(object):
         UP_TO_DATE,                   # all good, no update necessary
         UPDATE_POSSIBLE,              # more recent version exists
         UPDATE_BLOCKED_BY_SG          # more recent version exists but SG version is too low.
-    ) = list(range(3))
+    ) = range(3)
 
     def __init__(self, install_folder_root, logger, core_version=None):
         """

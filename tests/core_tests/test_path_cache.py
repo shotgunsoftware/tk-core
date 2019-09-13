@@ -1324,7 +1324,7 @@ class TestPathCacheBatchOperation(TankTestBase):
 
         # note that the batch size has been dialled down in setup so this will
         # batch into groups of 11
-        folder_ids = list(range(111, 199))
+        folder_ids = range(111, 199)
 
         # run the method
         entities = self._pc._get_filesystem_location_entities(folder_ids)

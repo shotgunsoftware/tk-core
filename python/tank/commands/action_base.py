@@ -50,7 +50,7 @@ class Action(object):
     are executed when you run the inside the Shell engine. 
     """
     
-    GLOBAL, TK_INSTANCE, CTX, ENGINE = list(range(4))
+    GLOBAL, TK_INSTANCE, CTX, ENGINE = range(4)
     
     def __init__(self, name, mode, description, category):
         self.name = name

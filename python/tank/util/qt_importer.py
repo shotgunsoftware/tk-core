@@ -33,7 +33,7 @@ class QtImporter(object):
             ...
     """
 
-    QT4, QT5 = list(range(4, 6))
+    QT4, QT5 = range(4, 6)
 
     def __init__(self, interface_version_requested=QT4):
         """

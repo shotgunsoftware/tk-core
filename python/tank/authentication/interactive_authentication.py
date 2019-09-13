@@ -96,7 +96,7 @@ class SessionRenewal(object):
     _renew_session_internal_lock = threading.Lock()
 
     # List of possible states for session renewal.
-    WAITING, CANCELLED, SUCCESS = list(range(3))
+    WAITING, CANCELLED, SUCCESS = range(3)
 
     # When a thread cancels session renewal, this flag is set so other threads know
     # to raise an exception as well.

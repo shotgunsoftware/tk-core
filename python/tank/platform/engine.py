@@ -62,7 +62,7 @@ class Engine(TankBundle):
     derive from this class.
     """
 
-    _ASYNC_INVOKER, _SYNC_INVOKER = list(range(2))
+    _ASYNC_INVOKER, _SYNC_INVOKER = range(2)
 
     def __init__(self, tk, context, engine_instance_name, env):
         """
