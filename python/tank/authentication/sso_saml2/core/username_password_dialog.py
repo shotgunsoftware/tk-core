@@ -31,10 +31,10 @@ class UsernamePasswordDialog(QtGui.QDialog):
         super(UsernamePasswordDialog, self).__init__()
 
         if window_title is None:
-            title = "Please enter your credentials"
+            window_title = "Please enter your credentials"
         if message is None:
             message = ""
-        self.setWindowTitle(title)
+        self.setWindowTitle(window_title)
 
         # For now we fix the GUI size.
         self.setMinimumWidth(420)
@@ -138,9 +138,9 @@ class UsernamePasswordDialog(QtGui.QDialog):
 def main():
     """Simple test"""
     _ = QtGui.QApplication([])
-    title = "A title"
+    window_title = "A title"
     message = "A message"
-    login_dialog = UsernamePasswordDialog(title, message)
+    login_dialog = UsernamePasswordDialog(window_title=window_title, message=message)
     login_dialog.username = "TheUsername"
     login_dialog.password = "ThePassword"
     if login_dialog.exec_():
