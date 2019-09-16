@@ -577,7 +577,12 @@ class SsoSaml2Core(object):
         # is possible between the machine and the IdP. For other platforms, we
         # pop an authentication dialog.
         if sys.platform != "win32" and UsernamePasswordDialog is not None:
-            auth_dialog = UsernamePasswordDialog()
+            message = (
+                "<p>Your company has configured Single Sign-On (SSO) for the Shotgun site %s"
+                "<p>Please authenticate with your computer login and password to log into Shotgun."
+                "<p>"
+            )
+            auth_dialog = UsernamePasswordDialog(message=message % self._session.host)
             if auth_dialog.exec_():
                 authenticator.setUser(auth_dialog.username)
                 authenticator.setPassword(auth_dialog.password)

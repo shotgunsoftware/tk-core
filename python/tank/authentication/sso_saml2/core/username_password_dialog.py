@@ -27,11 +27,16 @@ if QtGui is None:
 class UsernamePasswordDialog(QtGui.QDialog):
     """Simple dialog to request a username and password from the user."""
 
-    def __init__(self, *args, **kwargs):
-        super(UsernamePasswordDialog, self).__init__(*args, **kwargs)
+    def __init__(self, window_title=None, message=None):
+        super(UsernamePasswordDialog, self).__init__()
+
+        if window_title is None:
+            title = "Please enter your credentials"
+        if message is None:
+            message = ""
+        self.setWindowTitle(title)
 
         # For now we fix the GUI size.
-        self.setWindowTitle("Authentication Required")
         self.setMinimumWidth(420)
         self.setMinimumHeight(120)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
@@ -41,16 +46,17 @@ class UsernamePasswordDialog(QtGui.QDialog):
 
         # initialize the username combo box so that it is editable
         self._edit_username = QtGui.QLineEdit(self)
+        self._edit_username.setPlaceholderText("Domain\\Username or email address")
 
         # initialize the password field so that it does not echo characters
         self._edit_password = QtGui.QLineEdit(self)
         self._edit_password.setEchoMode(QtGui.QLineEdit.Password)
+        self._edit_password.setPlaceholderText("Password")
 
         # initialize the labels
-        label_username = QtGui.QLabel(self)
-        label_password = QtGui.QLabel(self)
-        label_username.setText("Username:")
-        label_password.setText("Password:")
+        label_message = QtGui.QLabel(self)
+        label_message.setText(message)
+        label_message.setWordWrap(True)
 
         # initialize buttons
         buttons = QtGui.QDialogButtonBox(self)
@@ -60,18 +66,42 @@ class UsernamePasswordDialog(QtGui.QDialog):
         buttons.button(QtGui.QDialogButtonBox.Cancel).setText("Cancel")
 
         # place components into the dialog
-        form_grid_layout.addWidget(label_username, 0, 0)
-        form_grid_layout.addWidget(self._edit_username, 0, 1)
-        form_grid_layout.addWidget(label_password, 1, 0)
-        form_grid_layout.addWidget(self._edit_password, 1, 1)
-        form_grid_layout.setRowStretch(2, 1)
-        form_grid_layout.addWidget(buttons, 3, 1)
+        form_grid_layout.addWidget(label_message, 0, 0)
+        form_grid_layout.addWidget(self._edit_username, 1, 0)
+        form_grid_layout.addWidget(self._edit_password, 2, 0)
+        form_grid_layout.setRowMinimumHeight(3, 20)
+        form_grid_layout.addWidget(buttons, 4, 0)
 
         self.setLayout(form_grid_layout)
 
         buttons.button(QtGui.QDialogButtonBox.Ok).clicked.connect(self._on_enter_credentials)
         buttons.button(QtGui.QDialogButtonBox.Cancel).clicked.connect(self.close)
 
+        # On Qt4, this sets the look-and-feel to that of the toolkit.
+        self.setStyleSheet(
+            """QWidget
+            {
+                background-color:  rgb(36, 39, 42);
+                color: rgb(192, 193, 195);
+                selection-background-color: rgb(168, 123, 43);
+                selection-color: rgb(230, 230, 230);
+                font-size: 11px;
+                color: rgb(192, 192, 192);
+            }
+            QPushButton
+            {
+                background-color: transparent;
+                border-radius: 2px;
+                padding: 8px;
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+            QPushButton:default
+            {
+                color: rgb(248, 248, 248);
+                background-color: rgb(35, 165, 225);
+            }
+            """)
     @property
     def username(self):
         """Getter for username."""
@@ -108,7 +138,9 @@ class UsernamePasswordDialog(QtGui.QDialog):
 def main():
     """Simple test"""
     _ = QtGui.QApplication([])
-    login_dialog = UsernamePasswordDialog()
+    title = "A title"
+    message = "A message"
+    login_dialog = UsernamePasswordDialog(title, message)
     login_dialog.username = "TheUsername"
     login_dialog.password = "ThePassword"
     if login_dialog.exec_():
