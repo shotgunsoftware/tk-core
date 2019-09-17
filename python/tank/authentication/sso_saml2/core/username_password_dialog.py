@@ -102,6 +102,7 @@ class UsernamePasswordDialog(QtGui.QDialog):
                 background-color: rgb(35, 165, 225);
             }
             """)
+
     @property
     def username(self):
         """Getter for username."""
