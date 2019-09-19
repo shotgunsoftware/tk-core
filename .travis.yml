@@ -26,6 +26,8 @@ matrix:
   include:
   - python: "2.7"
     env: QT_TEST_VER=4 SHOTGUN_COMPILE_ONLY=0
+  - python: "2.7"
+    env: QT_TEST_VER=5 SHOTGUN_COMPILE_ONLY=0
   - python: "3.7"
     env: QT_TEST_VER=5 SHOTGUN_COMPILE_ONLY=0
 
