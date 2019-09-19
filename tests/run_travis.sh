@@ -48,7 +48,7 @@ if [[ $TRAVIS = true ]]; then
 fi
 
 # Insert the event type and python version, since we can be running multiple builds at the same time.
-export SHOTGUN_TEST_ENTITY_SUFFIX="travis_${TRAVIS_EVENT_TYPE}_${TRAVIS_PYTHON_VERSION}"
+export SHOTGUN_TEST_ENTITY_SUFFIX="travis_${TRAVIS_EVENT_TYPE}_${TRAVIS_PYTHON_VERSION}_QT${QT_TEST_VER}"
 
 # Do not launch the coverage for our unit tests with --with-coverage. If you do, run_tests will
 # generate all the coverage in memory and not leave a .coverage file to be uploaded.
