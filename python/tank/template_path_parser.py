@@ -14,7 +14,6 @@ Parsing of template paths into values for specified keys using a list of static 
 
 import os
 from .errors import TankError
-from tank_vendor.shotgun_api3.lib.six.moves import range
 
 class TemplatePathParser(object):
     """

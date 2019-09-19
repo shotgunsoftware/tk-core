@@ -38,8 +38,6 @@ import tank
 from tank import path_cache, pipelineconfig_factory
 from tank_vendor import yaml
 from tank.util.user_settings import UserSettings
-import six
-from six.moves import range
 
 TANK_TEMP = None
 

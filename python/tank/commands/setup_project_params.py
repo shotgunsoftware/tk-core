@@ -30,8 +30,6 @@ from tank_vendor import yaml
 
 from ..util import ShotgunPath
 from tank_vendor.shotgun_api3.lib import sgsix
-from tank_vendor.shotgun_api3.lib.six.moves import range
-
 
 
 class ProjectSetupParameters(object):

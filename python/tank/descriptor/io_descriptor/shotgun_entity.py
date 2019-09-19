@@ -17,7 +17,6 @@ from ...util.shotgun_entity import get_sg_entity_name_field
 from ...util.errors import ShotgunAttachmentDownloadError
 from ..errors import TankDescriptorError
 from ... import LogManager
-from tank_vendor.shotgun_api3.lib.six.moves import range
 
 log = LogManager.get_logger(__name__)
 

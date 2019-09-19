@@ -16,7 +16,6 @@ This code may be removed at some point in the future.
 
 from ..descriptor import create_descriptor, Descriptor
 from ..util import shotgun
-from tank_vendor.shotgun_api3.lib.six.moves import range
 
 
 class AppDescriptor(object):

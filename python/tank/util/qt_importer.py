@@ -15,7 +15,6 @@ Qt version abstraction layer.
 import os
 
 from ..log import LogManager
-from tank_vendor.shotgun_api3.lib.six.moves import range
 logger = LogManager.get_logger(__name__)
 
 

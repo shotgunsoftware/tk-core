@@ -20,7 +20,6 @@ from ..pipelineconfig import PipelineConfiguration
 from .. import LogManager
 from ..errors import TankError
 from ..util import ShotgunPath
-from tank_vendor.shotgun_api3.lib.six.moves import range
 
 log = LogManager.get_logger(__name__)
 
@@ -39,7 +38,7 @@ class ToolkitManager(object):
     # Constants used to indicate that the manager is:
     # - bootstrapping the toolkit (with method bootstrap_toolkit),
     # - starting up the engine (with method _start_engine).
-    (TOOLKIT_BOOTSTRAP_PHASE, ENGINE_STARTUP_PHASE) = list(range(2))
+    (TOOLKIT_BOOTSTRAP_PHASE, ENGINE_STARTUP_PHASE) = range(2)
 
     # List of constants representing the status of the progress bar when these event occurs during bootstrap.
     _RESOLVING_PROJECT_RATE = 0.0

@@ -29,7 +29,6 @@ from . import console_utils
 from ..util.version import is_version_newer, is_version_head
 
 from tank_vendor import yaml
-from tank_vendor.shotgun_api3.lib.six.moves import range
 
 
 # FIXME: This should be refactored into something that can be used by other commands.

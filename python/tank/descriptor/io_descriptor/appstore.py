@@ -37,7 +37,6 @@ from ...constants import SUPPORT_EMAIL
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
 from tank_vendor.shotgun_api3.lib import six
-from tank_vendor.shotgun_api3.lib.six.moves import range
 json = shotgun_api3.shotgun.json
 
 log = LogManager.get_logger(__name__)

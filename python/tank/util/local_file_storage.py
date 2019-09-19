@@ -9,13 +9,11 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import sys
 from tank_vendor.shotgun_api3.lib.six.moves import urllib
 from . import filesystem
 from .. import LogManager
 from ..errors import TankError
 from tank_vendor.shotgun_api3.lib import sgsix
-from tank_vendor.shotgun_api3.lib.six.moves import range
 
 log = LogManager.get_logger(__name__)
 

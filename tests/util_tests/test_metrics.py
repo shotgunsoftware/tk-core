@@ -32,10 +32,9 @@ import os
 import json
 import time
 import threading
-import time
 import unittest2
 from tank_vendor.shotgun_api3.lib import six
-from tank_vendor.shotgun_api3.lib.six.moves import range, urllib
+from tank_vendor.shotgun_api3.lib.six.moves import urllib
 
 
 class TestEventMetric(ShotgunTestBase):

@@ -49,8 +49,6 @@ from . import qt5
 from .bundle import TankBundle
 from .framework import setup_frameworks
 from .engine_logging import ToolkitEngineHandler, ToolkitEngineLegacyHandler
-from tank_vendor.shotgun_api3.lib import six
-from tank_vendor.shotgun_api3.lib.six.moves import range
 
 # std core level logger
 core_logger = LogManager.get_logger(__name__)

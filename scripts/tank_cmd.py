@@ -38,7 +38,6 @@ from tank.platform import engine
 from tank import pipelineconfig_utils
 from tank import LogManager
 from tank_vendor.shotgun_api3.lib import six
-from tank_vendor.shotgun_api3.lib.six.moves import range
 
 # the logger used by this file is sgtk.tank_cmd
 logger = LogManager.get_logger("tank_cmd")

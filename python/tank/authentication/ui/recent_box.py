@@ -21,7 +21,6 @@ at any point.
 from .qt_abstraction import QtGui
 from .qt5_like_line_edit import Qt5LikeLineEdit
 from .completion_filter_proxy import CompletionFilterProxy
-from tank_vendor.shotgun_api3.lib.six.moves import range
 
 
 class RecentBox(QtGui.QComboBox):
