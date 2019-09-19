@@ -16,8 +16,6 @@ from .configuration_writer import ConfigurationWriter
 from .. import LogManager
 from .. import constants
 
-from tank_vendor.shotgun_api3.lib import six
-
 from ..util import ShotgunPath
 from ..util.pickle import store_env_var_pickled
 from ..errors import TankFileDoesNotExistError

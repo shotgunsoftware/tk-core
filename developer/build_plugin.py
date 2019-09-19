@@ -23,7 +23,6 @@ import os
 import sys
 import shutil
 import datetime
-from tank_vendor.shotgun_api3.lib import six
 
 # add sgtk API
 this_folder = os.path.abspath(os.path.dirname(__file__))

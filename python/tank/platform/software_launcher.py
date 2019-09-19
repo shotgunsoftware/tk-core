@@ -30,7 +30,6 @@ from . import validation
 
 from .bundle import resolve_setting_value
 from .engine import get_env_and_descriptor_for_engine
-from tank_vendor.shotgun_api3.lib import six
 
 # std core level logger
 core_logger = LogManager.get_logger(__name__)

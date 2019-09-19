@@ -19,7 +19,7 @@ from sgtk.util import ShotgunPath
 from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule # noqa
 from mock import patch
 import tank_vendor.shotgun_api3.lib.six.moves.cPickle as pickle
-from tank_vendor.shotgun_api3.lib import six, sgsix
+from tank_vendor.shotgun_api3.lib import sgsix
 
 
 class TestTankFromPath(TankTestBase):

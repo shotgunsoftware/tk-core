@@ -24,7 +24,6 @@ from .publish_util import get_cached_local_storages
 from ...log import LogManager
 from ..shotgun_path import ShotgunPath
 from ..errors import PublishPathNotDefinedError, PublishPathNotSupported
-from tank_vendor.shotgun_api3.lib import six
 
 log = LogManager.get_logger(__name__)
 

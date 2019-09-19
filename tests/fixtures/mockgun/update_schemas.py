@@ -14,7 +14,6 @@ This script will update the Shotgun schema for Mockgun.
 
 from __future__ import print_function
 import sys
-from tank_vendor.shotgun_api3.lib import six
 
 sys.path.append("../../../python")
 

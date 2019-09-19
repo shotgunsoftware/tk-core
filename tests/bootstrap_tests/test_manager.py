@@ -19,7 +19,6 @@ from sgtk.bootstrap import ToolkitManager
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
 from tank_test.tank_test_base import TankTestBase
-from tank_vendor.shotgun_api3.lib import six
 
 
 class TestErrorHandling(ShotgunTestBase):

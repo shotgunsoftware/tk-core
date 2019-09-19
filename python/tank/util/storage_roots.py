@@ -18,7 +18,6 @@ from ..errors import TankError
 from . import filesystem
 from . import ShotgunPath
 from . import yaml_cache
-from tank_vendor.shotgun_api3.lib import six
 
 log = LogManager.get_logger(__name__)
 

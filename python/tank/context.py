@@ -27,7 +27,6 @@ from . import constants
 from .errors import TankError, TankContextDeserializationError
 from .path_cache import PathCache
 from .template import TemplatePath
-from tank_vendor.shotgun_api3.lib import six
 
 
 class Context(object):
