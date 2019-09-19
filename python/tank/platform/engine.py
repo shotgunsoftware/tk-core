@@ -178,7 +178,7 @@ class Engine(TankBundle):
 
         qt5_base = self.__define_qt5_base()
         self.__has_qt5 = len(qt5_base) > 0
-        for name, value in six.iteritems(qt5_base):
+        for name, value in qt5_base.items():
             setattr(qt5, name, value)
 
         # Update the authentication module to use the engine's Qt.
@@ -808,8 +808,8 @@ class Engine(TankBundle):
             # from the persistent app pool, which will force it to be
             # rebuilt when apps are loaded later on.
             non_compliant_app_paths = []
-            for install_path, app_instances in six.iteritems(self.__application_pool):
-                for instance_name, app in six.iteritems(app_instances):
+            for install_path, app_instances in self.__application_pool.items():
+                for instance_name, app in app_instances.items():
                     self.log_debug(
                         "Executing pre_context_change for %r, changing from %r to %r." % (
                             app,
@@ -1243,7 +1243,7 @@ class Engine(TankBundle):
         """
         # return a dictionary grouping all the commands by instance name
         commands_by_instance = {}
-        for (name, value) in six.iteritems(self.commands):
+        for (name, value) in self.commands.items():
             app_instance = value["properties"].get("app")
             if app_instance is None:
                 continue
@@ -1449,7 +1449,7 @@ class Engine(TankBundle):
 
         self.log_debug("Emitting event: %r" % event)
 
-        for app_instance_name, app in six.iteritems(self.__applications):
+        for app_instance_name, app in self.__applications.items():
             self.log_debug("Sending event to %r..." % app)
 
             # We send the event to the generic engine event handler
@@ -1922,7 +1922,7 @@ class Engine(TankBundle):
         :returns: Stylesheet string with replacements applied
         """
         processed_style_sheet = style_sheet
-        for (token, value) in six.iteritems(constants.SG_STYLESHEET_CONSTANTS):
+        for (token, value) in constants.SG_STYLESHEET_CONSTANTS.items():
             processed_style_sheet = processed_style_sheet.replace("{{%s}}" % token, value)
         return processed_style_sheet
     
@@ -2565,7 +2565,7 @@ class Engine(TankBundle):
                         setup_frameworks(self, app, self.__env, descriptor)
 
                         # Repopulate the app's commands into the engine.
-                        for command_name, command in six.iteritems(self.__command_pool):
+                        for command_name, command in self.__command_pool.items():
                             if app is command.get("properties", dict()).get("app"):
                                 self.__commands[command_name] = command
 
@@ -2657,7 +2657,7 @@ class Engine(TankBundle):
                     self.__application_pool[app_path][app_instance_name] = app
 
             # Update the persistent commands pool for use in context changes.
-            for command_name, command in six.iteritems(self.__commands):
+            for command_name, command in self.__commands.items():
                 self.__command_pool[command_name] = command
             
     def __destroy_frameworks(self):

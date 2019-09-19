@@ -303,7 +303,7 @@ class TestShotgunRegisterPublish(TankTestBase):
             }
 
         # Various paths we support, Unix and Windows styles
-        for (local_path, path_dict) in six.iteritems(values):
+        for (local_path, path_dict) in values.items():
 
             publish_data = tank.util.register_publish(
                 self.tk,

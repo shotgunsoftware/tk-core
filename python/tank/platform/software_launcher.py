@@ -330,7 +330,7 @@ class SoftwareLauncher(object):
 
         :returns: The substituted string, when "<name>" will yield "<value>".
         """
-        for key, value in six.iteritems(tokens):
+        for key, value in tokens.items():
             template = template.replace("{%s}" % key, value)
         return template
 
@@ -408,7 +408,7 @@ class SoftwareLauncher(object):
         regex_pattern = self._format(
             regex_pattern,
             # Put () around the provided expressions so that they become capture groups.
-            dict((k, "(?P<%s>%s)" % (k, v)) for k, v in six.iteritems(template_key_expressions))
+            dict((k, "(?P<%s>%s)" % (k, v)) for k, v in template_key_expressions.items())
         )
 
         # accumulate the software version objects to return. this will include

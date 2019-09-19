@@ -828,7 +828,7 @@ class SetupProjectAction(Action):
         mapped_roots = []
 
         # loop over required storage roots
-        for (root_name, root_info) in six.iteritems(required_roots):
+        for (root_name, root_info) in required_roots.items():
 
             log.info("%s" % (root_name,))
             log.info("-" * len(root_name))

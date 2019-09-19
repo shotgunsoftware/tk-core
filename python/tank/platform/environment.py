@@ -1080,7 +1080,7 @@ class WritableEnvironment(InstalledEnvironment):
         :param settings: settings dictionary to update with the new values
         :parma new_data: new settings data to update into the settings dictionary
         """
-        for name, data in six.iteritems(new_data):
+        for name, data in new_data.items():
             # if data is a dictionary then we may need to recurse to update nested settings:
             if isinstance(data, dict):
                 setting = settings.get(name)

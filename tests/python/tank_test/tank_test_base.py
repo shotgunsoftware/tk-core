@@ -143,13 +143,13 @@ def skip_if_pyside_missing(func):
 
 @contextlib.contextmanager
 def temp_env_var(**kwargs):
-    """
+    r"""
     Scope the life-scope of temporary environment variable within a ``with`` block.
 
     :param \**kwargs: key-value pairs of environment variables to set.
     """
     backup_values = {}
-    for k, v in six.iteritems(kwargs):
+    for k, v in kwargs.items():
         if k in os.environ:
             backup_values[k] = os.environ[k]
         os.environ[k] = v
@@ -157,7 +157,7 @@ def temp_env_var(**kwargs):
     try:
         yield
     finally:
-        for k, v in six.iteritems(kwargs):
+        for k, v in kwargs.items():
             if k in backup_values:
                 os.environ[k] = backup_values[k]
             else:
@@ -961,12 +961,12 @@ class TankTestBase(unittest.TestCase):
         ini_file_location = os.path.join(folder, "toolkit.ini")
         with open(ini_file_location, "w") as f:
             f.writelines(["[Login]\n"])
-            for key, value in six.iteritems(login_section):
+            for key, value in login_section.items():
                 f.writelines(["%s=%s\n" % (key, value)])
 
             for section in kwargs:
                 f.writelines(["[%s]\n" % section])
-                for key, value in six.iteritems(kwargs[section]):
+                for key, value in kwargs[section].items():
                     f.writelines(["%s=%s\n" % (key, value)])
 
         # The setUp phase cleared the singleton. So set the preferences environment variable and

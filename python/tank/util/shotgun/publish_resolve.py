@@ -203,7 +203,7 @@ def __resolve_local_file_link(tk, attachment_data):
                 "mac_path": "local_path_mac"
             }
 
-            for (storage_field, path_field) in six.iteritems(storage_field_map):
+            for (storage_field, path_field) in storage_field_map.items():
                 this_os_storage_root = storage[storage_field]
                 this_os_full_path = attachment_data[path_field]
 
@@ -377,7 +377,7 @@ def __resolve_url_link(tk, attachment_data):
                     storage_lookup[storage_name].linux = os.environ[env_var]
 
     # now see if the given url starts with any storage def in our setup
-    for storage, sg_path in six.iteritems(storage_lookup):
+    for storage, sg_path in storage_lookup.items():
 
         # go through each storage, see if any of the os
         # path defs for the storage matches the beginning of the

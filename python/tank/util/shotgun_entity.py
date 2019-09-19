@@ -341,7 +341,7 @@ class EntityExpression(object):
         #
         # Replace tokens in the string with actual values:
         resolved_expression = expression
-        for token, value in six.iteritems(str_data):
+        for token, value in str_data.items():
             resolved_expression = resolved_expression.replace("{%s}" % token, value)
 
         # now validate the entire value!

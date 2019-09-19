@@ -38,7 +38,7 @@ def _convert_unicode_keys_to_string(input_value):
     if isinstance(input_value, dict):
         return dict(
             (_convert_unicode_keys_to_string(k), _convert_unicode_keys_to_string(v))
-            for k, v in six.iteritems(input_value)
+            for k, v in input_value.items()
         )
 
     return input_value

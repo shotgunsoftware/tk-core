@@ -228,7 +228,7 @@ class StorageRoots(object):
 
         Yields root names and corresponding metadata upon iteration.
         """
-        for root_name, root_info in six.iteritems(self._storage_roots_metadata):
+        for root_name, root_info in self._storage_roots_metadata.items():
             yield root_name, root_info
 
     def __repr__(self):

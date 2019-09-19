@@ -528,7 +528,7 @@ class IODescriptorBase(object):
         descriptor_dict["type"] = split_path[1]
 
         # now pop remaining keys into a dict and key by item_keys
-        for (param, value) in six.iteritems(urllib.parse.parse_qs(query)):
+        for (param, value) in urllib.parse.parse_qs(query).items():
             if len(value) > 1:
                 raise TankDescriptorError("Invalid uri '%s' - duplicate parameters" % uri)
             descriptor_dict[param] = value[0]

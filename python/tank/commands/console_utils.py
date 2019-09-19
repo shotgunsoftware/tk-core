@@ -147,7 +147,7 @@ def _get_configuration_recursive(
     parent_path = parent_path or []
 
     param_values = {}
-    for param_name, param_data in six.iteritems(params):
+    for param_name, param_data in params.items():
         if "children" in param_data:
             # recurse to children:
             param_path = list(parent_path) + ["%s (type: %s)" % (param_name, param_data["type"])]
@@ -390,7 +390,7 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
 
     new_params = {}
 
-    for param_name, new_param_definition_dict in six.iteritems(new_schema):
+    for param_name, new_param_definition_dict in new_schema.items():
 
         param_type = new_param_definition_dict.get("type", "Unknown")
         param_desc = new_param_definition_dict.get("description", "No description.")

@@ -495,7 +495,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             # the sought-after label
             version_numbers = []
             log.debug("culling out versions not labelled '%s'..." % self._label)
-            for (version_str, path) in six.iteritems(all_versions):
+            for (version_str, path) in all_versions.items():
                 metadata = self.__load_cached_app_store_metadata(path)
                 try:
                     tags = [x["name"] for x in metadata["sg_version_data"]["tags"]]

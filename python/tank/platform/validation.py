@@ -175,7 +175,7 @@ def validate_and_return_frameworks(descriptor, environment):
         desired_fw_instance = "%s_%s" % (required_fw_name, version)
         min_version_satisfied = True
 
-        for fw_instance_name, fw_desc in six.iteritems(fw_descriptors):
+        for fw_instance_name, fw_desc in fw_descriptors.items():
 
             # We've found a matching framework.
             if fw_instance_name == desired_fw_instance:
@@ -238,7 +238,7 @@ def validate_and_return_frameworks(descriptor, environment):
 
                 msg += "The currently installed frameworks are: \n"
                 fw_strings = []
-                for x, fw in six.iteritems(fw_descriptors):
+                for x, fw in fw_descriptors.items():
                     fw_strings.append("Name: '%s', Version: '%s'" % (fw.system_name,
                                                                      fw.version))
                 msg += "\n".join(fw_strings)

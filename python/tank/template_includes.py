@@ -135,7 +135,7 @@ def process_includes(file_name, data):
     template_strings = resolved_includes_data[constants.TEMPLATE_STRING_SECTION] 
     
     # process the template paths section:
-    for template_name, template_definition in six.iteritems(template_paths):
+    for template_name, template_definition in template_paths.items():
         _resolve_template_r(template_paths, 
                             template_strings, 
                             template_name, 
@@ -143,7 +143,7 @@ def process_includes(file_name, data):
                             "path")
         
     # and process the strings section:
-    for template_name, template_definition in six.iteritems(template_strings):
+    for template_name, template_definition in template_strings.items():
         _resolve_template_r(template_paths, 
                             template_strings, 
                             template_name, 
@@ -152,7 +152,7 @@ def process_includes(file_name, data):
                 
     # finally, resolve escaped @'s in template definitions:
     for templates in [template_paths, template_strings]:
-        for template_name, template_definition in six.iteritems(templates):
+        for template_name, template_definition in templates.items():
             # find the template string from the definition:
             template_str = None
             complex_syntax = False
@@ -188,7 +188,7 @@ def _find_matching_ref_template(template_paths, template_strings, ref_string):
     
     # find all templates that match the start of the ref string:
     for templates, template_type in [(template_paths, "path"), (template_strings, "string")]:
-        for name, definition in six.iteritems(templates):
+        for name, definition in templates.items():
             if ref_string.startswith(name):
                 matching_templates.append((name, definition, template_type))
             

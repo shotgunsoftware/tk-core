@@ -331,7 +331,7 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
 
             fh.write("base_configuration=\"%s\"\n" % config_uri)
 
-            for (parameter, value) in six.iteritems(manifest_data):
+            for (parameter, value) in manifest_data.items():
 
                 if parameter == "base_configuration":
                     continue

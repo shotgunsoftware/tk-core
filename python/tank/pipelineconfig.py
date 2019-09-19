@@ -582,7 +582,7 @@ class PipelineConfiguration(object):
 
         current_os_path_lookup = {}
 
-        for root_name, sg_path in six.iteritems(self._storage_roots.as_shotgun_paths):
+        for root_name, sg_path in self._storage_roots.as_shotgun_paths.items():
 
             # get current os path
             local_path = sg_path.current_os
@@ -712,7 +712,7 @@ class PipelineConfiguration(object):
 
         project_roots_lookup = {}
 
-        for root_name, sg_path in six.iteritems(self._storage_roots.as_shotgun_paths):
+        for root_name, sg_path in self._storage_roots.as_shotgun_paths.items():
 
             # join the project name to the storage ShotgunPath
             project_root = sg_path.join(self._project_name)
@@ -740,7 +740,7 @@ class PipelineConfiguration(object):
 
         project_roots_lookup = {}
 
-        for root_name, sg_path in six.iteritems(self._storage_roots.as_shotgun_paths):
+        for root_name, sg_path in self._storage_roots.as_shotgun_paths.items():
 
             # join the project name to the storage ShotgunPath
             project_root = sg_path.join(self._project_name)
@@ -883,7 +883,7 @@ class PipelineConfiguration(object):
 
         # For each token, check if the platform or the generic path key are specified
         # and replace the token if found.
-        for token, substitution in six.iteritems(substitutions):
+        for token, substitution in substitutions.items():
             for key in ["path", ShotgunPath.get_shotgun_storage_key()]:
                 if key in descriptor_dict:
                     descriptor_dict[key] = descriptor_dict[key].replace(

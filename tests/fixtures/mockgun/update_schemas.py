@@ -46,7 +46,7 @@ schema_requirements = {
 }
 
 # Ensure every entity is present and their fields.
-for entity, fields in six.iteritems(schema_requirements):
+for entity, fields in schema_requirements.items():
     if entity not in list(schema.keys()):
         errors.append("Entity '%s' is missing." % entity)
 

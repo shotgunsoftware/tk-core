@@ -1390,7 +1390,7 @@ def _read_credentials_from_file(auth_path):
         file_data = yaml.load(auth_file)
 
     args = [
-        (k, v) for k, v in six.iteritems(file_data) if k in [ARG_SCRIPT_NAME, ARG_SCRIPT_KEY]
+        (k, v) for k, v in file_data.items() if k in [ARG_SCRIPT_NAME, ARG_SCRIPT_KEY]
     ]
 
     return args

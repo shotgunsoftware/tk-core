@@ -466,7 +466,7 @@ class TestRegisteredCommands(TestEngineBase):
         command_properties = engine.commands["test_command"].get("properties")
         self.assertIsInstance(command_properties, dict)
 
-        for property, reg_value in six.iteritems(register_properties):
+        for property, reg_value in register_properties.items():
             self.assertEqual(command_properties[property], reg_value)
         self.assertIsNone(command_properties["prefix"])
 
@@ -549,7 +549,7 @@ class TestRegisteredCommands(TestEngineBase):
 
             self.assertIsInstance(engine.commands[command_key], dict)
             engine_command_properties = engine.commands[command_key]["properties"]
-            for property, reg_value in six.iteritems(command_properties):
+            for property, reg_value in command_properties.items():
                 self.assertEqual(engine_command_properties[property], reg_value)
             self.assertEqual(engine_command_properties["prefix"], command_prefix)
 

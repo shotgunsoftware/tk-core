@@ -934,7 +934,7 @@ class TestFeaturesApi(unittest2.TestCase):
         }
 
         # Make sure every feature is at the expected version.
-        for feature, value in six.iteritems(features):
+        for feature, value in features.items():
             self.assertEqual(desc.get_feature_info(feature), value)
 
         # Make sure there weren't new features introduced.

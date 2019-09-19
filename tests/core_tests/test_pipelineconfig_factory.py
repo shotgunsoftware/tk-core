@@ -479,7 +479,7 @@ class TestPipelineConfigurationEnumeration(ShotgunTestBase):
         :returns: A new dictionary without the keys specified.
         """
         return dict(
-            (k, v) for k, v in six.iteritems(dictionary) if k not in keys_to_remove
+            (k, v) for k, v in dictionary.items() if k not in keys_to_remove
         )
 
 

@@ -622,7 +622,7 @@ class Context(object):
             # filter the list of fields to just those that don't have a 'None' value.
             # Note: A 'None' value for a field indicates an ambiguity and was set in the 
             # _fields_from_entity_paths method (!)
-            non_none_fields = dict([(key, value) for key, value in six.iteritems(fields) if value is not None])
+            non_none_fields = dict([(key, value) for key, value in fields.items() if value is not None])
 
             # Determine additional field values by walking down the template tree
             fields.update(self._fields_from_template_tree(template, non_none_fields, entities))
@@ -1105,7 +1105,7 @@ class Context(object):
                     # previously/higher up in the template definition.  If we did then the entries that were found 
                     # may not be correct so we have to discard them!
                     found_mismatching_field = False
-                    for field_name, field_value in six.iteritems(entity_fields):
+                    for field_name, field_value in entity_fields.items():
                         if field_name in known_fields:
                             # We found a field we already knew about...
                             if field_value != known_fields[field_name]:
