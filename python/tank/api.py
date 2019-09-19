@@ -495,7 +495,7 @@ class Sgtk(object):
             skip_keys = [skip_keys]
         
         # construct local fields dictionary that doesn't include any skip keys:
-        local_fields = dict((field, value) for field, value in six.iteritems(fields) if field not in skip_keys)
+        local_fields = dict((field, fields[field]) for field in fields if field not in skip_keys)
         
         # we always want to automatically skip 'required' keys that weren't
         # specified so add wildcards for them to the local fields
