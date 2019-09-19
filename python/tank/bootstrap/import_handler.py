@@ -174,7 +174,7 @@ class CoreImportHandler(object):
 
             # sort by package depth, deeper modules first
             module_names = sorted(
-                list(sys.modules.keys()),
+                sys.modules.keys(),
                 key=lambda module_name: module_name.count("."),
                 reverse=True
             )

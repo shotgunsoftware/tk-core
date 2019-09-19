@@ -239,7 +239,7 @@ class ValidateConfigAction(Action):
         manifest = descriptor.configuration_schema
 
         for s in settings.keys():
-            if s not in list(manifest.keys()):
+            if s not in manifest.keys():
                 log.info("  WARNING - Parameter not needed: %s" % s)
 
         for s in manifest.keys():
