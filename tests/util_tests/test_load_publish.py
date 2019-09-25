@@ -16,6 +16,7 @@ from mock import patch, call
 
 import sgtk
 from tank import context, errors
+from tank.util import on_linux, on_macos, on_windows
 from tank_test.tank_test_base import TankTestBase, setUpModule
 from tank_vendor.shotgun_api3.lib import sgsix
 
@@ -433,15 +434,15 @@ class TestLocalFileLinkEnvVarOverride(TankTestBase):
             }
         }
 
-        if sgsix.platform == "win32":
+        if on_windows:
             os.environ["SHOTGUN_PATH_WINDOWS_HOME"] = "Y:\\"
             local_path = r"Y:\path\to\file.ext"
             sg_dict["path"]["local_path_windows"] = None
-        elif sgsix.platform == "darwin":
+        elif on_macos:
             os.environ["SHOTGUN_PATH_MAC_HOME"] = "/local_override"
             local_path = "/local_override/path/to/file.ext"
             sg_dict["path"]["local_path_mac"] = None
-        elif sgsix.platform.startswith("linux"):
+        elif on_linux:
             os.environ["SHOTGUN_PATH_LINUX_HOME"] = "/local_override"
             local_path = "/local_override/path/to/file.ext"
             sg_dict["path"]["local_path_linux"] = None
@@ -481,7 +482,7 @@ class TestUrlNoStorages(TankTestBase):
         }
 
         local_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
-        if sgsix.platform == "win32":
+        if on_windows:
             self.assertEqual(r"\foo \bar.baz", local_path)
         else:
             self.assertEqual("/foo /bar.baz", local_path)
@@ -504,7 +505,7 @@ class TestUrlNoStorages(TankTestBase):
         }
 
         local_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
-        if sgsix.platform == "win32":
+        if on_windows:
             self.assertEqual(r"C:\foo\bar\baz", local_path)
         else:
             self.assertEqual("C:/foo/bar/baz", local_path)
@@ -527,7 +528,7 @@ class TestUrlNoStorages(TankTestBase):
         }
 
         local_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
-        if sgsix.platform == "win32":
+        if on_windows:
             self.assertEqual(r"\\share\foo\bar\baz", local_path)
         else:
             self.assertEqual("//share/foo/bar/baz", local_path)

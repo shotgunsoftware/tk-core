@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-
+from .platforms import on_windows, on_linux, on_macos
 from .shotgun import register_publish
 from .shotgun import resolve_publish_path
 from .shotgun import find_publish
