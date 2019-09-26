@@ -11,6 +11,8 @@
 Authentication Session abstraction.
 """
 
+# pylint: disable=too-many-instance-attributes
+
 
 class AuthenticationSessionData(object):
     """
