@@ -33,7 +33,11 @@ function build_ui {
 }
 
 function build_res {
-    build_qt "${PYTHON_BASE}/bin/pyside-rcc" "$1.qrc" "../ui/$1_rc"
+	# Include the "-py3" flag so that we add the `b` prefix to strings for
+	# PySide2 / Python3 compatibility.  This means these files will no longer
+	# be compatible with Python 2.5 and below, but the `b` prefix is ignored in
+	# Python 2.6+.
+    build_qt "${PYTHON_BASE}/bin/pyside-rcc -py3" "$1.qrc" "../ui/$1_rc"
 }
 
 
