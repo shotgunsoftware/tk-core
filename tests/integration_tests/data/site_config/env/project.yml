@@ -20,17 +20,17 @@ description: Small environment to test the offline workflow.
 engines:
   tk-shell:
     apps:
-      tk-multi-launchapp:
-        use_software_entity: true
+      tk-test-app:
+        path: $SHOTGUN_REPO_ROOT/tests/fixtures/config/bundles/test_app
         location: 
           type: path
-          path: "{CONFIG_FOLDER}/../bundles/test_app"
+          path: $SHOTGUN_REPO_ROOT/tests/fixtures/config/bundles/test_app
     location:
       type: path
       path: $SHOTGUN_REPO_ROOT/tests/fixtures/config/bundles/test_engine
 
 frameworks:
-  tk-framework-shotgunutils_v5.x.x:
+  tk-framework-test:
     location:
       type: path
       path: $SHOTGUN_REPO_ROOT/tests/fixtures/config/bundles/test_framework_v1
