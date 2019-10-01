@@ -18,7 +18,6 @@ import traceback
 import unittest2
 from sgtk_integration_test import SgtkIntegrationTest
 import sgtk
-from tank_vendor.shotgun_api3.lib import sgsix
 
 logger = sgtk.LogManager.get_logger(__name__)
 
