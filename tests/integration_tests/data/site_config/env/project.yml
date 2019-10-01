@@ -23,17 +23,14 @@ engines:
       tk-multi-launchapp:
         use_software_entity: true
         location: 
-          type: app_store
-          name: tk-multi-launchapp
-          version: v0.9.15
+          type: path
+          path: $SHOTGUN_REPO_ROOT/tests/fixtures/config/bundles/test_app
     location:
-      type: app_store
-      name: tk-shell
-      version: v0.6.0
+      type: path
+      path: $SHOTGUN_REPO_ROOT/tests/fixtures/config/bundles/test_engine
 
 frameworks:
   tk-framework-shotgunutils_v5.x.x:
     location:
-      version: v5.3.4
-      type: app_store
-      name: tk-framework-shotgunutils
+      type: path
+      path: $SHOTGUN_REPO_ROOT/tests/fixtures/config/bundles/test_framework_v1

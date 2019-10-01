@@ -39,6 +39,7 @@ def main():
     environ["SHOTGUN_SCRIPT_NAME"] = os.environ.get("SHOTGUN_SCRIPT_NAME")
     environ["SHOTGUN_SCRIPT_KEY"] = os.environ.get("SHOTGUN_SCRIPT_KEY")
     environ["SHOTGUN_HOST"] = os.environ.get("SHOTGUN_HOST")
+    environ["SHOTGUN_REPO_ROOT"] = os.path.join(os.path.dirname(__file__), "..", "..")
 
     current_folder, current_file = os.path.split(__file__)
 
