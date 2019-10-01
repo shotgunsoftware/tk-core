@@ -45,6 +45,13 @@ def main():
 
     before = time.time()
     try:
+        # Pop --with-coverage from the command line so we're left with just the script name
+        # or the script name and the tests to run.
+        with_coverage = False
+        while sys.argv.count("--with-coverage") > 0:
+            sys.argv.remove("--with-coverage")
+            with_coverage = True
+
         filenames = sys.argv[1:] or glob.iglob(os.path.join(current_folder, "*.py"))
         for filename in filenames:
 
@@ -56,7 +63,7 @@ def main():
             print("Running %s" % os.path.basename(filename))
             print("=" * 79)
 
-            if "--with-coverage" in sys.argv:
+            if with_coverage:
                 args = [
                     "coverage",
                     "run",
