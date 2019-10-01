@@ -39,12 +39,20 @@ def main():
     environ["SHOTGUN_SCRIPT_NAME"] = os.environ.get("SHOTGUN_SCRIPT_NAME")
     environ["SHOTGUN_SCRIPT_KEY"] = os.environ.get("SHOTGUN_SCRIPT_KEY")
     environ["SHOTGUN_HOST"] = os.environ.get("SHOTGUN_HOST")
+    environ["SHOTGUN_REPO_ROOT"] = os.path.join(os.path.dirname(__file__), "..", "..")
 
     current_folder, current_file = os.path.split(__file__)
 
     before = time.time()
     try:
-        filenames = glob.iglob(os.path.join(current_folder, "*.py"))
+        # Pop --with-coverage from the command line so we're left with just the script name
+        # or the script name and the tests to run.
+        with_coverage = False
+        while sys.argv.count("--with-coverage") > 0:
+            sys.argv.remove("--with-coverage")
+            with_coverage = True
+
+        filenames = sys.argv[1:] or glob.iglob(os.path.join(current_folder, "*.py"))
         for filename in filenames:
 
             # Skip the launcher. :)
@@ -55,7 +63,7 @@ def main():
             print("Running %s" % os.path.basename(filename))
             print("=" * 79)
 
-            if "--with-coverage" in sys.argv:
+            if with_coverage:
                 args = [
                     "coverage",
                     "run",

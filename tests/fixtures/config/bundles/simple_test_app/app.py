@@ -1,4 +1,4 @@
-# Copyright (c) 2018 Shotgun Software Inc.
+# Copyright (c) 2013 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -7,8 +7,14 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
-#
 
-location:
-    type: path
-    path: $SHOTGUN_REPO_ROOT
+"""
+A simple app to support unit tests.
+"""
+
+from tank.platform import Application
+
+
+class TestApp(Application):
+    def init_app(self):
+        pass
