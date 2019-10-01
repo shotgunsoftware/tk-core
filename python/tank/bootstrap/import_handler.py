@@ -224,10 +224,6 @@ class CoreImportHandler(object):
                         # and remove the official entry
                         # log.debug("Removing sys.modules[%s]" % module_name)
                         del sys.modules[module_name]
-                    else:
-                        print("None module", module_name)
-
-
 
             # reset importer to point at new core for future imports
             self._module_info = {}
