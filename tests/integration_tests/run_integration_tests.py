@@ -45,7 +45,7 @@ def main():
 
     before = time.time()
     try:
-        filenames = glob.iglob(os.path.join(current_folder, "*.py"))
+        filenames = sys.argv[1:] or glob.iglob(os.path.join(current_folder, "*.py"))
         for filename in filenames:
 
             # Skip the launcher. :)

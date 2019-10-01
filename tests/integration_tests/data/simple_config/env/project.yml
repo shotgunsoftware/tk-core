@@ -18,12 +18,12 @@ description: Small environment to test the offline workflow.
 # configuration for all engines to load in a project context
 
 engines:
-  tk-shell:
+  tk-testengine:
     apps:
       tk-test-app:
         location: 
           type: path
-          path: $SHOTGUN_REPO_ROOT/tests/fixtures/config/bundles/test_app
+          path: $SHOTGUN_REPO_ROOT/tests/fixtures/config/bundles/simple_test_app
     location:
       type: path
       path: $SHOTGUN_REPO_ROOT/tests/fixtures/config/bundles/test_engine
