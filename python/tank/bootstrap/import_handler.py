@@ -129,7 +129,13 @@ class CoreImportHandler(object):
         # no import handler found, so create one.
         current_folder = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
         handler = cls(current_folder)
-        sys.meta_path.append(handler)
+        # Insert our handler at the front of the list. In Python 2, the position of the
+        # handler is not important because meta path is scanned first and then sys.path
+        # In Python 3 however, the sys.path importer IS a meta_path importer as well.
+        # If we simply append our handler, it means we'll run after the path importer,
+        # which means the old copy of core will be imported instead of the
+        # new one.
+        sys.meta_path.insert(0, handler)
         log.debug("Added import handler to sys.meta_path to support core swapping.")
         return handler
 
@@ -218,6 +224,8 @@ class CoreImportHandler(object):
                         # and remove the official entry
                         # log.debug("Removing sys.modules[%s]" % module_name)
                         del sys.modules[module_name]
+                    else:
+                        print("None module", module_name)
 
 
 
