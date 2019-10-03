@@ -124,7 +124,15 @@ def _is_pyside_missing():
     :returns: True is PySide is available, False otherwise.
     """
     try:
+        # First try PySide
         import PySide # noqa
+        return False
+    except ImportError:
+        pass
+
+    try:
+        # If PySide wasn't found, check for PySide2
+        import PySide2 # noqa
         return False
     except ImportError:
         return True
