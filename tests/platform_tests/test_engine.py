@@ -153,7 +153,11 @@ class TestExecuteInMainThread(TestEngineBase):
         """
         super(TestExecuteInMainThread, self).setUp()
         tank.platform.start_engine("test_engine", self.tk, self.context)
-        if sgtk.platform.qt.QtGui.qApp is None:
+        from tank.authentication.ui.qt_abstraction import QtGui
+        # See if a QApplication instance exists, and if not create one.  Use the
+        # QApplication.instance() method, since qApp can contain a non-None
+        # value even if no QApplication has been constructed on PySide2.
+        if not QtGui.QApplication.instance():
             sgtk.platform.qt.QtGui.QApplication(sys.argv)
 
     @skip_if_pyside_missing
