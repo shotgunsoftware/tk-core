@@ -56,8 +56,7 @@ class ShotgunUserImpl(object):
         if http_proxy is not None:
             http_proxy = six.ensure_str(http_proxy)
 
-        if host is not None:
-            host = six.ensure_str(host)
+        host = six.ensure_str(host)
 
         self._host = host
         self._http_proxy = http_proxy
