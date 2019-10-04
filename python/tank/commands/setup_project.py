@@ -11,7 +11,6 @@
 from __future__ import print_function
 
 import os
-import sys
 import textwrap
 import traceback
 
@@ -20,6 +19,7 @@ from . import core_localize
 from ..errors import TankError
 from ..util import shotgun
 from ..util import ShotgunPath
+from ..util import is_linux, is_macos, is_windows
 from . import constants
 from .. import pipelineconfig_utils
 from ..util.filesystem import ensure_folder_exists
@@ -101,17 +101,17 @@ class SetupProjectAction(Action):
         # note how the current platform's default value is None in order to make that required
         self.parameters["config_path_mac"] = { "description": ("The path on disk where the configuration should be "
                                                                "installed on Macosx."),
-                                               "default": (None if sgsix.platform == "darwin" else ""),
+                                               "default": (None if is_macos() else ""),
                                                "type": "str" }
 
         self.parameters["config_path_win"] = { "description": ("The path on disk where the configuration should be "
                                                                "installed on Windows."),
-                                               "default": (None if sgsix.platform == "win32" else ""),
+                                               "default": (None if is_windows() else ""),
                                                "type": "str" }
 
         self.parameters["config_path_linux"] = { "description": ("The path on disk where the configuration should be "
                                                                "installed on Linux."),
-                                               "default": (None if sgsix.platform == "linux2" else ""),
+                                               "default": (None if is_linux() else ""),
                                                "type": "str" }
         
         # Special setting used by older versins of shotgun desktop app

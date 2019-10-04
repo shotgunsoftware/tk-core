@@ -15,10 +15,10 @@ This test makes sure that various tank command operations do not fail.
 from __future__ import print_function
 
 import os
-import sys
 
 import unittest2
 from mock import Mock, patch
+from tank.util import is_linux, is_macos, is_windows
 
 from sgtk_integration_test import SgtkIntegrationTest
 
@@ -50,11 +50,11 @@ class TankCommands(SgtkIntegrationTest):
         """
         self.remove_files(self.legacy_bootstrap_core, self.site_config_location)
 
-        if sys.platform == "darwin":
+        if is_macos():
             path_param = "config_path_mac"
-        elif sys.platform == "win32":
+        elif is_windows():
             path_param = "config_path_win"
-        elif sys.platform.startswith("linux"):
+        elif is_linux():
             path_param = "config_path_linux"
 
         cw = sgtk.bootstrap.configuration_writer.ConfigurationWriter(

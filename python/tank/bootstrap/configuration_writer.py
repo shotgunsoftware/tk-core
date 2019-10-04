@@ -22,9 +22,9 @@ from ..util import filesystem
 from ..util import StorageRoots
 from ..util.shotgun import connection
 from ..util.move_guard import MoveGuard
+from ..util import is_macos, is_windows
 
 from tank_vendor import yaml
-from tank_vendor.shotgun_api3.lib import sgsix
 
 from .. import LogManager
 
@@ -238,9 +238,9 @@ class ConfigurationWriter(object):
         if os.path.split(executable)[1].lower().startswith("shotgun"):
             log.debug("Shotgun Desktop process detected.")
             # We'll use the builtin Python.
-            if sgsix.platform == "darwin":
+            if is_macos():
                 current_interpreter = os.path.join(prefix, "bin", "python")
-            elif sgsix.platform == "win32":
+            elif is_windows():
                 current_interpreter = os.path.join(prefix, "python.exe")
             else:
                 current_interpreter = os.path.join(prefix, "bin", "python")
@@ -252,9 +252,9 @@ class ConfigurationWriter(object):
 
         # Sets the interpreter in the current OS, we'll leave the defaults for the other platforms.
         if current_interpreter:
-            if sgsix.platform == "darwin":
+            if is_macos():
                 executables["Darwin"] = current_interpreter
-            elif sgsix.platform == "win32":
+            elif is_windows():
                 executables["Windows"] = current_interpreter
             else:
                 executables["Linux"] = current_interpreter

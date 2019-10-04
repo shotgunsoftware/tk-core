@@ -23,7 +23,8 @@ import subprocess
 from contextlib import contextmanager
 
 from .. import LogManager
-from tank_vendor.shotgun_api3.lib import six, sgsix
+from .platforms import is_linux, is_macos, is_windows
+from tank_vendor.shotgun_api3.lib import six
 
 log = LogManager.get_logger(__name__)
 
@@ -180,7 +181,7 @@ def safe_delete_file(path):
     try:
         if os.path.exists(path):
             # on windows, make sure file is not read-only
-            if sys.platform == "win32":
+            if is_windows():
                 # make sure we have write permission
                 attr = os.stat(path)[0]
                 if not attr & stat.S_IWRITE:
@@ -292,7 +293,7 @@ def move_folder(src, dst, folder_permissions=0o775):
         for f in src_files:
             try:
                 # on windows, ensure all files are writable
-                if sys.platform == "win32":
+                if is_windows():
                     attr = os.stat(f)[0]
                     if not attr & stat.S_IWRITE:
                         # file is readonly! - turn off this attribute
@@ -549,18 +550,15 @@ def _open_file_browser_for_folder(path):
             "The path \"%s\" is not a valid directory." % path
         )
 
-    # get the setting
-    system = sgsix.platform
-
     # build the commands for opening the folder on the various OS's
-    if system.startswith("linux"):
+    if is_linux():
         cmd_args = ["xdg-open", path]
-    elif system == "darwin":
+    elif is_macos():
         cmd_args = ["open", path]
-    elif system == "win32":
+    elif is_windows():
         cmd_args = ["cmd.exe", "/C", "start", path]
     else:
-        raise RuntimeError("Platform '%s' is not supported." % system)
+        raise RuntimeError("Platform '%s' is not supported." % sys.platform)
 
     log.debug("Executing command '%s'" % cmd_args)
     exit_code = subprocess.call(cmd_args)
@@ -588,28 +586,25 @@ def _open_file_browser_for_file(path):
             "The path \"%s\" is not a valid file path." % path
         )
 
-    # get the setting
-    system = sys.platform
-
-    if system.startswith("linux"):
+    if is_linux():
         # note: there isn't a straight forward way to do
         # this on linux, so just open the directory instead.
         cmd_args = ["xdg-open", os.path.dirname(path)]
-    elif system == "darwin":
+    elif is_macos():
         cmd_args = ["open", "-R", path]
-    elif system == "win32":
+    elif is_windows():
         # /select makes windows select the file within the explorer window
         # The problem with this approach is that it always returns back an error code of 1 even if it
         # does behave correctly.
         cmd_args = ["explorer", "/select,", path]
     else:
-        raise Exception("Platform '%s' is not supported." % system)
+        raise Exception("Platform '%s' is not supported." % sys.platform)
 
     log.debug("Executing command '%s'" % cmd_args)
     exit_code = subprocess.call(cmd_args)
 
     # cannot trust exit code from windows, see above
-    if system != "win32" and exit_code != 0:
+    if not is_windows() and exit_code != 0:
         raise RuntimeError(
             "Failed to launch a file browser for file '%s'. "
             "Error code %s" % (path, exit_code)

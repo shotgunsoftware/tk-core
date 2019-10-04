@@ -22,6 +22,7 @@ from . import constants
 from .template_path_parser import TemplatePathParser
 from tank_vendor.shotgun_api3.lib import six, sgsix
 from tank_vendor.shotgun_api3.lib.six.moves import zip
+from tank.util import is_linux, is_macos, is_windows
 
 class Template(object):
     """
@@ -581,7 +582,7 @@ class TemplatePath(Template):
                 raise TankError("Cannot resolve path for operating system '%s'! Please ensure "
                                 "that you have a valid storage set up for this platform." % platform)
             
-            elif platform == "win32":
+            elif is_windows(platform):
                 # use backslashes for windows
                 if relative_path:
                     return "%s\\%s" % (platform_root_path, relative_path.replace(os.sep, "\\"))
@@ -589,7 +590,7 @@ class TemplatePath(Template):
                     # not path generated - just return the root path
                     return platform_root_path
             
-            elif platform == "darwin" or "linux" in platform:
+            elif is_macos(platform) or is_linux(platform):
                 # unix-like plaforms - use slashes
                 if relative_path:
                     return "%s/%s" % (platform_root_path, relative_path.replace(os.sep, "/"))

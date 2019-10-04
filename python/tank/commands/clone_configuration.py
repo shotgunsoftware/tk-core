@@ -12,15 +12,15 @@ from ..util import ShotgunPath
 from ..errors import TankError
 from . import constants
 from ..util import filesystem
+from ..util import is_linux, is_macos, is_windows
 
 from tank_vendor import yaml
-from tank_vendor.shotgun_api3.lib import sgsix
 
 from .action_base import Action
 
-import sys
 import os
 import shutil
+
 
 class CloneConfigAction(Action):
     """
@@ -55,15 +55,15 @@ class CloneConfigAction(Action):
         
         # note how the current platform's default value is None in order to make that required
         self.parameters["path_mac"] = { "description": "Path to the new configuration on Macosx.",
-                                        "default": (None if sgsix.platform == "darwin" else ""),
+                                        "default": (None if is_macos() else ""),
                                         "type": "str" }
 
         self.parameters["path_win"] = { "description": "Path to the new configuration on Windows.",
-                                        "default": (None if sgsix.platform == "win32" else ""),
+                                        "default": (None if is_windows() else ""),
                                         "type": "str" }
 
         self.parameters["path_linux"] = { "description": "Path to the new configuration on Linux.",
-                                          "default": (None if sgsix.platform == "linux2" else ""),
+                                          "default": (None if is_linux() else ""),
                                           "type": "str" }
         
         self.parameters["return_value"] = { "description": "Returns the id of the created Pipeline Configuration",
@@ -135,7 +135,7 @@ def clone_pipeline_configuration_html(log, tk, source_pc_id, user_id, new_name, 
         log.info("In order to change this pipeline configuration to use its own independent version "
                  "of the Toolkit API, you can execute the following command: ")
     
-        if sgsix.platform == "win32":
+        if is_windows():
             tank_cmd = os.path.join(target_folder, "tank.bat")
         else:
             tank_cmd = os.path.join(target_folder, "tank")
@@ -159,13 +159,15 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
                                     [["id", "is", source_pc_id]], 
                                     ["code", "project", "linux_path", "windows_path", "mac_path"])
     source_folder = source_pc.get(curr_os)
-    
-    target_folder = {
-        "linux2": target_linux,
-        "win32": target_win,
-        "darwin": target_mac
-    }[sgsix.platform]
-    
+
+    target_folder = None
+    if is_windows():
+        target_folder = target_win
+    elif is_macos():
+        target_folder = target_mac
+    elif is_linux():
+        target_folder = target_linux
+
     log.debug("Cloning %s -> %s" % (source_folder, target_folder))
     
     if not os.path.exists(source_folder):

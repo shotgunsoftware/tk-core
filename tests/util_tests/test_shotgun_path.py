@@ -13,7 +13,7 @@ from __future__ import with_statement
 from tank_test.tank_test_base import setUpModule # noqa
 from tank_test.tank_test_base import ShotgunTestBase
 
-from tank.util import ShotgunPath, on_linux, on_macos, on_windows
+from tank.util import ShotgunPath, is_linux, is_macos, is_windows
 
 
 class TestShotgunPath(ShotgunTestBase):
@@ -65,21 +65,21 @@ class TestShotgunPath(ShotgunTestBase):
         self.assertEqual(sys_paths.macosx, None)
         self.assertEqual(sys_paths.linux, None)
 
-        if on_windows:
+        if is_windows():
             curr = ShotgunPath.from_current_os_path("\\\\server\\mount\\path")
             self.assertEqual(curr.windows, "\\\\server\\mount\\path")
             self.assertEqual(curr.macosx, None)
             self.assertEqual(curr.linux, None)
             self.assertEqual(curr.current_os, curr.windows)
 
-        if on_linux:
+        if is_linux():
             curr = ShotgunPath.from_current_os_path("/tmp/foo/bar")
             self.assertEqual(curr.windows, None)
             self.assertEqual(curr.macosx, None)
             self.assertEqual(curr.linux, "/tmp/foo/bar")
             self.assertEqual(curr.current_os, curr.linux)
 
-        if on_macos:
+        if is_macos():
             curr = ShotgunPath.from_current_os_path("/tmp/foo/bar")
             self.assertEqual(curr.windows, None)
             self.assertEqual(curr.macosx, "/tmp/foo/bar")
@@ -198,11 +198,11 @@ class TestShotgunPath(ShotgunTestBase):
         self.assertEqual(gssk("linux"), "linux_path")
         self.assertEqual(gssk("linux3"), "linux_path")
         self.assertEqual(gssk("darwin"), "mac_path")
-        if on_windows:
+        if is_windows():
             self.assertEqual(gssk(), "windows_path")
-        if on_macos:
+        if is_macos():
             self.assertEqual(gssk(), "mac_path")
-        if on_linux:
+        if is_linux():
             self.assertEqual(gssk(), "linux_path")
 
     def test_truthiness(self):
@@ -219,7 +219,7 @@ class TestShotgunPath(ShotgunTestBase):
         """
         Tests get_shotgun_storage_key
         """
-        if on_windows:
+        if is_windows():
             self.assertEqual(ShotgunPath.normalize("C:/foo\\bar\\"), r"C:\foo\bar")
         else:
             self.assertEqual(ShotgunPath.normalize("/foo\\bar/"), "/foo/bar")

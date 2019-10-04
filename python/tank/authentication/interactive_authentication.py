@@ -34,7 +34,7 @@ from .. import LogManager
 
 import threading
 import os
-from tank_vendor.shotgun_api3.lib import sgsix
+from tank.util import is_windows
 
 # When importing qt_abstraction, a lot of code is executed to detects which
 # version of Qt is being used. Running business logic at import time is not
@@ -58,7 +58,7 @@ def _get_current_os_user():
 
     :returns: The username string.
     """
-    if sgsix.platform == "win32":
+    if is_windows():
         # http://stackoverflow.com/questions/117014/how-to-retrieve-name-of-current-windows-user-ad-or-local-using-python
         return os.environ.get("USERNAME", None)
     else:

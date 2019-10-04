@@ -13,10 +13,10 @@ from __future__ import with_statement
 import os
 import fnmatch
 import stat
-import sys
 from mock import patch
 import sgtk
 from sgtk.pipelineconfig_utils import get_metadata
+from tank.util import is_windows
 from shutil import copytree
 
 from tank_test.tank_test_base import setUpModule # noqa
@@ -45,7 +45,7 @@ class TestBackups(ShotgunTestBase):
         pathHead, pathTail = os.path.split(__file__)
         self._core_repo_path=os.path.join(pathHead,"..", "..")
         self._temp_test_path=os.path.join(pathHead, "..", "fixtures", "bootstrap_tests", "test_backups")
-        if sys.platform == "win32": # On Windows, filenames in temp path are too long for straight copy ...
+        if is_windows():  # On Windows, filenames in temp path are too long for straight copy ...
             core_copy_path=os.path.join(self.tank_temp, "tk-core-copy")
             if not os.path.exists(core_copy_path):
                 # ... so avoid copying ignore folders to avoid errors when copying the core repo
@@ -116,7 +116,7 @@ class TestBackups(ShotgunTestBase):
                 f.write("Test")
                 config._cleanup_backup_folders(config_backup_folder_path, core_backup_folder_path)
 
-            if sys.platform == "win32":
+            if is_windows():
                 # check that the backup folder was left behind, it is one of the 2 items, the cleanup failed
                 self.assertEqual(2, len(os.listdir(core_install_backup_path)))  # ['placeholder', core_backup_folder_path]
             else:
@@ -128,7 +128,7 @@ class TestBackups(ShotgunTestBase):
 
             # Update a second time and check that the new backup was cleaned up...
             config.update_configuration()
-            if sys.platform == "win32":
+            if is_windows():
                 # ... but the previous backup remains
                 self.assertEqual(2, len(os.listdir(core_install_backup_path))) # ['placeholder', core_backup_folder_path]
             else:
@@ -170,7 +170,7 @@ class TestBackups(ShotgunTestBase):
                 f.write("Test")
             file_permissions = os.stat(read_only_file_name)[stat.ST_MODE]
             os.chmod(read_only_file_name, file_permissions & ~stat.S_IWRITE)
-            if sys.platform == "win32":
+            if is_windows():
                 # ... and a read only folder
                 folder_permissions = os.stat(config_install_backup_path)[stat.ST_MODE]
                 os.chmod(config_install_backup_path, folder_permissions & ~stat.S_IWRITE)

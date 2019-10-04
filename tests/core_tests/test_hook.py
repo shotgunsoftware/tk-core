@@ -10,8 +10,8 @@
 
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 from tank_vendor.shotgun_api3.lib import sgsix
+from tank.util import is_windows
 
-import sys
 import sgtk
 
 class TestHookProperties(TankTestBase):
@@ -66,7 +66,7 @@ class TestHookGetPublishPath(TankTestBase):
             }
         }
 
-        if sys.platform == "win32":
+        if is_windows():
             expected_path = r"\foo \bar.baz"
         else:
             expected_path = "/foo /bar.baz"
@@ -164,7 +164,7 @@ class TestHookGetPublishPath(TankTestBase):
         }[sgsix.platform]
         sg_dict["path"]["local_path"] = local_path
 
-        if sys.platform == "win32":
+        if is_windows():
             expected_path = r'c:\local\path\to\file.ext'
         else:
             expected_path = "/local/path/to/file.ext"

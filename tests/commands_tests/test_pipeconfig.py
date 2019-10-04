@@ -18,10 +18,10 @@ import os
 import tempfile
 import shutil
 import stat
-import sys
 
 import sgtk
 from tank.errors import TankError
+from tank.util import is_windows
 
 from mock import patch
 
@@ -110,7 +110,7 @@ class TestPipelineConfig(TankTestBase):
             f = open(rogue_file, "w")
             f.close()
             os.chmod(rogue_file, 0)
-            if sys.platform == "win32":
+            if is_windows():
                 # On Windows we can only set the file to "readonly". So the copy
                 # will succeed. We use filesystem.safe_delete_folder to remove
                 # the folder which handle our test case, so no errors...
@@ -130,7 +130,7 @@ class TestPipelineConfig(TankTestBase):
 
         # Test pushing with symlinks, unless on Windows where symlinks are not
         # available.
-        if sys.platform == "win32":
+        if is_windows():
             self.assertRaisesRegex(
                 TankError,
                 "Symbolic links are not supported",

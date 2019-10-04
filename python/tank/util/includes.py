@@ -14,6 +14,7 @@ import posixpath
 import ntpath
 
 from .shotgun_path import ShotgunPath
+from .platforms import is_windows
 from ..errors import TankError
 
 
@@ -36,7 +37,7 @@ def _is_current_platform_abspath(path):
 
     :returns bool: True if absolute for this platform, False otherwise.
     """
-    if sys.platform == "win32":
+    if is_windows():
         # ntpath likes to consider a path starting with / to be absolute,
         # but it is not!
         return ntpath.isabs(path) and not posixpath.isabs(path)

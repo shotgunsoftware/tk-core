@@ -28,6 +28,7 @@ from tank import path_cache
 from tank import folder
 from tank import constants
 from tank import LogManager
+from tank.util import is_windows
 import tank
 
 from tank.util import StorageRoots
@@ -776,7 +777,7 @@ class TestConcurrentShotgunSync(TankTestBase):
         """
 
         # skip this test on windows or py2.5 where multiprocessing isn't available
-        if sys.platform == "win32" or sys.version_info < (2,6):
+        if is_windows() or sys.version_info < (2,6):
             return
 
         import multiprocessing
@@ -828,7 +829,7 @@ class TestConcurrentShotgunSync(TankTestBase):
         """
 
         # skip this test on windows or py2.5 where multiprocessing isn't available
-        if sys.platform == "win32" or sys.version_info < (2,6):
+        if is_windows() or sys.version_info < (2,6):
             return
 
         import multiprocessing

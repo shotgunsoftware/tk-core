@@ -8,7 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
-import sys
 import uuid
 import shutil
 import tempfile
@@ -20,8 +19,9 @@ from ...util.process import subprocess_check_output, SubprocessCalledProcessErro
 
 from ..errors import TankError
 from ...util import filesystem
+from ...util import is_windows
 
-from tank_vendor.shotgun_api3.lib import six, sgsix
+from tank_vendor.shotgun_api3.lib import six
 
 log = LogManager.get_logger(__name__)
 
@@ -44,7 +44,7 @@ def _check_output(*args, **kwargs):
     """
     Wraps the call to subprocess_check_output so it can run headless on Windows.
     """
-    if sgsix.platform == "win32" and _can_hide_terminal():
+    if is_windows() and _can_hide_terminal():
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         startupinfo.wShowWindow = subprocess.SW_HIDE
@@ -161,7 +161,7 @@ class IODescriptorGit(IODescriptorDownloadable):
         # Note: We only try this workflow if we can actually hide the terminal on Windows.
         # If we can't there's no point doing all of this and we should just use
         # os.system.
-        if sgsix.platform == "win32" and _can_hide_terminal():
+        if is_windows() and _can_hide_terminal():
             log.debug("Executing command '%s' using subprocess module." % cmd)
             try:
                 # It's important to pass GIT_TERMINAL_PROMPT=0 or the git subprocess will
@@ -206,13 +206,13 @@ class IODescriptorGit(IODescriptorDownloadable):
 
         cwd = os.getcwd()
         try:
-            if sgsix.platform != "win32":
+            if not is_windows():
                 log.debug("Setting cwd to '%s'" % target_path)
                 os.chdir(target_path)
 
             for command in commands:
 
-                if sgsix.platform == "win32":
+                if is_windows():
                     # we use git -C to specify the working directory where to execute the command
                     # this option was added in as part of git 1.9
                     # and solves an issue with UNC paths on windows.
@@ -237,7 +237,7 @@ class IODescriptorGit(IODescriptorDownloadable):
                     )
                 log.debug("Execution successful. stderr/stdout: '%s'" % output)
         finally:
-            if sgsix.platform != "win32":
+            if not is_windows():
                 log.debug("Restoring cwd (to '%s')" % cwd)
                 os.chdir(cwd)
 

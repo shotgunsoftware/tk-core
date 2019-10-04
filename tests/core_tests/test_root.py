@@ -11,7 +11,6 @@
 from __future__ import with_statement
 
 import os
-import sys
 import copy
 
 from tank_vendor import yaml
@@ -19,6 +18,7 @@ from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
 import tank
 from tank import TankError
+from tank.util import is_linux, is_macos, is_windows
 
 class TestGetProjectRoots(TankTestBase):
     
@@ -60,13 +60,11 @@ class TestGetProjectRoots(TankTestBase):
         result = pc.get_data_roots()
         
         # Determine platform
-        system = sys.platform.lower()
-
-        if system == 'darwin':
+        if is_macos():
             platform = "mac_path"
-        elif system.startswith('linux'):
+        elif is_linux():
             platform = 'linux_path'
-        elif system == 'win32':
+        elif is_windows():
             platform = 'windows_path'
 
         project_name = os.path.basename(self.project_root)

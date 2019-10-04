@@ -11,6 +11,7 @@
 from __future__ import with_statement
 
 import os
+from tank.util import is_linux, is_macos, is_windows
 from tank_test.tank_test_base import TankTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 import tank.util.filesystem as fs
@@ -19,7 +20,6 @@ from mock import patch
 import subprocess # noqa
 import shutil
 import stat
-import sys
 
 
 class TestFileSystem(TankTestBase):
@@ -62,7 +62,7 @@ class TestFileSystem(TankTestBase):
         with open(os.path.join(dst_folder, "ReadWrite.txt")) as f:
             # ... and check that a failure occurs
             fs.safe_delete_folder(dst_folder)
-            if sys.platform == "win32":                
+            if is_windows():
                 # A failure occurred, folder should still be there
                 self.assertTrue(os.path.exists(dst_folder)) # on Windows removal of in-use files behaves differently than...
             else:
@@ -81,7 +81,7 @@ class TestFileSystem(TankTestBase):
         read_only_filename = os.path.join(dst_folder, "ReadOnly.txt")
         file_permissions = os.stat(read_only_filename)[stat.ST_MODE]
         os.chmod(read_only_filename, file_permissions & ~stat.S_IWRITE)
-        if sys.platform == "win32":
+        if is_windows():
             folder_permissions = os.stat(dst_folder)[stat.ST_MODE]
             os.chmod(dst_folder, folder_permissions & ~stat.S_IWRITE)
 
@@ -154,13 +154,13 @@ class TestOpenInFileBrowser(TankTestBase):
         fs.open_file_browser(self.test_folder)
         args, kwargs = subprocess_mock.call_args
 
-        if sys.platform.startswith("linux"):
+        if is_linux():
             self.assertEqual(args[0], ["xdg-open", self.test_folder])
 
-        elif sys.platform == "darwin":
+        elif is_macos():
             self.assertEqual(args[0], ["open", self.test_folder])
 
-        elif sys.platform == "win32":
+        elif is_windows():
             self.assertEqual(args[0], ["cmd.exe", "/C", "start", self.test_folder])
 
     @patch("subprocess.call", return_value=1234)
@@ -182,13 +182,13 @@ class TestOpenInFileBrowser(TankTestBase):
         fs.open_file_browser(self.test_file)
         args, kwargs = subprocess_mock.call_args
 
-        if sys.platform.startswith("linux"):
+        if is_linux():
             self.assertEqual(args[0], ["xdg-open", os.path.dirname(self.test_file)])
 
-        elif sys.platform == "darwin":
+        elif is_macos():
             self.assertEqual(args[0], ["open", "-R", self.test_file])
 
-        elif sys.platform == "win32":
+        elif is_windows():
             self.assertEqual(args[0], ["explorer", "/select,", self.test_file])
 
     @patch("subprocess.call", return_value=1234)
@@ -196,7 +196,7 @@ class TestOpenInFileBrowser(TankTestBase):
         """
         Test failing opening folder on mac/linux
         """
-        if sys.platform != "win32":
+        if is_windows():
             self.assertRaises(
                 RuntimeError,
                 fs.open_file_browser,
@@ -211,18 +211,18 @@ class TestOpenInFileBrowser(TankTestBase):
         fs.open_file_browser(self.test_sequence)
         args, kwargs = subprocess_mock.call_args
 
-        if sys.platform.startswith("linux"):
+        if is_linux():
             self.assertEqual(
                 args[0], ["xdg-open", os.path.dirname(self.test_sequence)]
             )
 
-        elif sys.platform == "darwin":
+        elif is_macos():
             self.assertEqual(
                 args[0],
                 ["open", os.path.dirname(self.test_sequence)]
             )
 
-        elif sys.platform == "win32":
+        elif is_windows():
             self.assertEqual(
                 args[0],
                 ["cmd.exe", "/C", "start", os.path.dirname(self.test_sequence)]

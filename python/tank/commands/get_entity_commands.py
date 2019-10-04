@@ -11,6 +11,7 @@
 from .action_base import Action
 from ..errors import TankError
 from ..util.process import SubprocessCalledProcessError, subprocess_check_output
+from ..util import is_linux, is_macos, is_windows
 
 import itertools
 import operator
@@ -37,7 +38,7 @@ def execute_tank_command(pipeline_config_path, args):
             "Could not find the Pipeline Configuration on disk: %s" % pipeline_config_path
         )
 
-    tank_command = "tank" if sgsix.platform != "win32" else "tank.bat"
+    tank_command = "tank" if not is_windows() else "tank.bat"
 
     command_path = os.path.join(pipeline_config_path, tank_command)
 
@@ -181,11 +182,11 @@ class GetEntityCommandsAction(Action):
         """
         # get a platform name that follows the conventions of the shotgun cache
         platform_name = platform
-        if platform == "darwin":
+        if is_macos(platform):
             platform_name = "mac"
-        elif platform == "win32":
+        elif is_windows(platform):
             platform_name = "windows"
-        elif platform.startswith("linux"):
+        elif is_linux(platform):
             platform_name = "linux"
 
         return ("shotgun_%s_%s.txt" % (platform_name, entity_type)).lower()

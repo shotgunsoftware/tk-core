@@ -11,10 +11,10 @@
 from __future__ import with_statement
 
 import os
-import sys
 
 from tank import TankError
 from tank.util import LocalFileStorageManager
+from tank.util import is_macos, is_windows
 
 from tank_test.tank_test_base import ShotgunTestBase, setUpModule # noqa
 
@@ -48,13 +48,13 @@ class TestLocalFileStorage(ShotgunTestBase):
         persistent_path = LocalFileStorageManager.get_global_root(LocalFileStorageManager.PERSISTENT)
         log_path = LocalFileStorageManager.get_global_root(LocalFileStorageManager.LOGGING)
 
-        if sys.platform == "darwin":
+        if is_macos():
             self.assertEqual(cache_path, os.path.expanduser("~/Library/Caches/Shotgun"))
             self.assertEqual(pref_path, os.path.expanduser("~/Library/Preferences/Shotgun"))
             self.assertEqual(persistent_path, os.path.expanduser("~/Library/Application Support/Shotgun"))
             self.assertEqual(log_path, os.path.expanduser("~/Library/Logs/Shotgun"))
 
-        elif sys.platform == "win32":
+        elif is_windows():
             app_data = os.environ.get("APPDATA", "APPDATA_NOT_SET")
             self.assertEqual(cache_path, os.path.join(app_data, "Shotgun"))
             self.assertEqual(pref_path, os.path.join(app_data, "Shotgun", "Preferences"))
@@ -82,12 +82,12 @@ class TestLocalFileStorage(ShotgunTestBase):
             LocalFileStorageManager.LOGGING, LocalFileStorageManager.CORE_V17
         )
 
-        if sys.platform == "darwin":
+        if is_macos():
             self.assertEqual(cache_path, os.path.expanduser("~/Library/Caches/Shotgun"))
             self.assertEqual(persistent_path, os.path.expanduser("~/Library/Application Support/Shotgun"))
             self.assertEqual(log_path, os.path.expanduser("~/Library/Logs/Shotgun"))
 
-        elif sys.platform == "win32":
+        elif is_windows():
             app_data = os.environ.get("APPDATA", "APPDATA_NOT_SET")
             self.assertEqual(cache_path, os.path.join(app_data, "Shotgun"))
             self.assertEqual(persistent_path, os.path.join(app_data, "Shotgun"))

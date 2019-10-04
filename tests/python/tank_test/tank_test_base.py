@@ -37,6 +37,7 @@ import sgtk
 import tank
 from tank import path_cache, pipelineconfig_factory
 from tank_vendor import yaml
+from tank.util import is_windows
 from tank.util.user_settings import UserSettings
 
 TANK_TEMP = None
@@ -64,7 +65,7 @@ def only_run_on_windows(func):
     :param func: Function to be decorated.
     :returns: The decorated function.
     """
-    running_nix = sys.platform != "win32"
+    running_nix = not is_windows()
     return unittest.skipIf(
         running_nix,
         "Windows only test."
@@ -77,7 +78,7 @@ def only_run_on_nix(func):
     :param func: Function to be decorated.
     :returns: The decorated function.
     """
-    running_windows = sys.platform == "win32"
+    running_windows = is_windows()
     return unittest.skipIf(
         running_windows,
         "Linux/Macosx only test."

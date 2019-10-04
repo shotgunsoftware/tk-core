@@ -9,11 +9,11 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import sys
 from tank_vendor import yaml
 import sgtk
 import tank
 from tank.api import Tank
+from tank.util import is_windows
 from tank.errors import TankInitError
 from sgtk.util import ShotgunPath
 from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule # noqa
@@ -609,7 +609,7 @@ class TestTankFromEntityWithMixedSlashes(TankTestBase):
         Check that a sgtk init works for this path
         """
         # only run this test on windows
-        if sys.platform == "win32":
+        if is_windows():
 
             self.sg_pc_entity["windows_path"] = self.pipeline_config_root.replace("\\", "/")
             self.add_to_sg_mock_db(self.sg_pc_entity)
@@ -676,7 +676,7 @@ class TestTankFromPathWindowsNoSlash(TankTestBase):
         Check that a sgtk init works for this path
         """
         # only run this test on windows
-        if sys.platform == "win32":
+        if is_windows():
 
             # probe a path inside of project
             test_path = "%s\\%s\\toolkit_test_path" % (self.STORAGE_ROOT, self.PROJECT_NAME)

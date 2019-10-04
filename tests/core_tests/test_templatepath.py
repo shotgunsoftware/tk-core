@@ -10,7 +10,6 @@
 
 from __future__ import print_function
 
-import sys
 import os
 
 import tank
@@ -19,6 +18,7 @@ from tank import TankError
 from tank.template import TemplatePath
 from tank_test.tank_test_base import ShotgunTestBase, setUpModule # noqa
 from tank.templatekey import (StringKey, IntegerKey, SequenceKey)
+from tank.util import is_windows
 
 
 class TestTemplatePath(ShotgunTestBase):
@@ -84,7 +84,7 @@ class TestInit(TestTemplatePath):
 
     def test_static_tokens(self):
         definition = "{Sequence}/{Shot}/3d/maya/scenes/{branch}-v{version}.{ext}"
-        if sys.platform.lower() == "win32":
+        if is_windows():
             expected = [["\\", "\\3d\\maya\\scenes\\", "-v", "."]]
         else:
             expected = [["/", "/3d/maya/scenes/", "-v", "."]]

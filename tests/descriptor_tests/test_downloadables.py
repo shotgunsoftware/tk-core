@@ -25,6 +25,7 @@ from tank_test.tank_test_base import setUpModule # noqa
 
 import sgtk
 import tank
+from tank.util import is_windows
 from tank_vendor.shotgun_api3.lib.six import b
 
 
@@ -272,7 +273,7 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         """
         # skip this test on windows or py2.5 where multiprocessing isn't available
         # TODO: Test with subprocess instead of multiprocessing.
-        if sys.platform == "win32" or sys.version_info < (2, 6):
+        if is_windows() or sys.version_info < (2, 6):
             return
 
         processes = []

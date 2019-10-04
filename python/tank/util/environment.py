@@ -12,7 +12,8 @@
 Helper methods that do environment management
 """
 
-import os, sys
+import os
+from .platforms import is_windows
 
 
 def append_path_to_env_var(env_var_name, path):
@@ -42,7 +43,7 @@ def _add_path_to_env_var(env_var_name, path, prepend=False):
     will concatenate paths using : on linux and ; on windows
     """
     
-    if sys.platform == "win32":
+    if is_windows():
         env_var_sep = ";"
     else:
         env_var_sep = ":"        

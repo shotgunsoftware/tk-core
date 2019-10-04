@@ -23,7 +23,7 @@ from ..errors import TankError
 from ..log import LogManager
 from ..util.loader import load_plugin
 from ..util.version import is_version_older
-from ..util import ShotgunPath
+from ..util import ShotgunPath, is_windows
 
 from . import constants
 from . import validation
@@ -399,7 +399,7 @@ class SoftwareLauncher(object):
 
         # Now prepare the template to be turned into a regular expression. First, double up the
         # backward slashes to escape them properly in the regular expression on Windows.
-        if sys.platform == "win32":
+        if is_windows():
             regex_pattern = match_template.replace("\\", "\\\\")
         else:
             regex_pattern = match_template

@@ -18,6 +18,7 @@ import os
 import sys
 import shutil
 from tank_vendor.shotgun_api3.lib import six
+from tank.util import is_windows
 
 
 class ProcessFolderCreation(Hook):
@@ -150,7 +151,7 @@ class ProcessFolderCreation(Hook):
 
                 elif action == "symlink":
                     # symbolic link
-                    if sys.platform == "win32":
+                    if is_windows():
                         # no windows support
                         continue
                     path = i.get("path")

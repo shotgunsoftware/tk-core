@@ -14,10 +14,10 @@ Unit tests tank setup_project.
 from __future__ import with_statement
 
 import os
-import sys
 import logging
 
 import tank
+from tank.util import is_linux, is_macos, is_windows
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
 from tank_test.mock_appstore import patch_app_store
@@ -100,9 +100,9 @@ class TestSetupProject(TankTestBase):
             "project_id": new_project["id"],
             "project_folder_name": "new_project_1234",
             "config_uri": self.project_config,
-            "config_path_mac": new_config_root if sys.platform == "darwin" else None,
-            "config_path_win": new_config_root if sys.platform == "win32" else None,
-            "config_path_linux": new_config_root if sys.platform.startswith("linux") else None,
+            "config_path_mac": new_config_root if is_macos() else None,
+            "config_path_win": new_config_root if is_windows() else None,
+            "config_path_linux": new_config_root if is_linux() else None,
         })
 
         # Check we get back our custom primary root name
@@ -227,9 +227,9 @@ class TestSetupProject(TankTestBase):
                 "project_id": new_project["id"],
                 "project_folder_name": "new_project_1235",
                 "config_uri": self.project_config,
-                "config_path_mac": new_config_root if sys.platform == "darwin" else None,
-                "config_path_win": new_config_root if sys.platform == "win32" else None,
-                "config_path_linux": new_config_root if sys.platform.startswith("linux") else None,
+                "config_path_mac": new_config_root if is_macos() else None,
+                "config_path_win": new_config_root if is_windows() else None,
+                "config_path_linux": new_config_root if is_linux() else None,
             })
 
             # Check we get back our custom primary root name

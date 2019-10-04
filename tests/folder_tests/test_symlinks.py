@@ -9,8 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import sys
 from tank import folder
+from tank.util import is_windows
 from tank_test.tank_test_base import *
 
          
@@ -67,7 +67,7 @@ class TestSymlinks(TankTestBase):
 
         self.assertTrue(os.path.exists(self.aaa))
         self.assertTrue(os.path.exists(self.aaa_work))
-        if sys.platform != "win32":
+        if is_windows():
             self.assertTrue(os.path.lexists(self.aaa_link))
             self.assertTrue(os.path.islink(self.aaa_link))
             self.assertEqual(os.readlink(self.aaa_link), "../Stuff/project_code/aaa")
@@ -93,7 +93,7 @@ class TestSymlinks(TankTestBase):
 
         self.assertTrue(os.path.exists(self.bbb))
         self.assertTrue(os.path.exists(self.bbb_work))
-        if sys.platform != "win32":
+        if is_windows():
             self.assertTrue(os.path.lexists(self.bbb_link))
             self.assertTrue(os.path.islink(self.bbb_link))
             self.assertEqual(os.readlink(self.bbb_link), "../Stuff/project_code/vehicle/bbb")

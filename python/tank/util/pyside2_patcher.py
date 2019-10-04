@@ -15,14 +15,14 @@ PySide 2 backwards compatibility layer for use with PySide 1 code.
 from __future__ import with_statement
 
 import os
+import sys
 import functools
 import imp
 import subprocess
 import webbrowser
 
-from tank_vendor.shotgun_api3.lib import sgsix
-
 from .. import constants
+from .platforms import is_linux, is_macos, is_windows
 
 
 class PySide2Patcher(object):
@@ -282,16 +282,16 @@ class PySide2Patcher(object):
                 if url.isLocalFile():
                     url = url.toLocalFile().encode("utf-8")
 
-                    if sgsix.platform == "darwin":
+                    if is_macos():
                         return subprocess.call(["open", url]) == 0
-                    elif sgsix.platform == "win32":
+                    elif is_windows():
                         os.startfile(url)
                         # Start file returns None, so this is the best we can do.
                         return os.path.exists(url)
-                    elif sgsix.platform.startswith("linux"):
+                    elif is_linux():
                         return subprocess.call(["xdg-open", url]) == 0
                     else:
-                        raise ValueError("Unknown platform: %s" % sgsix.platform)
+                        raise ValueError("Unknown platform: %s" % sys.platform)
                 else:
                     # According to webbrowser.py code logic, when open_new_tab() can find
                     # and launch a suitable browser, it returns True; otherwise it either

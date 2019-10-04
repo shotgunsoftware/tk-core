@@ -24,7 +24,7 @@ from tank import (
     TankInvalidCoreLocationError,
     TankNotPipelineConfigurationError
 )
-from tank.util import ShotgunPath
+from tank.util import ShotgunPath, is_windows
 
 from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
 from tank_test.tank_test_base import setUpModule # noqa
@@ -41,7 +41,7 @@ class TestGetConfigInstallLocationPathSlashes(ShotgunTestBase):
         Check that any glitches in the path are correctly cleaned up.
         """
         # only run this test on windows
-        if sys.platform == "win32":
+        if is_windows():
 
             # This path has multiple issues we've encountered in the wild
             # It without any escaping sequence, it reads as

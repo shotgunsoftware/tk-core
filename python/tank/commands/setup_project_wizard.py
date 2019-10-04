@@ -15,6 +15,7 @@ from .action_base import Action
 from . import core_localize
 from ..util import shotgun
 from ..util import ShotgunPath
+from ..util import is_linux, is_macos, is_windows
 from ..errors import TankError
 from .. import pipelineconfig_utils
 
@@ -558,11 +559,11 @@ class SetupProjectWizard(object):
             # from baked configurations, as an example, and we don't want to stop
             # project setups if the process is being run from an environment running
             # from a baked config.
-            if sgsix.platform.startswith("linux"):
+            if is_linux():
                 path_args = [None, os.path.expandvars(curr_core_path), None]
-            elif sgsix.platform == "darwin":
+            elif is_macos():
                 path_args = [None, None, os.path.expandvars(curr_core_path)]
-            elif sgsix.platform == "win32":
+            elif is_windows():
                 path_args = [os.path.expandvars(curr_core_path), None, None]
             else:
                 msg = "Unsupported OS detected: %s" % sgsix.platform
