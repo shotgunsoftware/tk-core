@@ -11,4 +11,4 @@
 
 location:
     type: path
-    path: $SHOTGUN_REPO_ROOT
+    path: $TK_CORE_REPO_ROOT

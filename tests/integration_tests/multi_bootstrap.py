@@ -59,7 +59,7 @@ class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
         # Bootstrap into the tk-shell123 engine.
         manager = sgtk.bootstrap.ToolkitManager(self.user)
         manager.do_shotgun_config_lookup = False
-        manager.base_configuration = "sgtk:descriptor:path?path=$SHOTGUN_REPO_ROOT/tests/integration_tests/data/site_config"
+        manager.base_configuration = "sgtk:descriptor:path?path=$TK_CORE_REPO_ROOT/tests/integration_tests/data/site_config"
         manager.caching_policy = sgtk.bootstrap.ToolkitManager.CACHE_SPARSE
         try:
             engine = manager.bootstrap_engine("tk-shell123", self.project)

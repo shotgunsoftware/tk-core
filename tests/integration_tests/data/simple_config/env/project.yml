@@ -23,13 +23,13 @@ engines:
       tk-test-app:
         location: 
           type: path
-          path: $SHOTGUN_REPO_ROOT/tests/fixtures/config/bundles/simple_test_app
+          path: $TK_CORE_REPO_ROOT/tests/fixtures/config/bundles/simple_test_app
     location:
       type: path
-      path: $SHOTGUN_REPO_ROOT/tests/fixtures/config/bundles/test_engine
+      path: $TK_CORE_REPO_ROOT/tests/fixtures/config/bundles/test_engine
 
 frameworks:
   tk-framework-test:
     location:
       type: path
-      path: $SHOTGUN_REPO_ROOT/tests/fixtures/config/bundles/test_framework_v1
+      path: $TK_CORE_REPO_ROOT/tests/fixtures/config/bundles/test_framework_v1
