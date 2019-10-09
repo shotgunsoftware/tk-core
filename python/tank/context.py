@@ -1045,11 +1045,9 @@ class Context(object):
                         # key doesn't represent an entity so skip
                         continue
 
-
                     # find fields for any paths associated with this entity by looking in the path cache:
                     entity_fields = _values_from_path_cache(context_entities[key_name], template, path_cache, 
-                                                           required_fields=found_fields)
-                
+                                                            required_fields=found_fields)
 
                     # entity_fields may contain additional fields that correspond to entities
                     # so we should be sure to validate these as well if we can.

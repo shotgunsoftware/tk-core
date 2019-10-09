@@ -68,6 +68,14 @@ def is_version_number(version):
 
 
 def _compare_versions(a, b):
+    """
+    Tests if version a is newer than version b.
+
+    :param str a: The first version string to compare.
+    :param str b: The second version string to compare.
+
+    :rtype: bool
+    """
     if b is None:
         # a is always newer than None
         return True

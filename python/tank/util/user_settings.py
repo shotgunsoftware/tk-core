@@ -165,7 +165,7 @@ class UserSettings(Singleton):
         else:
             raise TankError(
                 "Invalid value '%s' in '%s' for setting '%s' in section '%s': expecting one of '%s'." % (
-                    value, self._path, name, section, "', '".join(list(self._boolean_states.keys()))
+                    value, self._path, name, section, "', '".join(self._boolean_states.keys())
                 )
             )
 

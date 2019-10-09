@@ -169,9 +169,9 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
         # 0.12 backwards compatibility: if the storage name is Tank,
         # this is the same as the primary storage.
         if root_name == "Tank":
-            normalized_paths = list(storage_root_to_paths[constants.PRIMARY_STORAGE_NAME].keys())
+            normalized_paths = storage_root_to_paths[constants.PRIMARY_STORAGE_NAME].keys()
         else:
-            normalized_paths = list(storage_root_to_paths[root_name].keys())
+            normalized_paths = storage_root_to_paths[root_name].keys()
 
         # add all of those to the query filter
         for path_cache_path in normalized_paths:

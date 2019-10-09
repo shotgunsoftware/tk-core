@@ -24,7 +24,7 @@ PICKLE_PROTOCOL = min(cPickle.HIGHEST_PROTOCOL, constants.MAX_PICKLE_PROTOCOL)
 
 def store_env_var_pickled(key, data):
     """
-    Stores the provided data under in the environment variable specified.
+    Stores the provided data under the environment variable specified.
 
     In Python 3 pickle.dumps() returns a binary object that can't be decoded to
     a string for storage in an environment variable.  To work around this, we
