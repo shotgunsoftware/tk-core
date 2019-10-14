@@ -46,18 +46,16 @@ class TestHumanUser(TankTestBase):
         self.user_path = os.path.join(self.project_root, "foo", "shot_code")
         self.user_path2 = os.path.join(self.project_root, "bar", "shot_code")
 
-
     @patch("tank.util.login.get_current_user")
     def test_not_made_default(self, get_current_user):
-        
+
         self.assertFalse(os.path.exists(self.user_path))
         get_current_user.return_value = self.humanuser        
-        folder.process_filesystem_structure(self.tk, 
+        folder.process_filesystem_structure(self.tk,
                                             self.shot["type"], 
                                             self.shot["id"], 
                                             preview=False,
                                             engine=None)
-
         self.assertFalse(os.path.exists(self.user_path))
 
     @patch("tank.util.login.get_current_user")
@@ -86,8 +84,8 @@ class TestHumanUser(TankTestBase):
         ctx_foo = self.tk.context_from_path(self.user_path)        
         ctx_bar = self.tk.context_from_path(self.user_path2)
         
-        self.assertEquals(ctx_foo.filesystem_locations, [self.user_path])
-        self.assertEquals(ctx_bar.filesystem_locations, [self.user_path2])        
+        self.assertEqual(ctx_foo.filesystem_locations, [self.user_path])
+        self.assertEqual(ctx_bar.filesystem_locations, [self.user_path2])        
         
     @patch("tank.util.login.get_current_user")
     def test_login_not_in_shotgun(self, get_current_user):

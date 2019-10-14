@@ -1,20 +1,20 @@
-include: ./empty_config.yml
+include: ./includes/empty_config.yml
 
 frameworks:
     test_framework_v1.x.x:
         location:
             type: dev
-            path: '{PIPELINE_CONFIG}/config/bundles/test_framework'
+            path: '{CONFIG_FOLDER}/bundles/test_framework_v1'
             version: v1.0.0
 
 engines:
     test_engine:
-        location: {'type': 'dev', 'path': '{PIPELINE_CONFIG}/config/bundles/test_engine'}
+        location: {'type': 'dev', 'path': '{CONFIG_FOLDER}/bundles/test_engine'}
         debug_logging: false
 
         apps:
             test_app:
-                location: {'type': 'dev', 'path': '{PIPELINE_CONFIG}/config/bundles/test_app'}
+                location: {'type': 'dev', 'path': '{CONFIG_FOLDER}/bundles/test_app'}
                 test_str: a
                 test_int: 1 
                 test_float: 1.1

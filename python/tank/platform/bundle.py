@@ -18,11 +18,16 @@ import re
 import sys
 import imp
 import uuid
+
 from .. import hook
+from ..util.metrics import EventMetric
+from ..log import LogManager
 from ..errors import TankError, TankNoDefaultValueError
 from .errors import TankContextChangeNotSupportedError
 from . import constants
 from .import_stack import ImportStack
+
+core_logger = LogManager.get_logger(__name__)
 
 class TankBundle(object):
     """
@@ -54,7 +59,35 @@ class TankBundle(object):
 
         # emit an engine started event
         tk.execute_core_hook(constants.TANK_BUNDLE_INIT_HOOK_NAME, bundle=self)
-        
+
+    ##########################################################################################
+    # internal API
+
+    def log_metric(self, action, log_version=False, log_once=False, command_name=None):
+        """
+        Log metrics for this bundle and the given action.
+
+        :param str action: Action string to log, e.g. 'Opened Workfile'.
+        :param log_version: Deprecated and ignored, but kept for backward compatibility.
+        :param bool log_once: ``True`` if this metric should be ignored if it
+            has already been logged. Defaults to ``False``.
+        :param str command_name: A Toolkit command name to add to the metric properties.
+
+        Internal Use Only - We provide no guarantees that this method
+        will be backwards compatible.
+        """
+        properties = {}
+        if command_name:
+            properties[EventMetric.KEY_COMMAND] = command_name
+
+        EventMetric.log(
+            EventMetric.GROUP_TOOLKIT,
+            action,
+            properties=properties,
+            log_once=log_once,
+            bundle=self
+        )
+
     ##########################################################################################
     # properties used by internal classes, not part of the public interface
     
@@ -220,8 +253,7 @@ class TankBundle(object):
         random cache data. This location is guaranteed to exist on disk.
 
         This location is configurable via the ``cache_location`` hook.
-        It is typically points at a path in the local filesystem, e.g
-        on for example on the mac::
+        It typically points at a path in the local filesystem, e.g on a mac::
 
             ~/Library/Caches/Shotgun/SITENAME/PROJECT_ID/BUNDLE_NAME
 
@@ -229,10 +261,39 @@ class TankBundle(object):
         sessions::
 
             stored_query_data_path = os.path.join(self.cache_location, "query.dat")
-
         """
         project_id = self.__tk.pipeline_configuration.get_project_id()
         return self.get_project_cache_location(project_id)
+
+    @property
+    def site_cache_location(self):
+        """
+        A site location on disk where the app or engine can store
+        random cache data. This location is guaranteed to exist on disk.
+
+        This location is configurable via the ``cache_location`` hook.
+        It typically points at a path in the local filesystem, e.g on a mac::
+
+            ~/Library/Caches/Shotgun/SITENAME/BUNDLE_NAME
+
+        This can be used to store cache data that the app wants to reuse across
+        sessions and can be shared across a site::
+
+            stored_query_data_path = os.path.join(self.site_cache_location, "query.dat")
+        """
+        # this method is memoized for performance since it is being called a lot!
+        if self.__cache_location.get("site") is None:
+
+            self.__cache_location["site"] = self.__tk.execute_core_hook_method(
+                constants.CACHE_LOCATION_HOOK_NAME,
+                "get_bundle_data_cache_path",
+                project_id=None,
+                plugin_id=None,
+                pipeline_configuration_id=None,
+                bundle=self
+            )
+
+        return self.__cache_location["site"]
 
     @property
     def context(self):
@@ -477,7 +538,7 @@ class TankBundle(object):
         """
         return self.tank.templates.get(template_name)
                         
-    def execute_hook(self, key, **kwargs):
+    def execute_hook(self, key, base_class=None, **kwargs):
         """
         Execute a hook that is part of the environment configuration for the current bundle.
 
@@ -493,15 +554,28 @@ class TankBundle(object):
         on the currently configured setting and then execute the execute() method for 
         that hook.
 
+        An optional ``base_class`` can be provided to override the default :class:`~sgtk.Hook`
+        base class. This is useful for bundles that want to define and document a strict
+        interface for hooks. The classes defined in the hook have to derived from this classes.
+
         .. note:: For more information about hooks, see :class:`~sgtk.Hook`
         
         :param key: The name of the hook setting you want to execute.
+        :param base_class: A python class to use as the base class for the created
+            hook. This will override the default hook base class, ``Hook``.
+        :returns: The return value from the hook
         """
         hook_name = self.get_setting(key)
         resolved_hook_paths = self.__resolve_hook_expression(key, hook_name)
-        return hook.execute_hook_method(resolved_hook_paths, self, None, **kwargs)
+        return hook.execute_hook_method(
+            resolved_hook_paths,
+            self,
+            None,
+            base_class=base_class,
+            **kwargs
+        )
         
-    def execute_hook_method(self, key, method_name, **kwargs):
+    def execute_hook_method(self, key, method_name, base_class=None, **kwargs):
         """
         Execute a specific method in a hook that is part of the 
         environment configuration for the current bundle.
@@ -529,16 +603,29 @@ class TankBundle(object):
         parameters without breaking backwards compatibility, for example
         ``execute_hook_method("validator", "pre_check", name=curr_scene, version=curr_ver).``
 
+        An optional ``base_class`` can be provided to override the default :class:`~sgtk.Hook`
+        base class. This is useful for bundles that want to define and document a strict
+        interface for hooks. The classes defined in the hook have to derived from this classes.
+
         .. note:: For more information about hooks, see :class:`~sgtk.Hook`
 
         :param key: The name of the hook setting you want to execute.
         :param method_name: Name of the method to execute
+        :param base_class: A python class to use as the base class for the created
+            hook. This will override the default hook base class, ``Hook``.
+        :returns: The return value from the hook
         """
         hook_name = self.get_setting(key)
         resolved_hook_paths = self.__resolve_hook_expression(key, hook_name)
-        return hook.execute_hook_method(resolved_hook_paths, self, method_name, **kwargs)
+        return hook.execute_hook_method(
+            resolved_hook_paths,
+            self,
+            method_name,
+            base_class=base_class,
+            **kwargs
+        )
 
-    def execute_hook_expression(self, hook_expression, method_name, **kwargs):
+    def execute_hook_expression(self, hook_expression, method_name, base_class=None, **kwargs):
         """
         Execute an arbitrary hook via an expression. While the methods execute_hook
         and execute_hook_method allows you to execute a particular hook setting as
@@ -552,13 +639,25 @@ class TankBundle(object):
         In that case, you cannot use execute_hook, but instead will have to retrieve
         the value specifically and then run it.
 
+        An optional ``base_class`` can be provided to override the default :class:`~sgtk.Hook`
+        base class. This is useful for bundles that want to define and document a strict
+        interface for hooks. The classes defined in the hook have to derived from this classes.
+
         .. note:: For more information about hooks, see :class:`~sgtk.Hook`
 
         :param hook_expression: Path to hook to execute. See above for syntax details.
         :param method_name: Method inside the hook to execute.
+        :param base_class: A python class to use as the base class for the created
+            hook. This will override the default hook base class, ``Hook``.
+        :returns: The return value from the hook
         """
         resolved_hook_paths = self.__resolve_hook_expression(None, hook_expression)
-        return hook.execute_hook_method(resolved_hook_paths, self, method_name, **kwargs)
+        return hook.execute_hook_method(
+            resolved_hook_paths,
+            self,
+            method_name,
+            base_class=base_class,
+            **kwargs)
 
     def execute_hook_by_name(self, hook_name, **kwargs):
         """
@@ -584,7 +683,7 @@ class TankBundle(object):
         hook_path = os.path.join(hook_folder, "%s.py" % hook_name)
         return hook.execute_hook(hook_path, self, **kwargs)
 
-    def create_hook_instance(self, hook_expression):
+    def create_hook_instance(self, hook_expression, base_class=None):
         """
         Returns the instance of a hook object given an expression.
 
@@ -605,11 +704,22 @@ class TankBundle(object):
 
         .. note:: For more information about hook syntax, see :class:`~sgtk.Hook`
 
+        An optional ``base_class`` can be provided to override the default :class:`~sgtk.Hook`
+        base class. This is useful for bundles that create hook instances at
+        execution time and wish to provide default implementation without the need
+        to configure the base hook. The supplied class must inherit from Hook.
+
         :param hook_expression: Path to hook to execute. See above for syntax details.
+        :param base_class: A python class to use as the base class for the created
+            hook. This will override the default hook base class, ``Hook``.
         :returns: :class:`Hook` instance.
         """
         resolved_hook_paths = self.__resolve_hook_expression(None, hook_expression)
-        return hook.create_hook_instance(resolved_hook_paths, self)
+        return hook.create_hook_instance(
+            resolved_hook_paths,
+            self,
+            base_class=base_class
+        )
 
     def ensure_folder_exists(self, path):
         """
@@ -628,10 +738,17 @@ class TankBundle(object):
         """        
         try:
             self.__tk.execute_core_hook("ensure_folder_exists", path=path, bundle_obj=self)
-        except Exception, e:
+        except Exception as e:
             raise TankError("Error creating folder %s: %s" % (path, e))
-        
 
+    def get_metrics_properties(self):
+        """
+        Should be re-implemented in deriving classes and return a dictionary with
+        the properties needed to log a metric event for this bundle.
+
+        :raises: NotImplementedError
+        """
+        raise NotImplementedError
 
     ##########################################################################################
     # internal helpers
@@ -861,7 +978,7 @@ class TankBundle(object):
                     engine_name=self._get_engine_name(),
             )
 
-            if default_value: # possible not to have a default value!
+            if default_value:  # possible not to have a default value!
 
                 # expand the default value to be referenced from {self} and with the .py suffix
                 # for backwards compatibility with the old syntax where the default value could
@@ -883,6 +1000,14 @@ class TankBundle(object):
         # resolve paths into actual file paths
         resolved_hook_paths = [self.__resolve_hook_path(settings_name, x) for x in unresolved_hook_paths]
 
+        core_logger.debug(
+            "%s: Resolved hook expression (associated with setting '%s'): '%s' -> %s" % (
+                self,
+                settings_name,
+                hook_expression,
+                resolved_hook_paths)
+        )
+
         return resolved_hook_paths
 
     def __resolve_setting_value(self, settings, key, default):
@@ -898,7 +1023,7 @@ class TankBundle(object):
         # config schema so we need to account for that.
         schema = self.__descriptor.configuration_schema.get(key, None)
         return resolve_setting_value(
-            self.__tk, self._get_engine_name(), schema, settings, key, default
+            self.__tk, self._get_engine_name(), schema, settings, key, default, self
         )
 
     def _get_engine_name(self):
@@ -921,7 +1046,7 @@ class TankBundle(object):
         return engine_name
 
 
-def _post_process_settings_r(tk, key, value, schema):
+def _post_process_settings_r(tk, key, value, schema, bundle=None):
     """
     Recursive post-processing of settings values
 
@@ -929,22 +1054,63 @@ def _post_process_settings_r(tk, key, value, schema):
     :param key: setting name
     :param value: Input value to resolve using specified schema
     :param schema: A schema defining types and defaults for settings.
+    :param bundle: The bundle object. This is only used in the case
+        the value argument is a string starting with "hook:", which
+        then requires the use of a core hook to resolve the setting.
+
     :returns: Processed value for key setting
     """
     settings_type = schema.get("type")
 
+    # first check for procedural overrides where instead of getting a value,
+    # directly from the config, we call a hook to evaluate a config value
+    # at runtime:
+    if isinstance(value, basestring) and value.startswith("hook:"):
+        # handle the special form where the value is computed in a hook.
+        #
+        # if the template parameter is on the form
+        # a) hook:foo_bar
+        # b) hook:foo_bar:testing1:testing2
+        #
+        # The following hook will be called
+        # a) core hook 'foo_bar' with parameters []
+        # b) core hook 'foo_bar' with parameters ['testing1', 'testing2']
+        #
+        chunks = value.split(":")
+        hook_name = chunks[1]
+        params = chunks[2:]
+        processed_val = tk.execute_core_hook(
+            hook_name, setting=key, bundle_obj=bundle, extra_params=params
+        )
+        return processed_val
+
+    # No procedural overrides in place - instead handle the value based on type
     if settings_type == "list":
         processed_val = []
         value_schema = schema["values"]
         for x in value:
-            processed_val.append(_post_process_settings_r(tk, key, x, value_schema))
+            processed_val.append(
+                _post_process_settings_r(
+                    tk=tk,
+                    key=key,
+                    value=x,
+                    schema=value_schema,
+                    bundle=bundle,
+                )
+            )
 
     elif settings_type == "dict":
         items = schema.get("items", {})
         # note - we assign the original values here because we
         processed_val = value
         for (key, value_schema) in items.iteritems():
-            processed_val[key] = _post_process_settings_r(tk, key, value[key], value_schema)
+            processed_val[key] = _post_process_settings_r(
+                tk=tk,
+                key=key,
+                value=value[key],
+                schema=value_schema,
+                bundle=bundle,
+            )
 
     elif settings_type == "config_path":
         # this is a config path. Stored on the form
@@ -954,31 +1120,14 @@ def _post_process_settings_r(tk, key, value, schema):
         adjusted_value = value.replace("/", os.path.sep)
         processed_val = os.path.join(config_folder, adjusted_value)
 
-    elif isinstance(value, basestring) and value.startswith("hook:"):
-        # handle the special form where the value is computed in a hook.
-        #
-        # if the template parameter is on the form
-        # a) hook:foo_bar
-        # b) hook:foo_bar:testing:testing
-        #
-        # The following hook will be called
-        # a) foo_bar with parameters []
-        # b) foo_bar with parameters [testing, testing]
-        #
-        chunks = value.split(":")
-        hook_name = chunks[1]
-        params = chunks[2:]
-        processed_val = tk.execute_core_hook(
-            hook_name, setting=key, bundle_obj=self, extra_params=params
-        )
-
     else:
         # pass-through
         processed_val = value
 
     return processed_val
 
-def resolve_setting_value(tk, engine_name, schema, settings, key, default):
+
+def resolve_setting_value(tk, engine_name, schema, settings, key, default, bundle=None):
     """
     Resolve a setting value.  Exposed to allow values to be resolved for
     settings derived outside of the app.
@@ -991,6 +1140,9 @@ def resolve_setting_value(tk, engine_name, schema, settings, key, default):
     :param dict settings: the settings dictionary source
     :param str key: setting name
     :param default: a default value to use for the setting
+    :param bundle: The bundle object. This is only used in situations where
+        a setting's value must be resolved via calling a hook.
+
     :returns: Resolved value of input setting key
     """
     # Get the value for the supplied key
@@ -1011,7 +1163,7 @@ def resolve_setting_value(tk, engine_name, schema, settings, key, default):
     # We have a value of some kind and a schema. Allow the post
     # processing code to further resolve the value.
     if value and schema:
-        value = _post_process_settings_r(tk, key, value, schema)
+        value = _post_process_settings_r(tk, key, value, schema, bundle)
 
     return value
 
@@ -1094,7 +1246,6 @@ def _resolve_default_hook_value(value, engine_name=None):
     :param value: The unresolved default value for the hook
     :param engine_name: The name of the engine for engine-specific hook values
     :return: The resolved hook default value.
-
     """
 
     if not value:

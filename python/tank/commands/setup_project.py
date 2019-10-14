@@ -8,8 +8,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import sys
+from __future__ import print_function
+
 import os
+import sys
+import textwrap
+import traceback
+
 from .action_base import Action
 from . import core_localize
 from ..errors import TankError
@@ -17,9 +22,11 @@ from ..util import shotgun
 from ..util import ShotgunPath
 from . import constants
 from .. import pipelineconfig_utils
+from ..util.filesystem import ensure_folder_exists
 
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
+from .interaction import YesToEverythingInteraction
 
 class SetupProjectAction(Action):
     """
@@ -58,7 +65,10 @@ class SetupProjectAction(Action):
                                                      "projects which have already been previously set up. "),
                                      "default": False,
                                      "type": "bool" }
-        
+
+
+
+
         self.parameters["project_id"] = { "description": "Shotgun id for the project you want to set up.",
                                           "default": None,
                                           "type": "int" }
@@ -70,13 +80,21 @@ class SetupProjectAction(Action):
                                                    "default": None,
                                                    "type": "str" }
 
-        self.parameters["config_uri"] = { "description": ("The configuration to use when setting up this project. "
-                                                          "This can be a path on disk to a directory containing a "
-                                                          "config, a path to a git bare repo (e.g. a git repo path "
-                                                          "which ends with .git) or 'tk-config-default' "
-                                                          "to fetch the default config from the toolkit app store."),
-                                          "default": "tk-config-default",
-                                          "type": "str" }
+        self.parameters["config_uri"] = {
+            "description": "The configuration to use when setting up this "
+                "project. This can be a path on disk to a directory containing "
+                "a config, a path to a git bare repo (e.g. a git repo path "
+                "which ends with .git) or '%s' to fetch the default config "
+                "from the toolkit app store." % (constants.DEFAULT_CFG,),
+            "default": constants.DEFAULT_CFG,
+            "type": "str"
+        }
+
+        self.parameters["install_mode"] = {
+            "description": "The type of installation to perform. Either 'centralized' or 'distributed'",
+            "default": "centralized",
+            "type": "str"
+        }
 
         # note how the current platform's default value is None in order to make that required
         self.parameters["config_path_mac"] = { "description": ("The path on disk where the configuration should be "
@@ -94,22 +112,23 @@ class SetupProjectAction(Action):
                                                "default": ( None if sys.platform == "linux2" else "" ),
                                                "type": "str" }
         
-        # Special setting used by the shotgun desktop app to handle the current form of distributed
-        # configs
-        self.parameters["auto_path"] = { "description": ("Expert setting. Setting this to true means that a blank "
-                                                         "path entry is written to the shotgun site pipeline "
-                                                         "configuration. This can be used in conjunction with "
-                                                         "a localized core to create a site configuration which "
-                                                         "can have different locations on different machines. It "
-                                                         "is then up to the bootstrap logic of the code that "
-                                                         "starts up toolkit to determine where to go look for the "
-                                                         "configuration. When setting this to true, you typically "
-                                                         "only need to specify the path to the current operating "
-                                                         "system configuration."),
-                                     "default": False,
-                                     "type": "bool" }
-        
-        
+        # Special setting used by older versins of shotgun desktop app
+        # to handle auto-installing the site configuration at startup.
+        self.parameters["auto_path"] = {
+            "description": "Deprecated. Do not use this! --- "
+                           "Expert setting. Setting this to true means that a blank "
+                           "path entry is written to the shotgun site pipeline "
+                           "configuration. This can be used in conjunction with "
+                           "a localized core to create a site configuration which "
+                           "can have different locations on different machines. It "
+                           "is then up to the bootstrap logic of the code that "
+                           "starts up toolkit to determine where to go look for the "
+                           "configuration. When setting this to true, you typically "
+                           "only need to specify the path to the current operating "
+                           "system configuration.",
+             "default": False,
+             "type": "bool"
+        }
 
         
     def run_noninteractive(self, log, parameters):
@@ -140,31 +159,49 @@ class SetupProjectAction(Action):
         
         # set expert auto path setting
         params.set_auto_path_mode(computed_params["auto_path"])
+
+        # set mode
+        if computed_params["install_mode"] == "centralized":
+            params.set_distribution_mode(ProjectSetupParameters.CENTRALIZED_CONFIG)
+        elif computed_params["install_mode"] == "distributed":
+            params.set_distribution_mode(ProjectSetupParameters.DISTRIBUTED_CONFIG)
+        else:
+            raise ValueError("Invalid install_mode parameter specified.")
         
         # set the project
         params.set_project_id(computed_params["project_id"], computed_params["force"])
         params.set_project_disk_name(computed_params["project_folder_name"])
         
         # set the config path
-        params.set_configuration_location(computed_params["config_path_linux"], 
-                                          computed_params["config_path_win"], 
-                                          computed_params["config_path_mac"])        
+        if params.get_distribution_mode() == ProjectSetupParameters.CENTRALIZED_CONFIG:
+            # specify paths
+            params.set_configuration_location(computed_params["config_path_linux"],
+                                              computed_params["config_path_win"],
+                                              computed_params["config_path_mac"])
         
         # run overall validation of the project setup
         params.pre_setup_validation()
         
         # and finally carry out the setup
         run_project_setup(log, sg, params)
-        
-        # check if we should run the localization afterwards
-        # if we are running a localized pc, the root path of the core
-        # api is the same as the root path for the associated pc
-        if pipelineconfig_utils.is_localized(curr_core_path):
-            log.info("Localizing Core...")
-            core_localize.do_localize(log, 
-                                      params.get_configuration_location(sys.platform), 
-                                      suppress_prompts=True)
 
+        if params.get_distribution_mode() == ProjectSetupParameters.CENTRALIZED_CONFIG:
+
+            config_path = params.get_configuration_location(sys.platform)
+
+            # if the new project's config has a core descriptor, then we should
+            # localize it to use that version of core. alternatively, if the current
+            # core being used is localized, then localize the new config with it.
+            if (pipelineconfig_utils.has_core_descriptor(config_path) or
+                pipelineconfig_utils.is_localized(curr_core_path)):
+
+                log.info("Localizing Core...")
+                core_localize.do_localize(
+                    log,
+                    self._shotgun_connect(log),
+                    config_path,
+                    YesToEverythingInteraction()  # don't prompt
+                )
 
     def run_interactive(self, log, args):
         """
@@ -173,7 +210,7 @@ class SetupProjectAction(Action):
         :param log: std python logger
         :param args: command line args
         """
-        
+
         if len(args) not in [0, 1]:
             raise TankError("Syntax: setup_project [--no-storage-check] [--force]")
         
@@ -209,7 +246,10 @@ class SetupProjectAction(Action):
         
         # now ask which config to use. Download if necessary and examine
         config_uri = self._select_template_configuration(log, sg)
-    
+
+        # allow the user to map storages required by the configuration
+        self._map_storages(params, config_uri, log, sg)
+
         # now try to load the config
         params.set_config_uri(config_uri, check_storage_path_exists)
         
@@ -235,23 +275,30 @@ class SetupProjectAction(Action):
         
         # and finally carry out the setup
         run_project_setup(log, sg, params)
-        
-        # check if we should run the localization afterwards
-        # if we are running a localized pc, the root path of the core
-        # api is the same as the root path for the associated pc
-        if pipelineconfig_utils.is_localized(curr_core_path):
+
+        config_path = params.get_configuration_location(sys.platform)
+
+        # if the new project's config has a core descriptor, then we should
+        # localize it to use that version of core. alternatively, if the current
+        # core being used is localized, then localize the new core with it.
+        if (pipelineconfig_utils.has_core_descriptor(config_path) or
+            pipelineconfig_utils.is_localized(curr_core_path)):
+
             log.info("Localizing Core...")
-            core_localize.do_localize(log, 
-                                      params.get_configuration_location(sys.platform), 
-                                      suppress_prompts=True)
-        
+            core_localize.do_localize(
+                log,
+                self._shotgun_connect(log),
+                config_path,
+                YesToEverythingInteraction()  # don't prompt
+            )
+
         # display readme etc.
         readme_content = params.get_configuration_readme()
         if len(readme_content) > 0:
             log.info("")
             log.info("README file for template:")
             for line in readme_content:
-                print line
+                print(line)
         
         log.info("")
         log.info("We recommend that you now run 'tank updates' to get the latest")
@@ -276,7 +323,7 @@ class SetupProjectAction(Action):
             sg = shotgun.create_sg_connection()
             sg_version = ".".join([ str(x) for x in sg.server_info["version"]])
             log.debug("Connected to target Shotgun server! (v%s)" % sg_version)
-        except Exception, e:
+        except Exception as e:
             raise TankError("Could not connect to Shotgun server: %s" % e)
     
         return sg
@@ -475,7 +522,7 @@ class SetupProjectAction(Action):
         for storage_name in params.get_required_storages():
             proj_path = params.preview_project_path(storage_name, suggested_folder_name, sys.platform)            
             log.info(" - %s: %s" % (storage_name, proj_path))
-        
+
         log.info("")
 
         # now ask for a value and validate
@@ -488,7 +535,7 @@ class SetupProjectAction(Action):
             # validate the project name
             try:
                 params.validate_project_disk_name(proj_name)
-            except TankError, e:
+            except TankError as e:
                 # bad project name!
                 log.error("Invalid project name: %s" % e)
                 # back to beginning
@@ -510,13 +557,13 @@ class SetupProjectAction(Action):
                         
                         old_umask = os.umask(0)
                         try:
-                            os.makedirs(proj_path, 0777)
+                            os.makedirs(proj_path, 0o777)
                         finally:
                             os.umask(old_umask)                        
                         
                         log.info(" - %s: %s [Created]" % (storage_name, proj_path))
                         storages_valid = True
-                    except Exception, e:
+                    except Exception as e:
                         log.error(" - %s: %s [Not created]" % (storage_name, proj_path))
                         log.error("   Please create path manually.")
                         log.error("   Details: %s" % e)
@@ -585,8 +632,13 @@ class SetupProjectAction(Action):
                 
         location = {"darwin": None, "linux2": None, "win32": None}
         
-        # get the path to the primary storage  
-        primary_local_path = params.get_storage_path(constants.PRIMARY_STORAGE_NAME, sys.platform)        
+        # Get the path to the storage we want to use when calculating the default
+        # location for the installed config.
+        # Multi-root configurations require a storage named "primary" so we base
+        # our default on that. If only a single storage is available, we just use it.
+        storage_names = params.get_required_storages()
+        default_storage_name = params.default_storage_name
+        primary_local_path = params.get_storage_path(default_storage_name, sys.platform)
         
         curr_core_path = pipelineconfig_utils.get_path_to_current_core()
         core_locations = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
@@ -615,14 +667,14 @@ class SetupProjectAction(Action):
             # /studio/project      <--- project data location
             # /studio/project/tank <--- toolkit configuation location
 
-            if params.get_project_path(constants.PRIMARY_STORAGE_NAME, "darwin"):
-                location["darwin"] = "%s/tank" % params.get_project_path(constants.PRIMARY_STORAGE_NAME, "darwin") 
+            if params.get_project_path(primary_storage_name, "darwin"):
+                location["darwin"] = "%s/tank" % params.get_project_path(primary_storage_name, "darwin")
                                                      
-            if params.get_project_path(constants.PRIMARY_STORAGE_NAME, "linux2"):
-                location["linux2"] = "%s/tank" % params.get_project_path(constants.PRIMARY_STORAGE_NAME, "linux2") 
+            if params.get_project_path(primary_storage_name, "linux2"):
+                location["linux2"] = "%s/tank" % params.get_project_path(primary_storage_name, "linux2")
 
-            if params.get_project_path(constants.PRIMARY_STORAGE_NAME, "win32"):
-                location["win32"] = "%s\\tank" % params.get_project_path(constants.PRIMARY_STORAGE_NAME, "win32") 
+            if params.get_project_path(primary_storage_name, "win32"):
+                location["win32"] = "%s\\tank" % params.get_project_path(primary_storage_name, "win32")
 
         else:
             # Core v0.12+ style setup - this is what is our default recommended setup
@@ -666,8 +718,6 @@ class SetupProjectAction(Action):
                 location["win32"] = "\\".join(chunks)
 
         return location
-
-
 
     def _ask_location(self, log, default, os_nice_name):
         """
@@ -720,6 +770,213 @@ class SetupProjectAction(Action):
         log.info("  - on Linux:   '%s'" % params.get_associated_core_path("linux2"))
         log.info("  - on Windows: '%s'" % params.get_associated_core_path("win32"))            
         log.info("")
+        log.info("NOTE: If the installed configuration contains a ")
+        log.info("      core_api.yml file, the version of core specified in ")
+        log.info("      that file will be localized after project setup is ")
+        log.info("      complete.")
         log.info("")
 
+    def _map_storages(self, params, config_uri, log, sg):
+        """
+        Present the user with information about the storage roots defined by
+        the configuration. Allows them to map a root to an existing local
+        storage in SG.
 
+        :param params: Project setup params instance
+        :param config_uri: A config uri
+        :param log: python logger object
+        :param sg: Shotgun API instance
+        """
+
+        # query all storages that exist in SG
+        storages = sg.find(
+            "LocalStorage",
+            filters=[],
+            fields=["code", "id", "linux_path", "mac_path", "windows_path"],
+            order=[{"field_name": "code", "direction": "asc"}]
+        )
+
+        # build lookups by name and id
+        storage_by_id = {}
+        storage_by_name = {}
+        for storage in storages:
+            # store lower case names so we can do case insensitive comparisons
+            storage_name = storage["code"].lower()
+            storage_id = storage["id"]
+            storage_by_id[storage_id] = storage
+            storage_by_name[storage_name] = storage
+
+        # present a summary of storages that exist in SG
+        log.info("")
+        log.info("The following local storages exist in Shotgun:")
+        log.info("")
+        for storage in sorted(storages, key=lambda s: s["code"]):
+            self._print_storage_info(storage, log)
+
+        # get all roots required by the supplied config uri
+        required_roots = params.validate_config_uri(config_uri)
+        log.info(
+            "This configuration requires %s storage root(s)." %
+            len(required_roots)
+        )
+        log.info("")
+        log.info("For each storage root, enter the name of the local storage ")
+        log.info("above you wish to use.")
+        log.info("")
+
+        # a list of tuples we'll use to map a root name to a storage name
+        mapped_roots = []
+
+        # loop over required storage roots
+        for (root_name, root_info) in required_roots.iteritems():
+
+            log.info("%s" % (root_name,))
+            log.info("-" * len(root_name))
+
+            # format the description so that it wraps nicely
+            description = root_info.get("description")
+
+            if description:
+                wrapped_desc_lines = textwrap.wrap(description)
+                for line in wrapped_desc_lines:
+                    log.info("  %s" % (line,))
+            log.info("")
+
+            # make a best guess as to which storage to use
+            suggested_storage = None
+
+            # see if a shotgun storage id is defined in the root info.
+            root_sg_id = root_info.get("shotgun_id")
+            if root_sg_id in storage_by_id:
+                storage_name = storage_by_id[root_sg_id]["code"]
+                # shotgun id defined explicitly for this root
+                log.info(
+                    "Press ENTER to use the explicit mapping to the '%s' "
+                    "storage as defined in the configuration." % (storage_name,)
+                )
+                log.info("")
+                suggested_storage = storage_name
+
+            # does name match an existing storage?
+            elif root_name.lower() in storage_by_name:
+                log.info(
+                    "Press ENTER to use the storage wth the same name as the "
+                    "root."
+                )
+                log.info("")
+                # get the actual name by indexing into the storage dict
+                suggested_storage = storage_by_name[root_name.lower()]["code"]
+
+            if suggested_storage:
+                suggested_storage_display = " [%s]: " % (suggested_storage,)
+            else:
+                suggested_storage_display = ": "
+
+            # ask the user which storage to associate with this root
+            storage_to_use = raw_input(
+                "Which local storage would you like to associate root '%s'%s" %
+                (root_name, suggested_storage_display,)
+            ).strip()
+
+            if storage_to_use == "" and suggested_storage:
+                storage_to_use = suggested_storage
+
+            # match case insensitively
+            if storage_to_use.lower() in storage_by_name:
+                storage_to_use = storage_by_name[storage_to_use.lower()]["code"]
+                storage = storage_by_name[storage_to_use.lower()]
+            else:
+                raise TankError("Please enter a valid storage name!")
+
+            log.info("")
+            log.info(
+                "Accepted mapping: root '%s' ==> local storage '%s':" %
+                (root_name, storage_to_use)
+            )
+            log.info("")
+
+            # if the selected storage does not have a valid path for the current
+            # operating system, prompt the user for a path to create/use
+            current_os_key = ShotgunPath.get_shotgun_storage_key()
+            current_os_path = storage.get(current_os_key)
+
+            if not current_os_path:
+                # the current os path for the selected storage is not populated.
+                # prompt the user and update the path in SG.
+                current_os_path = raw_input(
+                    "Please enter a path for this storage on the current OS: ")
+
+                if not current_os_path:
+                    raise TankError("A path is required for the current OS.")
+
+                if not os.path.isabs(current_os_path):
+                    raise TankError(
+                        "An absolute path is required for the current OS."
+                    )
+
+                # try to create the path on disk
+                try:
+                    ensure_folder_exists(current_os_path)
+                except Exception as e:
+                    raise TankError(
+                        "Unable to create the folder on disk.\n"
+                        "Error: %s\n%s" % (e, traceback.format_exc())
+                    )
+
+                # update the storage in SG.
+                log.info("Updating the local storage in SG...")
+                log.info("")
+                update_data = sg.update(
+                    "LocalStorage",
+                    storage["id"],
+                    {current_os_key: current_os_path}
+                )
+
+                storage[current_os_key] = update_data[current_os_key]
+
+            mapped_roots.append((root_name, storage_to_use))
+
+        # ---- now we've mapped the roots, and they're all valid, we need to
+        #      update the root information on the core wizard
+
+        for (root_name, storage_name) in mapped_roots:
+
+            root_info = required_roots[root_name]
+            storage_data = storage_by_name[storage_name.lower()]
+
+            # populate the data defined prior to mapping
+            updated_storage_data = root_info
+
+            # update the mapped shotgun data
+            updated_storage_data["shotgun_storage_id"] = storage_data["id"]
+            updated_storage_data["linux_path"] = str(storage_data["linux_path"])
+            updated_storage_data["mac_path"] = str(storage_data["mac_path"])
+            updated_storage_data["windows_path"] = str(
+                storage_data["windows_path"])
+
+            # now update the core wizard's root info
+            params.update_storage_root(
+                config_uri,
+                root_name,
+                updated_storage_data
+            )
+
+        log.info("")
+
+    def _print_storage_info(self, storage, log):
+        """
+        Given a dict of local storage info, print the name and paths
+        """
+
+        linux_path = storage.get("linux_path") or ""
+        mac_path = storage.get("mac_path") or ""
+        windows_path = storage.get("windows_path") or ""
+
+        storage_name = storage["code"]
+
+        log.info(storage_name)
+        log.info("-" * len(storage_name))
+        log.info("    Linux: %s" % (linux_path,))
+        log.info("      Mac: %s" % (mac_path,))
+        log.info("  Windows: %s" % (windows_path,))
+        log.info("")

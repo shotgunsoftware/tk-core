@@ -156,21 +156,10 @@ class SoftwareLauncher(object):
         # make sure the current operating system platform is supported
         validation.validate_platform(descriptor)
 
-        # Get the settings for the engine and then validate them
-        engine_schema = descriptor.configuration_schema
-        validation.validate_settings(
-            engine_name,
-            tk,
-            context,
-            engine_schema,
-            settings
-        )
-
-        # Once the engine settings and descriptor have been validated,
-        # initialize members of this class. Since this code only runs
-        # during the pre-launch phase of an engine, there are no
-        # opportunities to change the Context or environment. Safe
-        # to cache these values.
+        # Once validated, initialize members of this class. Since this code only
+        # runs during the pre-launch phase of an engine, there are no
+        # opportunities to change the Context or environment. Safe to cache
+        # these values.
         self.__tk = tk
         self.__context = context
         self.__environment = env
@@ -482,8 +471,7 @@ class SoftwareLauncher(object):
         - ``SHOTGUN_ENTITY_TYPE``: Derived from the current context
         - ``SHOTGUN_ENTITY_ID``: Derived from the current context
         - ``SHOTGUN_PIPELINE_CONFIGURATION_ID``: Derived from the current pipeline config id
-        - ``SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS``: Derived from the curent pipeline configuration's
-            list of bundle cache fallback paths.
+        - ``SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS``: Derived from the curent pipeline configuration's list of bundle cache fallback paths.
 
         These environment variables are set when launching a new process to capture the state of
         Toolkit so we can launch in the same environment. It ensures subprocesses have access to the

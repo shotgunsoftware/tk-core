@@ -16,10 +16,11 @@ import uuid
 
 from . import constants
 
+from ..util import StorageRoots
 from ..util import shotgun
 from ..util import filesystem
 from ..util.version import is_version_newer
-from ..util.zip import unzip_file
+from ..util.zip import unzip_file, zip_file
 
 from .. import hook
 from ..errors import TankError, TankErrorProjectIsSetup
@@ -53,8 +54,9 @@ class ProjectSetupParameters(object):
     - validate using pre_setup_validation
 
     - run project setup!
-
     """
+
+    (CENTRALIZED_CONFIG, DISTRIBUTED_CONFIG) = range(2)
 
     def __init__(self, log, sg):
         """
@@ -77,6 +79,11 @@ class ProjectSetupParameters(object):
 
         # expert setting auto path mode
         self._auto_path = False
+
+        # distribution mode, e.g. use old xxx_path fields or
+        # new descriptor/uploaded config fields when storing
+        # stuff on the pipeline config.
+        self._distribution_mode = self.CENTRALIZED_CONFIG
 
         # initialize data members - project
         self._force_setup = False
@@ -138,6 +145,14 @@ class ProjectSetupParameters(object):
     ################################################################################################################
     # Configuration template related logic
 
+    @property
+    def default_storage_name(self):
+        """
+        The name of the default storage.
+        """
+        return self._config_template.default_storage_name
+
+
     def validate_config_uri(self, config_uri):
         """
         Validates a configuration template to check if it is compatible with the current Shotgun setup.
@@ -179,8 +194,6 @@ class ProjectSetupParameters(object):
             self._cached_config_templates[config_uri] = config_template
 
         return self._cached_config_templates[config_uri].resolve_storages()
-
-
 
     def set_config_uri(self, config_uri, check_storage_path=True):
         """
@@ -260,8 +273,14 @@ class ProjectSetupParameters(object):
 
     def get_configuration_shotgun_info(self):
         """
-        Returns information about how the config relates to shotgun.
-        Returns a dictionary with shotgun pipelineconfig information,
+        Returns information about how the config that we are
+        using as a template for this project relates to shotgun.
+
+        if we are basing the project on an external configuration,
+        None is returned.
+
+        If we are basing the project on an existing project, a dictionary
+        with shotgun pipelineconfig information is returned,
         including the fields
 
         - id
@@ -308,7 +327,6 @@ class ProjectSetupParameters(object):
 
         return self._config_template.get_readme_content()
 
-
     def get_required_storages(self):
         """
         Returns a list of storage names which are required for this project.
@@ -335,6 +353,14 @@ class ProjectSetupParameters(object):
 
         return self._storage_data.get(storage_name).get("description")
 
+    def get_storage_shotgun_id(self, storage_name):
+        """
+        Given a storage name as defined in the configuration roots, return the
+        corresponding shotgun id as defined in Shotgun. If no SG storage can
+        be correlated, return None.
+        """
+        return self._storage_data.get(storage_name, {}).get("shotgun_id")
+
     def get_storage_path(self, storage_name, platform):
         """
         Returns the storage root path given a platform and a storage, as defined in Shotgun
@@ -351,6 +377,93 @@ class ProjectSetupParameters(object):
             raise TankError("Configuration template does not contain a storage with name '%s'!" % storage_name)
 
         return self._storage_data.get(storage_name).get(platform)
+
+    def update_storage_root(self, config_uri, root_name, storage_data):
+        """
+        Given a required storage root name, update the template config's storage
+        root information. See the corresponding template config method for more
+        info.
+        """
+        self._cached_config_templates[config_uri].update_storage_root(
+            root_name, storage_data)
+
+    def upload_configuration(self, pipeline_config_id):
+        """
+        Zips up and then uploads the configuration to Shotgun.
+
+        :param int pipeline_config_id: Pipeline configuration id to upload to.
+        """
+        if self._config_template is None:
+            raise TankError("Please specify a configuration template!")
+
+        # compose a filename for the zip file that will be uploaded to SG
+        # this will also be the name that is displayed on the attachment in SG
+        zip_filename = "%s.zip" % (self._config_template.version or "config")
+
+        # create a folder name which will be the folder which everything is
+        # contained inside if you unzip the configuration
+        folder_name = "config_%s" % (self._config_template.version or "unversioned")
+
+        # create a temp area where we can do our zipping
+        temp_root = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
+        filesystem.ensure_folder_exists(temp_root)
+        temp_zip = os.path.join(tempfile.gettempdir(), temp_root, zip_filename)
+        temp_config = os.path.join(tempfile.gettempdir(), temp_root, folder_name)
+
+        self._log.debug("Packaging up configuration...")
+
+        try:
+            # copy the configuration to the temp folder so we can update it.
+            self._config_template.copy_configuration(temp_config)
+
+            # update the roots.yml file in the config to
+            # match the storage selections we have made in the wizard
+            # e.g. link up a storage name e.g. 'primary' in the config
+            # against a local storage id in Shotgun.
+            #
+            # Note: We don't write any paths to the roots.yml -
+            # these are resolved at bootstrap time.
+            roots_data = {}
+            for storage_name in self.get_required_storages():
+
+                # for distributed configs, we don't include any paths
+                roots_data[storage_name] = {
+                    "windows_path": None,
+                    "linux_path": None,
+                    "mac_path": None,
+                }
+
+                # if this is the default storage,
+                # ensure it is explicitly marked in the roots file
+                if self.default_storage_name and storage_name == self.default_storage_name:
+                    roots_data[storage_name]["default"] = True
+
+                # if there is a SG local storage associated with this root, make sure
+                # it is explicit in the the roots file. this allows roots to exist that
+                # are not named the same as the storage in SG
+                sg_storage_id = self.get_storage_shotgun_id(storage_name)
+                if sg_storage_id is not None:
+                    roots_data[storage_name]["shotgun_storage_id"] = sg_storage_id
+
+            storage_roots = StorageRoots.from_metadata(roots_data)
+            storage_roots.write(self._sg, temp_config, storage_roots)
+
+            # clean up some system files
+            filesystem.safe_delete_folder(os.path.join(temp_config, "tk-metadata"))
+
+            # zip up
+            zip_file(temp_config, temp_zip)
+
+            self._log.debug("Uploading confguration to Shotgun...")
+            self._sg.upload(
+                constants.PIPELINE_CONFIGURATION_ENTITY,
+                pipeline_config_id,
+                temp_zip,
+                field_name=constants.PIPELINE_CONFIGURATION_UPLOAD_FIELD,
+            )
+        finally:
+            filesystem.safe_delete_folder(temp_root)
+
 
     def create_configuration(self, target_path):
         """
@@ -555,6 +668,24 @@ class ProjectSetupParameters(object):
         """
         return self._auto_path
 
+    def set_distribution_mode(self, mode):
+        """
+        Controls whether the setup should be deployed as a
+        centralized or distributed configuration.
+
+        :param mode: Pass ProjectSetupParameters.CENTRALIZED_CONFIG|DISTRIBUTED_CONFIG
+        """
+        self._distribution_mode = mode
+
+    def get_distribution_mode(self):
+        """
+        Returns whether the setup should be deployed as a
+        centralized or distributed configuration.
+
+        :returns: ProjectSetupParameters.CENTRALIZED_CONFIG|DISTRIBUTED_CONFIG
+        """
+        return self._distribution_mode
+
     def validate_configuration_location(self, linux_path, windows_path, macosx_path):
         """
         Performs basic I/O checks to ensure that the given configuration location is valid.
@@ -721,14 +852,39 @@ class ProjectSetupParameters(object):
         if self._config_template is None:
             raise TankError("Configuration template has not been specified!")
 
-        if self._config_path is None:
+        if self._distribution_mode == self.CENTRALIZED_CONFIG and self._config_path is None:
             raise TankError("Path to the target configuration install has not been specified!")
 
         if self._project_disk_name is None:
             raise TankError("Project disk name has not been specified!")
 
-        # get the location of the configuration
-        config_path_current_os = self.get_configuration_location(sys.platform)
+        # ensure an uploaded_config field exists if we are doing a distributed cfg
+        if self._distribution_mode == self.DISTRIBUTED_CONFIG:
+            # if the fields don't exist in shotgun, the fields will be not be returned
+            field_data = self._sg.schema_field_read("PipelineConfiguration")
+            if "uploaded_config" not in field_data:
+                raise TankError(
+                    "Shotgun site is missing a PipelineConfiguration.uploaded_config "
+                    "field, required for distributed configs to work correctly. Please update to "
+                    "a more recent version of Shotgun."
+                )
+        else:
+            # checks for centralized config
+
+            # make sure that the storage location is not the same folder
+            # as the pipeline config location. That will confuse tank.
+            config_path_current_os = self.get_configuration_location(sys.platform)
+            for storage_name in self.get_required_storages():
+
+                # get the project path for this storage
+                # note! at this point, the storage root has been checked and exists on disk.
+                project_path_local_os = self.get_project_path(storage_name, sys.platform)
+
+                if config_path_current_os == project_path_local_os:
+                    raise TankError(
+                        "Your configuration location '%s' has been set to the same "
+                        "as one of the storage locations. This is not supported!" % config_path_current_os
+                    )
 
         # validate the local storages
         for storage_name in self.get_required_storages():
@@ -736,12 +892,6 @@ class ProjectSetupParameters(object):
             # get the project path for this storage
             # note! at this point, the storage root has been checked and exists on disk.
             project_path_local_os = self.get_project_path(storage_name, sys.platform)
-
-            # make sure that the storage location is not the same folder
-            # as the pipeline config location. That will confuse tank.
-            if config_path_current_os == project_path_local_os:
-                raise TankError("Your configuration location '%s' has been set to the same "
-                                "as one of the storage locations. This is not supported!" % config_path_current_os)
 
             if not os.path.exists(project_path_local_os):
                 raise TankError("The Project path %s for storage %s does not exist on disk! "
@@ -808,16 +958,29 @@ class TemplateConfiguration(object):
         # now extract the cfg and validate
         old_umask = os.umask(0)
         try:
-            (self._cfg_folder, self._config_mode) = self._process_config(config_uri)
+            (self._cfg_folder, self._version, self._config_mode) = self._process_config(config_uri)
         finally:
             os.umask(old_umask)
         self._config_uri = config_uri
-        self._roots_data = self._read_roots_file()
 
-        # if there are more than zero storages defined, ensure one of them is the primary storage
-        if len(self._roots_data) > 0 and constants.PRIMARY_STORAGE_NAME not in self._roots_data:
-            raise TankError("Looks like your configuration does not have a primary storage. "
-                            "This is required. Please contact support for more info.")
+        # load the required storage roots for the config
+        self._storage_roots = StorageRoots.from_config(self._cfg_folder)
+
+        # if the file doesn't exist, create some defaults. if the file does
+        # exist, we'll assume that the intention is not to define any storage
+        # roots, as is the case with the basic and site config.
+        if not os.path.exists(self._storage_roots.roots_file):
+            self._storage_roots.populate_defaults()
+
+        # ensure a default root can be determined from the required roots
+        if self._storage_roots.required_roots and not self._storage_roots.default:
+            raise TankError(
+                "Looks like your configuration has required storage roots but "
+                "does not specify a default root. You can mark a storage root "
+                "as default in your config's '%s' folder by adding a `default: "
+                "true` key/value pair to a storage's definition." %
+                (self._storage_roots.STORAGE_ROOTS_FILE_PATH,)
+            )
 
         # see if there is a readme file
         self._readme_content = []
@@ -842,7 +1005,7 @@ class TemplateConfiguration(object):
                     self._manifest = yaml.load(file_data)
                 finally:
                     file_data.close()
-            except Exception, e:
+            except Exception as e:
                 raise TankError("Cannot load configuration manifest '%s'. Error: %s" % (info_yml, e))
 
             # perform checks
@@ -879,52 +1042,9 @@ class TemplateConfiguration(object):
             self._sg,
             Descriptor.CONFIG,
             {"type": "git_branch", "path": git_uri, "branch": "master"},
-            resolve_latest=True
+            resolve_latest=True,
+            local_fallback_when_disconnected=False,
         )
-
-    def _read_roots_file(self):
-        """
-        Read, validate and return the roots data from the config.
-        Example return data structure:
-
-        { "primary": {"description":  "desc",
-                      "mac_path":     "/asd",
-                      "linux_path":   None,
-                      "windows_path": "/asd" }
-        }
-
-        :returns: A dictionary for keyed by storage
-        """
-        # get the roots definition
-        root_file_path = os.path.join(self._cfg_folder, "core", constants.STORAGE_ROOTS_FILE)
-        if os.path.exists(root_file_path):
-            root_file = open(root_file_path, "r")
-            try:
-                # if file is empty, initializae with empty dict...
-                roots_data = yaml.load(root_file) or {}
-            finally:
-                root_file.close()
-
-            # validate it
-            for x in roots_data:
-                if "mac_path" not in roots_data[x]:
-                    roots_data[x]["mac_path"] = None
-                if "linux_path" not in roots_data[x]:
-                    roots_data[x]["linux_path"] = None
-                if "windows_path" not in roots_data[x]:
-                    roots_data[x]["windows_path"] = None
-
-        else:
-            # set up default roots data
-            roots_data = { constants.PRIMARY_STORAGE_NAME:
-                            { "description": "A location where the primary data is located.",
-                              "mac_path": "/studio/projects",
-                              "linux_path": "/studio/projects",
-                              "windows_path": "\\\\network\\projects"
-                            },
-                          }
-
-        return roots_data
 
     def _process_config_zip(self, zip_path):
         """
@@ -936,7 +1056,7 @@ class TemplateConfiguration(object):
         # unzip into temp location
         self._log.debug("Unzipping configuration and inspecting it...")
         zip_unpack_tmp = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
-        unzip_file(zip_path, zip_unpack_tmp)
+        unzip_file(zip_path, zip_unpack_tmp, auto_detect_bundle=True)
         template_items = os.listdir(zip_unpack_tmp)
         for item in ["core", "env", "hooks"]:
             if item not in template_items:
@@ -979,7 +1099,7 @@ class TemplateConfiguration(object):
             self._log.info("Hang on, loading configuration from git...")
             descriptor = self._create_git_descriptor(config_uri)
             descriptor.ensure_local()
-            return descriptor.get_path(), "git"
+            return descriptor.get_path(), descriptor.version, "git"
 
         elif os.path.sep in config_uri:
             # probably a file path!
@@ -987,10 +1107,10 @@ class TemplateConfiguration(object):
                 # either a folder or zip file!
                 if config_uri.endswith(".zip"):
                     self._log.info("Hang on, unzipping configuration...")
-                    return (self._process_config_zip(config_uri), "zip")
+                    return self._process_config_zip(config_uri), None, "zip"
                 else:
                     self._log.info("Hang on, loading configuration...")
-                    return (self._process_config_dir(config_uri), self._LOCAL)
+                    return self._process_config_dir(config_uri), None, self._LOCAL
             else:
                 raise TankError("File path %s does not exist on disk!" % config_uri)
 
@@ -1002,17 +1122,31 @@ class TemplateConfiguration(object):
                 self._sg,
                 Descriptor.CONFIG,
                 {"type": "app_store", "name": config_uri},
-                resolve_latest=True
+                resolve_latest=True,
+                local_fallback_when_disconnected=False
             )
             descriptor.ensure_local()
-
-            return (descriptor.get_path(), "app_store")
+            return descriptor.get_path(), descriptor.version, "app_store"
 
         else:
             raise TankError("Don't know how to handle config '%s'" % config_uri)
 
     ################################################################################################
     # Public interface
+
+    @property
+    def default_storage_name(self):
+        """
+        The default storage name for this template configuration.
+        """
+        return self._storage_roots.default
+
+    @property
+    def version(self):
+        """
+        Version number string for this config or none if no version is defined.
+        """
+        return self._version
 
     def resolve_storages(self):
         """
@@ -1056,58 +1190,61 @@ class TemplateConfiguration(object):
         :returns: dictionary with storage breakdown, see example above.
         """
 
-        return_data = {}
+        # a dictionary of info to return
+        storage_info = {}
 
-        self._log.debug("Checking so that all the local storages are registered...")
-        sg_storage = self._sg.find("LocalStorage",
-                                   [],
-                                   fields=["id", "code", "linux_path", "mac_path", "windows_path"])
+        # do the storage lookup and mapping in SG
+        (local_storage_lookup, unmapped_roots) = \
+            self._storage_roots.get_local_storages(self._sg)
 
-        # make sure that there is a storage in shotgun matching all storages for this config
-        sg_storage_codes = [x.get("code") for x in sg_storage]
-        cfg_storages = self._roots_data.keys()
+        default_storage_name = self._storage_roots.default
 
-        for s in cfg_storages:
+        # process each required storage root and populate the info dict
+        for root_name, root_info in self._storage_roots:
 
-            return_data[s] = { "description": self._roots_data[s].get("description"),
-                               "shotgun_id": None,
-                               "darwin": None,
-                               "win32": None,
-                               "linux2": None}
+            # description
+            storage_info[root_name] = {
+                "description": root_info.get("description"),
+            }
 
-            if s not in sg_storage_codes:
-                return_data[s]["defined_in_shotgun"] = False
-                return_data[s]["exists_on_disk"] = False
+            # default
+            if default_storage_name and default_storage_name == root_name:
+                storage_info[root_name]["default"] = True
+
+            # path key defaults
+            for key in StorageRoots.PLATFORM_KEYS:
+                storage_info[root_name][key] = root_info.get(key)
+
+            if root_name in unmapped_roots:
+                # not mapped to a storage in SG
+                storage_info[root_name]["shotgun_id"] = None
+                storage_info[root_name]["defined_in_shotgun"] = False
+                storage_info[root_name]["exists_on_disk"] = False
             else:
-                return_data[s]["defined_in_shotgun"] = True
+                # mapped to a SG storage
+                local_storage = local_storage_lookup[root_name]
 
-                # find the sg storage paths and add to return data
-                for x in sg_storage:
+                storage_info[root_name]["defined_in_shotgun"] = True
+                storage_info[root_name]["shotgun_id"] = local_storage["id"]
 
-                    if x.get("code") == s:
+                # populate the platform path keys
+                storage_info[root_name]["darwin"] = local_storage["mac_path"]
+                storage_info[root_name]["linux2"] = local_storage["linux_path"]
+                storage_info[root_name]["win32"] = local_storage["windows_path"]
 
-                        # copy the storage paths across
-                        return_data[s]["darwin"] = x.get("mac_path")
-                        return_data[s]["linux2"] = x.get("linux_path")
-                        return_data[s]["win32"] = x.get("windows_path")
-                        return_data[s]["shotgun_id"] = x.get("id")
+                sg_path = ShotgunPath.from_shotgun_dict(local_storage)
 
-                        # get the local path
-                        local_storage_path = x.get(ShotgunPath.get_shotgun_storage_key())
+                # see if the current os path is defined
+                local_path = sg_path.current_os
 
-                        if local_storage_path is None:
-                            # shotgun has no path for our local storage
-                            return_data[s]["exists_on_disk"] = False
+                if not local_path or not os.path.exists(local_path):
+                    # no path defined or it doesn't exist
+                    storage_info[root_name]["exists_on_disk"] = False
+                else:
+                    # path exists!
+                    storage_info[root_name]["exists_on_disk"] = True
 
-                        elif not os.path.exists(local_storage_path):
-                            # path is defined but cannot be found
-                            return_data[s]["exists_on_disk"] = False
-
-                        else:
-                            # path exists! yay!
-                            return_data[s]["exists_on_disk"] = True
-
-        return return_data
+        return storage_info
 
     def get_required_core_version(self):
         """
@@ -1179,6 +1316,17 @@ class TemplateConfiguration(object):
         return self._manifest.get("description")
 
     @filesystem.with_cleared_umask
+    def copy_configuration(self, target_path):
+        """
+        Copies the configuration to the given path.
+        If the target_path does not exist, it will be created.
+
+        :param target_path: Path where config will be copied
+        """
+        # copy the config from its source location into place
+        filesystem.copy_folder(self._cfg_folder, target_path)
+
+    @filesystem.with_cleared_umask
     def create_configuration(self, target_path):
         """
         Creates the configuration folder in the target path
@@ -1193,4 +1341,28 @@ class TemplateConfiguration(object):
             # copy the config from its source location into place
             filesystem.copy_folder(self._cfg_folder, target_path)
 
+    def update_storage_root(self, root_name, storage_data):
+        """
+        Given a required storage root name, update the template config's storage
+        root information.
 
+        The data is in the same form as the required roots dictionary stored in
+        the config's root.yml file. Example::
+
+            {
+                "description": "A top-level root folder for production data...",
+                "mac_path": "/shotgun/prod",
+                "linux_path": "/shotgun/prod",
+                "windows_path": "C:\shotgun\prod",
+                "default": True,
+                "shotgun_storage_id": 1,
+            }
+
+        Not all fields are required to be specified. Only the supplied fields
+        will be updated on the existing storage data.
+
+        :param root_name: The name of a root to update.
+        :param storage_data: A dctionary
+        :return:
+        """
+        self._storage_roots.update_root(root_name, storage_data)

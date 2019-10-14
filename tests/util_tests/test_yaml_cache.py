@@ -15,9 +15,11 @@ import sgtk
 from sgtk.util.yaml_cache import YamlCache
 from sgtk import TankError
 from tank_vendor import yaml
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import ShotgunTestBase
+from tank_test.tank_test_base import setUpModule # noqa
 
-class TestYamlCache(TankTestBase):
+
+class TestYamlCache(ShotgunTestBase):
     """
     Tests to ensure that the YamlCache behaves correctly
     """
@@ -26,7 +28,7 @@ class TestYamlCache(TankTestBase):
         """
         Construction
         """
-        TankTestBase.__init__(self, *args, **kwargs)
+        ShotgunTestBase.__init__(self, *args, **kwargs)
 
         # data root for all test data:
         self._data_root = os.path.join(self.fixtures_root, "misc", "yaml_cache")
@@ -87,18 +89,18 @@ class TestYamlCache(TankTestBase):
         read_data = yaml_cache.get(yaml_path)
 
         # check the read data matches the input data:
-        self.assertEquals(read_data, test_data)
+        self.assertEqual(read_data, test_data)
 
         # 2. Ensure that the data returned is a copy of the cached data
         #
 
         # inspect the cache itself and make sure that the data returned is a copy 
         # of the internal cached data and not the internal cached data itself:
-        self.assertEquals(len(yaml_cache._cache), 1)
-        self.assertEquals(yaml_cache._cache.keys()[0], yaml_path)
-        self.assertEquals(yaml_cache._cache.values()[0]["data"], read_data)
+        self.assertEqual(len(yaml_cache._cache), 1)
+        self.assertEqual(yaml_cache._cache.keys()[0], yaml_path)
+        self.assertEqual(yaml_cache._cache.values()[0]["data"], read_data)
         cached_data_id = id(yaml_cache._cache.values()[0]["data"])
-        self.assertNotEquals(cached_data_id, id(read_data))
+        self.assertNotEqual(cached_data_id, id(read_data))
 
         # 3. Check that the data doesn't get reloaded if it hasn't changed
         #
@@ -107,9 +109,9 @@ class TestYamlCache(TankTestBase):
         read_data = yaml_cache.get(yaml_path)
 
         # ...and check that the cached data is exactly the same (has the same id):
-        self.assertEquals(len(yaml_cache._cache), 1)
+        self.assertEqual(len(yaml_cache._cache), 1)
         new_cached_data_id = id(yaml_cache._cache.values()[0]["data"])
-        self.assertEquals(cached_data_id, new_cached_data_id)
+        self.assertEqual(cached_data_id, new_cached_data_id)
 
         # 4. Check that the data does get reloaded if it has changed:
         #
@@ -125,7 +127,7 @@ class TestYamlCache(TankTestBase):
         read_data = yaml_cache.get(yaml_path)
 
         # ...and check that the data in the cache has been updated:
-        self.assertEquals(read_data, modified_test_data)
+        self.assertEqual(read_data, modified_test_data)
 
 
 

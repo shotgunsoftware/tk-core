@@ -16,13 +16,11 @@ Defines the base class for all Tank Frameworks.
 import os
 
 from ..util.loader import load_plugin
-from . import constants 
+from . import constants
 
 from ..errors import TankError
 from .bundle import TankBundle
 from . import validation
-from ..util import log_user_activity_metric
-
 
 class Framework(TankBundle):
     """
@@ -48,9 +46,8 @@ class Framework(TankBundle):
 
         # init base class
         TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor, env, logger)
-        
 
-    def __repr__(self):        
+    def __repr__(self):
         return "<Sgtk Framework 0x%08x: %s, engine: %s>" % (id(self), self.name, self.engine)
 
     def _destroy_framework(self):
@@ -66,7 +63,7 @@ class Framework(TankBundle):
         self.destroy_framework()
 
     ##########################################################################################
-    # properties
+    # Public methods and properties
         
     @property
     def shotgun(self):
@@ -121,6 +118,21 @@ class Framework(TankBundle):
         framework code.
         """
         return self.descriptor.is_shared_framework()
+
+    def get_metrics_properties(self):
+        """
+        Returns a dictionary with properties to use when emitting a metric event
+        for this framework in the current engine.
+
+        Frameworks don't have any particular properties and just return the result
+        of :meth:`Engine.get_metrics_properties`.
+
+        :returns: Dictionary as per above.
+        """
+        # Please note that before we used to log some framework information as well
+        # Now we just add the engine information.
+        properties = self.engine.get_metrics_properties()
+        return properties
         
     ##########################################################################################
     # init and destroy
@@ -198,59 +210,38 @@ class Framework(TankBundle):
         """
         self.logger.exception(msg)
 
-
-    ##########################################################################################
-    # internal API
-
-    def log_metric(self, action, log_once=False):
-        """Logs a framework metric.
-
-        :param action: Action string to log, e.g. 'Execute Action'
-        :param bool log_once: ``True`` if this metric should be ignored if it
-            has already been logged. Defaults to ``False``.
-
-        Logs a user activity metric as performed within framework code. This is
-        a convenience method that auto-populates the module portion of
-        `tank.util.log_user_activity_metric()`.
-
-        Internal Use Only - We provide no guarantees that this method
-        will be backwards compatible.
-
-        """
-        # the action contains the engine and framework name, e.g.
-        # module: tk-framework-perforce
-        # action: (tk-maya) tk-framework-perforce - Connected
-        full_action = "(%s) %s %s" % (self.engine.name, self.name, action)
-        log_user_activity_metric(self.name, full_action, log_once=log_once)
-
-
 ###################################################################################################
 #
 # Helper methods for loading frameworks
 #
+
 
 def setup_frameworks(engine_obj, parent_obj, env, parent_descriptor):
     """
     Checks if any frameworks are needed for the current item
     and in that case loads them - recursively
     """
-    
+
     # look into the environment, get descriptors for all frameworks that our item needs:
     framework_instance_names = validation.validate_and_return_frameworks(parent_descriptor, env)
-    
+
     # looks like all of the frameworks are valid! Load them one by one
-    for fw_inst_name in framework_instance_names:
-        
-        engine_obj.log_debug("%s - loading framework %s" % (parent_obj, fw_inst_name))
-        
+    for fw_name, fw_inst_name in framework_instance_names:
+        # fw_name refers to the name of the framework as specified in the info.yml
+        # fw_inst_name refer to the name of the framework in the frameworks: section
+        # of the environment.
+        #
+        # While we load the latter from the configuration file, application code does not
+        # care about the instance name and want to access the framework using the
+        # name specified in info.yml.
+        engine_obj.logger.debug("Registering instance %s as %s in %s", fw_inst_name, fw_name, parent_obj)
+
         # load framework
         # this only occurs once per instance name for shared frameworks
         fw_obj = load_framework(engine_obj, env, fw_inst_name)
-        
+
         # note! frameworks are keyed by their code name, not their instance name
-        parent_obj.frameworks[fw_obj.name] = fw_obj
-        
-        
+        parent_obj.frameworks[fw_name] = fw_obj
 
 
 def load_framework(engine_obj, env, fw_instance_name):
@@ -295,11 +286,11 @@ def load_framework(engine_obj, env, fw_instance_name):
                                      fw_schema, 
                                      fw_settings)
 
-    except TankError, e:
+    except TankError as e:
         # validation error - probably some issue with the settings!
         raise TankError("Framework configuration Error for %s: %s" % (fw_instance_name, e))
 
-    except Exception, e:
+    except Exception as e:
         # code execution error in the validation. 
         raise TankError("Could not validate framework %s: %s" % (fw_instance_name, e))
 

@@ -19,7 +19,6 @@ import fnmatch
 from .folder_types import Static, ListField, Entity, Project, UserWorkspace, ShotgunStep, ShotgunTask
 
 from ..errors import TankError, TankUnreadableFileError
-from . import constants
 from ..util import yaml_cache
 
 
@@ -163,7 +162,7 @@ class FolderConfiguration(object):
 
             try:
                 metadata = yaml_cache.g_yaml_cache.get(full_path, deepcopy_data=False) or {}
-            except Exception, error:
+            except Exception as error:
                 raise TankError("Cannot load config file '%s'. Error: %s" % (full_path, error))
 
             if "target" not in metadata:
@@ -194,7 +193,7 @@ class FolderConfiguration(object):
             metadata = yaml_cache.g_yaml_cache.get(yml_file, deepcopy_data=False)
         except TankUnreadableFileError:
             pass
-        except Exception, error:
+        except Exception as error:
             raise TankError("Cannot load config file '%s'. Error: %s" % (yml_file, error))
 
         return metadata
@@ -220,9 +219,21 @@ class FolderConfiguration(object):
 
             if metadata is None:
                 if os.path.basename(project_folder) == "project":
-                    # this is a project folder with no project.yml file specified
-                    # in this case, just assume it is the primary storage 
-                    metadata = {"type": "project", "root_name": constants.PRIMARY_STORAGE_NAME}
+
+                    # get the default root name from the config
+                    default_root = self._tk.pipeline_configuration.get_primary_data_root_name()
+
+                    if not default_root:
+                        raise TankError(
+                            "Unable to identify a default storage root to use "
+                            "while loading the project schema. Check your "
+                            "config's roots.yml file to ensure at least one "
+                            "storage root is defined. You can specify the "
+                            "default root by adding a `default: true` "
+                            "key/value to a root's definition."
+                        )
+
+                    metadata = {"type": "project", "root_name": default_root}
                 else:
                     raise TankError("Project directory missing required yml file: %s.yml" % project_folder)
 

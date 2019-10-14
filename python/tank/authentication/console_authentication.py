@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Console based authentication. This module implements UX and prompting for a 
+Console based authentication. This module implements UX and prompting for a
 workflow where the user gets prompted via stdin/stdout.
 
 --------------------------------------------------------------------------------
@@ -18,14 +18,37 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
+from __future__ import print_function
+
 from . import session_cache
 from .. import LogManager
-from .errors import AuthenticationError, AuthenticationCancelled
+from .errors import (
+    AuthenticationError,
+    AuthenticationCancelled,
+    ConsoleLoginNotSupportedError,
+)
 from tank_vendor.shotgun_api3 import MissingTwoFactorAuthenticationFault
+from .sso_saml2 import (
+    is_autodesk_identity_enabled_on_site,
+    is_sso_enabled_on_site,
+)
+from ..util.shotgun.connection import sanitize_url
 
 from getpass import getpass
 
 logger = LogManager.get_logger(__name__)
+
+
+def _assert_console_session_is_supported(hostname, http_proxy):
+    """
+    Simple utility method which will raise an exception if using a
+    username/password pair is not supported by the Shotgun server.
+    Which is the case when using SSO or Autodesk Identity.
+    """
+    if is_sso_enabled_on_site(hostname, http_proxy):
+        raise ConsoleLoginNotSupportedError(hostname, "Single Sign-On")
+    if is_autodesk_identity_enabled_on_site(hostname, http_proxy):
+        raise ConsoleLoginNotSupportedError(hostname, "Autodesk Identity")
 
 
 class ConsoleAuthenticationHandlerBase(object):
@@ -43,7 +66,7 @@ class ConsoleAuthenticationHandlerBase(object):
         :param hostname: Host to renew a token for.
         :param login: User to renew a token for.
         :param http_proxy: Proxy to use for the request. Can be None.
-        :returns: The (hostname, login, session token) tuple.
+        :returns: The (hostname, login, session_token, session_metadata) tuple.
         :raises AuthenticationCancelled: If the user aborts the login process, this exception
                                          is raised.
 
@@ -52,10 +75,10 @@ class ConsoleAuthenticationHandlerBase(object):
         while True:
             # Get the credentials from the user
             try:
-                hostname, login, password = self._get_user_credentials(hostname, login)
+                hostname, login, password = self._get_user_credentials(hostname, login, http_proxy)
             except EOFError:
                 # Insert a \n on the current line so the print is displayed on a new time.
-                print
+                print()
                 raise AuthenticationCancelled()
 
             try:
@@ -63,7 +86,7 @@ class ConsoleAuthenticationHandlerBase(object):
                     # Try to generate a session token and return the user info.
                     return hostname, login, session_cache.generate_session_token(
                         hostname, login, password, http_proxy
-                    )
+                    ), None
                 except MissingTwoFactorAuthenticationFault:
                     # session_token was None, we need 2fa.
                     code = self._get_2fa_code()
@@ -71,14 +94,14 @@ class ConsoleAuthenticationHandlerBase(object):
                     # the code is invalid or already used, it will be caught by the except clause beneath.
                     return hostname, login, session_cache.generate_session_token(
                         hostname, login, password, http_proxy, auth_token=code
-                    )
+                    ), None
             except AuthenticationError:
                 # If any combination of credentials are invalid (user + invalid pass or
                 # user + valid pass + invalid 2da code) we'll end up here.
-                print "Login failed."
-                print
+                print("Login failed.")
+                print()
 
-    def _get_user_credentials(self, hostname, login):
+    def _get_user_credentials(self, hostname, login, http_proxy):
         """
         Prompts the user for his credentials.
         :param host Host to authenticate for.
@@ -150,15 +173,19 @@ class ConsoleRenewSessionHandler(ConsoleAuthenticationHandlerBase):
     renew_session methods.
     """
 
-    def _get_user_credentials(self, hostname, login):
+    def _get_user_credentials(self, hostname, login, http_proxy):
         """
         Reads the user password from the keyboard.
         :param hostname: Name of the host we will be logging on.
         :param login: Current user
+        :param http_proxy: Proxy to connect to when authenticating.
         :returns: The (hostname, login, plain text password) tuple.
         """
-        print "%s, your current session has expired." % login
-        print "Please enter your password to renew your session for %s" % hostname
+        print("%s, your current session has expired." % login)
+
+        _assert_console_session_is_supported(hostname, http_proxy)
+
+        print("Please enter your password to renew your session for %s" % hostname)
         return hostname, login, self._get_password()
 
 
@@ -176,18 +203,23 @@ class ConsoleLoginHandler(ConsoleAuthenticationHandlerBase):
         super(ConsoleLoginHandler, self).__init__()
         self._fixed_host = fixed_host
 
-    def _get_user_credentials(self, hostname, login):
+    def _get_user_credentials(self, hostname, login, http_proxy):
         """
         Reads the user credentials from the keyboard.
         :param hostname: Name of the host we will be logging on.
         :param login: Default value for the login.
+        :param http_proxy: Proxy to connect to when authenticating.
         :returns: A tuple of (login, password) strings.
         """
         if self._fixed_host:
-            print "Please enter your login credentials for %s" % hostname
+            _assert_console_session_is_supported(hostname, http_proxy)
+            print("Please enter your login credentials for %s" % hostname)
+
         else:
-            print "Please enter your login credentials."
+            print("Please enter your login credentials.")
             hostname = self._get_keyboard_input("Host", hostname)
+            _assert_console_session_is_supported(hostname, http_proxy)
+
         login = self._get_keyboard_input("Login", login)
         password = self._get_password()
-        return hostname, login, password
+        return sanitize_url(hostname), login, password

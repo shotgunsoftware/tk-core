@@ -80,13 +80,13 @@ def execute_folder_creation_proxy(self):
                 db_entries.append( {"entity": i["entity"], 
                                     "path": i["path"], 
                                     "primary": True, 
-                                    "metadata": i["metadata"]} )
+                                    "metadata": i["metadata"]})
                 
         for i in self._secondary_cache_entries:
             db_entries.append( {"entity": i["entity"], 
                                 "path": i["path"], 
                                 "primary": False, 
-                                "metadata": i["metadata"]} )
+                                "metadata": i["metadata"]})
         
         
         
@@ -95,7 +95,7 @@ def execute_folder_creation_proxy(self):
         # to properly cover some edge cases        
         try:
             path_cache.validate_mappings(db_entries)
-        except TankError, e:                
+        except TankError as e:                
             # ok folders created for synced stuff. Now re-raise validation error
             raise TankError("Folder creation aborted: %s" % e) 
         

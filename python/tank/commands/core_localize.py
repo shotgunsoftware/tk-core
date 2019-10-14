@@ -11,10 +11,8 @@
 # make sure that py25 has access to with statement
 from __future__ import with_statement
 
-
 import os
 import sys
-import stat
 import shutil
 import datetime
 
@@ -22,10 +20,8 @@ from ..errors import TankError
 from ..util import filesystem
 from ..util.version import is_version_older
 from .action_base import Action
-from . import console_utils
 from .. import pipelineconfig_utils
 from .. import pipelineconfig_factory
-
 
 # these are the items that need to be copied across
 # when a configuration is upgraded to contain a core API
@@ -52,7 +48,6 @@ class CoreLocalizeAction(Action):
         # this method can be executed via the API
         self.supports_api = True
 
-
     def run_noninteractive(self, log, parameters):
         """
         Tank command API accessor.
@@ -63,7 +58,12 @@ class CoreLocalizeAction(Action):
         """
         pc_root = self.tk.pipeline_configuration.get_path()
         log.debug("Executing the localize command for %r" % self.tk)
-        return do_localize(log, pc_root, suppress_prompts=True)
+        return do_localize(
+            log,
+            self.tk.shotgun,
+            pc_root,
+            self._interaction_interface
+        )
 
     def run_interactive(self, log, args):
         """
@@ -77,65 +77,119 @@ class CoreLocalizeAction(Action):
 
         pc_root = self.tk.pipeline_configuration.get_path()
         log.debug("Executing the localize command for %r" % self.tk)
-        return do_localize(log, pc_root, suppress_prompts=False)
+        return do_localize(
+            log,
+            self.tk.shotgun,
+            pc_root,
+            self._interaction_interface
+        )
 
 
-def do_localize(log, pc_root_path, suppress_prompts):
+def do_localize(log, sg_connection, target_config_path, interaction_interface):
     """
     Perform the actual localize command.
 
     :param log: logging object
-    :param pc_root_path: Path to the config that should be localized.
-    :param suppress_prompts: Boolean to indicate if no questions should be asked.
+    :param sg_connection: An open shotgun connection
+    :param str target_config_path: Path to the config that should be localized.
+    :param interaction_interface: Interface to use to interact with the user
     """
-    pipeline_config = pipelineconfig_factory.from_path(pc_root_path)
+
+    # the configuration to localize
+    target_pipeline_config = pipelineconfig_factory.from_path(
+        target_config_path)
+
+    # the core install location for the current config. this will be resolved to
+    # a linked config or the config where the running core lives
+    source_config_path = target_pipeline_config.get_install_location()
 
     log.info("")
-    if pipeline_config.is_localized():
-        raise TankError("Looks like your current pipeline configuration already has a local install of the core!")
+    if target_pipeline_config.is_localized():
+        # if we're here, there's already a core in the config's install folder
+        raise TankError(
+            "Looks like your current pipeline configuration already has a "
+            "local install of the core!"
+        )
 
-    core_api_root = pipeline_config.get_install_location()
+    # if a core descriptor is supplied, ensure it is cached locally and use it
+    # as the core to localize.
+    if pipelineconfig_utils.has_core_descriptor(target_config_path):
+        core_descriptor = pipelineconfig_utils.get_core_descriptor(
+            target_config_path,
+            sg_connection
+        )
+        core_descriptor.ensure_local()
+        source_core_path = core_descriptor.get_path()
+        source_core_version = core_descriptor.get_version()
 
-    log.info("This will copy the Core API in %s \ninto the Pipeline configuration %s." % (core_api_root, pc_root_path))
+        log.info(
+            "Core descriptor %s, specified in core/core_api.yml, "
+            "will be installed." % (core_descriptor.get_uri())
+        )
+
+    else:
+        # fall back to using the core that exists in the source config
+        source_core_path = os.path.join(
+            source_config_path,
+            "install",
+            "core"
+        )
+
+        # resolve the version of core
+        source_core_version = \
+            target_pipeline_config.get_associated_core_version()
+
+        log.info(
+            "This will copy the Core API in %s \n"
+            "into the Pipeline configuration %s." %
+            (source_core_path, target_config_path)
+        )
+
     log.info("")
-    if not suppress_prompts:
-        # check with user if they wanna continue
-        if not console_utils.ask_yn_question("Do you want to proceed"):
-            # user says no!
-            log.info("Operation cancelled.")
-            return
+    # check with user if they wanna continue
+    if not interaction_interface.ask_yn_question("Do you want to proceed"):
+        # user says no!
+        log.info("Operation cancelled.")
+        return
 
-    # see what version of core is bundled with this config
-    core_version = pipeline_config.get_associated_core_version()
-
-    log.debug("About to localize '%s'" % pc_root_path)
-    log.debug("Associated core is '%s', version %s" % (core_api_root, core_version))
-    log.debug("The version of core running this code is %s" % pipelineconfig_utils.get_currently_running_api_version())
+    log.debug("About to localize '%s'" % target_config_path)
+    log.debug(
+        "Associated core is '%s', version %s" %
+        (source_core_path, source_core_version)
+    )
+    log.debug(
+        "The version of core running this code is %s" %
+        pipelineconfig_utils.get_currently_running_api_version()
+    )
 
     # proceed with setup
     log.info("")
 
+    # define the install paths for the source and target configs
+    source_install_path = os.path.join(source_config_path, "install")
+    target_install_path = os.path.join(target_config_path, "install")
+
     try:
 
-        # step one - localize all bundles
+        # ---- Step 1: Localize all bundles...
 
-        if is_version_older(core_version, "v0.18.0"):
-            # now if we are localizing a pre-0.18 core, it means we are using modern
-            # (post 0.18) core code to copy a 0.17 core across into the configuration
-            # in this case, the old storage logic for descriptors applies. We handle this
-            # by brute forcing it and copying all items across in the install folder.
+        if is_version_older(source_core_version, "v0.18.0"):
+            # now if we are localizing a pre-0.18 core, it means we are using
+            # modern (post 0.18) core code to copy a 0.17 core across into the
+            # configuration in this case, the old storage logic for descriptors
+            # applies. We handle this by brute forcing it and copying all items
+            # across in the install folder.
 
-            log.debug("Using a 0.18 core to localize a 0.17 core. Falling back on blanket copy of install.")
+            log.debug(
+                "Using a 0.18 core to localize a 0.17 core. Falling back on "
+                "blanket copy of install."
+            )
 
-            # copy all the contents of the install location across except
-            # for the contents in the core and core.backup folders - these are handled
-            # explicitly later on
+            # copy all the contents of the install location across except for
+            # the contents in the core and core.backup folders - these are
+            # handled explicitly later on
 
-            source_install_path = os.path.join(core_api_root, "install")
-            target_install_path = os.path.join(pc_root_path, "install")
-
-            names = os.listdir(source_install_path)
-            for name in names:
+            for name in os.listdir(source_install_path):
 
                 if name in ["core", "core.backup"]:
                     # skip now and handle separately
@@ -156,9 +210,9 @@ def do_localize(log, pc_root_path, suppress_prompts):
             # First get a list of all bundle descriptors.
             # Key by descriptor uri, which ensures no repetition.
             descriptors = {}
-            for env_name in pipeline_config.get_environments():
+            for env_name in target_pipeline_config.get_environments():
 
-                env_obj = pipeline_config.get_environment(env_name)
+                env_obj = target_pipeline_config.get_environment(env_name)
 
                 for engine in env_obj.get_engines():
                     descriptor = env_obj.get_engine_descriptor(engine)
@@ -172,60 +226,79 @@ def do_localize(log, pc_root_path, suppress_prompts):
                     descriptor = env_obj.get_framework_descriptor(framework)
                     descriptors[descriptor.get_uri()] = descriptor
 
-            # Now re-cache all the relevant apps into the new install location.
-            target_bundle_cache_root = os.path.join(pc_root_path, "install")
-
             for idx, descriptor in enumerate(descriptors.itervalues()):
                 # print one based indices for more human friendly output
-                log.info("%s/%s: Copying %s..." % (idx + 1, len(descriptors), descriptor))
-                descriptor.clone_cache(target_bundle_cache_root)
+                log.info(
+                    "%s/%s: Copying %s..." %
+                    (idx + 1, len(descriptors), descriptor)
+                )
+                descriptor.clone_cache(target_install_path)
 
+        # ---- Step 2: Backup the target core and copy the new core across...
 
-        # Step 2: Backup the target core and copy the new core across.
-        source_core = os.path.join(core_api_root, "install", "core")
-        target_core = os.path.join(pc_root_path, "install", "core")
-        backup_location = os.path.join(pc_root_path, "install", "core.backup")
+        # construct paths to the installed "core" and "core.backup" folders in
+        # the target config
+        target_core_path = os.path.join(target_install_path, "core")
+        target_core_backup_path = os.path.join(
+            target_install_path, "core.backup")
 
         log.info("Backing up existing Core API...")
-        backup_folder_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_path = os.path.join(backup_location, backup_folder_name)
-        src_files = filesystem.copy_folder(target_core, backup_path)
 
+        # timestamped folder name in "core.backup"
+        target_core_backup_folder_name = datetime.datetime.now().strftime(
+            "%Y%m%d_%H%M%S")
+
+        # full path to the core backup folder (including timestamped folder)
+        target_core_backup_folder_path = os.path.join(
+            target_core_backup_path, target_core_backup_folder_name)
+
+        # do the actual copy of whatever's currently in "install/core" to the
+        # timestampted backup folder
+        src_files = filesystem.copy_folder(
+            target_core_path, target_core_backup_folder_path)
+
+        # clean out the "core" folder
         log.debug("Clearing out core target location...")
         for f in src_files:
             filesystem.safe_delete_file(f)
 
-        log.info("Copying Core %s \nto %s" % (source_core, target_core))
-        filesystem.copy_folder(source_core, target_core)
+        log.info(
+            "Copying Core %s \nto %s" %
+            (source_core_path, target_core_path)
+        )
+        filesystem.copy_folder(source_core_path, target_core_path)
 
         # Step 3: Copy some core config files across.
         log.info("Copying Core configuration files...")
         for fn in CORE_FILES_FOR_LOCALIZE:
-            src = os.path.join(core_api_root, "config", "core", fn)
-            tgt = os.path.join(pc_root_path, "config", "core", fn)
+            src = os.path.join(source_config_path, "config", "core", fn)
+            tgt = os.path.join(target_config_path, "config", "core", fn)
             log.debug("Copy %s -> %s" % (src, tgt))
-            # If we're copying any other file than app_store.yml, it is mandatory. If we're copying
-            # app_store.yml, only copy it if it exists This is because when you are localizing a
-            # core, app_store.yml might be present or not depending if you are migrating a core
-            # configured with a pre Shotgun 6 or post Shotgun 6 site. In the later, AppStore
-            # credentials can be retrieved using a session token and therefore we don't need the
-            # AppStore credentials to be saved on disk.
-            if fn != "app_store.yml" or os.path.exists(src):
-                filesystem.copy_file(src, tgt, permissions=0666)
 
-    except Exception, e:
+            # If we're copying any other file than app_store.yml, it is
+            # mandatory. If we're copying app_store.yml, only copy it if it
+            # exists. This is because when you are localizing a core,
+            # app_store.yml might be present or not depending if you are
+            # migrating a core configured with a pre Shotgun 6 or post Shotgun 6
+            # site. In the latter, AppStore credentials can be retrieved using a
+            # session token and therefore we don't need the AppStore credentials
+            # to be saved on disk.
+            if fn != "app_store.yml" or os.path.exists(src):
+                filesystem.copy_file(src, tgt, permissions=0o666)
+
+    except Exception as e:
         log.exception("Could not localize Toolkit API.")
         raise TankError("Could not localize Toolkit API: %s" % e)
 
     log.info("The Core API was successfully localized.")
 
     log.info("")
-    log.info("Localize complete! This pipeline configuration now has an independent API.")
+    log.info(
+        "Localize complete! "
+        "This pipeline configuration now has an independent API."
+    )
     log.info("")
     log.info("")
-
-
-
 
 
 class ShareCoreAction(Action):
@@ -279,13 +352,15 @@ class ShareCoreAction(Action):
         # validate params and seed default values
         computed_params = self._validate_parameters(parameters)
 
-        return _run_unlocalize(self.tk,
-                               log,
-                               computed_params["core_path_mac"],
-                               computed_params["core_path_win"],
-                               computed_params["core_path_linux"],
-                               copy_core=True,
-                               suppress_prompts=True)
+        return _run_unlocalize(
+            self.tk,
+            log,
+            computed_params["core_path_mac"],
+            computed_params["core_path_win"],
+            computed_params["core_path_linux"],
+            self._interaction_interface,
+            copy_core=True,
+        )
 
 
     def run_interactive(self, log, args):
@@ -318,13 +393,15 @@ class ShareCoreAction(Action):
         windows_path = args[1]
         mac_path = args[2]
 
-        return _run_unlocalize(self.tk,
-                               log,
-                               mac_path,
-                               windows_path,
-                               linux_path,
-                               copy_core=True,
-                               suppress_prompts=False)
+        return _run_unlocalize(
+            self.tk,
+            log,
+            mac_path,
+            windows_path,
+            linux_path,
+            self._interaction_interface,
+            copy_core=True,
+        )
 
 
 class AttachToCoreAction(Action):
@@ -365,7 +442,7 @@ class AttachToCoreAction(Action):
         # validate params and seed default values
         computed_params = self._validate_parameters(parameters)
 
-        return self._run_wrapper(log, computed_params["path"], suppress_prompts=True)
+        return self._run_wrapper(log, computed_params["path"])
 
 
     def run_interactive(self, log, args):
@@ -393,17 +470,15 @@ class AttachToCoreAction(Action):
 
         path_to_core = args[0]
 
-        return self._run_wrapper(log, path_to_core, suppress_prompts=False)
+        return self._run_wrapper(log, path_to_core)
 
-
-    def _run_wrapper(self, log, path_to_core, suppress_prompts):
+    def _run_wrapper(self, log, path_to_core):
         """
         Given the path to the core API, resolves the core path on all three OSes
         and then executes the unlocalize payload.
 
         :param log: Logger
         :param path_to_core: path to core root on current os.
-        :param suppress_prompts: Boolean to indicate if no questions should be asked.
         """
 
         # resolve the path to core on all platforms
@@ -412,19 +487,18 @@ class AttachToCoreAction(Action):
         log.debug("Resolved the following core path locations via install_location: %s" % core_locations)
 
         # and run the actual localize
-        return _run_unlocalize(self.tk,
-                               log,
-                               core_locations["darwin"],
-                               core_locations["win32"],
-                               core_locations["linux2"],
-                               copy_core=False,
-                               suppress_prompts=suppress_prompts)
+        return _run_unlocalize(
+            self.tk,
+            log,
+            core_locations["darwin"],
+            core_locations["win32"],
+            core_locations["linux2"],
+            self._interaction_interface,
+            copy_core=False,
+        )
 
 
-
-
-
-def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, suppress_prompts):
+def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, interaction_interface, copy_core):
     """
     Actual execution payload for share_core and relocate_core. This method can be used to
 
@@ -438,10 +512,10 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
     :param mac_path: New core path on mac
     :param windows_path: New core path on windows
     :param linux_path: New core path on linux
+    :param interaction_interface: Interface to use when interacting with the user.
     :param copy_core: Boolean. If true, the method will operate in "copy mode" where it tries
                       to copy the core out to an external location. If fase, it will instead
                       try to attach to an existing core.
-    :param suppress_prompts: if true, no questions are asked.
     """
 
     log.debug("Executing the share_core command for %r" % tk)
@@ -504,12 +578,11 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
              "no configurations that are using the core embedded in this configuration.")
     log.info("")
 
-    if not suppress_prompts:
-        # check with user if they wanna continue
-        if not console_utils.ask_yn_question("Do you want to proceed"):
-            # user pressed no
-            log.info("Operation cancelled.")
-            return
+    # check with user if they wanna continue
+    if not interaction_interface.ask_yn_question("Do you want to proceed"):
+        # user pressed no
+        log.info("Operation cancelled.")
+        return
 
     # proceed with setup
     log.info("")
@@ -527,7 +600,7 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
         if copy_core:
             # first make the basic structure
             log.info("Setting up base structure...")
-            os.mkdir(new_core_path_local, 0775)
+            os.mkdir(new_core_path_local, 0o775)
 
             # copy across the tank commands
             shutil.copy(os.path.join(pc_root, "tank"), os.path.join(new_core_path_local, "tank"))
@@ -535,8 +608,8 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
 
             # make the config folder
             log.info("Copying configuration files...")
-            os.mkdir(os.path.join(new_core_path_local, "config"), 0775)
-            os.mkdir(os.path.join(new_core_path_local, "config", "core"), 0775)
+            os.mkdir(os.path.join(new_core_path_local, "config"), 0o775)
+            os.mkdir(os.path.join(new_core_path_local, "config", "core"), 0o775)
 
             for fn in core_config_file_names:
                 log.debug("Copy %s..." % fn)
@@ -577,15 +650,15 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
             path = os.path.join(pc_root, "config", "core", core_file)
             try:
                 log.debug("Removing system file '%s'" % path )
-                os.chmod(path, 0666)
+                os.chmod(path, 0o666)
                 os.remove(path)
-            except Exception, e:
+            except Exception as e:
                 log.warning("Could not delete file '%s' - please delete by hand! "
                             "Error reported: %s" % (path, e))
 
         # create blank core install
         log.info("Creating core proxy...")
-        os.mkdir(current_core, 0775)
+        os.mkdir(current_core, 0o775)
 
         # copy python API proxy
         tank_proxy = os.path.join(new_core_path_local, "install", "core", "setup", "tank_api_proxy")
@@ -619,7 +692,7 @@ def _run_unlocalize(tk, log, mac_path, windows_path, linux_path, copy_core, supp
             fh.write("undefined")
         fh.close()
 
-    except Exception, e:
+    except Exception as e:
         raise TankError("Could not share the core! Error reported: %s" % e)
     finally:
         os.umask(old_umask)

@@ -78,3 +78,13 @@ LOWEST_SHOTGUN_VERSION = "5.0.0"
 
 # name of the app store specific proxy setting
 APP_STORE_HTTP_PROXY = "app_store_http_proxy"
+
+# environment variable used to indicate the primary bundle cache path to be used.
+BUNDLE_CACHE_PATH_ENV_VAR = "SHOTGUN_BUNDLE_CACHE_PATH"
+
+# environment variable used to disable connection to the app store
+DISABLE_APPSTORE_ACCESS_ENV_VAR = "SHOTGUN_DISABLE_APPSTORE_ACCESS"
+
+# the Descriptor types
+(DESCRIPTOR_APP, DESCRIPTOR_FRAMEWORK, DESCRIPTOR_ENGINE, DESCRIPTOR_CONFIG,
+    DESCRIPTOR_CORE, DESCRIPTOR_INSTALLED_CONFIG) = range(6)

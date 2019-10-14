@@ -36,8 +36,7 @@ from .errors import (
     TankMissingEngineError
 )
 
-from ..util import log_user_activity_metric as util_log_user_activity_metric
-from ..util import log_user_attribute_metric as util_log_user_attribute_metric
+from ..util.metrics import EventMetric
 from ..util.metrics import MetricsDispatcher
 from ..log import LogManager
 
@@ -53,6 +52,7 @@ from .engine_logging import ToolkitEngineHandler, ToolkitEngineLegacyHandler
 
 # std core level logger
 core_logger = LogManager.get_logger(__name__)
+
 
 class Engine(TankBundle):
     """
@@ -207,9 +207,18 @@ class Engine(TankBundle):
         # point we want to try and have all app initialization complete.
         self.__run_post_engine_inits()
 
-        if self.name not in [constants.SHELL_ENGINE_NAME, constants.SHOTGUN_ENGINE_NAME] \
-                and self.__has_018_logging_support():
+        # The new way to handle this situation is via the register_toggle_debug_command
+        # property on the engine. We also explicitly skip the shell and shotgun engines
+        # here for the sake of backwards compatibility, as these engines have always
+        # skipped registering the command by name.
+        is_skipped_engine = self.name in [
+            constants.SHELL_ENGINE_NAME,
+            constants.SHOTGUN_ENGINE_NAME,
+        ]
+        supports_018_logging = self.__has_018_logging_support()
+        wants_toggle_debug = self.register_toggle_debug_command
 
+        if not is_skipped_engine and supports_018_logging and wants_toggle_debug:
             # if engine supports new logging implementation,
             #
             # we cannot add the 'toggle debug logging' for
@@ -259,19 +268,14 @@ class Engine(TankBundle):
         # emit an engine started event
         tk.execute_core_hook(constants.TANK_ENGINE_INIT_HOOK_NAME, engine=self)
 
-        self.log_debug("Init complete: %s" % self)
-        self.log_metric("Init")
-
-        # log the core and engine versions being used by the current user
-        util_log_user_attribute_metric("tk-core version", tk.version)
-        util_log_user_attribute_metric("%s version" % (self.name,), self.version)
-
         # if the engine supports logging metrics, begin dispatching logged metrics
         if self.metrics_dispatch_allowed:
             self._metrics_dispatcher = MetricsDispatcher(self)
             self.log_debug("Starting metrics dispatcher...")
             self._metrics_dispatcher.start()
             self.log_debug("Metrics dispatcher started.")
+
+        self.log_debug("Init complete: %s" % self)
 
     def __repr__(self):
         return "<Sgtk Engine 0x%08x: %s, env: %s>" % (id(self),  
@@ -333,7 +337,7 @@ class Engine(TankBundle):
 
         if sys.version_info < (2,6):
             # older pythons use im_func rather than __func__
-            if running_method.im_func is not base_method.im_func:
+            if running_method.__func__ is not base_method.__func__:
                 subclassed = True
         else:
             # pyton 2.6 and above use __func__
@@ -467,45 +471,37 @@ class Engine(TankBundle):
             self.__global_progress_widget.close()
             self.__global_progress_widget = None
 
-    def log_metric(self, action, log_once=False):
-        """Log an engine metric.
-
-        :param action: Action string to log, e.g. 'Init'
-        :param bool log_once: ``True`` if this metric should be ignored if it
-            has already been logged. Defaults to ``False``.
-
-        Logs a user activity metric as performed within an engine. This is
-        a convenience method that auto-populates the module portion of
-        ``tank.util.log_user_activity_metric()``
-
-        Internal Use Only - We provide no guarantees that this method
-        will be backwards compatible.
-
-        """
-
-        # the action contains the engine and app name, e.g.
-        # module: tk-maya
-        # action: tk-maya - Init
-        full_action = "%s %s" % (self.name, action)
-        util_log_user_activity_metric(self.name, full_action, log_once=log_once)
-
     def log_user_attribute_metric(self, attr_name, attr_value, log_once=False):
-        """Convenience class. Logs a user attribute metric.
-
-        :param attr_name: The name of the attribute to set for the user.
-        :param attr_value: The value of the attribute to set for the user.
-        :param bool log_once: ``True`` if this metric should be ignored if it
-            has already been logged. Defaults to ``False``.
-
-        This is a convenience wrapper around
-        `tank.util.log_user_activity_metric()` that prevents engine subclasses
-        from having to import from `tank.util`.
-
-        Internal Use Only - We provide no guarantees that this method
-        will be backwards compatible.
-
         """
-        util_log_user_attribute_metric(attr_name, attr_value, log_once=log_once)
+        This method is deprecated and shouldn't be used anymore.
+        """
+        pass
+
+    def get_metrics_properties(self):
+        """
+        Returns a dictionary with properties to use when emitting a metric event for
+        this engine.
+
+        The dictionary contains information about this engine: its name and version,
+        and informations about the application hosting the engine: its name and
+        version::
+        
+            {
+                'Host App': 'Maya',
+                'Host App Version': '2017',
+                'Engine': 'tk-maya',
+                'Engine Version': 'v0.4.1',
+            }
+
+        :returns: A dictionary with metrics properties as per above.
+        """
+        # Always create a new dictionary so the caller can safely modify it.
+        return {
+            EventMetric.KEY_ENGINE: self.name,
+            EventMetric.KEY_ENGINE_VERSION: self.version,
+            EventMetric.KEY_HOST_APP: self.host_info.get("name", "unknown"),
+            EventMetric.KEY_HOST_APP_VERSION: self.host_info.get("version", "unknown"),
+        }
 
     def get_child_logger(self, name):
         """
@@ -660,6 +656,35 @@ class Engine(TankBundle):
         :returns:   A list of TankQDialog objects.
         """
         return self.__created_qt_dialogs
+
+    @property
+    def host_info(self):
+        """
+        Returns information about the application hosting this engine.
+        
+        This should be re-implemented in deriving classes to handle the logic 
+        specific to the application the engine is designed for.
+        
+        A dictionary with at least a "name" and a "version" key should be returned
+        by derived implementations, with respectively the host application name 
+        and its release string as values, e.g. ``{ "name": "Maya", "version": "2017.3"}``.
+        
+        :returns: A ``{"name": "unknown", "version" : "unknown"}`` dictionary.
+        """
+        return {
+            "name": "unknown",
+            "version": "unknown",
+        }
+
+    @property
+    def register_toggle_debug_command(self):
+        """
+        Indicates whether the engine should have a toggle debug logging
+        command registered during engine initialization.
+
+        :rtype: bool
+        """
+        return True
 
     ##########################################################################################
     # init and destroy
@@ -1048,8 +1073,12 @@ class Engine(TankBundle):
         def callback_wrapper(*args, **kwargs):
 
             if properties.get("app"):
-                # track which app command is being launched
-                properties["app"].log_metric("'%s'" % name, log_version=True)
+                # Track which app command is being launched
+                command_name = properties.get("short_name") or name
+                properties["app"].log_metric(
+                    "Launched Command",
+                    command_name=command_name,
+                )
 
             # run the actual payload callback
             return callback(*args, **kwargs)
@@ -1532,7 +1561,15 @@ class Engine(TankBundle):
             if os.path.isdir(font_dir):
 
                 # iterate over the font files and attempt to load them
-                for font_file_name in os.listdir(font_dir):
+                #
+                # NOTE: We're loading the ttf files in reverse order to work around
+                # a Windows 10 oddity in Qt5/PySide2. It appears as though Windows
+                # prefers the first ttf installed for a given font weight, so when
+                # we're setting weight in qss (publish2 is a good example), if we're
+                # going for a lighter-weight font, we end up getting condensed light
+                # instead of the regular style. So...we're going to install these in
+                # reverse order so that the regular light style is preferred.
+                for font_file_name in reversed(list(os.listdir(font_dir))):
 
                     # only process actual font files. It appears as though .ttf
                     # is the most common extension for use on win/mac/linux so
@@ -1543,12 +1580,23 @@ class Engine(TankBundle):
                     # the actual font file
                     font_file = os.path.join(font_dir, font_file_name)
 
-                    # load the font into the font db
-                    if QtGui.QFontDatabase.addApplicationFont(font_file) == -1:
-                        self.log_warning(
-                            "Unable to load font file: %s" % (font_file,))
-                    else:
-                        self.log_debug("Loaded font file: %s" % (font_file,))
+                    # rather than registering the file path with the QT
+                    # font system, first load the font data into memory
+                    # and then register that data.
+                    #
+                    # this is to avoid QT keeping an open file handle to
+                    # the font files - this causes issues on windows and
+                    # results in bootstrap changes sometimes not being 
+                    # picked up.                    
+                    with open(font_file, "rb") as fh:
+                        # load binary data into memory
+                        font_data = fh.read()
+                        # load the font into the font db
+                        if QtGui.QFontDatabase.addApplicationFontFromData(font_data) == -1:
+                            self.log_warning(
+                                "Unable to load font file: %s" % (font_file,))
+                        else:
+                            self.log_debug("Loaded font file into memory: %s" % (font_file,))
 
         self.__fonts_loaded = True
 
@@ -1912,7 +1960,7 @@ class Engine(TankBundle):
         )
         try:
             self._apply_stylesheet_file(qss_file, widget)
-        except Exception, e:
+        except Exception as e:
             # catch-all and issue a warning and continue.
             self.log_warning("Could not apply stylesheet '%s': %s" % (qss_file, e))
 
@@ -1922,7 +1970,7 @@ class Engine(TankBundle):
         if os.getenv("SHOTGUN_QSS_FILE_WATCHER", False) == "1":
             try:
                 self._add_stylesheet_file_watcher(qss_file, widget)
-            except Exception, e:
+            except Exception as e:
                 # We don't want the watcher to cause any problem, so we catch
                 # errors but issue a warning so the developer knows that interactive
                 # styling is off.
@@ -2063,16 +2111,137 @@ class Engine(TankBundle):
         designed to work well with most dark themes.
         
         However, if you are for example creating your own QApplication instance
-        you can execute this method to but the session into Toolkit's 
+        you can execute this method to put the session into Toolkit's 
         standard dark mode.
         
-        This will initialize the plastique style and set it up with a standard
-        dark palette and supporting stylesheet.
+        This will initialize the plastique style (for Qt4) or the fusion style
+        (for Qt5), and set it up with a standard dark palette and supporting
+        stylesheet.
+
+        `Qt4 setStyle documentation <http://doc.qt.io/archives/qt-4.8/qapplication.html#setStyle-2>`_
+        `Qt5 setStyle documentation <https://doc.qt.io/qt-5.10/qapplication.html#setStyle-1>`_
         
         Apps and UIs can then extend this further by using further css.
         
         Due to restrictions in QT, this needs to run after a QApplication object
         has been instantiated.
+        """
+        if self.has_qt5:
+            self.log_debug("Applying Qt5-specific styling...")
+            self.__initialize_dark_look_and_feel_qt5()
+        elif self.has_qt4:
+            self.log_debug("Applying Qt4-specific styling...")
+            self.__initialize_dark_look_and_feel_qt4()
+        else:
+            self.log_warning(
+                "Neither Qt4 or Qt5 is available. Toolkit styling will not be applied."
+            )
+
+    def __initialize_dark_look_and_feel_qt5(self):
+        """
+        Applies a dark style for Qt5 environments. This sets the "fusion" style
+        at the application level, and then constructs and applies a custom palette
+        that emulates Maya 2017's color scheme.
+        """
+        from .qt import QtGui
+        app = QtGui.QApplication.instance()
+
+        # Set the fusion style, which gives us a good base to build on. With
+        # this, we'll be sticking largely to the style and won't need to
+        # introduce much qss to get a good look.
+        app.setStyle("fusion")
+
+        # Build ourselves a dark palette to assign to the application. This
+        # will take the fusion style and darken it up.
+        palette = QtGui.QPalette()
+
+        # This closely resembles the color palette used in Maya 2017 with a
+        # few minor tweaks.
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Button, QtGui.QColor(80, 80, 80))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Light, QtGui.QColor(97, 97, 97))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Midlight, QtGui.QColor(59, 59, 59))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Dark, QtGui.QColor(37, 37, 37))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Mid, QtGui.QColor(45, 45, 45))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Base, QtGui.QColor(42, 42, 42))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Window, QtGui.QColor(68, 68, 68))
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.Shadow, QtGui.QColor(0, 0, 0))
+        palette.setBrush(
+            QtGui.QPalette.Disabled,
+            QtGui.QPalette.AlternateBase,
+            palette.color(QtGui.QPalette.Disabled, QtGui.QPalette.Base).lighter(110)
+        )
+        palette.setBrush(
+            QtGui.QPalette.Disabled,
+            QtGui.QPalette.Text,
+            palette.color(QtGui.QPalette.Disabled, QtGui.QPalette.Base).lighter(250)
+        )
+        palette.setBrush(
+            QtGui.QPalette.Disabled,
+            QtGui.QPalette.Link,
+            palette.color(QtGui.QPalette.Disabled, QtGui.QPalette.Base).lighter(250)
+        )
+        palette.setBrush(
+            QtGui.QPalette.Disabled,
+            QtGui.QPalette.LinkVisited,
+            palette.color(QtGui.QPalette.Disabled, QtGui.QPalette.Base).lighter(110)
+        )
+
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.WindowText, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Button, QtGui.QColor(75, 75, 75))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.ButtonText, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Light, QtGui.QColor(97, 97, 97))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Midlight, QtGui.QColor(59, 59, 59))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Dark, QtGui.QColor(37, 37, 37))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Mid, QtGui.QColor(45, 45, 45))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Text, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Link, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.LinkVisited, QtGui.QColor(97, 97, 97))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.BrightText, QtGui.QColor(37, 37, 37))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Base, QtGui.QColor(42, 42, 42))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Window, QtGui.QColor(68, 68, 68))
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.Shadow, QtGui.QColor(0, 0, 0))
+        palette.setBrush(
+            QtGui.QPalette.Active,
+            QtGui.QPalette.AlternateBase,
+            palette.color(QtGui.QPalette.Active, QtGui.QPalette.Base).lighter(110)
+        )
+
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.WindowText, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Button, QtGui.QColor(75, 75, 75))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.ButtonText, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Light, QtGui.QColor(97, 97, 97))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Midlight, QtGui.QColor(59, 59, 59))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Dark, QtGui.QColor(37, 37, 37))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Mid, QtGui.QColor(45, 45, 45))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Text, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Link, QtGui.QColor(200, 200, 200))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.LinkVisited, QtGui.QColor(97, 97, 97))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.BrightText, QtGui.QColor(37, 37, 37))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Base, QtGui.QColor(42, 42, 42))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Window, QtGui.QColor(68, 68, 68))
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.Shadow, QtGui.QColor(0, 0, 0))
+        palette.setBrush(
+            QtGui.QPalette.Inactive,
+            QtGui.QPalette.AlternateBase,
+            palette.color(QtGui.QPalette.Inactive, QtGui.QPalette.Base).lighter(110)
+        )
+
+        app.setPalette(palette)
+
+        # Finally, we just need to set the default font size for our widgets
+        # deriving from QWidget. This also has the side effect of correcting
+        # a couple of styling quirks in the tank dialog header when it's
+        # used with the fusion style.
+        app.setStyleSheet(
+            ".QWidget { font-size: 11px; }"
+        )
+
+    def __initialize_dark_look_and_feel_qt4(self):
+        """
+        Applies a dark style for Qt4 environments. This sets the "plastique"
+        style at the application level, and then loads a Maya-2014-like QPalette
+        to give a consistent dark theme to all widgets owned by the current
+        application. Lastly, a stylesheet is read from disk and applied.
         """
         from .qt import QtGui, QtCore
 
@@ -2126,7 +2295,7 @@ class Engine(TankBundle):
             # and associate it with the qapplication
             QtGui.QApplication.setPalette(self._dark_palette)
 
-        except Exception, e:
+        except Exception as e:
             self.log_error("The standard toolkit dark palette could not be set up! The look and feel of your "
                            "toolkit apps may be sub standard. Please contact support. Details: %s" % e)
             
@@ -2140,7 +2309,7 @@ class Engine(TankBundle):
             app = QtCore.QCoreApplication.instance()
             
             app.setStyleSheet(css_data)
-        except Exception, e:
+        except Exception as e:
             self.log_error("The standard toolkit dark stylesheet could not be set up! The look and feel of your "
                            "toolkit apps may be sub standard. Please contact support. Details: %s" % e)
 
@@ -2150,25 +2319,23 @@ class Engine(TankBundle):
         THIS METHOD HAS BEEN DEPRECATED AND SHOULD NOT BE USED!
         Instead, call _initialize_standard_look_and_feel()
         **********************************************************************
-        
+
         For environments which do not have a well defined QT style sheet,
         Toolkit maintains a "standard style" which is similar to the look and
-        feel that Maya and Nuke has. 
-        
+        feel that Maya and Nuke has.
+
         This is intended to be used in conjunction with QTs cleanlooks mode.
         The init code inside an engine would typically look something like this:
-        
+
             QtGui.QApplication.setStyle("cleanlooks")
             qt_application = QtGui.QApplication([])
-            qt_application.setStyleSheet( self._get_standard_qt_stylesheet() )         
-        
+            qt_application.setStyleSheet( self._get_standard_qt_stylesheet() )
+
         :returns: The style sheet data, as a string.
         """
         css_file = self.__get_platform_resource_path("toolkit_std_dark.css")
-        f = open(css_file)
-        css_data = f.read()
-        f.close()
-        return css_data
+        with open(css_file) as f:
+            return f.read()
 
     def _register_shared_framework(self, instance_name, fw_obj):
         """
@@ -2361,7 +2528,7 @@ class Engine(TankBundle):
                     app_settings,
                 )
 
-            except TankError, e:
+            except TankError as e:
                 # validation error - probably some issue with the settings!
                 # report this as an error message.
                 self.log_error("App configuration Error for %s (configured in environment '%s'). "
@@ -2455,7 +2622,7 @@ class Engine(TankBundle):
                 finally:
                     self.__currently_initializing_app = None
             
-            except TankError, e:
+            except TankError as e:
                 self.log_error("App %s failed to initialize. It will not be loaded: %s" % (app_dir, e))
                 
             except Exception:
@@ -2561,7 +2728,7 @@ class Engine(TankBundle):
         for app in self.__applications.values():
             try:
                 app.post_engine_init()
-            except TankError, e:
+            except TankError as e:
                 self.log_error("App %s Failed to run its post_engine_init. It is loaded, but"
                                "may not operate in its desired state! Details: %s" % (app, e))
             except Exception:
@@ -2639,6 +2806,10 @@ def start_engine(engine_name, tk, context):
         >>> engine
         <Sgtk Engine 0x10451b690: tk-maya, env: shotgun>
 
+    .. note:: This is for advanced workflows. For standard use
+        cases, use :meth:`~sgtk.bootstrap.ToolkitManager.bootstrap_engine`.
+        For more information, see :ref:`init_and_startup`.
+
     :param engine_name: Name of the engine to launch, e.g. tk-maya
     :param tk: :class:`~sgtk.Sgtk` instance to associate the engine with
     :param context: :class:`~sgtk.Context` object of the context to launch the engine for.
@@ -2670,7 +2841,7 @@ def _restart_engine(new_context):
             engine.destroy()
 
             _start_engine(current_engine_name, new_context.tank, old_context, new_context)
-    except TankError, e:
+    except TankError as e:
         engine.log_error("Could not restart the engine: %s" % e)
     except Exception:
         engine.log_exception("Could not restart the engine!")
@@ -2927,7 +3098,7 @@ def get_environment_from_context(tk, context):
     """
     try:
         env_name = tk.execute_core_hook(constants.PICK_ENVIRONMENT_CORE_HOOK_NAME, context=context)
-    except Exception, e:
+    except Exception as e:
         raise TankError("Could not resolve an environment for context '%s'. The pick "
                         "environment hook reported the following error: %s" % (context, e))
     
@@ -3003,7 +3174,7 @@ def __pick_environment(engine_name, tk, context):
 
     try:
         env_name = tk.execute_core_hook(constants.PICK_ENVIRONMENT_CORE_HOOK_NAME, context=context)
-    except Exception, e:
+    except Exception as e:
         raise TankEngineInitError("Engine %s cannot initialize - the pick environment hook "
                                  "reported the following error: %s" % (engine_name, e))
 

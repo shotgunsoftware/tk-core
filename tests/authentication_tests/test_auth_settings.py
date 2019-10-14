@@ -15,7 +15,7 @@ Tests settings retrieval through the DefaultsManager
 from __future__ import with_statement
 from mock import patch, Mock, PropertyMock
 
-from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import ShotgunTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 
 from tank.authentication import CoreDefaultsManager
@@ -24,7 +24,7 @@ from tank.util.user_settings import UserSettings
 import sgtk
 
 
-class DefaultsManagerTest(TankTestBase):
+class DefaultsManagerTest(ShotgunTestBase):
     """
     Tests the defaults manager.
     """
@@ -45,7 +45,7 @@ class DefaultsManagerTest(TankTestBase):
         """
         Sets up the next test's environment.
         """
-        TankTestBase.setUp(self)
+        ShotgunTestBase.setUp(self)
         UserSettings.clear_singleton()
 
     @patch(
@@ -199,3 +199,13 @@ class DefaultsManagerTest(TankTestBase):
             sgtk.authentication.CoreDefaultsManager,
             sgtk.util.CoreDefaultsManager
         )
+
+    @patch(
+        "tank.authentication.session_cache.get_current_host",
+        return_value=_SESSION_CACHE_HOST
+    )
+    def test_fixed_host_on_init_overrides_everything(self, _):
+        fixed_host = "https://my-custom-host.shotgunstudio.com"
+        dm = DefaultsManager(fixed_host)
+        self.assertEqual(dm.is_host_fixed(), True)
+        self.assertEqual(dm.get_host(), fixed_host)

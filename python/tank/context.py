@@ -204,16 +204,6 @@ class Context(object):
         elif self.additional_entities or other.additional_entities:
             return False
 
-        if self.source_entity and other.source_entity:
-            # If the source entities do not match types and ids, then we're not equal.
-            if self.source_entity["type"] != other.source_entity["type"]:
-                return False
-            if self.source_entity["id"] != other.source_entity["id"]:
-                return False
-        elif self.source_entity or other.source_entity:
-            # If one has a source entity and the other does not, we're not equal.
-            return False
-
         # finally compare the user - this may result in a Shotgun look-up 
         # so do this last!
         if not _entity_dicts_eq(self.user, other.user):
@@ -711,16 +701,8 @@ class Context(object):
         # Avoids cyclic imports
         from .api import get_authenticated_user
 
-        data = {
-            "project": self.project,
-            "entity": self.entity,
-            "user": self.user,
-            "step": self.step,
-            "task": self.task,
-            "additional_entities": self.additional_entities,
-            "source_entity": self.source_entity,
-            "_pc_path": self.tank.pipeline_configuration.get_path()
-        }
+        data = self.to_dict()
+        data["_pc_path"] = self.tank.pipeline_configuration.get_path()
 
         if with_user_credentials:
             # If there is an authenticated user.
@@ -748,7 +730,7 @@ class Context(object):
 
         try:
             data = pickle.loads(context_str)
-        except Exception, e:
+        except Exception as e:
             raise TankContextDeserializationError(str(e))
 
         # first get the pipeline config path out of the dict
@@ -771,12 +753,77 @@ class Context(object):
 
         # create a Sgtk API instance.
         tk = Tank(pipeline_config_path)
-
-        # add it to the constructor instance
         data["tk"] = tk
 
+        # add it to the constructor instance
         # and lastly make the obejct
-        return cls(**data)
+        return cls._from_dict(data)
+
+    def to_dict(self):
+        """
+        Converts the context into a dictionary with keys ``project``,
+        ``entity``, ``user``, ``step``, ``task``, ``additional_entities`` and
+        ``source_entity``.
+
+        .. note ::
+            Contrary to :meth:`Context.serialize`, this method discards information
+            about the Toolkit instance associated with the context or the currently
+            authenticated user.
+
+        :returns: A dictionary representing the context.
+        """
+        return {
+            "project": self.project,
+            "entity": self.entity,
+            "user": self.user,
+            "step": self.step,
+            "task": self.task,
+            "additional_entities": self.additional_entities,
+            "source_entity": self.source_entity
+        }
+
+    @classmethod
+    def from_dict(cls, tk, data):
+        """
+        Converts a dictionary into a :class:`Context` object.
+
+        You should only pass in a dictionary that was created with the :meth:`Context.to_dict`
+        method.
+
+        :param dict data: A dictionary generated from :meth:`Context.to_dict`.
+        :param tk: Toolkit instance to associate with the context.
+        :type tk: :class:`Sgtk`
+
+        :returns: A newly created :class:`Context` object.
+        """
+        data = copy.deepcopy(data)
+        data["tk"] = tk
+        return cls._from_dict(data)
+
+    @classmethod
+    def _from_dict(cls, data):
+        """
+        Creates a Context object based on the arguments found in a dictionary, but
+        only the ones that the Context understands.
+
+        This ensures that if a more recent version of Toolkit serializes a context
+        and this API reads it that it won't blow-up.
+
+        :param dict data: Data for the context.
+
+        :returns: :class:`Context`
+        """
+        # Get all argument names except for self.
+        return Context(
+            tk=data.get("tk"),
+            project=data.get("project"),
+            entity=data.get("entity"),
+            step=data.get("step"),
+            task=data.get("task"),
+            user=data.get("user"),
+            additional_entities=data.get("additional_entities"),
+            source_entity=data.get("source_entity")
+        )
 
     ################################################################################################
     # private methods
@@ -879,7 +926,7 @@ class Context(object):
         :returns:           A dictionary of field name, value pairs for any fields found for the template
         """
         fields = {}
-        project_roots = self.__tk.pipeline_configuration.get_data_roots().values()
+        project_roots = self._get_project_roots()
 
         # get all locations on disk for our context object from the path cache
         path_cache_locations = self.entity_locations 
@@ -888,6 +935,7 @@ class Context(object):
         # are matching the template that is passed in. In that case, try to
         # extract the fields values.
         for cur_path in path_cache_locations:
+            previous_path = None
 
             # walk up path until we reach the project root and get values
             while cur_path not in project_roots:
@@ -902,6 +950,44 @@ class Context(object):
                     break
                 else:
                     cur_path = os.path.dirname(cur_path)
+
+                    # There's odd behavior on Windows in Python 2.7.14 that causes
+                    # os.path.dirname to leave the last folder on a UNC path
+                    # unchanged, including the trailing delimiter:
+                    #
+                    # Example (on Windows using Python 2.7.14):
+                    #
+                    # >>> os.path.dirname(r"\\foo\bar\")
+                    # '\\foo\bar\'
+                    #
+                    # The problem is really that the trailing slash isn't removed, when
+                    # it seems to have been in older versions of Python. The trailing slash
+                    # trips up the logic behind validate_and_get_fields, so we end up in an
+                    # infinite loop. The fix is to just remove the trailing path separator
+                    # if it's there.
+                    #
+                    # The fact that it does not consider "\\foo" to be the dirname for
+                    # "\\foo\bar\" is actually correct, as explained here:
+                    # 
+                    # https://bugs.python.org/issue27403
+                    #
+                    if cur_path.endswith(os.path.sep):
+                        cur_path = cur_path[:-1]
+
+                    # We really should never be in this case now with the fix above, but
+                    # just in case, we'll raise here if it looks like we're just looping
+                    # over the same path multiple times. This will also make our tests
+                    # fail in a reasonable way if there's a problem rather than just
+                    # hanging up forever until the process is killed.
+                    if cur_path == previous_path:
+                        raise TankError(
+                            "There was a problem parsing an entity location to determine "
+                            "its project root. The path in question is %s, and the "
+                            "project's roots are %s. This problem would have resulted in "
+                            "an infinite loop, but has now been stopped." % (cur_path, project_roots)
+                        )
+                    else:
+                        previous_path = cur_path
 
         return fields
 
@@ -1044,6 +1130,15 @@ class Context(object):
 
         return found_fields
 
+    def _get_project_roots(self):
+        """
+        Gets the project root paths for the current pipeline configuration.
+
+        :returns: A list of project root file paths as strings.
+        :rtype: list
+        """
+        return self.__tk.pipeline_configuration.get_data_roots().values()
+
 
 ################################################################################################
 # factory methods for constructing new Context objects, primarily called from the Tank object
@@ -1162,7 +1257,7 @@ def _from_entity_type_and_id(tk, entity, source_entity=None):
     # the same as the entity property.
     context["source_entity"] = context["source_entity"] or context["entity"]
 
-    return Context(**context)
+    return Context._from_dict(context)
 
 def from_entity_dictionary(tk, entity_dictionary):
     """
@@ -1334,7 +1429,7 @@ def _from_entity_dictionary(tk, entity_dictionary, source_entity=None):
             task_context = _task_from_sg(tk, task["id"], additional_fields)
             context.update(task_context)
 
-    return Context(**context)
+    return Context._from_dict(context)
 
 def from_path(tk, path, previous_context=None):
     """
@@ -1472,7 +1567,7 @@ def from_path(tk, path, previous_context=None):
         # remove double entry!
         context["entity"] = None
 
-    return Context(**context)
+    return Context._from_dict(context)
 
 
 ################################################################################################
@@ -1513,15 +1608,8 @@ def context_yaml_representer(dumper, context):
     
     # first get the stuff which represents all the Context() 
     # constructor parameters
-    context_dict = {
-        "project": context.project,
-        "entity": context.entity,
-        "user": context.user,
-        "step": context.step,
-        "task": context.task,
-        "additional_entities": context.additional_entities
-    }
-    
+    context_dict = context.to_dict()
+
     # now we also need to pass a TK instance to the constructor when we 
     # are deserializing the object. For this purpose, pass a 
     # pipeline config path as part of the dict
@@ -1541,40 +1629,25 @@ def context_yaml_constructor(loader, node):
     """
     # lazy load this to avoid cyclic dependencies
     from .api import Tank
-    
+
     # get the dict from yaml
-    context_constructor_dict = loader.construct_mapping(node)
-    
+    context_constructor_dict = loader.construct_mapping(node, deep=True)
+
     # first get the pipeline config path out of the dict
-    pipeline_config_path = context_constructor_dict["_pc_path"] 
+    pipeline_config_path = context_constructor_dict["_pc_path"]
     del context_constructor_dict["_pc_path"]
-    
+
     # create a Sgtk API instance.
     tk = Tank(pipeline_config_path)
-
-    # add it to the constructor instance
     context_constructor_dict["tk"] = tk
-
-    # and lastly make the obejct
-    return Context(**context_constructor_dict)
+    # and lastly make the object
+    return Context._from_dict(context_constructor_dict)
 
 yaml.add_representer(Context, context_yaml_representer)
 yaml.add_constructor(u'!TankContext', context_yaml_constructor)
 
 ################################################################################################
 # utility methods
-
-def _get_entity_type_sg_name_field(entity_type):
-    """
-    Return the Shotgun name field to use for the specified entity type.  This
-    is needed as not all entity types are consistent!
-
-    :param entity_type:     The entity type to get the name field for
-    :returns:               The name field for the specified entity type
-    """
-    return {"HumanUser":"name", 
-            "Task":"content", 
-            "Project":"name"}.get(entity_type, "code")
 
 def _get_entity_name(entity_dictionary):
     """
@@ -1585,7 +1658,7 @@ def _get_entity_name(entity_dictionary):
     :returns:                   The name of the entity if found in the entity
                                 dictionary, otherwise None
     """
-    name_field = _get_entity_type_sg_name_field(entity_dictionary["type"])
+    name_field = shotgun_entity.get_sg_entity_name_field(entity_dictionary["type"])
     entity_name = entity_dictionary.get(name_field)
     if entity_name == None:
         # Also check to see if entity contains 'name':
@@ -1673,7 +1746,7 @@ def _entity_from_sg(tk, entity_type, entity_id):
                             
     """
     # get the sg name field for the specified entity type:
-    name_field = _get_entity_type_sg_name_field(entity_type)
+    name_field = shotgun_entity.get_sg_entity_name_field(entity_type)
     
     # get the entity data from Shotgun
     data = tk.shotgun.find_one(entity_type, [["id", "is", entity_id]], ["project", name_field])

@@ -27,15 +27,31 @@ log = LogManager.get_logger(__name__)
 class InstalledConfigDescriptor(ConfigDescriptor):
     """
     Descriptor that describes an installed Toolkit Configuration. An installed configuration
-    is what we otherwise refer to as a classic pipeline configuration, which is a pipeline
+    is what we otherwise refer to as a centralized pipeline configuration, which is a pipeline
     configuration is that installed in a folder on the network, which contains a copy of the
     environment files, a copy of core and all the bundles required by that pipeline configuration.
     It supports localized as well as shared core and as such, the interpreter files can be found
     inside the configuration folder or alongside the shared core.
     """
 
-    def __init__(self, io_descriptor):
-        super(InstalledConfigDescriptor, self).__init__(io_descriptor)
+    def __init__(self, sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots):
+        """
+        .. note:: Use the factory method :meth:`create_descriptor` when
+                  creating new descriptor objects.
+
+        :param sg_connection: Connection to the current site.
+        :param io_descriptor: Associated IO descriptor.
+        :param bundle_cache_root_override: Override for root path to where
+            downloaded apps are cached.
+        :param fallback_roots: List of immutable fallback cache locations where
+            apps will be searched for.
+        """
+        super(InstalledConfigDescriptor, self).__init__(
+            sg_connection,
+            io_descriptor,
+            bundle_cache_root_override,
+            fallback_roots
+        )
         self._io_descriptor.set_is_copiable(False)
 
     @property
@@ -94,9 +110,13 @@ class InstalledConfigDescriptor(ConfigDescriptor):
         except TankMissingManifestError:
             return {}
 
-    def _get_config_folder(self):
+    def get_config_folder(self):
         """
         Returns the path to the ``config`` folder inside the pipeline configuration.
+
+        For example, for a configuration at ``\\server\mount\shotgun\project\pipeline``,
+        the ``config`` folder would be at
+        ``\\server\mount\shotgun\project\pipeline\config``.
 
         :returns: Path to the ``config`` folder.
         """
@@ -150,7 +170,8 @@ class InstalledConfigDescriptor(ConfigDescriptor):
             # this file will contain the path to the API which is meant to be used with this PC.
             install_path = None
             with open(studio_linkback_file, "rt") as fh:
-                data = fh.read().strip() # remove any whitespace, keep text
+                # remove any whitespace, keep text
+                data = fh.read().strip()
 
             # expand any env vars that are used in the files. For example, you could have
             # an env variable $STUDIO_TANK_PATH=/sgtk/software/shotgun/studio and your

@@ -16,11 +16,10 @@ import datetime
 
 from . import constants
 
-from .errors import TankBootstrapError
 from ..descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
 
 from ..util import filesystem
-from ..util import ShotgunPath
+from ..util import StorageRoots
 from ..util.shotgun import connection
 from ..util.move_guard import MoveGuard
 
@@ -69,6 +68,12 @@ class ConfigurationWriter(object):
         filesystem.ensure_folder_exists(config_path)
         filesystem.ensure_folder_exists(os.path.join(config_path, "cache"))
 
+        # Required for files written to the config like pipeline_confguration.yml,
+        # shotgun.yml, etc.
+        filesystem.ensure_folder_exists(
+            os.path.join(config_path, "config", "core")
+        )
+
         filesystem.ensure_folder_exists(
             os.path.join(config_path, "install", "config.backup"),
             create_placeholder_file=True
@@ -78,43 +83,15 @@ class ConfigurationWriter(object):
             create_placeholder_file=True
         )
 
-    def install_core(self, config_descriptor, bundle_cache_fallback_paths):
+    def install_core(self, core_descriptor):
         """
         Install a core into the given configuration.
 
         This will copy the core API from the given location into
         the configuration, effectively mimicing a localized setup.
 
-        :param config_descriptor: Config descriptor to use to determine core version
-        :param bundle_cache_fallback_paths: bundle cache search path
+        :param core_descriptor: Core descriptor to use to determine core version
         """
-        core_uri_or_dict = config_descriptor.associated_core_descriptor
-
-        if core_uri_or_dict is None:
-            # we don't have a core descriptor specified. Get latest from app store.
-            log.debug(
-                "Config does not have a core/core_api.yml file to define which core to use. "
-                "Will use the latest approved core in the app store."
-            )
-            core_uri_or_dict = constants.LATEST_CORE_DESCRIPTOR
-            # resolve latest core
-            use_latest = True
-        else:
-            # we have an exact core descriptor. Get a descriptor for it
-            log.debug("Config has a specific core defined in core/core_api.yml: %s" % core_uri_or_dict)
-            # when core is specified, check if it defines a specific version or not
-            use_latest = is_descriptor_version_missing(core_uri_or_dict)
-
-        core_descriptor = create_descriptor(
-            self._sg_connection,
-            Descriptor.CORE,
-            core_uri_or_dict,
-            fallback_roots=bundle_cache_fallback_paths,
-            resolve_latest=use_latest
-        )
-
-        # make sure we have our core on disk
-        core_descriptor.ensure_local()
         config_root_path = self._path.current_os
         core_target_path = os.path.join(config_root_path, "install", "core")
 
@@ -316,7 +293,7 @@ class ConfigurationWriter(object):
             filesystem.safe_delete_file(tgt_file)
             # and copy new one into place
             log.debug("Installing tank command %s -> %s" % (src_file, tgt_file))
-            filesystem.copy_file(src_file, tgt_file, 0775)
+            filesystem.copy_file(src_file, tgt_file, 0o775)
 
     def write_install_location_file(self):
         """
@@ -332,7 +309,15 @@ class ConfigurationWriter(object):
             "install_location.yml"
         )
 
-        with self._open_auto_created_yml(sg_code_location) as fh:
+        if os.path.exists(sg_code_location):
+            # We want to log that we're overwriting an existing file, but this file
+            # is almost exclusively auto generated, so we can do it as a debug.
+            log.debug(
+                "The file 'core/install_location.yml' exists in the configuration "
+                "but will be overwritten with an auto generated file."
+            )
+
+        with filesystem.auto_created_yml(sg_code_location) as fh:
 
             fh.write("# This file reflects the paths in the pipeline\n")
             fh.write("# configuration defined for this project.\n")
@@ -340,8 +325,6 @@ class ConfigurationWriter(object):
             fh.write("Windows: '%s'\n" % self._path.windows)
             fh.write("Darwin: '%s'\n" % self._path.macosx)
             fh.write("Linux: '%s'\n" % self._path.linux)
-            fh.write("\n")
-            fh.write("# End of file.\n")
 
     def write_config_info_file(self, config_descriptor):
         """
@@ -351,7 +334,7 @@ class ConfigurationWriter(object):
         """
         config_info_file = self.get_descriptor_metadata_file()
 
-        with self._open_auto_created_yml(config_info_file) as fh:
+        with filesystem.auto_created_yml(config_info_file) as fh:
             fh.write("# This file contains metadata describing what exact version\n")
             fh.write("# Of the config that was downloaded from Shotgun\n")
             fh.write("\n")
@@ -367,8 +350,6 @@ class ConfigurationWriter(object):
 
             # write yaml
             yaml.safe_dump(metadata, fh)
-            fh.write("\n")
-            fh.write("# End of file.\n")
 
     def write_shotgun_file(self, descriptor):
         """
@@ -404,7 +385,7 @@ class ConfigurationWriter(object):
             )
             metadata = {}
 
-        with self._open_auto_created_yml(dest_config_sg_file) as fh:
+        with filesystem.auto_created_yml(dest_config_sg_file) as fh:
             # ensure the metadata has the host set. We shouldn't assume the shotgun.yml
             # file that can be distributed with the config has the host set, as it
             # could be used on two different Shotgun servers, for example a production
@@ -412,15 +393,16 @@ class ConfigurationWriter(object):
             metadata["host"] = connection.sanitize_url(self._sg_connection.base_url)
             # write yaml
             yaml.safe_dump(metadata, fh)
-            fh.write("\n")
-            fh.write("# End of file.\n")
 
         log.debug("Wrote %s", dest_config_sg_file)
 
     def write_pipeline_config_file(
         self,
-        pipeline_config_id, project_id, plugin_id,
-        bundle_cache_fallback_paths, source_descriptor
+        pipeline_config_id,
+        project_id,
+        plugin_id,
+        bundle_cache_fallback_paths,
+        source_descriptor
     ):
         """
         Writes out the the pipeline configuration file config/core/pipeline_config.yml
@@ -435,28 +417,16 @@ class ConfigurationWriter(object):
                           see :meth:`~sgtk.bootstrap.ToolkitManager.plugin_id`. For
                           non-plugin based toolkit projects, this value is None.
         :param bundle_cache_fallback_paths: List of bundle cache fallback paths.
+        :param source_descriptor: Descriptor object used to identify
+            which descriptor the pipeline configuration originated from.
+            For configurations where this source may not be directly accessible,
+            (e.g. baked configurations), this can be set to ``None``.
 
         :returns: Path to the configuration file that was written out.
         """
-        # the pipeline config metadata
-        # resolve project name and pipeline config name from shotgun.
-        if pipeline_config_id:
-            # look up pipeline config name and project name via the pc
-            log.debug("Checking pipeline config in Shotgun...")
-
-            sg_data = self._sg_connection.find_one(
-                constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
-                [["id", "is", pipeline_config_id]],
-                ["code", "project.Project.tank_name"]
-            )
-
-            project_name = sg_data["project.Project.tank_name"] or constants.UNNAMED_PROJECT_NAME
-            pipeline_config_name = sg_data["code"] or constants.UNMANAGED_PIPELINE_CONFIG_NAME
-
-        elif project_id:
-            # no pc. look up the project name via the project id
+        if project_id:
+            # Look up the project name via the project id
             log.debug("Checking project in Shotgun...")
-
             sg_data = self._sg_connection.find_one(
                 "Project",
                 [["id", "is", project_id]],
@@ -470,8 +440,23 @@ class ConfigurationWriter(object):
                 raise ValueError(msg)
 
             project_name = sg_data["tank_name"] or constants.UNNAMED_PROJECT_NAME
-            pipeline_config_name = constants.UNMANAGED_PIPELINE_CONFIG_NAME
+        else:
+            project_name = constants.UNNAMED_PROJECT_NAME
 
+        # the pipeline config metadata
+        # resolve project name and pipeline config name from shotgun.
+        if pipeline_config_id:
+            # look up pipeline config name and project name via the pc
+            log.debug("Checking pipeline config in Shotgun...")
+
+            sg_data = self._sg_connection.find_one(
+                constants.PIPELINE_CONFIGURATION_ENTITY_TYPE,
+                [["id", "is", pipeline_config_id]],
+                ["code"]
+            )
+            pipeline_config_name = sg_data["code"] or constants.UNMANAGED_PIPELINE_CONFIG_NAME
+        elif project_id:
+            pipeline_config_name = constants.UNMANAGED_PIPELINE_CONFIG_NAME
         else:
             # this is either a site config or a baked config.
             # in the latter case, the project name will be overridden at
@@ -489,8 +474,10 @@ class ConfigurationWriter(object):
             "use_bundle_cache": True,
             "bundle_cache_fallback_roots": bundle_cache_fallback_paths,
             "use_shotgun_path_cache": True,
-            "source_descriptor": source_descriptor.get_dict()
         }
+
+        if source_descriptor:
+            pipeline_config_content["source_descriptor"] = source_descriptor.get_dict()
 
         # write pipeline_configuration.yml
         pipeline_config_path = os.path.join(
@@ -500,10 +487,15 @@ class ConfigurationWriter(object):
             constants.PIPELINECONFIG_FILE
         )
 
-        with self._open_auto_created_yml(pipeline_config_path) as fh:
+        if os.path.exists(pipeline_config_path):
+            # warn if this file already exists
+            log.warning(
+                "The file 'core/%s' exists in the configuration "
+                "but will be overwritten with an auto generated file." % constants.PIPELINECONFIG_FILE
+            )
+
+        with filesystem.auto_created_yml(pipeline_config_path) as fh:
             yaml.safe_dump(pipeline_config_content, fh)
-            fh.write("\n")
-            fh.write("# End of file.\n")
 
         return pipeline_config_path
 
@@ -513,43 +505,13 @@ class ConfigurationWriter(object):
 
         :param config_descriptor: Config descriptor object
         """
-        log.debug("Creating storage roots file...")
 
-        # get list of storages in Shotgun
-        sg_data = self._sg_connection.find(
-            "LocalStorage",
-            [],
-            fields=["id", "code"] + ShotgunPath.SHOTGUN_PATH_FIELDS)
-
-        # organize them by name
-        storage_by_name = {}
-        for storage in sg_data:
-            storage_by_name[storage["code"]] = storage
-
-        # now write out roots data
-        roots_data = {}
-
-        for storage_name in config_descriptor.required_storages:
-
-            if storage_name not in storage_by_name:
-                raise TankBootstrapError(
-                    "A '%s' storage is defined by %s but is "
-                    "not defined in Shotgun." % (storage_name, config_descriptor)
-                )
-            storage_path = ShotgunPath.from_shotgun_dict(storage_by_name[storage_name])
-            roots_data[storage_name] = storage_path.as_shotgun_dict()
-
-        roots_file = os.path.join(
-            self._path.current_os,
-            "config",
-            "core",
-            constants.STORAGE_ROOTS_FILE
+        config_folder = os.path.join(self._path.current_os, "config")
+        StorageRoots.write(
+            self._sg_connection,
+            config_folder,
+            config_descriptor.storage_roots
         )
-
-        with self._open_auto_created_yml(roots_file) as fh:
-            yaml.safe_dump(roots_data, fh)
-            fh.write("\n")
-            fh.write("# End of file.\n")
 
     def is_transaction_pending(self):
         """
@@ -623,29 +585,3 @@ class ConfigurationWriter(object):
             self._get_configuration_transaction_folder(),
             "done"
         )
-
-    @filesystem.with_cleared_umask
-    def _open_auto_created_yml(self, path):
-        """
-        Open a standard auto generated yml for writing.
-
-        - any existing files will be removed
-        - the given path will be open for writing in text mode
-        - a standard header will be added
-
-        :param path: path to yml file to open for writing
-        :return: file handle. It's the respoponsibility of the caller to close this.
-        """
-        log.debug("Creating auto-generated config file %s" % path)
-        # clean out any existing file and replace it with a new one.
-        filesystem.safe_delete_file(path)
-
-        # open file for writing
-        fh = open(path, "wt")
-
-        fh.write("# This file was auto generated by the Shotgun Pipeline Toolkit.\n")
-        fh.write("# Please do not modify by hand as it may be overwritten at any point.\n")
-        fh.write("# Created %s\n" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-        fh.write("# \n")
-
-        return fh

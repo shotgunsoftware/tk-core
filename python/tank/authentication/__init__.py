@@ -18,8 +18,25 @@ credentials are reused. If a Toolkit-enabled process is launched a second time, 
 credentials are reused if available.
 """
 
-from .errors import ShotgunAuthenticationError, AuthenticationError, IncompleteCredentials, AuthenticationCancelled
+from .errors import (  # noqa
+    AuthenticationCancelled,
+    AuthenticationError,
+    ConsoleLoginWithSSONotSupportedError,  # For backward compatibility.
+    ConsoleLoginNotSupportedError,
+    IncompleteCredentials,
+    ShotgunAuthenticationError,
+)
+from .web_login_support import (
+    get_shotgun_authenticator_support_web_login,
+    set_shotgun_authenticator_support_web_login,
+)
 from .shotgun_authenticator import ShotgunAuthenticator
 from .defaults_manager import DefaultsManager
 from .core_defaults_manager import CoreDefaultsManager
-from .user import ShotgunUser, deserialize_user, serialize_user
+from .user import (  # noqa
+    deserialize_user,
+    serialize_user,
+    ShotgunSamlUser,
+    ShotgunUser,
+    ShotgunWebUser,
+)

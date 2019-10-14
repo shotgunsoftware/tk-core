@@ -14,14 +14,14 @@ class Ui_LoginDialog(object):
         LoginDialog.setWindowModality(QtCore.Qt.NonModal)
         LoginDialog.resize(364, 304)
         LoginDialog.setMinimumSize(QtCore.QSize(364, 296))
-        LoginDialog.setStyleSheet("QWidget\n"
+        LoginDialog.setStyleSheet("\n"
+"QWidget\n"
 "{\n"
 "    background-color:  rgb(36, 39, 42);\n"
-"    color: rgb(192, 193, 195);\n"
+"    color: rgb(192, 192, 192);\n"
 "    selection-background-color: rgb(168, 123, 43);\n"
 "    selection-color: rgb(230, 230, 230);\n"
 "    font-size: 11px;\n"
-"    color: rgb(192, 192, 192);\n"
 "}\n"
 "\n"
 "QPushButton\n"
@@ -33,21 +33,50 @@ class Ui_LoginDialog(object):
 "    padding-right: 15px;\n"
 "}\n"
 "\n"
-"QLineEdit\n"
+"QLineEdit, QComboBox\n"
 "{\n"
 "    background-color: rgb(29, 31, 34);\n"
 "    border: 1px solid rgb(54, 60, 66);\n"
 "    border-radius: 2px;\n"
 "    padding: 5px;\n"
-"    font-size: 12px;\n"
+"     font-size: 12px;\n"
 "}\n"
 "\n"
-"QLineEdit:focus\n"
+"QComboBox\n"
+"{\n"
+"    margin-left: 3;\n"
+"    margin-right: 3\n"
+"}\n"
+"\n"
+"QComboBox:focus, QLineEdit:focus\n"
 "{\n"
 "    border: 1px solid rgb(48, 167, 227);\n"
 "}\n"
 "\n"
+"QComboBox:drop-down:button {\n"
+"    border: 1px solid rgb(54, 60, 66);\n"
+"}\n"
+"\n"
+"QComboBox:down-arrow {\n"
+"    image: url(:/shotgun_authentication/down-arrow.png);\n"
+"\n"
+"}\n"
+"\n"
 "QLineEdit:Disabled {\n"
+"    background-color: rgb(60, 60, 60);\n"
+"    color: rgb(160, 160, 160);\n"
+"}\n"
+"\n"
+"QComboBox::drop-down:disabled {\n"
+"    border-width: 0px;\n"
+"\n"
+"}\n"
+"\n"
+"QComboBox::down-arrow:disabled {\n"
+"    image: url(noimg); border-width: 0px;\n"
+"}\n"
+"\n"
+"QComboBox::disabled {\n"
 "    background-color: rgb(60, 60, 60);\n"
 "    color: rgb(160, 160, 160);\n"
 "}")
@@ -88,12 +117,10 @@ class Ui_LoginDialog(object):
         self.verticalLayout_7.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_7.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_7.setObjectName("verticalLayout_7")
-        self.site = Qt5LikeLineEdit(self.credentials)
-        self.site.setMinimumSize(QtCore.QSize(308, 0))
+        self.site = RecentBox(self.credentials)
         self.site.setObjectName("site")
         self.verticalLayout_7.addWidget(self.site)
-        self.login = Qt5LikeLineEdit(self.credentials)
-        self.login.setMinimumSize(QtCore.QSize(308, 0))
+        self.login = RecentBox(self.credentials)
         self.login.setObjectName("login")
         self.verticalLayout_7.addWidget(self.login)
         self.password = Qt5LikeLineEdit(self.credentials)
@@ -119,6 +146,8 @@ class Ui_LoginDialog(object):
         self.button_layout.setSpacing(10)
         self.button_layout.setContentsMargins(0, -1, -1, -1)
         self.button_layout.setObjectName("button_layout")
+        self.links = QtGui.QVBoxLayout()
+        self.links.setObjectName("links")
         self.forgot_password_link = QtGui.QLabel(self.login_page)
         self.forgot_password_link.setCursor(QtCore.Qt.PointingHandCursor)
         self.forgot_password_link.setStyleSheet("QWidget\n"
@@ -129,7 +158,8 @@ class Ui_LoginDialog(object):
         self.forgot_password_link.setMargin(4)
         self.forgot_password_link.setOpenExternalLinks(False)
         self.forgot_password_link.setObjectName("forgot_password_link")
-        self.button_layout.addWidget(self.forgot_password_link)
+        self.links.addWidget(self.forgot_password_link)
+        self.button_layout.addLayout(self.links)
         spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.button_layout.addItem(spacerItem1)
         self.cancel = QtGui.QPushButton(self.login_page)
@@ -316,14 +346,12 @@ class Ui_LoginDialog(object):
         QtCore.QMetaObject.connectSlotsByName(LoginDialog)
 
     def retranslateUi(self, LoginDialog):
-        self.site.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "example.shotgunstudio.com", None, QtGui.QApplication.UnicodeUTF8))
-        self.login.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "login", None, QtGui.QApplication.UnicodeUTF8))
         self.password.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "password", None, QtGui.QApplication.UnicodeUTF8))
         self.message.setText(QtGui.QApplication.translate("LoginDialog", "Please enter your credentials.", None, QtGui.QApplication.UnicodeUTF8))
         self.forgot_password_link.setText(QtGui.QApplication.translate("LoginDialog", "<html><head/><body><p><a href=\"http://mystudio.shotgunstudio.com/user/forgot_password\"><span style=\" text-decoration: underline; color:#c0c1c3;\">Forgot your password?</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.cancel.setText(QtGui.QApplication.translate("LoginDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
         self.sign_in.setText(QtGui.QApplication.translate("LoginDialog", "Sign In", None, QtGui.QApplication.UnicodeUTF8))
-        self._2fa_message.setText(QtGui.QApplication.translate("LoginDialog", "Please enter the code you received in the Google Authenticator app.", None, QtGui.QApplication.UnicodeUTF8))
+        self._2fa_message.setText(QtGui.QApplication.translate("LoginDialog", "Enter the code generated by the Google Authenticator or Duo Mobile app.", None, QtGui.QApplication.UnicodeUTF8))
         self._2fa_code.setPlaceholderText(QtGui.QApplication.translate("LoginDialog", "Enter code", None, QtGui.QApplication.UnicodeUTF8))
         self.use_backup.setText(QtGui.QApplication.translate("LoginDialog", "Use backup code", None, QtGui.QApplication.UnicodeUTF8))
         self.cancel_tfa.setText(QtGui.QApplication.translate("LoginDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
@@ -335,5 +363,6 @@ class Ui_LoginDialog(object):
         self.verify_backup.setText(QtGui.QApplication.translate("LoginDialog", "Verify", None, QtGui.QApplication.UnicodeUTF8))
 
 from .aspect_preserving_label import AspectPreservingLabel
+from .recent_box import RecentBox
 from .qt5_like_line_edit import Qt5LikeLineEdit
 from . import resources_rc

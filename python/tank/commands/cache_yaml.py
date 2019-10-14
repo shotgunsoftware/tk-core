@@ -82,12 +82,12 @@ class CacheYamlAction(Action):
 
         try:
             fh = open(pickle_path, "wb")
-        except Exception, e:
+        except Exception as e:
             raise TankError("Unable to open '%s' for writing: %s" % (pickle_path, e))
 
         try:
             cPickle.dump(items, fh)
-        except Exception, e:
+        except Exception as e:
             raise TankError("Unable to dump pickled cache data: %s" % e)
 
         log.info("")

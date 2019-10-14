@@ -87,6 +87,6 @@ from .platform.errors import TankEngineInitError
 from .template import Template, TemplatePath, TemplateString
 from .hook import Hook, get_hook_baseclass
 
-from .commands import list_commands, get_command, SgtkSystemCommand
+from .commands import list_commands, get_command, SgtkSystemCommand, CommandInteraction
 
 from .templatekey import TemplateKey, SequenceKey, IntegerKey, StringKey, TimestampKey

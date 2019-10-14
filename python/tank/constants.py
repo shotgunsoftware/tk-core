@@ -17,11 +17,6 @@ TANK_INIT_HOOK_NAME = "tank_init"
 # hook to be executed after bundle install
 BUNDLE_POST_INSTALL_HOOK = "post_install.py"
 
-# metrics logging custom hooks blacklist
-TANK_LOG_METRICS_CUSTOM_HOOK_BLACKLIST = [
-    "pick_environment",
-]
-
 # hook that is executed whenever a PipelineConfiguration instance initializes.
 PIPELINE_CONFIGURATION_INIT_HOOK_NAME = "pipeline_configuration_init"
 
@@ -37,12 +32,19 @@ PIPELINE_CONFIGURATION_ENTITY = "PipelineConfiguration"
 # the storage name that is treated to be the primary storage for tank
 PRIMARY_STORAGE_NAME = "primary"
 
-# special dev descriptor token that can be used
+# special path or dev descriptor token that can be used
 # as a replacement for the path to a pipeline configuration
-PIPELINE_CONFIG_DEV_DESCRIPTOR_TOKEN = "{PIPELINE_CONFIG}"
+PIPELINE_CONFIG_DESCRIPTOR_TOKEN = "{PIPELINE_CONFIG}"
+
+# special path or dev descriptor token that can be used
+# as a replacement for the path to the config folder of a pipeline configuration.
+CONFIG_FOLDER_DESCRIPTOR_TOKEN = "{CONFIG_FOLDER}"
 
 # the name of the file that holds the templates.yml config
 CONTENT_TEMPLATES_FILE = "templates.yml"
+
+# config file with information about which core to use
+CONFIG_CORE_DESCRIPTOR_FILE = "core_api.yml"
 
 # the name of the primary pipeline configuration
 PRIMARY_PIPELINE_CONFIG_NAME = "Primary"

@@ -192,7 +192,10 @@ class TankQDialog(TankDialogBase):
             self.ui.label.setText(title)
             
         self.setWindowTitle("Shotgun: %s" % title)
-        
+        if os.path.exists(bundle.icon_256):
+            self._window_icon = QtGui.QIcon(bundle.icon_256)
+            self.setWindowIcon(self._window_icon)
+
         # set the visibility of the title bar:
         show_tk_title_bar = (not hasattr(self._widget, "hide_tk_title_bar") or not self._widget.hide_tk_title_bar)
         self.ui.top_group.setVisible(show_tk_title_bar)
@@ -418,7 +421,7 @@ class TankQDialog(TankDialogBase):
                 # here!
                 pass
             else:
-                # widget supressed the close!
+                # widget suppressed the close!
                 return
         else:
             # process 'done' so that the exit code
@@ -676,7 +679,7 @@ class TankQDialog(TankDialogBase):
         try:
             # first, reload the template defs
             self._bundle.tank.reload_templates()
-        except TankError, e:
+        except TankError as e:
             self._bundle.log_error(e)
 
         try:
@@ -688,7 +691,7 @@ class TankQDialog(TankDialogBase):
             if engine.current_engine(): 
                 engine.current_engine().destroy()
             engine.start_engine(current_engine_name, current_context.tank, current_context)
-        except TankError, e:
+        except TankError as e:
             self._bundle.log_error("Could not restart the engine: %s" % e)
         except Exception:
             self._bundle.log_exception("Could not restart the engine!")

@@ -14,9 +14,23 @@ All custom exceptions that this module emits are defined here.
 
 from ..errors import TankError
 
+
 class TankBootstrapError(TankError):
     """
     Base class for all bootstrap related errors
     """
     pass
 
+
+class TankMissingTankNameError(TankBootstrapError):
+    """
+    Raised when a project's ``tank_name`` field is not set.
+    """
+    pass
+
+
+class TankBootstrapInvalidPipelineConfigurationError(TankBootstrapError):
+    """
+    Raised when an invalid pipeline configuration record is detected.
+    """
+    pass

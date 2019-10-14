@@ -17,6 +17,7 @@ import shutil
 import logging
 import tempfile
 import mock
+import inspect
 
 from tank_test.tank_test_base import *
 import tank
@@ -48,12 +49,6 @@ class TestApplication(TankTestBase):
         self.shot_step_path = os.path.join(shot_path, "step_name")
         self.add_production_path(self.shot_step_path, step)
 
-        self.test_resource = os.path.join(self.pipeline_config_root, "config", "foo", "bar.png")
-        os.makedirs(os.path.dirname(self.test_resource))
-        fh = open(self.test_resource, "wt")
-        fh.write("test")
-        fh.close()
-        
         context = self.tk.context_from_path(self.shot_step_path)
         self.engine = tank.platform.start_engine("test_engine", self.tk, context)
 
@@ -63,7 +58,6 @@ class TestApplication(TankTestBase):
         cur_engine = tank.platform.current_engine()
         if cur_engine:
             cur_engine.destroy()
-        os.remove(self.test_resource)
 
         # important to call base class so it can clean up memory
         super(TestApplication, self).tearDown()
@@ -73,6 +67,15 @@ class TestAppFrameworks(TestApplication):
     """
     Tests for framework related operations
     """
+
+    def test_frameworks_named_after_info_yml_name(self):
+        """
+        Ensures the framework in the .frameworks dictionary is named
+        after the name of the framework in info.yml and not as the one
+        reported by framework.name, which is derived from the descriptor.
+        """
+        frameworks = self.engine.apps["test_app"].frameworks
+        self.assertEqual(["test_framework"], frameworks.keys())
 
     def test_minimum_version(self):
         """
@@ -136,9 +139,9 @@ class TestGetApplication(TestApplication):
         
         try:
             application.get_application(self.engine, bogus_path, "bogus_app", {}, "instance_name", None)
-        except TankError, cm:
+        except TankError as cm:
             expected_msg = "Failed to load plugin"
-            self.assertTrue(cm.message.startswith(expected_msg))
+            self.assertTrue(str(cm).startswith(expected_msg))
         
     def test_good_path(self):
         """
@@ -159,7 +162,7 @@ class TestGetSetting(TestApplication):
     def setUp(self):
         super(TestGetSetting, self).setUp()
         self.app = self.engine.apps["test_app"]
-        
+
     def test_get_setting(self):
         """
         Tests application.get_setting()
@@ -168,9 +171,15 @@ class TestGetSetting(TestApplication):
         tmpl = self.app.get_template("test_template")
         self.assertEqual("maya_publish_name", tmpl.name)
         self.assertIsInstance(tmpl, Template)
-        
+
+        # Also ensure that we can define a template via core hook.
+        self.assertEqual("12345", self.app.get_setting("test_template_hook"))
+
         # test resource
-        self.assertEqual(self.test_resource, self.app.get_setting("test_icon"))
+        self.assertEqual(
+            os.path.join(self.project_config, "foo", "bar.png"),
+            self.app.get_setting("test_icon")
+        )
 
         # Test a simple list
         test_list = self.app.get_setting("test_simple_list")
@@ -202,6 +211,14 @@ class TestGetSetting(TestApplication):
 
         # test legacy case where a setting has no schema
         self.assertEqual(1234.5678, self.app.get_setting("test_no_schema"))
+
+        # procudural hook based evaluation of settings
+        self.assertEqual("string_value", self.app.get_setting("test_str_evaluator"))
+        self.assertEqual(1, self.app.get_setting("test_int_evaluator"))
+        self.assertEqual(
+            {"test_str": "param", "test_int": 1},
+            self.app.get_setting("test_simple_dictionary_evaluator")
+        )
 
         # test allow empty types with no default
         self.assertEqual([], self.app.get_setting("test_allow_empty_list"))
@@ -303,9 +320,32 @@ class TestExecuteHook(TestApplication):
         app = self.engine.apps["test_app"]
         hook_expression = app.get_setting("test_hook_std")
         instance_1 = app.create_hook_instance(hook_expression)
-        self.assertEquals(instance_1.second_method(another_dummy_param=True), True)
+        self.assertEqual(instance_1.second_method(another_dummy_param=True), True)
         instance_2 = app.create_hook_instance(hook_expression)
-        self.assertNotEquals(instance_1, instance_2)
+        self.assertNotEqual(instance_1, instance_2)
+
+        # ensure if no base_class arg supplied we have Hook as the base class
+        base_classes = inspect.getmro(instance_2.__class__)
+        self.assertEqual(base_classes[-2], tank.Hook)
+        self.assertEqual(base_classes[-1], object)
+
+        # class to inject as a custom base class
+        class Foobar(tank.Hook):
+            pass
+
+        # this hook has to be new style hook using `sgtk.get_hook_baseclass`
+        test_hook_expression = "{config}/more_hooks/config_test_hook.py"
+
+        # create an instance with an in injected base class
+        instance_3 = app.create_hook_instance(test_hook_expression, base_class=Foobar)
+
+        # get the resolution order of the base classes
+        base_classes = inspect.getmro(instance_3.__class__)
+
+        # ensure the last 3 classes in the order are Foobar, Hook, object
+        self.assertEqual(base_classes[-3], Foobar)
+        self.assertEqual(base_classes[-2], tank.Hook)
+        self.assertEqual(base_classes[-1], object)
 
     def test_parent(self):
         """
@@ -314,7 +354,7 @@ class TestExecuteHook(TestApplication):
         app = self.engine.apps["test_app"]
         hook_expression = app.get_setting("test_hook_std")
         hook_instance = app.create_hook_instance(hook_expression)
-        self.assertEquals(hook_instance.parent, app)
+        self.assertEqual(hook_instance.parent, app)
 
     def test_sgtk(self):
         """
@@ -323,7 +363,7 @@ class TestExecuteHook(TestApplication):
         app = self.engine.apps["test_app"]
         hook_expression = app.get_setting("test_hook_std")
         hook_instance = app.create_hook_instance(hook_expression)
-        self.assertEquals(hook_instance.sgtk, app.sgtk)
+        self.assertEqual(hook_instance.sgtk, app.sgtk)
 
     def test_logger(self):
         """
@@ -347,7 +387,7 @@ class TestExecuteHook(TestApplication):
         stream.close()
         log.removeHandler(handler)
 
-        self.assertEquals(log_contents, "hello toolkitty\n")
+        self.assertEqual(log_contents, "hello toolkitty\n")
 
     def test_disk_location(self):
         """
@@ -355,9 +395,9 @@ class TestExecuteHook(TestApplication):
         """
         app = self.engine.apps["test_app"]
         disk_location = app.execute_hook_method("test_hook_std", "test_disk_location")
-        self.assertEquals(
+        self.assertEqual(
             disk_location,
-            os.path.join(self.pipeline_config_root, "config", "hooks", "toolkitty.png")
+            os.path.join(self.project_config, "hooks", "toolkitty.png")
         )
 
     def test_inheritance_disk_location(self):
@@ -372,20 +412,18 @@ class TestExecuteHook(TestApplication):
 
         (disk_location_1, disk_location_2) = hook.test_inheritance_disk_location()
 
-        self.assertEquals(
+        self.assertEqual(
             disk_location_1,
             os.path.join(
-                self.pipeline_config_root,
-                "config",
+                self.project_config,
                 "hooks",
                 "toolkitty.png"
             )
         )
-        self.assertEquals(
+        self.assertEqual(
             disk_location_2,
             os.path.join(
-                self.pipeline_config_root,
-                "config",
+                self.project_config,
                 "hooks",
                 "more_hooks",
                 "toolkitty.png"
@@ -394,11 +432,10 @@ class TestExecuteHook(TestApplication):
 
         # edge case: also make sure that if we call the method externally,
         # we get the location of self
-        self.assertEquals(
+        self.assertEqual(
             hook.disk_location,
             os.path.join(
-                self.pipeline_config_root,
-                "config",
+                self.project_config,
                 "hooks",
                 "more_hooks"
             )
@@ -545,5 +582,50 @@ class TestProperties(TestApplication):
         self.assertEqual(app.display_name, "Test App")
         self.assertEqual(app.version, "Undefined")
         self.assertEqual(app.documentation_url, expected_doc_url)
-        
 
+
+class TestBundleDataCache(TestApplication):
+    """
+    Test bundle data cache paths
+    """
+
+    def test_data_path(self):
+        """
+        Test project/site data paths.
+        """
+        app = self.engine.apps["test_app"]
+        project_data_cache_path = app.cache_location
+        # We should have the project id in the path
+        self.assertTrue(
+            "%sp%d" % (os.path.sep, app.context.project["id"]) in project_data_cache_path
+        )
+        site_data_cache_path = app.site_cache_location
+        # We should not have the project id in the path
+        self.assertFalse(
+            "%sp%d" % (os.path.sep, app.context.project["id"]) in site_data_cache_path
+        )
+        # The path should end with "/site/<bundle name>"
+        self.assertTrue(
+            site_data_cache_path.endswith("%ssite%s%s" % (
+                os.path.sep, os.path.sep, app.name,
+            ))
+        )
+        # Test frameworks
+        for fw in app.frameworks.itervalues():
+            fw_data_cache_path = fw.cache_location
+            # We should have the project id in the path
+            self.assertTrue(
+                "%sp%d" % (os.path.sep, app.context.project["id"]) in fw_data_cache_path
+            )
+            fw_data_cache_path = fw.site_cache_location
+            # We should not have the project id in the path
+            self.assertFalse(
+                "%sp%d" % (os.path.sep, app.context.project["id"]) in fw_data_cache_path
+            )
+
+            # The path should end with "/site/<bundle name>"
+            self.assertTrue(
+                fw_data_cache_path.endswith("%ssite%s%s" % (
+                    os.path.sep, os.path.sep, fw.name,
+                ))
+            )

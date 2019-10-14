@@ -12,10 +12,11 @@ from __future__ import with_statement
 import uuid
 import os
 
-from tank_test.tank_test_base import TankTestBase, setUpModule, temp_env_var
+from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
+from tank_test.tank_test_base import setUpModule # noqa
 
 
-class TestDecorators(TankTestBase):
+class TestDecorators(ShotgunTestBase):
     """
     Basic environment tests
     """
@@ -31,7 +32,7 @@ class TestDecorators(TankTestBase):
         # Temporarily set the env var.
         with temp_env_var(**{env_var_name: "test_value"}):
             self.assertTrue(env_var_name in os.environ)
-            self.assertEquals(os.environ[env_var_name], "test_value")
+            self.assertEqual(os.environ[env_var_name], "test_value")
 
         # Make sure it is gone.
         self.assertFalse(env_var_name in os.environ)
@@ -49,18 +50,18 @@ class TestDecorators(TankTestBase):
 
             # Make sure it is set.
             self.assertTrue(env_var_name in os.environ)
-            self.assertEquals(os.environ[env_var_name], "test_value")
+            self.assertEqual(os.environ[env_var_name], "test_value")
 
             # Override the existing variable with a new one
             with temp_env_var(**{env_var_name: "test_value_2"}):
 
                 # Make sure it was overriden
                 self.assertTrue(env_var_name in os.environ)
-                self.assertEquals(os.environ[env_var_name], "test_value_2")
+                self.assertEqual(os.environ[env_var_name], "test_value_2")
 
             # Make sure the original one was restore.
             self.assertTrue(env_var_name in os.environ)
-            self.assertEquals(os.environ[env_var_name], "test_value")
+            self.assertEqual(os.environ[env_var_name], "test_value")
 
         # Make sure it is gone.
         self.assertFalse(env_var_name in os.environ)

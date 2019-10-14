@@ -76,6 +76,9 @@ class CacheAppsAction(Action):
             log.info("")
 
             for eng in env.get_engines():
+                if self._terminate_requested:
+                    break
+
                 desc = env.get_engine_descriptor(eng)
                 if not desc.exists_local():
                     log.info("Engine %s - Downloading..." % eng)
@@ -84,6 +87,9 @@ class CacheAppsAction(Action):
                 else:
                     log.info("Engine %s - OK!" % eng)
                 for app in env.get_apps(eng):
+                    if self._terminate_requested:
+                        break
+
                     desc = env.get_app_descriptor(eng, app)
                     if not desc.exists_local():
                         log.info("App %s (Engine %s) - Downloading..." % (app, eng))
@@ -93,6 +99,9 @@ class CacheAppsAction(Action):
                         log.info("App %s (Engine %s) - OK!" % (app, eng))
                     
             for framework in env.get_frameworks():
+                if self._terminate_requested:
+                    break
+
                 desc = env.get_framework_descriptor(framework)
                 if not desc.exists_local():
                     log.info("Framework %s - Downloading..." % framework)

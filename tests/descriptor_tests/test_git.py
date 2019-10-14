@@ -12,11 +12,11 @@ import os
 
 import sgtk
 from sgtk.descriptor import Descriptor
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import ShotgunTestBase, skip_if_git_missing
 
-from tank_test.tank_test_base import TankTestBase, skip_if_git_missing
 
-class TestGitIODescriptor(TankTestBase):
+class TestGitIODescriptor(ShotgunTestBase):
     """
     Testing the Shotgun deploy main API methods
     """
@@ -25,7 +25,7 @@ class TestGitIODescriptor(TankTestBase):
         """
         Sets up the next test's environment.
         """
-        TankTestBase.setUp(self)
+        ShotgunTestBase.setUp(self)
 
         # bare repo cloned from our official default config
         # multiple branches and tags
@@ -41,7 +41,7 @@ class TestGitIODescriptor(TankTestBase):
         Helper method around create_descriptor
         """
         return sgtk.descriptor.create_descriptor(
-            self.tk.shotgun,
+            self.mockgun,
             desc_type,
             location,
             bundle_cache_root_override=self.bundle_cache,
@@ -117,7 +117,6 @@ class TestGitIODescriptor(TankTestBase):
         latest_desc.copy(copy_target)
         self.assertTrue(os.path.exists(os.path.join(copy_target, ".git")))
 
-
     @skip_if_git_missing
     def test_branch_shorthash(self):
 
@@ -125,7 +124,7 @@ class TestGitIODescriptor(TankTestBase):
             "type": "git_branch",
             "path": self.git_repo_uri,
             "branch": "master",
-            "version": "3e6a681"
+            "version": "3d3de30"
         }
 
         desc = self._create_desc(location_dict)
@@ -136,9 +135,8 @@ class TestGitIODescriptor(TankTestBase):
 
         self.assertEqual(
             desc.get_path(),
-            os.path.join(self.bundle_cache, "gitbranch", "tk-config-default.git", "3e6a681")
+            os.path.join(self.bundle_cache, "gitbranch", "tk-config-default.git", "3d3de30")
         )
-
 
     @skip_if_git_missing
     def test_branch(self):
@@ -207,4 +205,3 @@ class TestGitIODescriptor(TankTestBase):
         copy_target = os.path.join(self.project_root, "test_copy_target")
         latest_desc.copy(copy_target)
         self.assertTrue(os.path.exists(os.path.join(copy_target, ".git")))
-

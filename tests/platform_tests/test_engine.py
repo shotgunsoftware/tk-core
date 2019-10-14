@@ -12,7 +12,7 @@
 Engine-related unit tests.
 """
 
-from __future__ import with_statement
+from __future__ import with_statement, print_function
 
 import os
 import sys
@@ -89,8 +89,8 @@ class TestStartEngine(TestEngineBase):
         Makes sure the engine is loaded from the right location.
         """
         engine_path = tank.platform.get_engine_path("test_engine", self.tk, self.context)
-        expected_engine_path = os.path.join(self.pipeline_config_root, "config", "bundles", "test_engine")
-        self.assertEquals(engine_path, expected_engine_path)
+        expected_engine_path = os.path.join(self.project_config, "bundles", "test_engine")
+        self.assertEqual(engine_path, expected_engine_path)
 
     def test_valid_engine(self):
         """
@@ -248,8 +248,8 @@ class TestExecuteInMainThread(TestEngineBase):
                     e = time.time()
                     c_time += (e - st)
                     self.assertEqual(ret_val, arg)
-            except Exception, e:
-                print e
+            except Exception as e:
+                print(e)
                 raise
 
             # print "Cumulative time for thread %d: %0.4fs" % (val, c_time)

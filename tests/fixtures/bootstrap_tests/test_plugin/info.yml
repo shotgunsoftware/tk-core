@@ -1,0 +1,25 @@
+# Copyright (c) 2018 Shotgun Software Inc.
+#
+# CONFIDENTIAL AND PROPRIETARY
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+# Source Code License included in this distribution package. See LICENSE.
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
+# not expressly granted therein are reserved by Shotgun Software Inc.
+
+base_configuration:
+  # The default configuration that the plugin should use.
+  # For documentation and details, see
+  #
+  type: dev
+  name: tk-config-boottest
+  # Please make sure TK_TEST_FIXTURES is set to an absolute path when baking
+  # this plugin
+  path: "$TK_TEST_FIXTURES/bootstrap_tests/config"
+  version: v1.2.3
+
+# The Plugin Id helps uniquely identify this plugin and can be
+# used to override and customize it.
+plugin_id: "test.plugin"
+

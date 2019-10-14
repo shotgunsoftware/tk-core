@@ -34,9 +34,12 @@ from ..util import LocalFileStorageManager
 logger = LogManager.get_logger(__name__)
 
 _CURRENT_HOST = "current_host"
+_RECENT_HOSTS = "recent_hosts"
 _CURRENT_USER = "current_user"
+_RECENT_USERS = "recent_users"
 _USERS = "users"
 _LOGIN = "login"
+_SESSION_METADATA = "session_metadata"
 _SESSION_TOKEN = "session_token"
 _SESSION_CACHE_FILE_NAME = "authentication.yml"
 
@@ -65,7 +68,6 @@ def _get_global_authentication_file_location():
 
     :returns: Path to the login information.
     """
-
     # try current generation path first
     path = os.path.join(
         LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
@@ -134,9 +136,9 @@ def _ensure_folder_for_file(filepath):
     """
     folder, _ = os.path.split(filepath)
     if not os.path.exists(folder):
-        old_umask = os.umask(0077)
+        old_umask = os.umask(0o077)
         try:
-            os.makedirs(folder, 0700)
+            os.makedirs(folder, 0o700)
         finally:
             os.umask(old_umask)
     return filepath
@@ -178,7 +180,7 @@ def _try_load_yaml_file(file_path):
             logger.debug(line.rstrip())
         # Create an empty document
         return {}
-    except:
+    except Exception:
         logger.exception("Unexpected error while opening %s" % file_path)
         return {}
     finally:
@@ -196,16 +198,29 @@ def _try_load_site_authentication_file(file_path):
     The users file has the following format:
         current_user: "login1"
         users:
-           {name: "login1", session_token: "session_token"}
-           {name: "login2", session_token: "session_token"}
-           {name: "login3", session_token: "session_token"}
+           {login: "login1", session_token: "session_token"}
+           {login: "login2", session_token: "session_token"}
+           {login: "login3", session_token: "session_token"}
 
     :returns: site authentication style dictionary
     """
     content = _try_load_yaml_file(file_path)
+
+    # Do not attempt to filter out content that is not understood. This allows
+    # the file to be backwards and forward compatible with different versions
+    # of core.
+
     # Make sure any mandatory entry is present.
     content.setdefault(_USERS, [])
     content.setdefault(_CURRENT_USER, None)
+    content.setdefault(_RECENT_USERS, [])
+
+    for user in content[_USERS]:
+        user[_LOGIN] = user[_LOGIN].strip()
+
+    if content[_CURRENT_USER]:
+        content[_CURRENT_USER] = content[_CURRENT_USER].strip()
+
     return content
 
 
@@ -218,12 +233,18 @@ def _try_load_global_authentication_file(file_path):
     :returns: global authentication style dictionary
     """
     content = _try_load_yaml_file(file_path)
+
+    # Do not attempt to filter out content that is not understood. This allows
+    # the file to be backwards and forward compatible with different versions
+    # of core.
+
     # Make sure any mandatody entry is present.
     content.setdefault(_CURRENT_HOST, None)
+    content.setdefault(_RECENT_HOSTS, [])
     return content
 
 
-def _insert_or_update_user(users_file, login, session_token):
+def _insert_or_update_user(users_file, login, session_token, session_metadata):
     """
     Finds or updates an entry in the users file with the given login and
     session token.
@@ -231,6 +252,7 @@ def _insert_or_update_user(users_file, login, session_token):
     :param users_file: Users dictionary to update.
     :param login: Login of the user to update.
     :param session_token: Session token of the user to update.
+    :param session_metadata: Information needed for when SSO is used. This is an obscure blob of data.
 
     :returns: True is the users dictionary has been updated, False otherwise.
     """
@@ -238,14 +260,25 @@ def _insert_or_update_user(users_file, login, session_token):
     for user in users_file[_USERS]:
         # If we've matched what we are looking for.
         if _is_same_user(user, login):
+            result = False
             # Update and return True only if something changed.
             if user[_SESSION_TOKEN] != session_token:
                 user[_SESSION_TOKEN] = session_token
-                return True
-            else:
-                return False
+                result = True
+            if user.get(_SESSION_METADATA) and user[_SESSION_METADATA] != session_metadata:
+                user[_SESSION_METADATA] = session_metadata
+                result = True
+            return result
     # This is a new user, add it to the list.
-    users_file[_USERS].append({_LOGIN: login, _SESSION_TOKEN: session_token})
+    user = {
+        _LOGIN: login,
+        _SESSION_TOKEN: session_token
+    }
+    # We purposely do not save unset session_metadata to avoid de-serialization issues
+    # when the data is read by older versions of the tk-core.
+    if session_metadata is not None:
+        user[_SESSION_METADATA] = session_metadata
+    users_file[_USERS].append(user)
     return True
 
 
@@ -256,7 +289,7 @@ def _write_yaml_file(file_path, users_data):
     :param file_path: Where to write the users data
     :param users_data: Dictionary to write to disk.
     """
-    old_umask = os.umask(0077)
+    old_umask = os.umask(0o077)
     try:
         with open(file_path, "w") as users_file:
             yaml.safe_dump(users_data, users_file)
@@ -285,7 +318,7 @@ def delete_session_data(host, login):
         # Write back the file.
         _write_yaml_file(info_path, users_file)
         logger.debug("Session cleared.")
-    except:
+    except Exception:
         logger.exception("Couldn't update the session cache file!")
         raise
 
@@ -306,25 +339,30 @@ def get_session_data(base_url, login):
         for user in users_file[_USERS]:
             # Search for the user in the users dictionary.
             if _is_same_user(user, login):
-                return {
-                    # There used to be a time where we didn't strip whitepsaces
-                    # before writing the file, so do it now just in case.
-                    _LOGIN: user[_LOGIN].strip(),
+                session_data = {
+                    _LOGIN: user[_LOGIN],
                     _SESSION_TOKEN: user[_SESSION_TOKEN]
                 }
+                # We want to keep session_metadata out of the session data if there
+                # is none. This is to ensure backward compatibility for older
+                # version of tk-core reading the authentication.yml
+                if user.get(_SESSION_METADATA):
+                    session_data[_SESSION_METADATA] = user[_SESSION_METADATA]
+                return session_data
         logger.debug("No cached user found for %s" % login)
     except Exception:
         logger.exception("Exception thrown while loading cached session info.")
         return None
 
 
-def cache_session_data(host, login, session_token):
+def cache_session_data(host, login, session_token, session_metadata=None):
     """
     Caches the session data for a site and a user.
 
     :param host: Site we want to cache a session for.
     :param login: User we want to cache a session for.
     :param session_token: Session token we want to cache.
+    :param session_metadata: Session meta data.
     """
     # Retrieve the cached info file location from the host
     file_path = _get_site_authentication_file_location(host)
@@ -335,7 +373,7 @@ def cache_session_data(host, login, session_token):
 
     document = _try_load_site_authentication_file(file_path)
 
-    if _insert_or_update_user(document, login, session_token):
+    if _insert_or_update_user(document, login, session_token, session_metadata):
         # Write back the file only it a new user was added.
         _write_yaml_file(file_path, document)
         logger.debug("Updated session cache data.")
@@ -361,7 +399,8 @@ def get_current_user(host):
 
 def set_current_user(host, login):
     """
-    Saves the current user for a given host.
+    Saves the current user for a given host and updates the recent user list. Only the last 8
+    entries are kept.
 
     :param host: Host to save the current user for.
     :param login: The current user login for specified host.
@@ -373,8 +412,48 @@ def set_current_user(host, login):
     _ensure_folder_for_file(file_path)
 
     current_user_file = _try_load_site_authentication_file(file_path)
-    current_user_file[_CURRENT_USER] = login
+
+    _update_recent_list(
+        current_user_file, _CURRENT_USER, _RECENT_USERS, login
+    )
+
     _write_yaml_file(file_path, current_user_file)
+
+
+def set_current_host(host):
+    """
+    Saves the current host and updates the most recent host list. Only the last 8 entries are kept.
+
+    :param host: The new current host.
+    """
+    if host:
+        host = connection.sanitize_url(host)
+
+    file_path = _get_global_authentication_file_location()
+    _ensure_folder_for_file(file_path)
+
+    current_host_file = _try_load_global_authentication_file(file_path)
+
+    _update_recent_list(current_host_file, _CURRENT_HOST, _RECENT_HOSTS, host)
+    _write_yaml_file(file_path, current_host_file)
+
+
+def _update_recent_list(document, current_key, recent_key, value):
+    """
+    Updates document's current key with the desired value and it's recent key by inserting the value
+    at the front. Only the most recent 8 entries are kept.
+
+    For example, if a document has the current_host (current_key) and recent_hosts (recent_key) key,
+    the current_host would be set to the host (value) passed in and the host would be inserted
+    at the front of recent_key's array.
+    """
+    document[current_key] = value
+    # Make sure this user is now the most recent one.
+    if value in document[recent_key]:
+        document[recent_key].remove(value)
+    document[recent_key].insert(0, value)
+    # Only keep the 8 most recent entries
+    document[recent_key] = document[recent_key][:8]
 
 
 def get_current_host():
@@ -393,21 +472,56 @@ def get_current_host():
     return host
 
 
-def set_current_host(host):
+def _get_recent_items(document, recent_field, current_field, type_name):
     """
-    Saves the current host.
+    Extract the list of recent items from the document.
 
-    :param host: The new current host.
+    If the recent_field is not set, then we'll simply return the current_field's
+    value. The recent_field will be empty when upgrading from an older core
+    that didn't support the recent users/hosts list.
+
+    :param object document: Document to extract information from
+    :param recent_field: Field from which we need to retrieve
     """
-    if host:
-        host = connection.sanitize_url(host)
+    # Extract the list of recent items.
+    items = document[recent_field]
 
-    file_path = _get_global_authentication_file_location()
-    _ensure_folder_for_file(file_path)
+    # Then check if the current is part of the list. It's not? This is because
+    # an older core updated the file, but didn't know about the recent list and
+    # didn't update it. This is possible because since day one the authentication.yml
+    # has been treated as document with certain fields set and when the document
+    # is rewritten it is rewritten as is, except for the bits that were updated.
+    if document[current_field]:
+        # If the item was present in the list, remove it and move it to the top
+        # so it's marked as the most recent.
+        if document[current_field] in items:
+            items.remove(document[current_field])
+        items.insert(0, document[current_field])
+    logger.debug("Recent %s are: %s", type_name, items)
+    return items
 
-    current_host_file = _try_load_global_authentication_file(file_path)
-    current_host_file[_CURRENT_HOST] = host.strip()
-    _write_yaml_file(file_path, current_host_file)
+
+def get_recent_hosts():
+    """
+    Retrieves the list of recently visited hosts.
+
+    :returns: List of recently visited hosts.
+    """
+    info_path = _get_global_authentication_file_location()
+    document = _try_load_global_authentication_file(info_path)
+    return _get_recent_items(document, _RECENT_HOSTS, _CURRENT_HOST, "hosts")
+
+
+def get_recent_users(site):
+    """
+    Retrieves the list of recently visited hosts.
+
+    :returns: List of recently visited hosts.
+    """
+    info_path = _get_site_authentication_file_location(site)
+    document = _try_load_site_authentication_file(info_path)
+    logger.debug("Recent users are: %s", document[_RECENT_USERS])
+    return _get_recent_items(document, _RECENT_USERS, _CURRENT_USER, "users")
 
 
 @LogManager.log_timing
@@ -451,7 +565,7 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
     # recoverable error, problems with proxy settings or network errors are much
     # more severe errors which can't be fixed by reprompting. Therefore, they have
     # nothing to do with authentication and shouldn't be reported as such.
-    except socket.error, e:
+    except socket.error as e:
         logger.exception("Unexpected connection error.")
         # e.message is always an empty string, so look at the exception's arguments.
         # The arguments are always a string or a number and a string.
@@ -466,7 +580,7 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
             # of this exception type is pretty bad so let's reformat it ourselves. By default, it
             # turns a tuple into a string.
             raise Exception("%s (%d)" % (e.args[1], e.args[0]))
-    except httplib2.socks.ProxyError, e:
+    except httplib2.socks.ProxyError as e:
         logger.exception("Unexpected connection error.")
         # Same comment applies here around formatting.
         # Note that e.message is always a tuple in this
@@ -474,7 +588,7 @@ def generate_session_token(hostname, login, password, http_proxy, auth_token=Non
     except MissingTwoFactorAuthenticationFault:
         # Silently catch and rethrow to avoid logging.
         raise
-    except Exception, e:
+    except Exception as e:
         logger.exception("There was a problem logging in.")
         # If the error message is empty, like httplib.HTTPException, convert
         # the class name to a string

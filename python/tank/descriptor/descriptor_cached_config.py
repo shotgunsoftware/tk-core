@@ -12,7 +12,6 @@ from __future__ import with_statement
 
 import os
 
-
 from tank_vendor import yaml
 
 from . import constants
@@ -34,9 +33,15 @@ class CachedConfigDescriptor(ConfigDescriptor):
     interpreter files that live alongside the configuration, even tough technically these files
     are part of the core's configuration.
     """
-    def _get_config_folder(self):
+    def get_config_folder(self):
         """
         Returns the folder in which the configuration files are located.
+
+        The ``config`` folder will be located in the bundle cache.
+
+        For example, a descriptor-based configuration using ``tk-config-basic``
+        ``v1.2.0`` would find the configuration at
+        ``%SHOTGUN_HOME%\bundle_cache\app_store\tk-config-basic\v1.2.0``.
 
         :returns: Path to the configuration files folder.
         """
@@ -75,7 +80,7 @@ class CachedConfigDescriptor(ConfigDescriptor):
             try:
                 data = yaml.load(fh)
                 core_descriptor_dict = data["location"]
-            except Exception, e:
+            except Exception as e:
                 raise TankDescriptorError(
                     "Cannot read invalid core descriptor file '%s': %s" % (core_descriptor_path, e)
                 )

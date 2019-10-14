@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import print_function
+
 import os
 import StringIO
 
@@ -206,12 +208,12 @@ class DumpConfigAction(Action):
                 # no file, write the in-memory file contents to <stdout>
                 log.info("=" * 70)
                 log.info("")
-                print env_fh.getvalue()
+                print(env_fh.getvalue())
                 log.info("")
                 log.info("=" * 70)
             else:
                 log.info("Environment written to: %s" % (os.path.abspath(params["file"])),)
-        except Exception, e:
+        except Exception as e:
             import traceback
             traceback.print_exc()
             raise TankError(
@@ -236,14 +238,14 @@ class DumpConfigAction(Action):
             if not os.path.isdir(dir):
                 try:
                     filesystem.ensure_folder_exists(dir)
-                except OSError, e:
+                except OSError as e:
                     raise TankError(
                         "Unable to create directory: %s\n"
                         "  Error reported: %s" % (dir, e)
                     )
             try:
                 fh = open(path, "w")
-            except Exception, e:
+            except Exception as e:
                 raise TankError(
                     "Unable to open file: %s\n"
                     "  Error reported: %s" % (path, e)

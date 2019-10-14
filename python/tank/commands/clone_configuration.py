@@ -159,7 +159,11 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
                                     ["code", "project", "linux_path", "windows_path", "mac_path"])
     source_folder = source_pc.get(curr_os)
     
-    target_folder = {"linux2":target_linux, "win32":target_win, "darwin":target_mac }[sys.platform] 
+    target_folder = {
+        "linux2": target_linux,
+        "win32": target_win,
+        "darwin": target_mac
+    }[sys.platform]
     
     log.debug("Cloning %s -> %s" % (source_folder, target_folder))
     
@@ -168,14 +172,31 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
     
     if os.path.exists(target_folder):
         raise TankError("Cannot clone! Target folder '%s' already exists!" % target_folder)
+
+    # Register the new entity in Shotgun. This is being done first, because one
+    # common problem is the user's permissions not being sufficient to allow them
+    # to create the PC entity. In this situation, we want to fail quickly and not
+    # leave garbage files on disk. As such, we do this first, then copy the config
+    # on disk.
+    data = {"linux_path": target_linux,
+            "windows_path":target_win,
+            "mac_path": target_mac,
+            "code": new_name,
+            "project": source_pc["project"],
+            "users": [ {"type": "HumanUser", "id": user_id} ] 
+            }
+    log.debug("Create sg: %s" % str(data))
+    pc_entity = tk.shotgun.create(constants.PIPELINE_CONFIGURATION_ENTITY, data)
+    log.debug("Created in SG: %s" % str(pc_entity))
     
     # copy files and folders across
     try:
-        os.mkdir(target_folder, 0777)
-        os.mkdir(os.path.join(target_folder, "cache"), 0777)
+        os.mkdir(target_folder, 0o777)
+        os.mkdir(os.path.join(target_folder, "cache"), 0o777)
         filesystem.copy_folder(
             os.path.join(source_folder, "config"),
-            os.path.join(target_folder, "config")
+            os.path.join(target_folder, "config"),
+            skip_list=[]
         )
         filesystem.copy_folder(
             os.path.join(source_folder, "install"),
@@ -183,12 +204,12 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
         )
         shutil.copy(os.path.join(source_folder, "tank"), os.path.join(target_folder, "tank"))
         shutil.copy(os.path.join(source_folder, "tank.bat"), os.path.join(target_folder, "tank.bat"))
-        os.chmod(os.path.join(target_folder, "tank.bat"), 0777)
-        os.chmod(os.path.join(target_folder, "tank"), 0777)
+        os.chmod(os.path.join(target_folder, "tank.bat"), 0o777)
+        os.chmod(os.path.join(target_folder, "tank"), 0o777)
 
         sg_code_location = os.path.join(target_folder, "config", "core", "install_location.yml")
         if os.path.exists(sg_code_location):
-            os.chmod(sg_code_location, 0666)
+            os.chmod(sg_code_location, 0o666)
             os.remove(sg_code_location)
         fh = open(sg_code_location, "wt")
         fh.write("# Shotgun Pipeline Toolkit configuration file\n")
@@ -203,20 +224,8 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
         fh.write("# End of file.\n")
         fh.close()
     
-    except Exception, e:
+    except Exception as e:
         raise TankError("Could not create file system structure: %s" % e)
-
-    # finally register with shotgun
-    data = {"linux_path": target_linux,
-            "windows_path":target_win,
-            "mac_path": target_mac,
-            "code": new_name,
-            "project": source_pc["project"],
-            "users": [ {"type": "HumanUser", "id": user_id} ] 
-            }
-    log.debug("Create sg: %s" % str(data))
-    pc_entity = tk.shotgun.create(constants.PIPELINE_CONFIGURATION_ENTITY, data)
-    log.debug("Created in SG: %s" % str(pc_entity))
 
     # lastly, update the pipeline_configuration.yml file
     try:
@@ -237,7 +246,7 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
 
         # now delete it        
         if os.path.exists(sg_pc_location):
-            os.chmod(sg_pc_location, 0666)
+            os.chmod(sg_pc_location, 0o666)
             os.remove(sg_pc_location)
 
         # now update some fields            
@@ -264,7 +273,7 @@ def _do_clone(log, tk, source_pc_id, user_id, new_name, target_linux, target_mac
         yaml.safe_dump(data, fh)
         fh.close()
 
-    except Exception, e:
+    except Exception as e:
         raise TankError("Could not update pipeline_configuration.yml file: %s" % e)
     
 

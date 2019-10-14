@@ -1,0 +1,5 @@
+primary:
+    description: "A top-level root folder for production data. Project folders will be created beneath this location."
+    mac_path: /shotgun/primary
+    linux_path: /shotgun/primary
+    windows_path: "C:\\shotgun\\primary"

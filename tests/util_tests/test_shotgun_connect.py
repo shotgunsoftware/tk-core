@@ -16,7 +16,9 @@ from mock import patch
 
 import tank
 from tank import errors
-from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
+
+from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
+from tank_test.tank_test_base import setUpModule # noqa
 from tank.authentication.user import ShotgunUser
 from tank.authentication.user_impl import SessionUser
 from tank.descriptor import Descriptor
@@ -24,27 +26,72 @@ from tank.descriptor.io_descriptor.appstore import IODescriptorAppStore
 from tank.util.shotgun.connection import sanitize_url
 
 
-@patch("tank.util.shotgun.connection.__get_api_core_config_location")
-class TestGetSgConfigData(TankTestBase):
-
-    def _prepare_common_mocks(self, get_api_core_config_location_mock):
-        get_api_core_config_location_mock.return_value = "unknown_path_location"
+@patch("tank.util.shotgun.connection.__get_api_core_config_location", return_value="unknown_path_location")
+class TestGetSgConfigData(ShotgunTestBase):
 
     def test_all_fields_present(self, get_api_core_config_location_mock):
-        self._prepare_common_mocks(get_api_core_config_location_mock)
-        tank.util.shotgun.connection._parse_config_data(
+        """
+        Ensures files with all settings are parsed correctly.
+        """
+        self.assertEqual(
+            tank.util.shotgun.connection._parse_config_data(
+                {
+                    "host": "https://host.shotgunstudio.com",
+                    "api_key": "api_key",
+                    "api_script": "api_script",
+                    "http_proxy": "http_proxy"
+                },
+                "default",
+                "not_a_file.cfg"
+            ),
             {
-                "host": "host",
+                "host": "https://host.shotgunstudio.com",
                 "api_key": "api_key",
                 "api_script": "api_script",
                 "http_proxy": "http_proxy"
-            },
-            "default",
-            "not_a_file.cfg"
+            }
         )
 
+    def test_env_vars_present(self, get_api_core_config_location_mock):
+        """
+        Ensures files using environment variables are translated properly.
+        """
+        test_host = "https://envvar.shotgunstudio.com"
+        test_key = "env_var_key"
+        test_script = "env_var_script"
+        test_proxy = "env_var_proxy"
+        test_appstore_proxy = "env_var_appstore_proxy"
+
+        with temp_env_var(
+            SGTK_TEST_HOST=test_host,
+            SGTK_TEST_KEY=test_key,
+            SGTK_TEST_SCRIPT=test_script,
+            SGTK_TEST_PROXY=test_proxy,
+            SGTK_TEST_APPSTORE_PROXY=test_appstore_proxy
+        ):
+            self.assertEqual(
+                tank.util.shotgun.connection._parse_config_data(
+                    {
+                        "host": "$SGTK_TEST_HOST",
+                        "api_key": "$SGTK_TEST_KEY",
+                        "api_script": "$SGTK_TEST_SCRIPT",
+                        "http_proxy": "$SGTK_TEST_PROXY",
+                        "app_store_http_proxy": "$SGTK_TEST_APPSTORE_PROXY"
+
+                    },
+                    "default",
+                    "not_a_file.cfg"
+                ),
+                {
+                    "host": test_host,
+                    "api_key": test_key,
+                    "api_script": test_script,
+                    "http_proxy": test_proxy,
+                    "app_store_http_proxy": test_appstore_proxy
+                }
+            )
+
     def test_proxy_is_optional(self, get_api_core_config_location_mock):
-        self._prepare_common_mocks(get_api_core_config_location_mock)
         tank.util.shotgun.connection._parse_config_data(
             {
                 "host": "host",
@@ -56,8 +103,6 @@ class TestGetSgConfigData(TankTestBase):
         )
 
     def test_incomplete_script_user_credentials(self, get_api_core_config_location_mock):
-        self._prepare_common_mocks(get_api_core_config_location_mock)
-
         with self.assertRaises(errors.TankError):
             tank.util.shotgun.connection._parse_config_data(
                 {
@@ -92,7 +137,6 @@ class TestGetSgConfigData(TankTestBase):
         """
         Ensures shotgun.yml exposes a cleaned-up version of the host.
         """
-        self._prepare_common_mocks(get_api_core_config_location_mock)
         self.assertDictEqual(
             tank.util.shotgun.connection._parse_config_data(
                 {"host": "https://extra.slash.will.be.removed/"},
@@ -107,63 +151,69 @@ class TestGetSgConfigData(TankTestBase):
         Ensures host is cleaned-up properly.
         """
         # Ensure https is added if no scheme is specified.
-        self.assertEquals(
+        self.assertEqual(
             "https://no.scheme.com",
             sanitize_url("no.scheme.com")
         )
 
+        # Ensure that we lowercase the URL.
+        self.assertEqual(
+            "https://caps.site.com",
+            sanitize_url("https://CAPS.site.com")
+        )
+
         # Ensure https is not modified if specified.
-        self.assertEquals(
+        self.assertEqual(
             "https://no.scheme.com",
             sanitize_url("https://no.scheme.com")
         )
 
         # Ensure http is left as is if specified.
-        self.assertEquals(
+        self.assertEqual(
             "http://no.scheme.com",
             sanitize_url("http://no.scheme.com")
         )
 
         # Ensure any scheme is left as is if specified.
-        self.assertEquals(
+        self.assertEqual(
             "invalid-scheme://no.scheme.com",
             sanitize_url("invalid-scheme://no.scheme.com")
         )
 
         # Ensures a suffixed slash gets removed.
-        self.assertEquals(
+        self.assertEqual(
             "https://no.suffixed.slash.com",
             sanitize_url("https://no.suffixed.slash.com/")
         )
 
         # Ensures anything after the host is dropped.
-        self.assertEquals(
+        self.assertEqual(
             "https://no.suffixed.slash.com",
             sanitize_url("https://no.suffixed.slash.com/path/to/a/resource")
         )
 
         # Ensures anything after the host is dropped.
-        self.assertEquals(
+        self.assertEqual(
             "http://localhost",
             sanitize_url("http://localhost")
         )
 
-        self.assertEquals(
+        self.assertEqual(
             "https://localhost",
             sanitize_url("localhost")
         )
 
-        self.assertEquals(
+        self.assertEqual(
             "https://127.0.0.1",
             sanitize_url("127.0.0.1")
         )
 
-        self.assertEquals(
+        self.assertEqual(
             "https://test.shotgunstudio.com",
             sanitize_url("test.shotgunstudio.com/")
         )
 
-        self.assertEquals(
+        self.assertEqual(
             "https://test.shotgunstudio.com",
             sanitize_url("test.shotgunstudio.com/a")
         )
@@ -176,17 +226,17 @@ class TestGetSgConfigData(TankTestBase):
 
         # Ensure that port number is also kept.
 
-        # self.assertEquals(
+        # self.assertEqual(
         #     "https://no.scheme.com:8080",
         #     sanitize_url("no.scheme.com:8080")
         # )
 
-        # self.assertEquals(
+        # self.assertEqual(
         #     "https://localhost:8000",
         #     sanitize_url("localhost:8000")
         # )
 
-        # self.assertEquals(
+        # self.assertEqual(
         #     "https://127.0.0.1:8000",
         #     sanitize_url("127.0.0.1:8000")
         # )

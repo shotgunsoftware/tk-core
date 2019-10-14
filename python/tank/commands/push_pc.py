@@ -68,8 +68,7 @@ class PushPCAction(Action):
                 "type": "bool"
             },
         }
-        # Keep track of we are running in interactive mode or not.
-        self._is_interactive = False
+
         # Just a cache to query SG only once.
         self._pipeline_configs = None
 
@@ -93,7 +92,6 @@ class PushPCAction(Action):
         :param log: Standard python logger.
         :param args: Command line args.
         """
-        self._is_interactive = True
         self._preflight()
 
         if len(args) == 1 and args[0] == "--symlink":
@@ -250,8 +248,8 @@ class PushPCAction(Action):
                 "purposes only. You can easily switch a dev location using the "
                 "'tank switch_app' command."
             )
-            # Assume "yes" in non interactive mode
-            if self._is_interactive and not console_utils.ask_yn_question("Okay to proceed?"):
+
+            if not self._interaction_interface.ask_yn_question("Okay to proceed?"):
                 raise TankError("Aborted.")
         
         date_suffix = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -284,7 +282,7 @@ class PushPCAction(Action):
             try:
                 # copy everything!
                 log.debug("Copying %s -> %s" % (source_path, target_tmp_path))
-                filesystem.copy_folder(source_path, target_tmp_path)
+                filesystem.copy_folder(source_path, target_tmp_path, skip_list=[])
                 
                 # If the source and target configurations are both localized, then also copy the
                 # core-related api files to the target config. Otherwise, skip them.
@@ -308,7 +306,7 @@ class PushPCAction(Action):
                 for core_file in core_files_to_remove:
                     path = os.path.join(target_tmp_path, "core", core_file)
                     if os.path.exists(path):
-                        os.chmod(path, 0666)
+                        os.chmod(path, 0o666)
                         log.debug("Removing system file %s" % path )
                         os.remove(path)
                 
@@ -320,7 +318,7 @@ class PushPCAction(Action):
                     log.debug("Copying PC system file %s -> %s" % (curr_config_path, new_config_path) )
                     shutil.copy(curr_config_path, new_config_path)
                 
-            except Exception, e:
+            except Exception as e:
                 raise TankError(
                     "Could not copy into temporary target folder '%s'. The target config "
                     "has not been altered. Check permissions and try again! "
@@ -349,7 +347,7 @@ class PushPCAction(Action):
                     try:
                         os.rename(target_path, target_backup_path)
                         created_backup_path = target_backup_path
-                    except OSError, e:
+                    except OSError as e:
                         log.debug("Falling back on copying folder...:%s" % e)
                         # Didn't work fall back to copying files
                         shutil.copytree(target_path, target_backup_path)
@@ -357,7 +355,7 @@ class PushPCAction(Action):
                         # it now.
                         created_backup_path = target_backup_path
                         filesystem.safe_delete_folder(target_path)
-            except Exception, e:
+            except Exception as e:
                 raise TankError(
                     "Could not move target folder from '%s' to '%s'. "
                     "Error reported: %s" % (target_path, target_backup_path, e)
@@ -377,7 +375,7 @@ class PushPCAction(Action):
                     # link, symlink creates the link in the target directory, so
                     # this works without having to change the current directory?
                     os.symlink(os.path.basename(symlink_path), target_path)
-                except Exception, e:
+                except Exception as e:
                     raise TankError(
                         "Could not move new config folder from '%s' to '%s' or create symlink."
                         "Error reported: %s" % (target_tmp_path, symlink_path, e)
@@ -391,7 +389,7 @@ class PushPCAction(Action):
                     if os.path.exists(target_path):
                         raise RuntimeError("Target %s folder already exists..." % target_path)
                     shutil.move(target_tmp_path, target_path)
-                except Exception, e:
+                except Exception as e:
                     raise TankError(
                         "Could not move new config folder from '%s' to '%s'. "
                         "Error reported: %s" % (target_tmp_path, target_path, e)

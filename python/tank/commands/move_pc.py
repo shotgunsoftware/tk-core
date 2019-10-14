@@ -42,7 +42,7 @@ class MovePCAction(Action):
                     log.debug("Removing %s..." % full_path)
                     try:
                         os.remove(full_path)
-                    except Exception, e:
+                    except Exception as e:
                         log.warning("Could not delete file %s. Error Reported: %s" % (full_path, e))
                         
             for name in dirs:
@@ -54,7 +54,7 @@ class MovePCAction(Action):
                     log.debug("Deleting folder %s..." % full_path)
                     try:
                         os.rmdir(full_path)
-                    except Exception, e:
+                    except Exception as e:
                         log.warning("Could not remove folder %s. Error Reported: %s" % (full_path, e))
                             
     
@@ -66,7 +66,7 @@ class MovePCAction(Action):
         """
         if not os.path.exists(dst):
             log.debug("mkdir 0777 %s" % dst)
-            os.mkdir(dst, 0777)
+            os.mkdir(dst, 0o777)
     
         names = os.listdir(src) 
         for name in names:
@@ -87,7 +87,7 @@ class MovePCAction(Action):
                     # if the file extension is sh, set executable permissions
                     if dstname.endswith(".sh") or dstname.endswith(".bat"):
                         # make it readable and executable for everybody
-                        os.chmod(dstname, 0777)
+                        os.chmod(dstname, 0o777)
                         log.debug("CHMOD 777 %s" % dstname)
         
     
@@ -220,7 +220,7 @@ class MovePCAction(Action):
             
             # now updated config files
             log.info("Updating cached locations in %s..." % sg_code_location)
-            os.chmod(sg_code_location, 0666)
+            os.chmod(sg_code_location, 0o666)
             fh = open(sg_code_location, "wt")
             fh.write("# Shotgun Pipeline Toolkit configuration file\n")
             fh.write("# This file reflects the paths in the pipeline configuration\n")
@@ -233,7 +233,7 @@ class MovePCAction(Action):
             fh.write("# End of file.\n")
             fh.close()
 
-        except Exception, e:
+        except Exception as e:
             raise TankError("Could not copy configuration! This may be because of system "
                             "permissions or system setup. This configuration will "
                             "still be functional, however data may have been partially copied "

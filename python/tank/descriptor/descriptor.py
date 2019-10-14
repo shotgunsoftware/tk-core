@@ -11,11 +11,15 @@
 import os
 import copy
 
+from ..log import LogManager
 from ..util import filesystem
 from .io_descriptor import create_io_descriptor
 from .errors import TankDescriptorError
 from ..util import LocalFileStorageManager
 from . import constants
+
+
+logger = LogManager.get_logger(__name__)
 
 
 def create_descriptor(
@@ -25,9 +29,14 @@ def create_descriptor(
         bundle_cache_root_override=None,
         fallback_roots=None,
         resolve_latest=False,
-        constraint_pattern=None):
+        constraint_pattern=None,
+        local_fallback_when_disconnected=True):
     """
     Factory method. Use this when creating descriptor objects.
+
+    .. note:: Descriptors inherit their threading characteristics from
+        the shotgun connection that they carry internally. They are reentrant
+        and should not be passed between threads.
 
     :param sg_connection: Shotgun connection to associated site
     :param descriptor_type: Either ``Descriptor.APP``, ``CORE``, ``CONFIG``, ``INSTALLED_CONFIG``,
@@ -59,21 +68,27 @@ def create_descriptor(
                                 - ``v0.1.2``, ``v0.12.3.2``, ``v0.1.3beta`` - a specific version
                                 - ``v0.12.x`` - get the highest v0.12 version
                                 - ``v1.x.x`` - get the highest v1 version
+    :param local_fallback_when_disconnected: If resolve_latest is set to True, specify the behaviour
+                            in the case when no connection to a remote descriptor can be established,
+                            for example because and internet connection isn't available. If True, the
+                            descriptor factory will attempt to fall back on any existing locally cached
+                            bundles and return the latest one available. If False, a
+                            :class:`TankDescriptorError` is raised instead.
 
     :returns: :class:`Descriptor` object
+    :raises: :class:`TankDescriptorError`
     """
-    from .descriptor_bundle import AppDescriptor, EngineDescriptor, FrameworkDescriptor
-    from .descriptor_cached_config import CachedConfigDescriptor
-    from .descriptor_installed_config import InstalledConfigDescriptor
-    from .descriptor_core import CoreDescriptor
-
-    # if bundle root is not set, fall back on default location
-    if bundle_cache_root_override is None:
+    # use the environment variable if set - if not, fall back on the override or default locations
+    if os.environ.get(constants.BUNDLE_CACHE_PATH_ENV_VAR):
+        bundle_cache_root_override = os.path.expanduser(
+            os.path.expandvars(os.environ.get(constants.BUNDLE_CACHE_PATH_ENV_VAR))
+        )
+    elif bundle_cache_root_override is None:
         bundle_cache_root_override = _get_default_bundle_cache_root()
         filesystem.ensure_folder_exists(bundle_cache_root_override)
     else:
         # expand environment variables
-        bundle_cache_root_override = os.path.expandvars(os.path.expanduser(bundle_cache_root_override))
+        bundle_cache_root_override = os.path.expanduser(os.path.expandvars(bundle_cache_root_override))
 
     fallback_roots = fallback_roots or []
 
@@ -88,29 +103,18 @@ def create_descriptor(
         bundle_cache_root_override,
         fallback_roots,
         resolve_latest,
-        constraint_pattern
+        constraint_pattern,
+        local_fallback_when_disconnected
     )
 
     # now create a high level descriptor and bind that with the low level descriptor
-    if descriptor_type == Descriptor.APP:
-        return AppDescriptor(sg_connection, io_descriptor)
-
-    elif descriptor_type == Descriptor.ENGINE:
-        return EngineDescriptor(sg_connection, io_descriptor)
-
-    elif descriptor_type == Descriptor.FRAMEWORK:
-        return FrameworkDescriptor(sg_connection, io_descriptor)
-
-    elif descriptor_type == Descriptor.CONFIG:
-        return CachedConfigDescriptor(io_descriptor)
-
-    elif descriptor_type == Descriptor.INSTALLED_CONFIG:
-        return InstalledConfigDescriptor(io_descriptor)
-
-    elif descriptor_type == Descriptor.CORE:
-        return CoreDescriptor(io_descriptor)
-    else:
-        raise TankDescriptorError("Unsupported descriptor type %s" % descriptor_type)
+    return Descriptor.create(
+        sg_connection,
+        descriptor_type,
+        io_descriptor,
+        bundle_cache_root_override,
+        fallback_roots
+    )
 
 
 def _get_default_bundle_cache_root():
@@ -135,12 +139,54 @@ class Descriptor(object):
     and helper methods.
     """
 
-    (APP, FRAMEWORK, ENGINE, CONFIG, CORE, INSTALLED_CONFIG) = range(6)
+    APP = constants.DESCRIPTOR_APP
+    FRAMEWORK = constants.DESCRIPTOR_FRAMEWORK
+    ENGINE = constants.DESCRIPTOR_ENGINE
+    CONFIG = constants.DESCRIPTOR_CONFIG
+    CORE = constants.DESCRIPTOR_CORE
+    INSTALLED_CONFIG = constants.DESCRIPTOR_INSTALLED_CONFIG
+
+    _factory = {}
+
+    @classmethod
+    def register_descriptor_factory(cls, descriptor_type, subclass):
+        """
+        Registers a descriptor subclass with the :meth:`create` factory.
+        This is an internal method that should not be called by external
+        code.
+
+        :param descriptor_type: Either ``Descriptor.APP``, ``CORE``,
+            ``CONFIG``, ``INSTALLED_CONFIG``, ``ENGINE`` or ``FRAMEWORK``
+        :param subclass: Class deriving from Descriptor to associate.
+        """
+        cls._factory[descriptor_type] = subclass
+
+    @classmethod
+    def create(cls, sg_connection, descriptor_type, io_descriptor, bundle_cache_root_override, fallback_roots):
+        """
+        Factory method used by :meth:`create_descriptor`. This is an internal
+        method that should not be called by external code.
+
+        :param descriptor_type: Either ``Descriptor.APP``, ``CORE``,
+            ``CONFIG``, ``INSTALLED_CONFIG``, ``ENGINE`` or ``FRAMEWORK``
+        :param sg_connection: Shotgun connection to associated site
+        :param io_descriptor: Associated low level descriptor transport object.
+        :param bundle_cache_root_override: Override for root path to where
+            downloaded apps are cached.
+        :param fallback_roots: List of immutable fallback cache locations where
+            apps will be searched for.
+        :returns: Instance of class deriving from :class:`Descriptor`
+        :raises: TankDescriptorError
+        """
+        if descriptor_type not in cls._factory:
+            raise TankDescriptorError("Unsupported descriptor type %s" % descriptor_type)
+        class_obj = cls._factory[descriptor_type]
+        return class_obj(sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots)
 
     def __init__(self, io_descriptor):
         """
-        Use the factory method :meth:`create_descriptor` when
-        creating new descriptor objects.
+        .. note:: Use the factory method :meth:`create_descriptor` when
+                  creating new descriptor objects.
 
         :param io_descriptor: Associated IO descriptor.
         """
@@ -205,7 +251,7 @@ class Descriptor(object):
 
     def copy(self, target_folder):
         """
-        Copy the config descriptor into the specified target location
+        Copy the config descriptor into the specified target location.
 
         :param target_folder: Folder to copy the descriptor to
         """
@@ -293,7 +339,7 @@ class Descriptor(object):
     def support_url(self):
         """
         A url that points at a support web page associated with this item.
-        If not url has been defined, None is returned.
+        If not url has been defined, ``None`` is returned.
         """
         meta = self._get_manifest()
         support_url = meta.get("support_url")
@@ -339,8 +385,15 @@ class Descriptor(object):
 
     def get_path(self):
         """
-        Returns the path to the folder where this item either currently resides
-        or would reside in case it existed locally.
+        Returns the path to a location where this item is cached.
+
+        When locating the item, any bundle cache fallback paths
+        will first be searched in the order they have been defined,
+        and lastly the main bundle cached will be checked.
+
+        If the item is not locally cached, ``None`` is returned.
+
+        :returns: Path string or ``None`` if not cached.
         """
         return self._io_descriptor.get_path()
 
@@ -349,7 +402,7 @@ class Descriptor(object):
         """
         Information about the changelog for this item.
 
-        :returns: A tuple (changelog_summary, changelog_url). Values may be None
+        :returns: A tuple (changelog_summary, changelog_url). Values may be ``None``
                   to indicate that no changelog exists.
         """
         return self._io_descriptor.get_changelog()
@@ -419,7 +472,7 @@ class Descriptor(object):
                 - v0.12.x - get the highest v0.12 version
                 - v1.x.x - get the highest v1 version
 
-        :returns: Instance derived from :class:`Descriptor` or None if no cached version
+        :returns: Instance derived from :class:`Descriptor` or ``None`` if no cached version
                   is available.
         """
         io_desc = self._io_descriptor.get_latest_cached_version(constraint_pattern)

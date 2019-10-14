@@ -12,16 +12,29 @@
 Unit tests for interactive authentication.
 """
 
-from __future__ import with_statement
+from __future__ import with_statement, print_function
+
+import contextlib
 
 import sys
 
-from tank_test.tank_test_base import setUpModule, TankTestBase, skip_if_pyside_missing, interactive
+from tank_test.tank_test_base import setUpModule  # noqa
+from tank_test.tank_test_base import ShotgunTestBase, skip_if_pyside_missing, skip_if_on_travis_ci, interactive
 from mock import patch
-from tank.authentication import user_impl, console_authentication, interactive_authentication, invoker
+from tank.authentication import (
+    console_authentication,
+    ConsoleLoginNotSupportedError,
+    ConsoleLoginWithSSONotSupportedError,
+    interactive_authentication,
+    invoker,
+    user_impl,
+)
+
 import tank
 
-class InteractiveTests(TankTestBase):
+
+@skip_if_pyside_missing
+class InteractiveTests(ShotgunTestBase):
     """
     Tests ui and console based authentication.
     """
@@ -36,15 +49,18 @@ class InteractiveTests(TankTestBase):
             self._app = QtGui.QApplication(sys.argv)
         super(InteractiveTests, self).setUp()
 
+    def tearDown(self):
+        super(InteractiveTests, self).tearDown()
+        from PySide import QtGui
+        QtGui.QApplication.processEvents()
+
     def test_site_and_user_disabled_on_session_renewal(self):
         """
         Make sure that the site and user fields are disabled when doing session renewal
         """
-        # Import locally since login_dialog has a dependency on Qt and it might be missing
-        from tank.authentication import login_dialog
-        ld = login_dialog.LoginDialog(is_session_renewal=True)
-        self.assertTrue(ld.ui.site.isReadOnly())
-        self.assertTrue(ld.ui.login.isReadOnly())
+        with self._login_dialog(is_session_renewal=True) as ld:
+            self.assertTrue(ld.ui.site.lineEdit().isReadOnly())
+            self.assertTrue(ld.ui.login.lineEdit().isReadOnly())
 
     def _prepare_window(self, ld):
         """
@@ -55,34 +71,39 @@ class InteractiveTests(TankTestBase):
 
         ld.show()
         ld.raise_()
+        ld.activateWindow()
 
         QApplication.processEvents()
 
-    @skip_if_pyside_missing
+    @contextlib.contextmanager
+    def _login_dialog(self, is_session_renewal, login=None, hostname=None):
+        # Import locally since login_dialog has a dependency on Qt and it might be missing
+        from tank.authentication import login_dialog
+        with contextlib.closing(login_dialog.LoginDialog(is_session_renewal=is_session_renewal)) as ld:
+            # SSO module and threading causes issues with unit tests, so disable it.
+            ld._saml2_sso = None
+            self._prepare_window(ld)
+            yield ld
+
+    @skip_if_on_travis_ci("Offscreen XServer doesn't do focus changes.")
     def test_focus(self):
         """
         Make sure that the site and user fields are disabled when doing session renewal
         """
-        # Import locally since login_dialog has a dependency on Qt and it might be missing
-        from tank.authentication import login_dialog
-        ld = login_dialog.LoginDialog(is_session_renewal=False)
-        self.assertEqual(ld.ui.site.text(), "")
-        ld.close()
+        with self._login_dialog(is_session_renewal=False) as ld:
+            self.assertEqual(ld.ui.site.currentText(), "")
 
-        ld = login_dialog.LoginDialog(is_session_renewal=False, login="login")
-        self.assertEqual(ld.ui.site.text(), "")
-        ld.close()
+        with self._login_dialog(is_session_renewal=False, login="login") as ld:
+            self.assertEqual(ld.ui.site.currentText(), "")
 
-        ld = login_dialog.LoginDialog(is_session_renewal=False, hostname="host")
-        self._prepare_window(ld)
-        # window needs to be activated to get focus.
-        self.assertTrue(ld.ui.login.hasFocus())
-        ld.close()
+        # Makes sure the focus is set to the password even tough we've only specified the hostname
+        # because the current os user name is the default.
+        with self._login_dialog(is_session_renewal=False, hostname="host") as ld:
+            # window needs to be activated to get focus.
+            self.assertTrue(ld.ui.password.hasFocus())
 
-        ld = login_dialog.LoginDialog(is_session_renewal=False, hostname="host", login="login")
-        self._prepare_window(ld)
-        self.assertTrue(ld.ui.password.hasFocus())
-        ld.close()
+        with self._login_dialog(is_session_renewal=False, hostname="host", login="login") as ld:
+            self.assertTrue(ld.ui.password.hasFocus())
 
     def _test_login(self, console):
         self._print_message(
@@ -108,22 +129,22 @@ class InteractiveTests(TankTestBase):
         """
         self._test_login(console=False)
 
-    @patch("tank.authentication.interactive_authentication._get_qt_state")
+    @patch("tank.authentication.interactive_authentication._get_ui_state")
     @interactive
-    def test_login_console(self, _get_qt_state_mock):
+    def test_login_console(self, _get_ui_state_mock):
         """
         Pops the ui and lets the user authenticate.
         :param cache_session_data_mock: Mock for the tank.util.session_cache.cache_session_data
         """
-        _get_qt_state_mock.return_value = None, None, None
+        _get_ui_state_mock.return_value = False
         self._test_login(console=True)
 
     def _print_message(self, text, test_console):
         if test_console:
-            print
-            print "=" * len(text)
-            print text
-            print "=" * len(text)
+            print()
+            print("=" * len(text))
+            print(text)
+            print("=" * len(text))
         else:
             from PySide import QtGui
             mb = QtGui.QMessageBox()
@@ -142,7 +163,7 @@ class InteractiveTests(TankTestBase):
             "re-enter your password.", test_console
         )
         # Get the basic user credentials.
-        host, login, session_token = interactive_authentication.authenticate(
+        host, login, session_token, session_metadata = interactive_authentication.authenticate(
             "https://enter_your_host_name_here.shotgunstudio.com",
             "enter_your_username_here",
             "",
@@ -160,13 +181,19 @@ class InteractiveTests(TankTestBase):
 
     @interactive
     def test_session_renewal_ui(self):
+        """
+        Interactively test session renewal.
+        """
         self._test_session_renewal(test_console=False)
 
-    @patch("tank.authentication.interactive_authentication._get_qt_state")
+    @patch("tank.authentication.interactive_authentication._get_ui_state")
     @interactive
-    def test_session_renewal_console(self,_get_qt_state_mock):
+    def test_session_renewal_console(self, _get_ui_state_mock):
+        """
+        Interactively test for session renewal with the GUI.
+        """
         # Doing this forces the prompting code to use the console.
-        _get_qt_state_mock.return_value = None, None, None
+        _get_ui_state_mock.return_value = False
         self._test_session_renewal(test_console=True)
 
     def test_invoker_rethrows_exception(self):
@@ -178,15 +205,15 @@ class InteractiveTests(TankTestBase):
         From the background thread, we will create an invoker and use it to invoke the thrower
         method in the main thread. This thrower method will throw a FromMainThreadException.
         If everything works as planned, the exception will be caught by the invoker and rethrown
-        in the background thread. The background thread will then raise an exception and when the 
+        in the background thread. The background thread will then raise an exception and when the
         main thread calls wait it will assert that the exception that was thrown was coming
         from the thrower function.
         """
-
         class FromMainThreadException(Exception):
             """
             Exception that will be thrown from the main thead.
             """
+
             pass
 
         from PySide import QtCore, QtGui
@@ -233,7 +260,7 @@ class InteractiveTests(TankTestBase):
                     if QtGui.QApplication.instance().thread == self:
                         raise Exception("QApplication should be in the main thread, not self.")
                     invoker_obj(thrower)
-                except Exception, e:
+                except Exception as e:
                     self._exception = e
                 finally:
                     QtGui.QApplication.instance().exit()
@@ -271,7 +298,7 @@ class InteractiveTests(TankTestBase):
         """
         handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
         self.assertEqual(
-            handler._get_user_credentials(None, None),
+            handler._get_user_credentials(None, None, None),
             ("https://test.shotgunstudio.com", "username", " password ")
         )
         self.assertEqual(
@@ -279,26 +306,81 @@ class InteractiveTests(TankTestBase):
             "2fa code"
         )
 
-    @skip_if_pyside_missing
+    @patch(
+        "__builtin__.raw_input",
+        side_effect=["  https://test-sso.shotgunstudio.com "]
+    )
+    @patch(
+        "tank.authentication.console_authentication.is_sso_enabled_on_site",
+        return_value=True
+    )
+    def test_sso_enabled_site_with_legacy_exception_name(self, *mocks):
+        """
+        Ensure that an exception is thrown should we attempt console authentication
+        on an SSO-enabled site. We use the legacy exception-name to ensure backward
+        compatibility with older code.
+        """
+        handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
+        with self.assertRaises(ConsoleLoginWithSSONotSupportedError):
+            handler._get_user_credentials(None, None, None)
+
+    @patch(
+        "__builtin__.raw_input",
+        side_effect=["  https://test-sso.shotgunstudio.com "]
+    )
+    @patch(
+        "tank.authentication.console_authentication.is_sso_enabled_on_site",
+        return_value=True
+    )
+    def test_sso_enabled_site(self, *mocks):
+        """
+        Ensure that an exception is thrown should we attempt console authentication
+        on an SSO-enabled site.
+        """
+        handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
+        with self.assertRaises(ConsoleLoginNotSupportedError):
+            handler._get_user_credentials(None, None, None)
+
+    @patch(
+        "__builtin__.raw_input",
+        side_effect=["  https://test-identity.shotgunstudio.com "]
+    )
+    @patch(
+        "tank.authentication.console_authentication.is_autodesk_identity_enabled_on_site",
+        return_value=True
+    )
+    def test_identity_enabled_site(self, *mocks):
+        """
+        Ensure that an exception is thrown should we attempt console authentication
+        on an Autodesk Identity-enabled site.
+        """
+        handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
+        with self.assertRaises(ConsoleLoginNotSupportedError):
+            handler._get_user_credentials(None, None, None)
+
+    @skip_if_on_travis_ci("Offscreen XServer doesn't do focus changes.")
     def test_ui_auth_with_whitespace(self):
         """
         Makes sure that the ui strips out whitespaces.
         """
         # Import locally since login_dialog has a dependency on Qt and it might be missing
-        from tank.authentication.login_dialog import LoginDialog
-        ld = LoginDialog(is_session_renewal=False)
-        self._prepare_window(ld)
-        # For each widget in the ui, make sure that the text is properly cleaned
-        # up when widget loses focus.
-        for widget in [ld.ui._2fa_code, ld.ui.backup_code, ld.ui.site, ld.ui.login]:
-            # Give the focus, so that editingFinished can be triggered.
-            widget.setFocus()
-            widget.setText(" text ")
-            # Give the focus to another widget, which should trigger the editingFinished
-            # signal and the dialog will clear the extra spaces in it.
-            ld.ui.password.setFocus()
-            # Text should be cleaned of spaces now.
-            self.assertEqual(widget.text(), "text")
+        from PySide import QtGui
 
-# Class decorators don't exist on Python2.5
-InteractiveTests = skip_if_pyside_missing(InteractiveTests)
+        with self._login_dialog(is_session_renewal=False) as ld:
+            # For each widget in the ui, make sure that the text is properly cleaned
+            # up when widget loses focus.
+            for widget in [ld.ui._2fa_code, ld.ui.backup_code, ld.ui.site, ld.ui.login]:
+                # Give the focus, so that editingFinished can be triggered.
+                widget.setFocus()
+                if isinstance(widget, QtGui.QLineEdit):
+                    widget.setText(" text ")
+                else:
+                    widget.lineEdit().setText(" text ")
+                # Give the focus to another widget, which should trigger the editingFinished
+                # signal and the dialog will clear the extra spaces in it.
+                ld.ui.password.setFocus()
+                if isinstance(widget, QtGui.QLineEdit):
+                    # Text should be cleaned of spaces now.
+                    self.assertEqual(widget.text(), "text")
+                else:
+                    self.assertEqual(widget.currentText(), "text")

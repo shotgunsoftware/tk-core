@@ -13,6 +13,7 @@ import re
 import cgi
 import urllib
 import urlparse
+import contextlib
 
 from .. import constants
 from ... import LogManager
@@ -39,12 +40,48 @@ class IODescriptorBase(object):
     Tank App store and one which knows how to handle the local file system.
     """
 
-    def __init__(self, descriptor_dict):
+    _factory = {}
+
+    @classmethod
+    def register_descriptor_factory(cls, descriptor_type, subclass):
+        """
+        Registers a descriptor subclass with the :meth:`create` factory. This is
+        necessary to remove local imports from IODescriptorBase subclasses to prevent
+        problems during core swapping.
+
+        :param descriptor_type: String type name of the descriptor, as will
+            appear in the app location configuration.
+        :param subclass: Class deriving from IODescriptorBase to associate.
+        """
+        cls._factory[descriptor_type] = subclass
+
+    @classmethod
+    def create(cls, bundle_type, descriptor_dict, sg_connection):
+        """
+        Factory method used by :meth:`create_descriptor`. This complex factory
+        pattern is necessary to remove local imports from IODescriptorBase subclasses
+        to prevent problems during core swapping.
+
+        :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
+        :param descriptor_dict: Descriptor dictionary describing the bundle.
+        :param sg_connection: Shotgun connection to associated site.
+        :returns: Instance of class deriving from :class:`IODescriptorBase`
+        :raises: TankDescriptorError
+        """
+        descriptor_type = descriptor_dict.get("type")
+        if descriptor_type not in cls._factory:
+            raise TankDescriptorError("Unknown descriptor type for '%s'" % descriptor_dict)
+        class_obj = cls._factory[descriptor_type]
+        return class_obj(descriptor_dict, sg_connection, bundle_type)
+
+    def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
         Constructor
 
         :param descriptor_dict: Dictionary describing what
-                                the descriptor is pointing at
+                                the descriptor is pointing at.
+        :param sg_connection: Shotgun connection to associated site.
+        :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         """
         self._bundle_cache_root = None
         self._fallback_roots = []
@@ -106,7 +143,9 @@ class IODescriptorBase(object):
         """
         desc_keys_set = set(descriptor_dict.keys())
         required_set = set(required)
-        optional_set = set(optional)
+        # Add deny_platforms and disabled to the list of optional parameters as these are globally supported across
+        # all descriptors and are used by the environment code to check if an item is disabled.
+        optional_set = set(optional + ["deny_platforms", "disabled"])
 
         if not required_set.issubset(desc_keys_set):
             missing_keys = required_set.difference(desc_keys_set)
@@ -338,29 +377,41 @@ class IODescriptorBase(object):
         """
         self._is_copiable = copiable
 
-    def copy(self, target_path):
+    def copy(self, target_path, skip_list=None):
         """
         Copy the contents of the descriptor to an external location, if supported.
 
         :param target_path: target path to copy the descriptor to.
+        :param skip_list: List of folders or files that should not be copied into the destination.
+
+        .. note::
+            The folders or files specified must be at the root of the bundle.
         """
         if self._is_copiable:
-            self._copy(target_path)
+            self._copy(target_path, skip_list)
         else:
             raise TankDescriptorError("%r cannot be copied." % self)
 
-    def _copy(self, target_path):
+    def _copy(self, target_path, skip_list=None):
         """
         Copy the contents of the descriptor to an external location, if supported.
 
         :param target_path: target path to copy the descriptor to.
+        :param skip_list: List of folders or files that should not be copied into the destination.
+
+        .. note::
+            The folders or files specified must be at the root of the bundle.
         """
         log.debug("Copying %r -> %s" % (self, target_path))
         # base class implementation does a straight copy
         # make sure config exists
         self.ensure_local()
         # copy descriptor in
-        filesystem.copy_folder(self.get_path(), target_path)
+        filesystem.copy_folder(
+            self.get_path(),
+            target_path,
+            skip_list=(skip_list or []) + filesystem.SKIP_LIST_DEFAULT
+        )
 
     def get_manifest(self, file_location):
         """
@@ -401,7 +452,7 @@ class IODescriptorBase(object):
                     metadata = yaml.load(file_data)
                 finally:
                     file_data.close()
-            except Exception, exp:
+            except Exception as exp:
                 raise TankDescriptorError("Cannot load metadata file '%s'. Error: %s" % (file_path, exp))
 
             # cache it
@@ -518,14 +569,17 @@ class IODescriptorBase(object):
         uri = constants.DESCRIPTOR_URI_SEPARATOR.join(uri_chunks)
 
         qs_chunks = []
-        # Sort keys so that the uri is the same across invocations.
+        # Sort keys so that the uri is the same across invocations. This is very important
+        # because tests may start failing with different implementations of Python (like pypy)
+        # or code using this value as a key in a dict.
         for param in sorted(descriptor_dict):
             if param == "type":
                 continue
-            qs_chunks.append("%s=%s" % (
-                param,
-                urllib.quote(str(descriptor_dict[param])))
-            )
+
+            # note: for readability of windows and git paths, do not convert '/@:\'
+            quoted_value = urllib.quote(str(descriptor_dict[param]), safe="@/:\\")
+            qs_chunks.append("%s=%s" % (param, quoted_value))
+
         qs = "&".join(qs_chunks)
 
         return "%s?%s" % (uri, qs)
@@ -588,8 +642,8 @@ class IODescriptorBase(object):
         """
         Returns true if the given bundle path exists in valid local cached form
 
-        This can be reimplemented in derived classes to have more complex validation, like ensuring
-        that the bundle is fully downloaded.
+        This can be reimplemented in derived classes to have more complex validation,
+        like ensuring that the bundle is fully downloaded.
         """
         if path is None:
             return False
@@ -689,7 +743,7 @@ class IODescriptorBase(object):
 
         # and to the actual I/O
         # pass an empty skip list to ensure we copy things like the .git folder
-        filesystem.ensure_folder_exists(new_cache_path, permissions=0777)
+        filesystem.ensure_folder_exists(new_cache_path, permissions=0o777)
         filesystem.copy_folder(source_cache_path, new_cache_path, skip_list=[])
         return True
 
@@ -705,6 +759,20 @@ class IODescriptorBase(object):
         :return: Path to bundle cache location
         """
         raise NotImplementedError
+
+    @contextlib.contextmanager
+    def open_write_location(self):
+        """
+        When used with the ``with`` statement, this context manager will yield the
+        destination where a bundle should be downloaded. If the context is not exited successfully,
+        the files will be removed from disk.
+
+        :returns: Path to where the package should be extracted to.
+        """
+        raise TankDescriptorError(
+            "open_write_location is not supported on the '%s' descriptor type." %
+            self.get_dict()["type"]
+        )
 
     def get_system_name(self):
         """
@@ -723,7 +791,7 @@ class IODescriptorBase(object):
         """
         Retrieves this version to local repo.
         """
-        raise NotImplementedError
+        pass
 
     def get_latest_version(self, constraint_pattern=None):
         """

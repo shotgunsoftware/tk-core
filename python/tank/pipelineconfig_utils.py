@@ -17,16 +17,31 @@ from __future__ import with_statement
 
 import os
 
+from tank_vendor import yaml
+
 from . import constants
 from . import LogManager
 
 from .util import yaml_cache
+from .util import StorageRoots
 from .util import ShotgunPath
 from .util.shotgun import get_deferred_sg_connection
 
 from .errors import TankError
 
-log = LogManager.get_logger(__name__)
+logger = LogManager.get_logger(__name__)
+
+
+def has_core_descriptor(pipeline_config_path):
+    """
+    Returns ``True`` if the pipeline configuration contains a core descriptor
+    file.
+
+    :param pipeline_config_path: path to a pipeline configuration root folder
+    :return: ``True`` if the core descriptor file exists, ``False`` otherwise
+    """
+    # probe by looking for the existence of a core api descriptor file
+    return os.path.exists(_get_core_descriptor_file(pipeline_config_path))
 
 
 def is_localized(pipeline_config_path):
@@ -54,8 +69,8 @@ def is_pipeline_config(pipeline_config_path):
     :returns: true if pipeline config, false if not
     """
     # probe by looking for the existence of a key config file.
-    pc_file = os.path.join(pipeline_config_path, "config", "core", constants.STORAGE_ROOTS_FILE)
-    return os.path.exists(pc_file)
+    config_folder = os.path.join(pipeline_config_path, "config")
+    return StorageRoots.file_exists(config_folder)
 
 
 def get_metadata(pipeline_config_path):
@@ -78,65 +93,81 @@ def get_metadata(pipeline_config_path):
         data = yaml_cache.g_yaml_cache.get(cfg_yml, deepcopy_data=False)
         if data is None:
             raise Exception("File contains no data!")
-    except Exception, e:
+    except Exception as e:
         raise TankError("Looks like a config file is corrupt. Please contact "
                         "support! File: '%s' Error: %s" % (cfg_yml, e))
     return data
 
 
-def get_roots_metadata(pipeline_config_path):
-    """
-    Loads and validates the roots metadata file.
-    
-    The roots.yml file is a reflection of the local storages setup in Shotgun
-    at project setup time and may contain anomalies in the path layout structure.
-    
-    The roots data will be prepended to paths and used for comparison so it is 
-    critical that the paths are on a correct normalized form once they have been 
-    loaded into the system.
-    
-    :param pipeline_config_path: Path to the root of a pipeline configuration,
-                                 (excluding the "config" folder).  
-    
-    :returns: A dictionary structure with an entry for each storage defined. Each
-              storage will have three keys mac_path, windows_path and linux_path, 
-              for example
-              { "primary"  : <ShotgunPath>,
-                "textures" : <ShotgunPath>
-              }
-    """
-    # now read in the roots.yml file
-    # this will contain something like
-    # {'primary': {'mac_path': '/studio', 'windows_path': None, 'linux_path': '/studio'}}
-    roots_yml = os.path.join(
-        pipeline_config_path,
-        "config",
-        "core",
-        constants.STORAGE_ROOTS_FILE
-    )
-
-    try:
-        # if file is empty, initialize with empty dict...
-        data = yaml_cache.g_yaml_cache.get(roots_yml, deepcopy_data=False) or {}
-    except Exception, e:
-        raise TankError("Looks like the roots file is corrupt. Please contact "
-                        "support! File: '%s' Error: %s" % (roots_yml, e))
-
-    # if there are more than zero storages defined, ensure one of them is the primary storage
-    if len(data) > 0 and constants.PRIMARY_STORAGE_NAME not in data:
-        raise TankError("Could not find a primary storage in roots file "
-                        "for configuration %s!" % pipeline_config_path)
-
-    # sanitize path data by passing it through the ShotgunPath
-    shotgun_paths = {}
-    for storage_name in data:
-        shotgun_paths[storage_name] = ShotgunPath.from_shotgun_dict(data[storage_name])
-
-    return shotgun_paths
-
-
 ####################################################################################################################
 # Core API resolve utils
+
+def get_core_descriptor(pipeline_config_path, shotgun_connection, bundle_cache_fallback_paths=None):
+    """
+    Returns a descriptor object for the uri/dict defined in the config's
+    ``core_api.yml`` file (if it exists).
+
+    If the config does not define a core descriptor file, then ``None`` will be
+    returned.
+
+    :param str pipeline_config_path: The path to the pipeline configuration
+    :param shotgun_connection: An open connection to shotgun
+    :param bundle_cache_fallback_paths: bundle cache search path
+
+    :return: A core descriptor object
+    """
+
+    # avoid circular dependencies
+    from .descriptor import (
+        Descriptor,
+        create_descriptor,
+        is_descriptor_version_missing
+    )
+
+    descriptor_file_path = _get_core_descriptor_file(pipeline_config_path)
+
+    if not os.path.exists(descriptor_file_path):
+        return None
+
+    # the core_api.yml contains info about the core:
+    #
+    # location:
+    #    name: tk-core
+    #    type: app_store
+    #    version: v0.16.34
+
+    logger.debug("Found core descriptor file '%s'" % descriptor_file_path)
+
+    # read the file first
+    fh = open(descriptor_file_path, "rt")
+    try:
+        data = yaml.load(fh)
+        core_descriptor_dict = data["location"]
+    except Exception as e:
+        raise TankError(
+            "Cannot read invalid core descriptor file '%s': %s" %
+            (descriptor_file_path, e)
+        )
+    finally:
+        fh.close()
+
+    # we have a core descriptor specification. Get a descriptor object for it
+    logger.debug(
+        "Config has a specific core defined in core/core_api.yml: %s" %
+        core_descriptor_dict,
+    )
+
+    # when core is specified, check if it defines a specific version or not
+    use_latest = is_descriptor_version_missing(core_descriptor_dict)
+
+    return create_descriptor(
+        shotgun_connection,
+        Descriptor.CORE,
+        core_descriptor_dict,
+        fallback_roots=bundle_cache_fallback_paths or [],
+        resolve_latest=use_latest
+    )
+
 
 def get_path_to_current_core():
     """
@@ -274,7 +305,7 @@ def get_python_interpreter_for_config(pipeline_config_path):
     :returns: Path to the Python interpreter for that configuration.
     :rtype: str
 
-    :raises TankInvalidInterpreterLocationError: Raised if the interpreter in the interpreter file doesn't
+    :raises ~sgtk.descriptor.TankInvalidInterpreterLocationError: Raised if the interpreter in the interpreter file doesn't
         exist.
     :raises TankFileDoesNotExistError: Raised if the interpreter file can't be found.
     :raises TankNotPipelineConfigurationError: Raised if the pipeline configuration path is not
@@ -343,7 +374,7 @@ def _get_install_locations(path):
     # load the config file
     try:
         location_data = yaml_cache.g_yaml_cache.get(location_file, deepcopy_data=False) or {}
-    except Exception, error:
+    except Exception as error:
         raise TankError("Cannot load core config file '%s'. Error: %s" % (location_file, error))
 
     # do some cleanup on this file - sometimes there are entries that say "undefined"
@@ -420,3 +451,17 @@ def _get_version_from_manifest(info_yml_path):
     return data
 
 
+def _get_core_descriptor_file(pipeline_config_path):
+    """
+    Helper method. Returns the path to the config's core_api.yml file.
+    (May not exist)
+
+    :param pipeline_config_path: path to the pipeline configuration on disk
+    :return: A string path to the core_api.yml file within the config.
+    """
+    return os.path.join(
+        pipeline_config_path,
+        "config",
+        "core",
+        constants.CONFIG_CORE_DESCRIPTOR_FILE
+    )

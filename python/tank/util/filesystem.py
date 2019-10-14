@@ -19,9 +19,15 @@ import stat
 import shutil
 import datetime
 import functools
+import subprocess
+from contextlib import contextmanager
+
 from .. import LogManager
 
 log = LogManager.get_logger(__name__)
+
+# files or directories to skip if no skip_list is specified
+SKIP_LIST_DEFAULT = [".svn", ".git", ".gitignore", ".hg", ".hgignore"]
 
 
 def with_cleared_umask(func):
@@ -87,7 +93,7 @@ def compute_folder_size(path):
 
 
 @with_cleared_umask
-def touch_file(path, permissions=0666):
+def touch_file(path, permissions=0o666):
     """
     Touch a file and optionally set its permissions.
 
@@ -102,7 +108,7 @@ def touch_file(path, permissions=0666):
             fh = open(path, "wb")
             fh.close()
             os.chmod(path, permissions)
-        except OSError, e:
+        except OSError as e:
             # Race conditions are perfectly possible on some network storage
             # setups so make sure that we ignore any file already exists errors,
             # as they are not really errors!
@@ -111,7 +117,7 @@ def touch_file(path, permissions=0666):
 
 
 @with_cleared_umask
-def ensure_folder_exists(path, permissions=0775, create_placeholder_file=False):
+def ensure_folder_exists(path, permissions=0o775, create_placeholder_file=False):
     """
     Helper method - creates a folder and parent folders if such do not already exist.
 
@@ -136,7 +142,7 @@ def ensure_folder_exists(path, permissions=0775, create_placeholder_file=False):
                     fh.write("folder to be tracked and managed properly.\n")
                     fh.close()
 
-        except OSError, e:
+        except OSError as e:
             # Race conditions are perfectly possible on some network storage setups
             # so make sure that we ignore any file already exists errors, as they
             # are not really errors!
@@ -146,7 +152,7 @@ def ensure_folder_exists(path, permissions=0775, create_placeholder_file=False):
 
 
 @with_cleared_umask
-def copy_file(src, dst, permissions=0666):
+def copy_file(src, dst, permissions=0o666):
     """
     Copy file and sets its permissions.
 
@@ -179,12 +185,12 @@ def safe_delete_file(path):
                 if not attr & stat.S_IWRITE:
                     os.chmod(path, stat.S_IWRITE)
             os.remove(path)
-    except Exception, e:
+    except Exception as e:
         log.warning("File '%s' could not be deleted, skipping: %s" % (path, e))
 
 
 @with_cleared_umask
-def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
+def copy_folder(src, dst, folder_permissions=0o775, skip_list=None):
     """
     Alternative implementation to ``shutil.copytree``
 
@@ -205,9 +211,6 @@ def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
     """
     # files or directories to always skip
     SKIP_LIST_ALWAYS = ["__MACOSX", ".DS_Store"]
-
-    # files or directories to skip if no skip_list is specified
-    SKIP_LIST_DEFAULT = [".svn", ".git", ".gitignore", ".hg", ".hgignore"]
 
     # compute full skip list
     # note: we don't do
@@ -247,18 +250,18 @@ def copy_folder(src, dst, folder_permissions=0775, skip_list=None):
                 if dstname.endswith(".sh") or dstname.endswith(".bat") or dstname.endswith(".exe"):
                     try:
                         # make it readable and executable for everybody
-                        os.chmod(dstname, 0775)
-                    except Exception, e:
+                        os.chmod(dstname, 0o775)
+                    except Exception as e:
                         log.error("Can't set executable permissions on %s: %s" % (dstname, e))
 
-        except (IOError, os.error), e:
+        except (IOError, os.error) as e:
             raise IOError("Can't copy %s to %s: %s" % (srcname, dstname, e))
 
     return files
 
 
 @with_cleared_umask
-def move_folder(src, dst, folder_permissions=0775):
+def move_folder(src, dst, folder_permissions=0o775):
     """
     Moves a directory.
 
@@ -276,7 +279,12 @@ def move_folder(src, dst, folder_permissions=0775):
         log.debug("Moving directory: %s -> %s" % (src, dst))
 
         # first copy the content in the core folder
-        src_files = copy_folder(src, dst, folder_permissions)
+        src_files = copy_folder(
+            src,
+            dst,
+            folder_permissions,
+            skip_list=[]  # copy all files
+        )
 
         # now clear out the install location
         log.debug("Clearing out source location...")
@@ -285,12 +293,12 @@ def move_folder(src, dst, folder_permissions=0775):
                 # on windows, ensure all files are writable
                 if sys.platform == "win32":
                     attr = os.stat(f)[0]
-                    if (not attr & stat.S_IWRITE):
+                    if not attr & stat.S_IWRITE:
                         # file is readonly! - turn off this attribute
                         os.chmod(f, stat.S_IWRITE)
                 os.remove(f)
-            except Exception, e:
-                log.error("Could not delete file %s: %s" % (f, e))
+            except Exception as e:
+                log.warning("Could not delete file %s: %s" % (f, e))
 
 
 @with_cleared_umask
@@ -387,11 +395,11 @@ def safe_delete_folder(path):
                     os.chmod(path, stat.S_IWRITE | attr)
                     try:
                         func(path)
-                    except Exception, e:
+                    except Exception as e:
                         log.warning("Could not delete %s: %s. Skipping" % (path, e))
                 else:
                     log.warning("Could not delete %s: Skipping" % path)
-            except Exception, e:
+            except Exception as e:
                 log.warning("Could not delete %s: %s. Skipping" % (path, e))
         else:
             log.warning("Could not delete %s. Skipping." % path)
@@ -402,7 +410,7 @@ def safe_delete_folder(path):
             # remove the flag.
             # Inspired by http://stackoverflow.com/a/4829285/1074536
             shutil.rmtree(path, onerror=_on_rm_error)
-        except Exception, e:
+        except Exception as e:
             log.warning("Could not delete %s: %s" % (path, e))
     else:
         log.warning("Could not delete: %s. Folder does not exist" % path)
@@ -414,7 +422,7 @@ def get_unused_path(base_path):
     a number at the end of the basename of the path, right before the first ".",
     if any.
     
-    For example, "/tmp/foo_1.bar.blah" would be returned for "/tmp/foo.bar.blah"
+    For example, ``/tmp/foo_1.bar.blah`` would be returned for ``/tmp/foo.bar.blah``
     if it already exists.
 
     If the given path does not exist, the original path is returned.
@@ -446,3 +454,162 @@ def get_unused_path(base_path):
         if not os.path.exists(path):
             break
     return path
+
+
+@with_cleared_umask
+@contextmanager
+def auto_created_yml(path):
+    """
+    A context manager for opening/closing an auto-generated yaml file.
+
+    - clears umask
+    - any existing files will be removed
+    - the given path will be open for writing in text mode
+    - a standard header will be added
+
+    Usage example::
+
+        with filesystem.auto_created_yml(yaml_path) as fh:
+            fh.write("foobar: blah")
+
+        # fh is automatically closed upon exiting the context
+
+    :param path: path to yml file to open for writing
+    :return: file handle.
+    """
+
+    log.debug("Creating auto-generated config file %s" % path)
+    # clean out any existing file and replace it with a new one.
+
+    safe_delete_file(path)
+
+    with open(path, "w+") as fh:
+
+        fh.write("# This file was auto generated by the Shotgun Pipeline Toolkit.\n")
+        fh.write("# Please do not modify by hand as it may be overwritten at any point.\n")
+        fh.write("# Created %s\n" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        fh.write("# \n")
+
+        # on entering the context
+        yield fh
+
+        # on exiting the context
+        fh.write("\n")
+        fh.write("# End of file.\n")
+
+
+def open_file_browser(path):
+    """
+    Opens the given path in the operating system file browser such as
+    Windows explorer or Macosx Finder.
+
+    If the path points at a file, the method will attempt to highlight
+    the file.
+
+    :param path: A path to a file or folder.
+    :raises: RuntimeError: If the Platform is not supported or if
+        the file browser couldn't be launched.
+    :raises: ValueError: If the path is not a valid directory.
+    """
+
+    if os.path.isfile(path):
+        # open the file, attempt to select in finder/explorer
+        _open_file_browser_for_file(path)
+    elif os.path.isdir(path):
+        # open the folder in finder/explorer
+        _open_file_browser_for_folder(path)
+    else:
+        # possibly we have an image sequence and therefore its a symbolic path,
+        # instead check to see if the parent folder of the path is valid and
+        # try opening that.
+        #
+        # TODO: The issue with this logic is that possibly it was a directory
+        # that just didn't exist, so we would just be gathering the next
+        # directory up.
+        parent_dir = os.path.dirname(path)
+        _open_file_browser_for_folder(parent_dir)
+
+
+def _open_file_browser_for_folder(path):
+    """
+    This method will take a path to a folder and open it in
+    an OS's file browser.
+
+    :param path: A folder path
+    :raises: RuntimeError: If the Platform is not supported or if
+        the file browser couldn't be launched.
+    :raises: ValueError: If the path is not a valid directory.
+    """
+    log.debug("Launching file system browser for folder %s" % path)
+
+    # Check that we don't have a file path.
+    if not os.path.isdir(path):
+        raise ValueError(
+            "The path \"%s\" is not a valid directory." % path
+        )
+
+    # get the setting
+    system = sys.platform
+
+    # build the commands for opening the folder on the various OS's
+    if system.startswith("linux"):
+        cmd_args = ["xdg-open", path]
+    elif system == "darwin":
+        cmd_args = ["open", path]
+    elif system == "win32":
+        cmd_args = ["cmd.exe", "/C", "start", path]
+    else:
+        raise RuntimeError("Platform '%s' is not supported." % system)
+
+    log.debug("Executing command '%s'" % cmd_args)
+    exit_code = subprocess.call(cmd_args)
+    if exit_code != 0:
+        raise RuntimeError(
+            "Failed to launch a file browser for folder '%s'. "
+            "Error code %s" % (path, exit_code)
+        )
+
+
+def _open_file_browser_for_file(path):
+    """
+    This method will take a path to a file and open it in
+    an OS's file browser and attempt to highlight it.
+
+    :param path: A file path
+    :raises: RuntimeError: If the Platform is not supported or if
+        the file browser couldn't be launched.
+    :raises: ValueError: If the path is not a valid file path.
+    """
+    log.debug("Launching file system browser for file %s" % path)
+
+    if not os.path.isfile(path):
+        raise ValueError(
+            "The path \"%s\" is not a valid file path." % path
+        )
+
+    # get the setting
+    system = sys.platform
+
+    if system.startswith("linux"):
+        # note: there isn't a straight forward way to do
+        # this on linux, so just open the directory instead.
+        cmd_args = ["xdg-open", os.path.dirname(path)]
+    elif system == "darwin":
+        cmd_args = ["open", "-R", path]
+    elif system == "win32":
+        # /select makes windows select the file within the explorer window
+        # The problem with this approach is that it always returns back an error code of 1 even if it
+        # does behave correctly.
+        cmd_args = ["explorer", "/select,", path]
+    else:
+        raise Exception("Platform '%s' is not supported." % system)
+
+    log.debug("Executing command '%s'" % cmd_args)
+    exit_code = subprocess.call(cmd_args)
+
+    # cannot trust exit code from windows, see above
+    if system != "win32" and exit_code != 0:
+        raise RuntimeError(
+            "Failed to launch a file browser for file '%s'. "
+            "Error code %s" % (path, exit_code)
+        )

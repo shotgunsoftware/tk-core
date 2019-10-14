@@ -26,7 +26,7 @@ class AppInfoAction(Action):
 
         # this method can be executed via the API
         self.supports_api = True
-        
+
 
     def run_noninteractive(self, log, parameters):
         """

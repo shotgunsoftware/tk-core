@@ -1,6 +1,8 @@
+.. _core_api:
+
 .. currentmodule:: sgtk
 
-Foundation
+Core
 ########################################
 
 The Toolkit Foundation is the part of the Toolkit Core API
@@ -15,44 +17,13 @@ that contains lower level components and APIs. These include
 
 For apps and engines, see the :ref:`sgtk_platform_docs` documentation.
 
+.. note:: The Toolkit Foundation APIs require that you run them from within
+    an initialized toolkit environment. For more information on how to
+    set this up, see :ref:`init_and_startup`.
 
-The Toolkit Core API
----------------------------------------------------------
-
-Each instance of the :class:`sgtk.Sgtk` class is associated with a specific set of configuration settings.
-This association is automatically resolved as the API instance is created and can be
-specified in several ways:
-
-- As a path pointing directly at the desired pipeline configuration
-- As a Shotgun entity for which the associated (primary) pipeline configuration is resolved via Shotgun
-- As a path to a project folder on disk from which the associated (primary) pipeline configuration is computed.
-
-Factory methods
-===============================
-
-The following factory methods are used to create a Toolkit API instance:
-
-.. autofunction:: sgtk_from_path
-.. autofunction:: sgtk_from_entity
-
-.. note:: If you are using the :class:`~sgtk.bootstrap.ToolkitManager`, initialization of :class:`sgtk.Sgtk`
-          happens behind the scenes. While it is still possible to access a setup managed by the
-          :class:`~sgtk.bootstrap.ToolkitManager` via the same methods that you would use to access a
-          traditionally set up project, is is usually much easier to let the bootstrap process
-          handle the initialization.
-
-Authentication
-===============================
-
-Certain API operations require Shotgun data and hence require a way for the API
-to establish a connection to Shotgun. The easiest way to handle this is by
-making sure that each API instance has an associated authenticated user:
-
-.. autofunction:: set_authenticated_user
-.. autofunction:: get_authenticated_user
 
 Sgtk
-========================================
+---------------------------------
 
 .. autoclass:: Sgtk
     :members:
@@ -64,13 +35,19 @@ Sgtk
                       get_cache_item,
                       set_cache_item
 
+Authentication
+==============
 
-Context
-=========================================
+Certain API operations require Shotgun data and hence require a way for the API
+to establish a connection to Shotgun. The easiest way to handle this is by
+making sure that each API instance has an associated authenticated user:
 
-.. autoclass:: Context
-    :members:
-    :exclude-members: tank
+.. autofunction:: set_authenticated_user
+.. autofunction:: get_authenticated_user
+
+.. note::
+    The :class:`Context` serializes the authentication state, so if you are passing a context
+    from one process or application to the next, you don't need to utilize the methods above.
 
 Pipeline Configuration Utilities
 ================================
@@ -80,8 +57,18 @@ the currently running version of the Toolkit Core.
 
 .. autofunction:: get_core_python_path_for_config
 .. autofunction:: get_sgtk_module_path
+.. autofunction:: get_python_interpreter_for_config
 
-Executing Tank commands
+
+Context
+------------------------------------
+
+.. autoclass:: Context
+    :members:
+    :exclude-members: tank
+
+
+Commands
 ---------------------------------------------------------
 
 The ``tank`` command offers a variety of system utility commands to handle for example upgrades,
@@ -101,6 +88,11 @@ SgtkSystemCommand
 .. autoclass:: SgtkSystemCommand
     :members:
 
+CommandInteraction
+=========================================
+
+.. autoclass:: CommandInteraction
+    :members:
 
 .. _sgtk_hook_docs:
 
@@ -126,8 +118,132 @@ get_hook_baseclass
 
 .. autofunction:: get_hook_baseclass
 
+Core Hooks
+==========
 
-Template system
+The Toolkit core comes with a set of hooks that can help you tweak how the core behaves. If you
+want to take over a certain behavior, copy the hook found inside the core's `hooks <https://github.com/shotgunsoftware/tk-core/tree/master/hooks>`_ folder
+and copy it to your configuration's ``core/hooks`` folder.
+
+Here is the list of hooks that be taken over in the Toolkit core.
+
+before_register_publish.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: before_register_publish
+.. autoclass:: before_register_publish.BeforeRegisterPublish
+    :members:
+
+bootstrap.py
+~~~~~~~~~~~~
+
+.. automodule:: bootstrap
+.. autoclass:: bootstrap.Bootstrap
+    :members:
+
+bundle_init.py
+~~~~~~~~~~~~~~
+
+.. automodule:: bundle_init
+.. autoclass:: bundle_init.BundleInit
+    :members:
+
+cache_location.py
+~~~~~~~~~~~~~~~~~
+
+.. automodule:: cache_location
+.. autoclass:: cache_location.CacheLocation
+    :members:
+
+context_change.py
+~~~~~~~~~~~~~~~~~
+
+.. automodule:: context_change
+.. autoclass:: context_change.ContextChange
+    :members:
+
+engine_init.py
+~~~~~~~~~~~~~~
+
+.. automodule:: engine_init
+.. autoclass:: engine_init.EngineInit
+    :members:
+
+ensure_folder_exists.py
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: ensure_folder_exists
+.. autoclass:: ensure_folder_exists.EnsureFolderExists
+    :members:
+
+get_current_login.py
+~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: get_current_login
+.. autoclass:: get_current_login.GetCurrentLogin
+    :members:
+
+log_metrics.py
+~~~~~~~~~~~~~~
+
+.. automodule:: log_metrics
+.. autoclass:: log_metrics.LogMetrics
+    :members:
+    :exclude-members: execute
+
+pick_environment.py
+~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: pick_environment
+.. autoclass:: pick_environment.PickEnvironment
+    :members:
+
+pipeline_configuration_init.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: pipeline_configuration_init
+.. autoclass:: pipeline_configuration_init.PipelineConfigurationInit
+    :members:
+
+process_folder_creation.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: process_folder_creation
+.. autoclass:: process_folder_creation.ProcessFolderCreation
+    :members:
+
+process_folder_name.py
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: process_folder_name
+.. autoclass:: process_folder_name.ProcessFolderName
+    :members:
+
+resolve_publish.py
+~~~~~~~~~~~~~~~~~~
+
+.. automodule:: resolve_publish
+.. autoclass:: resolve_publish.ResolvePublish
+    :members:
+
+tank_init.py
+~~~~~~~~~~~~
+
+.. automodule:: tank_init
+.. autoclass:: tank_init.TankInit
+    :members:
+
+Template Hooks
+==============
+
+.. automodule:: example_template_hook
+.. autoclass:: example_template_hook.ExampleTemplateHook
+    :members:
+
+.. currentmodule:: sgtk
+
+
+Templates
 -----------------------------------------
 
 The Toolkit template system is used to handle path and string token manipulations.
@@ -229,13 +345,6 @@ TimestampKey
 
 .. autoclass:: TimestampKey
     :members:
-
-
-Configuration file resolution
------------------------------------------
-Each pipeline configuration has configuration files that help Toolkit locate the Python interpreter to use.
-
-.. autofunction:: get_python_interpreter_for_config
 
 
 Exceptions

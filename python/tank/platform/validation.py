@@ -153,7 +153,7 @@ def validate_and_return_frameworks(descriptor, environment):
     for fw in required_frameworks:
         # the required_frameworks structure in the info.yml
         # is a list of dicts, each dict having a name and a version key
-        name = fw.get("name")
+        required_fw_name = fw.get("name")
         version = fw.get("version")
         min_version = fw.get("minimum_version")
         found = False
@@ -172,7 +172,7 @@ def validate_and_return_frameworks(descriptor, environment):
         #   tk-framework-qtwidgets_v1.x.x:
         #     location: {name: tk-framework-qtwidgets, type: app_store, version: v1.3.34}
         #
-        desired_fw_instance = "%s_%s" % (name, version)
+        desired_fw_instance = "%s_%s" % (required_fw_name, version)
         min_version_satisfied = True
 
         for fw_instance_name, fw_desc in fw_descriptors.iteritems():
@@ -200,7 +200,7 @@ def validate_and_return_frameworks(descriptor, environment):
                         #           v0.9.0 IS older than v1.0.0, set to False
                         min_version_satisfied = not is_version_older(fw_version, min_version)
                     else:
-                        core_logger.warning(
+                        core_logger.debug(
                             "Not checking minimum framework version compliance "
                             "due to one or both versions being malformed: "
                             "%s and %s." % (min_version, fw_version)
@@ -208,7 +208,7 @@ def validate_and_return_frameworks(descriptor, environment):
 
                 if min_version_satisfied:
                     found = True
-                    required_fw_instance_names.append(fw_instance_name)
+                    required_fw_instance_names.append((required_fw_name, fw_instance_name))
                     break
         
         # backwards compatibility pass - prior to the new syntax, we also technically accepted 
@@ -221,9 +221,9 @@ def validate_and_return_frameworks(descriptor, environment):
         #
         # note: this old form does not handle the 1.x.x syntax, only exact version numbers
         for (fw_instance_name, fw_instance) in fw_descriptors.items():
-            if fw_instance.version == version and fw_instance.system_name == name:
+            if fw_instance.version == version and fw_instance.system_name == required_fw_name:
                 found = True
-                required_fw_instance_names.append(fw_instance_name)
+                required_fw_instance_names.append((required_fw_name, fw_instance_name))
                 break
         
         # display nicely formatted error message

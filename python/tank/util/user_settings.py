@@ -20,6 +20,7 @@ from .local_file_storage import LocalFileStorageManager
 from .errors import EnvironmentVariableFileLookupError, TankError
 from .. import LogManager
 from .singleton import Singleton
+from .system_settings import SystemSettings
 
 
 logger = LogManager.get_logger(__name__)
@@ -57,6 +58,14 @@ class UserSettings(Singleton):
         proxy = self._get_filtered_proxy(self.app_store_proxy)
         logger.debug("App Store proxy: %s", self._to_display_value(proxy))
 
+        # A small hack here, but we also want to log the system http
+        # proxy. We don't use the SystemSettings in this module, but
+        # it is a convenient and safe place to log the proxy given that
+        # we know it will only happen once, and we have access to the
+        # sanitization logic here.
+        system_proxy = self._get_filtered_proxy(SystemSettings().http_proxy)
+        logger.debug("System proxy: %s", self._to_display_value(system_proxy))
+
     @property
     def shotgun_proxy(self):
         """
@@ -87,6 +96,19 @@ class UserSettings(Singleton):
         Retrieves the value from the ``default_login`` setting.
         """
         return self.get_setting(self._LOGIN, "default_login")
+
+    def get_section_settings(self, section):
+        """
+        Retrieves the name of the settings in a given section.
+
+        :param str section: Name of the section of the settings to retrieve.
+
+        :returns: A list of setting's name. If the section is missing, returns
+            ``None``.
+        """
+        if not self._user_config.has_section(section):
+            return None
+        return self._user_config.options(section)
 
     def get_setting(self, section, name):
         """
