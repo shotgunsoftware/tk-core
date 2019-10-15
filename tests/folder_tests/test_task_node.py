@@ -21,8 +21,8 @@ from tank_test.tank_test_base import *
 
 from . import assert_paths_to_create, execute_folder_creation_proxy
 
-# test against a Task node where create_with_parent is false
 
+# test against a Task node where create_with_parent is false
 class TestSchemaCreateFoldersSingleTask(TankTestBase):
     def setUp(self):
         """Sets up entities in mocked shotgun database and creates Mock objects

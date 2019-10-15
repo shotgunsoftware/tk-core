@@ -308,7 +308,7 @@ class Template(object):
             if token.startswith('['):
                 # check that optional contains a key
                 if not re.search("{*%s}" % constants.TEMPLATE_KEY_NAME_REGEX, token): 
-                    raise TankError("Optional sections must include a key definition.")
+                    raise TankError("Optional sections must include a key definition. Token: \"%s\" Template: %s" % (token, self))
 
                 # Add definitions skipping this optional value
                 temp_definitions = definitions[:]

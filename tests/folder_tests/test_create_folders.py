@@ -738,8 +738,6 @@ class TestFolderCreationPathCache(TankTestBase):
                      "id": 3,
                      "code": "step_code",
                      "short_name": "step_short_name"}
-
-
         self.task = {"type": "Task",
                      "id": 23,
                      "entity": self.shot,
@@ -747,12 +745,11 @@ class TestFolderCreationPathCache(TankTestBase):
                      "step": self.step,
                      "project": self.project}
 
-
         entities = [self.shot,
                     self.seq,
                     self.step,
                     self.project,
-                    self.task,]
+                    self.task]
 
         # Add these to mocked shotgun
         self.add_to_sg_mock_db(entities)
@@ -795,7 +792,7 @@ class TestFolderCreationPathCache(TankTestBase):
         shotgun_status_entries = res.fetchall()
 
         # get all the filesystemlocation entities.
-        filesystemlocation_entries = self.tk.shotgun.find("FilesystemLocation",[], ["linked_entity_type"])
+        filesystemlocation_entries = self.tk.shotgun.find("FilesystemLocation", [], ["linked_entity_type"])
 
         # There should be equal numbers of path_cache items, to shotgun_status items to FilesystemLocation entities
         self.assertEqual(len(shotgun_status_entries), len(path_cache_entries))
@@ -816,7 +813,7 @@ class TestFolderCreationPathCache(TankTestBase):
 
             # Now check a matching FilesystemLocation entity is found to ensure the relationship record is correct.
             filesystemlocation_entity = next(
-                (fl for fl in filesystemlocation_entries if check_match(fl,shotgun_status_row, path_cache_row )), None)
+                (fl for fl in filesystemlocation_entries if check_match(fl, shotgun_status_row, path_cache_row )), None)
             self.assertIsNotNone(filesystemlocation_entity)
 
 
