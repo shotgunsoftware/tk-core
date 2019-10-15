@@ -21,15 +21,15 @@ from tank_test.tank_test_base import *
 
 from . import assert_paths_to_create, execute_folder_creation_proxy
 
-# test against a step node where create_with_parent is false
+# test against a Task node where create_with_parent is false
 
-class TestSchemaCreateFoldersSingleStep(TankTestBase):
+class TestSchemaCreateFoldersSingleTask(TankTestBase):
     def setUp(self):
         """Sets up entities in mocked shotgun database and creates Mock objects
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFoldersSingleStep, self).setUp()
+        super(TestSchemaCreateFoldersSingleTask, self).setUp()
         
         self.setup_fixtures(parameters = {"core": "core.override/shotgun_single_task_core"})
         
@@ -91,7 +91,7 @@ class TestSchemaCreateFoldersSingleStep(TankTestBase):
     def tearDown(self):
         
         # important to call base class so it can clean up memory
-        super(TestSchemaCreateFoldersSingleStep, self).tearDown()
+        super(TestSchemaCreateFoldersSingleTask, self).tearDown()
         
         # and do local teardown                                                                                
         folder.folder_io.FolderIOReceiver.execute_folder_creation = self.FolderIOReceiverBackup
@@ -181,15 +181,15 @@ class TestSchemaCreateFoldersSingleStep(TankTestBase):
 
 
 
-# test against a step node where create_with_parent is true
+# test against a task node where create_with_parent is true
 
-class TestSchemaCreateFoldersMultiStep(TankTestBase):
+class TestSchemaCreateFoldersMultiTask(TankTestBase):
     def setUp(self):
         """Sets up entities in mocked shotgun database and creates Mock objects
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
-        super(TestSchemaCreateFoldersMultiStep, self).setUp()
+        super(TestSchemaCreateFoldersMultiTask, self).setUp()
         
         self.setup_fixtures(parameters = {"core": "core.override/shotgun_multi_task_core"})
                 
@@ -251,7 +251,7 @@ class TestSchemaCreateFoldersMultiStep(TankTestBase):
     def tearDown(self):
         
         # important to call base class so it can clean up memory
-        super(TestSchemaCreateFoldersMultiStep, self).tearDown()
+        super(TestSchemaCreateFoldersMultiTask, self).tearDown()
         
         # and do local teardown                                                                                        
         folder.folder_io.FolderIOReceiver.execute_folder_creation = self.FolderIOReceiverBackup
