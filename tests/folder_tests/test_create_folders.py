@@ -775,9 +775,10 @@ class TestFolderCreationPathCache(TankTestBase):
         super(TestFolderCreationPathCache, self).tearDown()
 
     def test_shotgun_path_cache_counts(self):
-
-        # Check that the status table has entries for all the path_cache, and FilesystemLocation entities
-        # and checking that the relationships are correctly matched up.
+        """
+        Check that the status table has entries for all the path_cache, and FilesystemLocation entities
+        and checking that the relationships are correctly matched up.
+        """
 
         # get all the path_cache table rows
         res = self.db_cursor.execute(
@@ -795,26 +796,33 @@ class TestFolderCreationPathCache(TankTestBase):
         filesystemlocation_entries = self.tk.shotgun.find("FilesystemLocation", [], ["linked_entity_type"])
 
         # There should be equal numbers of path_cache items, to shotgun_status items to FilesystemLocation entities
-        self.assertEqual(len(shotgun_status_entries), len(path_cache_entries))
-        self.assertEqual(len(shotgun_status_entries), len(filesystemlocation_entries))
+        # The task fixtures schema should generate 5 patch cache entries, so we should check they are all 5.
+        self.assertEqual(len(shotgun_status_entries), 5)
+        self.assertEqual(len(path_cache_entries), 5)
+        self.assertEqual(len(shotgun_status_entries), 5)
 
         def check_match(fl_entity, shotgun_status_row, path_cache_row):
-            # check that filesystemlocation that matches the shotgun_status_row's shotgun_id also matches the
-            # path_cache_rows's entity type.
+            """
+            check that FilesystemLocation entity that matches the shotgun_status_row's shotgun_id also matches the
+            path_cache_rows's entity type.
+            :param fl_entity: FilesystemLocation entity
+            :param shotgun_status_row: A shotgun_status table row
+            :param path_cache_row: A path_cache table row
+            :return:
+            """
             return shotgun_status_row[1] == fl_entity["id"] and path_cache_row[1] == fl_entity["linked_entity_type"]
 
         # Now loop over the path cache rows, and ensure that the path_cache to shotgun_status to filesystemLocation entity
         # relationships all line up.
         for path_cache_row in path_cache_entries:
             # Make sure we find a matching shotgun_status table row.
-            shotgun_status_row = next(
-                (s_row for s_row in shotgun_status_entries if path_cache_row[0] == s_row[0]), None)
-            self.assertIsNotNone(shotgun_status_row)
+            shotgun_status_rows = [s_row for s_row in shotgun_status_entries if path_cache_row[0] == s_row[0]]
+            self.assertEqual(len(shotgun_status_rows), 1)
 
             # Now check a matching FilesystemLocation entity is found to ensure the relationship record is correct.
-            filesystemlocation_entity = next(
-                (fl for fl in filesystemlocation_entries if check_match(fl, shotgun_status_row, path_cache_row )), None)
-            self.assertIsNotNone(filesystemlocation_entity)
+            filesystemlocation_entitys = [fl for fl in filesystemlocation_entries if
+                                         check_match(fl, shotgun_status_rows[0], path_cache_row)]
+            self.assertEqual(len(filesystemlocation_entitys), 1)
 
 
 class TestFolderCreationEdgeCases(TankTestBase):
