@@ -792,7 +792,7 @@ class TestFolderCreationPathCache(TankTestBase):
         )
         shotgun_status_entries = res.fetchall()
 
-        # get all the filesystemlocation entities.
+        # get all the FilesystemLocation entities.
         filesystemlocation_entries = self.tk.shotgun.find("FilesystemLocation", [], ["linked_entity_type"])
 
         # There should be equal numbers of path_cache items, to shotgun_status items to FilesystemLocation entities
@@ -812,16 +812,17 @@ class TestFolderCreationPathCache(TankTestBase):
             """
             return shotgun_status_row[1] == fl_entity["id"] and path_cache_row[1] == fl_entity["linked_entity_type"]
 
-        # Now loop over the path cache rows, and ensure that the path_cache to shotgun_status to filesystemLocation entity
-        # relationships all line up.
+        # Now loop over the path cache rows, and ensure that the path_cache to shotgun_status to
+        # FilesystemLocation entity relationships all line up.
         for path_cache_row in path_cache_entries:
             # Make sure we find a matching shotgun_status table row.
             shotgun_status_rows = [s_row for s_row in shotgun_status_entries if path_cache_row[0] == s_row[0]]
             self.assertEqual(len(shotgun_status_rows), 1)
 
             # Now check a matching FilesystemLocation entity is found to ensure the relationship record is correct.
-            filesystemlocation_entitys = [fl for fl in filesystemlocation_entries if
-                                         check_match(fl, shotgun_status_rows[0], path_cache_row)]
+            filesystemlocation_entitys = [fl for fl in filesystemlocation_entries if check_match(fl,
+                                                                                                 shotgun_status_rows[0],
+                                                                                                 path_cache_row)]
             self.assertEqual(len(filesystemlocation_entitys), 1)
 
 
