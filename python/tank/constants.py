@@ -87,8 +87,3 @@ SUPPORT_EMAIL = "support@shotgunsoftware.com"
 
 # environment variable to hold external pipeline config data
 ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA = "SGTK_EXT_CONFIG_DATA"
-
-# Maximum protocol version to allow the pickle module to use. In the case that
-# Python 2 and 3 will be required to interoperate and share pickled objects,
-# this should not exceed 2.
-MAX_PICKLE_PROTOCOL = 2

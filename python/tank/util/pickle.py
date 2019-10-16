@@ -19,8 +19,6 @@ from tank_vendor.shotgun_api3.lib import six
 
 log = LogManager.get_logger(__name__)
 
-PICKLE_PROTOCOL = min(cPickle.HIGHEST_PROTOCOL, constants.MAX_PICKLE_PROTOCOL)
-
 
 def store_env_var_pickled(key, data):
     """
@@ -33,10 +31,10 @@ def store_env_var_pickled(key, data):
     :param key: The name of the environment variable to store the data in.
     :param data: The object to pickle and store.
     """
-    # Use the maximum pickle protocol allowed from constants to ensure
-    # Python 2/3 interoperability if required.
-    pickled_data = cPickle.dumps(data, protocol=PICKLE_PROTOCOL)
-    encoded_data = six.ensure_str(base64.b64encode(pickled_data))
+    # Force pickle protocol 0, since this is a non-binary pickle protocol.
+    # See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL
+    pickled_data = cPickle.dumps(data, protocol=0)
+    encoded_data = six.ensure_str(pickled_data)
     os.environ[key] = encoded_data
 
 
@@ -52,7 +50,5 @@ def retrieve_env_var_pickled(key):
     :param key: The name of the environment variable to retrieve data from.
     :returns: The original object that was stored.
     """
-    # Use the maximum pickle protocol allowed from constants to ensure
-    # Python 2/3 interoperability if required.
-    envvar_contents = os.environ[key]
-    return cPickle.loads(base64.b64decode(envvar_contents))
+    envvar_contents = six.ensure_binary(os.environ[key])
+    return cPickle.loads(envvar_contents)
