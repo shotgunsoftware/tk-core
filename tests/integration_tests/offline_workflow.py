@@ -122,7 +122,7 @@ class OfflineWorkflow(SgtkIntegrationTest):
         self.sg.upload(
             "PipelineConfiguration", pc["id"],
             "{temp_dir}/config.zip".format(temp_dir=self.temp_dir),
-            "uploaded_config",
+            "sg_uploaded_config",
             "Uploaded by tk-core integration tests."
         )
 
@@ -145,7 +145,7 @@ class OfflineWorkflow(SgtkIntegrationTest):
         # Bootstrap into the tk-shell engine.
         manager = sgtk.bootstrap.ToolkitManager(self.user)
         manager.pipeline_configuration = pc["id"]
-        engine = manager.bootstrap_engine("tk-testengine", project)
+        engine = manager.bootstrap_engine("tk-shell", project)
         engine.destroy_engine()
 
         # Make sure we only have a sg descriptor cache.

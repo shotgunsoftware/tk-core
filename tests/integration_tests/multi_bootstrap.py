@@ -59,7 +59,7 @@ class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
         # Bootstrap into the tk-shell123 engine.
         manager = sgtk.bootstrap.ToolkitManager(self.user)
         manager.do_shotgun_config_lookup = False
-        manager.base_configuration = "sgtk:descriptor:path?path=$TK_CORE_REPO_ROOT/tests/integration_tests/data/site_config"
+        manager.base_configuration = "sgtk:descriptor:app_store?name=tk-config-basic"
         manager.caching_policy = sgtk.bootstrap.ToolkitManager.CACHE_SPARSE
         try:
             engine = manager.bootstrap_engine("tk-shell123", self.project)
@@ -74,10 +74,10 @@ class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
                 print("Error detected was:")
                 print(traceback_str)
                 raise
-            engine = manager.bootstrap_engine("tk-testengine", self.project)
+            engine = manager.bootstrap_engine("tk-shell", self.project)
 
-        self.assertEqual(engine.name, "test_engine")
+        self.assertEqual(engine.name, "tk-shell")
+
 
 if __name__ == "__main__":
     ret_val = unittest2.main(failfast=True, verbosity=2)
-

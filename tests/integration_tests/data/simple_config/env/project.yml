@@ -18,18 +18,22 @@ description: Small environment to test the offline workflow.
 # configuration for all engines to load in a project context
 
 engines:
-  tk-testengine:
+  tk-shell:
     apps:
-      tk-test-app:
+      tk-multi-launchapp:
+        use_software_entity: true
         location: 
-          type: path
-          path: $TK_CORE_REPO_ROOT/tests/fixtures/config/bundles/simple_test_app
+          type: app_store
+          name: tk-multi-launchapp
+          version: v0.9.15
     location:
-      type: path
-      path: $TK_CORE_REPO_ROOT/tests/fixtures/config/bundles/test_engine
+      type: app_store
+      name: tk-shell
+      version: v0.6.0
 
 frameworks:
-  tk-framework-test:
+  tk-framework-shotgunutils_v5.x.x:
     location:
-      type: path
-      path: $TK_CORE_REPO_ROOT/tests/fixtures/config/bundles/test_framework_v1
+      version: v5.3.4
+      type: app_store
+      name: tk-framework-shotgunutils
