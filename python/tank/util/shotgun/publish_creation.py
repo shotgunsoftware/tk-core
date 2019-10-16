@@ -692,7 +692,7 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
                 
 
 def _calc_path_cache(tk, path):
-    """
+    r"""
     Calculates root path name and relative path (including project directory).
     returns (root_name, path_cache). The relative path is always using forward
     slashes.
@@ -758,7 +758,7 @@ def _calc_path_cache(tk, path):
 
 
 def group_by_storage(tk, list_of_paths):
-    """
+    r"""
     Given a list of paths on disk, groups them into a data structure suitable for
     shotgun. In shotgun, the path_cache field contains an abstracted representation
     of the publish field, with a normalized path and the storage chopped off.

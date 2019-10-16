@@ -465,7 +465,7 @@ class StorageRoots(object):
                 ShotgunPath.from_shotgun_dict(root_info)
 
     def update_root(self, root_name, storage_data):
-        """
+        r"""
         Given a required storage root name, update the object's storage
         metadata.
 

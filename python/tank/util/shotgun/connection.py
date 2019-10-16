@@ -32,7 +32,7 @@ log = LogManager.get_logger(__name__)
 
 
 def __get_api_core_config_location():
-    """
+    r"""
 
     Walk from the location of this file on disk to the config area.
     this operation is guaranteed to work on any valid tank installation

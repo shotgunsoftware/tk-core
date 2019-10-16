@@ -686,7 +686,7 @@ class TestTankFromPathWindowsNoSlash(TankTestBase):
 
 
 class TestTankFromPathOverlapStorage(TankTestBase):
-    """
+    r"""
     Tests edge case with overlapping storages
 
     For example, imagine the following setup:

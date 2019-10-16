@@ -409,7 +409,7 @@ class TankBundle(object):
         pass
 
     def import_module(self, module_name):
-        """
+        r"""
         Special import command for Toolkit bundles. Imports the python folder inside
         an app and returns the specified module name that exists inside the python folder.
 

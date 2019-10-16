@@ -154,7 +154,7 @@ class ProjectSetupParameters(object):
 
 
     def validate_config_uri(self, config_uri):
-        """
+        r"""
         Validates a configuration template to check if it is compatible with the current Shotgun setup.
         This will download the config, validate it to ensure that it is compatible with the
         constraints (versions of core and shotgun) of this system.
@@ -1149,7 +1149,7 @@ class TemplateConfiguration(object):
         return self._version
 
     def resolve_storages(self):
-        """
+        r"""
         Validate that the roots exist in shotgun. Communicates with Shotgun.
 
         Returns the root paths from shotgun for each storage.
@@ -1342,7 +1342,7 @@ class TemplateConfiguration(object):
             filesystem.copy_folder(self._cfg_folder, target_path)
 
     def update_storage_root(self, root_name, storage_data):
-        """
+        r"""
         Given a required storage root name, update the template config's storage
         root information.
 

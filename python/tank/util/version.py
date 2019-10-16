@@ -50,7 +50,7 @@ def is_version_older(a, b):
 
 
 def is_version_number(version):
-    """
+    r"""
     Tests whether the given string is a properly formed
     version number (ex: v1.2.3). The test is made using
     the pattern r"v\d+.\d+.\d+$"

@@ -176,7 +176,7 @@ class SetupProjectWizard(object):
         self._params.set_distribution_mode(ProjectSetupParameters.DISTRIBUTED_CONFIG)
 
     def validate_config_uri(self, config_uri):
-        """
+        r"""
         Validates a configuration template to check if it is compatible with the current Shotgun setup.
         This will download the configuration, validate it to ensure that it is compatible with the
         constraints (versions of core and shotgun) of this system.
@@ -246,7 +246,7 @@ class SetupProjectWizard(object):
         self._params.set_config_uri(config_uri)
 
     def update_storage_root(self, config_uri, root_name, storage_data):
-        """
+        r"""
         Given a required storage root name, update the template config's storage
         root information.
 
@@ -313,7 +313,7 @@ class SetupProjectWizard(object):
         self._params.validate_project_disk_name(project_disk_name)
 
     def preview_project_paths(self, project_disk_name):
-        """
+        r"""
         Return preview project paths given a project name.
 
         { "primary": { "darwin": "/foo/bar/project_name",
@@ -387,7 +387,7 @@ class SetupProjectWizard(object):
         self._params.set_project_disk_name(project_disk_name)
 
     def get_default_configuration_location(self):
-        """
+        r"""
         Returns default suggested install location for configurations.
         Returns a dictionary with sys.platform style keys linux2/win32/darwin, e.g.
 

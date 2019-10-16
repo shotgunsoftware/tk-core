@@ -274,7 +274,7 @@ class PathCache(object):
 
 
     def _dbpath_to_path(self, root_path, dbpath):
-        """
+        r"""
         converts a dbpath to path for the local platform
 
         linux:    /foo/bar --> /studio/proj/foo/bar

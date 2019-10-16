@@ -610,7 +610,7 @@ class SetupProjectAction(Action):
         params.set_configuration_location(linux_path, windows_path, macosx_path)
 
     def _get_default_configuration_location(self, log, params):
-        """
+        r"""
         Returns default suggested location for configurations.
         Returns a dictionary with sys.platform style keys linux2/win32/darwin, e.g.
         

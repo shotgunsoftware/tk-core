@@ -684,7 +684,7 @@ class PipelineConfiguration(object):
         return self._storage_roots.get_local_storages(sg)
 
     def get_all_platform_data_roots(self):
-        """
+        r"""
         Similar to get_data_roots but instead of returning project data roots
         for a single operating system, the data roots for all operating systems
         are returned.
