@@ -489,7 +489,7 @@ class PathCache(object):
                             "data. Please contact support. Error details: %s" % e)
         
         # now create a dictionary where input path cache rowid (path_cache_row_id)
-        # is mapped to the shotgun ids that were just created
+        # is mapped to the shotgun ids that were just created.
         def _rowid_from_path(path):
             for d in data:
                 if d["path"] == path:
