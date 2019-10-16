@@ -84,6 +84,13 @@ def create_io_descriptor(
         # make sure to add an artificial one so that we can resolve it.
         descriptor_dict["version"] = "latest"
 
+    # Ensure that the descrptor version is a str.  For some descriptors a
+    # verson is not expected, so if the key doesn't exist we'll do nothing.
+    if isinstance(descriptor_dict.get("version"), six.binary_type):
+        # On Python 2 this will have no effect, but on Python 3, we will decode
+        # bytes to a str.
+        descriptor_dict["version"] = six.ensure_str(descriptor_dict["version"])
+
     # instantiate the Descriptor
     descriptor = IODescriptorBase.create(descriptor_type, descriptor_dict, sg)
 

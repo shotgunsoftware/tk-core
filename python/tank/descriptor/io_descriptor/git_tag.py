@@ -58,7 +58,7 @@ class IODescriptorGitTag(IODescriptorGit):
 
         # path is handled by base class - all git descriptors
         # have a path to a repo
-        self._version = six.ensure_str(descriptor_dict.get("version"))
+        self._version = descriptor_dict.get("version")
         self._sg_connection = sg_connection
         self._bundle_type = bundle_type
 
@@ -185,7 +185,7 @@ class IODescriptorGitTag(IODescriptorGit):
             tag_name = self._get_latest_version()
 
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
-        new_loc_dict["version"] = tag_name
+        new_loc_dict["version"] = six.ensure_str(tag_name)
 
         # create new descriptor to represent this tag
         desc = IODescriptorGitTag(new_loc_dict, self._sg_connection, self._bundle_type)
