@@ -872,7 +872,7 @@ class TankBundle(object):
         
         elif hook_expression.startswith("{$") and "}" in hook_expression:
             # environment variable: {$HOOK_PATH}/path/to/foo.py
-            env_var = re.match("^\{\$([^\}]+)\}", hook_expression).group(1)
+            env_var = re.match(r"^\{\$([^\}]+)\}", hook_expression).group(1)
             if env_var not in os.environ:
                 raise TankError("%s config setting %s: This hook is referring to the configuration value '%s', "
                                 "but no environment variable named '%s' can be "
@@ -884,7 +884,7 @@ class TankBundle(object):
         elif hook_expression.startswith("{") and "}" in hook_expression:
             # bundle instance (e.g. '{tk-framework-perforce_v1.x.x}/foo/bar.py' )
             # first find the bundle instance
-            instance = re.match("^\{([^\}]+)\}", hook_expression).group(1)
+            instance = re.match(r"^\{([^\}]+)\}", hook_expression).group(1)
             # for now, only look at framework instance names. Later on,
             # if the request ever comes up, we could consider extending
             # to supporting app instances etc. However we would need to

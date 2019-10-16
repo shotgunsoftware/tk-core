@@ -81,7 +81,7 @@ def format_bundle_info(log, descriptor, required_updates=None):
         for name in required_updates[1:]:
             log.info("|                   %s" % name)
 
-    log.info("\%s" % ("-" * 70))
+    log.info(r"\%s" % ("-" * 70))
 
 
 def get_configuration(
@@ -169,12 +169,12 @@ def _get_configuration_recursive(
             log.info("/%s" % ("-" * 70))
             log.info("| Item:    %s" % param_path[0])
             for level, name in enumerate(param_path[1:]):
-                log.info("|          %s  \ %s" % ("  " * level, name))
+                log.info(r"|          %s  \ %s" % ("  " * level, name))
             log.info("| Type:    %s" % param_data["type"])
             str_to_wrap = "Summary: %s" % param_data["description"]
             for x in textwrap.wrap(str_to_wrap, width=68, initial_indent="| ", subsequent_indent="|          "):
                 log.info(x)
-            log.info("\%s" % ("-" * 70))
+            log.info(r"\%s" % ("-" * 70))
 
             if "value" in param_data:
                 # default value in param data, just log the info for the user

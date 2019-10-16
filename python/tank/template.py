@@ -311,7 +311,7 @@ class Template(object):
         
         """
         # split definition by optional sections
-        tokens = re.split("(\[[^]]*\])", definition)
+        tokens = re.split(r"(\[[^]]*\])", definition)
 
         # seed with empty string
         definitions = ['']
@@ -328,10 +328,10 @@ class Template(object):
                 # Add definitions skipping this optional value
                 temp_definitions = definitions[:]
                 # strip brackets from token
-                token = re.sub('[\[\]]', '', token)
+                token = re.sub(r'[\[\]]', '', token)
 
             # check non-optional contains no dangleing brackets
-            if re.search("[\[\]]", token): 
+            if re.search(r"[\[\]]", token): 
                 raise TankError("Square brackets are not allowed outside of optional section definitions.")
 
             # make defintions with token appended
@@ -359,7 +359,7 @@ class Template(object):
     def _clean_definition(self, definition):
         # Create definition with key names as strings with no format, enum or default values
         regex = r"{(%s)}" % constants.TEMPLATE_KEY_NAME_REGEX
-        cleaned_definition = re.sub(regex, "%(\g<1>)s", definition)
+        cleaned_definition = re.sub(regex, r"%(\g<1>)s", definition)
         return cleaned_definition
 
     def _calc_static_tokens(self, definition):

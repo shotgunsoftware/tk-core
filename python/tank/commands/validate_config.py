@@ -272,7 +272,7 @@ class ValidateConfigAction(Action):
                 else:
                     log.info("  Parameter %s - OK [using non-default value]" % s)
                     log.info("    |---> Current: %s" % value)
-                    log.info("    \---> Default: %s" % default)
+                    log.info(r"    \---> Default: %s" % default)
 
                 # remember templates
                 if manifest[s].get("type") == "template":

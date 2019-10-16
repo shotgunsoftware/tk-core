@@ -193,7 +193,7 @@ class EntityExpression(object):
         # Look for square brackets that contains at least one
         # {expression} and ignore any square bracket inside
         # expressions:
-        tokens = re.split("(\[[^\]]*\{.*\}[^\]]*\])", definition)
+        tokens = re.split(r"(\[[^\]]*\{.*\}[^\]]*\])", definition)
         # seed with empty string
         definitions = [""]
         for token in tokens:

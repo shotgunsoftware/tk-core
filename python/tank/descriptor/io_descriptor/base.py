@@ -302,7 +302,7 @@ class IODescriptorBase(object):
         if 'x' in version_split:
             # check that we don't have an incorrect pattern using x
             # then a digit, eg. v4.x.2
-            if re.match("^v[0-9\.]+[x\.]+[0-9\.]+$", pattern):
+            if re.match(r"^v[0-9\.]+[x\.]+[0-9\.]+$", pattern):
                 raise TankDescriptorError(
                     "Incorrect version pattern '%s'. "
                     "There should be no digit after a 'x'." % pattern

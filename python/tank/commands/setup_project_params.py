@@ -522,7 +522,7 @@ class ProjectSetupParameters(object):
         else:
             # construct a valid name - replace white space with underscore and lower case it.
             proj = self._sg.find_one("Project", [["id", "is", self._project_id]], ["name"])
-            suggested_folder_name = re.sub("\W", "_", proj.get("name")).lower()
+            suggested_folder_name = re.sub(r"\W", "_", proj.get("name")).lower()
 
         return suggested_folder_name
 
@@ -541,7 +541,7 @@ class ProjectSetupParameters(object):
 
         # basic validation of folder name
         # note that the value can contain slashes and span across multiple folders
-        if re.match("^[\./a-zA-Z0-9_-]+$", project_name) is None:
+        if re.match(r"^[\./a-zA-Z0-9_-]+$", project_name) is None:
             raise TankError("Invalid project folder '%s'! Please use alphanumerics, "
                             "underscores and dashes." % project_name)
 

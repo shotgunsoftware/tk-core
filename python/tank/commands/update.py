@@ -619,7 +619,7 @@ class AppUpdatesAction(Action):
                 status["current"].download_local()
 
         elif status["out_of_date"] is False:
-            log.info(" \-- You are running version %s which is the most recent release." % status["latest"].version)
+            log.info(r" \-- You are running version %s which is the most recent release." % status["latest"].version)
 
         else:
             # cannot update for some reason

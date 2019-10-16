@@ -38,7 +38,7 @@ VALID_SG_ENTITY_NAME_EXPLANATION = ("letters, numbers and the characters period(
                                     "dash(-) and underscore(_)")
 
 # regex pattern that all folder names must validate against
-VALID_SG_ENTITY_NAME_REGEX = "^[\w\-\.]+$"
+VALID_SG_ENTITY_NAME_REGEX = r"^[\w\-\.]+$"
 
 # tk instance cache of the shotgun schema
 SHOTGUN_SCHEMA_CACHE_KEY = "shotgun_schema"

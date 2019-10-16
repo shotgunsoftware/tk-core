@@ -716,7 +716,7 @@ class IntegerKey(TemplateKey):
     :class:`TemplateKey` representing an integer value.
     """
     # Matches one non-zero digit follow by any number of digits.
-    _NON_ZERO_POSITIVE_INTEGER_EXP = "[1-9]\d*"
+    _NON_ZERO_POSITIVE_INTEGER_EXP = r"[1-9]\d*"
     # For the next two regular expressions, the ^ and $ are important to prevent partial matches.
     # Matches an optional 0 followed by a non zero positive integer.
     _FORMAT_SPEC_RE = re.compile("^(0?)(%s)$" % _NON_ZERO_POSITIVE_INTEGER_EXP)
@@ -998,7 +998,7 @@ class SequenceKey(IntegerKey):
     # valid format strings that can be used with this Key type
     VALID_FORMAT_STRINGS = ["%d", "#", "@", "$F", "<UDIM>", "$UDIM"]
     # flame sequence pattern regex ('[1234-5434]')
-    FLAME_PATTERN_REGEX = "^\[[0-9]+-[0-9]+\]$"
+    FLAME_PATTERN_REGEX = r"^\[[0-9]+-[0-9]+\]$"
     
     def __init__(self,
                  name,

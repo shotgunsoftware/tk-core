@@ -306,7 +306,7 @@ class TestEngineLauncher(TankTestBase):
 
         # regardless of the platform, the path orientation should not be an issue
         for template in [pattern_template.replace("/", "\\"), pattern_template.replace("\\", "/")]:
-            matches = launcher._glob_and_match(template, {"version": "\d+"})
+            matches = launcher._glob_and_match(template, {"version": r"\d+"})
             # Sort alphabetically so we can more easily validate the result.
             matches = sorted(matches, key=lambda x: x[0])
             self.assertEqual(

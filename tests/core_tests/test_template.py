@@ -249,7 +249,7 @@ class TestMissingKeys(TestTemplate):
 class TestSplitPath(unittest2.TestCase):
     def test_mixed_sep(self):
         "tests that split works with mixed seperators"
-        input_path = "hoken/poken\moken//doken"
+        input_path = r"hoken/poken\moken//doken"
         expected = ["hoken", "poken", "moken", "doken"]
         result = tank.template.split_path(input_path)
         self.assertEqual(expected, result)
