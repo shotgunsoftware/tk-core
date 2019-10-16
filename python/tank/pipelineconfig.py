@@ -234,6 +234,7 @@ class PipelineConfiguration(object):
                 external_data = retrieve_env_var_pickled(constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA)
             except Exception as e:
                 log.warning("Could not load external config data from: %s" % e)
+                external_data = {}
             finally:
                 # The passing of state from bootstrap to core is complete.
                 # Make sure we clean up so we don't interfere any further
