@@ -8,10 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import base64
 import os
 
-from .. import constants
 from .. import LogManager
 
 from tank_vendor.shotgun_api3.lib.six.moves import cPickle

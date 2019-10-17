@@ -829,7 +829,7 @@ class TestConcurrentShotgunSync(TankTestBase):
         """
 
         # skip this test on windows or py2.5 where multiprocessing isn't available
-        if is_windows() or sys.version_info < (2,6):
+        if is_windows() or sys.version_info < (2, 6):
             return
 
         import multiprocessing

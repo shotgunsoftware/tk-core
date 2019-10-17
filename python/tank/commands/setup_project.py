@@ -99,20 +99,20 @@ class SetupProjectAction(Action):
         }
 
         # note how the current platform's default value is None in order to make that required
-        self.parameters["config_path_mac"] = { "description": ("The path on disk where the configuration should be "
-                                                               "installed on Macosx."),
-                                               "default": (None if is_macos() else ""),
-                                               "type": "str" }
+        self.parameters["config_path_mac"] = {"description": ("The path on disk where the configuration should be "
+                                                              "installed on Macosx."),
+                                              "default": (None if is_macos() else ""),
+                                              "type": "str"}
 
-        self.parameters["config_path_win"] = { "description": ("The path on disk where the configuration should be "
-                                                               "installed on Windows."),
-                                               "default": (None if is_windows() else ""),
-                                               "type": "str" }
+        self.parameters["config_path_win"] = {"description": ("The path on disk where the configuration should be "
+                                                              "installed on Windows."),
+                                              "default": (None if is_windows() else ""),
+                                              "type": "str"}
 
-        self.parameters["config_path_linux"] = { "description": ("The path on disk where the configuration should be "
-                                                               "installed on Linux."),
-                                               "default": (None if is_linux() else ""),
-                                               "type": "str" }
+        self.parameters["config_path_linux"] = {"description": ("The path on disk where the configuration should be "
+                                                                "installed on Linux."),
+                                                "default": (None if is_linux() else ""),
+                                                "type": "str"}
         
         # Special setting used by older versins of shotgun desktop app
         # to handle auto-installing the site configuration at startup.
