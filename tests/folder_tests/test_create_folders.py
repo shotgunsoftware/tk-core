@@ -799,7 +799,7 @@ class TestFolderCreationPathCache(TankTestBase):
         # The task fixtures schema should generate 5 patch cache entries, so we should check they are all 5.
         self.assertEqual(len(shotgun_status_entries), 5)
         self.assertEqual(len(path_cache_entries), 5)
-        self.assertEqual(len(shotgun_status_entries), 5)
+        self.assertEqual(len(filesystemlocation_entries), 5)
 
         def check_match(fl_entity, shotgun_status_row, path_cache_row):
             """
