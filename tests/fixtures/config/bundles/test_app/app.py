@@ -16,7 +16,11 @@ from tank.platform import Application
 
 class TestApp(Application):
     """
-    Test app with a single action that displays a dialog with a button that closes the window.
+    Test app with a single action that displays a dialog with a button
+    that closes the window.
+
+    You can close the dialog by doing
+    ``engine.apps["test_app"].dismiss_button.click()``
     """
     def init_app(self):
         self.dismiss_button = None
@@ -26,6 +30,9 @@ class TestApp(Application):
         self.engine.register_command("test_app", self._show_app)
 
     def _show_app(self):
+        """
+        Shows an app with a button in it.
+        """
         from sgtk.platform.qt import QtGui
 
         class AppDialog(QtGui.QWidget):
