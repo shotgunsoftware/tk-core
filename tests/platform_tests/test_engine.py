@@ -154,7 +154,7 @@ class TestExecuteInMainThread(TestEngineBase):
         super(TestExecuteInMainThread, self).setUp()
 
         # Init QApplication before engine starts or the engine's invokers can be
-        # delete internally by Qt before they are used on PySide2.
+        # deleted internally by Qt before they are used on PySide2.
         from tank.authentication.ui.qt_abstraction import QtGui
         # See if a QApplication instance exists, and if not create one.  Use the
         # QApplication.instance() method, since qApp can contain a non-None
