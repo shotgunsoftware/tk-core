@@ -18,11 +18,13 @@ import pickle
 import copy
 
 from tank_vendor import yaml
+from tank_vendor.shotgun_api3.lib import six
 from . import authentication
 
 from .util import login
 from .util import shotgun_entity
 from .util import shotgun
+from .util.pickle import dumps_str
 from . import constants
 from .errors import TankError, TankContextDeserializationError
 from .path_cache import PathCache
@@ -711,7 +713,7 @@ class Context(object):
                 # We should serialize it as well so that the next process knows who to
                 # run as.
                 data["_current_user"] = authentication.serialize_user(user)
-        return pickle.dumps(data)
+        return dumps_str(data)
 
     @classmethod
     def deserialize(cls, context_str):
@@ -729,7 +731,7 @@ class Context(object):
         from .api import Tank, set_authenticated_user
 
         try:
-            data = pickle.loads(context_str)
+            data = pickle.loads(six.ensure_binary(context_str))
         except Exception as e:
             raise TankContextDeserializationError(str(e))
 

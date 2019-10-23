@@ -18,6 +18,21 @@ from tank_vendor.shotgun_api3.lib import six
 log = LogManager.get_logger(__name__)
 
 
+def dumps_str(data):
+    """
+    Generates a pickle string for the provided data.  This wraps cPickle.dumps()
+    and produces a str on both Python 2 and 3, while cPickle.dumps() produces
+    binary on Python 3 and a str on Python 2.
+
+    :param data: The object to pickle and store.
+    :returns: A pickled str of the input object.
+    :rtype: str
+    """
+    # Force pickle protocol 0, since this is a non-binary pickle protocol.
+    # See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL
+    # Decode the result to a str before returning.
+    return six.ensure_str(cPickle.dumps(data, protocol=0))
+
 def store_env_var_pickled(key, data):
     """
     Stores the provided data under the environment variable specified.
