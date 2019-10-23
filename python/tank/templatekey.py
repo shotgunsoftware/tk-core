@@ -325,10 +325,10 @@ class StringKey(TemplateKey):
         self._custom_regex_u = None
 
         if self._filter_by == "alphanumeric":
-            self._filter_regex_u = re.compile(u"[\W_]", re.UNICODE)
+            self._filter_regex_u = re.compile(r"[\W_]", re.UNICODE)
         
         elif self._filter_by == "alpha":
-            self._filter_regex_u = re.compile(u"[\W_0-9]", re.UNICODE)
+            self._filter_regex_u = re.compile(r"[\W_0-9]", re.UNICODE)
         
         elif self._filter_by is not None:
             # filter_by is a regex

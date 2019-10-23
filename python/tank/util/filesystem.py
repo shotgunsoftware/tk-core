@@ -340,7 +340,7 @@ def create_valid_filename(value):
     # regex to find non-word characters - in ascii land, that is [^A-Za-z0-9_-.]
     # note that we use a unicode expression, meaning that it will include other
     # "word" characters, not just A-Z.
-    exp = re.compile(u"[^\w\.-]", re.UNICODE)
+    exp = re.compile(r"[^\w\.-]", re.UNICODE)
 
     # strip trailing whitespace
     value = value.strip()
