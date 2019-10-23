@@ -33,6 +33,7 @@ def dumps_str(data):
     # Decode the result to a str before returning.
     return six.ensure_str(cPickle.dumps(data, protocol=0))
 
+
 def store_env_var_pickled(key, data):
     """
     Stores the provided data under the environment variable specified.

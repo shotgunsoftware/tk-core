@@ -19,16 +19,15 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-from tank_vendor.shotgun_api3.lib import six
-from tank_vendor.shotgun_api3.lib.six.moves import cPickle, http_client
 from .shotgun_wrapper import ShotgunWrapper
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault, ProtocolError
+from tank_vendor.shotgun_api3.lib import six
+from tank_vendor.shotgun_api3.lib.six.moves import cPickle, http_client
 
 from . import session_cache
 from .errors import IncompleteCredentials
 from .. import LogManager
 from ..util.pickle import dumps_str
-from tank_vendor.shotgun_api3.lib import six
 
 # Indirection to create ShotgunWrapper instances. Great for unit testing.
 _shotgun_instance_factory = ShotgunWrapper

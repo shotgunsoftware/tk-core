@@ -290,7 +290,7 @@ def _validate_manifest(source_path):
             )
 
     # plugin_id needs to be alpha numeric + period
-    if re.search("^[a-zA-Z0-9_\.]+$", manifest_data["plugin_id"], flags=RE_ASCII) is None:
+    if re.search(r"^[a-zA-Z0-9_\.]+$", manifest_data["plugin_id"], flags=RE_ASCII) is None:
         raise TankError("Plugin id can only contain alphanumerics, period and underscore characters.")
 
     return manifest_data
@@ -307,7 +307,7 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
     """
     # suffix our generated python module with plugin id for uniqueness
     # replace all non-alphanumeric chars with underscores.
-    module_name = "sgtk_plugin_%s" % re.sub("\W", "_", manifest_data["plugin_id"], flags=RE_ASCII)
+    module_name = "sgtk_plugin_%s" % re.sub(r"\W", "_", manifest_data["plugin_id"], flags=RE_ASCII)
     full_module_path = os.path.join(plugin_root, "python", module_name)
     filesystem.ensure_folder_exists(full_module_path)
 
