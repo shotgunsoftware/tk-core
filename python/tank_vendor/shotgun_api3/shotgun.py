@@ -117,7 +117,7 @@ except ImportError as e:
 
 # ----------------------------------------------------------------------------
 # Version
-__version__ = "3.1.1"
+__version__ = "3.2.0"
 
 # ----------------------------------------------------------------------------
 # Errors
@@ -427,6 +427,7 @@ class _Config(object):
         self.session_token = None
         self.authorization = None
         self.no_ssl_validation = False
+        self.localized = False
 
     @property
     def records_per_page(self):
@@ -610,6 +611,35 @@ class Shotgun(object):
                              "got '%s'." % self.config.rpc_attempt_interval)
 
         self._connection = None
+
+        # The following lines of code allow to tell the API where to look for
+        # certificate authorities certificates (we will be referring to these
+        # as CAC from now on). Here's how the Python API interacts with those.
+        #
+        # Auth and CRUD operations
+        # ========================
+        # These operations are executed with httplib2. httplib2 ships with a
+        # list of CACs instead of asking Python's ssl module for them.
+        #
+        # Upload/Downloads
+        # ================
+        # These operations are executed using urllib2. urllib2 asks a Python
+        # module called `ssl` for CACs. On Windows, ssl searches for CACs in
+        # the Windows Certificate Store. On Linux/macOS, it asks the OpenSSL
+        # library linked with Python for CACs. Depending on how Python was
+        # compiled for a given DCC, Python may be linked against the OpenSSL
+        # from the OS or a copy of OpenSSL distributed with the DCC. This
+        # impacts which versions of the certificates are available to Python,
+        # as an OS level OpenSSL will be aware of system wide certificates that
+        # have been added, while an OpenSSL that comes with a DCC is likely
+        # bundling a list of certificates that get update with each release and
+        # no not contain system wide certificates.
+        #
+        # Using custom CACs
+        # =================
+        # When a user requires a non-standard CAC, the SHOTGUN_API_CACERTS
+        # environment variable allows to provide an alternate location for
+        # the CACs.
         if ca_certs is not None:
             self.__ca_certs = ca_certs
         else:
@@ -1818,6 +1848,9 @@ class Shotgun(object):
             ``{'type': 'Project', 'id': 3}``
         :returns: dict of Entity Type to dict containing the display name.
         :rtype: dict
+
+        .. note::
+            The returned display names for this method will be localized when the ``localize`` Shotgun config property is set to ``True``. See :ref:`localization` for more information.
         """
 
         params = {}
@@ -1887,6 +1920,9 @@ class Shotgun(object):
             types. Properties that are ``'editable': True``, can be updated using the
             :meth:`~shotgun_api3.Shotgun.schema_field_update` method.
         :rtype: dict
+
+        .. note::
+            The returned display names for this method will be localized when the ``localize`` Shotgun config property is set to ``True``. See :ref:`localization` for more information.
         """
 
         params = {}
@@ -1916,6 +1952,9 @@ class Shotgun(object):
 
         .. note::
             If you don't specify a ``project_entity``, everything is reported as visible.
+
+        .. note::
+            The returned display names for this method will be localized when the ``localize`` Shotgun config property is set to ``True``. See :ref:`localization` for more information.
 
         >>> sg.schema_field_read('Asset', 'shots')
         {'shots': {'data_type': {'editable': False, 'value': 'multi_entity'},
@@ -1996,7 +2035,7 @@ class Shotgun(object):
 
         return self._call_rpc("schema_field_create", params)
 
-    def schema_field_update(self, entity_type, field_name, properties):
+    def schema_field_update(self, entity_type, field_name, properties, project_entity=None):
         """
         Update the properties for the specified field on an entity.
 
@@ -2014,7 +2053,16 @@ class Shotgun(object):
         :param field_name: Internal Shotgun name of the field to update.
         :param properties: Dictionary with key/value pairs where the key is the property to be
             updated and the value is the new value.
+        :param dict project_entity: Optional Project entity specifying which project to modify the
+            ``visible`` property for. If the ``visible`` is present in ``properties`` and
+            ``project_entity`` is not set, an exception will be raised. Example:
+            ``{'type': 'Project', 'id': 3}``
         :returns: ``True`` if the field was updated.
+
+        .. note::
+            The ``project_entity`` parameter can only affect the state of the ``visible`` property
+            and has no impact on other properties.
+
         :rtype: bool
         """
 
@@ -2026,7 +2074,7 @@ class Shotgun(object):
                 for k, v in six.iteritems((properties or {}))
             ]
         }
-
+        params = self._add_project_param(params, project_entity)
         return self._call_rpc("schema_field_update", params)
 
     def schema_field_delete(self, entity_type, field_name):
@@ -3205,6 +3253,10 @@ class Shotgun(object):
             "content-type": "application/json; charset=utf-8",
             "connection": "keep-alive"
         }
+
+        if self.config.localized is True:
+            req_headers["locale"] = "auto"
+
         http_status, resp_headers, body = self._make_call("POST", self.config.api_path,
                                                           encoded_payload, req_headers)
         LOG.debug("Completed rpc call to %s" % (method))
