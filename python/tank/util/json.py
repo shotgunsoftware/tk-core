@@ -58,6 +58,10 @@ def load(
 
     See the documentation for :func:`json.load` to learn more about this method.
     """
+    # Specify kwargs explicitly to avoid problems caused by the signature change
+    # between Python 2 and 3.
+    # See https://docs.python.org/3/library/json.html#json.load and
+    # https://docs.python.org/2/library/json.html#json.load for both signatures.
     loaded_value = json.load(
         fp, encoding=encoding, cls=cls, object_hook=object_hook, parse_float=parse_float,
         parse_int=parse_int, parse_constant=parse_constant, **kw
@@ -80,6 +84,10 @@ def loads(
 
     See the documentation for :func:`json.loads` to learn more about this method.
     """
+    # Specify kwargs explicitly to avoid problems caused by the signature change
+    # between Python 2 and 3.
+    # See https://docs.python.org/3/library/json.html#json.loads and
+    # https://docs.python.org/2/library/json.html#json.loads for both signatures.
     loaded_value = json.loads(
         s, encoding=encoding, cls=cls, object_hook=object_hook, parse_float=parse_float,
         parse_int=parse_int, parse_constant=parse_constant, **kw
