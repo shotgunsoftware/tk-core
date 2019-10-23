@@ -49,6 +49,7 @@ from . import qt5
 from .bundle import TankBundle
 from .framework import setup_frameworks
 from .engine_logging import ToolkitEngineHandler, ToolkitEngineLegacyHandler
+from tank_vendor.shotgun_api3.lib.sgsix import RE_ASCII
 
 # std core level logger
 core_logger = LogManager.get_logger(__name__)
@@ -1130,7 +1131,7 @@ class Engine(TankBundle):
         panel_id = "%s_%s" % (current_app.instance_name, panel_name)
         # to ensure the string is safe to use in most engines,
         # sanitize to simple alpha-numeric form
-        panel_id = re.sub(r"\W", "_", panel_id)
+        panel_id = re.sub(r"\W", "_", panel_id, flags=RE_ASCII)
         panel_id = panel_id.lower()
 
         # add it to the list of registered panels

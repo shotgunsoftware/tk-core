@@ -11,6 +11,7 @@
 import json
 import os
 import re
+from tank_vendor.shotgun_api3.lib.sgsix import RE_ASCII
 from tank_vendor.shotgun_api3.lib.six.moves import urllib
 
 from .downloadable import IODescriptorDownloadable
@@ -135,7 +136,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
             response = urllib.request.urlopen(url)
             response_data = json.load(response)
             log.debug("Got a valid JSON response from Github API.")
-            m = re.search(r"<(.+)>; rel=\"next\"", response.headers.get("link", ""))
+            m = re.search(r"<(.+)>; rel=\"next\"", response.headers.get("link", ""), flags=RE_ASCII)
             if m:
                 next_link = m.group(1)
                 log.debug("Github API response indicates an additional page at %s" % next_link)

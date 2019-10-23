@@ -31,6 +31,8 @@ from . import validation
 from .bundle import resolve_setting_value
 from .engine import get_env_and_descriptor_for_engine
 
+from tank_vendor.shotgun_api3.lib.sgsix import RE_ASCII
+
 # std core level logger
 core_logger = LogManager.get_logger(__name__)
 
@@ -419,7 +421,7 @@ class SoftwareLauncher(object):
         )
 
         # compile the regex
-        executable_regex = re.compile(regex_pattern, re.IGNORECASE)
+        executable_regex = re.compile(regex_pattern, re.IGNORECASE | RE_ASCII)
 
         # iterate over each executable found for the glob pattern and find
         # matched components via the regex

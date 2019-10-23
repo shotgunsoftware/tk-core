@@ -33,6 +33,8 @@ from tank import TankError
 from tank.platform.environment import InstalledEnvironment
 from distutils.version import LooseVersion
 
+from tank_vendor.shotgun_api3.lib.sgsix import RE_ASCII
+
 
 class MockStore(object):
     """
@@ -45,7 +47,7 @@ class MockStore(object):
         Mocks a bundle type.
         """
 
-        _version_regex = re.compile(r"v([0-9]+)\.([0-9]+)\.(.*)")
+        _version_regex = re.compile(r"v([0-9]+)\.([0-9]+)\.(.*)", flags=RE_ASCII)
 
         def __init__(self, name, version, dependencies=[], bundle_type=None):
             """

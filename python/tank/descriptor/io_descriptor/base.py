@@ -19,6 +19,7 @@ from ...util.version import is_version_newer
 from ..errors import TankDescriptorError, TankMissingManifestError
 
 from tank_vendor import yaml
+from tank_vendor.shotgun_api3.lib.sgsix import RE_ASCII
 from tank_vendor.shotgun_api3.lib.six.moves import map, urllib
 
 log = LogManager.get_logger(__name__)
@@ -294,15 +295,15 @@ class IODescriptorBase(object):
                 current = current[number]
 
         # now search for the latest version matching our pattern
-        if not re.match("^v([0-9]+|x)(.([0-9]+|x)){2,}$", pattern):
+        if not re.match("^v([0-9]+|x)(.([0-9]+|x)){2,}$", pattern, flags=RE_ASCII):
             raise TankDescriptorError("Cannot parse version expression '%s'!" % pattern)
 
         # split our pattern, beware each part is a string (even integers)
-        version_split = re.findall("([0-9]+|x)", pattern)
+        version_split = re.findall("([0-9]+|x)", pattern, flags=RE_ASCII)
         if 'x' in version_split:
             # check that we don't have an incorrect pattern using x
             # then a digit, eg. v4.x.2
-            if re.match(r"^v[0-9\.]+[x\.]+[0-9\.]+$", pattern):
+            if re.match(r"^v[0-9\.]+[x\.]+[0-9\.]+$", pattern, flags=RE_ASCII):
                 raise TankDescriptorError(
                     "Incorrect version pattern '%s'. "
                     "There should be no digit after a 'x'." % pattern

@@ -38,6 +38,7 @@ from tank.descriptor import create_descriptor, is_descriptor_version_missing
 from tank.bootstrap.baked_configuration import BakedConfiguration
 from tank.bootstrap import constants as bootstrap_constants
 from tank_vendor import yaml
+from tank_vendor.shotgun_api3.lib.sgsix import RE_ASCII
 
 from utils import (
     cache_apps, authenticate, add_authentication_options, OptionParserLineBreakingEpilog, cleanup_bundle_cache,
@@ -289,7 +290,7 @@ def _validate_manifest(source_path):
             )
 
     # plugin_id needs to be alpha numeric + period
-    if re.search("^[a-zA-Z0-9_\.]+$", manifest_data["plugin_id"]) is None:
+    if re.search("^[a-zA-Z0-9_\.]+$", manifest_data["plugin_id"], flags=RE_ASCII) is None:
         raise TankError("Plugin id can only contain alphanumerics, period and underscore characters.")
 
     return manifest_data
@@ -306,7 +307,7 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
     """
     # suffix our generated python module with plugin id for uniqueness
     # replace all non-alphanumeric chars with underscores.
-    module_name = "sgtk_plugin_%s" % re.sub("\W", "_", manifest_data["plugin_id"])
+    module_name = "sgtk_plugin_%s" % re.sub("\W", "_", manifest_data["plugin_id"], flags=RE_ASCII)
     full_module_path = os.path.join(plugin_root, "python", module_name)
     filesystem.ensure_folder_exists(full_module_path)
 

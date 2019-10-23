@@ -22,6 +22,7 @@ from . import constants
 from .template_path_parser import TemplatePathParser
 from tank_vendor.shotgun_api3.lib import six, sgsix
 from tank_vendor.shotgun_api3.lib.six.moves import zip
+from tank_vendor.shotgun_api3.lib.sgsix import RE_ASCII
 from tank.util import is_linux, is_macos, is_windows
 
 class Template(object):
@@ -45,7 +46,7 @@ class Template(object):
         ordered_keys = []
         # regular expression to find key names
         regex = r"(?<={)%s(?=})" % constants.TEMPLATE_KEY_NAME_REGEX
-        key_names = re.findall(regex, definition)
+        key_names = re.findall(regex, definition, flags=RE_ASCII)
         for key_name in key_names:
             key = keys.get(key_name)
             if key is None:
@@ -311,7 +312,7 @@ class Template(object):
         
         """
         # split definition by optional sections
-        tokens = re.split(r"(\[[^]]*\])", definition)
+        tokens = re.split(r"(\[[^]]*\])", definition, flags=RE_ASCII)
 
         # seed with empty string
         definitions = ['']
@@ -322,16 +323,16 @@ class Template(object):
                 continue
             if token.startswith('['):
                 # check that optional contains a key
-                if not re.search("{*%s}" % constants.TEMPLATE_KEY_NAME_REGEX, token): 
+                if not re.search("{*%s}" % constants.TEMPLATE_KEY_NAME_REGEX, token, flags=RE_ASCII):
                     raise TankError("Optional sections must include a key definition.")
 
                 # Add definitions skipping this optional value
                 temp_definitions = definitions[:]
                 # strip brackets from token
-                token = re.sub(r'[\[\]]', '', token)
+                token = re.sub(r'[\[\]]', '', token, flags=RE_ASCII)
 
             # check non-optional contains no dangleing brackets
-            if re.search(r"[\[\]]", token): 
+            if re.search(r"[\[\]]", token, flags=RE_ASCII):
                 raise TankError("Square brackets are not allowed outside of optional section definitions.")
 
             # make defintions with token appended
@@ -353,7 +354,7 @@ class Template(object):
         for old_name, new_name in substitutions:
             old_def = r"{%s}" % old_name
             new_def = r"{%s}" % new_name
-            definition = re.sub(old_def, new_def, definition)
+            definition = re.sub(old_def, new_def, definition, flags=RE_ASCII)
         return definition
 
     def _clean_definition(self, definition):
@@ -371,7 +372,7 @@ class Template(object):
         # having an empty definition would result in expanding to the project/storage root
         expanded_definition = os.path.join(self._prefix, definition) if definition else self._prefix
         regex = r"{%s}" % constants.TEMPLATE_KEY_NAME_REGEX
-        tokens = re.split(regex, expanded_definition.lower())
+        tokens = re.split(regex, expanded_definition.lower(), flags=RE_ASCII)
         # Remove empty strings
         return [x for x in tokens if x]
 

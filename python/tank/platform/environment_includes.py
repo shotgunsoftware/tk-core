@@ -43,6 +43,7 @@ from . import constants
 from ..util.yaml_cache import g_yaml_cache
 from ..util.includes import resolve_include
 from tank_vendor.shotgun_api3.lib import six
+from tank_vendor.shotgun_api3.lib.sgsix import RE_ASCII
 
 log = LogManager.get_logger(__name__)
 
@@ -76,7 +77,7 @@ def _resolve_includes(file_name, data, context):
             # extract all {tokens}
             _key_name_regex = "[a-zA-Z_ 0-9]+"
             regex = r"(?<={)%s(?=})" % _key_name_regex
-            key_names = re.findall(regex, include)
+            key_names = re.findall(regex, include, flags=RE_ASCII)
     
             # get all the data roots for this project
             # note - it is possible that this call may raise an exception for configs

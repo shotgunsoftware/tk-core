@@ -13,6 +13,7 @@ from mock import patch
 import os
 import re
 from tank_vendor.shotgun_api3.lib.six.moves import urllib
+from tank_vendor.shotgun_api3.lib.sgsix import RE_ASCII
 
 import sgtk
 from sgtk.descriptor import Descriptor
@@ -59,7 +60,7 @@ class MockResponse(object):
             # explain the regex better
             header_line_regex = r"(?P<key>[a-zA-Z\-]+): (?P<value>.+)"
             for line in headers_file:
-                m = re.match(header_line_regex, line)
+                m = re.match(header_line_regex, line, flags=RE_ASCII)
                 if m:
                     # keys will be all-lowercase
                     headers[m.group("key").lower()] = m.group("value")

@@ -24,6 +24,7 @@ from threading import Event, Thread, Lock
 import re
 import platform
 from tank_vendor.shotgun_api3.lib.six.moves import urllib
+from tank_vendor.shotgun_api3.lib.sgsix import RE_ASCII
 from copy import deepcopy
 
 from . import constants
@@ -66,7 +67,7 @@ class PlatformInfo(object):
             # We do want to limit the number of possible OS version variant we get metrics for.
             #
             # For macOS / OSX we keep only the Major.minor
-            os_version = re.findall(r"\d*\.\d*", raw_version_str)[0]
+            os_version = re.findall(r"\d*\.\d*", raw_version_str, flags=RE_ASCII)[0]
 
         except:
             pass
@@ -89,7 +90,7 @@ class PlatformInfo(object):
             raw_version_str = platform.linux_distribution()[1]
 
             # For Linux we really just want the 'major' version component
-            major_version_str = re.findall(r"\d*", raw_version_str)[0]
+            major_version_str = re.findall(r"\d*", raw_version_str, flags=RE_ASCII)[0]
             os_version = "%s %s" % (distro, major_version_str)
 
         except:

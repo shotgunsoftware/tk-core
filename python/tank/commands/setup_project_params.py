@@ -31,6 +31,7 @@ from tank_vendor import yaml
 
 from ..util import ShotgunPath
 from tank_vendor.shotgun_api3.lib import sgsix
+from tank_vendor.shotgun_api3.lib.sgsix import RE_ASCII
 
 
 class ProjectSetupParameters(object):
@@ -522,7 +523,7 @@ class ProjectSetupParameters(object):
         else:
             # construct a valid name - replace white space with underscore and lower case it.
             proj = self._sg.find_one("Project", [["id", "is", self._project_id]], ["name"])
-            suggested_folder_name = re.sub(r"\W", "_", proj.get("name")).lower()
+            suggested_folder_name = re.sub(r"\W", "_", proj.get("name"), flags=RE_ASCII).lower()
 
         return suggested_folder_name
 
@@ -541,7 +542,7 @@ class ProjectSetupParameters(object):
 
         # basic validation of folder name
         # note that the value can contain slashes and span across multiple folders
-        if re.match(r"^[\./a-zA-Z0-9_-]+$", project_name) is None:
+        if re.match(r"^[\./a-zA-Z0-9_-]+$", project_name, flags=RE_ASCII) is None:
             raise TankError("Invalid project folder '%s'! Please use alphanumerics, "
                             "underscores and dashes." % project_name)
 
@@ -710,19 +711,19 @@ class ProjectSetupParameters(object):
         #  windows paths on a linux system and vice versa).
         if linux_path and linux_path != "":
             base_name = linux_path.split("/")[-1]
-            if re.match(CONFIG_NAME_VALIDATION_REGEX, base_name) is None:
+            if re.match(CONFIG_NAME_VALIDATION_REGEX, base_name, flags=RE_ASCII) is None:
                 raise TankError("Invalid Linux configuration folder name '%s'! Please use alphanumerics, "
                                 "underscores and dashes." % base_name)
 
         if windows_path and windows_path != "":
             base_name = windows_path.split("\\")[-1]
-            if re.match(CONFIG_NAME_VALIDATION_REGEX, base_name) is None:
+            if re.match(CONFIG_NAME_VALIDATION_REGEX, base_name, flags=RE_ASCII) is None:
                 raise TankError("Invalid Windows configuration folder name '%s'! Please use alphanumerics, "
                                 "underscores and dashes." % base_name)
 
         if macosx_path and macosx_path != "":
             base_name = macosx_path.split("/")[-1]
-            if re.match(CONFIG_NAME_VALIDATION_REGEX, base_name) is None:
+            if re.match(CONFIG_NAME_VALIDATION_REGEX, base_name, flags=RE_ASCII) is None:
                 raise TankError("Invalid Mac configuration folder name '%s'! Please use alphanumerics, "
                                 "underscores and dashes." % base_name)
 

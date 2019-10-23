@@ -35,7 +35,7 @@ from tank.authentication import IncompleteCredentials
 from tank.authentication import CoreDefaultsManager
 from tank.commands import constants as command_constants
 from tank_vendor import yaml
-from tank_vendor.shotgun_api3.lib.sgsix import normalize_platform
+from tank_vendor.shotgun_api3.lib.sgsix import normalize_platform, RE_ASCII
 from tank.platform import engine
 from tank import pipelineconfig_utils
 from tank import LogManager
@@ -990,7 +990,7 @@ def _resolve_shotgun_entity(entity_type, entity_search_token, constrain_by_proje
             chars_available = 70 # description max len is 70
 
             # clever regex to chop on word boundaries
-            chopped_desc = re.match(r'(.{,%d})(\W|$)' % chars_available, desc).group(1)
+            chopped_desc = re.match(r'(.{,%d})(\W|$)' % chars_available, desc, flags=RE_ASCII).group(1)
             if len(chopped_desc) < len(desc):
                 chopped_desc += "..."
 

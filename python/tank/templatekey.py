@@ -19,6 +19,7 @@ from . import constants
 from .errors import TankError
 import collections
 from tank_vendor.shotgun_api3.lib import six
+from tank_vendor.shotgun_api3.lib.sgsix import RE_ASCII
 from tank_vendor.shotgun_api3.lib.six.moves import zip
 
 class TemplateKey(object):
@@ -95,7 +96,7 @@ class TemplateKey(object):
         self._last_error = ""
 
         # check that the key name doesn't contain invalid characters
-        if not re.match(r"^%s$" % constants.TEMPLATE_KEY_NAME_REGEX, name):
+        if not re.match(r"^%s$" % constants.TEMPLATE_KEY_NAME_REGEX, name, flags=RE_ASCII):
             raise TankError("%s: Name contains invalid characters. "
                             "Valid characters are %s." % (self, constants.VALID_TEMPLATE_KEY_NAME_DESC))
 
@@ -719,9 +720,9 @@ class IntegerKey(TemplateKey):
     _NON_ZERO_POSITIVE_INTEGER_EXP = r"[1-9]\d*"
     # For the next two regular expressions, the ^ and $ are important to prevent partial matches.
     # Matches an optional 0 followed by a non zero positive integer.
-    _FORMAT_SPEC_RE = re.compile("^(0?)(%s)$" % _NON_ZERO_POSITIVE_INTEGER_EXP)
+    _FORMAT_SPEC_RE = re.compile("^(0?)(%s)$" % _NON_ZERO_POSITIVE_INTEGER_EXP, flags=RE_ASCII)
     # Matches a non zero positive integer.
-    _NON_ZERO_POSITIVE_INTEGER_RE = re.compile("^%s$" % _NON_ZERO_POSITIVE_INTEGER_EXP)
+    _NON_ZERO_POSITIVE_INTEGER_RE = re.compile("^%s$" % _NON_ZERO_POSITIVE_INTEGER_EXP, flags=RE_ASCII)
 
     def __init__(self,
                  name,
@@ -850,7 +851,8 @@ class IntegerKey(TemplateKey):
             self._strict_validation_re = re.compile("^%s{0,%d}((%s)|0)$" % (
                 "0" if self._zero_padded else ' ',
                 self._minimum_width - 1,
-                self._NON_ZERO_POSITIVE_INTEGER_EXP)
+                self._NON_ZERO_POSITIVE_INTEGER_EXP),
+                flags=RE_ASCII
             )
         else:
             self._strict_validation_re = None
@@ -1056,7 +1058,7 @@ class SequenceKey(IntegerKey):
                 self._last_error = error_msg
                 return False
                 
-        elif isinstance(value, six.string_types) and re.match(self.FLAME_PATTERN_REGEX, value):
+        elif isinstance(value, six.string_types) and re.match(self.FLAME_PATTERN_REGEX, value, flags=RE_ASCII):
             # value is matching the flame-style sequence pattern
             # [1234-5678]
             return True
@@ -1080,7 +1082,7 @@ class SequenceKey(IntegerKey):
             pattern = self._extract_format_string(value)
             return self._resolve_frame_spec(pattern, self.format_spec)
 
-        if isinstance(value, six.string_types) and re.match(self.FLAME_PATTERN_REGEX, value):
+        if isinstance(value, six.string_types) and re.match(self.FLAME_PATTERN_REGEX, value, flags=RE_ASCII):
             # this is a flame style sequence token [1234-56773]
             return value
 
@@ -1096,7 +1098,7 @@ class SequenceKey(IntegerKey):
         if str_value in self._frame_specs:
             return str_value
         
-        if re.match(self.FLAME_PATTERN_REGEX, str_value):
+        if re.match(self.FLAME_PATTERN_REGEX, str_value, flags=RE_ASCII):
             # this is a flame style sequence token [1234-56773]
             return str_value
     
