@@ -152,10 +152,15 @@ class Includes(object):
 
         @patch("os.path.exists", return_value=True)
         def test_includes_ordering(self, _):
-
+            """
+            Ensure include orders is preserved.
+            """
             # Try different permutations of the same set of includes and they should
-            # always return in the same order. They avoids the entries to be
-            # sorted.
+            # always return in the same order. This is important as values found
+            # in later includes override earlier ones.
+
+            # We do permutations here because Python 2 and Python 3 handle
+            # set ordering differently.
             for includes in itertools.permutations(["a.yml", "b.yml", "c.yml"]):
                 self.assertEqual(
                     self._resolve_includes(includes),
