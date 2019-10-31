@@ -248,7 +248,19 @@ class PySide2Patcher(object):
                 msg_box.exec_()
                 return msg_box.standardButton(msg_box.clickedButton())
 
-            functools.update_wrapper(patch, original_method)
+            try:
+                functools.update_wrapper(patch, original_method)
+            except RuntimeError:
+                # This is working around a bug in some versions of shiboken2
+                # that we need to protect ourselves from. A true bug fix there
+                # has been released in PySide2 5.13.x, but any DCCs we're
+                # integrating with that embed the releases of 5.12.x with this
+                # bug would break our integrations.
+                #
+                # Returning the patched method without decorating it via
+                # update_wrapper doesn't cause us any harm, so it's safe to fall
+                # back on this.
+                return patch
 
             return staticmethod(patch)
 
