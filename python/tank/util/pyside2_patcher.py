@@ -260,7 +260,7 @@ class PySide2Patcher(object):
                 # Returning the patched method without decorating it via
                 # update_wrapper doesn't cause us any harm, so it's safe to fall
                 # back on this.
-                return patch
+                pass
 
             return staticmethod(patch)
 
