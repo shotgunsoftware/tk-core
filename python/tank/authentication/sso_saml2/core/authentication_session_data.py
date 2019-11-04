@@ -10,7 +10,8 @@
 """
 Authentication Session abstraction.
 """
-from tank_vendor.shotgun_api3.lib import six
+
+# pylint: disable=too-many-instance-attributes
 
 
 class AuthenticationSessionData(object):

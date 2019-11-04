@@ -11,12 +11,24 @@
 SSO/SAML2 Core utility functions.
 """
 
+# pylint: disable=line-too-long
+
 import base64
 import binascii
 import logging
-from tank_vendor.shotgun_api3.lib import six
-from tank_vendor.shotgun_api3.lib.six.moves import urllib
-from tank_vendor.shotgun_api3.lib.six.moves.http_cookies import SimpleCookie
+import urllib
+
+# For Python 2/3 compatibility without a dependency on six, we'll just try
+# to import as in Python 2, and fall back to Python 3 locations if the imports
+# fail.
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
+try:
+    from http.cookies import SimpleCookie
+except ImportError:
+    from Cookie import SimpleCookie
 
 
 from .errors import (
@@ -58,11 +70,15 @@ def _decode_cookies(encoded_cookies):
     if encoded_cookies:
         try:
             decoded_cookies = base64.b64decode(encoded_cookies)
-            cookies.load(six.ensure_str(decoded_cookies))
+            if not isinstance(decoded_cookies, str):
+                # If decoded_cookies is not a string, it's likely we're on
+                # Python3, and decoded_cookies is binary.  Try to decode it.
+                decoded_cookies = decoded_cookies.decode()
+            cookies.load(decoded_cookies)
         except (TypeError, binascii.Error) as e:
             # In Python 2 this raises a TypeError, while in 3 it will raise a
             # binascii.Error.  Catch either and handle them the same.
-            get_logger().error("Unable to decode the cookies: %s" % str(e))
+            get_logger().error("Unable to decode the cookies: %s", str(e))
     return cookies
 
 
@@ -74,7 +90,11 @@ def _encode_cookies(cookies):
 
     :returns: An encoded string representing the cookie jar.
     """
-    encoded_cookies = base64.b64encode(six.ensure_binary(cookies.output()))
+    output = cookies.output()
+    if sys.version_info[0] == 3 and isinstance(output, str):
+        # On Python 3, encode str to binary before passing it to b64encode.
+        output = output.encode()
+    encoded_cookies = base64.b64encode(output)
     return encoded_cookies
 
 
@@ -160,12 +180,12 @@ def _sanitize_http_proxy(http_proxy):
     if http_proxy and not (http_proxy.startswith("http://") or http_proxy.startswith("https://")):
         get_logger().debug("Assuming the proxy to be HTTP")
         alt_http_proxy = "http://%s" % http_proxy
-        parsed_url = urllib.parse.urlparse(alt_http_proxy)
+        parsed_url = urlparse.urlparse(alt_http_proxy)
         # We want to ensure that the resulting URL is valid.
         if parsed_url.netloc:
             http_proxy = alt_http_proxy
 
-    return urllib.parse.urlparse(http_proxy)
+    return urlparse.urlparse(http_proxy)
 
 
 def get_saml_claims_expiration(encoded_cookies):
@@ -217,7 +237,7 @@ def get_user_name(encoded_cookies):
         _get_cookie_from_prefix(encoded_cookies, "shotgun_sso_session_userid_u")
     )
     if user_name is not None:
-        user_name = urllib.parse.unquote(user_name)
+        user_name = urllib.unquote(user_name)
     return user_name
 
 
