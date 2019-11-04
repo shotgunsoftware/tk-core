@@ -15,7 +15,6 @@ Unit tests tank updates.
 from __future__ import with_statement
 
 import os
-import re
 import logging
 import functools
 import tempfile
@@ -28,12 +27,11 @@ import sgtk
 from sgtk.descriptor import Descriptor
 from sgtk.descriptor.io_descriptor.base import IODescriptorBase
 from sgtk.descriptor import create_descriptor
+from sgtk.util import re
 
 from tank import TankError
 from tank.platform.environment import InstalledEnvironment
 from distutils.version import LooseVersion
-
-from tank_vendor.shotgun_api3.lib.sgsix import RE_ASCII
 
 
 class MockStore(object):
@@ -47,7 +45,7 @@ class MockStore(object):
         Mocks a bundle type.
         """
 
-        _version_regex = re.compile(r"v([0-9]+)\.([0-9]+)\.(.*)", flags=RE_ASCII)
+        _version_regex = re.compile(r"v([0-9]+)\.([0-9]+)\.(.*)")
 
         def __init__(self, name, version, dependencies=[], bundle_type=None):
             """

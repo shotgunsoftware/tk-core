@@ -14,7 +14,6 @@ Provides a base class for integration tests.
 
 from __future__ import print_function
 
-import re
 import os
 import sys
 import tempfile
@@ -28,9 +27,9 @@ import copy
 import unittest2
 
 import sgtk
+from sgtk.util import re
 from sgtk.util.filesystem import safe_delete_folder
 from tank_vendor.shotgun_api3.lib import six, sgsix
-from tank_vendor.shotgun_api3.lib.sgsix import RE_ASCII
 
 
 class SgtkIntegrationTest(unittest2.TestCase):
@@ -127,8 +126,8 @@ class SgtkIntegrationTest(unittest2.TestCase):
         """
         Converts a string from CamelCase to snake_case.
         """
-        str1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', text, flags=RE_ASCII)
-        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', str1, flags=RE_ASCII).lower()
+        str1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', text)
+        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', str1).lower()
 
     @classmethod
     def _cleanup_temp_dir(cls):

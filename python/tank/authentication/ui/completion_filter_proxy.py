@@ -18,9 +18,7 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-import re
-
-from tank_vendor.shotgun_api3.lib.sgsix import RE_ASCII
+from tank.util import re
 
 from .qt_abstraction import QtGui
 
@@ -36,7 +34,7 @@ class FuzzyMatcher():
         # construct a pattern that matches the letters in order
         # for example "aad" turns into "(a).*?(a).*?(d)".
         re_pattern = ".*?".join("(%s)" % re.escape(char) for char in pattern)
-        self._re = re.compile(re_pattern, re.IGNORECASE | RE_ASCII)
+        self._re = re.compile(re_pattern, re.IGNORECASE)
 
     def score(self, string):
         match = self._re.search(string)

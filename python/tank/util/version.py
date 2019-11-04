@@ -8,11 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import re
-
 from distutils.version import LooseVersion
-from tank_vendor.shotgun_api3.lib.sgsix import RE_ASCII
-
+from . import re
 
 def is_version_head(version):
     """
@@ -61,7 +58,7 @@ def is_version_number(version):
 
     :rtype: bool
     """
-    match = re.match(r"v\d+.\d+.\d+$", version, flags=RE_ASCII)
+    match = re.match(r"v\d+.\d+.\d+$", version)
 
     if match:
         return True
@@ -106,7 +103,7 @@ def _compare_versions(a, b):
         # To mimick the behavior in Python 2.7 as closely as possible, we will
         # If LooseVersion comparison didn't work, try to extract a numeric
         # version from both versions for comparison
-        version_expr = re.compile(r"^((?:\d+)(?:\.\d+)*)(.+)$", flags=RE_ASCII)
+        version_expr = re.compile(r"^((?:\d+)(?:\.\d+)*)(.+)$")
         match_a = version_expr.match(a)
         match_b = version_expr.match(b)
         if match_a and match_b:

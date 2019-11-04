@@ -14,12 +14,12 @@ Base class for Abstract classes for Engines, Apps and Frameworks
 """
 
 import os
-import re
 import sys
 import imp
 import uuid
 
 from .. import hook
+from ..util import re
 from ..util.metrics import EventMetric
 from ..log import LogManager
 from ..errors import TankError, TankNoDefaultValueError
@@ -27,7 +27,6 @@ from .errors import TankContextChangeNotSupportedError
 from . import constants
 from .import_stack import ImportStack
 from tank_vendor.shotgun_api3.lib import six
-from tank_vendor.shotgun_api3.lib.sgsix import RE_ASCII
 
 core_logger = LogManager.get_logger(__name__)
 
@@ -873,7 +872,7 @@ class TankBundle(object):
         
         elif hook_expression.startswith("{$") and "}" in hook_expression:
             # environment variable: {$HOOK_PATH}/path/to/foo.py
-            env_var = re.match(r"^\{\$([^\}]+)\}", hook_expression, flags=RE_ASCII).group(1)
+            env_var = re.match(r"^\{\$([^\}]+)\}", hook_expression).group(1)
             if env_var not in os.environ:
                 raise TankError("%s config setting %s: This hook is referring to the configuration value '%s', "
                                 "but no environment variable named '%s' can be "
@@ -885,7 +884,7 @@ class TankBundle(object):
         elif hook_expression.startswith("{") and "}" in hook_expression:
             # bundle instance (e.g. '{tk-framework-perforce_v1.x.x}/foo/bar.py' )
             # first find the bundle instance
-            instance = re.match(r"^\{([^\}]+)\}", hook_expression, flags=RE_ASCII).group(1)
+            instance = re.match(r"^\{([^\}]+)\}", hook_expression).group(1)
             # for now, only look at framework instance names. Later on,
             # if the request ever comes up, we could consider extending
             # to supporting app instances etc. However we would need to

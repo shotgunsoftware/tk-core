@@ -15,16 +15,15 @@ Methods for resolving publish data into local representations
 from __future__ import with_statement
 
 import os
-import re
 from tank_vendor.shotgun_api3.lib import sgsix
 from tank_vendor.shotgun_api3.lib.six.moves import urllib
-from tank_vendor.shotgun_api3.lib.sgsix import RE_ASCII
 import pprint
 
 from .publish_util import get_cached_local_storages
 from ...log import LogManager
 from ..shotgun_path import ShotgunPath
 from ..errors import PublishPathNotDefinedError, PublishPathNotSupported
+from tank.util import re
 
 log = LogManager.get_logger(__name__)
 
@@ -302,7 +301,7 @@ def __resolve_url_link(tk, attachment_data):
         resolved_path = urllib.parse.unquote(parsed_url.path)
 
     # python returns drive letter paths incorrectly and need adjusting.
-    if re.match("^/[A-Za-z]:/", resolved_path, flags=RE_ASCII):
+    if re.match("^/[A-Za-z]:/", resolved_path):
         resolved_path = resolved_path[1:]
 
     # we now have one of the following three forms (with slashes):
@@ -331,7 +330,7 @@ def __resolve_url_link(tk, attachment_data):
 
     # look for storage overrides
     for env_var in os.environ.keys():
-        expr = re.match("^SHOTGUN_PATH_(WINDOWS|MAC|LINUX)_(.*)$", env_var, flags=RE_ASCII)
+        expr = re.match("^SHOTGUN_PATH_(WINDOWS|MAC|LINUX)_(.*)$", env_var)
         if expr:
             platform = expr.group(1)
             storage_name = expr.group(2).upper()

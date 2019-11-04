@@ -12,12 +12,9 @@
 Utilities relating to Shotgun entities
 """
 
-import re
-
-from . import constants
+from . import constants, re
 from ..errors import TankError
 from tank_vendor.shotgun_api3.lib import six
-from tank_vendor.shotgun_api3.lib.sgsix import RE_ASCII
 
 # A dictionary for Shotgun entities which do not store their name
 # in the standard "code" field.
@@ -120,7 +117,7 @@ class EntityExpression(object):
                 # find all field names, for example:
                 # "{xx}_{yy}_{zz.xx}" ----> ["xx", "yy", "zz.xx"]
                 # "{code:([^_]+)}_{yy}" --> ["code:([^_]+)", "yy"]
-                fields = set(re.findall('{([^}]*)}', expr_variation, flags=RE_ASCII))
+                fields = set(re.findall('{([^}]*)}', expr_variation))
             except Exception as error:
                 raise TankError(
                     "Could not parse the configuration field '%s' - "
@@ -194,7 +191,7 @@ class EntityExpression(object):
         # Look for square brackets that contains at least one
         # {expression} and ignore any square bracket inside
         # expressions:
-        tokens = re.split(r"(\[[^\]]*\{.*\}[^\]]*\])", definition, flags=RE_ASCII)
+        tokens = re.split(r"(\[[^\]]*\{.*\}[^\]]*\])", definition)
         # seed with empty string
         definitions = [""]
         for token in tokens:
