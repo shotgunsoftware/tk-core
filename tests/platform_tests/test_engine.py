@@ -555,6 +555,60 @@ class TestRegisteredCommands(TestEngineBase):
         self.assertIsNone(engine.commands.get("test_command"))
 
 
+class TestHasUi(TestEngineBase):
+    """
+    Test that the Engine.has_ui property returns the appropriate value under
+    different circumstances.
+    """
+
+    def test_has_instance(self):
+        """
+        Ensure that has_ui returns True when a QApplication instance is returned.
+        """
+        cur_engine = tank.platform.start_engine("test_engine", self.tk, self.context)
+        with mock.patch("tank.platform.engine.qt") as qt_mock:
+            qt_mock.QtGui.QApplication.instance.return_value.__class__.__name__ = "QApplication"
+            self.assertEqual(cur_engine.has_ui, True)
+
+    def test_no_instance(self):
+        """
+        Ensure that when no instance is returned has_ui returns false.
+        """
+        cur_engine = tank.platform.start_engine("test_engine", self.tk, self.context)
+        with mock.patch("tank.platform.engine.qt") as qt_mock:
+            qt_mock.QtGui.QApplication.instance.return_value = None
+            self.assertEqual(cur_engine.has_ui, False)
+
+    def test_coreapplication_instance(self):
+        """
+        Ensure that has_ui returns False when a QCoreApplication instance is
+        returned.
+        """
+        cur_engine = tank.platform.start_engine("test_engine", self.tk, self.context)
+        with mock.patch("tank.platform.engine.qt") as qt_mock:
+            qt_mock.QtGui.QApplication.instance.return_value.__class__.__name__ = "QCoreApplication"
+            self.assertEqual(cur_engine.has_ui, False)
+
+    def test_no_qt(self):
+        """
+        Ensure that has_ui returns False when no Qt binding library is found.
+        """
+        cur_engine = tank.platform.start_engine("test_engine", self.tk, self.context)
+        with mock.patch("tank.platform.engine.qt") as qt_mock:
+            qt_mock.QtGui = None
+            self.assertEqual(cur_engine.has_ui, False)
+
+    def test_except(self):
+        """
+        Ensure that has_ui returns False when an arbitrary exception is raised
+        by QApplication.instance.
+        """
+        cur_engine = tank.platform.start_engine("test_engine", self.tk, self.context)
+        with mock.patch("tank.platform.engine.qt") as qt_mock:
+            qt_mock.QtGui.QApplication.instance.side_effect = Exception("Some Error.")
+            self.assertEqual(cur_engine.has_ui, False)
+
+
 class TestCompatibility(TankTestBase):
 
     def test_backwards_compatible(self):

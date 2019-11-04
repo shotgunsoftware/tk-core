@@ -605,15 +605,33 @@ class Engine(TankBundle):
     def has_ui(self):
         """
         Indicates that the host application that the engine is connected to has a UI enabled.
-        This always returns False for some engines (such as the shell engine) and may vary 
-        for some engines, depending if the host application for example is in batch mode or
-        UI mode.
-        
+        This always returns False for some engines and may vary for some engines, depending if the
+        host application for example is in batch mode or UI mode.
+
         :returns: boolean value indicating if a UI currently exists
         """
-        # default implementation is to assume a UI exists
-        # this is since most engines are supporting a graphical application
-        return True
+        if qt.QtGui:
+            # In the past, we've used QtGui.qApp (which we patched where necessary) to get the
+            # QApplication instance. This creates problems in some cases. For example, in PyQt,
+            # qApp holds an invalid QApplication instance when no QApplication has been created yet.
+            # To avoid this problem, we will instead use QApplication.instance().
+            # Since QApplication.instance() can return a QCoreApplication or QGuiApplication
+            # instance, we need to check that a QApplication instance is returned to determine if
+            # there's a UI.  Since QApplication is replaced with a patched subclass in .qt, but
+            # instance() may return a vanilla QApplication instance, we can't just rely on
+            # isinstance here. Rather than pass the vanilla QApplication type along and store it
+            # on Engine, (changing the previous behavior of _define_qt_bases and possibly requiring
+            # clients to update their own Engine implementations) we will compare against the class
+            # name.
+            try:
+                qApp = qt.QtGui.QApplication.instance()
+                return qApp.__class__.__name__.endswith("QApplication")
+            except Exception:
+                self.logger.warning(
+                    "Error occured while attmepting to determine if there is a QApplication instance exists.",
+                    exc_info=True
+                )
+        return False
 
     @property
     def has_qt5(self):
