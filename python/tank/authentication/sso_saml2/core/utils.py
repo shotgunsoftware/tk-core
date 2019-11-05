@@ -13,6 +13,7 @@ SSO/SAML2 Core utility functions.
 
 # pylint: disable=line-too-long
 
+import sys
 import base64
 import binascii
 import logging
