@@ -2,7 +2,9 @@ from __future__ import absolute_import
 
 from tank_vendor.shotgun_api3.lib import six
 
-from re import DEBUG, I, IGNORECASE, L, LOCALE, M, MULTILINE, S, DOTALL, U, UNICODE, X, VERBOSE # noqa
+from re import (DEBUG, I, IGNORECASE, L, LOCALE, # noqa import into namespace
+                M, MULTILINE, S, DOTALL, U, UNICODE, X, VERBOSE)
+from re import escape # noqa import into namespace
 
 # In Python 3, regular expression metacharacters match unicode characters where in
 # Python 2 they hadn't.  To reproduce the previous behavior, Python 3 introduces a
