@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 from tank_vendor.shotgun_api3.lib import six
 
+# Import constants and functions that won't be wrapped
 from re import (DEBUG, I, IGNORECASE, L, LOCALE, # noqa import into namespace
                 M, MULTILINE, S, DOTALL, U, UNICODE, X, VERBOSE)
 from re import escape # noqa import into namespace
