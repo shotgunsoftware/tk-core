@@ -15,6 +15,11 @@ from tank_vendor.shotgun_api3.lib.six.moves import cPickle
 from .action_base import Action
 from ..errors import TankError
 from ..util import yaml_cache
+from ..constants import MAX_PICKLE_PROTOCOL
+
+# Choose the highest protocol allowed
+PICKLE_PROTOCOL = min(cPickle.HIGHEST_PROTOCOL, MAX_PICKLE_PROTOCOL)
+
 
 class CacheYamlAction(Action):
     """
@@ -86,7 +91,7 @@ class CacheYamlAction(Action):
             raise TankError("Unable to open '%s' for writing: %s" % (pickle_path, e))
 
         try:
-            cPickle.dump(items, fh)
+            cPickle.dump(items, fh, protocol=PICKLE_PROTOCOL)
         except Exception as e:
             raise TankError("Unable to dump pickled cache data: %s" % e)
 

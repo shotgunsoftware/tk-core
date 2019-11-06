@@ -32,7 +32,7 @@ from ... import LogManager
 from .. import constants
 from .downloadable import IODescriptorDownloadable
 
-from ...constants import SUPPORT_EMAIL
+from ...constants import SUPPORT_EMAIL, MAX_PICKLE_PROTOCOL
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
@@ -44,6 +44,9 @@ log = LogManager.get_logger(__name__)
 
 # file where we cache the app store metadata for an item
 METADATA_FILE = ".cached_metadata.pickle"
+
+# Choose the highest protocol allowed
+PICKLE_PROTOCOL = min(pickle.HIGHEST_PROTOCOL, MAX_PICKLE_PROTOCOL)
 
 
 class IODescriptorAppStore(IODescriptorDownloadable):
@@ -172,7 +175,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         """
         cache_file = os.path.join(path, METADATA_FILE)
         if os.path.exists(cache_file):
-            fp = open(cache_file, "rt")
+            fp = open(cache_file, 'rb')
             try:
                 metadata = pickle.load(fp)
             finally:
@@ -275,9 +278,9 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         # readonly bundle cache - if the caching fails, gracefully
         # fall back and log
         try:
-            fp = open(cache_file, "wt")
+            fp = open(cache_file, 'wb')
             try:
-                pickle.dump(metadata, fp)
+                pickle.dump(metadata, fp, protocol=PICKLE_PROTOCOL)
                 log.debug("Wrote app store metadata cache '%s'" % cache_file)
             finally:
                 fp.close()

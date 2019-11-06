@@ -24,6 +24,9 @@ from .pipelineconfig import PipelineConfiguration
 from .util import LocalFileStorageManager
 from tank_vendor.shotgun_api3.lib import six
 
+# Choose the highest protocol allowed
+PICKLE_PROTOCOL = min(pickle.HIGHEST_PROTOCOL, constants.MAX_PICKLE_PROTOCOL)
+
 log = LogManager.get_logger(__name__)
 
 
@@ -856,7 +859,7 @@ def _add_to_lookup_cache(key, data):
         # write cache file
         fh = open(cache_file, "wb")
         try:
-            pickle.dump(cache_data, fh)
+            pickle.dump(cache_data, fh, protocol=PICKLE_PROTOCOL)
         finally:
             fh.close()
         # and ensure the cache file has got open permissions
