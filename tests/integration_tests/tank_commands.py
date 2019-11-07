@@ -106,7 +106,8 @@ class TankCommands(SgtkIntegrationTest):
 
         self.run_tank_cmd(
             self.site_config_location,
-            ("share_core",) + (self.shared_core_location,) * 3,
+            "share_core",
+            extra_cmd_line_arguments=(self.shared_core_location,) * 3,
             user_input=("y",)
         )
 
@@ -132,6 +133,7 @@ class TankCommands(SgtkIntegrationTest):
         """
         self.run_tank_cmd(
             self.shared_core_location,
+            None,
             ("Project", self.project["id"])
         )
 
@@ -139,10 +141,16 @@ class TankCommands(SgtkIntegrationTest):
         """
         Runs tank object on the project.
         """
-        self.run_tank_cmd(
+        output = self.run_tank_cmd(
             self.pipeline_location,
-            ["updates"],
+            "updates",
             user_input=("y", "a")
+        )
+        self.assertRegex(
+            output, r"(.*) (.*) was updated from (.*) to (.*)"
+        )
+        self.assertRegex(
+            output, r"(.*) .* was updated from .* to .*"
         )
 
 
