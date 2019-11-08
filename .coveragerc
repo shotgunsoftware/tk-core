@@ -19,6 +19,11 @@ omit=
     *tank/authentication/sso_saml2/*
     *tank/platform/qt5/*
 
+[paths]
+source=
+    python/tank
+    */python/tank
+
 [report]
 exclude_lines =
     raise NotImplementedError

@@ -29,8 +29,6 @@ logger = sgtk.LogManager.get_logger(__name__)
 
 class TankCommands(SgtkIntegrationTest):
 
-    OFFLINE_WORKFLOW_TEST = "offline_workflow_test"
-
     @classmethod
     def setUpClass(cls):
         super(TankCommands, cls).setUpClass()
@@ -114,6 +112,9 @@ class TankCommands(SgtkIntegrationTest):
         Setups the project.
         """
         pipeline_location = os.path.join(self.temp_dir, "pipeline")
+
+        self.remove_files(pipeline_location)
+
         self.tank_setup_project(
             self.shared_core_location,
             self.simple_config_location,

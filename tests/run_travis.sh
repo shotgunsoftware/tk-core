@@ -42,14 +42,17 @@ fi
 # Insert the event type and python version, since we can be running multiple builds at the same time.
 export SHOTGUN_TEST_ENTITY_SUFFIX="travis_${TRAVIS_EVENT_TYPE}_${TRAVIS_PYTHON_VERSION}_QT${QT_TEST_VER}"
 
-# Do not launch the coverage for our unit tests with --with-coverage. If you do, run_tests will
-# generate all the coverage in memory and not leave a .coverage file to be uploaded.
-coverage run tests/run_tests.py
-
+# Specify a coverage file name that can be picked up by "coverage combine", i.e. a file named 
+# .coverage.<something>
+python -m coverage run --parallel-mode tests/run_tests.py
 
 # Run these tests only if the integration tests environment variables are set.
 if [ -z ${SHOTGUN_HOST+x} ]; then
     echo "Skipping integration tests, SHOTGUN_HOST is not set."
 else
-    python tests/integration_tests/run_integration_tests.py --with-coverage
+    # By forcing the temp dir, the integration test suite will not delete the destination
+    # folder, as the variable is meant for debugging test output.
+    # This is required or coverage combine will raise errors when merging
+    # coverage files because some source files will have dissapeared.
+    SHOTGUN_TEST_TEMP=/var/tmp/coverage SHOTGUN_TEST_COVERAGE=1 python tests/integration_tests/run_integration_tests.py
 fi

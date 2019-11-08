@@ -23,8 +23,12 @@ import threading
 import shutil
 import time
 import copy
+import random
 
 import unittest2
+
+import coverage
+coverage.process_startup()
 
 import sgtk
 from sgtk.util import re
@@ -260,8 +264,13 @@ class SgtkIntegrationTest(unittest2.TestCase):
         else:
             core_location = location
 
-        args = [
-            sys.executable,
+
+        if "SHOTGUN_TEST_COVERAGE" in os.environ:
+            launcher = [sys.executable, "-m", "coverage", "run", "--parallel-mode"]
+        else:
+            launcher = [sys.executable]
+
+        args = launcher + [
             # The tank_cmd.py is installed with the core
             os.path.join(core_location, "install", "core", "scripts", "tank_cmd.py"),
             # The script always expects as the first param the tk-core is installed

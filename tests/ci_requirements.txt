@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Shotgun Software Inc.
+# Copyright (c) 2019 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -9,8 +9,4 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 # This file enumerates various third-parties required for continuous integration.
-
-# This is required by coveralls.io, which is used to upload our test coverage
-# results.
-coverage==4.4.1
-coveralls==1.1
+coverage==4.5.4

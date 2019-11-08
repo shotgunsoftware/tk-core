@@ -8,10 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-# This file enumarates the various third party libraries Toolkit uses for unit testing.
-
-# Used for code coverage
-coverage==4.4.1
+# This file enumerates the various third party libraries Toolkit uses for unit testing.
 
 # Used to run tests
 unittest2==1.1.0
