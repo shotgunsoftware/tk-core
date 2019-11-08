@@ -25,11 +25,11 @@ services:
 matrix:
   include:
   - python: "2.7"
-    env: QT_TEST_VER=4 SHOTGUN_COMPILE_ONLY=0
+    env: QT_TEST_VER=4
   - python: "2.7"
-    env: QT_TEST_VER=5 SHOTGUN_COMPILE_ONLY=0
+    env: QT_TEST_VER=5
   - python: "3.7"
-    env: QT_TEST_VER=5 SHOTGUN_COMPILE_ONLY=0
+    env: QT_TEST_VER=5
 
 install:
   - pip install -r tests/ci_requirements.txt
@@ -37,4 +37,4 @@ install:
 # command to run tests
 script: tests/run_travis.sh
 # Only run coveralls if we actually ran tests. Otherwise this breaks coveralls it seems.
-after_success: test $SHOTGUN_COMPILE_ONLY = 0 && coveralls
+after_success: bash <(curl -s https://codecov.io/bash)

@@ -16,14 +16,6 @@
 
 set -e
 
-python -m compileall python/tank
-python -m compileall tests/*.py
-python -m compileall tests/*/*.py
-
-if [[ $SHOTGUN_COMPILE_ONLY -eq 1 ]]; then
-    exit 0
-fi
-
 if [[ $TRAVIS = true ]]; then
 
     if [[ $QT_TEST_VER = 4 ]]; then
