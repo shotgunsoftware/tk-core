@@ -56,3 +56,5 @@ else
     # coverage files because some source files will have dissapeared.
     SHOTGUN_TEST_TEMP=/var/tmp/coverage SHOTGUN_TEST_COVERAGE=1 python tests/integration_tests/run_integration_tests.py
 fi
+
+python -m coverage combine
