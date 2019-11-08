@@ -228,12 +228,12 @@ class SgtkIntegrationTest(unittest2.TestCase):
         pc = cls.create_or_find_entity("PipelineConfiguration", name)
         return cls.sg.update(pc["type"], pc["id"], complete_pc_data)
 
-    def run_tank_cmd(self, location, user_args=None, user_input=None, timeout=120):
+    def run_tank_cmd(self, location, cmd_name, context=None, extra_cmd_line_arguments=None, user_input=None, timeout=120):
         """
         Runs the tank command.
 
         :param str location: Folder that contains the tank command.
-        :param list args: List of arguments for the command line.
+        :param list cmd_line_arguments: List of arguments for the command line.
         :param list user_input: List of answers to provide to provide to the tank command prompt.
             Each entry will be followed by a \n automatically.
         :param int timeout: Timeout for the subprocess in seconds.
@@ -241,8 +241,22 @@ class SgtkIntegrationTest(unittest2.TestCase):
         :raises Exception: Raised then timeout occurs or when the subprocess does not return 0.
         """
         # Take each command line arguments and make a string out of them.
-        user_args = user_args or []
-        user_args = [str(arg) for arg in user_args]
+        if extra_cmd_line_arguments is not None:
+            cmd_line_arguments = list(extra_cmd_line_arguments)
+        else:
+            cmd_line_arguments = []
+
+        if cmd_name is not None:
+            cmd_line_arguments = [cmd_name] + cmd_line_arguments
+
+        if context is not None:
+            self.assertEqual(
+                len(context), 2,
+                "context needs to be 2 arguments: Entity type or entity name/id"
+            )
+            cmd_line_arguments = [context[0], context[1]] + cmd_line_arguments
+        
+        cmd_line_arguments = [str(arg) for arg in cmd_line_arguments]
 
         # Take each input and turn it into a string with a \n at the end.
         user_input = user_input or ()
@@ -279,7 +293,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
             "--script-name=%s" % os.environ["SHOTGUN_SCRIPT_NAME"],
             "--script-key=%s" % os.environ["SHOTGUN_SCRIPT_KEY"],
             # Finally pass the user requested
-        ] + list(user_args)
+        ] + list(cmd_line_arguments)
 
         # If we're launching the command from a pipeline configuration that uses a shared core,
         # we need to tell the tank command which pipeline configuration it is being launched from.
@@ -302,6 +316,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
             stderr=subprocess.STDOUT,
             stdin=subprocess.PIPE
         )
+        self._stdout = ""
         thread = threading.Thread(target=self._tank_cmd_thread, args=(proc, user_input))
         thread.start()
         # Wait timeout seconds before aborting the process.
@@ -320,6 +335,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
         # If the process did not finish with 0, return an error.
         elif proc.returncode != 0:
             raise Exception("Process completed unsuccesfully.")
+        return self._stdout
 
     def _tank_cmd_thread(self, proc, user_input):
         """
@@ -329,7 +345,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
         before = time.time()
         stdout = None
         try:
-            stdout, _ = proc.communicate(six.ensure_binary(user_input))
+            self._stdout, _ = proc.communicate(six.ensure_binary(user_input))
         finally:
             print("tank command ran in %.2f seconds." % (time.time() - before))
             print("tank command return code", proc.returncode)
@@ -375,7 +391,8 @@ class SgtkIntegrationTest(unittest2.TestCase):
 
         self.run_tank_cmd(
             location,
-            ("setup_project", "--force" if force else ""),
+            "setup_project",
+            extra_cmd_line_arguments=["--force"] if force else None,
             user_input=(
                 # >> Which configuration would you like to associate with this project?
                 source_configuration,

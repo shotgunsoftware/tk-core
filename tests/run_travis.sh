@@ -53,7 +53,7 @@ else
     # By forcing the temp dir, the integration test suite will not delete the destination
     # folder, as the variable is meant for debugging test output.
     # This is required or coverage combine will raise errors when merging
-    # coverage files because some source files will have dissapeared.
+    # coverage files because some source files will have disappeared.
     SHOTGUN_TEST_TEMP=/var/tmp/coverage SHOTGUN_TEST_COVERAGE=1 python tests/integration_tests/run_integration_tests.py
 fi
 

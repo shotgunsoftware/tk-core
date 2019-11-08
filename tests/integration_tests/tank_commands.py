@@ -37,6 +37,7 @@ class TankCommands(SgtkIntegrationTest):
         cls.shared_core_location = os.path.join(cls.temp_dir, "shared")
         cls.legacy_bootstrap_core = os.path.join(cls.temp_dir, "bootstrap")
         cls.simple_config_location = os.path.join(os.path.dirname(__file__), "data", "simple_config")
+        cls.pipeline_location = os.path.join(cls.temp_dir, "pipeline")
 
         # Create a sandbox project for this this suite to run under.
         cls.project = cls.create_or_find_project("TankCommandsTest", {})
@@ -103,7 +104,8 @@ class TankCommands(SgtkIntegrationTest):
 
         self.run_tank_cmd(
             self.site_config_location,
-            ("share_core",) + (self.shared_core_location,) * 3,
+            "share_core",
+            extra_cmd_line_arguments=(self.shared_core_location,) * 3,
             user_input=("y",)
         )
 
@@ -111,8 +113,6 @@ class TankCommands(SgtkIntegrationTest):
         """
         Setups the project.
         """
-        pipeline_location = os.path.join(self.temp_dir, "pipeline")
-
         self.remove_files(pipeline_location)
 
         self.tank_setup_project(
@@ -121,7 +121,7 @@ class TankCommands(SgtkIntegrationTest):
             self.local_storage["code"],
             self.project["id"],
             "tankcommandtest",
-            pipeline_location,
+            self.pipeline_location,
             force=True
         )
 
@@ -132,7 +132,24 @@ class TankCommands(SgtkIntegrationTest):
         """
         self.run_tank_cmd(
             self.shared_core_location,
-            ("Project", str(self.project["id"]))
+            None,
+            ("Project", self.project["id"])
+        )
+
+    def test_05_tank_updates(self):
+        """
+        Runs tank object on the project.
+        """
+        output = self.run_tank_cmd(
+            self.pipeline_location,
+            "updates",
+            user_input=("y", "a")
+        )
+        self.assertRegex(
+            output, r"(.*) (.*) was updated from (.*) to (.*)"
+        )
+        self.assertRegex(
+            output, r"(.*) .* was updated from .* to .*"
         )
 
 
