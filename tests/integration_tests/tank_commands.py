@@ -16,6 +16,7 @@ from __future__ import print_function
 
 import os
 import re
+import sys
 
 import unittest2
 from mock import Mock, patch
@@ -126,6 +127,7 @@ class TankCommands(SgtkIntegrationTest):
             force=True
         )
 
+    @unittest2.skipIf(sys.version_info[0] > 2, "shell engine is not Python 3 compatible.")
     def test_04_list_actions_for_project_with_shared_core(self):
         """
         Ensures that running the tank command when there is a site-wide Primary

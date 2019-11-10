@@ -343,15 +343,16 @@ class SgtkIntegrationTest(unittest2.TestCase):
         and how much time it took to run.
         """
         before = time.time()
-        stdout = None
         try:
             self._stdout, _ = proc.communicate(six.ensure_binary(user_input))
+            if self._stdout:
+                self._stdout = six.ensure_text(self._stdout)
         finally:
             print("tank command ran in %.2f seconds." % (time.time() - before))
             print("tank command return code", proc.returncode)
-            if stdout:
+            if self._stdout:
                 print("tank command output:")
-                print(six.ensure_text(stdout))
+                print(self._stdout)
 
     def remove_files(self, *files):
         """
