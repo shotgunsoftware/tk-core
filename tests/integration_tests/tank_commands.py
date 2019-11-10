@@ -15,6 +15,7 @@ This test makes sure that various tank command operations do not fail.
 from __future__ import print_function
 
 import os
+import re
 
 import unittest2
 from mock import Mock, patch
@@ -113,7 +114,7 @@ class TankCommands(SgtkIntegrationTest):
         """
         Setups the project.
         """
-        self.remove_files(pipeline_location)
+        self.remove_files(self.pipeline_location)
 
         self.tank_setup_project(
             self.shared_core_location,
@@ -150,6 +151,45 @@ class TankCommands(SgtkIntegrationTest):
         )
         self.assertRegex(
             output, r"(.*) .* was updated from .* to .*"
+        )
+
+    def test_06_install_engine(self):
+        """
+        Runs tank object on the project.
+        """
+        output = self.run_tank_cmd(
+            self.pipeline_location,
+            "install_engine",
+            extra_cmd_line_arguments=["project", "tk-maya"]
+        )
+        self.assertRegex(
+            output, r"Engine Installation Complete!"
+        )
+
+    def test_07_install_app(self):
+        """
+        Runs tank object on the project.
+        """
+        output = self.run_tank_cmd(
+            self.pipeline_location,
+            "install_app",
+            extra_cmd_line_arguments=["project", "tk-maya", "tk-multi-launchapp"]
+        )
+        self.assertRegex(
+            output, r"App Installation Complete!"
+        )
+
+    def test_08_app_info(self):
+        """
+        Runs tank object on the project.
+        """
+        output = self.run_tank_cmd(
+            self.pipeline_location,
+            "app_info"
+        )
+        self.assertEqual(
+            re.findall("App tk-multi-launchapp", output),
+            ["App tk-multi-launchapp", "App tk-multi-launchapp"]
         )
 
 

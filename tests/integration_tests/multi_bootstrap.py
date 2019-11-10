@@ -14,6 +14,8 @@ This test makes sure that various tank command operations do not fail.
 
 from __future__ import print_function
 
+import sys
+
 import traceback
 import unittest2
 from sgtk_integration_test import SgtkIntegrationTest
@@ -22,6 +24,7 @@ import sgtk
 logger = sgtk.LogManager.get_logger(__name__)
 
 
+@unittest2.skipIf(sys.version_info[0] > 2, "tk-config-basic is not Python 3 compatible.")
 class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
     """
     Tests that it's possible to run bootstrap more than once.
