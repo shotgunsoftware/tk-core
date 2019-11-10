@@ -21,9 +21,9 @@ omit=
     *tank/platform/qt5/*
 
 [paths]
-# This allows to merge coverage from disk locations. This is
+# This allows to merge coverage from different disk locations. This is
 # needed because when the integration tests run the core is copied
-# is many different locations and tank commands are run with them,
+# in many different locations and tank commands are run with them,
 # so we need to tell coverage how to match files with different file
 # paths.
 #

@@ -12,7 +12,7 @@
 :: This file is run by the appveyor builds.
 ::
 
-%PYTHON%\python tests/run_tests.py --with-coverage
+%PYTHON%\python tests/run_tests.py
 
 :: FIXME: This approach does not scale...
 :: if not %ERRORLEVEL% == 0 exit /b %ERRORLEVEL%

@@ -27,9 +27,6 @@ import random
 
 import unittest2
 
-import coverage
-coverage.process_startup()
-
 import sgtk
 from sgtk.util import re
 from sgtk.util.filesystem import safe_delete_folder
