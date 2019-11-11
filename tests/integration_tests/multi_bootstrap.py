@@ -15,6 +15,7 @@ This test makes sure that various tank command operations do not fail.
 from __future__ import print_function
 
 import sys
+import os
 
 import traceback
 import unittest2
@@ -62,7 +63,9 @@ class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
         # Bootstrap into the tk-shell123 engine.
         manager = sgtk.bootstrap.ToolkitManager(self.user)
         manager.do_shotgun_config_lookup = False
-        manager.base_configuration = "sgtk:descriptor:app_store?name=tk-config-basic"
+        manager.base_configuration = "sgtk:descriptor:path?path={0}".format(
+            os.path.normpath(os.path.join(os.path.dirname(__file__), "data", "simple_config"))
+        )
         manager.caching_policy = sgtk.bootstrap.ToolkitManager.CACHE_SPARSE
         try:
             engine = manager.bootstrap_engine("tk-shell123", self.project)
