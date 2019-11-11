@@ -794,9 +794,8 @@ class TestAsTemplateFields(TestContext):
         self.assertEqual("shot_code", result["Shot"])
 
     # Tracked in SG-12552
-    @unittest2.skipIf(sys.version_info[0: 3] == (2, 7, 16) and is_windows(), "Test is skipped on Windows with 2.7.16 due to possible bug in Python.")
-    @patch("tank.context.Context._get_project_roots", return_value=["//foo/bar"])
-    @patch("tank.context.Context.entity_locations", new_callable=PropertyMock(return_value=["//foo/bar/baz"]))
+    @patch("tank.context.Context._get_project_roots", return_value=["{0}{0}foo{0}bar".format(os.path.sep)])
+    @patch("tank.context.Context.entity_locations", new_callable=PropertyMock(return_value=["{0}{0}foo{0}bar{0}baz".format(os.path.sep)]))
     def test_fields_from_entity_paths_with_unc_project_root(self, *args):
         """
         Makes sure that if we're using UNC paths and the project root is at the top
