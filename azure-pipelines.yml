@@ -51,4 +51,4 @@ jobs:
           SHOTGUN_SCRIPT_NAME: $(shotgun_script_name)
           SHOTGUN_SCRIPT_KEY: $(shotgun_script_key)
           # This will create one project per build. It might be a bit excessive.
-          SHOTGUN_TEST_ENTITY_SUFFIX: Azure_Build_$(Build.BuildId)
+          SHOTGUN_TEST_ENTITY_SUFFIX: Azure_Build_$(Build.BuildId)_$(Agent.Name)
