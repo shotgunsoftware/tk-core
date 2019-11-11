@@ -8,14 +8,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-# This file enumerates the various third party libraries Toolkit uses for unit testing.
-
-# Used to run tests
-unittest2==1.1.0
 
 # Use to temporarily replace part of the API or mock return vaues.
 mock==2.0.0
 
 # The Shotgun Desktop does not include setuptools, which comes with pip. Make
 # sure they are installed in case the tests are run with this python.
-setuptools==36.0.1
+setuptools==36.0.1# This file enumerates the various third party libraries Toolkit uses for unit testing.
+
+# Used to run tests
+unittest2==1.1.0
