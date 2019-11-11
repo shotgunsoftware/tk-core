@@ -202,7 +202,8 @@ class TankCommands(SgtkIntegrationTest):
 
         yaml_cache.g_yaml_cache = yaml_cache.YamlCache()
         self.assertEqual(yaml_cache.g_yaml_cache.get_cached_items(), [])
-        tk = sgtk.sgtk_from_path(self.pipeline_location)
+        # This should trigger a load of the cache.
+        sgtk.sgtk_from_path(self.pipeline_location)
         self.assertNotEqual(yaml_cache.g_yaml_cache.get_cached_items(), [])
 
         # Extract all the file names from the cache, but strip the pipeline location from the paths.
@@ -227,7 +228,10 @@ class TankCommands(SgtkIntegrationTest):
             ]
         )
 
-        self.assertTrue(expected_items.issubset(items))
+        self.assertTrue(
+            expected_items.issubset(items),
+            "{0} should be a subset of {1}".format(sorted(expected_items), sorted(items))
+        )
 
 
 if __name__ == "__main__":
