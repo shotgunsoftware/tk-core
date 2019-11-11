@@ -23,6 +23,8 @@ import inspect
 import weakref
 import threading
 
+from tank_vendor.shotgun_api3.lib import six
+
 from ..util.qt_importer import QtImporter
 from ..util.loader import load_plugin
 from .. import hook
@@ -1052,7 +1054,10 @@ class Engine(TankBundle):
         # to highlight this state. This is used by the tank_command
         # execution logic to correctly dispatch the callback during
         # runtime.
-        arg_spec = inspect.getargspec(callback)
+        if six.PY2:
+            arg_spec = inspect.getargspec(callback)
+        else:
+            arg_spec = inspect.getfullargspec(callback)
         # note - cannot use named tuple form because it is py2.6+
         arg_list = arg_spec[0]
 
