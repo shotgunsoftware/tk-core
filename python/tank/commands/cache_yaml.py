@@ -82,7 +82,7 @@ class CacheYamlAction(Action):
             yaml_cache.g_yaml_cache.get(path)
 
         items = yaml_cache.g_yaml_cache.get_cached_items()
-        pickle_path = os.path.join(root_dir, "yaml_cache.pickle")
+        pickle_path = self.tk.pipeline_configuration.get_yaml_cache_location()
         log.debug("Writing cache to %s" % pickle_path)
 
         try:

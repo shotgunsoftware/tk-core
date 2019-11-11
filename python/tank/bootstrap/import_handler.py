@@ -136,7 +136,6 @@ class CoreImportHandler(object):
         # which means the old copy of core will be imported instead of the
         # new one.
         sys.meta_path.insert(0, handler)
-        sys.meta_path.append(handler)
         log.debug("Added import handler to sys.meta_path to support core swapping.")
         return handler
 
