@@ -41,9 +41,8 @@ jobs:
 - template: build-pipeline.yml@templates
   parameters:
     tk_toolchain_ref: tk_core_location_fix
-  # parameters:
-  #   post_tests_steps:
-  #     - bash: python tests/integration_tests/run_integration_tests.py
-  #       env:
-  #         SHOTGUN_TEST_COVERAGE=1
-  #         SHOTGUN_TEST_TEMP=$(Agent.TempDirectory)
+    post_tests_steps:
+      - bash: python tests/integration_tests/run_integration_tests.py
+        env:
+          SHOTGUN_TEST_COVERAGE=1
+          SHOTGUN_TEST_TEMP=$(Agent.TempDirectory)
