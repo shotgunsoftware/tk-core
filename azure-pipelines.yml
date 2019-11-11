@@ -44,5 +44,5 @@ jobs:
     post_tests_steps:
       - bash: python tests/integration_tests/run_integration_tests.py
         env:
-          SHOTGUN_TEST_COVERAGE=1
-          SHOTGUN_TEST_TEMP=$(Agent.TempDirectory)
+          SHOTGUN_TEST_COVERAGE: 1
+          SHOTGUN_TEST_TEMP: $(Agent.TempDirectory)
