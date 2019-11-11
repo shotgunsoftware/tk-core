@@ -43,6 +43,7 @@ jobs:
     tk_toolchain_ref: tk_core_location_fix
     post_tests_steps:
       - bash: python tests/integration_tests/run_integration_tests.py
+        displayName: Run integeration tests
         env:
           SHOTGUN_TEST_COVERAGE: 1
           SHOTGUN_TEST_TEMP: $(Agent.TempDirectory)
