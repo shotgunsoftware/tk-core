@@ -11,17 +11,14 @@
 from __future__ import with_statement
 
 import os
-import sys
 import copy
 
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
 from mock import patch, PropertyMock
-import unittest2
 
 import tank
 from tank import context
-from tank.util import is_windows
 from tank.errors import TankError, TankContextDeserializationError
 from tank.template import TemplatePath
 from tank.templatekey import StringKey, IntegerKey
