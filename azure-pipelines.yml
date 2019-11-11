@@ -46,7 +46,6 @@ jobs:
         displayName: Run integeration tests
         env:
           SHOTGUN_TEST_COVERAGE: 1
-          SHOTGUN_TEST_TEMP: $(Agent.TempDirectory)
           SHOTGUN_HOST: $(shotgun_site)
           SHOTGUN_SCRIPT_NAME: $(shotgun_script_name)
           SHOTGUN_SCRIPT_KEY: $(shotgun_script_key)
