@@ -216,7 +216,7 @@ class TankCommands(SgtkIntegrationTest):
 
         expected_items = set(
             [
-                "/config/core/core_api.yml",
+                path.replace("/", os.path.sep) for path in ["/config/core/core_api.yml",
                 "/config/core/install_location.yml",
                 "/config/core/pipeline_configuration.yml",
                 "/config/core/roots.yml",
@@ -224,7 +224,7 @@ class TankCommands(SgtkIntegrationTest):
                 "/config/env/project.yml",
                 # Do not check for versions of bundles pulled from the appstore as they will change
                 # over time.
-                "/install/core/info.yml",
+                "/install/core/info.yml"]
             ]
         )
 
