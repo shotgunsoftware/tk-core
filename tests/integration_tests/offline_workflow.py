@@ -123,7 +123,7 @@ class OfflineWorkflow(SgtkIntegrationTest):
         self.sg.upload(
             "PipelineConfiguration", pc["id"],
             "{temp_dir}/config.zip".format(temp_dir=self.temp_dir),
-            "sg_uploaded_config",
+            "uploaded_config",
             "Uploaded by tk-core integration tests."
         )
 
