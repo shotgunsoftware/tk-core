@@ -11,14 +11,17 @@
 from __future__ import with_statement
 
 import os
+import sys
 import copy
 
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
 from mock import patch, PropertyMock
+import unittest2
 
 import tank
 from tank import context
+from tank.util import is_windows
 from tank.errors import TankError, TankContextDeserializationError
 from tank.template import TemplatePath
 from tank.templatekey import StringKey, IntegerKey
@@ -790,6 +793,8 @@ class TestAsTemplateFields(TestContext):
         self.assertEqual("Seq", result["Sequence"])
         self.assertEqual("shot_code", result["Shot"])
 
+    # Tracked in SG-12552
+    @unittest2.skipIf(sys.version_info[0: 3] == (2, 7, 16) and is_windows(), "Test is skipped on Windows with 2.7.16 due to possible bug in Python.")
     @patch("tank.context.Context._get_project_roots", return_value=["//foo/bar"])
     @patch("tank.context.Context.entity_locations", new_callable=PropertyMock(return_value=["//foo/bar/baz"]))
     def test_fields_from_entity_paths_with_unc_project_root(self, *args):
