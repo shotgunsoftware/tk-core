@@ -129,8 +129,9 @@ class TestPipelineConfig(TankTestBase):
                 os.remove(rogue_file)
 
         # Test pushing with symlinks, unless on Windows where symlinks are not
-        # available.
-        if is_windows():
+        # available by default. On Azure Pipeline however, they are, so
+        # we'll test them there!
+        if getattr(os, "symlink", None) is None:
             self.assertRaisesRegex(
                 TankError,
                 "Symbolic links are not supported",
