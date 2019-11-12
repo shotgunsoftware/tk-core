@@ -24,6 +24,7 @@ from . import authentication
 from .util import login
 from .util import shotgun_entity
 from .util import shotgun
+from .util import get_sg_entity_name_field
 from .util.pickle import dumps_str
 from . import constants
 from .errors import TankError, TankContextDeserializationError
@@ -775,14 +776,44 @@ class Context(object):
         :returns: A dictionary representing the context.
         """
         return {
-            "project": self.project,
-            "entity": self.entity,
-            "user": self.user,
-            "step": self.step,
-            "task": self.task,
-            "additional_entities": self.additional_entities,
-            "source_entity": self.source_entity
+            "project": self._cleanup_entity(self.project),
+            "entity": self._cleanup_entity(self.entity),
+            "user": self._cleanup_entity(self.user),
+            "step": self._cleanup_entity(self.step),
+            "task": self._cleanup_entity(self.task),
+            "additional_entities": [self._cleanup_entity(entity) for entity in self.additional_entities],
+            "source_entity": self._cleanup_entity(self.source_entity)
         }
+
+    def _cleanup_entity(self, entity):
+        """
+        Cleanup the entity dictionary.
+
+        :param dict entity: Shotgun entity object.
+
+        On Python 3, we have to be very careful about what we pickle because if we start
+        serializing non-builtin types like datetimes we won't be able to cast back the pickle
+        into a string and we won't be able to use those values in environment variables.
+
+        Because of this, we will keep the smallest amount of fields we need for the context.
+        This is the type, id, name and the actual real name field for the entity
+        (code, content, etc...)
+
+        :returns: Dictionary with keys id and type and optionally name and the entity's
+            real name field.
+        """
+        if entity is None:
+            return None
+
+        filtered_entity = {
+            "type": entity["type"],
+            "id": entity["id"],
+        }
+        for name_field in ("name", get_sg_entity_name_field(entity["type"])):
+            if name_field in entity:
+                filtered_entity[name_field] = entity[name_field]
+
+        return filtered_entity
 
     @classmethod
     def from_dict(cls, tk, data):

@@ -400,7 +400,7 @@ class TestPipelineConfigurationEnumeration(ShotgunTestBase):
             ]
         )
         self.assertEqual(
-            self._sg_data["local_storages"], [self._remove_items(self.primary_storage, "__retired")]
+            self._sg_data["local_storages"], [self._remove_items(self.primary_storage, ["__retired", "created_at", "updated_at"])]
         )
 
     def test_get_pipeline_configs_from_path(self):

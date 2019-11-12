@@ -12,6 +12,7 @@ from __future__ import with_statement
 
 import os
 import copy
+import datetime
 
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
@@ -1121,6 +1122,33 @@ class TestSerialize(TestContext):
             }
         )
 
+    def test_dict_cleanup(self):
+        self.kws["project"]["created_at"] = datetime.datetime.now()
+        self.kws["entity"]["created_at"] = datetime.datetime.now()
+        self.kws["entity"]["name"] = "shot_name"
+        self.kws["step"]["created_at"] = datetime.datetime.now()
+        self.kws["task"]["created_at"] = datetime.datetime.now()
+        for entity in self.kws["additional_entities"]:
+            entity["created_at"] = datetime.datetime.now()
+        self.kws["source_entity"]["created_at"] = datetime.datetime.now()
+
+        expected = {
+            "additional_entities": [{"id": 42, "type": "Sequence"}],
+            "entity": {"code": "shot_name", "id": 2, "name": "shot_name", "type": "Shot"},
+            "project": {"id": 1, "name": "project_name", "type": "Project"},
+            "source_entity": {"id": 12, "type": "Version"},
+            "step": {"id": 4, "name": "step_name", "type": "Step"},
+            "task": {"id": 45, "type": "Task"},
+            "user": None
+        }
+
+        ctx = context.Context(**self.kws)
+
+        # Now the object is clean, we should be able to serialize/unserialize
+        # it properly.
+        ctx = context.deserialize(ctx.serialize())
+        self.assertEqual(ctx.to_dict(), expected)
+
     def test_equal_yml(self):
         context_1 = context.Context(**self.kws)
         serialized = yaml.dump(context_1)
@@ -1129,7 +1157,7 @@ class TestSerialize(TestContext):
 
     def test_equal_custom(self):
         context_1 = context.Context(**self.kws)
-        serialized = context_1.serialize(context_1)
+        serialized = context_1.serialize()
         # Ensure the serialized context is a string
         self.assertIsInstance(serialized, six.string_types)
         context_2 = tank.Context.deserialize(serialized)
