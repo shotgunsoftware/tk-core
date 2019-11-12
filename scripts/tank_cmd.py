@@ -25,7 +25,7 @@ from tank.commands.action_base import Action
 from tank.util import shotgun
 from tank.util import shotgun_entity
 from tank.util import is_windows
-from tank.util import re
+from tank.util import sgre as re
 from tank.platform import constants as platform_constants
 from tank.authentication import ShotgunAuthenticator
 from tank.authentication import AuthenticationError

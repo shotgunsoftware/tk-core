@@ -25,7 +25,7 @@ import platform
 from tank_vendor.shotgun_api3.lib.six.moves import urllib
 from copy import deepcopy
 
-from . import constants, re
+from . import constants, sgre as re
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3

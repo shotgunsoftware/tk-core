@@ -37,7 +37,7 @@ from .errors import (
     TankMissingEngineError
 )
 
-from ..util import re
+from ..util import sgre as re
 from ..util.metrics import EventMetric
 from ..util.metrics import MetricsDispatcher
 from ..log import LogManager

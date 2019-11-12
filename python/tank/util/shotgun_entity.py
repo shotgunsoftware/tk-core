@@ -12,7 +12,7 @@
 Utilities relating to Shotgun entities
 """
 
-from . import constants, re
+from . import constants, sgre as re
 from ..errors import TankError
 from tank_vendor.shotgun_api3.lib import six
 

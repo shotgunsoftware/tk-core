@@ -15,7 +15,7 @@ import uuid
 from . import constants
 
 from ..util import StorageRoots
-from ..util import re
+from ..util import sgre as re
 from ..util import shotgun
 from ..util import filesystem
 from ..util import is_windows

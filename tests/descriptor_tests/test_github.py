@@ -11,7 +11,7 @@
 import mock
 from mock import patch
 import os
-from sgtk.util import re
+from sgtk.util import sgre as re
 from tank_vendor.shotgun_api3.lib.six.moves import urllib
 
 import sgtk

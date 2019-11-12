@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from distutils.version import LooseVersion
-from . import re
+from . import sgre as re
 
 def is_version_head(version):
     """
