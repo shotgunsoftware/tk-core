@@ -238,6 +238,19 @@ class TankCommands(SgtkIntegrationTest):
             ),
         )
 
+    def test_10_validate(self):
+        """
+        Runs tank object on the project.
+        """
+        output = self.run_tank_cmd(self.pipeline_location, "validate")
+        if "ERROR:" in output:
+            raise ValueError('Getting validation errors.')
+        else:
+            self.assertRegex(output, r"Validating Engine project / tk-maya...")
+            self.assertRegex(output, r"Validating project / tk-maya / tk-multi-launchapp...")
+            self.assertRegex(output, r"The following templates are not being used directly in any environments:")
+            self.assertRegex(output, r"The following hooks are not being used directly in any environments:")
+
 
 if __name__ == "__main__":
     ret_val = unittest2.main(failfast=True, verbosity=2)
