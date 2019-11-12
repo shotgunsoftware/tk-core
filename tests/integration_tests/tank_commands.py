@@ -262,6 +262,37 @@ class TankCommands(SgtkIntegrationTest):
         self.assertRegex(output, r"You are currently running version HEAD of the Shotgun Pipeline Toolkit")
         self.assertRegex(output, r"No need to update the Toolkit Core API at this time!")
 
+    def test_12_upgrade_folders(self):
+        """
+        Runs tank object on the project.
+        """
+        output = self.run_tank_cmd(self.pipeline_location, "upgrade_folders")
+        self.assertRegex(output, r"Looks like syncing is already turned on! Nothing to do!")
+
+    def test_13_synchronize_folders(self):
+        """
+        Runs tank object on the project.
+        """
+        output = self.run_tank_cmd(
+            self.pipeline_location,
+            "synchronize_folders",
+            extra_cmd_line_arguments=["--full"],
+        )
+        self.assertRegex(output, r"Doing a full sync.")
+        self.assertRegex(output, r"Local folder information has been synchronized.")
+
+    def test_14_unregister_folders(self):
+        """
+        Runs tank object on the project.
+        """
+        output = self.run_tank_cmd(
+            self.pipeline_location,
+            "unregister_folders",
+            extra_cmd_line_arguments=["--all"],
+        )
+        self.assertRegex(output, r"This will unregister all folders for the project.")
+        self.assertRegex(output, r"No associated folders found!")
+
 
 if __name__ == "__main__":
     ret_val = unittest2.main(failfast=True, verbosity=2)
