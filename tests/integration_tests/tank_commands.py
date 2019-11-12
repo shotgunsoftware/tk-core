@@ -251,6 +251,17 @@ class TankCommands(SgtkIntegrationTest):
             self.assertRegex(output, r"The following templates are not being used directly in any environments:")
             self.assertRegex(output, r"The following hooks are not being used directly in any environments:")
 
+    def test_11_tank_core(self):
+        """
+        Runs tank object on the project.
+        """
+        output = self.run_tank_cmd(
+            self.pipeline_location, "core", user_input=("y")
+        )
+        # Since we are using a core branch we can't do a core update.
+        self.assertRegex(output, r"You are currently running version HEAD of the Shotgun Pipeline Toolkit")
+        self.assertRegex(output, r"No need to update the Toolkit Core API at this time!")
+
 
 if __name__ == "__main__":
     ret_val = unittest2.main(failfast=True, verbosity=2)
