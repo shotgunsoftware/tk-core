@@ -882,8 +882,10 @@ class TankTestBase(unittest.TestCase):
             # special retired flag for mockgun
             entity["__retired"] = False
 
-            entity["created_at"] = datetime.datetime.now()
-            entity["updated_at"] = datetime.datetime.now()
+            if "created_at" not in entity:
+                entity["created_at"] = datetime.datetime.now()
+            if "updated_at" not in entity:
+                entity["updated_at"] = datetime.datetime.now()
 
             # turn any dicts into proper type/id/name refs
             for x in entity:
