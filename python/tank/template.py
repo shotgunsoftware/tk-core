@@ -21,7 +21,7 @@ from . import constants
 from .template_path_parser import TemplatePathParser
 from tank_vendor.shotgun_api3.lib import six, sgsix
 from tank_vendor.shotgun_api3.lib.six.moves import zip
-from tank.util import is_linux, is_macos, is_windows, re
+from tank.util import is_linux, is_macos, is_windows, sgre as re
 
 class Template(object):
     """

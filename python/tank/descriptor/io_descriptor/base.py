@@ -13,7 +13,7 @@ import contextlib
 
 from .. import constants
 from ... import LogManager
-from ...util import filesystem, re
+from ...util import filesystem, sgre as re
 from ...util.version import is_version_newer
 from ..errors import TankDescriptorError, TankMissingManifestError
 

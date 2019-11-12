@@ -393,7 +393,7 @@ class SetupProjectWizard(object):
 
         { "darwin": "/foo/bar/project_name",
           "linux2": None,
-          "win32" : "c:\foo\bar\project_name"}
+          "win32" : "c:\\foo\\bar\\project_name"}
 
         :returns: dictionary with paths or None
         """

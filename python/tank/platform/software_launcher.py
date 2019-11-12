@@ -22,7 +22,7 @@ from ..errors import TankError
 from ..log import LogManager
 from ..util.loader import load_plugin
 from ..util.version import is_version_older
-from ..util import ShotgunPath, is_windows, re
+from ..util import ShotgunPath, is_windows, sgre as re
 
 from . import constants
 from . import validation

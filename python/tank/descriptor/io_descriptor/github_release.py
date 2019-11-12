@@ -15,7 +15,7 @@ from tank_vendor.shotgun_api3.lib.six.moves import urllib
 from .downloadable import IODescriptorDownloadable
 from ..errors import TankError, TankDescriptorError
 from ... import LogManager
-from ...util import re
+from ...util import sgre as re
 from ...util.shotgun import download
 
 log = LogManager.get_logger(__name__)

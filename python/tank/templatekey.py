@@ -16,7 +16,7 @@ import sys
 import datetime
 from . import constants
 from .errors import TankError
-from .util import re
+from .util import sgre as re
 import collections
 from tank_vendor.shotgun_api3.lib import six
 from tank_vendor.shotgun_api3.lib.six.moves import zip
