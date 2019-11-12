@@ -18,7 +18,8 @@ import datetime
 import os
 import sgtk
 import logging
-from pprint import pprint
+from mock import patch
+
 from sgtk.util import ShotgunPath
 
 from tank_test.tank_test_base import TankTestBase
@@ -55,10 +56,12 @@ class TestSetupProjectWizard(TankTestBase):
         def set_progress_callback(msg, percentage):
             self._logs.append((msg, percentage))
 
-        # We're going to setup a project on disk.
+        # Prepare the wizard for business. All these methods are actually passing
+        # information directly to the SetupProjectParams object inside
+        # the wizard, so there's no need to test them per-se.
         self._wizard.set_progress_callback(set_progress_callback)
         self._wizard.set_project(self.project["id"], force=True)
-        self._wizard.set_use_centralized_mode()
+        self._wizard.set_use_distributed_mode()
 
         self.config_uri = os.path.join(self.fixtures_root, "config")
         self._wizard.set_config_uri(self.config_uri)
@@ -66,6 +69,13 @@ class TestSetupProjectWizard(TankTestBase):
         self._logs = []
 
     def test_validate_config_uri(self):
+        """
+        Ensure that we can validate the URI.
+
+        This doesn't actually test much, it is simply there as a proof that
+        there is a bug in the API right now. We should get back to this in the
+        future.
+        """
         storage_setup = self._wizard.validate_config_uri(self.config_uri)
 
         expected_primary_storage = {
@@ -88,7 +98,7 @@ class TestSetupProjectWizard(TankTestBase):
 
     def test_set_project_disk_name(self):
         """
-        Ensure the command works.
+        Ensure the project folder gets created or not on demand.
         """
         # Make sure the config we have is valid.
         project_locations = self._storage_locations.join(self.short_test_name)
@@ -99,8 +109,9 @@ class TestSetupProjectWizard(TankTestBase):
         self.assertTrue(os.path.exists(project_locations.current_os))
 
     def test_preview_project_paths(self):
-        print(self._wizard.preview_project_paths(self.short_test_name))
-
+        """
+        Ensure all project paths get returned properly.
+        """
         self.assertEqual(
             self._wizard.preview_project_paths(self.short_test_name),
             {
@@ -111,11 +122,24 @@ class TestSetupProjectWizard(TankTestBase):
         )
 
     def test_default_configuration_location_without_suggestions(self):
+        """
+        Ensure that when no matching pipeline configurations are found that
+        we do not get a suggestion back.
+        """
         self._wizard.set_project_disk_name(self.short_test_name)
         locations = self._wizard.get_default_configuration_location()
         self.assertEqual(locations, {"win32": None, "darwin": None, "linux2": None})
 
     def test_default_configuration_location_with_existing_pipeline_configuration(self):
+        """
+        Ensure that when the tank_name and the configuration folder name are the same
+        for the latest configuration found in Shotgun, we'll offer a pre-baked path
+        to the user using the new project name.
+
+        For e.g., if a project with a tank_name set to "potato" and whose configuration
+        was written to "/vegatables/potato", then a new project with tank name "radish"
+        would get a default location of "/vegatables/radish".
+        """
         self._wizard.set_project_disk_name(self.short_test_name)
 
         # Create a project with a tank name matching the name of the folder for the pipeline configuration
@@ -145,6 +169,10 @@ class TestSetupProjectWizard(TankTestBase):
         )
 
     def test_get_core_settings(self):
+        """
+        Ensure we can find the core settings. Given this is a unit test and not
+        running off a real core, there's nothing more we can do at the moment.
+        """
         # Core is installed as
         # <studio-install>/install/core/python
         # This file is under the equivalent of
@@ -164,3 +192,17 @@ class TestSetupProjectWizard(TankTestBase):
                 "using_runtime": True,
             },
         )
+
+    def test_execute(self):
+        """
+        Ensure we can write the new project to disk.
+        """
+        self._wizard.set_project_disk_name(self.short_test_name)
+        path = ShotgunPath.from_current_os_path(os.path.join(self.tank_temp, self.short_test_name, "pipeline"))
+        self._wizard.set_configuration_location(path.linux, path.windows, path.macosx)
+
+        # Upload method not implemented on Mockgun yet, so skip that bit.
+        with patch("tank_vendor.shotgun_api3.lib.mockgun.mockgun.Shotgun.upload") as upload_mock:
+            self._wizard.execute()
+
+
