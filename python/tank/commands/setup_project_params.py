@@ -795,7 +795,7 @@ class ProjectSetupParameters(object):
         Returns the path to the configuration for a given platform.
         The path returned has not been validated and may not be correct nor exist.
 
-        :param platform: Os platform as a string, sys.platform style (e.g. linux/win32/darwin)
+        :param platform: Os platform as a string, sys.platform style (e.g. linux2/win32/darwin)
         :returns: path to pipeline configuration.
         """
         if self._config_path is None:

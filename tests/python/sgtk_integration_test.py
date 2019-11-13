@@ -20,7 +20,6 @@ import tempfile
 import atexit
 import subprocess
 import threading
-import shutil
 import time
 import copy
 import random
@@ -29,7 +28,7 @@ import unittest2
 
 import sgtk
 from sgtk.util import sgre as re
-from sgtk.util.filesystem import safe_delete_folder
+from sgtk.util.filesystem import safe_delete_folder, safe_delete_file
 from tank_vendor.shotgun_api3.lib import six, sgsix
 
 
@@ -361,8 +360,10 @@ class SgtkIntegrationTest(unittest2.TestCase):
         :param *args: List of files to delete.
         """
         for f in files:
-            if os.path.exists(f):
-                shutil.rmtree(f)
+            if os.path.isdir(f):
+                safe_delete_folder(f)
+            else:
+                safe_delete_file(f)
 
     def tank_setup_project(
         self,
@@ -386,7 +387,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
         :param force: If True, the project will be setup even if already configured.
         """
         if os.path.exists(pipeline_root):
-            shutil.rmtree(pipeline_root)
+            self.remove_files(pipeline_root)
 
         pipeline_root = sgtk.util.ShotgunPath.from_current_os_path(pipeline_root)
 
