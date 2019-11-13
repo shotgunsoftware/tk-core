@@ -374,7 +374,11 @@ class ProjectSetupParameters(object):
             raise TankError("Please specify a configuration template!")
 
         if storage_name not in self._storage_data:
-            raise TankError("Configuration template does not contain a storage with name '%s'!" % storage_name)
+            raise TankError(
+                "Configuration template does not contain a storage with name '%s'. Available names are: %s" % (
+                    storage_name, ", ".join("'%s'" % name for name in self._storage_data)
+                )
+            )
 
         return self._storage_data.get(storage_name).get(sgsix.normalize_platform(platform))
 
@@ -791,7 +795,7 @@ class ProjectSetupParameters(object):
         Returns the path to the configuration for a given platform.
         The path returned has not been validated and may not be correct nor exist.
 
-        :param platform: Os platform as a string, sys.platform style (e.g. linux/win32/darwin)
+        :param platform: Os platform as a string, sys.platform style (e.g. linux2/win32/darwin)
         :returns: path to pipeline configuration.
         """
         if self._config_path is None:

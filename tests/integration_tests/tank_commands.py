@@ -22,7 +22,7 @@ import shutil
 import unittest2
 from mock import Mock, patch
 from tank.util import is_linux, is_macos, is_windows
-from tank.util import yaml_cache
+from tank.util import yaml_cache, zip
 
 from sgtk_integration_test import SgtkIntegrationTest
 
@@ -120,7 +120,57 @@ class TankCommands(SgtkIntegrationTest):
             user_input=("y",),
         )
 
-    def test_03_setup_project_from_site_core(self):
+    def test_03_01_setup_project_from_zip_file(self):
+        """
+        Setups the project.
+        """
+        self.remove_files(self.pipeline_location)
+
+        zipped_config_location = os.path.join(self.temp_dir, "zipped_config.zip")
+        zip.zip_file(self.simple_config_location, zipped_config_location)
+        self.tank_setup_project(
+            self.shared_core_location,
+            zipped_config_location,
+            self.local_storage["code"],
+            self.project["id"],
+            "tankcommandtest",
+            self.pipeline_location,
+            force=True,
+        )
+
+    def test_03_02_setup_project_from_app_store(self):
+        """
+        Setups the project.
+        """
+        self.remove_files(self.pipeline_location)
+
+        self.tank_setup_project(
+            self.shared_core_location,
+            "tk-config-basic",
+            None,
+            self.project["id"],
+            "tankcommandtest",
+            self.pipeline_location,
+            force=True,
+        )
+
+    def test_03_03_setup_project_from_git(self):
+        """
+        Setups the project.
+        """
+        self.remove_files(self.pipeline_location)
+
+        self.tank_setup_project(
+            self.shared_core_location,
+            "https://github.com/shotgunsoftware/tk-config-basic.git",
+            None,
+            self.project["id"],
+            "tankcommandtest",
+            self.pipeline_location,
+            force=True,
+        )
+
+    def test_03_04_setup_project_from_local_config(self):
         """
         Setups the project.
         """

@@ -202,7 +202,7 @@ class TestSetupProjectWizard(TankTestBase):
         self._wizard.set_configuration_location(path.linux, path.windows, path.macosx)
 
         # Upload method not implemented on Mockgun yet, so skip that bit.
-        with patch("tank_vendor.shotgun_api3.lib.mockgun.mockgun.Shotgun.upload") as upload_mock:
-            self._wizard.execute()
-
-
+        with patch("tank_vendor.shotgun_api3.lib.mockgun.mockgun.Shotgun.upload"):
+            with patch("tank.pipelineconfig_utils.get_core_api_version") as api_mock:
+                api_mock.return_value = "HEAD"
+                self._wizard.execute()
