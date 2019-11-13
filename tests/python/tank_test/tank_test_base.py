@@ -256,20 +256,6 @@ def setUpModule():
     print(msg)
     print("=" * len(msg) + "\n")
 
-    # move tank directory if left by previous tests
-    _move_data(TANK_TEMP)
-    os.makedirs(TANK_TEMP)
-
-    # create studio level tank directories
-    studio_tank = os.path.join(TANK_TEMP, "tank")
-
-    # make studio level subdirectories
-    os.makedirs(os.path.join(studio_tank, "config", "core"))
-    install_dir = os.path.join(studio_tank, "install")
-
-    # copy tank engine code into place
-    os.makedirs(os.path.join(install_dir, "engines"))
-
 
 class TankTestBase(unittest.TestCase):
     """
