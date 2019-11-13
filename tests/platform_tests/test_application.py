@@ -454,6 +454,14 @@ class TestExecuteHook(TestApplication):
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook("test_hook_engine", dummy_param=True))
 
+    def test_framework_format(self):
+        app = self.engine.apps["test_app"]
+        self.assertTrue(app.execute_hook("test_hook_framework", dummy_param=True))
+        with self.assertRaisesRegex(TankError, "but no framework with instance name 'test_framework_v2.x.x' can be found"):
+            self.assertTrue(app.execute_hook("test_hook_unknown_framework", dummy_param=True))
+        with self.assertRaisesRegex(TankError, "instance name 'test_framework_v3.x.x' does not exist on disk"):
+            self.assertTrue(app.execute_hook("test_hook_missing_framework", dummy_param=True))
+
     def test_default_format(self):
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook("test_hook_default", dummy_param=True))

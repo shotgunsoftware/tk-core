@@ -345,7 +345,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
         try:
             self._stdout, _ = proc.communicate(six.ensure_binary(user_input))
             if self._stdout:
-                self._stdout = six.ensure_text(self._stdout)
+                self._stdout = six.ensure_str(self._stdout)
         finally:
             print("tank command ran in %.2f seconds." % (time.time() - before))
             print("tank command return code", proc.returncode)
@@ -421,5 +421,6 @@ class SgtkIntegrationTest(unittest2.TestCase):
             location,
             "setup_project",
             extra_cmd_line_arguments=["--force"] if force else None,
-            user_input=user_input
+            user_input=user_input,
+            timeout=180
         )
