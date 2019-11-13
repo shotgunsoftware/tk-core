@@ -349,6 +349,12 @@ class TankTestBase(unittest.TestCase):
 
 
         """
+        self._setUp(parameters)
+
+    def _setUp(self, parameters):
+        """
+        See documentation for setUp.
+        """
         self.addCleanup(self._assert_teardown_called)
         # Override SHOTGUN_HOME so that unit tests can be sandboxed.
         self._old_shotgun_home = os.environ.get(self.SHOTGUN_HOME)
@@ -570,6 +576,12 @@ class TankTestBase(unittest.TestCase):
 
     @timer.clock_func("TankTestBase.tearDown")
     def tearDown(self):
+        """
+        Cleans up after tests.
+        """
+        self._tearDown()
+
+    def _tearDown(self):
         """
         Cleans up after tests.
         """
@@ -1089,7 +1101,12 @@ class ShotgunTestBase(TankTestBase):
     to many tests who don't even read what is on disk and therefore couldn't
     care less about the scaffold.
     """
+    @timer.clock_func("ShotgunTestBase.setUp")
     def setUp(self, parameters=None):
         parameters = parameters or {}
         parameters["do_io"] = False
-        super(ShotgunTestBase, self).setUp(parameters)
+        self._setUp(parameters)
+
+    @timer.clock_func("ShotgunTestBase.tearDown")
+    def tearDown(self):
+        self._tearDown()
