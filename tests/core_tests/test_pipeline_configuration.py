@@ -10,6 +10,7 @@
 
 import os
 import logging
+import shutil
 
 from mock import patch
 
@@ -276,6 +277,10 @@ class TestConfigLocations(TankTestBase):
         core_root = os.path.join(self.tank_temp, "%s_core" % locality)
         core_install_folder = os.path.join(core_root, "install", "core")
         os.makedirs(core_install_folder)
+        shutil.copy(
+            os.path.join(os.path.dirname(__file__), "..", "..", "info.yml"),
+            os.path.join(core_install_folder, "info.yml")
+        )
 
         # Mock a localized core if required.
         if is_localized:
