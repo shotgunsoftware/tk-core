@@ -450,11 +450,6 @@ class TankTestBase(unittest.TestCase):
         # project level config directories
         self.project_config = os.path.join(self.pipeline_config_root, "config")
 
-        # create project cache directory
-        project_cache_dir = os.path.join(self.pipeline_config_root, "cache")
-        if self._do_io:
-            os.mkdir(project_cache_dir)
-
         # define entity for pipeline configuration
         self.sg_pc_entity = {"type": "PipelineConfiguration",
                              "code": "Primary",
