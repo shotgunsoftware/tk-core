@@ -375,7 +375,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
         force=False
     ):
         """
-        Setups a Toolkit project.
+        Setups a Toolkit project using the tank command.
 
         :param location: Location of the tank command.
         :param source_configuration: Location on disk where to find the configuration to use.
@@ -390,29 +390,35 @@ class SgtkIntegrationTest(unittest2.TestCase):
 
         pipeline_root = sgtk.util.ShotgunPath.from_current_os_path(pipeline_root)
 
+        # >> Which configuration would you like to associate with this project?
+        user_input = (source_configuration,)
+
+        # >> For each storage root, enter the name of the local storage
+        # This will be asked only if storage roots are used in the config.
+        if storage_name is not None:
+            user_input += (storage_name,)
+
+        user_input += (
+            # >> Please type in the id of the project to connect to or ENTER
+            project_id,
+            # >> Please enter a folder name
+            tank_name,
+            # >> Paths look valid. Continue?
+            "yes",
+            # >> Now it is time to decide where the configuration for this project should go.
+            # >> Typically, this is in a software install area where you keep
+            # >> all your Toolkit code and configuration. We will suggest defaults
+            # >> based on your current install.
+            pipeline_root.linux or "",
+            pipeline_root.windows or "",
+            pipeline_root.macosx or "",
+            # >> Continue with project setup?
+            "yes"
+        )
+
         self.run_tank_cmd(
             location,
             "setup_project",
             extra_cmd_line_arguments=["--force"] if force else None,
-            user_input=(
-                # >> Which configuration would you like to associate with this project?
-                source_configuration,
-                # >> For each storage root, enter the name of the local storage
-                storage_name,
-                # >> Please type in the id of the project to connect to or ENTER
-                project_id,
-                # >> Please enter a folder name
-                tank_name,
-                # >> Paths look valid. Continue?
-                "yes",
-                # >> Now it is time to decide where the configuration for this project should go.
-                # >> Typically, this is in a software install area where you keep
-                # >> all your Toolkit code and configuration. We will suggest defaults
-                # >> based on your current install.
-                pipeline_root.linux or "",
-                pipeline_root.windows or "",
-                pipeline_root.macosx or "",
-                # >> Continue with project setup?
-                "yes"
-            )
+            user_input=user_input
         )

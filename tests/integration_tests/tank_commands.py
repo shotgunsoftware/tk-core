@@ -120,7 +120,39 @@ class TankCommands(SgtkIntegrationTest):
             user_input=("y",),
         )
 
-    def test_03_setup_project_from_site_core(self):
+    def test_03_01_setup_project_from_app_store(self):
+        """
+        Setups the project.
+        """
+        self.remove_files(self.pipeline_location)
+
+        self.tank_setup_project(
+            self.shared_core_location,
+            "tk-config-basic",
+            None,
+            self.project["id"],
+            "tankcommandtest",
+            self.pipeline_location,
+            force=True,
+        )
+
+    def test_03_02_setup_project_from_git(self):
+        """
+        Setups the project.
+        """
+        self.remove_files(self.pipeline_location)
+
+        self.tank_setup_project(
+            self.shared_core_location,
+            "https://github.com/shotgunsoftware/tk-config-basic.git",
+            None,
+            self.project["id"],
+            "tankcommandtest",
+            self.pipeline_location,
+            force=True,
+        )
+
+    def test_03_03_setup_project_from_local_config(self):
         """
         Setups the project.
         """
