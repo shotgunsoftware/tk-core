@@ -344,7 +344,11 @@ class TankCommands(SgtkIntegrationTest):
             ]
         )
 
-        output = output.split("\r\n")
+        if is_windows():
+            output = output.split("\r\n")
+        else:
+            output = output.split("\n")
+
         created_folders = []
 
         for line in output:
@@ -386,7 +390,11 @@ class TankCommands(SgtkIntegrationTest):
             ]
         )
 
-        output = output.split("\r\n")
+        if is_windows():
+            output = output.split("\r\n")
+        else:
+            output = output.split("\n")
+
         created_folders = []
 
         for line in output:
