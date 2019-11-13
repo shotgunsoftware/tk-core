@@ -269,7 +269,91 @@ class TankCommands(SgtkIntegrationTest):
         output = self.run_tank_cmd(self.pipeline_location, "upgrade_folders")
         self.assertRegex(output, r"Looks like syncing is already turned on! Nothing to do!")
 
-    def test_13_synchronize_folders(self):
+    def test_13_preview_folders(self):
+        """
+        Runs tank object on the project.
+        """
+        output = self.run_tank_cmd(self.pipeline_location, "preview_folders")
+        # Validate preview_folders output
+        self.assertRegex(output, r"In total, 7 folders were processed.")
+        self.assertRegex(output, r"Note - this was a preview and no actual folders were created.")
+
+        # Validate that folders from the output are the expected ones
+        expected_items = set(
+            [
+                path.replace("/", os.path.sep)
+                for path in [
+                    "/tankcommandtest",
+                    "/tankcommandtest/assets",
+                    "/tankcommandtest/reference",
+                    "/tankcommandtest/reference/artwork",
+                    "/tankcommandtest/reference/footage",
+                    "/tankcommandtest/scenes",
+                    "/tankcommandtest/sequences",
+                ]
+            ]
+        )
+
+        output = output.split("\r\n")
+        created_folders = []
+
+        for line in output:
+            match = re.match("^ - (.*)$", line)
+            if match is not None:
+                created_folders.append(match.groups()[0])
+
+        items = set(
+            [
+                item.replace(self.local_storage["path"], "")
+                for item in created_folders
+            ]
+        )
+
+        self.assertEqual(expected_items, items)
+
+    def test_14_folders(self):
+        """
+        Runs tank object on the project.
+        """
+        output = self.run_tank_cmd(self.pipeline_location, "folders")
+        # Validate preview_folders output
+        # FIXME: Look into why the project root is twice present. Total should be 7 like preview_folders, not 8.
+        # self.assertRegex(output, r"In total, 7 folders were processed.")
+
+        # Validate that folders from the output are the expected ones
+        expected_items = set(
+            [
+                path.replace("/", os.path.sep)
+                for path in [
+                    "/tankcommandtest",
+                    "/tankcommandtest/assets",
+                    "/tankcommandtest/reference",
+                    "/tankcommandtest/reference/artwork",
+                    "/tankcommandtest/reference/footage",
+                    "/tankcommandtest/scenes",
+                    "/tankcommandtest/sequences",
+                ]
+            ]
+        )
+
+        output = output.split("\r\n")
+        created_folders = []
+
+        for line in output:
+            match = re.match("^ - (.*)$", line)
+            if match is not None:
+                created_folders.append(match.groups()[0])
+
+        items = set(
+            [
+                item.replace(self.local_storage["path"], "")
+                for item in created_folders
+            ]
+        )
+
+        self.assertEqual(expected_items, items)
+
+    def test_15_synchronize_folders(self):
         """
         Runs tank object on the project.
         """
@@ -281,7 +365,7 @@ class TankCommands(SgtkIntegrationTest):
         self.assertRegex(output, r"Doing a full sync.")
         self.assertRegex(output, r"Local folder information has been synchronized.")
 
-    def test_14_unregister_folders(self):
+    def test_16_unregister_folders(self):
         """
         Runs tank object on the project.
         """
@@ -289,9 +373,10 @@ class TankCommands(SgtkIntegrationTest):
             self.pipeline_location,
             "unregister_folders",
             extra_cmd_line_arguments=["--all"],
+            user_input=["Yes"]
         )
         self.assertRegex(output, r"This will unregister all folders for the project.")
-        self.assertRegex(output, r"No associated folders found!")
+        self.assertRegex(output, r"Unregister complete. 1 paths were unregistered.")
 
 
 if __name__ == "__main__":
