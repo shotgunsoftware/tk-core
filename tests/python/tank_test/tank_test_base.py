@@ -235,9 +235,12 @@ class UnitTestTimer(object):
             "Time spent in tracked methods: %s" % sum(x.total_time for x in self._timers.values())
         )
 
+        print("Nb tk accesses: ", nb_tk_accesses)
+
 timer = UnitTestTimer()
 atexit.register(timer.print_stats)
 
+nb_tk_accesses = 0
 
 @timer.clock_func("setUpModule")
 def setUpModule():
@@ -281,6 +284,9 @@ class TankTestBase(unittest.TestCase):
         # project level config directories
         self.project_config = None
 
+        self._tk = None
+        self._pipeline_configuration = None
+
         # path to the tk-core repo root point
         self.tank_source_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
@@ -293,6 +299,7 @@ class TankTestBase(unittest.TestCase):
         self.fixtures_root = os.environ["TK_TEST_FIXTURES"]
 
         self._tear_down_called = False
+        self._has_accessed_tk = False
 
     def __str__(self):
         """
@@ -493,10 +500,6 @@ class TankTestBase(unittest.TestCase):
             roots_file.write(yaml.dump(roots))
             roots_file.close()
 
-        if self._do_io:
-            self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
-            self.tk = tank.Tank(self.pipeline_configuration)
-
         # set up mockgun and make sure shotgun connection calls route via mockgun
         self.mockgun = mockgun.Shotgun("http://unit_test_mock_sg", "mock_user", "mock_key")
         # fake a version response from the server
@@ -528,6 +531,28 @@ class TankTestBase(unittest.TestCase):
         # back up the authenticated user in case a unit test doesn't clean up correctly.
         self._authenticated_user = sgtk.get_authenticated_user()
 
+    @property
+    def pipeline_configuration(self):
+        if self._pipeline_configuration is None:
+            self._pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
+        return self._pipeline_configuration
+
+    @pipeline_configuration.setter
+    def pipeline_configuration(self, pipeline_configuration):
+        self._pipeline_configuration = pipeline_configuration
+
+    @property
+    def tk(self):
+        self._has_accessed_tk = True
+        if self._tk is None:
+            self._tk = tank.Tank(self.pipeline_configuration)
+        return self._tk
+
+    @tk.setter
+    def tk(self, tk):
+        self._has_accessed_tk = True
+        self._tk = tk
+
     def _mock_return_value(self, to_mock, return_value):
         """
         Mocks a method with to return a specified return value.
@@ -554,6 +579,10 @@ class TankTestBase(unittest.TestCase):
         """
         Cleans up after tests.
         """
+        if self._has_accessed_tk:
+            global nb_tk_accesses
+            nb_tk_accesses += 1
+
         self._tear_down_called = True
         try:
             sgtk.set_authenticated_user(self._authenticated_user)
