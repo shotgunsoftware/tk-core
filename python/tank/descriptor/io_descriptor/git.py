@@ -228,7 +228,7 @@ class IODescriptorGit(IODescriptorDownloadable):
                     )
 
                     # note: it seems on windows, the result is sometimes wrapped in single quotes.
-                    output = output.strip().strip(six.ensure_binary("'"))
+                    output = output.strip().strip("'")
 
                 except SubprocessCalledProcessError as e:
                     raise TankGitError(
