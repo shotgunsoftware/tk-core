@@ -283,9 +283,12 @@ class TankTestBase(unittest.TestCase):
         self.alt_root_2 = None
         # project level config directories
         self.project_config = None
+        self.__pipeline_config_root_folder_created = False
 
-        self._tk = None
-        self._pipeline_configuration = None
+        self.__pipeline_config_root = None
+
+        self.__tk = None
+        self.__pipeline_configuration = None
 
         # path to the tk-core repo root point
         self.tank_source_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
@@ -434,7 +437,7 @@ class TankTestBase(unittest.TestCase):
 
         self.project_root = os.path.join(self.tank_temp, self.project["tank_name"].replace("/", os.path.sep))
 
-        self.pipeline_config_root = os.path.join(self.tank_temp, "pipeline_configuration")
+        self.__pipeline_config_root = os.path.join(self.tank_temp, "pipeline_configuration")
 
         if self._do_io:
             # move away previous data
@@ -442,63 +445,19 @@ class TankTestBase(unittest.TestCase):
 
             # create new structure
             os.makedirs(self.project_root)
-            os.makedirs(self.pipeline_config_root)
-
-            # # copy tank util scripts
-            shutil.copy(
-                os.path.join(self.tank_source_path, "setup", "root_binaries", "tank"),
-                os.path.join(self.pipeline_config_root, "tank")
-            )
-            shutil.copy(
-                os.path.join(self.tank_source_path, "setup", "root_binaries", "tank.bat"),
-                os.path.join(self.pipeline_config_root, "tank.bat")
-            )
 
         # project level config directories
-        self.project_config = os.path.join(self.pipeline_config_root, "config")
+        self.project_config = os.path.join(self.__pipeline_config_root, "config")
 
         # define entity for pipeline configuration
         self.sg_pc_entity = {"type": "PipelineConfiguration",
                              "code": "Primary",
                              "id": 123,
                              "project": self.project,
-                             "windows_path": self.pipeline_config_root,
-                             "mac_path": self.pipeline_config_root,
-                             "linux_path": self.pipeline_config_root}
+                             "windows_path": self.__pipeline_config_root,
+                             "mac_path": self.__pipeline_config_root,
+                             "linux_path": self.__pipeline_config_root}
 
-        # add files needed by the pipeline config
-        pc_yml = os.path.join(self.pipeline_config_root, "config", "core", "pipeline_configuration.yml")
-        pc_yml_data = ("{ project_name: %s, use_shotgun_path_cache: true, pc_id: %d, "
-                       "project_id: %d, pc_name: %s}\n\n" % (self.project["tank_name"],
-                                                             self.sg_pc_entity["id"],
-                                                             self.project["id"],
-                                                             self.sg_pc_entity["code"]))
-        if self._do_io:
-            self.create_file(pc_yml, pc_yml_data)
-
-        loc_yml = os.path.join(self.pipeline_config_root, "config", "core", "install_location.yml")
-        loc_yml_data = "Windows: '%s'\nDarwin: '%s'\nLinux: '%s'" % (
-            self.pipeline_config_root, self.pipeline_config_root, self.pipeline_config_root
-        )
-        if self._do_io:
-            self.create_file(loc_yml, loc_yml_data)
-
-        # inject this file which toolkit is probing for to determine
-        # if an installation has been localized.
-        localize_token_file = os.path.join(self.pipeline_config_root, "install", "core", "_core_upgrader.py")
-        if self._do_io:
-            self.create_file(localize_token_file, "foo bar")
-
-        roots = {self.primary_root_name: {}}
-        for os_name in ["windows_path", "linux_path", "mac_path"]:
-            # TODO make os specific roots
-            roots[self.primary_root_name][os_name] = self.tank_temp
-
-        if self._do_io:
-            roots_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")
-            roots_file = open(roots_path, "w")
-            roots_file.write(yaml.dump(roots))
-            roots_file.close()
 
         # set up mockgun and make sure shotgun connection calls route via mockgun
         self.mockgun = mockgun.Shotgun("http://unit_test_mock_sg", "mock_user", "mock_key")
@@ -532,26 +491,77 @@ class TankTestBase(unittest.TestCase):
         self._authenticated_user = sgtk.get_authenticated_user()
 
     @property
+    def pipeline_config_root(self):
+        if self.__pipeline_config_root_folder_created is False:
+            os.makedirs(self.__pipeline_config_root)
+
+            # # copy tank util scripts
+            shutil.copy(
+                os.path.join(self.tank_source_path, "setup", "root_binaries", "tank"),
+                os.path.join(self.__pipeline_config_root, "tank")
+            )
+            shutil.copy(
+                os.path.join(self.tank_source_path, "setup", "root_binaries", "tank.bat"),
+                os.path.join(self.__pipeline_config_root, "tank.bat")
+            )
+
+            # add files needed by the pipeline config
+            pc_yml = os.path.join(self.__pipeline_config_root, "config", "core", "pipeline_configuration.yml")
+            pc_yml_data = ("{ project_name: %s, use_shotgun_path_cache: true, pc_id: %d, "
+                           "project_id: %d, pc_name: %s}\n\n" % (self.project["tank_name"],
+                                                                 self.sg_pc_entity["id"],
+                                                                 self.project["id"],
+                                                                 self.sg_pc_entity["code"]))
+
+            self.create_file(pc_yml, pc_yml_data)
+
+            loc_yml = os.path.join(self.__pipeline_config_root, "config", "core", "install_location.yml")
+            loc_yml_data = "Windows: '%s'\nDarwin: '%s'\nLinux: '%s'" % (
+                self.__pipeline_config_root, self.__pipeline_config_root, self.__pipeline_config_root
+            )
+
+            self.create_file(loc_yml, loc_yml_data)
+
+            # inject this file which toolkit is probing for to determine
+            # if an installation has been localized.
+            localize_token_file = os.path.join(self.__pipeline_config_root, "install", "core", "_core_upgrader.py")
+            self.create_file(localize_token_file, "foo bar")
+
+            roots = {self.primary_root_name: {}}
+            for os_name in ["windows_path", "linux_path", "mac_path"]:
+                # TODO make os specific roots
+                roots[self.primary_root_name][os_name] = self.tank_temp
+
+            roots_path = os.path.join(self.__pipeline_config_root, "config", "core", "roots.yml")
+            with open(roots_path, "w") as roots_file:
+                roots_file.write(yaml.dump(roots))
+
+            self.__pipeline_config_root_folder_created = True
+
+        return self.__pipeline_config_root
+
+
+    @property
     def pipeline_configuration(self):
-        if self._pipeline_configuration is None:
-            self._pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
-        return self._pipeline_configuration
+        if self.__pipeline_configuration is None:
+            self.__pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
+        return self.__pipeline_configuration
 
     @pipeline_configuration.setter
     def pipeline_configuration(self, pipeline_configuration):
-        self._pipeline_configuration = pipeline_configuration
+        self.__pipeline_configuration = pipeline_configuration
 
     @property
     def tk(self):
         self._has_accessed_tk = True
-        if self._tk is None:
-            self._tk = tank.Tank(self.pipeline_configuration)
-        return self._tk
+        if self.__tk is None:
+            self.__tk = tank.Tank(self.pipeline_configuration)
+        return self.__tk
 
     @tk.setter
     def tk(self, tk):
         self._has_accessed_tk = True
-        self._tk = tk
+        self.__tk = tk
 
     def _mock_return_value(self, to_mock, return_value):
         """
@@ -588,7 +598,7 @@ class TankTestBase(unittest.TestCase):
             sgtk.set_authenticated_user(self._authenticated_user)
 
             # get rid of path cache from local ~/.shotgun storage
-            if self._do_io:
+            if self.__tk is not None:
                 pc = path_cache.PathCache(self.tk)
                 path_cache_file = pc._get_path_cache_location()
                 pc.close()
@@ -1003,7 +1013,7 @@ class TankTestBase(unittest.TestCase):
         """
         Calls _move_data for all project roots.
         """
-        _move_data(self.pipeline_config_root)
+        _move_data(self.__pipeline_config_root)
         _move_data(self.project_root)
         _move_data(self.alt_root_1)
         _move_data(self.alt_root_2)
