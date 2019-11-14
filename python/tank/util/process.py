@@ -63,6 +63,10 @@ def subprocess_check_output(*popenargs, **kwargs):
     if is_windows():
         process.stdin.close()
     output, unused_err = process.communicate()
+    # It's okay to expect a string out of subprocess. We're only calling this tool
+    # to retrieve text from the console to parse it and not binary, so for our
+    # use case converting to a str will always make case and simplifies
+    # the caller's logic.
     output = six.ensure_str(output)
     retcode = process.poll()
 

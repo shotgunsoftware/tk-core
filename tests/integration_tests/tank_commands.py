@@ -248,7 +248,7 @@ class TankCommands(SgtkIntegrationTest):
         # command will try to cache. The problem with those files is that some
         # of them are purposefully corrupted so they will crash the caching.
         shutil.rmtree(os.path.join(self.pipeline_location, "install", "core", "tests"))
-        output = self.run_tank_cmd(self.pipeline_location, "cache_yaml")
+        self.run_tank_cmd(self.pipeline_location, "cache_yaml")
 
         yaml_cache.g_yaml_cache = yaml_cache.YamlCache()
         self.assertEqual(yaml_cache.g_yaml_cache.get_cached_items(), [])

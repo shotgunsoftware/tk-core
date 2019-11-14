@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Shotgun Software Inc.
+# Copyright (c) 2019 Shotgun Software Inc.
 # 
 # CONFIDENTIAL AND PROPRIETARY
 # 
@@ -31,13 +31,20 @@ class TestProcess(TestCase):
 
         )
     
-    def test_successfull_run(self):
+    def test_successful_run(self):
+        """
+        Ensure a successful run will return stdout and stderr and return 0
+        """
         self.assertEqual(
             self._run_python_cmd(0),
             "Hello world from stdoutHello world from stderr"
         )
 
     def test_failed_run(self):
+        """
+        Ensure a failed run will return stdout and stderr and return the
+        expected error code.
+        """
         try:
             self._run_python_cmd(2)
         except process.SubprocessCalledProcessError as e:

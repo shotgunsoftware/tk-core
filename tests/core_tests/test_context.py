@@ -791,7 +791,9 @@ class TestAsTemplateFields(TestContext):
         self.assertEqual("Seq", result["Sequence"])
         self.assertEqual("shot_code", result["Shot"])
 
-    # Tracked in SG-12552
+    # It seems like Python 2.7.16+ is a bit less comfortable with paths with the wrong orientation
+    # for the slashes, so we'll generate test data that is more conforming to the current platform.
+    # This isn't an issue in the real world, as we always sanitize our inputs.
     @patch("tank.context.Context._get_project_roots", return_value=["{0}{0}foo{0}bar".format(os.path.sep)])
     @patch("tank.context.Context.entity_locations", new_callable=PropertyMock(return_value=["{0}{0}foo{0}bar{0}baz".format(os.path.sep)]))
     def test_fields_from_entity_paths_with_unc_project_root(self, *args):
@@ -1123,6 +1125,10 @@ class TestSerialize(TestContext):
         )
 
     def test_dict_cleanup(self):
+        """
+        Ensure that archived dictionaries only contain relevant information
+        about the entity, notably, type, id and name relevant fields.
+        """
         self.kws["project"]["created_at"] = datetime.datetime.now()
         self.kws["entity"]["created_at"] = datetime.datetime.now()
         self.kws["entity"]["name"] = "shot_name"
@@ -1144,8 +1150,8 @@ class TestSerialize(TestContext):
 
         ctx = context.Context(**self.kws)
 
-        # Now the object is clean, we should be able to serialize/unserialize
-        # it properly.
+        # Serialize/deserialize the object, we should have only kept type,
+        # id and name-related fields.
         ctx = context.deserialize(ctx.serialize())
         self.assertEqual(ctx.to_dict(), expected)
 

@@ -374,11 +374,7 @@ class ProjectSetupParameters(object):
             raise TankError("Please specify a configuration template!")
 
         if storage_name not in self._storage_data:
-            raise TankError(
-                "Configuration template does not contain a storage with name '%s'. Available names are: %s" % (
-                    storage_name, ", ".join("'%s'" % name for name in self._storage_data)
-                )
-            )
+            raise TankError("Configuration template does not contain a storage with name '%s'!" % storage_name)
 
         return self._storage_data.get(storage_name).get(sgsix.normalize_platform(platform))
 

@@ -30,6 +30,7 @@ import sgtk
 from sgtk.util import sgre as re
 from sgtk.util.filesystem import safe_delete_folder, safe_delete_file
 from tank_vendor.shotgun_api3.lib import six, sgsix
+from tank_vendor import yaml
 
 
 class SgtkIntegrationTest(unittest2.TestCase):
@@ -91,6 +92,20 @@ class SgtkIntegrationTest(unittest2.TestCase):
         cls.user = user
         cls.sg = user.create_sg_connection()
 
+        # Write the credentials to disk instead of passing them as arguments
+        # on the command line to avoid them being printed on screen in CI. Let's not
+        # trust the filtering on those.
+        cls.shotgun_credentials_file = os.path.join(cls.temp_dir, "sg_credentials.txt")
+        with open(cls.shotgun_credentials_file, "wt") as fh:
+            yaml.safe_dump(
+                {
+                    "script-name": os.environ["SHOTGUN_SCRIPT_NAME"],
+                    "script-key": os.environ["SHOTGUN_SCRIPT_KEY"]
+                },
+                fh
+            )
+        atexit.register(cls._clean_credentials)
+
         # Advertise the temporary directory and root of the tk-core repo
         cls.tk_core_repo_root = os.path.normpath(
             os.path.join(
@@ -142,6 +157,19 @@ class SgtkIntegrationTest(unittest2.TestCase):
         safe_delete_folder(cls.temp_dir)
 
     @classmethod
+    def _clean_credentials(cls):
+        """
+        Called to remove the shotgun credentials file.
+        """
+        # This file might have already been deleted if _cleanup_temp_dir
+        # has already run.
+        #
+        # One reason for cleanup temp dir to not have been called is if
+        # test coverage was turned on.
+        if os.path.exists(cls.shotgun_credentials_file):
+            safe_delete_file(cls.shotgun_credentials_file)
+
+    @classmethod
     def _create_unique_name(cls, name):
         """
         Returns a name that can be unique for the environment the test is running in.
@@ -166,7 +194,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
 
         :returns: Entity dictionary of the project.
         """
-        return cls.create_or_find_entity("Project", "Testing: %s" % name, entity)
+        return cls.create_or_find_entity("Project", "tk-core CI - %s" % name, entity)
 
     @classmethod
     def create_or_find_entity(cls, entity_type, name, entity_fields=None):
@@ -232,43 +260,56 @@ class SgtkIntegrationTest(unittest2.TestCase):
         Runs the tank command.
 
         :param str location: Folder that contains the tank command.
-        :param list cmd_line_arguments: List of arguments for the command line.
-        :param list user_input: List of answers to provide to provide to the tank command prompt.
+        :param str cmd_name: Name of the Toolkit command. Can be ``None``.
+        :param dict context: Shotgun entity dictionary with keys ``type`` and ``id``.
+        :param list(str) extra_cmd_line_arguments: List of extra command line arguments. Empty by default.
+        :param list user_input: List of answers to provide to provide to the tank command prompt. Empty by default.
             Each entry will be followed by a \n automatically.
-        :param int timeout: Timeout for the subprocess in seconds.
+        :param int timeout: Timeout for the subprocess in seconds. Defaults to 120 seconds.
 
         :raises Exception: Raised then timeout occurs or when the subprocess does not return 0.
+
+        The command line argument will be generated as:
+
+            tank [context["type"] context["id"]] [cmd_name] [extra_cmd_line_arguments]
         """
-        # Take each command line arguments and make a string out of them.
+        # The tank command line accepts argument in the following order:
+        # tank <optional entity type> <optional entity id> <optional command name> <optional arguments>
+        # For example: tank Asset Alice folders
+        #
+        # We'll build the command line arguments for the tank command backwards.
+        # First, add the tailing arguments to the list of arguments.
         if extra_cmd_line_arguments is not None:
             cmd_line_arguments = list(extra_cmd_line_arguments)
         else:
             cmd_line_arguments = []
 
+        # If a command name was specified, we'll add it.
         if cmd_name is not None:
             cmd_line_arguments = [cmd_name] + cmd_line_arguments
 
+        # If a context was specified, add it.
         if context is not None:
             self.assertEqual(
                 len(context), 2,
-                "context needs to be 2 arguments: Entity type or entity name/id"
+                "context needs to be 2 arguments: Entity type and id"
             )
             cmd_line_arguments = [context[0], context[1]] + cmd_line_arguments
         
+        # Turn every command line arguments to strings.
         cmd_line_arguments = [str(arg) for arg in cmd_line_arguments]
 
         # Take each input and turn it into a string with a \n at the end.
-        user_input = user_input or ()
-        user_input = tuple(user_input)
+        user_input = tuple(user_input) if user_input else tuple()
         user_input = ("%s\n" * len(user_input)) % user_input
 
-        # Do not invoke the tank shell script. This causes issues when trying to timeout the subprocess
-        # because killing the shell script does not terminate the python subprocess, so we want
-        # to launch the python interpreter directly.
+        # Do not invoke the tank shell (tank.bat or tank.sh) script directly. This causes
+        # issues when trying to timeout the subprocess because killing the shell script
+        # does not terminate the python subprocess.
+        #
+        # Therefore, we'll have to replicate the logic from the tank shell script.
 
-        # For this, we'll have to replicate the logic from the tank shell script.
-
-        # Check if this is a shared core.
+        # Check if this is a shared core and figure out the core location.
         core_cfg_map = {"linux2": "core_Linux.cfg", "win32": "core_Windows.cfg", "darwin": "core_Darwin.cfg"}
         core_location_file = os.path.join(location, "install", "core", core_cfg_map[sgsix.platform])
         if os.path.exists(core_location_file):
@@ -277,7 +318,8 @@ class SgtkIntegrationTest(unittest2.TestCase):
         else:
             core_location = location
 
-
+        # If we want test coverage, invoke the coverage module in parallel-mode instead of simply
+        # invoking the script.
         if "SHOTGUN_TEST_COVERAGE" in os.environ:
             launcher = [sys.executable, "-m", "coverage", "run", "--parallel-mode"]
         else:
@@ -289,8 +331,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
             # The script always expects as the first param the tk-core is installed
             core_location,
             # Then pass the credentials to run silently the command.
-            "--script-name=%s" % os.environ["SHOTGUN_SCRIPT_NAME"],
-            "--script-key=%s" % os.environ["SHOTGUN_SCRIPT_KEY"],
+            "--credentials-file=%s" % self.shotgun_credentials_file,
             # Finally pass the user requested
         ] + list(cmd_line_arguments)
 
@@ -340,6 +381,8 @@ class SgtkIntegrationTest(unittest2.TestCase):
         """
         Clocks the time it takes to run the subprocess and prints out the return code
         and how much time it took to run.
+
+        The output of the method will be stored in self._stdout.
         """
         before = time.time()
         try:

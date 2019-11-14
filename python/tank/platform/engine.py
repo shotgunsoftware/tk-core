@@ -1054,6 +1054,10 @@ class Engine(TankBundle):
         # to highlight this state. This is used by the tank_command
         # execution logic to correctly dispatch the callback during
         # runtime.
+        # getargspec has been deprecated in Python 3 and generates a copious
+        # amount of warnings, so use getfullargspec which is backwards
+        # compatible in Python 3. Unfortunately, it doesn't exist in Python
+        # 2 and six doesn't offer a wrapper for it.
         if six.PY2:
             arg_spec = inspect.getargspec(callback)
         else:
