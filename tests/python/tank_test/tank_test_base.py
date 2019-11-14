@@ -601,10 +601,6 @@ class TankTestBase(unittest.TestCase):
         """
         Cleans up after tests.
         """
-        if self._has_accessed_tk:
-            global nb_tk_accesses
-            nb_tk_accesses += 1
-
         self._tear_down_called = True
         try:
             sgtk.set_authenticated_user(self._authenticated_user)
@@ -1129,7 +1125,4 @@ class ShotgunTestBase(TankTestBase):
 
     @timer.clock_func("ShotgunTestBase.tearDown")
     def tearDown(self):
-        """
-        Tears down tests.
-        """
         self._tearDown()

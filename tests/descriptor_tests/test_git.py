@@ -65,7 +65,7 @@ class TestGitIODescriptor(ShotgunTestBase):
         }
 
         desc = self._create_desc(location_dict, True)
-        self.assertEqual(desc.version, "v0.18.2")
+        self.assertEqual(desc.version, "v0.16.1")
 
     @skip_if_git_missing
     def test_tag(self):
@@ -78,10 +78,22 @@ class TestGitIODescriptor(ShotgunTestBase):
 
         desc = self._create_desc(location_dict)
 
+        self.assertIsNone(desc.find_latest_cached_version())
+
         self.assertEqual(desc.version, "v0.16.0")
         self.assertEqual(desc.get_path(), None)
 
         desc.ensure_local()
+
+        self.assertEqual(
+            desc.find_latest_cached_version().version,
+            "v0.16.0"
+        )
+
+        self.assertIsNone(
+            desc.find_latest_cached_version("v0.18.x")
+        )
+
 
         self.assertEqual(
             desc.get_path(),
@@ -90,14 +102,24 @@ class TestGitIODescriptor(ShotgunTestBase):
 
         latest_desc = desc.find_latest_version()
 
-        self.assertEqual(latest_desc.version, "v0.18.2")
+        self.assertEqual(latest_desc.version, "v0.16.1")
         self.assertEqual(latest_desc.get_path(), None)
 
         latest_desc.ensure_local()
 
         self.assertEqual(
+            latest_desc.find_latest_cached_version().version,
+            "v0.16.1"
+        )
+
+        self.assertEqual(
+            latest_desc.find_latest_cached_version("v0.16.x").version,
+            "v0.16.1"
+        )
+
+        self.assertEqual(
             latest_desc.get_path(),
-            os.path.join(self.bundle_cache, "git", "tk-config-default.git", "v0.18.2")
+            os.path.join(self.bundle_cache, "git", "tk-config-default.git", "v0.16.1")
         )
 
         latest_desc = desc.find_latest_version("v0.15.x")

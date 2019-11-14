@@ -151,7 +151,7 @@ class TankCommands(SgtkIntegrationTest):
             self.project["id"],
             "tankcommandtest",
             self.pipeline_location,
-            force=True,
+            force=True
         )
 
     def test_03_03_setup_project_from_git(self):

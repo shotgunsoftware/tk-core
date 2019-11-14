@@ -460,15 +460,13 @@ class TestPyYamlParser(TankTestBase):
 
         # get environment content before
         env_file = os.path.join(self.project_config, "env", "test.yml")
-        fh = open(env_file)
-        updated_env = fh.readlines()
-        fh.close()
+        with open(env_file) as fh:
+            updated_env = fh.readlines()
 
         # get raw environment after
         env_file = os.path.join(self.project_config, "env", "post_update", "test_post_update_old_parser.yml")
-        fh = open(env_file)
-        expected_env = fh.readlines()
-        fh.close()
+        with open(env_file) as fh:
+            expected_env = fh.readlines()
 
         # because floats are rendered differently on different versions of
         # python, replace the FLOAT_VALUE keyword in the expected fixture

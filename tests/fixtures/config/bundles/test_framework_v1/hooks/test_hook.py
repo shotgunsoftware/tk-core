@@ -1,4 +1,4 @@
-# Copyright (c) 2019 Shotgun Software Inc.
+# Copyright (c) 2018 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -8,10 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-# Handle line endings automatically for files detected as text
-# and leave all files detected as binary untouched.
-* text=auto
+"""
+Hook which chooses an environment file to use based on the current context.
+This file is almost always overridden by a configuration.
+"""
 
-# Force the following filetypes to have unix eols, so Windows does not break them
-*.pickle text eol=lf
-**/packed-refs text eol=lf
+from tank import get_hook_baseclass
+
+
+class TestHook(get_hook_baseclass()):
+    def execute(self, dummy_param):
+        return True
