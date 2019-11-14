@@ -11,12 +11,6 @@ frameworks:
             # the dependency and not from the descriptor.
             path: '{CONFIG_FOLDER}/bundles/test_framework_v1'
             version: v1.0.0
-    test_framework_v3.x.x:
-        location:
-            type: dev
-            # This one is actually missing from disk.
-            path: '{CONFIG_FOLDER}/bundles/test_framework_v3'
-            version: v3.0.0
 
 engines:
   # this is a comment after the engines section
@@ -56,7 +50,6 @@ engines:
                 test_hook_engine: "{engine}/foo/bar.py"
                 test_hook_framework: "{test_framework_v1.x.x}/test_hook.py"
                 test_hook_unknown_framework: "{test_framework_v2.x.x}/test_hook.py"
-                test_hook_missing_framework: "{test_framework_v3.x.x}/test_hook.py"
 
                 test_hook_inheritance_1: "{self}/inheritance1.py"
                 test_hook_inheritance_2: "{config}/inherit.py"
