@@ -51,7 +51,7 @@ class OfflineWorkflow(SgtkIntegrationTest):
                 "path": os.path.join(
                     os.path.dirname(__file__),
                     "data",
-                    "simple_config"
+                    "site_config"
                 )
             }
         )
