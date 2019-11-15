@@ -21,7 +21,7 @@ import shutil
 
 import unittest2
 from mock import Mock, patch
-from tank.util import is_linux, is_macos, is_windows
+from tank.util import is_linux, is_macos, is_windows, filesystem
 from tank.util import yaml_cache, zip
 
 from sgtk_integration_test import SgtkIntegrationTest
@@ -46,6 +46,9 @@ class TankCommands(SgtkIntegrationTest):
 
         # Create a sandbox project for this this suite to run under.
         cls.project = cls.create_or_find_project("TankCommandsTest", {})
+        cls.asset = cls.create_or_find_entity("Asset", "Test", {"project": cls.project, "sg_asset_type": "Prop"})
+        step = cls.sg.find_one("Step", [["code", "is", "Model"]])
+        cls.task = cls.create_or_find_entity("Task", "Test", {"entity": cls.asset, "step": step, "project": cls.project})
 
     def test_01_setup_legacy_bootstrap_core(self):
         """
@@ -195,7 +198,7 @@ class TankCommands(SgtkIntegrationTest):
         configurations will be able to match the project nonetheless.
         """
         self.run_tank_cmd(
-            self.shared_core_location, None, ("Project", self.project["id"])
+            self.shared_core_location, None, context=self.project
         )
 
     def test_05_tank_updates(self):
@@ -319,102 +322,48 @@ class TankCommands(SgtkIntegrationTest):
         output = self.run_tank_cmd(self.pipeline_location, "upgrade_folders")
         self.assertRegex(output, r"Looks like syncing is already turned on! Nothing to do!")
 
-    def test_13_preview_folders(self):
-        """
-        Runs tank object on the project.
-        """
-        output = self.run_tank_cmd(self.pipeline_location, "preview_folders")
-        # Validate preview_folders output
-        self.assertRegex(output, r"In total, 7 folders were processed.")
-        self.assertRegex(output, r"Note - this was a preview and no actual folders were created.")
-
-        # Validate that folders from the output are the expected ones
-        expected_items = set(
+    def _get_expected_folders(self):
+        return set(
             [
                 path.replace("/", os.path.sep)
                 for path in [
                     "/tankcommandtest",
-                    "/tankcommandtest/assets",
+                    "/tankcommandtest/scenes",
+                    "/tankcommandtest/sequences",
                     "/tankcommandtest/reference",
                     "/tankcommandtest/reference/artwork",
                     "/tankcommandtest/reference/footage",
-                    "/tankcommandtest/scenes",
-                    "/tankcommandtest/sequences",
+                    "/tankcommandtest/assets",
+                    "/tankcommandtest/assets/Prop",
+                    "/tankcommandtest/assets/Prop/Test",
+                    "/tankcommandtest/assets/Prop/Test/Model",
+                    "/tankcommandtest/assets/Prop/Test/Model/out",
+                    "/tankcommandtest/assets/Prop/Test/Model/images",
+                    "/tankcommandtest/assets/Prop/Test/Model/publish",
+                    "/tankcommandtest/assets/Prop/Test/Model/review",
+                    "/tankcommandtest/assets/Prop/Test/Model/work",
+                    "/tankcommandtest/assets/Prop/Test/Model/work/snapshots",
                 ]
             ]
         )
 
-        if is_windows():
-            output = output.split("\r\n")
-        else:
-            output = output.split("\n")
-
-        created_folders = []
-
-        for line in output:
-            match = re.match("^ - (.*)$", line)
-            if match is not None:
-                created_folders.append(match.groups()[0])
-
-        items = set(
-            [
-                item.replace(self.local_storage["path"], "")
-                for item in created_folders
-            ]
-        )
-
-        self.assertEqual(expected_items, items)
-
-    def test_14_folders(self):
+    def test_13_cleanup_path_cache(self):
         """
         Runs tank object on the project.
         """
-        output = self.run_tank_cmd(self.pipeline_location, "folders")
-        # Validate preview_folders output
-        # FIXME: Look into why the project root is twice present. Total should be 7 like preview_folders, not 8.
-        # self.assertRegex(output, r"In total, 7 folders were processed.")
 
-        # Validate that folders from the output are the expected ones
-        expected_items = set(
-            [
-                path.replace("/", os.path.sep)
-                for path in [
-                    "/tankcommandtest",
-                    "/tankcommandtest/assets",
-                    "/tankcommandtest/reference",
-                    "/tankcommandtest/reference/artwork",
-                    "/tankcommandtest/reference/footage",
-                    "/tankcommandtest/scenes",
-                    "/tankcommandtest/sequences",
-                ]
-            ]
-        )
+        # Delete all filesystem location from previous test runs to not confuse
+        # path cache related tests.
+        self.local_storage["path"]
+        for fsl in self.sg.find("FilesystemLocation", [["project", "is", self.project]]):
+            self.sg.delete(fsl["type"], fsl["id"])
 
-        if is_windows():
-            output = output.split("\r\n")
-        else:
-            output = output.split("\n")
+        # Remove any files from disk to not confuse the path cache related tests.
+        if os.path.exists(self.local_storage["path"]):
+            filesystem.safe_delete_folder(self.local_storage["path"])
 
-        created_folders = []
+        os.makedirs(self.local_storage["path"])
 
-        for line in output:
-            match = re.match("^ - (.*)$", line)
-            if match is not None:
-                created_folders.append(match.groups()[0])
-
-        items = set(
-            [
-                item.replace(self.local_storage["path"], "")
-                for item in created_folders
-            ]
-        )
-
-        self.assertEqual(expected_items, items)
-
-    def test_15_synchronize_folders(self):
-        """
-        Runs tank object on the project.
-        """
         output = self.run_tank_cmd(
             self.pipeline_location,
             "synchronize_folders",
@@ -423,18 +372,107 @@ class TankCommands(SgtkIntegrationTest):
         self.assertRegex(output, r"Doing a full sync.")
         self.assertRegex(output, r"Local folder information has been synchronized.")
 
-    def test_16_unregister_folders(self):
+    def _parse_filenames(self, output):
+        # Validate that folders from the output are the expected ones
+        if is_windows():
+            output = output.split("\r\n")
+        else:
+            output = output.split("\n")
+
+        folders = []
+
+        for line in output:
+            match = re.match("^ - (.*)$", line)
+            if match is not None:
+                folders.append(match.groups()[0])
+
+        return set(
+            [
+                item.replace(self.local_storage["path"], "")
+                for item in folders
+            ]
+        )
+
+    def test_14_preview_folders(self):
+        """
+        Runs tank object on the project.
+        """
+
+        output = self.run_tank_cmd(self.pipeline_location, "preview_folders", context=self.task)
+
+        expected_folders = self._get_expected_folders()
+
+        # Validate preview_folders output
+        self.assertRegex(output, "In total, %s folders were processed." % len(expected_folders))
+        self.assertRegex(output, r"Note - this was a preview and no actual folders were created.")
+        self.assertEqual(expected_folders, self._parse_filenames(output))
+
+    def test_15_folders(self):
+        """
+        Runs tank object on the project.
+        """
+        fsl = self.sg.find("FilesystemLocation", [["project", "is", self.project]])
+        self.assertEqual(len(fsl), 0)
+
+        output = self.run_tank_cmd(self.pipeline_location, "folders", context=self.task)
+
+        # Validate that folders from the output are the expected ones
+        expected_folders = self._get_expected_folders()
+
+        # Validate preview_folders output
+        self.assertRegex(output, "In total, %s folders were processed." % len(expected_folders))
+        self.assertEqual(expected_folders, self._parse_filenames(output))
+
+        fsl = self.sg.find("FilesystemLocation", [["project", "is", self.project]])
+        # 3 Filesystem Locations exist.
+        # One for the project
+        # One for the asset
+        # One for the step.
+        self.assertEqual(len(fsl), 3)
+
+    def test_16_unregister_folders_entity(self):
         """
         Runs tank object on the project.
         """
         output = self.run_tank_cmd(
             self.pipeline_location,
             "unregister_folders",
-            extra_cmd_line_arguments=["--all"],
+            context=self.asset,
             user_input=["Yes"]
         )
-        self.assertRegex(output, r"This will unregister all folders for the project.")
-        self.assertRegex(output, r"Unregister complete. 1 paths were unregistered.")
+        expected_folders = set([
+            "/tankcommandtest/assets/Prop/Test".replace("/", os.path.sep),
+            "/tankcommandtest/assets/Prop/Test/Model".replace("/", os.path.sep)
+        ])
+        self.assertRegex(output, r"Unregister complete. 2 paths were unregistered.")
+        self.assertEqual(expected_folders, self._parse_filenames(output))
+
+        fsl = self.sg.find("FilesystemLocation", [["project", "is", self.project]])
+        self.assertEqual(len(fsl), 1)
+
+    def test_17_unregister_folders_all(self):
+        """
+        Runs tank object on the project.
+        """
+        output = self.run_tank_cmd(self.pipeline_location, "folders", context=self.task)
+
+        output = self.run_tank_cmd(
+            self.pipeline_location,
+            "unregister_folders",
+            extra_cmd_line_arguments=("--all",),
+            user_input=["Yes"]
+        )
+        expected_folders = set([
+            "/tankcommandtest".replace("/", os.path.sep),
+            "/tankcommandtest/assets/Prop/Test".replace("/", os.path.sep),
+            "/tankcommandtest/assets/Prop/Test/Model".replace("/", os.path.sep)
+        ])
+        self.assertRegex(output, r"Unregister complete. 3 paths were unregistered.")
+        self.assertEqual(expected_folders, self._parse_filenames(output))
+
+        fsl = self.sg.find("FilesystemLocation", [["project", "is", self.project]])
+        self.assertEqual(fsl, [])
+        
 
 
 if __name__ == "__main__":

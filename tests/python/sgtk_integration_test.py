@@ -290,11 +290,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
 
         # If a context was specified, add it.
         if context is not None:
-            self.assertEqual(
-                len(context), 2,
-                "context needs to be 2 arguments: Entity type and id"
-            )
-            cmd_line_arguments = [context[0], context[1]] + cmd_line_arguments
+            cmd_line_arguments = [context["type"], context["id"]] + cmd_line_arguments
         
         # Turn every command line arguments to strings.
         cmd_line_arguments = [str(arg) for arg in cmd_line_arguments]
