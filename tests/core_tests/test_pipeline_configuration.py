@@ -277,6 +277,9 @@ class TestConfigLocations(TankTestBase):
         core_root = os.path.join(self.tank_temp, "%s_core" % locality)
         core_install_folder = os.path.join(core_root, "install", "core")
         os.makedirs(core_install_folder)
+
+        # Copy the core info.yml, since the config expects a certain version of
+        # core and the setup project needs to be able to compare versions.
         shutil.copy(
             os.path.join(os.path.dirname(__file__), "..", "..", "info.yml"),
             os.path.join(core_install_folder, "info.yml")

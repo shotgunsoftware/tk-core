@@ -40,6 +40,7 @@ variables:
 jobs:
 - template: build-pipeline.yml@templates
   parameters:
+    # After the tests have run, run the integration tests.
     post_tests_steps:
       - bash: python tests/integration_tests/run_integration_tests.py
         displayName: Run integeration tests
@@ -48,6 +49,7 @@ jobs:
           SHOTGUN_HOST: $(shotgun_site)
           SHOTGUN_SCRIPT_NAME: $(shotgun_script_name)
           SHOTGUN_SCRIPT_KEY: $(shotgun_script_key)
-          # This will create one project per build. It might be a bit excessive.
-          SHOTGUN_TEST_ENTITY_SUFFIX: Azure_Build_$(Build.BuildId)_$(Agent.Name)
+          # Sandbox each test executing based on the Azure agent name. Those are
+          # Azure Pipelines 1-10
+          SHOTGUN_TEST_ENTITY_SUFFIX: '- $(Agent.Name)'
         condition: eq(variables['System.PullRequest.IsFork'], 'False')

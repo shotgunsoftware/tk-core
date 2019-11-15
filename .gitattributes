@@ -14,4 +14,6 @@
 
 # Force the following filetypes to have unix eols, so Windows does not break them
 *.pickle text eol=lf
+# The git executable expects packed-refs to always have LF line endings, even on
+# Windows.
 **/packed-refs text eol=lf

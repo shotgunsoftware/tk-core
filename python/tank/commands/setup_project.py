@@ -639,6 +639,8 @@ class SetupProjectAction(Action):
         storage_names = params.get_required_storages()
         default_storage_name = params.default_storage_name
 
+        # There is no default storage name for a config that doesn't use roots, like
+        # tk-config-basic, so we should skip storage detection.
         if default_storage_name:
             primary_local_path = params.get_storage_path(default_storage_name, sgsix.platform)
         else:

@@ -17,7 +17,6 @@ from __future__ import with_statement
 import datetime
 import os
 import sgtk
-import logging
 from mock import patch
 
 from sgtk.util import ShotgunPath
@@ -51,22 +50,14 @@ class TestSetupProjectWizard(TankTestBase):
             self._storage_locations.as_shotgun_dict(),
         )
 
-        self._logs = []
-
-        def set_progress_callback(msg, percentage):
-            self._logs.append((msg, percentage))
-
         # Prepare the wizard for business. All these methods are actually passing
         # information directly to the SetupProjectParams object inside
         # the wizard, so there's no need to test them per-se.
-        self._wizard.set_progress_callback(set_progress_callback)
         self._wizard.set_project(self.project["id"], force=True)
         self._wizard.set_use_distributed_mode()
 
         self.config_uri = os.path.join(self.fixtures_root, "config")
         self._wizard.set_config_uri(self.config_uri)
-
-        self._logs = []
 
     def test_validate_config_uri(self):
         """
@@ -88,6 +79,7 @@ class TestSetupProjectWizard(TankTestBase):
             # is initialized to these values by default. They are then injected into
             # the result of validate_config_uri. validate_config_uri is expected
             # however to return paths named after sys.platform and not <os>_path.
+            # We can review this once the Python 3 port is done.
             "linux_path": "/studio/projects",
             "mac_path": "/studio/projects",
             "windows_path": "\\\\network\\projects",
@@ -195,7 +187,7 @@ class TestSetupProjectWizard(TankTestBase):
 
     def test_execute(self):
         """
-        Ensure we can write the new project to disk.
+        Ensure we can set up the project.
         """
         self._wizard.set_project_disk_name(self.short_test_name)
         path = ShotgunPath.from_current_os_path(os.path.join(self.tank_temp, self.short_test_name, "pipeline"))

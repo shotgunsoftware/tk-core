@@ -8,6 +8,9 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+# TODO: Once we ship the Python 3 branch to master, we can reformat the
+# code with Black and enable all the disabled checks.
+
 # Styles the code properly
 # Exclude the UI files, as they are auto-generated.
 exclude: "(ui\/.*py$)|(python\/tank_vendor)"
