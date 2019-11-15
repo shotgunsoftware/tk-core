@@ -250,7 +250,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
         }
         complete_pc_data.update(entity_data)
 
-        name = self._create_unique_name(name)
+        name = cls._create_unique_name(name)
         pc = cls.create_or_find_entity("PipelineConfiguration", name)
         return cls.sg.update(pc["type"], pc["id"], complete_pc_data)
 
