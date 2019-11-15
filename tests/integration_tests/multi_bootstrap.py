@@ -64,7 +64,7 @@ class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
         manager = sgtk.bootstrap.ToolkitManager(self.user)
         manager.do_shotgun_config_lookup = False
         manager.base_configuration = "sgtk:descriptor:path?path={0}".format(
-            os.path.normpath(os.path.join(os.path.dirname(__file__), "data", "simple_config"))
+            os.path.normpath(os.path.join(os.path.dirname(__file__), "data", "site_config"))
         )
         manager.caching_policy = sgtk.bootstrap.ToolkitManager.CACHE_SPARSE
         try:
