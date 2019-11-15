@@ -215,11 +215,15 @@ class SgtkIntegrationTest(unittest2.TestCase):
 
         entity_name_field = sgtk.util.get_sg_entity_name_field(entity_type)
 
-        # Find the entity by this name in Shotgun.
-        entity = cls.sg.find_one(
-            entity_type,
-            [[entity_name_field, "is", name]]
-        )
+        filters = [[entity_name_field, "is", name]]
+
+        # Filter by project, as not doing so can mean retrieving an asset with the
+        # same name from another project.
+        if "project" in entity_fields:
+            filters.append(["project", "is", entity_fields["project"]])
+
+        # Find the entity by this name in Shotgun for the specified project, if any.
+        entity = cls.sg.find_one(entity_type, filters)
         # If it doesn't exist, create it!
         if not entity:
             entity_fields[entity_name_field] = name
