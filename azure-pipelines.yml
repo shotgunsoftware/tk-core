@@ -51,5 +51,5 @@ jobs:
           SHOTGUN_SCRIPT_KEY: $(shotgun_script_key)
           # Sandbox each test executing based on the Azure agent name. Those are
           # Azure Pipelines 1-10
-          SHOTGUN_TEST_ENTITY_SUFFIX: '- $(Agent.Name)'
+          SHOTGUN_TEST_ENTITY_SUFFIX: '$(Agent.Name)'
         condition: eq(variables['System.PullRequest.IsFork'], 'False')

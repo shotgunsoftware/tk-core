@@ -98,15 +98,7 @@ class OfflineWorkflow(SgtkIntegrationTest):
         """
 
         # Ensure the project exists.
-        projects = self.sg.find("Project", [["name", "is", self.OFFLINE_WORKFLOW_TEST]])
-        self.assertLessEqual(len(projects), 1)
-        if not projects:
-            project = self.sg.create(
-                "Project",
-                {"name": self.OFFLINE_WORKFLOW_TEST, "tank_name": self.OFFLINE_WORKFLOW_TEST}
-            )
-        else:
-            project = projects[0]
+        project = self.create_or_find_project(self.OFFLINE_WORKFLOW_TEST, {"tank_name": self.OFFLINE_WORKFLOW_TEST})
 
         # Ensure the pipeline configuration exists.
         pcs = self.sg.find("PipelineConfiguration", [["code", "is", "Primary"], ["project", "is", project]])

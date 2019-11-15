@@ -176,7 +176,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
         If SHOTGUN_TEST_ENTITY_SUFFIX environment variable is set, the suffix will be added.
         """
         if "SHOTGUN_TEST_ENTITY_SUFFIX" in os.environ:
-            return "%s_%s" % (name, os.environ["SHOTGUN_TEST_ENTITY_SUFFIX"])
+            return "%s - %s" % (name, os.environ["SHOTGUN_TEST_ENTITY_SUFFIX"])
         else:
             return name
 
