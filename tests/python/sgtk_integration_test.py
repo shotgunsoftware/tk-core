@@ -194,7 +194,8 @@ class SgtkIntegrationTest(unittest2.TestCase):
 
         :returns: Entity dictionary of the project.
         """
-        return cls.create_or_find_entity("Project", "tk-core CI - %s" % name, entity)
+        name = cls._create_unique_name("tk-core CI - %s" % name)
+        return cls.create_or_find_entity("Project", name, entity)
 
     @classmethod
     def create_or_find_entity(cls, entity_type, name, entity_fields=None):
@@ -211,9 +212,6 @@ class SgtkIntegrationTest(unittest2.TestCase):
         :returns: Entity dictionary of the project.
         """
         entity_fields = entity_fields or {}
-
-        # Create a unique name across CI servers if required.
-        name = cls._create_unique_name(name)
 
         entity_name_field = sgtk.util.get_sg_entity_name_field(entity_type)
 
