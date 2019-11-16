@@ -39,10 +39,10 @@ class OfflineWorkflow(SgtkIntegrationTest):
         cls.config_dir = os.path.join(cls.temp_dir, "config")
 
         # Ensure the project exists.
-        cls.project = cls.create_or_find_project(cls.OFFLINE_WORKFLOW_TEST, {"tank_name": cls.OFFLINE_WORKFLOW_TEST})
+        cls.project = cls.create_or_update_project(cls.OFFLINE_WORKFLOW_TEST, {"tank_name": cls.OFFLINE_WORKFLOW_TEST})
 
         # Ensure the pipeline configuration exists.
-        cls.pc = cls.ensure_pipeline_configuration_exists("Primary", {"code": "Primary", "project": cls.project, "plugin_ids": "basic.*"})
+        cls.pc = cls.create_or_update_pipeline_configuration("Primary", {"code": "Primary", "project": cls.project, "plugin_ids": "basic.*"})
 
     def test_01_copy_config_to_test_folder(self):
         """

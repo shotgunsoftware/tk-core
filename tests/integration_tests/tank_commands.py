@@ -45,10 +45,10 @@ class TankCommands(SgtkIntegrationTest):
         cls.pipeline_location = os.path.join(cls.temp_dir, "pipeline")
 
         # Create a sandbox project for this this suite to run under.
-        cls.project = cls.create_or_find_project("TankCommandsTest", {})
-        cls.asset = cls.create_or_find_entity("Asset", "Test", {"project": cls.project, "sg_asset_type": "Prop"})
+        cls.project = cls.create_or_update_project("TankCommandsTest", {})
+        cls.asset = cls.create_or_update_entity("Asset", "Test", {"project": cls.project, "sg_asset_type": "Prop"})
         cls.step = cls.sg.find_one("Step", [["code", "is", "Model"]], ["short_name"])
-        cls.task = cls.create_or_find_entity("Task", "Test", {"entity": cls.asset, "step": cls.step, "project": cls.project})
+        cls.task = cls.create_or_update_entity("Task", "Test", {"entity": cls.asset, "step": cls.step, "project": cls.project})
 
     def test_01_setup_legacy_bootstrap_core(self):
         """

@@ -54,7 +54,7 @@ class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
         super(MultipleBootstrapAcrossCoreSwap, cls).setUpClass()
 
         # Create a sandbox project for this this suite to run under.
-        cls.project = cls.create_or_find_project("MultipleBootstrapAcrossCoreSwap", {})
+        cls.project = cls.create_or_update_project("MultipleBootstrapAcrossCoreSwap", {})
 
     def test_bootstrap_more_than_once(self):
         """

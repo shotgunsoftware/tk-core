@@ -181,7 +181,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
             return name
 
     @classmethod
-    def create_or_find_project(cls, name, entity=None):
+    def create_or_update_project(cls, name, entity=None):
         """
         Creates or finds a project with a given name.
 
@@ -194,11 +194,17 @@ class SgtkIntegrationTest(unittest2.TestCase):
 
         :returns: Entity dictionary of the project.
         """
+        # Ensures only the requested fields are set so we don't confuse the roots
+        # configuration detection.
+        complete_project_data = {
+            "tank_name": None
+        }
+        complete_project_data.update(entity or {})
         name = cls._create_unique_name("tk-core CI - %s" % name)
-        return cls.create_or_find_entity("Project", name, entity)
+        return cls.create_or_update_entity("Project", name, complete_project_data)
 
     @classmethod
-    def create_or_find_entity(cls, entity_type, name, entity_fields=None):
+    def create_or_update_entity(cls, entity_type, name, entity_fields=None):
         """
         Creates of finds an entity with a given name
 
@@ -228,11 +234,14 @@ class SgtkIntegrationTest(unittest2.TestCase):
         if not entity:
             entity_fields[entity_name_field] = name
             entity = cls.sg.create(entity_type, entity_fields)
+        else:
+            # But if it does, make sure it has the right data on it.
+            cls.sg.update(entity_type, entity["id"], entity_fields)
 
         return entity
 
     @classmethod
-    def ensure_pipeline_configuration_exists(cls, name, entity_data):
+    def create_or_update_pipeline_configuration(cls, name, entity_data):
         """
         Ensures a pipeline configuration with the given name exists.
 
@@ -241,7 +250,8 @@ class SgtkIntegrationTest(unittest2.TestCase):
             created or updated.
         """
 
-        # Ensures only the requested fields are set
+        # Ensures only the requested fields are set so we don't confuse the bootstrap
+        # process
         complete_pc_data = {
             "mac_path": "",
             "windows_path": "",
@@ -254,8 +264,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
         }
         complete_pc_data.update(entity_data)
 
-        pc = cls.create_or_find_entity("PipelineConfiguration", name, entity_data)
-        return cls.sg.update(pc["type"], pc["id"], complete_pc_data)
+        return cls.create_or_update_entity("PipelineConfiguration", name, entity_data)
 
     def run_tank_cmd(self, location, cmd_name, context=None, extra_cmd_line_arguments=None, user_input=None, timeout=120):
         """
