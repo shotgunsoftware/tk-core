@@ -47,7 +47,7 @@ class TankCommands(SgtkIntegrationTest):
         # Create a sandbox project for this this suite to run under.
         cls.project = cls.create_or_find_project("TankCommandsTest", {})
         cls.asset = cls.create_or_find_entity("Asset", "Test", {"project": cls.project, "sg_asset_type": "Prop"})
-        cls.step = cls.sg.find_one("Step", [["code", "is", "Model"]], ["short_code"])
+        cls.step = cls.sg.find_one("Step", [["code", "is", "Model"]], ["short_name"])
         cls.task = cls.create_or_find_entity("Task", "Test", {"entity": cls.asset, "step": cls.step, "project": cls.project})
 
     def test_01_setup_legacy_bootstrap_core(self):
@@ -336,13 +336,13 @@ class TankCommands(SgtkIntegrationTest):
                     "/tankcommandtest/assets",
                     "/tankcommandtest/assets/Prop",
                     "/tankcommandtest/assets/Prop/Test",
-                    "/tankcommandtest/assets/Prop/Test/{0}".format(self.step["short_code"]),
-                    "/tankcommandtest/assets/Prop/Test/{0}/out".format(self.step["short_code"]),
-                    "/tankcommandtest/assets/Prop/Test/{0}/images".format(self.step["short_code"]),
-                    "/tankcommandtest/assets/Prop/Test/{0}/publish".format(self.step["short_code"]),
-                    "/tankcommandtest/assets/Prop/Test/{0}/review".format(self.step["short_code"]),
-                    "/tankcommandtest/assets/Prop/Test/{0}/work".format(self.step["short_code"]),
-                    "/tankcommandtest/assets/Prop/Test/{0}/work/snapshots".format(self.step["short_code"]),
+                    "/tankcommandtest/assets/Prop/Test/{0}".format(self.step["short_name"]),
+                    "/tankcommandtest/assets/Prop/Test/{0}/out".format(self.step["short_name"]),
+                    "/tankcommandtest/assets/Prop/Test/{0}/images".format(self.step["short_name"]),
+                    "/tankcommandtest/assets/Prop/Test/{0}/publish".format(self.step["short_name"]),
+                    "/tankcommandtest/assets/Prop/Test/{0}/review".format(self.step["short_name"]),
+                    "/tankcommandtest/assets/Prop/Test/{0}/work".format(self.step["short_name"]),
+                    "/tankcommandtest/assets/Prop/Test/{0}/work/snapshots".format(self.step["short_name"]),
                 ]
             ]
         )
@@ -442,7 +442,7 @@ class TankCommands(SgtkIntegrationTest):
         )
         expected_folders = set([
             "/tankcommandtest/assets/Prop/Test".replace("/", os.path.sep),
-            "/tankcommandtest/assets/Prop/Test/{0}".replace("/", os.path.sep).format(self.step["short_code"])
+            "/tankcommandtest/assets/Prop/Test/{0}".replace("/", os.path.sep).format(self.step["short_name"])
         ])
         self.assertRegex(output, r"Unregister complete. 2 paths were unregistered.")
         self.assertEqual(expected_folders, self._parse_filenames(output))
@@ -465,7 +465,7 @@ class TankCommands(SgtkIntegrationTest):
         expected_folders = set([
             "/tankcommandtest".replace("/", os.path.sep),
             "/tankcommandtest/assets/Prop/Test".replace("/", os.path.sep),
-            "/tankcommandtest/assets/Prop/Test/{0}".replace("/", os.path.sep).format(self.step["short_code"])
+            "/tankcommandtest/assets/Prop/Test/{0}".replace("/", os.path.sep).format(self.step["short_name"])
         ])
         self.assertRegex(output, r"Unregister complete. 3 paths were unregistered.")
         self.assertEqual(expected_folders, self._parse_filenames(output))
