@@ -46,9 +46,15 @@ class TankCommands(SgtkIntegrationTest):
 
         # Create a sandbox project for this this suite to run under.
         cls.project = cls.create_or_update_project("TankCommandsTest", {})
-        cls.asset = cls.create_or_update_entity("Asset", "Test", {"project": cls.project, "sg_asset_type": "Prop"})
+        cls.asset = cls.create_or_update_entity(
+            "Asset", "Test", {"project": cls.project, "sg_asset_type": "Prop"}
+        )
         cls.step = cls.sg.find_one("Step", [["code", "is", "Model"]], ["short_name"])
-        cls.task = cls.create_or_update_entity("Task", "Test", {"entity": cls.asset, "step": cls.step, "project": cls.project})
+        cls.task = cls.create_or_update_entity(
+            "Task",
+            "Test",
+            {"entity": cls.asset, "step": cls.step, "project": cls.project},
+        )
 
     def test_01_setup_legacy_bootstrap_core(self):
         """
@@ -154,7 +160,7 @@ class TankCommands(SgtkIntegrationTest):
             self.project["id"],
             "tankcommandtest",
             self.pipeline_location,
-            force=True
+            force=True,
         )
 
     def test_03_03_setup_project_from_git(self):
@@ -197,9 +203,7 @@ class TankCommands(SgtkIntegrationTest):
         Ensures that running the tank command when there is a site-wide Primary
         configurations will be able to match the project nonetheless.
         """
-        self.run_tank_cmd(
-            self.shared_core_location, None, context=self.project
-        )
+        self.run_tank_cmd(self.shared_core_location, None, context=self.project)
 
     def test_05_tank_updates(self):
         """
@@ -297,30 +301,43 @@ class TankCommands(SgtkIntegrationTest):
         """
         output = self.run_tank_cmd(self.pipeline_location, "validate")
         if "ERROR:" in output:
-            raise ValueError('Getting validation errors.')
+            raise ValueError("Getting validation errors.")
         else:
             self.assertRegex(output, r"Validating Engine project / tk-maya...")
-            self.assertRegex(output, r"Validating project / tk-maya / tk-multi-launchapp...")
-            self.assertRegex(output, r"The following templates are not being used directly in any environments:")
-            self.assertRegex(output, r"The following hooks are not being used directly in any environments:")
+            self.assertRegex(
+                output, r"Validating project / tk-maya / tk-multi-launchapp..."
+            )
+            self.assertRegex(
+                output,
+                r"The following templates are not being used directly in any environments:",
+            )
+            self.assertRegex(
+                output,
+                r"The following hooks are not being used directly in any environments:",
+            )
 
     def test_11_tank_core(self):
         """
         Runs tank object on the project.
         """
-        output = self.run_tank_cmd(
-            self.pipeline_location, "core", user_input=("y")
-        )
+        output = self.run_tank_cmd(self.pipeline_location, "core", user_input=("y"))
         # Since we are using a core branch we can't do a core update.
-        self.assertRegex(output, r"You are currently running version HEAD of the Shotgun Pipeline Toolkit")
-        self.assertRegex(output, r"No need to update the Toolkit Core API at this time!")
+        self.assertRegex(
+            output,
+            r"You are currently running version HEAD of the Shotgun Pipeline Toolkit",
+        )
+        self.assertRegex(
+            output, r"No need to update the Toolkit Core API at this time!"
+        )
 
     def test_12_upgrade_folders(self):
         """
         Runs tank object on the project.
         """
         output = self.run_tank_cmd(self.pipeline_location, "upgrade_folders")
-        self.assertRegex(output, r"Looks like syncing is already turned on! Nothing to do!")
+        self.assertRegex(
+            output, r"Looks like syncing is already turned on! Nothing to do!"
+        )
 
     def _get_expected_folders(self):
         return set(
@@ -336,13 +353,27 @@ class TankCommands(SgtkIntegrationTest):
                     "/tankcommandtest/assets",
                     "/tankcommandtest/assets/Prop",
                     "/tankcommandtest/assets/Prop/Test",
-                    "/tankcommandtest/assets/Prop/Test/{0}".format(self.step["short_name"]),
-                    "/tankcommandtest/assets/Prop/Test/{0}/out".format(self.step["short_name"]),
-                    "/tankcommandtest/assets/Prop/Test/{0}/images".format(self.step["short_name"]),
-                    "/tankcommandtest/assets/Prop/Test/{0}/publish".format(self.step["short_name"]),
-                    "/tankcommandtest/assets/Prop/Test/{0}/review".format(self.step["short_name"]),
-                    "/tankcommandtest/assets/Prop/Test/{0}/work".format(self.step["short_name"]),
-                    "/tankcommandtest/assets/Prop/Test/{0}/work/snapshots".format(self.step["short_name"]),
+                    "/tankcommandtest/assets/Prop/Test/{0}".format(
+                        self.step["short_name"]
+                    ),
+                    "/tankcommandtest/assets/Prop/Test/{0}/out".format(
+                        self.step["short_name"]
+                    ),
+                    "/tankcommandtest/assets/Prop/Test/{0}/images".format(
+                        self.step["short_name"]
+                    ),
+                    "/tankcommandtest/assets/Prop/Test/{0}/publish".format(
+                        self.step["short_name"]
+                    ),
+                    "/tankcommandtest/assets/Prop/Test/{0}/review".format(
+                        self.step["short_name"]
+                    ),
+                    "/tankcommandtest/assets/Prop/Test/{0}/work".format(
+                        self.step["short_name"]
+                    ),
+                    "/tankcommandtest/assets/Prop/Test/{0}/work/snapshots".format(
+                        self.step["short_name"]
+                    ),
                 ]
             ]
         )
@@ -355,7 +386,9 @@ class TankCommands(SgtkIntegrationTest):
         # Delete all filesystem location from previous test runs to not confuse
         # path cache related tests.
         self.local_storage["path"]
-        for fsl in self.sg.find("FilesystemLocation", [["project", "is", self.project]]):
+        for fsl in self.sg.find(
+            "FilesystemLocation", [["project", "is", self.project]]
+        ):
             self.sg.delete(fsl["type"], fsl["id"])
 
         # Remove any files from disk to not confuse the path cache related tests.
@@ -386,25 +419,26 @@ class TankCommands(SgtkIntegrationTest):
             if match is not None:
                 folders.append(match.groups()[0])
 
-        return set(
-            [
-                item.replace(self.local_storage["path"], "")
-                for item in folders
-            ]
-        )
+        return set([item.replace(self.local_storage["path"], "") for item in folders])
 
     def test_14_preview_folders(self):
         """
         Runs tank object on the project.
         """
 
-        output = self.run_tank_cmd(self.pipeline_location, "preview_folders", context=self.task)
+        output = self.run_tank_cmd(
+            self.pipeline_location, "preview_folders", context=self.task
+        )
 
         expected_folders = self._get_expected_folders()
 
         # Validate preview_folders output
-        self.assertRegex(output, "In total, %s folders were processed." % len(expected_folders))
-        self.assertRegex(output, r"Note - this was a preview and no actual folders were created.")
+        self.assertRegex(
+            output, "In total, %s folders were processed." % len(expected_folders)
+        )
+        self.assertRegex(
+            output, r"Note - this was a preview and no actual folders were created."
+        )
         self.assertEqual(expected_folders, self._parse_filenames(output))
 
     def test_15_folders(self):
@@ -420,7 +454,9 @@ class TankCommands(SgtkIntegrationTest):
         expected_folders = self._get_expected_folders()
 
         # Validate preview_folders output
-        self.assertRegex(output, "In total, %s folders were processed." % len(expected_folders))
+        self.assertRegex(
+            output, "In total, %s folders were processed." % len(expected_folders)
+        )
         self.assertEqual(expected_folders, self._parse_filenames(output))
 
         fsl = self.sg.find("FilesystemLocation", [["project", "is", self.project]])
@@ -438,12 +474,16 @@ class TankCommands(SgtkIntegrationTest):
             self.pipeline_location,
             "unregister_folders",
             context=self.asset,
-            user_input=["Yes"]
+            user_input=["Yes"],
         )
-        expected_folders = set([
-            "/tankcommandtest/assets/Prop/Test".replace("/", os.path.sep),
-            "/tankcommandtest/assets/Prop/Test/{0}".replace("/", os.path.sep).format(self.step["short_name"])
-        ])
+        expected_folders = set(
+            [
+                "/tankcommandtest/assets/Prop/Test".replace("/", os.path.sep),
+                "/tankcommandtest/assets/Prop/Test/{0}".replace(
+                    "/", os.path.sep
+                ).format(self.step["short_name"]),
+            ]
+        )
         self.assertRegex(output, r"Unregister complete. 2 paths were unregistered.")
         self.assertEqual(expected_folders, self._parse_filenames(output))
 
@@ -460,19 +500,22 @@ class TankCommands(SgtkIntegrationTest):
             self.pipeline_location,
             "unregister_folders",
             extra_cmd_line_arguments=("--all",),
-            user_input=["Yes"]
+            user_input=["Yes"],
         )
-        expected_folders = set([
-            "/tankcommandtest".replace("/", os.path.sep),
-            "/tankcommandtest/assets/Prop/Test".replace("/", os.path.sep),
-            "/tankcommandtest/assets/Prop/Test/{0}".replace("/", os.path.sep).format(self.step["short_name"])
-        ])
+        expected_folders = set(
+            [
+                "/tankcommandtest".replace("/", os.path.sep),
+                "/tankcommandtest/assets/Prop/Test".replace("/", os.path.sep),
+                "/tankcommandtest/assets/Prop/Test/{0}".replace(
+                    "/", os.path.sep
+                ).format(self.step["short_name"]),
+            ]
+        )
         self.assertRegex(output, r"Unregister complete. 3 paths were unregistered.")
         self.assertEqual(expected_folders, self._parse_filenames(output))
 
         fsl = self.sg.find("FilesystemLocation", [["project", "is", self.project]])
         self.assertEqual(fsl, [])
-        
 
 
 if __name__ == "__main__":
