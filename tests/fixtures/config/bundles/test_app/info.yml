@@ -62,10 +62,6 @@ configuration:
     test_hook_framework:
         type: hook
 
-    test_hook_missing_framework:
-        type: hook
-        default_value: "test_hook"
-
     test_hook_unknown_framework:
         type: hook
         default_value: "test_hook"

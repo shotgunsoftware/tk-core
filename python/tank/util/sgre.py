@@ -17,7 +17,7 @@ some functionality.
 # There seems to be some weird import shenanigans going on in Python 2 that
 # prevents from importing the sgtk.util.re submodule using our meta-path
 # importer. When we try, our meta-path importer is not called for our `re`
-# module and we can an ImportError. Renaming the module to anything else
+# module and we get an ImportError. Renaming the module to anything else
 # works however, so that's what we are doing.
 
 from tank_vendor.shotgun_api3.lib import six

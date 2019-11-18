@@ -347,6 +347,8 @@ class SgtkIntegrationTest(unittest2.TestCase):
         if core_location != location:
             args += ["--pc=%s" % location]
 
+        args += ["--no-line-wrapping"]
+
         # The following is heavily inspired from
         # http://www.ostricher.com/2015/01/python-subprocess-with-timeout/
         # Note: we're not using backported subprocess32 which supports a timeout argument
