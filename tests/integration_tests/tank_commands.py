@@ -207,7 +207,7 @@ class TankCommands(SgtkIntegrationTest):
 
     def test_05_tank_updates(self):
         """
-        Runs tank object on the project.
+        Runs tank updates on the project.
         """
         output = self.run_tank_cmd(
             self.pipeline_location, "updates", user_input=("y", "a")
@@ -217,7 +217,7 @@ class TankCommands(SgtkIntegrationTest):
 
     def test_06_install_engine(self):
         """
-        Runs tank object on the project.
+        Runs tank install on the project.
         """
         output = self.run_tank_cmd(
             self.pipeline_location,
@@ -228,7 +228,7 @@ class TankCommands(SgtkIntegrationTest):
 
     def test_07_install_app(self):
         """
-        Runs tank object on the project.
+        Runs tank install_app on the project.
         """
         output = self.run_tank_cmd(
             self.pipeline_location,
@@ -239,7 +239,7 @@ class TankCommands(SgtkIntegrationTest):
 
     def test_08_app_info(self):
         """
-        Runs tank object on the project.
+        Runs tank app_info on the project.
         """
         output = self.run_tank_cmd(self.pipeline_location, "app_info")
         self.assertEqual(
@@ -249,7 +249,7 @@ class TankCommands(SgtkIntegrationTest):
 
     def test_09_cache_yaml(self):
         """
-        Runs tank object on the project.
+        Runs tank cache_yaml on the project.
         """
         # Strip the test folder, as it contains yaml files which the cache_yaml
         # command will try to cache. The problem with those files is that some
@@ -297,7 +297,7 @@ class TankCommands(SgtkIntegrationTest):
 
     def test_10_validate(self):
         """
-        Runs tank object on the project.
+        Runs tank validate on the project.
         """
         output = self.run_tank_cmd(self.pipeline_location, "validate")
         if "ERROR:" in output:
@@ -318,7 +318,7 @@ class TankCommands(SgtkIntegrationTest):
 
     def test_11_tank_core(self):
         """
-        Runs tank object on the project.
+        Runs tank core on the project.
         """
         output = self.run_tank_cmd(self.pipeline_location, "core", user_input=("y"))
         # Since we are using a core branch we can't do a core update.
@@ -332,7 +332,7 @@ class TankCommands(SgtkIntegrationTest):
 
     def test_12_upgrade_folders(self):
         """
-        Runs tank object on the project.
+        Runs tank upgrade_folders on the project.
         """
         output = self.run_tank_cmd(self.pipeline_location, "upgrade_folders")
         self.assertRegex(
@@ -340,6 +340,10 @@ class TankCommands(SgtkIntegrationTest):
         )
 
     def _get_expected_folders(self):
+        """
+        Returns the list of folders that are expected to be created when we run
+        tank folders/preview_folders with the task created during setUpClass.
+        """
         return set(
             [
                 path.replace("/", os.path.sep)
@@ -380,7 +384,8 @@ class TankCommands(SgtkIntegrationTest):
 
     def test_13_cleanup_path_cache(self):
         """
-        Runs tank object on the project.
+        Cleans up the path cache and filesystem locations so we don't get data from
+        previous test runs.
         """
 
         # Delete all filesystem location from previous test runs to not confuse
@@ -406,6 +411,13 @@ class TankCommands(SgtkIntegrationTest):
         self.assertRegex(output, r"Local folder information has been synchronized.")
 
     def _parse_filenames(self, output):
+        """
+        Extract all the lines that start with " - ", which are all file names.
+
+        :param str output: tank command text output
+
+        :returns: Set of file paths minus the local storage path.
+        """
         # Validate that folders from the output are the expected ones
         if is_windows():
             output = output.split("\r\n")
@@ -423,9 +435,8 @@ class TankCommands(SgtkIntegrationTest):
 
     def test_14_preview_folders(self):
         """
-        Runs tank object on the project.
+        Ensure preview folders returns the right folders to be created.
         """
-
         output = self.run_tank_cmd(
             self.pipeline_location, "preview_folders", context=self.task
         )
@@ -443,7 +454,7 @@ class TankCommands(SgtkIntegrationTest):
 
     def test_15_folders(self):
         """
-        Runs tank object on the project.
+        Ensure folders get created properly.
         """
         fsl = self.sg.find("FilesystemLocation", [["project", "is", self.project]])
         self.assertEqual(len(fsl), 0)
@@ -468,7 +479,8 @@ class TankCommands(SgtkIntegrationTest):
 
     def test_16_unregister_folders_entity(self):
         """
-        Runs tank object on the project.
+        Ensure running tank unregister_folder on an asset will only unregister the asse
+        and step folders.
         """
         output = self.run_tank_cmd(
             self.pipeline_location,
@@ -476,6 +488,7 @@ class TankCommands(SgtkIntegrationTest):
             context=self.asset,
             user_input=["Yes"],
         )
+
         expected_folders = set(
             [
                 "/tankcommandtest/assets/Prop/Test".replace("/", os.path.sep),
@@ -492,7 +505,7 @@ class TankCommands(SgtkIntegrationTest):
 
     def test_17_unregister_folders_all(self):
         """
-        Runs tank object on the project.
+        Ensure unregistering folders without any param will clear all folders.
         """
         output = self.run_tank_cmd(self.pipeline_location, "folders", context=self.task)
 
