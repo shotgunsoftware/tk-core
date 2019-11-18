@@ -65,7 +65,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
         # it is cleaned up.
         if "SHOTGUN_TEST_TEMP" not in os.environ:
             cls.temp_dir = tempfile.mkdtemp()
-            # When retrieving the coverage for the tests, so do cleanup the temp
+            # Only clean up the temp dir when not retrieving coverage for the tests,
             # or we won't be able ot merge the reports from all runs.
             if "SHOTGUN_TEST_COVERAGE" not in os.environ:
                 # Do not rely on tearDown to cleanup files on disk. Use the atexit callback which is
