@@ -62,7 +62,7 @@ class TestYamlCache(ShotgunTestBase):
         overrwritten by the calling code) and that the cache correctly reloads
         the data from the file when it has been modified.
         """
-        yaml_path = os.path.join(self._data_root, "test_data.yml")
+        yaml_path = os.path.join(self.tank_temp, "test_data.yml")
 
         test_data = [1, 
                      "two", 
