@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright (c) 2018 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
@@ -44,13 +45,6 @@ def main():
 
     before = time.time()
     try:
-        # Pop --with-coverage from the command line so we're left with just the script name
-        # or the script name and the tests to run.
-        with_coverage = False
-        while sys.argv.count("--with-coverage") > 0:
-            sys.argv.remove("--with-coverage")
-            with_coverage = True
-
         filenames = sys.argv[1:] or glob.iglob(os.path.join(current_folder, "*.py"))
         for filename in filenames:
 
@@ -62,11 +56,13 @@ def main():
             print("Running %s" % os.path.basename(filename))
             print("=" * 79)
 
-            if with_coverage:
+            if "SHOTGUN_TEST_COVERAGE" in os.environ:
                 args = [
+                    sys.executable,
+                    "-m",
                     "coverage",
                     "run",
-                    "-a",
+                    "--parallel-mode",
                     filename
                 ]
             else:

@@ -443,16 +443,34 @@ class TestExecuteHook(TestApplication):
         )
 
     def test_self_format(self):
+        """
+        Ensure we can call a hook located inside the current bundle.
+        """
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook("test_hook_self", dummy_param=True))
 
     def test_config_format(self):
+        """
+        Ensure we can call a hook located inside a config from an app.
+        """
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook("test_hook_config", dummy_param=True))
 
     def test_engine_format(self):
+        """
+        Ensure we can call a hook located inside an engine from an app.
+        """
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook("test_hook_engine", dummy_param=True))
+
+    def test_framework_format(self):
+        """
+        Ensure we can call a hook located inside a framework from an app.
+        """
+        app = self.engine.apps["test_app"]
+        self.assertTrue(app.execute_hook("test_hook_framework", dummy_param=True))
+        with self.assertRaisesRegex(TankError, "but no framework with instance name 'test_framework_v2.x.x' can be found"):
+            self.assertTrue(app.execute_hook("test_hook_unknown_framework", dummy_param=True))
 
     def test_default_format(self):
         app = self.engine.apps["test_app"]

@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Shotgun Software Inc.
+# Copyright (c) 2018 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -8,9 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-# This file enumerates various third-parties required for continuous integration.
+"""
+Hook which chooses an environment file to use based on the current context.
+This file is almost always overridden by a configuration.
+"""
 
-# This is required by coveralls.io, which is used to upload our test coverage
-# results.
-coverage==4.4.1
-coveralls==1.1
+from tank import get_hook_baseclass
+
+
+class TestHook(get_hook_baseclass()):
+    def execute(self, dummy_param):
+        return True

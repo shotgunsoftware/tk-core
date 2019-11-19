@@ -12,6 +12,7 @@ from __future__ import with_statement
 
 import os
 import copy
+import datetime
 
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
@@ -790,8 +791,11 @@ class TestAsTemplateFields(TestContext):
         self.assertEqual("Seq", result["Sequence"])
         self.assertEqual("shot_code", result["Shot"])
 
-    @patch("tank.context.Context._get_project_roots", return_value=["//foo/bar"])
-    @patch("tank.context.Context.entity_locations", new_callable=PropertyMock(return_value=["//foo/bar/baz"]))
+    # It seems like Python 2.7.16+ is a bit less comfortable with paths with the wrong orientation
+    # for the slashes, so we'll generate test data that is more conforming to the current platform.
+    # This isn't an issue in the real world, as we always sanitize our inputs.
+    @patch("tank.context.Context._get_project_roots", return_value=["{0}{0}foo{0}bar".format(os.path.sep)])
+    @patch("tank.context.Context.entity_locations", new_callable=PropertyMock(return_value=["{0}{0}foo{0}bar{0}baz".format(os.path.sep)]))
     def test_fields_from_entity_paths_with_unc_project_root(self, *args):
         """
         Makes sure that if we're using UNC paths and the project root is at the top
@@ -1120,6 +1124,37 @@ class TestSerialize(TestContext):
             }
         )
 
+    def test_dict_cleanup(self):
+        """
+        Ensure that archived dictionaries only contain relevant information
+        about the entity, notably, type, id and name relevant fields.
+        """
+        self.kws["project"]["created_at"] = datetime.datetime.now()
+        self.kws["entity"]["created_at"] = datetime.datetime.now()
+        self.kws["entity"]["name"] = "shot_name"
+        self.kws["step"]["created_at"] = datetime.datetime.now()
+        self.kws["task"]["created_at"] = datetime.datetime.now()
+        for entity in self.kws["additional_entities"]:
+            entity["created_at"] = datetime.datetime.now()
+        self.kws["source_entity"]["created_at"] = datetime.datetime.now()
+
+        expected = {
+            "additional_entities": [{"id": 42, "type": "Sequence"}],
+            "entity": {"code": "shot_name", "id": 2, "name": "shot_name", "type": "Shot"},
+            "project": {"id": 1, "name": "project_name", "type": "Project"},
+            "source_entity": {"id": 12, "type": "Version"},
+            "step": {"id": 4, "name": "step_name", "type": "Step"},
+            "task": {"id": 45, "type": "Task"},
+            "user": None
+        }
+
+        ctx = context.Context(**self.kws)
+
+        # Serialize/deserialize the object, we should have only kept type,
+        # id and name-related fields.
+        ctx = context.deserialize(ctx.serialize())
+        self.assertEqual(ctx.to_dict(), expected)
+
     def test_equal_yml(self):
         context_1 = context.Context(**self.kws)
         serialized = yaml.dump(context_1)
@@ -1128,7 +1163,7 @@ class TestSerialize(TestContext):
 
     def test_equal_custom(self):
         context_1 = context.Context(**self.kws)
-        serialized = context_1.serialize(context_1)
+        serialized = context_1.serialize()
         # Ensure the serialized context is a string
         self.assertIsInstance(serialized, six.string_types)
         context_2 = tank.Context.deserialize(serialized)

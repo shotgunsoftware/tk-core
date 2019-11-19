@@ -638,7 +638,13 @@ class SetupProjectAction(Action):
         # our default on that. If only a single storage is available, we just use it.
         storage_names = params.get_required_storages()
         default_storage_name = params.default_storage_name
-        primary_local_path = params.get_storage_path(default_storage_name, sgsix.platform)
+
+        # There is no default storage name for a config that doesn't use roots, like
+        # tk-config-basic, so we should skip storage detection.
+        if default_storage_name:
+            primary_local_path = params.get_storage_path(default_storage_name, sgsix.platform)
+        else:
+            primary_local_path = None
         
         curr_core_path = pipelineconfig_utils.get_path_to_current_core()
         core_locations = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
@@ -658,7 +664,7 @@ class SetupProjectAction(Action):
             # default generation 
             pass
         
-        elif os.path.abspath(os.path.join(core_locations[sgsix.platform], "..")).lower() == primary_local_path.lower():
+        elif primary_local_path is not None and os.path.abspath(os.path.join(core_locations[sgsix.platform], "..")).lower() == primary_local_path.lower():
             # ok the parent of the install root matches the primary storage - means OLD STYLE (pre core 0.12)
             #
             # in this setup, we would have the following structure: 

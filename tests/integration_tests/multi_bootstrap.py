@@ -14,6 +14,9 @@ This test makes sure that various tank command operations do not fail.
 
 from __future__ import print_function
 
+import sys
+import os
+
 import traceback
 import unittest2
 from sgtk_integration_test import SgtkIntegrationTest
@@ -22,6 +25,7 @@ import sgtk
 logger = sgtk.LogManager.get_logger(__name__)
 
 
+@unittest2.skipIf(sys.version_info[0] > 2, "tk-config-basic is not Python 3 compatible.")
 class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
     """
     Tests that it's possible to run bootstrap more than once.
@@ -50,16 +54,18 @@ class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
         super(MultipleBootstrapAcrossCoreSwap, cls).setUpClass()
 
         # Create a sandbox project for this this suite to run under.
-        cls.project = cls.create_or_find_project("MultipleBootstrapAcrossCoreSwap", {})
+        cls.project = cls.create_or_update_project("MultipleBootstrapAcrossCoreSwap", {})
 
-    def test_01_setup_legacy_bootstrap_core(self):
+    def test_bootstrap_more_than_once(self):
         """
         Test payload. See class docstring for details.
         """
         # Bootstrap into the tk-shell123 engine.
         manager = sgtk.bootstrap.ToolkitManager(self.user)
         manager.do_shotgun_config_lookup = False
-        manager.base_configuration = "sgtk:descriptor:app_store?name=tk-config-basic"
+        manager.base_configuration = "sgtk:descriptor:path?path={0}".format(
+            os.path.normpath(os.path.join(os.path.dirname(__file__), "data", "site_config"))
+        )
         manager.caching_policy = sgtk.bootstrap.ToolkitManager.CACHE_SPARSE
         try:
             engine = manager.bootstrap_engine("tk-shell123", self.project)

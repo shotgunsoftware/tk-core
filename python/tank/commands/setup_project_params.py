@@ -15,7 +15,7 @@ import uuid
 from . import constants
 
 from ..util import StorageRoots
-from ..util import re
+from ..util import sgre as re
 from ..util import shotgun
 from ..util import filesystem
 from ..util import is_windows
@@ -578,7 +578,8 @@ class ProjectSetupParameters(object):
         # append the project name
         storage_path += "/%s" % project_name
         # note that project name can be 'foo/bar' with a forward slash for all platforms
-        if is_windows():
+        # Fixes any slashes that might be in the wrong direction.
+        if platform == "win32":
             # ensure back slashes all the way
             storage_path = storage_path.replace("/", "\\")
         else:
@@ -790,7 +791,7 @@ class ProjectSetupParameters(object):
         Returns the path to the configuration for a given platform.
         The path returned has not been validated and may not be correct nor exist.
 
-        :param platform: Os platform as a string, sys.platform style (e.g. linux/win32/darwin)
+        :param platform: Os platform as a string, sys.platform style (e.g. linux2/win32/darwin)
         :returns: path to pipeline configuration.
         """
         if self._config_path is None:

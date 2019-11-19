@@ -196,7 +196,7 @@ class TestOpenInFileBrowser(TankTestBase):
         """
         Test failing opening folder on mac/linux
         """
-        if is_windows():
+        if not is_windows():
             self.assertRaises(
                 RuntimeError,
                 fs.open_file_browser,

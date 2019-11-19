@@ -24,6 +24,7 @@ import tempfile
 import contextlib
 import atexit
 import uuid
+import datetime
 from functools import wraps
 
 from collections import defaultdict
@@ -234,6 +235,7 @@ class UnitTestTimer(object):
             "Time spent in tracked methods: %s" % sum(x.total_time for x in self._timers.values())
         )
 
+
 timer = UnitTestTimer()
 atexit.register(timer.print_stats)
 
@@ -254,20 +256,6 @@ def setUpModule():
     print("\n" + "=" * len(msg))
     print(msg)
     print("=" * len(msg) + "\n")
-
-    # move tank directory if left by previous tests
-    _move_data(TANK_TEMP)
-    os.makedirs(TANK_TEMP)
-
-    # create studio level tank directories
-    studio_tank = os.path.join(TANK_TEMP, "tank")
-
-    # make studio level subdirectories
-    os.makedirs(os.path.join(studio_tank, "config", "core"))
-    install_dir = os.path.join(studio_tank, "install")
-
-    # copy tank engine code into place
-    os.makedirs(os.path.join(install_dir, "engines"))
 
 
 class TankTestBase(unittest.TestCase):
@@ -347,6 +335,12 @@ class TankTestBase(unittest.TestCase):
                            - 'primary_root_name': 'name' - Set the primary root name, default to 'unit_tests'.
 
 
+        """
+        self._setUp(parameters)
+
+    def _setUp(self, parameters):
+        """
+        See documentation for setUp.
         """
         self.addCleanup(self._assert_teardown_called)
         # Override SHOTGUN_HOME so that unit tests can be sandboxed.
@@ -450,7 +444,7 @@ class TankTestBase(unittest.TestCase):
             os.makedirs(self.project_root)
             os.makedirs(self.pipeline_config_root)
 
-            # # copy tank util scripts
+            # copy tank util scripts
             shutil.copy(
                 os.path.join(self.tank_source_path, "setup", "root_binaries", "tank"),
                 os.path.join(self.pipeline_config_root, "tank")
@@ -460,13 +454,13 @@ class TankTestBase(unittest.TestCase):
                 os.path.join(self.pipeline_config_root, "tank.bat")
             )
 
-        # project level config directories
         self.project_config = os.path.join(self.pipeline_config_root, "config")
 
         # create project cache directory
         project_cache_dir = os.path.join(self.pipeline_config_root, "cache")
         if self._do_io:
             os.mkdir(project_cache_dir)
+
 
         # define entity for pipeline configuration
         self.sg_pc_entity = {"type": "PipelineConfiguration",
@@ -569,6 +563,12 @@ class TankTestBase(unittest.TestCase):
 
     @timer.clock_func("TankTestBase.tearDown")
     def tearDown(self):
+        """
+        Cleans up after tests.
+        """
+        self._tearDown()
+
+    def _tearDown(self):
         """
         Cleans up after tests.
         """
@@ -881,6 +881,11 @@ class TankTestBase(unittest.TestCase):
             # special retired flag for mockgun
             entity["__retired"] = False
 
+            if "created_at" not in entity:
+                entity["created_at"] = datetime.datetime.now()
+            if "updated_at" not in entity:
+                entity["updated_at"] = datetime.datetime.now()
+
             # turn any dicts into proper type/id/name refs
             for x in entity:
                 # special case: EventLogEntry.meta is not an entity link dict
@@ -1083,7 +1088,12 @@ class ShotgunTestBase(TankTestBase):
     to many tests who don't even read what is on disk and therefore couldn't
     care less about the scaffold.
     """
+    @timer.clock_func("ShotgunTestBase.setUp")
     def setUp(self, parameters=None):
         parameters = parameters or {}
         parameters["do_io"] = False
-        super(ShotgunTestBase, self).setUp(parameters)
+        self._setUp(parameters)
+
+    @timer.clock_func("ShotgunTestBase.tearDown")
+    def tearDown(self):
+        self._tearDown()

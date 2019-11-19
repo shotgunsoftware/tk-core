@@ -128,9 +128,19 @@ class TestPipelineConfig(TankTestBase):
                 os.chmod(rogue_file, stat.S_IREAD | stat.S_IWRITE)
                 os.remove(rogue_file)
 
-        # Test pushing with symlinks, unless on Windows where symlinks are not
-        # available.
-        if is_windows():
+        # Test pushing with symlinks.
+        #
+        # When the method symlink is present, it means that the current platform
+        # supports symlinks. The method was missing in Python 2 on Windows,
+        # but was added in Python 3.
+        #
+        # Note that if you are not in Developer mode on Windows, the method will
+        # still be present in Python 3, but the symlink call will fail. There is
+        # no easy way to detect that edge case from Python, so if you see this
+        # test failing on Windows, just update the security settings to For Developers
+        # and the test should pass.
+        # https://www.howtogeek.com/howto/16226/complete-guide-to-symbolic-links-symlinks-on-windows-or-linux/
+        if getattr(os, "symlink", None) is None:
             self.assertRaisesRegex(
                 TankError,
                 "Symbolic links are not supported",

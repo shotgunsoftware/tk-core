@@ -358,7 +358,7 @@ class PipelineConfiguration(object):
             constants.PIPELINECONFIG_FILE
         )
 
-    def _get_yaml_cache_location(self):
+    def get_yaml_cache_location(self):
         """
         Returns the location of the yaml cache for this configuration.
         """
@@ -369,7 +369,7 @@ class PipelineConfiguration(object):
         Loads pickled yaml_cache items if they are found and merges them into
         the global YamlCache.
         """
-        cache_file = self._get_yaml_cache_location()
+        cache_file = self.get_yaml_cache_location()
         if not os.path.exists(cache_file):
             return
 

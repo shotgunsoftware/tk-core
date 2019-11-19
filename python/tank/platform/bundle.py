@@ -19,7 +19,7 @@ import imp
 import uuid
 
 from .. import hook
-from ..util import re
+from ..util import sgre as re
 from ..util.metrics import EventMetric
 from ..log import LogManager
 from ..errors import TankError, TankNoDefaultValueError

@@ -39,7 +39,7 @@ from ..log import LogManager
 
 from . import constants
 
-from ..util import re
+from ..util import sgre as re
 from ..util.yaml_cache import g_yaml_cache
 from ..util.includes import resolve_include
 from tank_vendor.shotgun_api3.lib import six

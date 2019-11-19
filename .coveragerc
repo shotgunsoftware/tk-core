@@ -12,12 +12,28 @@
 #
 #
 [run]
+# Get coverage from tank and nothing else.
 source=tank
 omit=
     # We can't unit test our uis, so we're not going to put them inside the coverage
     *tank/authentication/ui/*
     *tank/authentication/sso_saml2/*
     *tank/platform/qt5/*
+
+[paths]
+# This allows to merge coverage from different disk locations. This is
+# needed because when the integration tests run the core is copied
+# in many different locations and tank commands are run with them,
+# so we need to tell coverage how to match files with different file
+# paths.
+#
+# The first source needs to be a real file path, which in our case
+# is the path we get when we run the tests.
+# Then, *python/tank is used is to match coverage for all locations
+# that do not start with python/tank
+source=
+    python/tank
+    */python/tank
 
 [report]
 exclude_lines =

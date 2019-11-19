@@ -10,6 +10,7 @@
 
 import os
 import logging
+import shutil
 
 from mock import patch
 
@@ -277,6 +278,13 @@ class TestConfigLocations(TankTestBase):
         core_install_folder = os.path.join(core_root, "install", "core")
         os.makedirs(core_install_folder)
 
+        # Copy the core info.yml, since the config expects a certain version of
+        # core and the setup project needs to be able to compare versions.
+        shutil.copy(
+            os.path.join(os.path.dirname(__file__), "..", "..", "info.yml"),
+            os.path.join(core_install_folder, "info.yml")
+        )
+
         # Mock a localized core if required.
         if is_localized:
             self.create_file(os.path.join(core_root, "config", "core", "interpreter_Darwin.cfg"))
@@ -332,7 +340,7 @@ class TestConfigLocations(TankTestBase):
         # Pipeline configuration location tests.
         self.assertEqual(pc.get_path(), autogen_files_root)
         self.assertEqual(
-            pc._get_yaml_cache_location(),
+            pc.get_yaml_cache_location(),
             os.path.join(autogen_files_root, "yaml_cache.pickle")
         )
         self.assertEqual(

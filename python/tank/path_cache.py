@@ -1414,7 +1414,6 @@ class PathCache(object):
         :param shotgun_id: The shotgun filesystem location id which should be unregistered.
         :returns: A list of items making up the subtree below the given id
         """
-        
         c = self._connection.cursor()
         # first get the path
         res = c.execute("""SELECT pc.root, pc.path 

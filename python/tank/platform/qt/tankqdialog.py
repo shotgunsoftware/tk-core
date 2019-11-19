@@ -575,7 +575,7 @@ class TankQDialog(TankDialogBase):
             finally:
                 self.setUpdatesEnabled(True)
             
-            self.anim = QtCore.QPropertyAnimation(self.ui.page_1, "pos")
+            self.anim = QtCore.QPropertyAnimation(self.ui.page_1, b"pos")
             self.anim.setDuration(600)
             self.anim.setStartValue(QtCore.QPoint(self.ui.page_1.x(), self.ui.page_1.y() ))
             self.anim.setEndValue(QtCore.QPoint(self.ui.page_1.x()+(TankQDialog.GRADIENT_WIDTH+TankQDialog.INFO_WIDTH), 
@@ -583,7 +583,7 @@ class TankQDialog(TankDialogBase):
             self.anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
             self.anim.finished.connect( self._finished_show_anim )
 
-            self.anim2 = QtCore.QPropertyAnimation(self.ui.page_2, "pos")
+            self.anim2 = QtCore.QPropertyAnimation(self.ui.page_2, b"pos")
             self.anim2.setDuration(600)
             self.anim2.setStartValue(QtCore.QPoint(self.ui.page_2.x(), self.ui.page_2.y() ))
             self.anim2.setEndValue(QtCore.QPoint(self.ui.page_2.x()+TankQDialog.GRADIENT_WIDTH+TankQDialog.INFO_WIDTH, 
@@ -605,14 +605,14 @@ class TankQDialog(TankDialogBase):
             # but make sure page1 stays on top
             self.ui.page_1.raise_()                
 
-            self.anim = QtCore.QPropertyAnimation(self.ui.page_2, "pos")
+            self.anim = QtCore.QPropertyAnimation(self.ui.page_2, b"pos")
             self.anim.setDuration(600)
             self.anim.setStartValue(QtCore.QPoint(self.ui.page_2.x()+(TankQDialog.GRADIENT_WIDTH+TankQDialog.INFO_WIDTH), 
                                                   self.ui.page_2.y() ))
             self.anim.setEndValue(QtCore.QPoint(self.ui.page_2.x(), self.ui.page_2.y() ))
             self.anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
     
-            self.anim2 = QtCore.QPropertyAnimation(self.ui.page_1, "pos")
+            self.anim2 = QtCore.QPropertyAnimation(self.ui.page_1, b"pos")
             self.anim2.setDuration(600)
             self.anim2.setStartValue(QtCore.QPoint(self.ui.page_1.x(), self.ui.page_1.y() ))
             self.anim2.setEndValue(QtCore.QPoint(self.ui.page_1.x()-(TankQDialog.GRADIENT_WIDTH+TankQDialog.INFO_WIDTH), 

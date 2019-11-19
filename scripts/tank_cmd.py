@@ -25,7 +25,7 @@ from tank.commands.action_base import Action
 from tank.util import shotgun
 from tank.util import shotgun_entity
 from tank.util import is_windows
-from tank.util import re
+from tank.util import sgre as re
 from tank.platform import constants as platform_constants
 from tank.authentication import ShotgunAuthenticator
 from tank.authentication import AuthenticationError
@@ -95,13 +95,19 @@ class AltCustomFormatter(logging.Formatter):
     Non-html output is formatted to be cut at 80 chars
     in order to make it easily readable.
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, no_line_wrapping):
         """
         Constructor
         """
         self._html = False
         self._num_errors = 0
-        logging.Formatter.__init__(self, *args, **kwargs)
+        # We can't tell the formatter to do no wrapping, but we can
+        # provide a value big enough that it wouldn't make sense
+        # for something to wrap on this much. The parameter that
+        # allows to trigger this is used only in testing and is
+        # not documented.
+        self._line_length = 200 if no_line_wrapping else 78
+        logging.Formatter.__init__(self)
 
     def enable_html_mode(self):
         """
@@ -160,9 +166,9 @@ class AltCustomFormatter(logging.Formatter):
 
                 if sys.version_info < (2,6):
                     # python 2.5 doesn't support all params
-                    wrapped_lines = textwrap.wrap(record.msg, width=78, break_long_words=False)
+                    wrapped_lines = textwrap.wrap(record.msg, width=self._line_length, break_long_words=False)
                 else:
-                    wrapped_lines = textwrap.wrap(record.msg, width=78, break_long_words=False, break_on_hyphens=False)
+                    wrapped_lines = textwrap.wrap(record.msg, width=self._line_length, break_long_words=False, break_on_hyphens=False)
 
                 for x in wrapped_lines:
                     lines.append(x)
@@ -1443,7 +1449,7 @@ if __name__ == "__main__":
     )
 
     # set up the custom html formatter
-    formatter = AltCustomFormatter()
+    formatter = AltCustomFormatter(no_line_wrapping="--no-line-wrapping" in sys.argv)
     log_handler.setFormatter(formatter)
 
     # the first argument is always the path to the code root
@@ -1456,6 +1462,9 @@ if __name__ == "__main__":
 
     # pass the rest of the args into our checker
     cmd_line = sys.argv[2:]
+
+    # We can now remove the --no-line-warping argument.
+    cmd_line = [arg for arg in cmd_line if arg != "--no-line-wrapping"]
 
     # check if there is a --debug flag anywhere in the args list.
     # in that case turn on debug logging and remove the flag

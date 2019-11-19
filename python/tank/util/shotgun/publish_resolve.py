@@ -23,7 +23,7 @@ from .publish_util import get_cached_local_storages
 from ...log import LogManager
 from ..shotgun_path import ShotgunPath
 from ..errors import PublishPathNotDefinedError, PublishPathNotSupported
-from tank.util import re
+from tank.util import sgre as re
 
 log = LogManager.get_logger(__name__)
 

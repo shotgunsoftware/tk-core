@@ -1,4 +1,24 @@
-from __future__ import absolute_import
+# Copyright (c) 2019 Shotgun Software Inc.
+#
+# CONFIDENTIAL AND PROPRIETARY
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+# Source Code License included in this distribution package. See LICENSE.
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
+# not expressly granted therein are reserved by Shotgun Software Inc.
+
+"""
+Wrapper around the re module from Python. We're essentially back porting
+some functionality.
+"""
+
+# Note that contrary to the sgtk.util.json module, this one is named sgre.
+# There seems to be some weird import shenanigans going on in Python 2 that
+# prevents from importing the sgtk.util.re submodule using our meta-path
+# importer. When we try, our meta-path importer is not called for our `re`
+# module and we get an ImportError. Renaming the module to anything else
+# works however, so that's what we are doing.
 
 from tank_vendor.shotgun_api3.lib import six
 

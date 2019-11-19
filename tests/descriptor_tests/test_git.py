@@ -78,10 +78,22 @@ class TestGitIODescriptor(ShotgunTestBase):
 
         desc = self._create_desc(location_dict)
 
+        self.assertIsNone(desc.find_latest_cached_version())
+
         self.assertEqual(desc.version, "v0.16.0")
         self.assertEqual(desc.get_path(), None)
 
         desc.ensure_local()
+
+        self.assertEqual(
+            desc.find_latest_cached_version().version,
+            "v0.16.0"
+        )
+
+        self.assertIsNone(
+            desc.find_latest_cached_version("v0.18.x")
+        )
+
 
         self.assertEqual(
             desc.get_path(),
@@ -94,6 +106,16 @@ class TestGitIODescriptor(ShotgunTestBase):
         self.assertEqual(latest_desc.get_path(), None)
 
         latest_desc.ensure_local()
+
+        self.assertEqual(
+            latest_desc.find_latest_cached_version().version,
+            "v0.16.1"
+        )
+
+        self.assertEqual(
+            latest_desc.find_latest_cached_version("v0.16.x").version,
+            "v0.16.1"
+        )
 
         self.assertEqual(
             latest_desc.get_path(),
