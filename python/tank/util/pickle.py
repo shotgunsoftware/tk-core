@@ -51,6 +51,18 @@ def store_env_var_pickled(key, data):
     encoded_data = six.ensure_str(pickled_data)
     os.environ[key] = encoded_data
 
+def binary_to_string(data):
+    if isinstance(data, six.binary_type):
+        return six.ensure_str(data)
+    elif isinstance(data, list):
+        return [binary_to_string(item) for item in data]
+    elif isinstance(data, dict):
+        return dict([
+            (binary_to_string(key), binary_to_string(value))
+            for key, value in data.items()
+        ])
+    else:
+        return data
 
 def retrieve_env_var_pickled(key):
     """
@@ -65,4 +77,7 @@ def retrieve_env_var_pickled(key):
     :returns: The original object that was stored.
     """
     envvar_contents = six.ensure_binary(os.environ[key])
-    return cPickle.loads(envvar_contents)
+    if six.PY3:
+        return binary_to_string(cPickle.loads(envvar_contents, encoding="bytes"))
+    else:
+        return cPickle.loads(envvar_contents)
