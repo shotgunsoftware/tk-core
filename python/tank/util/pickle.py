@@ -34,6 +34,13 @@ def dumps_str(data):
     return six.ensure_str(cPickle.dumps(data, protocol=0))
 
 
+def loads_dict(data):
+    """
+    Loads a pickled dictionary in a Python 2 compatible way.
+    """
+    return binary_to_string(cPickle.loads(six.ensure_binary(data)))
+
+
 def store_env_var_pickled(key, data):
     """
     Stores the provided data under the environment variable specified.
@@ -83,4 +90,4 @@ def retrieve_env_var_pickled(key):
     if six.PY2:
         return binary_to_string(cPickle.loads(os.environ[key]))
     else:
-        return cPickle.loads(os.environb[six.ensure_binary(key)], encoding="bytes")
+        return binary_to_string(cPickle.loads(os.environb[six.ensure_binary(key)], encoding="bytes"))

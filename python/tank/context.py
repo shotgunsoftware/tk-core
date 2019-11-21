@@ -809,10 +809,6 @@ class Context(object):
             "type": entity["type"],
             "id": entity["id"],
         }
-        for name_field in ("name", get_sg_entity_name_field(entity["type"])):
-            if name_field in entity:
-                filtered_entity[name_field] = entity[name_field]
-
         return filtered_entity
 
     @classmethod
@@ -847,16 +843,31 @@ class Context(object):
         :returns: :class:`Context`
         """
         # Get all argument names except for self.
-        return Context(
-            tk=data.get("tk"),
-            project=data.get("project"),
-            entity=data.get("entity"),
-            step=data.get("step"),
-            task=data.get("task"),
-            user=data.get("user"),
-            additional_entities=data.get("additional_entities"),
-            source_entity=data.get("source_entity")
-        )
+    
+        if (
+            (data.get("project") and data["project"].get("name") is None)
+            or (data.get("entity") and data["project"].get("entity") is None)
+            or (data.get("step") and data["step"].get("name") is None)
+            or (data.get("task") and data["task"].get("name") is None)
+            or (data.get("user") and data["user"].get("name") is None)
+            or (data.get("source_entity") and data["source_entity"].get("name") is None)
+        ):
+            return _from_entity_dictionary(
+                data.get("tk"),
+                data.get("task") or data.get("step") or data.get("entity") or data.get("project:"),
+                data.get("source_entity")
+            )
+        else:
+            return Context(
+                tk=data.get("tk"),
+                project=data.get("project"),
+                entity=data.get("entity"),
+                step=data.get("step"),
+                task=data.get("task"),
+                user=data.get("user"),
+                additional_entities=data.get("additional_entities"),
+                source_entity=data.get("source_entity")
+            )
 
     ################################################################################################
     # private methods
