@@ -34,13 +34,6 @@ def dumps_str(data):
     return six.ensure_str(cPickle.dumps(data, protocol=0))
 
 
-def loads_dict(data):
-    """
-    Loads a pickled dictionary in a Python 2 compatible way.
-    """
-    return binary_to_string(cPickle.loads(six.ensure_binary(data)))
-
-
 def store_env_var_pickled(key, data):
     """
     Stores the provided data under the environment variable specified.
@@ -60,16 +53,16 @@ def store_env_var_pickled(key, data):
     else:
         os.environb[six.ensure_binary(key)] = pickled_data
 
-def binary_to_string(data):
+def _to_simple_data_types(data):
     if isinstance(data, six.binary_type):
         return six.ensure_str(data)
     elif isinstance(data, six.text_type):
         return six.ensure_str(data)
     elif isinstance(data, list):
-        return [binary_to_string(item) for item in data]
+        return [_to_simple_data_types(item) for item in data]
     elif isinstance(data, dict):
         return dict([
-            (binary_to_string(key), binary_to_string(value))
+            (_to_simple_data_types(key), _to_simple_data_types(value))
             for key, value in data.items()
         ])
     else:
@@ -88,6 +81,6 @@ def retrieve_env_var_pickled(key):
     :returns: The original object that was stored.
     """
     if six.PY2:
-        return binary_to_string(cPickle.loads(os.environ[key]))
+        return _to_simple_data_types(cPickle.loads(os.environ[key]))
     else:
-        return binary_to_string(cPickle.loads(os.environb[six.ensure_binary(key)], encoding="bytes"))
+        return _to_simple_data_types(cPickle.loads(os.environb[six.ensure_binary(key)], encoding="bytes"))
