@@ -146,6 +146,17 @@ class Shotgun(object):
     testing of code.
     """
 
+    # Certain entities do not have code as their field name, but some value,
+    # This attempts to enumerate all of them
+    _SG_ENTITY_SPECIAL_NAME_FIELDS = {
+        "Project": "name",
+        "Task": "content",
+        "HumanUser": "name",
+        "Note": "subject",
+        "Department": "name",
+        "Delivery": "title",
+    }
+
     __schema_path = None
     __schema_entity_path = None
 
@@ -360,6 +371,13 @@ class Shotgun(object):
                     data[d]["local_path_windows"] = data[d]["local_path"]
                 if "local_path_mac" not in data[d]:
                     data[d]["local_path_mac"] = data[d]["local_path"]
+
+        # Make sure the name field was specified, unless it's an event log entry.
+        # Those don't have names.
+        if entity_type != "EventLogEntry":
+            name_field = self._SG_ENTITY_SPECIAL_NAME_FIELDS.get(entity_type, "code")
+            if name_field not in data:
+                raise RuntimeError("Missing field %s for %s" % (name_field, entity_type))
 
         self._validate_entity_type(entity_type)
         self._validate_entity_data(entity_type, data)
@@ -703,7 +721,22 @@ class Shotgun(object):
         except ValueError:
             # this is not a deep-linked field - just something like "code"
             if field in row:
-                return row[field]
+                value = row[field]
+                # Is this a link field?
+                if isinstance(value, dict) and "type" in value and "id" in value:
+                    #import pdb; pdb.set_trace()
+                    # Then make sure the link field has the values type, id and name.
+                    # Clone the original value as we're about to add the current name to it.
+                    value = value.copy()
+                    # Find the right field name for this entity type.
+                    name_field = self._SG_ENTITY_SPECIAL_NAME_FIELDS.get(value["type"], "code")
+                    # Grab the entity from the "db"
+                    linked_entity = self._db[value["type"]][value["id"]]
+                    # Update the link with the entity name.
+                    # Play it safe however, if we can't match the entity name field, return a bogue
+                    # value.
+                    value["name"] = linked_entity.get(name_field, "mockgun_unknown_name_mapping")
+                return value
             else:
                 # sg returns none for unknown stuff
                 return None

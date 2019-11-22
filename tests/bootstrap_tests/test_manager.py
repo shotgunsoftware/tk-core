@@ -248,8 +248,8 @@ class TestGetPipelineConfigs(TankTestBase):
     def setUp(self):
         super(TestGetPipelineConfigs, self).setUp()
 
-        self._john_doe = self.mockgun.create("HumanUser", {"login": "john.doe"})
-        self._john_smith = self.mockgun.create("HumanUser", {"login": "john.smith"})
+        self._john_doe = self.mockgun.create("HumanUser", {"login": "john.doe", "name": "John Doe"})
+        self._john_smith = self.mockgun.create("HumanUser", {"login": "john.smith", "name": "John Smith"})
         self._project = self.mockgun.create("Project", {"name": "my_project"})
         self._mocked_sg_user = _MockedShotgunUser(self.mockgun, "john.doe")
 

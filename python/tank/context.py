@@ -704,7 +704,9 @@ class Context(object):
         # Avoids cyclic imports
         from .api import get_authenticated_user
 
-        data = self.to_dict()
+        # TODO EXPLAIN WHY WE'RE DOING THIS HERE!!
+        data = self.to_dict(keep_name=False)
+
         data["_pc_path"] = self.tank.pipeline_configuration.get_path()
 
         if with_user_credentials:
@@ -758,11 +760,28 @@ class Context(object):
         tk = Tank(pipeline_config_path)
         data["tk"] = tk
 
-        # add it to the constructor instance
-        # and lastly make the obejct
+        # If the user name is missing, we need to retrieve it.
+        if data.get("user") and "name" not in data["user"]:
+            data["user"] = tk.shotgun.find_one(
+                "HumanUser",
+                [["id", "is", data["user"]["id"]]],
+                ["name"]
+            )
+        # If the context data is incomplete, retrieve it.
+
+        # TODO EXPLAIN WHY WE'RE DOING THIS HERE!!
+        for field in ["project", "entity", "step", "task", "source_entity"]:
+            if data.get(field) and "name" not in data[field]:
+                return _from_entity_type_and_id(
+                    data.get("tk"),
+                    data.get("task") or data.get("entity") or data.get("project"),
+                    data.get("source_entity"),
+                    data.get("additional_entities")
+                )
+
         return cls._from_dict(data)
 
-    def to_dict(self):
+    def to_dict(self, keep_name=True):
         """
         Converts the context into a dictionary with keys ``project``,
         ``entity``, ``user``, ``step``, ``task``, ``additional_entities`` and
@@ -776,16 +795,16 @@ class Context(object):
         :returns: A dictionary representing the context.
         """
         return {
-            "project": self._cleanup_entity(self.project),
-            "entity": self._cleanup_entity(self.entity),
-            "user": self._cleanup_entity(self.user),
-            "step": self._cleanup_entity(self.step),
-            "task": self._cleanup_entity(self.task),
-            "additional_entities": [self._cleanup_entity(entity) for entity in self.additional_entities],
-            "source_entity": self._cleanup_entity(self.source_entity)
+            "project": self._cleanup_entity(self.project, keep_name),
+            "entity": self._cleanup_entity(self.entity, keep_name),
+            "user": self._cleanup_entity(self.user, keep_name),
+            "step": self._cleanup_entity(self.step, keep_name),
+            "task": self._cleanup_entity(self.task, keep_name),
+            "additional_entities": [self._cleanup_entity(entity, keep_name) for entity in self.additional_entities],
+            "source_entity": self._cleanup_entity(self.source_entity, keep_name)
         }
 
-    def _cleanup_entity(self, entity):
+    def _cleanup_entity(self, entity, keep_name):
         """
         Cleanup the entity dictionary.
 
@@ -809,6 +828,11 @@ class Context(object):
             "type": entity["type"],
             "id": entity["id"],
         }
+
+        if keep_name:
+            for name_field in ("name", get_sg_entity_name_field(entity["type"])):
+                if name_field in entity:
+                    filtered_entity[name_field] = entity[name_field]
         return filtered_entity
 
     @classmethod
@@ -842,32 +866,16 @@ class Context(object):
 
         :returns: :class:`Context`
         """
-        # Get all argument names except for self.
-    
-        if (
-            (data.get("project") and data["project"].get("name") is None)
-            or (data.get("entity") and data["project"].get("entity") is None)
-            or (data.get("step") and data["step"].get("name") is None)
-            or (data.get("task") and data["task"].get("name") is None)
-            or (data.get("user") and data["user"].get("name") is None)
-            or (data.get("source_entity") and data["source_entity"].get("name") is None)
-        ):
-            return _from_entity_dictionary(
-                data.get("tk"),
-                data.get("task") or data.get("step") or data.get("entity") or data.get("project:"),
-                data.get("source_entity")
-            )
-        else:
-            return Context(
-                tk=data.get("tk"),
-                project=data.get("project"),
-                entity=data.get("entity"),
-                step=data.get("step"),
-                task=data.get("task"),
-                user=data.get("user"),
-                additional_entities=data.get("additional_entities"),
-                source_entity=data.get("source_entity")
-            )
+        return Context(
+            tk=data.get("tk"),
+            project=data.get("project"),
+            entity=data.get("entity"),
+            step=data.get("step"),
+            task=data.get("task"),
+            user=data.get("user"),
+            additional_entities=data.get("additional_entities"),
+            source_entity=data.get("source_entity")
+        )
 
     ################################################################################################
     # private methods
@@ -1210,7 +1218,7 @@ def from_entity(tk, entity_type, entity_id):
     """
     return _from_entity_type_and_id(tk, dict(type=entity_type, id=entity_id))
 
-def _from_entity_type_and_id(tk, entity, source_entity=None):
+def _from_entity_type_and_id(tk, entity, source_entity=None, additional_entities=None):
     """
     Constructs a context from the entity type and id as stored in the given
     entity. Any other data necessary to construct the context beyond the type
@@ -1252,7 +1260,7 @@ def _from_entity_type_and_id(tk, entity, source_entity=None):
         "step": None,
         "user": None,
         "task": None,
-        "additional_entities": [],
+        "additional_entities": additional_entities or [],
         "source_entity": source_entity,
     }
 
@@ -1272,15 +1280,15 @@ def _from_entity_type_and_id(tk, entity, source_entity=None):
         
         if sg_entity.get("task"):
             # base the context on the task for the published file
-            return _from_entity_type_and_id(tk, sg_entity["task"], sg_entity)
+            return _from_entity_type_and_id(tk, sg_entity["task"], sg_entity, additional_entities)
         
         elif sg_entity.get("entity"):
             # base the context on the entity that the published is linked with
-            return _from_entity_type_and_id(tk, sg_entity["entity"], sg_entity)
+            return _from_entity_type_and_id(tk, sg_entity["entity"], sg_entity, additional_entities)
         
         elif sg_entity.get("project"):
             # base the context on the project that the published is linked with
-            return _from_entity_type_and_id(tk, sg_entity["project"], sg_entity)
+            return _from_entity_type_and_id(tk, sg_entity["project"], sg_entity, additional_entities)
     
     else:
         # Get data from path cache
@@ -1416,27 +1424,6 @@ def _from_entity_dictionary(tk, entity_dictionary, source_entity=None):
             project = entity["project"]
 
     if not fallback_to_ctx_from_entity:
-        # clean up entities and populate context structure:
-        def _build_clean_entity(ent):
-            """
-            Ensure entity has id, type and name fields and build a clean
-            entity dictionary containing just those fields to return, stripping
-            out all other fields.
-
-            :param ent: The entity dictionary to build a clean dictionary from
-            :returns:   A clean entity dictionary containing just 'type', 'id' 
-                        and 'name' if all three exist in the input dictionary
-                        or None if they don't.
-            """
-            # make sure we have id, type and name:
-            if "id" not in ent or "type" not in ent:
-                return None
-            ent_name = _get_entity_name(ent)
-            if ent_name == None:
-                return None
-            # return a clean dictionary:
-            return {"type":ent["type"], "id":ent["id"], "name":ent_name}
-        
         if project:
             context["project"] = _build_clean_entity(project)
             if not context["project"]:
@@ -1693,6 +1680,27 @@ yaml.add_constructor(u'!TankContext', context_yaml_constructor)
 
 ################################################################################################
 # utility methods
+
+# clean up entities and populate context structure:
+def _build_clean_entity(ent):
+    """
+    Ensure entity has id, type and name fields and build a clean
+    entity dictionary containing just those fields to return, stripping
+    out all other fields.
+
+    :param ent: The entity dictionary to build a clean dictionary from
+    :returns:   A clean entity dictionary containing just 'type', 'id' 
+                and 'name' if all three exist in the input dictionary
+                or None if they don't.
+    """
+    # make sure we have id, type and name:
+    if "id" not in ent or "type" not in ent:
+        return None
+    ent_name = _get_entity_name(ent)
+    if ent_name == None:
+        return None
+    # return a clean dictionary:
+    return {"type":ent["type"], "id":ent["id"], "name":ent_name}
 
 def _get_entity_name(entity_dictionary):
     """
