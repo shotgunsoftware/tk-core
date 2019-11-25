@@ -314,7 +314,6 @@ class Shotgun(object):
             fields = set(fields) | set(["type", "id"])
 
         # get the values requested
-        # import pdb;pdb.set_trace()
         val = [dict((field, self._get_field_from_row(entity_type, row, field)) for field in fields) for row in results]
 
         return val

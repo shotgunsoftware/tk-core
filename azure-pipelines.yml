@@ -34,8 +34,8 @@ pr:
     - "*"
 
 # This pulls in a variable group from Azure. Variables can be encrypted or not.
-# variables:
-# - group: deploy-secrets
+variables:
+- group: deploy-secrets
 
 jobs:
 - template: build-pipeline.yml@templates
