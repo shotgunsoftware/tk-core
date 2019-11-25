@@ -47,9 +47,26 @@ def store_env_var_pickled(key, data):
     """
     # Force pickle protocol 0, since this is a non-binary pickle protocol.
     # See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL
-    pickled_data = cPickle.dumps(data, protocol=0)
-    encoded_data = six.ensure_str(pickled_data)
-    os.environ[key] = encoded_data
+    if six.PY2:
+        os.environ[key] = cPickle.dumps(data)
+    else:
+        os.environb[six.ensure_binary(key)] = cPickle.dumps(data, protocol=0)
+
+
+def _to_simple_data_types(data):
+    if isinstance(data, six.binary_type):
+        return six.ensure_str(data)
+    elif isinstance(data, six.text_type):
+        return six.ensure_str(data)
+    elif isinstance(data, list):
+        return [_to_simple_data_types(item) for item in data]
+    elif isinstance(data, dict):
+        return dict([
+            (_to_simple_data_types(key), _to_simple_data_types(value))
+            for key, value in data.items()
+        ])
+    else:
+        return data
 
 
 def retrieve_env_var_pickled(key):
@@ -64,5 +81,11 @@ def retrieve_env_var_pickled(key):
     :param key: The name of the environment variable to retrieve data from.
     :returns: The original object that was stored.
     """
-    envvar_contents = six.ensure_binary(os.environ[key])
-    return cPickle.loads(envvar_contents)
+    if six.PY2:
+        return _to_simple_data_types(cPickle.loads(six.ensure_binary(os.environ[key])))
+    else:
+        key = six.ensure_binary(key)
+        return _to_simple_data_types(
+            cPickle.loads(os.environb[key], encoding="bytes")
+        )
+    

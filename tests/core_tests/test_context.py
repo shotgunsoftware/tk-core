@@ -1235,7 +1235,7 @@ class TestSerialize(TestContext):
                 value["name"] = linked_entity.get(name_field, "mockgun_unknown_name_mapping")
 
             return value
-        with patch.object(self.mockgun, "_get_field_from_row", side_effect=_get_field_from_row_patch) as mock:
+        with patch.object(self.mockgun, "_get_field_from_row", side_effect=_get_field_from_row_patch):
             #import pdb;pdb.set_trace()
             ctx = context.deserialize(pickled_data)
         self.assertEqual(ctx.to_dict(), expected)
