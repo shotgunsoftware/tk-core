@@ -1217,6 +1217,7 @@ def from_entity(tk, entity_type, entity_id):
     """
     return _from_entity_type_and_id(tk, dict(type=entity_type, id=entity_id))
 
+
 def _from_entity_type_and_id(tk, entity, source_entity=None, additional_entities=None, user=None):
     """
     Constructs a context from the entity type and id as stored in the given
@@ -1431,6 +1432,27 @@ def _from_entity_dictionary(tk, entity_dictionary, source_entity=None):
             project = entity["project"]
 
     if not fallback_to_ctx_from_entity:
+        # clean up entities and populate context structure:
+        def _build_clean_entity(ent):
+            """
+            Ensure entity has id, type and name fields and build a clean
+            entity dictionary containing just those fields to return, stripping
+            out all other fields.
+
+            :param ent: The entity dictionary to build a clean dictionary from
+            :returns:   A clean entity dictionary containing just 'type', 'id' 
+                        and 'name' if all three exist in the input dictionary
+                        or None if they don't.
+            """
+            # make sure we have id, type and name:
+            if "id" not in ent or "type" not in ent:
+                return None
+            ent_name = _get_entity_name(ent)
+            if ent_name == None:
+                return None
+            # return a clean dictionary:
+            return {"type":ent["type"], "id":ent["id"], "name":ent_name}
+
         if project:
             context["project"] = _build_clean_entity(project)
             if not context["project"]:
@@ -1687,27 +1709,6 @@ yaml.add_constructor(u'!TankContext', context_yaml_constructor)
 
 ################################################################################################
 # utility methods
-
-# clean up entities and populate context structure:
-def _build_clean_entity(ent):
-    """
-    Ensure entity has id, type and name fields and build a clean
-    entity dictionary containing just those fields to return, stripping
-    out all other fields.
-
-    :param ent: The entity dictionary to build a clean dictionary from
-    :returns:   A clean entity dictionary containing just 'type', 'id' 
-                and 'name' if all three exist in the input dictionary
-                or None if they don't.
-    """
-    # make sure we have id, type and name:
-    if "id" not in ent or "type" not in ent:
-        return None
-    ent_name = _get_entity_name(ent)
-    if ent_name == None:
-        return None
-    # return a clean dictionary:
-    return {"type":ent["type"], "id":ent["id"], "name":ent_name}
 
 def _get_entity_name(entity_dictionary):
     """

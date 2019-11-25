@@ -51,7 +51,7 @@ class TestContext(TankTestBase):
             "project": self.project
         }
 
-        self.step = {"type":"Step", "code": "step_name", "id": 4}
+        self.step = {"type": "Step", "code": "step_name", "id": 4}
 
         self.shot_alt = {
             "type": "Shot",
@@ -1223,6 +1223,7 @@ class TestSerialize(TestContext):
         # Serialize/deserialize the object, we should have only kept type,
         # id and name-related fields.
         real_get_field_from_row = self.mockgun._get_field_from_row
+
         def _get_field_from_row_patch(entity_type, row, field):
             value = real_get_field_from_row(entity_type, row, field)
 
@@ -1235,7 +1236,7 @@ class TestSerialize(TestContext):
             # that real behaviour from Shotgun to be emulated. At some point
             # we should revisit mockgun and the dreaded use of TankTestBase.add_to_sg_mock_db
             # which introduce so many inconsistencies in Mockgun.
-            #import pdb; pdb.set_trace()
+
             # Is this a link field?
             if isinstance(value, dict) and "type" in value and "id" in value:
                 # Then make sure the link field has the values type, id and name.
