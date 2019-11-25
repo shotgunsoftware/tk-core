@@ -1119,16 +1119,28 @@ class TestSerialize(TestContext):
             }
         )
 
+        self.user = self.mockgun.create(
+            "HumanUser",
+            {
+                "name": "user_name"
+            }
+        )
+
         self.kws = {}
         self.kws["tk"] = self.tk
         self.kws["project"] = self.project
         self.kws["entity"] = self.shot
         self.kws["step"] = self.step
         self.kws["task"] = self.task
+        self.kws["user"] = self.user
         self.kws["additional_entities"] = [self.seq]
         self.kws["source_entity"] = self.version
 
-        self._user = ShotgunAuthenticator().create_script_user(
+        # self._auth_user differs from self.kws["user"], because self._auth_user
+        # is the user we are authenticated as when talking to Shotgun
+        # while self.kws["user"] is the user associated with the current
+        # context.
+        self._auth_user = ShotgunAuthenticator().create_script_user(
             "script_user", "script_key", "https://abc.shotgunstudio.com"
         )
 
@@ -1158,6 +1170,7 @@ class TestSerialize(TestContext):
         for entity in self.kws["additional_entities"]:
             entity["created_at"] = datetime.datetime.now()
         self.kws["source_entity"]["created_at"] = datetime.datetime.now()
+        self.kws["user"]["created_at"] = datetime.datetime.now()
 
         expected = {
             "task": {
@@ -1191,7 +1204,11 @@ class TestSerialize(TestContext):
                 "type": "Sequence",
                 "id": self.seq["id"],
             }],
-            "user": None,
+            "user": {
+                "type": "HumanUser",
+                "id": self.user["id"],
+                "name": "user_name"
+            }
         }
 
         ctx = context.Context(**self.kws)
@@ -1199,9 +1216,8 @@ class TestSerialize(TestContext):
 
         # Make sure there is only type and ids in the pickle.
         unpickled_data = pickle.loads(six.ensure_binary(pickled_data))
-        for field in ["task", "step", "entity", "project", "source_entity"]:
+        for field in ["task", "step", "entity", "project", "source_entity", "user"]:
             self.assertNotIn("name", unpickled_data[field])
-        self.assertIsNone(unpickled_data["user"])
         self.assertNotIn("name", unpickled_data["additional_entities"][0])
 
         # Serialize/deserialize the object, we should have only kept type,
@@ -1236,7 +1252,6 @@ class TestSerialize(TestContext):
 
             return value
         with patch.object(self.mockgun, "_get_field_from_row", side_effect=_get_field_from_row_patch):
-            #import pdb;pdb.set_trace()
             ctx = context.deserialize(pickled_data)
         self.assertEqual(ctx.to_dict(), expected)
 
@@ -1264,7 +1279,7 @@ class TestSerialize(TestContext):
         """
         Make sure the user is serialized and restored.
         """
-        tank.set_authenticated_user(self._user)
+        tank.set_authenticated_user(self._auth_user)
         ctx = context.Context(**self.kws)
         ctx_str = tank.Context.serialize(ctx)
         # Ensure the serialized context is a string
@@ -1275,13 +1290,13 @@ class TestSerialize(TestContext):
 
         # Unserializing should restore the user.
         tank.Context.deserialize(ctx_str)
-        self._assert_same_user(tank.get_authenticated_user(), self._user)
+        self._assert_same_user(tank.get_authenticated_user(), self._auth_user)
 
     def test_serialize_without_user(self):
         """
         Make sure the user is not serialized and not restored.
         """
-        tank.set_authenticated_user(self._user)
+        tank.set_authenticated_user(self._auth_user)
         ctx = context.Context(**self.kws)
         ctx_str = tank.Context.serialize(ctx)
         # Ensure the serialized context is a string
