@@ -711,7 +711,7 @@ class Context(object):
         # the type and id. This means that unserializing a context
         # will always force us to reload the entity data from the cache or
         # from Shotgun.
-        data = self.to_dict(keep_name=False)
+        data = self._to_dict(keep_name=False)
 
         data["_pc_path"] = self.tank.pipeline_configuration.get_path()
 
@@ -780,7 +780,7 @@ class Context(object):
             data.get("user")
         )
 
-    def to_dict(self, keep_name=True):
+    def to_dict(self):
         """
         Converts the context into a dictionary with keys ``project``,
         ``entity``, ``user``, ``step``, ``task``, ``additional_entities`` and
@@ -792,6 +792,15 @@ class Context(object):
             authenticated user.
 
         :returns: A dictionary representing the context.
+        """
+        return self._to_dict()
+
+    def _to_dict(self, keep_name=True):
+        """
+        See documentation from :meth:`to_dict`.
+
+        :param bool keep_name: When set to ``True``, the name will be kept inside the
+            entities. Defaults to ``True``.
         """
         return {
             "project": self._cleanup_entity(self.project, keep_name),
@@ -828,10 +837,9 @@ class Context(object):
             "id": entity["id"],
         }
 
-        if keep_name:
-            for name_field in ("name", get_sg_entity_name_field(entity["type"])):
-                if name_field in entity:
-                    filtered_entity[name_field] = entity[name_field]
+        if keep_name and "name" in entity:
+            filtered_entity["name"] = entity["name"]
+
         return filtered_entity
 
     @classmethod

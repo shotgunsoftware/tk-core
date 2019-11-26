@@ -31,7 +31,6 @@ from tank.authentication import ShotgunAuthenticator
 
 class TestContext(TankTestBase):
     def setUp(self):
-        self.maxDiff = None
         super(TestContext, self).setUp()
 
         self.keys = {"Sequence": StringKey("Sequence"),
@@ -1246,10 +1245,8 @@ class TestSerialize(TestContext):
                 name_field = tank.util.get_sg_entity_name_field(value["type"])
                 # Grab the entity from the "db"
                 linked_entity = self.mockgun._db[value["type"]][value["id"]]
-                # Update the link with the entity name.
-                # Play it safe however, if we can't match the entity name field, return a bogue
-                # value.
-                value["name"] = linked_entity.get(name_field, "mockgun_unknown_name_mapping")
+                # Set the name on the link.
+                value["name"] = linked_entity.get(name_field)
 
             return value
         with patch.object(self.mockgun, "_get_field_from_row", side_effect=_get_field_from_row_patch):
@@ -1332,8 +1329,11 @@ class TestSerialize(TestContext):
         """
         self.assertEqual(ctx_1, ctx_2)
         # Only compare type and id, serialized contexts are lossy due the fields
-        # being dropped in order to ensure there are no unserializable characters
+        # being dropped in order to ensure there are no unrealizable characters
         # sent from Python 3 to Python 2 when pickling.
+        # Interestingly, as you can see from the comparison above, the __eq__
+        # operator on context already compares only the type and id,
+        # which is why we don't have to compare all the fields manually.
         self.assertEqual(ctx_1.source_entity["type"], ctx_2.source_entity["type"])
         self.assertEqual(ctx_1.source_entity["id"], ctx_2.source_entity["id"])
 
