@@ -713,21 +713,129 @@ class TestSchemaCreateFoldersWorkspaces(TankTestBase):
         assert_paths_to_create(expected_paths)
 
 
+class TestFolderCreationPathCache(TankTestBase):
+    """
+    Tests that the path cache ends up in the correct state when creating folders.
+    """
 
+    def setUp(self):
+        super(TestFolderCreationPathCache, self).setUp()
 
+        # Use a task based fixtures, as task folders generate two path cache entries with same path, one linked
+        # to a task as a primary item, and one linked to a step as a secondary item.
+        self.setup_fixtures(parameters={"core": "core.override/shotgun_multi_task_core"})
 
+        self.seq = {"type": "Sequence",
+                    "id": 2,
+                    "code": "seq_code",
+                    "project": self.project}
+        self.shot = {"type": "Shot",
+                     "id": 1,
+                     "code": "shot_code",
+                     "sg_sequence": self.seq,
+                     "project": self.project}
+        self.step = {"type": "Step",
+                     "id": 3,
+                     "code": "step_code",
+                     "short_name": "step_short_name"}
+        self.task = {"type": "Task",
+                     "id": 23,
+                     "entity": self.shot,
+                     "content": "task1",
+                     "step": self.step,
+                     "project": self.project}
+
+        entities = [self.shot,
+                    self.seq,
+                    self.step,
+                    self.project,
+                    self.task]
+
+        # Add these to mocked shotgun
+        self.add_to_sg_mock_db(entities)
+
+        self.path_cache = path_cache.PathCache(self.tk)
+
+        folder.process_filesystem_structure(self.tk,
+                                            self.task["type"],
+                                            self.task["id"],
+                                            preview=False,
+                                            engine=None)
+
+        self.db_cursor = self.path_cache._connection.cursor()
+
+    def tearDown(self):
+        # and do local teardown
+        # making sure that no file handles remain active
+        # leftover handles cause problems on windows!
+        self.path_cache.close()
+        self.path_cache = None
+
+        # important to call base class so it can clean up memory
+        super(TestFolderCreationPathCache, self).tearDown()
+
+    def test_shotgun_path_cache_counts(self):
+        """
+        Check that the status table has entries for all the path_cache, and FilesystemLocation entities
+        and checking that the relationships are correctly matched up.
+        """
+
+        # get all the path_cache table rows
+        res = self.db_cursor.execute(
+            "SELECT rowID, entity_type, path FROM path_cache "
+        )
+        path_cache_entries = res.fetchall()
+
+        # get all the shotgun_status table rows
+        res = self.db_cursor.execute(
+            "SELECT path_cache_id, shotgun_id FROM shotgun_status "
+        )
+        shotgun_status_entries = res.fetchall()
+
+        # get all the FilesystemLocation entities.
+        filesystemlocation_entries = self.tk.shotgun.find("FilesystemLocation", [], ["linked_entity_type"])
+
+        # There should be equal numbers of path_cache items, to shotgun_status items to FilesystemLocation entities
+        # The task fixtures schema should generate 5 patch cache entries, so we should check they are all 5.
+        self.assertEqual(len(shotgun_status_entries), 5)
+        self.assertEqual(len(path_cache_entries), 5)
+        self.assertEqual(len(filesystemlocation_entries), 5)
+
+        def check_match(fl_entity, shotgun_status_row, path_cache_row):
+            """
+            check that FilesystemLocation entity that matches the shotgun_status_row's shotgun_id also matches the
+            path_cache_rows's entity type.
+            :param fl_entity: FilesystemLocation entity
+            :param shotgun_status_row: A shotgun_status table row
+            :param path_cache_row: A path_cache table row
+            :return:
+            """
+            return shotgun_status_row[1] == fl_entity["id"] and path_cache_row[1] == fl_entity["linked_entity_type"]
+
+        # Now loop over the path cache rows, and ensure that the path_cache to shotgun_status to
+        # FilesystemLocation entity relationships all line up.
+        for path_cache_row in path_cache_entries:
+            # Make sure we find a matching shotgun_status table row.
+            shotgun_status_rows = [s_row for s_row in shotgun_status_entries if path_cache_row[0] == s_row[0]]
+            self.assertEqual(len(shotgun_status_rows), 1)
+
+            # Now check a matching FilesystemLocation entity is found to ensure the relationship record is correct.
+            filesystemlocation_entitys = [fl for fl in filesystemlocation_entries if check_match(fl,
+                                                                                                 shotgun_status_rows[0],
+                                                                                                 path_cache_row)]
+            self.assertEqual(len(filesystemlocation_entitys), 1)
 
 
 class TestFolderCreationEdgeCases(TankTestBase):
     """
     Tests renaming edge cases etc.
-    
+
     """
     def setUp(self):
         super(TestFolderCreationEdgeCases, self).setUp()
-        
+
         self.setup_fixtures()
-        
+
         self.seq = {"type": "Sequence",
                     "id": 2,
                     "code": "seq_code",
@@ -750,20 +858,20 @@ class TestFolderCreationEdgeCases(TankTestBase):
 
         # Add these to mocked shotgun
         self.add_to_sg_mock_db([self.shot, self.seq, self.step, self.project, self.task])
-        
+
         self.path_cache = path_cache.PathCache(self.tk)
 
     def tearDown(self):
 
-        # and do local teardown                        
-        # making sure that no file handles remain active 
-        # leftover handles cause problems on windows! 
+        # and do local teardown
+        # making sure that no file handles remain active
+        # leftover handles cause problems on windows!
         self.path_cache.close()
         self.path_cache = None
-        
+
         # important to call base class so it can clean up memory
         super(TestFolderCreationEdgeCases, self).tearDown()
-        
+
 
 
 
