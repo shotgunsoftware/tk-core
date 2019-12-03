@@ -149,7 +149,7 @@ class FolderIOReceiver(object):
             
             
             # now that we are synced up with all remote sites,
-            # validate the data before we push it into the databse. 
+            # validate the data before we push it into the database.
             # to properly cover some edge cases        
             try:
                 path_cache.validate_mappings(db_entries)

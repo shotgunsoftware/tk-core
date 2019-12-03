@@ -42,7 +42,7 @@ class ShotgunAuthenticator(object):
         # stored a default user belonging to a default shotgun site,
         # it will simply return this. Otherwise, it will pop up a UI
         # asking the user to log in.
-        user = sg.get_user()
+        user = sa.get_user()
 
         # now the user object can be used to generate an authenticated
         # Shotgun connection.

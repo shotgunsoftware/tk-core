@@ -1580,12 +1580,23 @@ class Engine(TankBundle):
                     # the actual font file
                     font_file = os.path.join(font_dir, font_file_name)
 
-                    # load the font into the font db
-                    if QtGui.QFontDatabase.addApplicationFont(font_file) == -1:
-                        self.log_warning(
-                            "Unable to load font file: %s" % (font_file,))
-                    else:
-                        self.log_debug("Loaded font file: %s" % (font_file,))
+                    # rather than registering the file path with the QT
+                    # font system, first load the font data into memory
+                    # and then register that data.
+                    #
+                    # this is to avoid QT keeping an open file handle to
+                    # the font files - this causes issues on windows and
+                    # results in bootstrap changes sometimes not being 
+                    # picked up.                    
+                    with open(font_file, "rb") as fh:
+                        # load binary data into memory
+                        font_data = fh.read()
+                        # load the font into the font db
+                        if QtGui.QFontDatabase.addApplicationFontFromData(font_data) == -1:
+                            self.log_warning(
+                                "Unable to load font file: %s" % (font_file,))
+                        else:
+                            self.log_debug("Loaded font file into memory: %s" % (font_file,))
 
         self.__fonts_loaded = True
 
