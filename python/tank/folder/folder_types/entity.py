@@ -218,11 +218,13 @@ class Entity(Folder):
         # now find all the items (e.g. shots) matching this query
         entities = self._tk.shotgun.find(self._entity_type, resolved_filters, fields_list)
 
+        entities_to_remove = []
         for entity in entities:
             if entity.get('milestone'):
-                entities.remove(entity)
+                entities_to_remove.append(entity)
 
-        return entities
+        # Filtered list without the milestone tasks
+        return [entity for entity in entities if entity not in entities_to_remove]
 
     def extract_shotgun_data_upwards(self, sg, shotgun_data):
         """
