@@ -91,11 +91,16 @@ def _encode_cookies(cookies):
 
     :returns: An encoded string representing the cookie jar.
     """
+    PY3 = sys.version_info[0] == 3
     output = cookies.output()
-    if sys.version_info[0] == 3 and isinstance(output, str):
+    if PY3 and isinstance(output, str):
         # On Python 3, encode str to binary before passing it to b64encode.
         output = output.encode()
     encoded_cookies = base64.b64encode(output)
+    if PY3:
+        # On Python 3, b64encode returns a bytes object that we'll want to
+        # decode to a string for compatibility between Python 2 and 3.
+        encoded_cookies = encoded_cookies.decode()
     return encoded_cookies
 
 
