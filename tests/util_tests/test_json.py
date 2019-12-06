@@ -198,6 +198,12 @@ class JSONTests(TestCase):
         with open(self.json_file_location(3), "r") as fh:
             self.assertEqual(tk_json.load(fh), self.dict_with_unicode)
 
+        with open(self.json_file_location(2), "rt") as fh:
+            self.assertEqual(tk_json.loads(fh.read()), self.dict_with_unicode)
+
+        with open(self.json_file_location(3), "rt") as fh:
+            self.assertEqual(tk_json.loads(fh.read()), self.dict_with_unicode)
+
     @staticmethod
     def json_file_location(python_version):
         return os.path.join(
