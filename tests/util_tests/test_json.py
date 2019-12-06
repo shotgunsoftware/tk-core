@@ -11,6 +11,8 @@
 
 import tempfile
 import json
+import os
+import sys
 
 from unittest2 import TestCase
 from sgtk.util import json as tk_json
@@ -24,7 +26,14 @@ class JSONTests(TestCase):
     str objects instead of unicode.
     """
 
-    kanji = str("漢字")
+    kanji = "漢字"
+
+    dict_with_unicode = {
+        kanji: [kanji, kanji, kanji],
+        "number": 1,
+        "boolean": True,
+        "float": 1.5
+    }
 
     def _value_to_string_to_value(self, value):
         """
@@ -176,3 +185,33 @@ class JSONTests(TestCase):
 
             self._assert_no_bytes(converted_value)
             self.assertEqual(original_value, converted_value)
+
+    def test_reload_across_python_version(self):
+        """
+        Ensures reloading JSON written by any version of Python works in the current
+        Python version.
+        """
+        with open(self.json_file_location(2), "r") as fh:
+            self.assertEqual(tk_json.load(fh), self.dict_with_unicode)
+
+        with open(self.json_file_location(3), "r") as fh:
+            self.assertEqual(tk_json.load(fh), self.dict_with_unicode)
+
+    @staticmethod
+    def json_file_location(python_version):
+        return os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "fixtures",
+            "util_tests",
+            "json_saved_with_python_{0}.json".format(python_version)
+        )
+
+
+if __name__ == "__main__":
+    # Generates the test files. From the folder this file is in run
+    # PYTHONPATH=../../python python test_json.py
+    # with python 2 and python 3 to generate the files.
+    file_path = JSONTests.json_file_location(sys.version_info[0])
+    with open(file_path, "wt") as fh:
+        json.dump(JSONTests.dict_with_unicode, fh, sort_keys=True)
