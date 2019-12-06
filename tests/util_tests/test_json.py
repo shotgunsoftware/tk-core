@@ -32,7 +32,8 @@ class JSONTests(TestCase):
         kanji: [kanji, kanji, kanji],
         "number": 1,
         "boolean": True,
-        "float": 1.5
+        "float": 1.5,
+        "None": None
     }
 
     def _value_to_string_to_value(self, value):
