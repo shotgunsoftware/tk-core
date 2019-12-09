@@ -75,13 +75,12 @@ def _get_site_infos(url, http_proxy=None):
                 connect=False,
                 http_proxy=http_proxy
             )
-            # Only make one attempt at getting the site info.  Since this is
-            # called in situations where blocking during multiple attempts
-            # can make UIs less responsive, we'll shift the responsibility of
-            # retrying to the caller.
+            # Remove delay between attempts at getting the site info.  Since
+            # this is called in situations where blocking during multiple
+            # attempts can make UIs less responsive, we'll avoid sleeping.
             # This change was introduced after delayed retries were added in
             # python-api v3.0.41
-            sg.config.max_rpc_attempts = 1
+            sg.config.rpc_attempt_interval = 0
             infos = sg.info()
             INFOS_CACHE[url] = (time.time(), infos)
         else:
