@@ -11,6 +11,7 @@
 import os
 
 from .. import LogManager
+from .unicode import ensure_contains_str
 
 from tank_vendor.shotgun_api3.lib.six.moves import cPickle
 from tank_vendor.shotgun_api3.lib import six
@@ -18,11 +19,15 @@ from tank_vendor.shotgun_api3.lib import six
 log = LogManager.get_logger(__name__)
 
 
-def dumps_str(data):
+def dumps(data):
     """
-    Generates a pickle string for the provided data.  This wraps cPickle.dumps()
-    and produces a str on both Python 2 and 3, while cPickle.dumps() produces
-    binary on Python 3 and a str on Python 2.
+    Return the pickled representation of ``data`` as a ``str`.
+
+    This methods wraps the functionality from the :func:`pickle.dumps` method so
+    pickles can be shared between Python 2 and Python 3.
+
+    As opposed to the Python 3 implementation, it will return a ``str`` object
+    and not ``bytes`` object.
 
     :param data: The object to pickle and store.
     :returns: A pickled str of the input object.
@@ -32,6 +37,53 @@ def dumps_str(data):
     # See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL
     # Decode the result to a str before returning.
     return six.ensure_str(cPickle.dumps(data, protocol=0))
+
+
+def dump(data, fh):
+    """
+    Write the pickled representation of ``data`` to a file object.
+
+    This methods wraps the functionality from the :func:`pickle.dump` method so
+    pickles can be shared between Python 2 and Python 3.
+
+    :param data: The object to pickle and store.
+    :param fh: A file object
+    :returns: A pickled str of the input object.
+    :rtype: str
+    """
+    return cPickle.dump(data, fh, protocol=0)
+
+
+def loads(data):
+    """
+    Read the pickled representation of an object from a string
+    and return the reconstituted object hierarchy specified therein.
+
+    This method wraps the functionality from the :func:`pickle.loads` method so
+    unicode strings are always returned as utf8-encoded ``str`` instead of ``unicode``
+    objects in Python 2.
+
+    :param fh: A file object
+    :returns: The unpickled object.
+    :rtype: object
+    """
+    return ensure_contains_str(cPickle.loads(six.ensure_binary(data)))
+
+
+def load(fh):
+    """
+    Read the pickled representation of an object from the open file object
+    and return the reconstituted object hierarchy specified therein.
+
+    This method wraps the functionality from the :func:`pickle.load` method so
+    unicode strings are always returned as utf8-encoded ``str`` instead of ``unicode``
+    objects in Python 2.
+
+    :param fh: A file object
+    :returns: The unpickled object.
+    :rtype: object
+    """
+    return ensure_contains_str(cPickle.load(fh))
 
 
 def store_env_var_pickled(key, data):

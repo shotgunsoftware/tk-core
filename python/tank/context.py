@@ -14,7 +14,6 @@ Management of the current context, e.g. the current shotgun entity/step/task.
 """
 
 import os
-import pickle
 import copy
 
 from tank_vendor import yaml
@@ -25,7 +24,7 @@ from .util import login
 from .util import shotgun_entity
 from .util import shotgun
 from .util import get_sg_entity_name_field
-from .util.pickle import dumps_str
+from .util import pickle
 from . import constants
 from .errors import TankError, TankContextDeserializationError
 from .path_cache import PathCache
@@ -714,7 +713,7 @@ class Context(object):
                 # We should serialize it as well so that the next process knows who to
                 # run as.
                 data["_current_user"] = authentication.serialize_user(user)
-        return dumps_str(data)
+        return pickle.dumps(data)
 
     @classmethod
     def deserialize(cls, context_str):
@@ -732,7 +731,7 @@ class Context(object):
         from .api import Tank, set_authenticated_user
 
         try:
-            data = pickle.loads(six.ensure_binary(context_str))
+            data = pickle.loads(context_str)
         except Exception as e:
             raise TankContextDeserializationError(str(e))
 
@@ -809,8 +808,7 @@ class Context(object):
             "type": entity["type"],
             "id": entity["id"],
         }
-        for name_field in ("name", get_sg_entity_name_field(entity["type"])):
-            if name_field in entity:
+        if "name" in entity:
                 filtered_entity[name_field] = entity[name_field]
 
         return filtered_entity

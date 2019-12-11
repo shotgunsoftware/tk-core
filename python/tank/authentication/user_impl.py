@@ -22,12 +22,12 @@ at any point.
 from .shotgun_wrapper import ShotgunWrapper
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault, ProtocolError
 from tank_vendor.shotgun_api3.lib import six
-from tank_vendor.shotgun_api3.lib.six.moves import cPickle, http_client
+from tank_vendor.shotgun_api3.lib.six.moves import http_client
 
 from . import session_cache
 from .errors import IncompleteCredentials
 from .. import LogManager
-from ..util.pickle import dumps_str
+from ..util import pickle
 
 # Indirection to create ShotgunWrapper instances. Great for unit testing.
 _shotgun_instance_factory = ShotgunWrapper
@@ -533,7 +533,7 @@ def serialize_user(user):
     """
     # Pickle the dictionary and inject the user type in the payload so we know
     # how to unpickle the user.
-    return dumps_str({
+    return pickle.dumps({
         "type": user.__class__.__name__,
         "data": user.to_dict()
     })
@@ -549,7 +549,7 @@ def deserialize_user(payload):
     :returns: A ShotgunUser derived instance.
     """
     # Unpickle the dictionary
-    user_dict = cPickle.loads(six.ensure_binary(payload))
+    user_dict = pickle.loads(six.ensure_binary(payload))
 
     # Find which user type we have
     global __factories

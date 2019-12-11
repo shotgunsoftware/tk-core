@@ -17,9 +17,9 @@ from tank_vendor.shotgun_api3.lib.six.moves import urllib
 import fnmatch
 from tank_vendor.shotgun_api3.lib.six.moves import http_client
 from tank_vendor.shotgun_api3.lib import httplib2
-import tank_vendor.shotgun_api3.lib.six.moves.cPickle as pickle
 
 from ...util import shotgun
+from ...util import pickle
 from ...util import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError
 from ...util.user_settings import UserSettings
 
@@ -32,7 +32,7 @@ from ... import LogManager
 from .. import constants
 from .downloadable import IODescriptorDownloadable
 
-from ...constants import SUPPORT_EMAIL, MAX_PICKLE_PROTOCOL
+from ...constants import SUPPORT_EMAIL
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
@@ -44,9 +44,6 @@ log = LogManager.get_logger(__name__)
 
 # file where we cache the app store metadata for an item
 METADATA_FILE = ".cached_metadata.pickle"
-
-# Choose the highest protocol allowed
-PICKLE_PROTOCOL = min(pickle.HIGHEST_PROTOCOL, MAX_PICKLE_PROTOCOL)
 
 
 class IODescriptorAppStore(IODescriptorDownloadable):
@@ -280,7 +277,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         try:
             fp = open(cache_file, 'wb')
             try:
-                pickle.dump(metadata, fp, protocol=PICKLE_PROTOCOL)
+                pickle.dump(metadata, fp)
                 log.debug("Wrote app store metadata cache '%s'" % cache_file)
             finally:
                 fp.close()

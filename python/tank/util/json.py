@@ -18,30 +18,7 @@ from __future__ import absolute_import
 import json
 from tank_vendor.shotgun_api3.lib import six
 
-
-def _convert_unicode_keys_to_string(input_value):
-    """
-    Converts any :class:`unicode` instances in the input value into a utf-8
-    encoded :class`str` instance.
-
-    :param input_value: Value to convert. Can be a scalar, list or dictionary.
-
-    :returns: A value with utf-8 encoded :class:`str` instances.
-    """
-
-    if isinstance(input_value, (six.text_type, six.binary_type)):
-        return six.ensure_str(input_value)
-
-    if isinstance(input_value, list):
-        return [_convert_unicode_keys_to_string(item) for item in input_value]
-
-    if isinstance(input_value, dict):
-        return dict(
-            (_convert_unicode_keys_to_string(k), _convert_unicode_keys_to_string(v))
-            for k, v in input_value.items()
-        )
-
-    return input_value
+from .unicode import ensure_contains_str
 
 
 # This is the Python 2.6 signature. 2.7 has an extra object_hook_pairs argument.
@@ -67,7 +44,7 @@ def load(
         parse_int=parse_int, parse_constant=parse_constant, **kw
     )
 
-    return _convert_unicode_keys_to_string(loaded_value)
+    return ensure_contains_str(loaded_value)
 
 
 # This is the Python 2.6 signature. 2.7 has an extra object_hook_pairs argument.
@@ -93,4 +70,4 @@ def loads(
         parse_int=parse_int, parse_constant=parse_constant, **kw
     )
 
-    return _convert_unicode_keys_to_string(loaded_value)
+    return ensure_contains_str(loaded_value)
