@@ -293,7 +293,7 @@ class TestWritePipelineConfigFile(ShotgunTestBase):
             self.__project = self.mockgun.create(
                 "Project",
                 {
-                    "name": "TestWritePipelineConfigFile",
+                    "code": "TestWritePipelineConfigFile",
                     "tank_name": "pc_tank_name"
                 }
             )

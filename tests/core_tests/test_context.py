@@ -13,7 +13,6 @@ from __future__ import with_statement
 import os
 import copy
 import datetime
-import pickle
 
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
@@ -50,7 +49,7 @@ class TestContext(TankTestBase):
             "project": self.project
         }
 
-        self.step = {"type": "Step", "code": "step_name", "id": 4}
+        self.step = {"type":"Step", "name": "step_name", "id": 4}
 
         self.shot_alt = {
             "type": "Shot",
@@ -505,7 +504,7 @@ class TestFromEntity(TestContext):
         get_current_user.return_value = self.current_user
         
         # add additional field value to task
-        add_value = self.project
+        add_value = {"name":"additional", "id": 3, "type": "add_type"}
         self.task["additional_field"] = add_value
         
         # store the find call count
@@ -1099,47 +1098,16 @@ class TestSerialize(TestContext):
     def setUp(self):
         super(TestSerialize, self).setUp()
         # params used in creating contexts
-        # Add data to mocked shotgun
-        self.task = self.mockgun.create(
-            "Task",
-            {
-                "content": "task_content",
-                "project": self.project,
-                "entity": self.shot,
-                "step": self.step
-            }
-        )
-
-        self.version = self.mockgun.create(
-            "Version",
-            {
-                "code": "version_code",
-                "project": self.project
-            }
-        )
-
-        self.user = self.mockgun.create(
-            "HumanUser",
-            {
-                "name": "user_name"
-            }
-        )
-
         self.kws = {}
         self.kws["tk"] = self.tk
         self.kws["project"] = self.project
         self.kws["entity"] = self.shot
         self.kws["step"] = self.step
-        self.kws["task"] = self.task
-        self.kws["user"] = self.user
-        self.kws["additional_entities"] = [self.seq]
-        self.kws["source_entity"] = self.version
+        self.kws["task"] = {"id": 45, "type": "Task"}
+        self.kws["additional_entities"] = [{"id": 42, "type": "Sequence"}]
+        self.kws["source_entity"] = {"id": 12, "type": "Version"}
 
-        # self._auth_user differs from self.kws["user"], because self._auth_user
-        # is the user we are authenticated as when talking to Shotgun
-        # while self.kws["user"] is the user associated with the current
-        # context.
-        self._auth_user = ShotgunAuthenticator().create_script_user(
+        self._user = ShotgunAuthenticator().create_script_user(
             "script_user", "script_key", "https://abc.shotgunstudio.com"
         )
 
@@ -1169,88 +1137,22 @@ class TestSerialize(TestContext):
         for entity in self.kws["additional_entities"]:
             entity["created_at"] = datetime.datetime.now()
         self.kws["source_entity"]["created_at"] = datetime.datetime.now()
-        self.kws["user"]["created_at"] = datetime.datetime.now()
 
         expected = {
-            "task": {
-                "type": "Task",
-                "id": self.task["id"],
-                "name": "task_content"
-            },
-            "step": {
-                "type": "Step",
-                "id": self.step["id"],
-                "name": "step_name"
-            },
-            "entity": {
-                "type": "Shot",
-                "id": self.shot["id"],
-                "name": self.shot["code"]
-            },
-            "project": {
-                "type": "Project",
-                "id": self.project["id"],
-                "name": "project_name"
-            },
-            # Contrary to other entities, the source entity and...
-            "source_entity": {
-                "type": "Version",
-                "id": self.version["id"],
-            },
-            # ... additional entities' name are never resolved
-            # so they can be missing.
-            "additional_entities": [{
-                "type": "Sequence",
-                "id": self.seq["id"],
-            }],
-            "user": {
-                "type": "HumanUser",
-                "id": self.user["id"],
-                "name": "user_name"
-            }
+            "additional_entities": [{"id": 42, "type": "Sequence"}],
+            "entity": {"code": "shot_name", "id": 2, "name": "shot_name", "type": "Shot"},
+            "project": {"id": 1, "name": "project_name", "type": "Project"},
+            "source_entity": {"id": 12, "type": "Version"},
+            "step": {"id": 4, "name": "step_name", "type": "Step"},
+            "task": {"id": 45, "type": "Task"},
+            "user": None
         }
 
         ctx = context.Context(**self.kws)
-        pickled_data = ctx.serialize()
-
-        # Make sure there is only type and ids in the pickle.
-        unpickled_data = pickle.loads(six.ensure_binary(pickled_data))
-        for field in ["task", "step", "entity", "project", "source_entity", "user"]:
-            self.assertNotIn("name", unpickled_data[field])
-        self.assertNotIn("name", unpickled_data["additional_entities"][0])
 
         # Serialize/deserialize the object, we should have only kept type,
         # id and name-related fields.
-        real_get_field_from_row = self.mockgun._get_field_from_row
-
-        def _get_field_from_row_patch(entity_type, row, field):
-            value = real_get_field_from_row(entity_type, row, field)
-
-            # TODO: This fix should go inside mockgun. Linked fields in mockgun never
-            # have their name set. However, making the fix right now is too disruptive
-            # as it starts breaking so many tests that either do not set the name using
-            # the proper field or do not even provide it. The more we try to make
-            # mockgun emulate the real thing the more things start breaking down,
-            # so for now we'll implement the fix in this patch since we need
-            # that real behaviour from Shotgun to be emulated. At some point
-            # we should revisit mockgun and the dreaded use of TankTestBase.add_to_sg_mock_db
-            # which introduce so many inconsistencies in Mockgun.
-
-            # Is this a link field?
-            if isinstance(value, dict) and "type" in value and "id" in value:
-                # Then make sure the link field has the values type, id and name.
-                # Clone the original value as we're about to add the current name to it.
-                value = value.copy()
-                # Find the right field name for this entity type.
-                name_field = tank.util.get_sg_entity_name_field(value["type"])
-                # Grab the entity from the "db"
-                linked_entity = self.mockgun._db[value["type"]][value["id"]]
-                # Set the name on the link.
-                value["name"] = linked_entity.get(name_field)
-
-            return value
-        with patch.object(self.mockgun, "_get_field_from_row", side_effect=_get_field_from_row_patch):
-            ctx = context.deserialize(pickled_data)
+        ctx = context.deserialize(ctx.serialize())
         self.assertEqual(ctx.to_dict(), expected)
 
     def test_equal_yml(self):
@@ -1277,7 +1179,7 @@ class TestSerialize(TestContext):
         """
         Make sure the user is serialized and restored.
         """
-        tank.set_authenticated_user(self._auth_user)
+        tank.set_authenticated_user(self._user)
         ctx = context.Context(**self.kws)
         ctx_str = tank.Context.serialize(ctx)
         # Ensure the serialized context is a string
@@ -1288,13 +1190,13 @@ class TestSerialize(TestContext):
 
         # Unserializing should restore the user.
         tank.Context.deserialize(ctx_str)
-        self._assert_same_user(tank.get_authenticated_user(), self._auth_user)
+        self._assert_same_user(tank.get_authenticated_user(), self._user)
 
     def test_serialize_without_user(self):
         """
         Make sure the user is not serialized and not restored.
         """
-        tank.set_authenticated_user(self._auth_user)
+        tank.set_authenticated_user(self._user)
         ctx = context.Context(**self.kws)
         ctx_str = tank.Context.serialize(ctx)
         # Ensure the serialized context is a string
@@ -1327,15 +1229,8 @@ class TestSerialize(TestContext):
         but since we're interested into making sure everything gets serialized
         property we'll add the value there.
         """
-        self.assertEqual(ctx_1, ctx_2)
-        # Only compare type and id, serialized contexts are lossy due the fields
-        # being dropped in order to ensure there are no unrealizable characters
-        # sent from Python 3 to Python 2 when pickling.
-        # Interestingly, as you can see from the comparison above, the __eq__
-        # operator on context already compares only the type and id,
-        # which is why we don't have to compare all the fields manually.
-        self.assertEqual(ctx_1.source_entity["type"], ctx_2.source_entity["type"])
-        self.assertEqual(ctx_1.source_entity["id"], ctx_2.source_entity["id"])
+        self.assertTrue(ctx_1 == ctx_2)
+        self.assertTrue(ctx_1.source_entity == ctx_2.source_entity)
 
     def test_deserialized_invalid_data(self):
         """

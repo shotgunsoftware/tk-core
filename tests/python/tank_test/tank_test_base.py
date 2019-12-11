@@ -514,9 +514,6 @@ class TankTestBase(unittest.TestCase):
         # fake a version response from the server
         self.mockgun.server_info = {"version": (7, 0, 0)}
 
-        self.add_to_sg_mock_db(self.project)
-        self.add_to_sg_mock_db(self.sg_pc_entity)
-
         self._mock_return_value("tank.util.shotgun.connection.get_associated_sg_base_url", "http://unit_test_mock_sg")
         self._mock_return_value("tank.util.shotgun.connection.create_sg_connection", self.mockgun)
         self._mock_return_value("tank.util.shotgun.get_associated_sg_base_url", "http://unit_test_mock_sg")
@@ -525,6 +522,10 @@ class TankTestBase(unittest.TestCase):
         # add project to mock sg and path cache db
         if self._do_io:
             self.add_production_path(self.project_root, self.project)
+
+        # add pipeline configuration
+        self.add_to_sg_mock_db(self.project)
+        self.add_to_sg_mock_db(self.sg_pc_entity)
 
         # add local storage
         self.primary_storage = {"type": "LocalStorage",
@@ -807,10 +808,10 @@ class TankTestBase(unittest.TestCase):
             # create directories
             os.makedirs(full_path)
         if entity:
-            # populate mock sg
-            self.add_to_sg_mock_db(entity)
             # add to path cache
             self.add_to_path_cache(full_path, entity)
+            # populate mock sg
+            self.add_to_sg_mock_db(entity)
 
     def add_to_path_cache(self, path, entity):
         """

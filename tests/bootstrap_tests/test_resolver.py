@@ -56,8 +56,9 @@ class TestResolverBase(TankTestBase):
         create a mock info.yml
         """
         sgtk.util.filesystem.ensure_folder_exists(path)
-        with open(os.path.join(path, "info.yml"), "wt") as fh:
-            fh.write("foo")
+        fh = open(os.path.join(path, "info.yml"), "wt")
+        fh.write("foo")
+        fh.close()
 
     def _create_pc(
             self,
@@ -105,7 +106,7 @@ class TestUserRestriction(TestResolverBase):
     def setUp(self):
         super(TestUserRestriction, self).setUp()
 
-        self._john_doe = self.mockgun.create("HumanUser", {"login": "john.doe", "name": "John Doe"})
+        self._john_doe = self.mockgun.create("HumanUser", {"login": "john.doe"})
 
         self._john_doe_pc = self._create_pc(
             "Doe Sandbox", users=[self._john_doe], plugin_ids='foo.*', path='/path/to/john/doe'
@@ -1033,7 +1034,7 @@ class TestResolveWithFilter(TestResolverBase):
         """
 
         # Create a second user that will own similar sandboxes.
-        self.mockgun.create("HumanUser", {"login": "john.doe", "name": "John Doe"})
+        self.mockgun.create("HumanUser", {"login": "john.doe"})
 
         # Create site primary
         self._create_pc("Primary", path="primary_configuration", plugin_ids="foo.*")

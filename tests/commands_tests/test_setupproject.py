@@ -85,7 +85,7 @@ class TestSetupProject(TankTestBase):
         new_project = {
             "type": "Project",
             "id": 1234,
-            "name": "new_project_1234",
+            "code": "new_project_1234",
         }
         self.add_to_sg_mock_db(new_project)
         # location where the config will be installed
@@ -148,7 +148,7 @@ class TestSetupProject(TankTestBase):
         new_project = {
             "type": "Project",
             "id": 1678,
-            "name": "distributed_proj",
+            "code": "distributed_proj",
         }
         self.add_to_sg_mock_db(new_project)
         # location where the data will be installed
@@ -213,7 +213,7 @@ class TestSetupProject(TankTestBase):
             new_project = {
                 "type": "Project",
                 "id": 1235,
-                "name": "new_project_1235",
+                "code": "new_project_1235",
             }
             self.add_to_sg_mock_db(new_project)
             new_config_root = os.path.join(self.tank_temp, "new_project_1235_config")
