@@ -36,8 +36,4 @@ del __httplib2_compat
 del __name
 
 # Add ssl_error_classes to __all__
-__all__.append('ssl_error_classes')
-
-
-# try to import stuff in certs
-# merge this WIP into tk-core -- one last warning need new six to get rid of
+__all__.append("ssl_error_classes")
