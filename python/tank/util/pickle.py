@@ -19,6 +19,20 @@ from tank_vendor.shotgun_api3.lib import six
 log = LogManager.get_logger(__name__)
 
 
+def _load_kwargs():
+    if six.PY3:
+        return {
+            "encoding": "bytes"
+        }
+    else:
+        return {}
+
+def _dump_kwargs():
+    return {
+        "protocol": 0
+    }
+
+
 def dumps(data):
     """
     Return the pickled representation of ``data`` as a ``str`.
@@ -36,7 +50,7 @@ def dumps(data):
     # Force pickle protocol 0, since this is a non-binary pickle protocol.
     # See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL
     # Decode the result to a str before returning.
-    return six.ensure_str(cPickle.dumps(data, protocol=0))
+    return six.ensure_str(cPickle.dumps(data, **_dump_kwargs()))
 
 
 def dump(data, fh):
@@ -51,7 +65,7 @@ def dump(data, fh):
     :returns: A pickled str of the input object.
     :rtype: str
     """
-    return cPickle.dump(data, fh, protocol=0)
+    return cPickle.dump(data, fh, **_dump_kwargs())
 
 
 def loads(data):
@@ -67,7 +81,7 @@ def loads(data):
     :returns: The unpickled object.
     :rtype: object
     """
-    return ensure_contains_str(cPickle.loads(six.ensure_binary(data)))
+    return ensure_contains_str(cPickle.loads(six.ensure_binary(data), **_load_kwargs()))
 
 
 def load(fh):
@@ -83,7 +97,7 @@ def load(fh):
     :returns: The unpickled object.
     :rtype: object
     """
-    return ensure_contains_str(cPickle.load(fh))
+    return ensure_contains_str(cPickle.load(fh, **_load_kwargs()))
 
 
 def store_env_var_pickled(key, data):
@@ -99,7 +113,7 @@ def store_env_var_pickled(key, data):
     """
     # Force pickle protocol 0, since this is a non-binary pickle protocol.
     # See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL
-    pickled_data = cPickle.dumps(data, protocol=0)
+    pickled_data = cPickle.dumps(data, **_dump_kwargs())
     encoded_data = six.ensure_str(pickled_data)
     os.environ[key] = encoded_data
 
@@ -117,4 +131,4 @@ def retrieve_env_var_pickled(key):
     :returns: The original object that was stored.
     """
     envvar_contents = six.ensure_binary(os.environ[key])
-    return cPickle.loads(envvar_contents)
+    return cPickle.loads(envvar_contents, **_load_kwargs())

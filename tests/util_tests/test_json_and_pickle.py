@@ -1,0 +1,264 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2018 Shotgun Software Inc.
+#
+# CONFIDENTIAL AND PROPRIETARY
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+# Source Code License included in this distribution package. See LICENSE.
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
+# not expressly granted therein are reserved by Shotgun Software Inc.
+
+import tempfile
+import json
+import os
+import sys
+
+from unittest2 import TestCase
+from sgtk.util import json as tk_json
+from sgtk.util import pickle
+
+from tank_vendor.shotgun_api3.lib import six
+
+
+class Impl:
+    class SerializationTests(TestCase):
+        """
+        Ensures unserializing json from file or a string will always yield
+        str objects instead of unicode.
+        """
+
+        def __init__(self, loader_module, dumper_module, *args, **kwargs):
+            super(Impl.SerializationTests, self).__init__(*args, **kwargs)
+            self._loader_module = loader_module
+            self._dumper_module = dumper_module
+
+        kanji = "漢字"
+
+        dict_with_unicode = {
+            kanji: [kanji, kanji, kanji],
+            "number": 1,
+            "boolean": True,
+            "float": 1.5,
+            "None": None
+        }
+
+        def _value_to_string_to_value(self, value):
+            """
+            Dumps a value to a json formatted string and reloads it.
+
+            :param value: Value to dump to a string.
+
+            :returns: Value that was loaded back from the string.
+            """
+            return self.loads(self.dumps(value))
+
+        def loads(self, data):
+            return self._loader_module.loads(data)
+
+        def load(self, fh):
+            return self._loader_module.load(fh)
+
+        def dumps(self, data):
+            return self._dumper_module.dumps(data)
+
+        def dump(self, data, fh):
+            self._dumper_module.dump(data, fh)
+
+        def _value_to_file_to_value(self, value):
+            """
+            Dumps a value to a json formatted file and reloads it.
+
+            :param value: Value to dump to a file.
+
+            :returns: Value that was loaded back from the file.
+            """
+            with tempfile.TemporaryFile(mode="w{0}+".format(self.mode)) as fp:
+                self.dump(value, fp)
+                # Return at the beginning of the file so the load method can read
+                # something.
+                fp.seek(0)
+                return self.load(fp)
+
+        def _assert_no_unicode(self, value):
+            """
+            Ensures there is no unicode anywhere inside the value.
+
+            Just make sure there the string "u'" is not in the original value. ;)
+            """
+            # Get the repr of the value. If there is a unicode string,
+            # we'll get a u'value' somewhere in the output, which means
+            # there is a unicode string.
+            if "u'" in repr(value):
+                raise Exception("unicode string found in %r" % value)
+
+        def _assert_no_bytes(self, value):
+            """
+            Ensures there is no bytes anywhere inside the value.
+
+            Just make sure there the string "b'" is not in the original value. ;)
+            """
+            # Get the repr of the value. If there is a bytes object,
+            # we'll get a b'value' somewhere in the output, which means
+            # it contains bytes.
+            if "b'" in repr(value):
+                raise Exception("bytes found in %r" % value)
+
+        def test_repr_detection(self):
+            """
+            Ensures the unicode or bytes detection method actually works.
+            """
+            if six.PY2:
+                self._assert_no_unicode({})
+                self._assert_no_unicode(1)
+                self._assert_no_unicode(False)
+                self._assert_no_unicode(None)
+                self._assert_no_unicode(self.kanji)
+                self._assert_no_unicode({"k": "v"})
+
+                with self.assertRaisesRegex(Exception, "unicode string found in u'allo'"):
+                    self._assert_no_unicode(u"allo")
+            elif six.PY3:
+                self._assert_no_bytes({})
+                self._assert_no_bytes(1)
+                self._assert_no_bytes(False)
+                self._assert_no_bytes(None)
+                self._assert_no_bytes(self.kanji)
+                self._assert_no_bytes({"k": "v"})
+
+                with self.assertRaisesRegex(Exception, "bytes found in b'allo'"):
+                    self._assert_no_bytes(b"allo")
+
+        def test_scalar_values(self):
+            """
+            Ensures we can properly encode scalar values.
+            """
+            if six.PY2:
+                # In the case of Python2, ensure that we get str instances back with
+                # no unicode after loading.
+                assertion = self._assert_no_unicode_after_load
+            else:
+                # For Python3 and above, ensure that no bytes objects are returned
+                # after loading.
+                assertion = self._assert_no_bytes_after_load
+
+            # Integer
+            assertion(1)
+            # BigNum
+            assertion(100000000000000000000000)
+            # Floats
+            assertion(1.0)
+            # Booleans
+            assertion(True)
+            assertion(False)
+            # None
+            assertion(None)
+            # Strings
+            assertion("a")
+            assertion(u"a")
+            assertion(self.kanji)
+
+        def test_array_values(self):
+            """
+            Ensure we can properly encode an array.
+            """
+            self._assert_no_unicode_after_load([
+                1, 100000000000000000000000, 1.0, True, False, None,
+                {"a": "b", u"c": u"d"},
+                "e", u"f"
+            ])
+
+        def test_dict_value(self):
+            """
+            Ensures we can properly encode a dictionary.
+            """
+            self._assert_no_unicode_after_load({})
+            self._assert_no_unicode_after_load({"a": "b", u"c": u"d"})
+            self._assert_no_unicode_after_load({
+                "e": ["f"], u"g": [u"h"]
+            })
+            self._assert_no_unicode_after_load({
+                "i": [{"j": ["k"]}],
+                u"l": [{u"m": [u"n"]}],
+            })
+
+        def _assert_no_unicode_after_load(self, original_value):
+            """
+            Ensures the values are the same after the serialize/unserialize and that the
+            strings are all str and not unicode objects.
+            """
+            # We need to test serialization to disk and to string for the input.
+            for converter in [self._value_to_string_to_value, self._value_to_file_to_value]:
+                converted_value = converter(original_value)
+
+                self._assert_no_unicode(converted_value)
+                self.assertEqual(original_value, converted_value)
+
+        def _assert_no_bytes_after_load(self, original_value, converter=None):
+            """
+            Ensures the values are the same after the serialize/unserialize and that the
+            strings are all text and not binary.
+            """
+            # We need to test serialization to disk and to string for the input.
+            for converter in [self._value_to_string_to_value, self._value_to_file_to_value]:
+                converted_value = converter(original_value)
+
+                self._assert_no_bytes(converted_value)
+                self.assertEqual(original_value, converted_value)
+
+        def test_reload_across_python_version(self):
+            """
+            Ensures reloading JSON written by any version of Python works in the current
+            Python version.
+            """
+            with open(self.file_location(2), "rb") as fh:
+                self.assertEqual(self.load(fh), self.dict_with_unicode)
+
+            with open(self.file_location(3), "rb") as fh:
+                self.assertEqual(self.load(fh), self.dict_with_unicode)
+
+            with open(self.file_location(2), "r{0}".format(self.mode)) as fh:
+                self.assertEqual(self.loads(fh.read()), self.dict_with_unicode)
+
+            with open(self.file_location(3), "r{0}".format(self.mode)) as fh:
+                self.assertEqual(self.loads(fh.read()), self.dict_with_unicode)
+
+        @classmethod
+        def file_location(cls, python_version):
+            return os.path.join(
+                os.path.dirname(__file__),
+                "..",
+                "fixtures",
+                "util_tests",
+                cls.filename.format(python_version)
+            )
+
+
+class JSONTests(Impl.SerializationTests):
+
+    filename = "json_saved_with_python_{0}.json"
+    mode = "t"
+
+    def __init__(self, *args, **kwargs):
+        super(JSONTests, self).__init__(tk_json, json, *args, **kwargs)
+
+
+class PickleTests(Impl.SerializationTests):
+
+    filename = "pickle_saved_with_python_{0}.pickle"
+    mode = "b"
+
+    def __init__(self, *args, **kwargs):
+        super(PickleTests, self).__init__(pickle, pickle, *args, **kwargs)
+
+if __name__ == "__main__":
+    # Generates the test files. From the folder this file is in run
+    # PYTHONPATH=../../python python test_json.py
+    # with python 2 and python 3 to generate the files.
+    file_path = JSONTests.file_location(sys.version_info[0])
+    with open(file_path, "wt") as fh:
+        json.dump(JSONTests.dict_with_unicode, fh, sort_keys=True)
+
+    file_path = PickleTests.file_location(sys.version_info[0])
+    with open(file_path, "wb") as fh:
+        pickle.dump(PickleTests.dict_with_unicode, fh)
