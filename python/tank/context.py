@@ -15,16 +15,18 @@ Management of the current context, e.g. the current shotgun entity/step/task.
 
 import os
 import copy
+import json
 
 from tank_vendor import yaml
 from tank_vendor.shotgun_api3.lib import six
 from . import authentication
+import hashlib
 
 from .util import login
 from .util import shotgun_entity
 from .util import shotgun
 from .util import get_sg_entity_name_field
-from .util import pickle
+from .util import pickle, json as sgjson
 from . import constants
 from .errors import TankError, TankContextDeserializationError
 from .path_cache import PathCache
@@ -674,7 +676,9 @@ class Context(object):
     ################################################################################################
     # serialization
 
-    def serialize(self, with_user_credentials=True):
+    SERIALIZE_PICKLE, SERIALIZE_JSON = range(2)
+
+    def serialize(self, with_user_credentials=True, mode=SERIALIZE_PICKLE):
         """
         Serializes the context into a string.
 
@@ -712,8 +716,49 @@ class Context(object):
             if user:
                 # We should serialize it as well so that the next process knows who to
                 # run as.
-                data["_current_user"] = authentication.serialize_user(user)
-        return pickle.dumps(data)
+                if mode == Context.SERIALIZE_JSON:
+                    data["_current_user"] = authentication.serialize_user(user, mode=authentication.user_impl.SERIALIZE_JSON)
+                else:
+                    data["_current_user"] = authentication.serialize_user(user, mode=authentication.user_impl.SERIALIZE_PICKLE)
+
+        if mode == Context.SERIALIZE_JSON:
+            return json.dumps(data)
+        else:
+            return pickle.dumps(data)
+
+    # @classmethod
+    # def _get_context_location(cls, token):
+    #     return os.path.join(
+    #         LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE), "contexts", "{0}.ctx".format(token)
+    #     )
+
+    # def serialize_to_token(self, with_user_credentials=True):
+    #     """
+    #     Serialize the context and return a token that can be used to
+    #     unserialize it.
+    #     """
+    #     data = self.serialize()
+
+    #     md5 = hashlib.md5()
+    #     md5.update(six.ensure_binary(data))
+    #     token = md5.digest()
+
+    #     with open(
+    #         self._get_context_location(token),
+    #         "wt"
+    #     ) as fh:
+    #         fh.write(data)
+    #     return digest
+
+    # @classmethod
+    # def deserialize_from_token(cls, token):
+    #     with open(self._get_context_location(token), "rt") as fh:
+    #         cls.deserialize(fh.load())
+    #     try:
+    #         os.remove(self._get_context_location(token))
+    #     except Exception:
+    #         # Silently fail deleting the context.
+    #         pass
 
     @classmethod
     def deserialize(cls, context_str):
@@ -731,8 +776,13 @@ class Context(object):
         from .api import Tank, set_authenticated_user
 
         try:
-            data = pickle.loads(context_str)
+            if context_str[0] in ("{", b"{"):
+                data = sgjson.loads(context_str)
+            else:
+                data = pickle.loads(context_str)
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             raise TankContextDeserializationError(str(e))
 
         # first get the pipeline config path out of the dict
@@ -809,7 +859,7 @@ class Context(object):
             "id": entity["id"],
         }
         if "name" in entity:
-                filtered_entity[name_field] = entity[name_field]
+            filtered_entity["name"] = entity["name"]
 
         return filtered_entity
 

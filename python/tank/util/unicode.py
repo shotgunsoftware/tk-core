@@ -11,7 +11,7 @@
 Utility methods for filtering dictionaries
 """
 
-import six
+from tank_vendor.shotgun_api3.lib import six
 
 def ensure_contains_str(input_value):
     """

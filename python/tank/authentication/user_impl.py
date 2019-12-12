@@ -28,6 +28,8 @@ from . import session_cache
 from .errors import IncompleteCredentials
 from .. import LogManager
 from ..util import pickle
+from ..util import json as sgjson
+import json
 
 # Indirection to create ShotgunWrapper instances. Great for unit testing.
 _shotgun_instance_factory = ShotgunWrapper
@@ -523,7 +525,10 @@ __factories = {
 }
 
 
-def serialize_user(user):
+SERIALIZE_PICKLE, SERIALIZE_JSON = range(2)
+
+
+def serialize_user(user, mode=SERIALIZE_PICKLE):
     """
     Serializes a user. Meant to be consumed by deserialize.
 
@@ -533,10 +538,14 @@ def serialize_user(user):
     """
     # Pickle the dictionary and inject the user type in the payload so we know
     # how to unpickle the user.
-    return pickle.dumps({
+    user_data = {
         "type": user.__class__.__name__,
         "data": user.to_dict()
-    })
+    }
+    if mode == SERIALIZE_PICKLE:
+        return pickle.dumps(user_data)
+    else:
+        return json.dumps(user_data)
 
 
 def deserialize_user(payload):
@@ -548,8 +557,11 @@ def deserialize_user(payload):
 
     :returns: A ShotgunUser derived instance.
     """
-    # Unpickle the dictionary
-    user_dict = pickle.loads(six.ensure_binary(payload))
+    if payload[0] in ("{", b"{"):
+        user_dict = sgjson.loads(six.ensure_binary(payload))
+    else:
+        # Unpickle the dictionary
+        user_dict = pickle.loads(six.ensure_binary(payload))
 
     # Find which user type we have
     global __factories

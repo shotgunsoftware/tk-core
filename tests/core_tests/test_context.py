@@ -1140,7 +1140,7 @@ class TestSerialize(TestContext):
 
         expected = {
             "additional_entities": [{"id": 42, "type": "Sequence"}],
-            "entity": {"code": "shot_name", "id": 2, "name": "shot_name", "type": "Shot"},
+            "entity": {"id": 2, "name": "shot_name", "type": "Shot"},
             "project": {"id": 1, "name": "project_name", "type": "Project"},
             "source_entity": {"id": 12, "type": "Version"},
             "step": {"id": 4, "name": "step_name", "type": "Step"},

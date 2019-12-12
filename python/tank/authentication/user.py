@@ -298,7 +298,7 @@ class ShotgunSamlUser(ShotgunWebUser):
             return False
 
 
-def serialize_user(user):
+def serialize_user(user, mode=user_impl.SERIALIZE_PICKLE):
     """
     Serializes a user. Meant to be consumed by deserialize.
 
@@ -306,7 +306,7 @@ def serialize_user(user):
 
     :returns: The payload representing the user.
     """
-    return user_impl.serialize_user(user.impl)
+    return user_impl.serialize_user(user.impl, mode=mode)
 
 
 def deserialize_user(payload):
