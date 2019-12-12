@@ -27,12 +27,6 @@ class Impl:
         Ensures unserializing json from file or a string will always yield
         str objects instead of unicode.
         """
-
-        def __init__(self, loader_module, dumper_module, *args, **kwargs):
-            super(Impl.SerializationTests, self).__init__(*args, **kwargs)
-            self._loader_module = loader_module
-            self._dumper_module = dumper_module
-
         kanji = "漢字"
 
         dict_with_unicode = {
@@ -54,16 +48,16 @@ class Impl:
             return self.loads(self.dumps(value))
 
         def loads(self, data):
-            return self._loader_module.loads(data)
+            return self.loader_module.loads(data)
 
         def load(self, fh):
-            return self._loader_module.load(fh)
+            return self.loader_module.load(fh)
 
         def dumps(self, data):
-            return self._dumper_module.dumps(data)
+            return self.dumper_module.dumps(data)
 
         def dump(self, data, fh):
-            self._dumper_module.dump(data, fh)
+            self.dumper_module.dump(data, fh)
 
         def _value_to_file_to_value(self, value):
             """
@@ -73,7 +67,7 @@ class Impl:
 
             :returns: Value that was loaded back from the file.
             """
-            with tempfile.TemporaryFile(mode="w{0}+".format(self.mode)) as fp:
+            with tempfile.TemporaryFile(mode="{0}+".format(self.write_mode)) as fp:
                 self.dump(value, fp)
                 # Return at the beginning of the file so the load method can read
                 # something.
@@ -238,18 +232,19 @@ class JSONTests(Impl.SerializationTests):
 
     filename = "json_saved_with_python_{0}.json"
     mode = "t"
-
-    def __init__(self, *args, **kwargs):
-        super(JSONTests, self).__init__(tk_json, json, *args, **kwargs)
+    write_mode = "wb" if six.PY2 else "wt"
+    loader_module = tk_json
+    dumper_module = json
 
 
 class PickleTests(Impl.SerializationTests):
 
     filename = "pickle_saved_with_python_{0}.pickle"
     mode = "b"
+    write_mode = "wb"
+    loader_module = pickle
+    dumper_module = pickle
 
-    def __init__(self, *args, **kwargs):
-        super(PickleTests, self).__init__(pickle, pickle, *args, **kwargs)
 
 if __name__ == "__main__":
     # Generates the test files. From the folder this file is in run
