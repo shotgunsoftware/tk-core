@@ -217,13 +217,17 @@ class Impl:
             with open(self.file_location(3), "r{0}".format(self.mode)) as fh:
                 self.assertEqual(self.loads(fh.read()), self.dict_with_unicode)
 
+        fixtures_location = os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "fixtures",
+            "util_tests"
+        )
+
         @classmethod
         def file_location(cls, python_version):
             return os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "fixtures",
-                "util_tests",
+                cls.fixtures_location,
                 cls.filename.format(python_version)
             )
 
@@ -245,10 +249,24 @@ class PickleTests(Impl.SerializationTests):
     loader_module = pickle
     dumper_module = pickle
 
+    protocol_2_file_location = os.path.join(
+        Impl.SerializationTests.fixtures_location,
+        "pickled_saved_with_python_2_protocol_0.pickle"
+    )
+
+    def test_reload_protocol_2_pickle(self):
+        with open(self.protocol_2_file_location, "rb") as fh:
+            self.assertEqual(self.load(fh), self.dict_with_unicode)
+
+        with open(self.protocol_2_file_location, "rb") as fh:
+            self.assertEqual(self.loads(fh.read()), self.dict_with_unicode)
+
+
 
 if __name__ == "__main__":
     # Generates the test files. From the folder this file is in run
-    # PYTHONPATH=../../python python test_json.py
+    import sys
+    # PYTHONPATH=../../python python test_json_and_pickle.py
     # with python 2 and python 3 to generate the files.
     file_path = JSONTests.file_location(sys.version_info[0])
     with open(file_path, "wt") as fh:
@@ -257,3 +275,11 @@ if __name__ == "__main__":
     file_path = PickleTests.file_location(sys.version_info[0])
     with open(file_path, "wb") as fh:
         pickle.dump(PickleTests.dict_with_unicode, fh)
+
+    if six.PY2:
+        # call directly the cPickle.dump method. Older Toolkit cores
+        # would save pickles with protocol==2, so make sure we can
+        # read those as well with the pickle module wrapper.
+        import cPickle
+        with open(PickleTests.protocol_2_file_location, "wb") as fh:
+            cPickle.dump(PickleTests.dict_with_unicode, fh, protocol=2)
