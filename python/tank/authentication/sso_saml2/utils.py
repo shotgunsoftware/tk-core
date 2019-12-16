@@ -72,7 +72,10 @@ def _get_site_infos(url, http_proxy=None):
         ):
             get_logger().info("Infos for site '%s' not in cache or expired", url)
             sg = shotgun_api3.Shotgun(
-                url, session_token="dummy", connect=False, http_proxy=http_proxy
+                url,
+                session_token="dummy",
+                connect=False,
+                http_proxy=http_proxy
             )
             # Remove delay between attempts at getting the site info.  Since
             # this is called in situations where blocking during multiple
