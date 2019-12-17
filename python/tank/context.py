@@ -675,9 +675,7 @@ class Context(object):
     ################################################################################################
     # serialization
 
-    SERIALIZE_PICKLE, SERIALIZE_JSON = range(2)
-
-    def serialize(self, with_user_credentials=True, mode=SERIALIZE_PICKLE):
+    def serialize(self, with_user_credentials=True, use_pickle=True):
         """
         Serializes the context into a string.
 
@@ -715,15 +713,12 @@ class Context(object):
             if user:
                 # We should serialize it as well so that the next process knows who to
                 # run as.
-                if mode == Context.SERIALIZE_JSON:
-                    data["_current_user"] = authentication.serialize_user(user, mode=authentication.user_impl.SERIALIZE_JSON)
-                else:
-                    data["_current_user"] = authentication.serialize_user(user, mode=authentication.user_impl.SERIALIZE_PICKLE)
+                data["_current_user"] = authentication.serialize_user(user, use_pickle=use_pickle)
 
-        if mode == Context.SERIALIZE_JSON:
-            return json.dumps(data)
-        else:
+        if use_pickle:
             return pickle.dumps(data)
+        else:
+            return json.dumps(data)
 
     @classmethod
     def deserialize(cls, context_str):

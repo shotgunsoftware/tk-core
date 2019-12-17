@@ -525,10 +525,7 @@ __factories = {
 }
 
 
-SERIALIZE_PICKLE, SERIALIZE_JSON = range(2)
-
-
-def serialize_user(user, mode=SERIALIZE_PICKLE):
+def serialize_user(user, use_pickle=True):
     """
     Serializes a user. Meant to be consumed by deserialize.
 
@@ -542,7 +539,7 @@ def serialize_user(user, mode=SERIALIZE_PICKLE):
         "type": user.__class__.__name__,
         "data": user.to_dict()
     }
-    if mode == SERIALIZE_PICKLE:
+    if use_pickle:
         return pickle.dumps(user_data)
     else:
         return json.dumps(user_data)
