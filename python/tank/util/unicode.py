@@ -13,6 +13,7 @@ Utility methods for filtering dictionaries
 
 from tank_vendor.shotgun_api3.lib import six
 
+
 def _ensure_contains_str(input_value, visited):
     """
     Convert the keys and values of arrays and dicts to ensure no ``unicode``

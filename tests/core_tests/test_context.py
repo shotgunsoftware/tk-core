@@ -49,7 +49,7 @@ class TestContext(TankTestBase):
             "project": self.project
         }
 
-        self.step = {"type":"Step", "name": "step_name", "id": 4}
+        self.step = {"type": "Step", "name": "step_name", "id": 4}
 
         self.shot_alt = {
             "type": "Shot",
@@ -504,7 +504,7 @@ class TestFromEntity(TestContext):
         get_current_user.return_value = self.current_user
         
         # add additional field value to task
-        add_value = {"name":"additional", "id": 3, "type": "add_type"}
+        add_value = {"name": "additional", "id": 3, "type": "add_type"}
         self.task["additional_field"] = add_value
         
         # store the find call count

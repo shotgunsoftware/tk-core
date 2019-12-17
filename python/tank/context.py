@@ -20,7 +20,6 @@ import json
 from tank_vendor import yaml
 from tank_vendor.shotgun_api3.lib import six
 from . import authentication
-import hashlib
 
 from .util import login
 from .util import shotgun_entity
@@ -1246,6 +1245,7 @@ def from_entity(tk, entity_type, entity_id):
     :returns: :class:`Context`
     """
     return _from_entity_type_and_id(tk, dict(type=entity_type, id=entity_id))
+
 
 def _from_entity_type_and_id(tk, entity, source_entity=None):
     """

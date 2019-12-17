@@ -274,7 +274,6 @@ class PickleTests(Impl.SerializationTests):
 
 if __name__ == "__main__":
     # Generates the test files. From the folder this file is in run
-    import sys
 
     # PYTHONPATH=../../python python test_json_and_pickle.py
     # with python 2 and python 3 to generate the files.
