@@ -107,7 +107,7 @@ def store_env_var_pickled(key, data):
     """
     # Force pickle protocol 0, since this is a non-binary pickle protocol.
     # See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL
-    pickled_data = dumps(data, **DUMP_KWARGS)
+    pickled_data = dumps(data)
     encoded_data = six.ensure_str(pickled_data)
     os.environ[key] = encoded_data
 
@@ -128,4 +128,4 @@ def retrieve_env_var_pickled(key):
     :returns: The original object that was stored.
     """
     envvar_contents = six.ensure_binary(os.environ[key])
-    return loads(envvar_contents, LOAD_KWARGS)
+    return loads(envvar_contents)
