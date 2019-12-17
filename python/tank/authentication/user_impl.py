@@ -557,6 +557,7 @@ def deserialize_user(payload):
 
     :returns: A ShotgunUser derived instance.
     """
+    # If the serialized payload starts with a {, we have a JSON-encoded string.
     if payload[0] in ("{", b"{"):
         user_dict = sgjson.loads(six.ensure_binary(payload))
     else:

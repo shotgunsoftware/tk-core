@@ -725,40 +725,6 @@ class Context(object):
         else:
             return pickle.dumps(data)
 
-    # @classmethod
-    # def _get_context_location(cls, token):
-    #     return os.path.join(
-    #         LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE), "contexts", "{0}.ctx".format(token)
-    #     )
-
-    # def serialize_to_token(self, with_user_credentials=True):
-    #     """
-    #     Serialize the context and return a token that can be used to
-    #     unserialize it.
-    #     """
-    #     data = self.serialize()
-
-    #     md5 = hashlib.md5()
-    #     md5.update(six.ensure_binary(data))
-    #     token = md5.digest()
-
-    #     with open(
-    #         self._get_context_location(token),
-    #         "wt"
-    #     ) as fh:
-    #         fh.write(data)
-    #     return digest
-
-    # @classmethod
-    # def deserialize_from_token(cls, token):
-    #     with open(self._get_context_location(token), "rt") as fh:
-    #         cls.deserialize(fh.load())
-    #     try:
-    #         os.remove(self._get_context_location(token))
-    #     except Exception:
-    #         # Silently fail deleting the context.
-    #         pass
-
     @classmethod
     def deserialize(cls, context_str):
         """
@@ -775,13 +741,13 @@ class Context(object):
         from .api import Tank, set_authenticated_user
 
         try:
+            # If the serialized payload starts with a {, we have a
+            # JSON-encoded string.
             if context_str[0] in ("{", b"{"):
                 data = sgjson.loads(context_str)
             else:
                 data = pickle.loads(context_str)
         except Exception as e:
-            import traceback
-            traceback.print_exc()
             raise TankContextDeserializationError(str(e))
 
         # first get the pipeline config path out of the dict
