@@ -694,6 +694,9 @@ class Context(object):
         :param with_user_credentials: If ``True``, the currently authenticated user's credentials, as
             returned by :meth:`sgtk.get_authenticated_user`, will also be serialized with the context.
 
+        :param use_pickle: If ``True``, the context will be ``pickle``d. Otherwise,
+            a ``json`` representation will be generated.
+
         .. note:: For example, credentials should be omitted (``with_user_credentials=False``) when
             serializing the context from a user's current session to send it to a render farm. By doing
             so, invoking :meth:`sgtk.Context.deserialize` on the render farm will only restore the
@@ -854,7 +857,6 @@ class Context(object):
 
         :returns: :class:`Context`
         """
-        # Get all argument names except for self.
         return Context(
             tk=data.get("tk"),
             project=data.get("project"),
@@ -1434,7 +1436,7 @@ def _from_entity_dictionary(tk, entity_dictionary, source_entity=None):
                 return None
             # return a clean dictionary:
             return {"type":ent["type"], "id":ent["id"], "name":ent_name}
-        
+
         if project:
             context["project"] = _build_clean_entity(project)
             if not context["project"]:
