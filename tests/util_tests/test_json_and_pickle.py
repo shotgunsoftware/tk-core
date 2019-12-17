@@ -24,7 +24,7 @@ from tank_vendor.shotgun_api3.lib import six
 class Impl:
     class SerializationTests(TestCase):
         """
-        Ensures unserializing json from file or a string will always yield
+        Ensures unserializing from file or a string will always yield
         str objects instead of unicode.
         """
 
@@ -199,7 +199,7 @@ class Impl:
                 self._assert_no_unicode(converted_value)
                 self.assertEqual(original_value, converted_value)
 
-        def _assert_no_bytes_after_load(self, original_value, converter=None):
+        def _assert_no_bytes_after_load(self, original_value):
             """
             Ensures the values are the same after the serialize/unserialize and that the
             strings are all text and not binary.
@@ -244,6 +244,7 @@ class Impl:
 
 class JSONTests(Impl.SerializationTests):
 
+    # Parametrizes the tests from the base class.
     filename = "json_saved_with_python_{0}.json"
     mode = "t"
     write_mode = "wb" if six.PY2 else "wt"
@@ -253,12 +254,14 @@ class JSONTests(Impl.SerializationTests):
 
 class PickleTests(Impl.SerializationTests):
 
+    # Parametrizes the tests from the base class.
     filename = "pickle_saved_with_python_{0}.pickle"
     mode = "b"
     write_mode = "wb"
     loader_module = pickle
     dumper_module = pickle
 
+    # Derived class parameters.
     protocol_2_file_location = os.path.join(
         Impl.SerializationTests.fixtures_location,
         "pickled_saved_with_python_2_protocol_0.pickle",
