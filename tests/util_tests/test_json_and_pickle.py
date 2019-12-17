@@ -27,6 +27,7 @@ class Impl:
         Ensures unserializing json from file or a string will always yield
         str objects instead of unicode.
         """
+
         kanji = "漢字"
 
         dict_with_unicode = {
@@ -34,7 +35,7 @@ class Impl:
             "number": 1,
             "boolean": True,
             "float": 1.5,
-            "None": None
+            "None": None,
         }
 
         def _value_to_string_to_value(self, value):
@@ -110,7 +111,9 @@ class Impl:
                 self._assert_no_unicode(self.kanji)
                 self._assert_no_unicode({"k": "v"})
 
-                with self.assertRaisesRegex(Exception, "unicode string found in u'allo'"):
+                with self.assertRaisesRegex(
+                    Exception, "unicode string found in u'allo'"
+                ):
                     self._assert_no_unicode(u"allo")
             elif six.PY3:
                 self._assert_no_bytes({})
@@ -156,11 +159,19 @@ class Impl:
             """
             Ensure we can properly encode an array.
             """
-            self._assert_no_unicode_after_load([
-                1, 100000000000000000000000, 1.0, True, False, None,
-                {"a": "b", u"c": u"d"},
-                "e", u"f"
-            ])
+            self._assert_no_unicode_after_load(
+                [
+                    1,
+                    100000000000000000000000,
+                    1.0,
+                    True,
+                    False,
+                    None,
+                    {"a": "b", u"c": u"d"},
+                    "e",
+                    u"f",
+                ]
+            )
 
         def test_dict_value(self):
             """
@@ -168,13 +179,10 @@ class Impl:
             """
             self._assert_no_unicode_after_load({})
             self._assert_no_unicode_after_load({"a": "b", u"c": u"d"})
-            self._assert_no_unicode_after_load({
-                "e": ["f"], u"g": [u"h"]
-            })
-            self._assert_no_unicode_after_load({
-                "i": [{"j": ["k"]}],
-                u"l": [{u"m": [u"n"]}],
-            })
+            self._assert_no_unicode_after_load({"e": ["f"], u"g": [u"h"]})
+            self._assert_no_unicode_after_load(
+                {"i": [{"j": ["k"]}], u"l": [{u"m": [u"n"]}]}
+            )
 
         def _assert_no_unicode_after_load(self, original_value):
             """
@@ -182,7 +190,10 @@ class Impl:
             strings are all str and not unicode objects.
             """
             # We need to test serialization to disk and to string for the input.
-            for converter in [self._value_to_string_to_value, self._value_to_file_to_value]:
+            for converter in [
+                self._value_to_string_to_value,
+                self._value_to_file_to_value,
+            ]:
                 converted_value = converter(original_value)
 
                 self._assert_no_unicode(converted_value)
@@ -194,7 +205,10 @@ class Impl:
             strings are all text and not binary.
             """
             # We need to test serialization to disk and to string for the input.
-            for converter in [self._value_to_string_to_value, self._value_to_file_to_value]:
+            for converter in [
+                self._value_to_string_to_value,
+                self._value_to_file_to_value,
+            ]:
                 converted_value = converter(original_value)
 
                 self._assert_no_bytes(converted_value)
@@ -218,17 +232,13 @@ class Impl:
                 self.assertEqual(self.loads(fh.read()), self.dict_with_unicode)
 
         fixtures_location = os.path.join(
-            os.path.dirname(__file__),
-            "..",
-            "fixtures",
-            "util_tests"
+            os.path.dirname(__file__), "..", "fixtures", "util_tests"
         )
 
         @classmethod
         def file_location(cls, python_version):
             return os.path.join(
-                cls.fixtures_location,
-                cls.filename.format(python_version)
+                cls.fixtures_location, cls.filename.format(python_version)
             )
 
 
@@ -251,7 +261,7 @@ class PickleTests(Impl.SerializationTests):
 
     protocol_2_file_location = os.path.join(
         Impl.SerializationTests.fixtures_location,
-        "pickled_saved_with_python_2_protocol_0.pickle"
+        "pickled_saved_with_python_2_protocol_0.pickle",
     )
 
     def test_reload_protocol_2_pickle(self):
@@ -262,10 +272,10 @@ class PickleTests(Impl.SerializationTests):
             self.assertEqual(self.loads(fh.read()), self.dict_with_unicode)
 
 
-
 if __name__ == "__main__":
     # Generates the test files. From the folder this file is in run
     import sys
+
     # PYTHONPATH=../../python python test_json_and_pickle.py
     # with python 2 and python 3 to generate the files.
     file_path = JSONTests.file_location(sys.version_info[0])
@@ -281,5 +291,6 @@ if __name__ == "__main__":
         # would save pickles with protocol==2, so make sure we can
         # read those as well with the pickle module wrapper.
         import cPickle
+
         with open(PickleTests.protocol_2_file_location, "wb") as fh:
             cPickle.dump(PickleTests.dict_with_unicode, fh, protocol=2)

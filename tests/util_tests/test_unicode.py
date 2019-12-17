@@ -16,64 +16,60 @@ from tank_vendor.shotgun_api3.lib import six
 char = "漢字"
 unichar = unicode(char, encoding="utf8")
 
+
 class TestUnicode(TestCase):
 
     skipIf(six.PY3, "Unicode data type does not exist on Python 3.")
+
     def test_convert_to_str(self):
-        
-        value = {
-            unichar: [unichar, {unichar: unichar}],
-            "char": unichar
-        }
 
-        expected = {
-            char: [char, {char: char}],
-            "char": char
-        }
+        value = {unichar: [unichar, {unichar: unichar}], "char": unichar}
 
-        self.assertEqual(
-            sgtk.util.unicode.ensure_contains_str(value),
-            expected
-        )
+        expected = {char: [char, {char: char}], "char": char}
+
+        self.assertEqual(sgtk.util.unicode.ensure_contains_str(value), expected)
 
     def test_dict_back_reference_do_not_loop_forever(self):
 
-        value = {}
-        value[unichar] = value
+        # Create a dictionary with a circular reference it itself.
+        original = {}
+        original[unichar] = original
 
-        expected = {}
-        expected[char] = expected
+        # Take a reference of the original key and the value associated
+        # to it.
+        original_key = unichar
+        original_value = original[original_key]
 
-        self.assertEqual(
-            sgtk.util.unicode.ensure_contains_str(value),
-            expected
-        )
+        # We'll now convert the object.
+        converted = sgtk.util.unicode.ensure_contains_str(original)
 
-        self.assertEqual(id(value), id(expected))
-        self.assertNotEqual(
-            id(list(value.keys())[0]),
-            id(list(expected.keys())[0])
-        )
-        self.assertEqual(id(value[unichar]), id(expected[char]))
+        # Make sure we're still using the same dictionary as before.
+        self.assertEqual(id(original), id(converted))
+
+        # Make sure that the key as actually converted
+        converted_key = list(converted.keys())[0]
+        self.assertNotEqual(id(original_key), id(converted_key))
+
+        # Make sure that we're still referencing the same original array.
+        self.assertEqual(id(original_value), id(converted[converted_key]))
 
     def test_list_back_reference_do_not_loop_forever(self):
 
+        # Create an array with a circular reference.
         value = [unichar]
         value.append(value)
 
-        expected = [unichar]
-        expected.append(unichar)
+        original_first_value = unichar
+        original_second_value = value
 
-        self.assertEqual(
-            sgtk.util.unicode.ensure_contains_str(value),
-            expected
-        )
+        converted_value = sgtk.util.unicode.ensure_contains_str(value)
 
-        self.assertEqual(id(value), id(expected))
-        self.assertNotEqual(id(value[0]), id(expected[0]))
-        self.assertEqual(id(value[1]), id(expected[1]))
+        # We should still be dealing with the same array
+        self.assertEqual(id(value), id(converted_value))
 
+        # The new array's first value sould have been converted so it's
+        # not the same as before.
+        self.assertNotEqual(id(original_first_value), id(converted_value[0]))
 
-
-
-
+        # The second element however refered back to the array, so we're good.
+        self.assertEqual(id(original_second_value), id(converted_value[1]))
