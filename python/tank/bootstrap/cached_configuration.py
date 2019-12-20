@@ -140,7 +140,7 @@ class CachedConfiguration(Configuration):
         )
 
         (_, unmapped_roots) = storage_roots.get_local_storages(
-            self._sg_connection)
+            self._sg_connection, self._project_id)
 
         # get a list of all defined storage roots without a corresponding SG
         # local storage defined

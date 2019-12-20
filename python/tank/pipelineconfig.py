@@ -91,29 +91,11 @@ class PipelineConfiguration(object):
                                                                               our_associated_api_version,
                                                                               self.get_install_location()))
 
-        # keep a storage roots object interface instance in order to query roots
-        # info as needed
-        config_folder = os.path.join(self._pc_root, "config")
-        self._storage_roots = StorageRoots.from_config(config_folder)
-
-        # If there are storage required for this configuration, ensure one of
-        # them can be identified as the default storage. We need to keep this
-        # constraint as we are not able to keep roots definition in the order
-        # they were defined, so this is the only way we can guarantee we always
-        # use the same root for any template which does not have an explicit
-        # root setting.
-        if (
-            self._storage_roots.required_roots and not
-            self._storage_roots.default_path
-        ):
-            raise TankError(
-                "Could not identify a default storage root for this pipeline "
-                "configuration! File: '%s'" % (self._storage_roots.roots_file,)
-            )
-
         # get the project tank disk name (Project.tank_name),
         # stored in the pipeline config metadata file.
         pipeline_config_metadata = self._get_metadata()
+        log.debug("Loaded pipeline configuration metadata: %s" % pipeline_config_metadata)
+
         self._project_name = pipeline_config_metadata.get("project_name")
         self._project_id = pipeline_config_metadata.get("project_id")
         self._pc_id = pipeline_config_metadata.get("pc_id")
@@ -148,6 +130,27 @@ class PipelineConfiguration(object):
             self._bundle_cache_fallback_paths = pipeline_config_metadata.get("bundle_cache_fallback_roots")
         else:
             self._bundle_cache_fallback_paths = []
+
+        # keep a storage roots object interface instance in order to query roots
+        # info as needed
+        config_folder = os.path.join(self._pc_root, "config")
+        self._storage_roots = StorageRoots.from_config(
+            config_folder, shotgun.get_sg_connection(), self._project_id)
+
+        # If there are storage required for this configuration, ensure one of
+        # them can be identified as the default storage. We need to keep this
+        # constraint as we are not able to keep roots definition in the order
+        # they were defined, so this is the only way we can guarantee we always
+        # use the same root for any template which does not have an explicit
+        # root setting.
+        if (
+            self._storage_roots.required_roots and not
+            self._storage_roots.default_path
+        ):
+            raise TankError(
+                "Could not identify a default storage root for this pipeline "
+                "configuration! File: '%s'" % (self._storage_roots.roots_file,)
+            )
 
         # There are five ways this initializer can be invoked.
         #
@@ -287,6 +290,7 @@ class PipelineConfiguration(object):
             raise TankError("Configuration metadata file '%s' missing! "
                             "Please contact support." % cfg_yml)
 
+        log.debug("Loading PC metadata from '%s'" % cfg_yml)
         fh = open(cfg_yml, "rt")
         try:
             data = yaml.load(fh)
@@ -560,6 +564,16 @@ class PipelineConfiguration(object):
     ########################################################################################
     # storage roots related
 
+    def get_storage_roots_by_type(self):
+        """
+        Returns a mapping from storage type to the names of the storage of that type
+
+        {
+            "local_storage": ["primary", "textures"]
+        }
+        """
+        return self._storage_roots.get_roots_by_type()
+
     def get_local_storage_roots(self):
         """
         Returns local OS paths to each shotgun local storage defined in this
@@ -678,7 +692,7 @@ class PipelineConfiguration(object):
         """
         # get the storage data for required roots
         sg = shotgun.get_sg_connection()
-        return self._storage_roots.get_local_storages(sg)
+        return self._storage_roots.get_local_storages(sg, self._project_id)
 
     def get_all_platform_data_roots(self):
         """

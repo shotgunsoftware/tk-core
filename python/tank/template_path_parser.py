@@ -60,7 +60,7 @@ class TemplatePathParser(object):
         self.input_path = None
         self.last_error = "Unable to parse path" 
 
-    def parse_path(self, input_path, skip_keys):
+    def parse_path(self, input_path, skip_keys, separators_ok=None):
         """
         Parses a path against the set of keys and static tokens to extract valid values
         for the keys.  This will make use of as much information as it can within all
@@ -81,8 +81,9 @@ class TemplatePathParser(object):
         name allowed underscores then the shot key would be ambiguous and would resolve
         to either 'shot' or 'shot_010' which would error.
 
-        :param input_path:  The path to parse.
-        :param skip_keys:   List of keys for whom we do not need to find values.
+        :param input_path:      The path to parse.
+        :param skip_keys:       List of keys for whom we do not need to find values.
+        :param separators_ok:   List of keys for whom it is ok to have os separators in the values.
 
         :returns:           If succesful, a dictionary of fields mapping key names to 
                             their values. None if the fields can't be resolved. 
@@ -166,7 +167,8 @@ class TemplatePathParser(object):
                                                                                  self.static_tokens[1:], 
                                                                                  token_positions[1:], 
                                                                                  self.ordered_keys, 
-                                                                                 skip_keys))
+                                                                                 skip_keys,
+                                                                                 separators_ok=separators_ok))
 
             # we've handled this case so remove the first position:
             token_positions[0] = token_positions[0][1:]
@@ -183,7 +185,8 @@ class TemplatePathParser(object):
                                                                                  self.static_tokens,
                                                                                  token_positions,
                                                                                  self.ordered_keys, 
-                                                                                 skip_keys))
+                                                                                 skip_keys,
+                                                                                 separators_ok=separators_ok))
 
         if not possible_values:
             # failed to find anything!
@@ -238,7 +241,7 @@ class TemplatePathParser(object):
         return fields
     
     def __find_possible_key_values_recursive(self, path, key_position, tokens, token_positions, 
-                                             keys, skip_keys, key_values=None):
+                                             keys, skip_keys, key_values=None, separators_ok=None):
         """
         Recursively traverse through the tokens & keys to find all possible values for the keys
         given the available token positions im the path.
@@ -252,6 +255,7 @@ class TemplatePathParser(object):
         :param keys:            A list of the remaining keys to find values for
         :param skip_keys:       A list of keys that can be skipped from the result
         :param key_values:      A dictionary of all values that were previously found for any keys
+        :param separators_ok:   A list of keys that are allowed to have os specific path separators
         
         :returns:               A list of ResolvedValue instances representing the hierarchy of possible
                                 values for all keys being parsed.
@@ -287,7 +291,7 @@ class TemplatePathParser(object):
                 
                 # slashes are not allowed in key values!  Note, the possible value is a section
                 # of the input path so the OS specific path separator needs to be checked for:
-                if os.path.sep in possible_value_str:
+                if os.path.sep in possible_value_str and not key.name in separators_ok:
                     last_error = ("%s: Invalid value found for key %s: %s" 
                                   % (self, key.name, possible_value_str))
                     continue
@@ -330,7 +334,8 @@ class TemplatePathParser(object):
                                                                        keys, 
                                                                        skip_keys,
                                                                        dict(key_values.items() 
-                                                                            + [(key.name, possible_value_str)])
+                                                                            + [(key.name, possible_value_str)]),
+                                                                       separators_ok,
                                                                        )
 
                     # check that at least one of the returned values is fully

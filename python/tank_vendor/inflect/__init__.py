@@ -1,0 +1,1 @@
+from . import inflect as inflect_module

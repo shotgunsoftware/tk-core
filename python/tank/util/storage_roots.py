@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import sys
 
 from tank_vendor import yaml
 
@@ -21,6 +22,181 @@ from . import yaml_cache
 
 log = LogManager.get_logger(__name__)
 
+
+class LocalStorageRoot(object):
+    TYPE = "local_storage"
+
+    @classmethod
+    def get_local_storages(cls, roots, sg_connection, project_id):
+        log.debug("Attempting to associate required storage roots with SG local storages...")
+
+        # build a lookup of storage root name to local storages SG dicts
+        local_storage_lookup = {}
+
+        # keep a list of storages that could not be mapped to a SG local storage
+        unmapped_root_names = []
+
+        # query all local storages from SG so we can store a lookup of roots
+        # defined here to SG storages
+
+        # fields required for SG local storage queries
+        local_storage_fields = ["code", "id"]
+        local_storage_fields.extend(ShotgunPath.SHOTGUN_PATH_FIELDS)
+
+        # create the SG connection and query
+        log.debug("Querying SG local storages...")
+        sg_storages = sg_connection.find(
+            "LocalStorage",
+            [],
+            local_storage_fields
+        )
+        log.debug("Query returned %s storages." % (len(sg_storages, )))
+
+        # create lookups of storages by name and id for convenience. we'll check
+        # against each root's shotgun_storage_id first, falling back to the
+        # name if the id mapping field is not defined.
+        sg_storages_by_id = {}
+        sg_storages_by_name = {}
+        for sg_storage in sg_storages:
+            id = sg_storage["id"]
+            name = sg_storage["code"]
+            sg_storages_by_id[id] = sg_storage
+            sg_storages_by_name[name] = sg_storage
+
+        for root_name, root_info in roots:
+            # see if the shotgun storage id is specified explicitly in the
+            # roots.yml file.
+            root_storage_id = root_info.get("shotgun_storage_id")
+            if root_storage_id and root_storage_id in sg_storages_by_id:
+                # found a match. store it in the lookup
+                sg_storage = sg_storages_by_id[root_storage_id]
+                log.debug(
+                    "Storage root %s explicitly associated with SG local "
+                    "storage id %s (%s)" %
+                    (root_name, root_storage_id, sg_storage)
+                )
+                local_storage_lookup[root_name] = sg_storage
+                continue
+
+            # if we're here, no storage is specified explicitly. fall back to
+            # the storage name.
+            if root_name in sg_storages_by_name:
+                # found a match. store it in the lookup
+                sg_storage = sg_storages_by_name[root_name]
+                log.debug(
+                    "Storage root %s matches SG local storage with same name "
+                    "(%s)" % (root_name, sg_storage)
+                )
+                local_storage_lookup[root_name] = sg_storage
+                continue
+
+            # if we're here, then we could not map the storage root to a local
+            # storage in SG
+            log.warning(
+                "Storage root %s could not be mapped to a SG local storage" %
+                (root_name,)
+            )
+            unmapped_root_names.append(root_name)
+
+        # return a tuple of the processed info
+        return local_storage_lookup, unmapped_root_names
+
+    @classmethod
+    def process_storages(cls, roots, sg_connection, project_id):
+        paths_lookup = {}
+        for root_name, root_info in roots:
+            log.debug("Processing local storage: %s - %s" % (root_name, root_info))
+
+            # store a shotgun path for each root definition. sanitize path data
+            # by passing it through the ShotgunPath object. if the configuration
+            # has not been installed, these paths may be None.
+            self._shotgun_paths_lookup[root_name] = \
+                ShotgunPath.from_shotgun_dict(root_info)
+
+        return paths_lookup
+
+
+class NavChainRoot(object):
+    TYPE = "navchain"
+
+    @classmethod
+    def get_local_storages(cls, roots, sg_connection, project_id):
+        log.debug("Attempting to associate required storage roots with SG project navchains...")
+
+        local_storage_lookup = {}
+        unmapped_root_names = []
+
+        if project_id is None:
+            # not resolving storages with the context of a project (one place this happens is
+            # when writing out the roots cache). In this case, simply return no storages, but
+            # no unmapped roots. We assume that the storage will be resolved when a project
+            # context is available
+            return (local_storage_lookup, unmapped_root_names)
+
+        # get the proper config field key for our current platform
+        if sys.platform == "win32":
+            platform_key = "project_windows_field"
+        elif sys.platform == "darwin":
+            platform_key = "project_mac_field"
+        elif sys.platform.startswith("linux"):
+            platform_key = "project_linux_field"
+        else:
+            raise ValueError(
+                "Cannot get platform field for unsupported platform ('%s')" % sys.platform)
+
+        # get all the project fields used by the navchain roots for the current platform
+        project_path_fields = []
+        for root_name, root_info in roots:
+            if not root_info.get(platform_key):
+                log.warn(
+                    "Invalid roots configuration, %s not configured for root '%s'" % \
+                        (platform_key, root_name)
+                    )
+                unmapped_root_names.append(root_name)
+                continue
+
+            project_path_fields.append(root_info[platform_key])
+
+        log.debug("Querying SG for project paths: %s" % project_path_fields)
+        sg_project = sg_connection.find("Project", [["id", "is", project_id]], project_path_fields)
+        log.debug("Query returned '%s'" % sg_project)
+
+        if not sg_project:
+            raise ValueError("No project found with id %d (check permissions)" % project_id)
+        sg_project = sg_project[0]
+
+        # get all the associated paths per root
+        for root_name, root_info in roots:
+            platform_field = root_info.get(platform_key)
+            if not platform_field:
+                # warning for this unconfigured root was already issued above
+                continue
+
+            # make sure the path has been configured in Shotgun
+            root_path = sg_project.get(platform_field)
+            if not root_path:
+                log.warn(
+                    "No value for data root '%s' on field '%s' of project '%d'" % \
+                        (root_name, platform_field, project_id)
+                )
+                unmapped_root_names.append(root_name)
+                continue
+
+            # keep track of the paths we've found
+            log.debug("Storage root %s is mapped to '%s'" % (root_name, root_path))
+            local_storage_lookup[root_name] = {
+                ShotgunPath.get_shotgun_storage_key(): root_path
+            }
+
+        return (local_storage_lookup, unmapped_root_names)
+
+    @classmethod
+    def process_storages(cls, roots, sg_connection, project_id):
+        storage_lookup, _ = cls.get_local_storages(roots, sg_connection, project_id)
+        paths_lookup = dict([(name, ShotgunPath.from_shotgun_dict(store)) for (name, store) in storage_lookup.iteritems()])
+
+        log.debug("Processed storage '%s' for project %s': %s" % ([name for (name, info) in roots], project_id, paths_lookup))
+        return paths_lookup
 
 class StorageRoots(object):
     """
@@ -51,6 +227,13 @@ class StorageRoots(object):
     # sys.platform-specific path keys as expected in the root definitions
     PLATFORM_KEYS = ["mac_path", "linux_path", "windows_path"]
 
+    # Class mapping for storage types
+    STORAGE_CLASS_MAP = {
+        LocalStorageRoot.TYPE: LocalStorageRoot,
+        NavChainRoot.TYPE: NavChainRoot,
+    }
+    DEFAULT_STORAGE_CLASS = LocalStorageRoot.TYPE
+
     ############################################################################
     # class methods
 
@@ -67,7 +250,7 @@ class StorageRoots(object):
         return os.path.exists(roots_file)
 
     @classmethod
-    def from_config(cls, config_folder):
+    def from_config(cls, config_folder, sg_connection=None, project_id=None):
         """
         Constructs a StorageRoots object from the supplied config folder.
 
@@ -79,15 +262,15 @@ class StorageRoots(object):
         """
 
         log.debug(
-            "Creating StorageRoots instance from config: %s" % (config_folder,))
+            "Creating StorageRoots instance from config: %s (project %s)" % (config_folder, project_id))
         storage_roots = cls()
-        storage_roots._init_from_config(config_folder)
+        storage_roots._init_from_config(config_folder, sg_connection, project_id)
         log.debug("Created: %s" % (storage_roots,))
 
         return storage_roots
 
     @classmethod
-    def from_metadata(cls, metadata):
+    def from_metadata(cls, metadata, sg_connection=None, project_id=None):
         """
         Constructs a StorageRoots object from the supplied metadata.
 
@@ -123,13 +306,13 @@ class StorageRoots(object):
         log.debug(
             "Creating StorageRoots instance from metadata: %s" % (metadata,))
         storage_roots = cls()
-        storage_roots._process_metadata(metadata)
+        storage_roots._process_metadata(metadata, sg_connection, project_id)
         log.debug("Created: %s" % (storage_roots,))
 
         return storage_roots
 
     @classmethod
-    def write(cls, sg_connection, config_folder, storage_roots):
+    def write(cls, sg_connection, config_folder, storage_roots, project_id=None):
         """
         Given a ``StorageRoots`` object, write it's metadata to the standard
         roots location within the supplied config folder. The method will write
@@ -147,7 +330,7 @@ class StorageRoots(object):
         """
 
         (local_storage_lookup, unmapped_roots) = \
-            storage_roots.get_local_storages(sg_connection)
+            storage_roots.get_local_storages(sg_connection, project_id)
 
         roots_file = os.path.join(config_folder, cls.STORAGE_ROOTS_FILE_PATH)
 
@@ -176,6 +359,10 @@ class StorageRoots(object):
         roots_metadata = storage_roots.metadata
 
         for root_name, root_info in storage_roots:
+            # Onlly add SG LocalStorage info to the appropriate storage class
+            # TODO: Move this into the LocalStorage class
+            if root_info.get("type", cls.DEFAULT_STORAGE_CLASS) != "local_storage":
+                continue
 
             # get the cached SG storage dict
             sg_local_storage = local_storage_lookup[root_name]
@@ -304,7 +491,22 @@ class StorageRoots(object):
     ############################################################################
     # public methods
 
-    def get_local_storages(self, sg_connection):
+    def get_roots_by_type(self):
+        """
+        Returns a mapping from filesystem type to the defined roots of that type
+
+        {
+            "local_storage": ["primary", "textures"],
+        }
+        """
+        roots_by_type = {}
+        for (root_name, root_info) in self:
+            root_type = root_info.get("type", self.DEFAULT_STORAGE_CLASS)
+            roots_by_type.setdefault(root_type, []).append(root_name)
+
+        return roots_by_type
+
+    def get_local_storages(self, sg_connection, project_id=None):
         """
         Returns a tuple of information about the required storage roots and how
         they map to local storages in SG.
@@ -346,14 +548,12 @@ class StorageRoots(object):
         corresponding local storage in SG.
 
         :param: A shotgun connection
+        :param: ID for the project to resolve storages for
         :returns: A tuple of information about local storages mapped to the
             configuration's required storage roots.
         """
 
-        log.debug(
-            "Attempting to associate required storage roots with SG local "
-            "storages..."
-        )
+        log.debug("Attempting to associate required storage roots with storages for project %s..." % project_id)
 
         # build a lookup of storage root name to local storages SG dicts
         local_storage_lookup = {}
@@ -361,68 +561,18 @@ class StorageRoots(object):
         # keep a list of storages that could not be mapped to a SG local storage
         unmapped_root_names = []
 
-        # query all local storages from SG so we can store a lookup of roots
-        # defined here to SG storages
+        for root_type in self.STORAGE_CLASS_MAP.keys():
+            log.debug("Getting local storage for '%s'" % root_type)
+            roots = [(root_name, root_info) \
+                for (root_name, root_info) \
+                in self \
+                if root_info.get("type", self.DEFAULT_STORAGE_CLASS) == root_type]
 
-        # fields required for SG local storage queries
-        local_storage_fields = ["code", "id"]
-        local_storage_fields.extend(ShotgunPath.SHOTGUN_PATH_FIELDS)
+            (type_storage_lookup, type_unmapped_root_names) = \
+                self.STORAGE_CLASS_MAP[root_type].get_local_storages(roots, sg_connection, project_id)
 
-        # create the SG connection and query
-        log.debug("Querying SG local storages...")
-        sg_storages = sg_connection.find(
-            "LocalStorage",
-            [],
-            local_storage_fields
-        )
-        log.debug("Query returned %s storages." % (len(sg_storages, )))
-
-        # create lookups of storages by name and id for convenience. we'll check
-        # against each root's shotgun_storage_id first, falling back to the
-        # name if the id mapping field is not defined.
-        sg_storages_by_id = {}
-        sg_storages_by_name = {}
-        for sg_storage in sg_storages:
-            id = sg_storage["id"]
-            name = sg_storage["code"]
-            sg_storages_by_id[id] = sg_storage
-            sg_storages_by_name[name] = sg_storage
-
-        for root_name, root_info in self:
-
-            # see if the shotgun storage id is specified explicitly in the
-            # roots.yml file.
-            root_storage_id = root_info.get("shotgun_storage_id")
-            if root_storage_id and root_storage_id in sg_storages_by_id:
-                # found a match. store it in the lookup
-                sg_storage = sg_storages_by_id[root_storage_id]
-                log.debug(
-                    "Storage root %s explicitly associated with SG local "
-                    "storage id %s (%s)" %
-                    (root_name, root_storage_id, sg_storage)
-                )
-                local_storage_lookup[root_name] = sg_storage
-                continue
-
-            # if we're here, no storage is specified explicitly. fall back to
-            # the storage name.
-            if root_name in sg_storages_by_name:
-                # found a match. store it in the lookup
-                sg_storage = sg_storages_by_name[root_name]
-                log.debug(
-                    "Storage root %s matches SG local storage with same name "
-                    "(%s)" % (root_name, sg_storage)
-                )
-                local_storage_lookup[root_name] = sg_storage
-                continue
-
-            # if we're here, then we could not map the storage root to a local
-            # storage in SG
-            log.warning(
-                "Storage root %s could not be mapped to a SG local storage" %
-                (root_name,)
-            )
-            unmapped_root_names.append(root_name)
+            local_storage_lookup.update(type_storage_lookup)
+            unmapped_root_names.extend(type_unmapped_root_names)
 
         # return a tuple of the processed info
         return local_storage_lookup, unmapped_root_names
@@ -507,7 +657,7 @@ class StorageRoots(object):
     ############################################################################
     # protected methods
 
-    def _init_from_config(self, config_folder):
+    def _init_from_config(self, config_folder, sg_connection, project_id):
         """
         Initialize the internal object data with the required storage roots
         defined under the supplied config folder.
@@ -545,9 +695,9 @@ class StorageRoots(object):
             # file does not exist. we will initialize with an empty dict
             roots_metadata = {}
 
-        self._process_metadata(roots_metadata)
+        self._process_metadata(roots_metadata, sg_connection, project_id)
 
-    def _process_metadata(self, roots_metadata):
+    def _process_metadata(self, roots_metadata, sg_connection, project_id):
         """
         Processes the supplied roots metadata and populates the internal object
         data structures. This includes storing easy access to the default root
@@ -565,19 +715,18 @@ class StorageRoots(object):
         # ---- store information about the roots for easy access
 
         log.debug("Processing required storages defined by the config...")
+        for root_type in self.STORAGE_CLASS_MAP.keys():
+            roots = [(root_name, root_info) for (root_name, root_info) in self
+                if root_info.get("type", self.DEFAULT_STORAGE_CLASS) == root_type]
+
+            log.debug("Processing storages for '%s'" % root_type)
+            paths_lookup = \
+                self.STORAGE_CLASS_MAP[root_type].process_storages(roots, sg_connection, project_id)
+            self._shotgun_paths_lookup.update(paths_lookup)
 
         # iterate over each storage root required by the configuration. try to
         # identify the default root.
         for root_name, root_info in self:
-
-            log.debug("Processing storage: %s - %s" % (root_name, root_info))
-
-            # store a shotgun path for each root definition. sanitize path data
-            # by passing it through the ShotgunPath object. if the configuration
-            # has not been installed, these paths may be None.
-            self._shotgun_paths_lookup[root_name] = \
-                ShotgunPath.from_shotgun_dict(root_info)
-
             # check to see if this root is marked as the default
             if root_info.get("default", False):
                 log.debug(

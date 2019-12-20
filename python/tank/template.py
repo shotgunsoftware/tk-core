@@ -461,7 +461,9 @@ class Template(object):
 
         for ordered_keys, static_tokens in zip(self._ordered_keys, self._static_tokens):
             path_parser = TemplatePathParser(ordered_keys, static_tokens)
-            fields = path_parser.parse_path(input_path, skip_keys)
+
+            # ContextRoot is a magical value that is allowed to grab multiple levels of directory structure
+            fields = path_parser.parse_path(input_path, skip_keys, separators_ok=["ContextRoot"])
             if fields != None:
                 break
 

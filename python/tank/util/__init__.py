@@ -45,5 +45,5 @@ from .errors import PublishPathNotDefinedError, PublishPathNotSupported
 
 from .user_settings import UserSettings
 
-from .storage_roots import StorageRoots
+from .storage_roots import StorageRoots, LocalStorageRoot, NavChainRoot
 

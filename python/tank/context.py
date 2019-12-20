@@ -929,7 +929,22 @@ class Context(object):
         project_roots = self._get_project_roots()
 
         # get all locations on disk for our context object from the path cache
-        path_cache_locations = self.entity_locations 
+        path_cache_locations = self.entity_locations
+
+        # check and see if the template is asking for the special tokens 'ContextRoot' or 'ContextName'
+        template_keys = template.keys
+        if "ContextRoot" in template_keys or "ContextName" in template_keys:
+            matching_roots = [loc for loc in path_cache_locations if loc.startswith(template.root_path)]
+
+            if len(matching_roots) == 0:
+                raise TankError("There were no filesystem locations registered for this path that matched the template prefix.")
+            if len(matching_roots) > 1:
+                raise TankError("There were ambiguous filesystem locations registered for this path that matched the template prefix.")
+        if "ContextRoot" in template_keys:
+            fields["ContextRoot"] = matching_roots[0]
+        if "ContextName" in template_keys:
+            fields["ContextName"] = os.path.basename(matching_roots[0])
+
 
         # now loop over all those locations and check if one of the locations 
         # are matching the template that is passed in. In that case, try to
