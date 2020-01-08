@@ -414,12 +414,6 @@ class LoginDialog(QtGui.QDialog):
         self.raise_()
         self.activateWindow()
 
-        # the trick of activating + raising does not seem to be enough for
-        # modal dialogs. So force put them on top as well.
-        # On PySide2, or-ring the current window flags with WindowStaysOnTopHint causes the dialog
-        # to freeze, so only set the WindowStaysOnTopHint flag as this appears to not disable the
-        # other flags.
-        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         return QtGui.QDialog.exec_(self)
 
     def result(self):
