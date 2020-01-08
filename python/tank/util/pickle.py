@@ -11,6 +11,7 @@
 import os
 
 from .. import LogManager
+from .unicode import ensure_contains_str
 
 from tank_vendor.shotgun_api3.lib.six.moves import cPickle
 from tank_vendor.shotgun_api3.lib import six
@@ -18,11 +19,22 @@ from tank_vendor.shotgun_api3.lib import six
 log = LogManager.get_logger(__name__)
 
 
-def dumps_str(data):
+# kwargs for pickle.load* and pickle.dump* calls.
+LOAD_KWARGS = {"encoding": "bytes"} if six.PY3 else {}
+# Protocol 0 ensures ASCII encoding, which is required when writing
+# a pickle to an environment variable.
+DUMP_KWARGS = {"protocol": 0}
+
+
+def dumps(data):
     """
-    Generates a pickle string for the provided data.  This wraps cPickle.dumps()
-    and produces a str on both Python 2 and 3, while cPickle.dumps() produces
-    binary on Python 3 and a str on Python 2.
+    Return the pickled representation of ``data`` as a ``str``.
+
+    This methods wraps the functionality from the :func:`pickle.dumps` method so
+    pickles can be shared between Python 2 and Python 3.
+
+    As opposed to the Python 3 implementation, it will return a ``str`` object
+    and not ``bytes`` object.
 
     :param data: The object to pickle and store.
     :returns: A pickled str of the input object.
@@ -31,12 +43,60 @@ def dumps_str(data):
     # Force pickle protocol 0, since this is a non-binary pickle protocol.
     # See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL
     # Decode the result to a str before returning.
-    return six.ensure_str(cPickle.dumps(data, protocol=0))
+    return six.ensure_str(cPickle.dumps(data, **DUMP_KWARGS))
+
+
+def dump(data, fh):
+    """
+    Write the pickled representation of ``data`` to a file object.
+
+    This methods wraps the functionality from the :func:`pickle.dump` method so
+    pickles can be shared between Python 2 and Python 3.
+
+    :param data: The object to pickle and store.
+    :param fh: A file object
+    """
+    cPickle.dump(data, fh, **DUMP_KWARGS)
+
+
+def loads(data):
+    """
+    Read the pickled representation of an object from a string
+    and return the reconstituted object hierarchy specified therein.
+
+    This method wraps the functionality from the :func:`pickle.loads` method so
+    unicode strings are always returned as utf8-encoded ``str`` instead of ``unicode``
+    objects in Python 2.
+
+    :param object data: A pickled representation of an object.
+    :returns: The unpickled object.
+    :rtype: object
+    """
+    return ensure_contains_str(cPickle.loads(six.ensure_binary(data), **LOAD_KWARGS))
+
+
+def load(fh):
+    """
+    Read the pickled representation of an object from the open file object
+    and return the reconstituted object hierarchy specified therein.
+
+    This method wraps the functionality from the :func:`pickle.load` method so
+    unicode strings are always returned as utf8-encoded ``str`` instead of ``unicode``
+    objects in Python 2.
+
+    :param fh: A file object
+    :returns: The unpickled object.
+    :rtype: object
+    """
+    return ensure_contains_str(cPickle.load(fh, **LOAD_KWARGS))
 
 
 def store_env_var_pickled(key, data):
     """
     Stores the provided data under the environment variable specified.
+
+    .. note::
+        This method is part of Toolkit's internal API.
 
     In Python 3 pickle.dumps() returns a binary object that can't be decoded to
     a string for storage in an environment variable.  To work around this, we
@@ -47,7 +107,7 @@ def store_env_var_pickled(key, data):
     """
     # Force pickle protocol 0, since this is a non-binary pickle protocol.
     # See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL
-    pickled_data = cPickle.dumps(data, protocol=0)
+    pickled_data = dumps(data)
     encoded_data = six.ensure_str(pickled_data)
     os.environ[key] = encoded_data
 
@@ -57,6 +117,9 @@ def retrieve_env_var_pickled(key):
     Retrieves and unpacks the pickled data stored in the environment variable
     specified.
 
+    .. note::
+        This method is part of Toolkit's internal API.
+
     In Python 3 pickle.dumps() returns a binary object that can't be decoded to
     a string for storage in an environment variable.  To work around this, we
     encode the pickled data to base64, compress the result, and store that.
@@ -65,4 +128,4 @@ def retrieve_env_var_pickled(key):
     :returns: The original object that was stored.
     """
     envvar_contents = six.ensure_binary(os.environ[key])
-    return cPickle.loads(envvar_contents)
+    return loads(envvar_contents)

@@ -14,8 +14,8 @@ Management of the current context, e.g. the current shotgun entity/step/task.
 """
 
 import os
-import pickle
 import copy
+import json
 
 from tank_vendor import yaml
 from tank_vendor.shotgun_api3.lib import six
@@ -25,7 +25,7 @@ from .util import login
 from .util import shotgun_entity
 from .util import shotgun
 from .util import get_sg_entity_name_field
-from .util.pickle import dumps_str
+from .util import pickle, json as sgjson
 from . import constants
 from .errors import TankError, TankContextDeserializationError
 from .path_cache import PathCache
@@ -675,7 +675,7 @@ class Context(object):
     ################################################################################################
     # serialization
 
-    def serialize(self, with_user_credentials=True):
+    def serialize(self, with_user_credentials=True, use_pickle=True):
         """
         Serializes the context into a string.
 
@@ -694,6 +694,9 @@ class Context(object):
         :param with_user_credentials: If ``True``, the currently authenticated user's credentials, as
             returned by :meth:`sgtk.get_authenticated_user`, will also be serialized with the context.
 
+        :param use_pickle: If ``True``, the context will be ``pickle``d. Otherwise,
+            a ``json`` representation will be generated.
+
         .. note:: For example, credentials should be omitted (``with_user_credentials=False``) when
             serializing the context from a user's current session to send it to a render farm. By doing
             so, invoking :meth:`sgtk.Context.deserialize` on the render farm will only restore the
@@ -704,15 +707,7 @@ class Context(object):
         # Avoids cyclic imports
         from .api import get_authenticated_user
 
-        # Pickling unicode strings in order to store the result
-        # into an environment variable is extremely fragile in Python 3
-        # when that string is unserialized in Python 2.
-        # So let's filter out names from entity dictionaries and only keep
-        # the type and id. This means that unserializing a context
-        # will always force us to reload the entity data from the cache or
-        # from Shotgun.
-        data = self._to_dict(keep_name=False)
-
+        data = self.to_dict()
         data["_pc_path"] = self.tank.pipeline_configuration.get_path()
 
         if with_user_credentials:
@@ -721,8 +716,12 @@ class Context(object):
             if user:
                 # We should serialize it as well so that the next process knows who to
                 # run as.
-                data["_current_user"] = authentication.serialize_user(user)
-        return dumps_str(data)
+                data["_current_user"] = authentication.serialize_user(user, use_pickle=use_pickle)
+
+        if use_pickle:
+            return pickle.dumps(data)
+        else:
+            return json.dumps(data)
 
     @classmethod
     def deserialize(cls, context_str):
@@ -740,7 +739,12 @@ class Context(object):
         from .api import Tank, set_authenticated_user
 
         try:
-            data = pickle.loads(six.ensure_binary(context_str))
+            # If the serialized payload starts with a {, we have a
+            # JSON-encoded string.
+            if context_str[0] in ("{", b"{"):
+                data = sgjson.loads(context_str)
+            else:
+                data = pickle.loads(context_str)
         except Exception as e:
             raise TankContextDeserializationError(str(e))
 
@@ -766,19 +770,9 @@ class Context(object):
         tk = Tank(pipeline_config_path)
         data["tk"] = tk
 
-        # Since the name for every entity has been stripped during serialization
-        # we'll have to restore it.
-        # Note that if the context was serialized with a previous version of
-        # core, the names will still be there. But given that over time
-        # only the new implementation will survive, let's assume right away
-        # that we have to resolve the entities from scratch.
-        return _from_entity_type_and_id(
-            data.get("tk"),
-            data.get("task") or data.get("entity") or data.get("project"),
-            data.get("source_entity"),
-            data.get("additional_entities"),
-            data.get("user")
-        )
+        # add it to the constructor instance
+        # and lastly make the obejct
+        return cls._from_dict(data)
 
     def to_dict(self):
         """
@@ -793,26 +787,17 @@ class Context(object):
 
         :returns: A dictionary representing the context.
         """
-        return self._to_dict()
-
-    def _to_dict(self, keep_name=True):
-        """
-        See documentation from :meth:`to_dict`.
-
-        :param bool keep_name: When set to ``True``, the name will be kept inside the
-            entities. Defaults to ``True``.
-        """
         return {
-            "project": self._cleanup_entity(self.project, keep_name),
-            "entity": self._cleanup_entity(self.entity, keep_name),
-            "user": self._cleanup_entity(self.user, keep_name),
-            "step": self._cleanup_entity(self.step, keep_name),
-            "task": self._cleanup_entity(self.task, keep_name),
-            "additional_entities": [self._cleanup_entity(entity, keep_name) for entity in self.additional_entities],
-            "source_entity": self._cleanup_entity(self.source_entity, keep_name)
+            "project": self._cleanup_entity(self.project),
+            "entity": self._cleanup_entity(self.entity),
+            "user": self._cleanup_entity(self.user),
+            "step": self._cleanup_entity(self.step),
+            "task": self._cleanup_entity(self.task),
+            "additional_entities": [self._cleanup_entity(entity) for entity in self.additional_entities],
+            "source_entity": self._cleanup_entity(self.source_entity)
         }
 
-    def _cleanup_entity(self, entity, keep_name):
+    def _cleanup_entity(self, entity):
         """
         Cleanup the entity dictionary.
 
@@ -836,8 +821,7 @@ class Context(object):
             "type": entity["type"],
             "id": entity["id"],
         }
-
-        if keep_name and "name" in entity:
+        if "name" in entity:
             filtered_entity["name"] = entity["name"]
 
         return filtered_entity
@@ -1226,7 +1210,7 @@ def from_entity(tk, entity_type, entity_id):
     return _from_entity_type_and_id(tk, dict(type=entity_type, id=entity_id))
 
 
-def _from_entity_type_and_id(tk, entity, source_entity=None, additional_entities=None, user=None):
+def _from_entity_type_and_id(tk, entity, source_entity=None):
     """
     Constructs a context from the entity type and id as stored in the given
     entity. Any other data necessary to construct the context beyond the type
@@ -1266,9 +1250,9 @@ def _from_entity_type_and_id(tk, entity, source_entity=None, additional_entities
         "project": None,
         "entity": None,
         "step": None,
-        "user": user,
+        "user": None,
         "task": None,
-        "additional_entities": additional_entities or [],
+        "additional_entities": [],
         "source_entity": source_entity,
     }
 
@@ -1288,15 +1272,15 @@ def _from_entity_type_and_id(tk, entity, source_entity=None, additional_entities
         
         if sg_entity.get("task"):
             # base the context on the task for the published file
-            return _from_entity_type_and_id(tk, sg_entity["task"], sg_entity, additional_entities, user)
+            return _from_entity_type_and_id(tk, sg_entity["task"], sg_entity)
         
         elif sg_entity.get("entity"):
             # base the context on the entity that the published is linked with
-            return _from_entity_type_and_id(tk, sg_entity["entity"], sg_entity, additional_entities, user)
+            return _from_entity_type_and_id(tk, sg_entity["entity"], sg_entity)
         
         elif sg_entity.get("project"):
             # base the context on the project that the published is linked with
-            return _from_entity_type_and_id(tk, sg_entity["project"], sg_entity, additional_entities, user)
+            return _from_entity_type_and_id(tk, sg_entity["project"], sg_entity)
     
     else:
         # Get data from path cache
@@ -1313,14 +1297,6 @@ def _from_entity_type_and_id(tk, entity, source_entity=None, additional_entities
             # no need to set entity to point at project in this case
             # that only produces double entries.
             context["entity"] = None
-
-    # If the user's name is missing, we need to retrieve it.
-    if context.get("user") and "name" not in context["user"]:
-        context["user"] = tk.shotgun.find_one(
-            "HumanUser",
-            [["id", "is", context["user"]["id"]]],
-            ["name"]
-        )
 
     # If there isn't an explicit source_entity, we set it to be
     # the same as the entity property.

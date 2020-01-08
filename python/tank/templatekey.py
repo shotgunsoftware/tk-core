@@ -17,7 +17,6 @@ import datetime
 from . import constants
 from .errors import TankError
 from .util import sgre as re
-import collections
 from tank_vendor.shotgun_api3.lib import six
 from tank_vendor.shotgun_api3.lib.six.moves import zip
 
@@ -119,7 +118,7 @@ class TemplateKey(object):
 
         :returns: The default value.
         """
-        if isinstance(self._default, collections.Callable):
+        if isinstance(self._default, six.moves.collections_abc.Callable):
             return self._default()
         else:
             return self._default

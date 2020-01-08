@@ -22,12 +22,14 @@ at any point.
 from .shotgun_wrapper import ShotgunWrapper
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault, ProtocolError
 from tank_vendor.shotgun_api3.lib import six
-from tank_vendor.shotgun_api3.lib.six.moves import cPickle, http_client
+from tank_vendor.shotgun_api3.lib.six.moves import http_client
 
 from . import session_cache
 from .errors import IncompleteCredentials
 from .. import LogManager
-from ..util.pickle import dumps_str
+from ..util import pickle
+from ..util import json as sgjson
+import json
 
 # Indirection to create ShotgunWrapper instances. Great for unit testing.
 _shotgun_instance_factory = ShotgunWrapper
@@ -523,20 +525,26 @@ __factories = {
 }
 
 
-def serialize_user(user):
+def serialize_user(user, use_pickle=True):
     """
     Serializes a user. Meant to be consumed by deserialize.
 
     :param user: User object that needs to be serialized.
+    :param use_pickle: If ``True``, the context will be ``pickle``d. Otherwise,
+        a ``json`` representation will be generated.
 
     :returns: The payload representing the user.
     """
     # Pickle the dictionary and inject the user type in the payload so we know
     # how to unpickle the user.
-    return dumps_str({
+    user_data = {
         "type": user.__class__.__name__,
         "data": user.to_dict()
-    })
+    }
+    if use_pickle:
+        return pickle.dumps(user_data)
+    else:
+        return json.dumps(user_data)
 
 
 def deserialize_user(payload):
@@ -548,8 +556,12 @@ def deserialize_user(payload):
 
     :returns: A ShotgunUser derived instance.
     """
-    # Unpickle the dictionary
-    user_dict = cPickle.loads(six.ensure_binary(payload))
+    # If the serialized payload starts with a {, we have a JSON-encoded string.
+    if payload[0] in ("{", b"{"):
+        user_dict = sgjson.loads(six.ensure_binary(payload))
+    else:
+        # Unpickle the dictionary
+        user_dict = pickle.loads(six.ensure_binary(payload))
 
     # Find which user type we have
     global __factories

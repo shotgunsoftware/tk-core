@@ -1131,6 +1131,9 @@ class TestSerialize(TestContext):
         self.kws["entity"] = self.shot
         self.kws["step"] = self.step
         self.kws["task"] = self.task
+        # FIXME: Mockgun does not properly set the name field on a
+        # Task so pass it in.
+        self.kws["task"]["name"] = "task_content"
         self.kws["user"] = self.user
         self.kws["additional_entities"] = [self.seq]
         self.kws["source_entity"] = self.version
@@ -1197,10 +1200,9 @@ class TestSerialize(TestContext):
                 "type": "Version",
                 "id": self.version["id"],
             },
-            # ... additional entities' name are never resolved
-            # so they can be missing.
             "additional_entities": [{
                 "type": "Sequence",
+                "name": "seq_name",
                 "id": self.seq["id"],
             }],
             "user": {
@@ -1213,44 +1215,7 @@ class TestSerialize(TestContext):
         ctx = context.Context(**self.kws)
         pickled_data = ctx.serialize()
 
-        # Make sure there is only type and ids in the pickle.
-        unpickled_data = pickle.loads(six.ensure_binary(pickled_data))
-        for field in ["task", "step", "entity", "project", "source_entity", "user"]:
-            self.assertNotIn("name", unpickled_data[field])
-        self.assertNotIn("name", unpickled_data["additional_entities"][0])
-
-        # Serialize/deserialize the object, we should have only kept type,
-        # id and name-related fields.
-        real_get_field_from_row = self.mockgun._get_field_from_row
-
-        def _get_field_from_row_patch(entity_type, row, field):
-            value = real_get_field_from_row(entity_type, row, field)
-
-            # TODO: This fix should go inside mockgun. Linked fields in mockgun never
-            # have their name set. However, making the fix right now is too disruptive
-            # as it starts breaking so many tests that either do not set the name using
-            # the proper field or do not even provide it. The more we try to make
-            # mockgun emulate the real thing the more things start breaking down,
-            # so for now we'll implement the fix in this patch since we need
-            # that real behaviour from Shotgun to be emulated. At some point
-            # we should revisit mockgun and the dreaded use of TankTestBase.add_to_sg_mock_db
-            # which introduce so many inconsistencies in Mockgun.
-
-            # Is this a link field?
-            if isinstance(value, dict) and "type" in value and "id" in value:
-                # Then make sure the link field has the values type, id and name.
-                # Clone the original value as we're about to add the current name to it.
-                value = value.copy()
-                # Find the right field name for this entity type.
-                name_field = tank.util.get_sg_entity_name_field(value["type"])
-                # Grab the entity from the "db"
-                linked_entity = self.mockgun._db[value["type"]][value["id"]]
-                # Set the name on the link.
-                value["name"] = linked_entity.get(name_field)
-
-            return value
-        with patch.object(self.mockgun, "_get_field_from_row", side_effect=_get_field_from_row_patch):
-            ctx = context.deserialize(pickled_data)
+        ctx = context.deserialize(pickled_data)
         self.assertEqual(ctx.to_dict(), expected)
 
     def test_equal_yml(self):
