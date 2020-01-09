@@ -329,7 +329,7 @@ class Sgtk(object):
     def templates(self):
         """
         A dictionary, where the keys are the template names, and the values
-        are ``Template`` instances representing the tokenized paths, as defined in
+        are :class:`~sgtk.Template` instances representing the tokenized paths, as defined in
         the configuration's ``templates.yml``.
 
         :return: :class:`dict`
