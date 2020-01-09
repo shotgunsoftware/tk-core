@@ -58,7 +58,7 @@ class Sgtk(object):
             self.__pipeline_config = pipelineconfig_factory.from_path(project_path)
             
         try:
-            self.templates = read_templates(self.__pipeline_config)
+            self.__templates = read_templates(self.__pipeline_config)
         except TankError as e:
             raise TankError("Could not read templates configuration: %s" % e)
 
@@ -325,6 +325,28 @@ class Sgtk(object):
         """
         return self.__pipeline_config.get_shotgun_id()
 
+    @property
+    def templates(self):
+        """
+        A dictionary, where the keys are the template names, and the values
+        are ``Template`` instances representing the tokenized paths, as defined in
+        the configuration's ``templates.yml``.
+
+        :return: :class:`dict`
+        """
+        # defined as a getter setter so that we could document it properly
+        return self.__templates
+
+    @templates.setter
+    def templates(self, value):
+        """
+        Allows setting the templates property.
+        You shouldn't set the templates property from out side of the api module.
+        However this was implemented when changing the instance variable to a property so as
+        to not change the interface.
+        """
+        self.__templates = value
+
     ##########################################################################################
     # public methods
 
@@ -344,7 +366,7 @@ class Sgtk(object):
         :raises: :class:`TankError`
         """
         try:
-            self.templates = read_templates(self.__pipeline_config)
+            self.__templates = read_templates(self.__pipeline_config)
         except TankError as e:
             raise TankError("Templates could not be reloaded: %s" % e)
 
