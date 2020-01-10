@@ -1665,8 +1665,48 @@ class Engine(TankBundle):
         from .qt import tankqdialog
 
         # construct the widget object
-        derived_widget_class = tankqdialog.TankQDialog.wrap_widget_class(widget_class)
-        widget = derived_widget_class(*args, **kwargs)
+        try:
+            derived_widget_class = tankqdialog.TankQDialog.wrap_widget_class(widget_class)
+            widget = derived_widget_class(*args, **kwargs)
+        except Exception as exc:
+            # We don't want exceptions from the instantiation of the widget to bubble
+            # up since we don't know how the Python environment we're running in might
+            # react.
+            self.logger.exception(exc)
+
+            import traceback
+            from sgtk.platform.qt import QtGui, QtCore
+
+            # A very simple widget that ensures that the exception text is centered in
+            # the dialog and that the message is selectable so the user can copy/paste
+            # it if they need to.
+            class _exc_widget(QtGui.QWidget):
+                def __init__(self, msg, *args, **kwargs):
+                    super(_exc_widget, self).__init__(*args, **kwargs)
+                    self.setObjectName("SGTK_CORE_EXC_WIDGET")
+
+                    self._vbox = QtGui.QVBoxLayout(self)
+                    self._hbox = QtGui.QHBoxLayout(self)
+
+                    self._label = QtGui.QLabel(
+                        "<big>The requested dialog could not be built "
+                        "due to an exception that was raised:</big><br>"
+                    )
+                    self._label.setTextFormat(QtCore.Qt.RichText)
+                    self._exc_label = QtGui.QLabel(msg)
+                    self._exc_label.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
+
+                    self._vbox.addStretch(1)
+                    self._vbox.addWidget(self._label)
+                    self._vbox.addWidget(self._exc_label)
+                    self._vbox.addStretch(1)
+
+                    self._hbox.addStretch(1)
+                    self._hbox.addLayout(self._vbox)
+                    self._hbox.addStretch(1)
+
+            derived_widget_class = tankqdialog.TankQDialog.wrap_widget_class(_exc_widget)
+            widget = derived_widget_class(traceback.format_exc())
         
         # keep track of some info for debugging object lifetime
         self.__debug_track_qt_widget(widget)
