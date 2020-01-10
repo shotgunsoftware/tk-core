@@ -79,6 +79,47 @@ class TestEngineBase(TankTestBase):
         super(TestEngineBase, self).tearDown()
 
 
+class TestDialogCreation(TestEngineBase):
+    """
+    Tests how engines construct and show dialogs.
+    """
+    @skip_if_pyside_missing
+    def setUp(self):
+        """
+        We need a QApplication to run these tests.
+        """
+        super(TestDialogCreation, self).setUp()
+
+        if sgtk.platform.qt.QtGui.QApplication.instance() is None:
+            sgtk.platform.qt.QtGui.QApplication([])
+
+        sgtk.platform.start_engine("test_engine", self.tk, self.context)
+
+    @skip_if_pyside_missing
+    def test_create_widget(self):
+        """
+        Ensures that the _create_widget method is exception safe.
+        """
+        class _test_widget(sgtk.platform.qt.QtGui.QWidget):
+            def __init__(self, *args, **kwargs):
+                raise Exception("Testing...")
+
+        # Ensure we don't bubble up an exception.
+        sgtk.platform.current_engine()._create_widget(_test_widget)
+
+    @skip_if_pyside_missing
+    def tearDown(self):
+        """
+        Tears down the current engine.
+        """
+        cur_engine = sgtk.platform.current_engine()
+        if cur_engine:
+            cur_engine.destroy()
+
+        # important to call base class so it can clean up memory
+        super(TestEngineBase, self).tearDown()
+
+
 class TestStartEngine(TestEngineBase):
     """
     Tests how engines are started.
