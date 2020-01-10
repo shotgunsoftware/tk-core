@@ -363,7 +363,7 @@ class BundleDescriptor(Descriptor):
         Errors reported in the post install hook will be reported to the error
         log but execution will continue.
 
-        .. warning:: We longer recommend using post install hooks. Should you
+        .. warning:: We no longer recommend using post install hooks. Should you
                      need to use one, take great care when designing it so that
                      it can execute correctly for all users, regardless of
                      their shotgun and system permissions.

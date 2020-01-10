@@ -610,7 +610,8 @@ class EventMetric(object):
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Published"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "New Workfile"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Opened Workfile"),
-        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Saved Workfile")
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Saved Workfile"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Executed websockets command"),
     ]
 
     # Event property keys

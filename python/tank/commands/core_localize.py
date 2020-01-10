@@ -467,7 +467,7 @@ class AttachToCoreAction(Action):
             log.info("")
             log.info("> tank attach_to_core /mnt/shotgun/studio")
             log.info("")
-            raise TankError("Please specify three target locations!")
+            raise TankError("Please specify the location of the core you would like to attach to for your current OS!")
 
         path_to_core = args[0]
 

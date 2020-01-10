@@ -489,20 +489,24 @@ class PathCache(object):
         except Exception as e:
             raise TankError("Critical! Could not update Shotgun with folder "
                             "data. Please contact support. Error details: %s" % e)
-        
+
         # now create a dictionary where input path cache rowid (path_cache_row_id)
         # is mapped to the shotgun ids that were just created
-        def _rowid_from_path(path):
+        def _rowid_from_filesystem_entity(fsl_entity):
+            path = fsl_entity[SG_PATH_FIELD]["local_path"]
             for d in data:
-                if d["path"] == path:
-                    return d["path_cache_row_id"] 
+                # We need to match not only the path but also the entity type when associating the FilesystemLocation
+                # entities with the local cache's row ids, because Task folders generate two entries with the same
+                # path, one for the Task and one for the Step.
+                if d["path"] == path and d["entity"]["type"] == fsl_entity["linked_entity_type"]:
+                    return d["path_cache_row_id"]
             raise TankError("Could not resolve row id for path! Please contact support! "
                             "trying to resolve path '%s'. Source data set: %s" % (path, data))
-        
+
         rowid_sgid_lookup = {}
         for sg_obj in response:
             sg_id = sg_obj["id"]
-            pc_row_id = _rowid_from_path( sg_obj[SG_PATH_FIELD]["local_path"] )
+            pc_row_id = _rowid_from_filesystem_entity(sg_obj)
             rowid_sgid_lookup[pc_row_id] = sg_id
         
         # now register the created ids in the event log
@@ -1267,7 +1271,7 @@ class PathCache(object):
                 # Note! We are only comparing against the type and the id
                 # not against the name. It should be perfectly valid to rename something
                 # in shotgun and if folders are then recreated for that item, nothing happens
-                # because there is already a folder which repreents that item. (although now with
+                # because there is already a folder which represents that item. (although now with
                 # an incorrect name)
                 #
                 # also note that we have already done this once as part of the validation checks -

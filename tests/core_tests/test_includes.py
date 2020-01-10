@@ -10,6 +10,7 @@
 
 from __future__ import with_statement
 import os
+import itertools
 
 import tank
 from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
@@ -149,8 +150,25 @@ class Includes(object):
             with self.assertRaisesRegex(tank.TankError, "Include resolve error"):
                 self._resolve_includes("dead/path/to/a/file")
 
+        @patch("os.path.exists", return_value=True)
+        def test_includes_ordering(self, _):
+            """
+            Ensure include orders is preserved.
+            """
+            # Try different permutations of the same set of includes and they should
+            # always return in the same order. This is important as values found
+            # in later includes override earlier ones.
 
-# TODO: These tests should be move within the respective test package, but because they share
+            # We do permutations here because Python 2 and Python 3 handle
+            # set ordering differently.
+            for includes in itertools.permutations(["a.yml", "b.yml", "c.yml"]):
+                self.assertEqual(
+                    self._resolve_includes(includes),
+                    [os.path.join(os.getcwd(), include) for include in includes]
+                )
+
+
+# TODO: These tests should be moved within their respective test packages, but because they share
 # the same suite of tests there's no easy way to share the suite. However, once we finish the
 # refactoring of the include system, I suspect most of these tests will move to the refactored
 # framework location and this messiness will go away.
