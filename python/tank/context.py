@@ -675,7 +675,7 @@ class Context(object):
     ################################################################################################
     # serialization
 
-    def serialize(self, with_user_credentials=True, use_pickle=True):
+    def serialize(self, with_user_credentials=True, use_json=False):
         """
         Serializes the context into a string.
 
@@ -694,8 +694,8 @@ class Context(object):
         :param with_user_credentials: If ``True``, the currently authenticated user's credentials, as
             returned by :meth:`sgtk.get_authenticated_user`, will also be serialized with the context.
 
-        :param use_pickle: If ``True``, the context will be ``pickle``d. Otherwise,
-            a ``json`` representation will be generated.
+        :param use_json: If ``True``, the context will be stored in the JSON representation
+            instead of using the pickled representation.
 
         .. note:: For example, credentials should be omitted (``with_user_credentials=False``) when
             serializing the context from a user's current session to send it to a render farm. By doing
@@ -716,12 +716,12 @@ class Context(object):
             if user:
                 # We should serialize it as well so that the next process knows who to
                 # run as.
-                data["_current_user"] = authentication.serialize_user(user, use_pickle=use_pickle)
+                data["_current_user"] = authentication.serialize_user(user, use_json=use_json)
 
-        if use_pickle:
-            return pickle.dumps(data)
-        else:
+        if use_json:
             return json.dumps(data)
+        else:
+            return pickle.dumps(data)
 
     @classmethod
     def deserialize(cls, context_str):

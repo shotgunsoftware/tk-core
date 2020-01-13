@@ -13,7 +13,8 @@ from __future__ import with_statement
 import os
 import copy
 import datetime
-import pickle
+from sgtk.util import pickle
+import json
 
 from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
 
@@ -1240,11 +1241,40 @@ class TestSerialize(TestContext):
 
     def test_serialize_with_user(self):
         """
-        Make sure the user is serialized and restored.
+        Make sure the user is serialized and restored using pickle.
         """
         tank.set_authenticated_user(self._auth_user)
         ctx = context.Context(**self.kws)
-        ctx_str = tank.Context.serialize(ctx)
+        ctx_str = tank.Context.serialize(ctx, use_json=False)
+
+        # Everything should have been serialized using the pickle module.
+        # If an exception is raised, then it wasn't.
+        unserialized_pickle = pickle.loads(ctx_str)
+        pickle.loads(unserialized_pickle["_current_user"])
+
+        # Ensure the serialized context is a string
+        self.assertIsInstance(ctx_str, six.string_types)
+
+        # Reset the current user to later check if it is restored.
+        tank.set_authenticated_user(None)
+
+        # Unserializing should restore the user.
+        tank.Context.deserialize(ctx_str)
+        self._assert_same_user(tank.get_authenticated_user(), self._auth_user)
+
+    def test_serialize_with_user_using_json(self):
+        """
+        Make sure the user is serialized and restored using json.
+        """
+        tank.set_authenticated_user(self._auth_user)
+        ctx = context.Context(**self.kws)
+        ctx_str = tank.Context.serialize(ctx, use_json=True)
+
+        # Everything should have been serialized using the json module.
+        # If an exception is raised, then it wasn't.
+        unserialized_json = json.loads(ctx_str)
+        json.loads(unserialized_json["_current_user"])
+
         # Ensure the serialized context is a string
         self.assertIsInstance(ctx_str, six.string_types)
 
