@@ -1241,7 +1241,7 @@ class TestSerialize(TestContext):
 
     def test_serialize_with_user(self):
         """
-        Make sure the user is serialized and restored.
+        Make sure the user is serialized and restored using pickle.
         """
         tank.set_authenticated_user(self._auth_user)
         ctx = context.Context(**self.kws)
@@ -1263,6 +1263,9 @@ class TestSerialize(TestContext):
         self._assert_same_user(tank.get_authenticated_user(), self._auth_user)
 
     def test_serialize_with_user_using_json(self):
+        """
+        Make sure the user is serialized and restored using json.
+        """
         tank.set_authenticated_user(self._auth_user)
         ctx = context.Context(**self.kws)
         ctx_str = tank.Context.serialize(ctx, use_json=True)
