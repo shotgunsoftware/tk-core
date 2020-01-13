@@ -525,13 +525,13 @@ __factories = {
 }
 
 
-def serialize_user(user, use_pickle=True):
+def serialize_user(user, use_json=False):
     """
     Serializes a user. Meant to be consumed by deserialize.
 
     :param user: User object that needs to be serialized.
-    :param use_pickle: If ``True``, the context will be ``pickle``d. Otherwise,
-        a ``json`` representation will be generated.
+    :param use_json: If ``True``, a ``json`` representation will be generated.
+        A pickled representation will be generated otherwise.
 
     :returns: The payload representing the user.
     """
@@ -541,10 +541,10 @@ def serialize_user(user, use_pickle=True):
         "type": user.__class__.__name__,
         "data": user.to_dict()
     }
-    if use_pickle:
-        return pickle.dumps(user_data)
-    else:
+    if use_json:
         return json.dumps(user_data)
+    else:
+        return pickle.dumps(user_data)
 
 
 def deserialize_user(payload):
