@@ -19,6 +19,7 @@ next to it in the file system. This is what it will attempt to install.
 
 """
 
+from __future__ import print_function
 import os
 import sys
 import stat
@@ -291,6 +292,6 @@ if __name__ == "__main__":
     'tank core' command.
     
     """
-    print desc
+    print(desc)
     sys.exit(1)
 
