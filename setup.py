@@ -13,6 +13,7 @@
 from setuptools import setup, find_packages
 import subprocess
 
+
 def get_version():
     """
     Helper to extract a version number for this module.
@@ -29,7 +30,9 @@ def get_version():
     # (e.g. pip install ./tk-core), the version number
     # will be picked up from the most recently added tag.
     try:
-        version_git = subprocess.check_output(["git", "describe", "--abbrev=0"]).rstrip()
+        version_git = subprocess.check_output(
+            ["git", "describe", "--abbrev=0"]
+        ).rstrip()
         return version_git
     except:
         # Blindly ignore problems, git might be not available, or the user could
@@ -42,6 +45,7 @@ def get_version():
     # this case, following TK "dev" locator pattern and the convention described here:
     # http://peak.telecommunity.com/DevCenter/setuptools#specifying-your-project-s-version
     return "dev"
+
 
 # Retrieve long description and licence from external files
 try:
@@ -67,13 +71,14 @@ setup(
     url="https://github.com/shotgunsoftware/tk-core",
     license=license,
     # Recursively discover all packages in python folder, excluding any tests
-    packages=find_packages("python", exclude=("*.tests", "*.tests.*", "tests.*", "tests")),
-
+    packages=find_packages(
+        "python", exclude=("*.tests", "*.tests.*", "tests.*", "tests")
+    ),
     # Additional data which must sit in packages folders
     package_data={
         # If any package contains data files, include them:
-        "": ["resources/*", ".txt", "*.*"],
+        "": ["resources/*", ".txt", "*.*"]
     },
     # Everything can be found under the python folder, but installed without it
-    package_dir={"": "python"}
+    package_dir={"": "python"},
 )

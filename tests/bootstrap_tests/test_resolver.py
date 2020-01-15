@@ -17,7 +17,7 @@ from mock import patch
 import sgtk
 from sgtk.util import ShotgunPath
 
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import TankTestBase
 
 
@@ -30,24 +30,29 @@ class TestResolverBase(TankTestBase):
         super(TestResolverBase, self).setUp()
 
         self.install_root = os.path.join(
-            self.tk.pipeline_configuration.get_install_location(),
-            "install"
+            self.tk.pipeline_configuration.get_install_location(), "install"
         )
 
         # set up bundle cache mock
         path = os.path.join(self.install_root, "app_store", "tk-config-test", "v0.1.2")
         self._create_info_yaml(path)
 
-        self.config_1 = {"type": "app_store", "version": "v0.1.2", "name": "tk-config-test"}
+        self.config_1 = {
+            "type": "app_store",
+            "version": "v0.1.2",
+            "name": "tk-config-test",
+        }
 
-        self._john_smith = self.mockgun.create("HumanUser", {"login": "john.smith", "name": "John Smith"})
+        self._john_smith = self.mockgun.create(
+            "HumanUser", {"login": "john.smith", "name": "John Smith"}
+        )
         self._project = self.mockgun.create("Project", {"name": "my_project"})
 
         # set up a resolver
         self.resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
             plugin_id="foo.maya",
             project_id=self._project["id"],
-            bundle_cache_fallback_paths=[self.install_root]
+            bundle_cache_fallback_paths=[self.install_root],
         )
 
     def _create_info_yaml(self, path):
@@ -60,14 +65,14 @@ class TestResolverBase(TankTestBase):
         fh.close()
 
     def _create_pc(
-            self,
-            code,
-            project=None,
-            path=None,
-            users=None,
-            plugin_ids=None,
-            descriptor=None,
-            uploaded_config_dict=None
+        self,
+        code,
+        project=None,
+        path=None,
+        users=None,
+        plugin_ids=None,
+        descriptor=None,
+        uploaded_config_dict=None,
     ):
         """
         Creates a pipeline configuration.
@@ -83,7 +88,8 @@ class TestResolverBase(TankTestBase):
         """
 
         return self.mockgun.create(
-            "PipelineConfiguration", dict(
+            "PipelineConfiguration",
+            dict(
                 code=code,
                 project=project,
                 users=users or [],
@@ -93,7 +99,7 @@ class TestResolverBase(TankTestBase):
                 plugin_ids=plugin_ids,
                 descriptor=descriptor,
                 uploaded_config=uploaded_config_dict,
-            )
+            ),
         )
 
 
@@ -108,10 +114,16 @@ class TestUserRestriction(TestResolverBase):
         self._john_doe = self.mockgun.create("HumanUser", {"login": "john.doe"})
 
         self._john_doe_pc = self._create_pc(
-            "Doe Sandbox", users=[self._john_doe], plugin_ids='foo.*', path='/path/to/john/doe'
+            "Doe Sandbox",
+            users=[self._john_doe],
+            plugin_ids="foo.*",
+            path="/path/to/john/doe",
         )
         self._smith_pc = self._create_pc(
-            "Smith Sandbox", users=[self._john_smith], plugin_ids='foo.*', path='/path/to/user'
+            "Smith Sandbox",
+            users=[self._john_smith],
+            plugin_ids="foo.*",
+            path="/path/to/user",
         )
 
     def test_find_user_sandbox(self):
@@ -122,7 +134,7 @@ class TestUserRestriction(TestResolverBase):
         configs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
             current_login="john.smith",
-            sg_connection=self.mockgun
+            sg_connection=self.mockgun,
         )
 
         self.assertEqual(len(configs), 1)
@@ -131,7 +143,7 @@ class TestUserRestriction(TestResolverBase):
         configs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
             current_login="john.doe",
-            sg_connection=self.mockgun
+            sg_connection=self.mockgun,
         )
 
         self.assertEqual(len(configs), 1)
@@ -141,7 +153,7 @@ class TestUserRestriction(TestResolverBase):
         configs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
             current_login="Batman",
-            sg_connection=self.mockgun
+            sg_connection=self.mockgun,
         )
 
         self.assertListEqual(configs, [])
@@ -151,13 +163,13 @@ class TestUserRestriction(TestResolverBase):
         Ensures that sandboxes without user restrictions can be found.
         """
         shared_pc = self._create_pc(
-            "Shared Sandbox", users=[], plugin_ids='foo.*', path='/path/to/user'
+            "Shared Sandbox", users=[], plugin_ids="foo.*", path="/path/to/user"
         )
 
         configs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
             current_login="Batman",
-            sg_connection=self.mockgun
+            sg_connection=self.mockgun,
         )
 
         # Ensure what we only found the shared configuration because Batman doesn't own any sandboxes.
@@ -167,12 +179,14 @@ class TestUserRestriction(TestResolverBase):
         configs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
             current_login="john.smith",
-            sg_connection=self.mockgun
+            sg_connection=self.mockgun,
         )
 
         # Ensure we got back the right pipeline configurations for John Smith, who has access
         # to his sandbox and a shared pipeline configuration.
-        self.assertEqual(sorted(c["id"] for c in configs), [self._smith_pc["id"], shared_pc["id"]])
+        self.assertEqual(
+            sorted(c["id"] for c in configs), [self._smith_pc["id"], shared_pc["id"]]
+        )
 
 
 class TestPluginMatching(TestResolverBase):
@@ -187,7 +201,7 @@ class TestPluginMatching(TestResolverBase):
         resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
             plugin_id="foo.maya",
             project_id=self._project["id"],
-            bundle_cache_fallback_paths=[self.install_root]
+            bundle_cache_fallback_paths=[self.install_root],
         )
 
         def _match_plugin_helper(plugin_ids):
@@ -240,21 +254,21 @@ class TestPluginMatching(TestResolverBase):
             "Dev Sandbox",
             path="path_we_want",
             users=[self._john_smith],
-            plugin_ids="foo.*"
+            plugin_ids="foo.*",
         )
 
         self._create_pc(
             "Dev Sandbox",
             path="path_we_dont_want",
             users=[self._john_smith],
-            plugin_ids="not.matching.plugin.id"
+            plugin_ids="not.matching.plugin.id",
         )
 
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.mockgun,
-            current_login="john.smith"
+            current_login="john.smith",
         )
 
         self.assertEqual(config._path.current_os, "path_we_want")
@@ -268,20 +282,17 @@ class TestPluginMatching(TestResolverBase):
             "Primary",
             self._project,
             plugin_ids="fo3o.*",
-            descriptor="sgtk:descriptor:app_store?version=v3.1.2&name=tk-config-test"
+            descriptor="sgtk:descriptor:app_store?version=v3.1.2&name=tk-config-test",
         )
 
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.mockgun,
-            current_login="john.smith"
+            current_login="john.smith",
         )
 
-        self.assertEqual(
-            config._descriptor.get_dict(),
-            self.config_1
-        )
+        self.assertEqual(config._descriptor.get_dict(), self.config_1)
 
 
 class TestFallbackHandling(TestResolverBase):
@@ -295,7 +306,11 @@ class TestFallbackHandling(TestResolverBase):
         path = os.path.join(self.install_root, "app_store", "tk-config-test", "v0.1.4")
         self._create_info_yaml(path)
 
-        self.config_2 = {"type": "app_store", "version": "v0.1.4", "name": "tk-config-test"}
+        self.config_2 = {
+            "type": "app_store",
+            "version": "v0.1.4",
+            "name": "tk-config-test",
+        }
 
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find")
     def test_resolve_base_config(self, find_mock):
@@ -341,7 +356,9 @@ class TestResolverPriority(TestResolverBase):
         Creates a pipeline configuration for the TestCases's project. The paths will be set
         to PROJECT_PC_PATH.
         """
-        return self._create_pc("Primary", self._project, self.PROJECT_PC_PATH, [], plugin_ids="foo.*")
+        return self._create_pc(
+            "Primary", self._project, self.PROJECT_PC_PATH, [], plugin_ids="foo.*"
+        )
 
     PROJECT_SANDBOX_PC_PATH = "project_sandbox_pc_path"
 
@@ -355,7 +372,7 @@ class TestResolverPriority(TestResolverBase):
             self._project,
             self.PROJECT_SANDBOX_PC_PATH,
             [self._john_smith],
-            plugin_ids="foo.*"
+            plugin_ids="foo.*",
         )
 
     SITE_PC_PATH = "site_pc_path"
@@ -365,7 +382,9 @@ class TestResolverPriority(TestResolverBase):
         Creates a pipeline configuration with no project. The paths will be set
         to SITE_PC_PATH.
         """
-        return self._create_pc("Primary", None, self.SITE_PC_PATH, [], plugin_ids="foo.*")
+        return self._create_pc(
+            "Primary", None, self.SITE_PC_PATH, [], plugin_ids="foo.*"
+        )
 
     SITE_SANDBOX_PC_PATH = "site_sandbox_pc_path"
 
@@ -374,7 +393,13 @@ class TestResolverPriority(TestResolverBase):
         Creates a pipeline configuration with no project for the TestCases's user. The paths will be set
         to SITE_PC_PATH.
         """
-        return self._create_pc("Development", None, self.SITE_SANDBOX_PC_PATH, [self._john_smith], plugin_ids="foo.*")
+        return self._create_pc(
+            "Development",
+            None,
+            self.SITE_SANDBOX_PC_PATH,
+            [self._john_smith],
+            plugin_ids="foo.*",
+        )
 
     def _create_project_centralized_pc(self):
         """
@@ -392,7 +417,7 @@ class TestResolverPriority(TestResolverBase):
             "Development",
             self._project,
             self.PROJECT_SANDBOX_PC_PATH,
-            [self._john_smith]
+            [self._john_smith],
         )
 
     def _test_priority(self, expected_path):
@@ -402,14 +427,12 @@ class TestResolverPriority(TestResolverBase):
 
         :param str expected_path: Expected value for the current platform's path.
         """
-        with patch(
-            "os.path.isdir", return_value=True
-        ):
+        with patch("os.path.isdir", return_value=True):
             config = self.resolver.resolve_shotgun_configuration(
                 pipeline_config_identifier=None,
                 fallback_config_descriptor=self.config_1,
                 sg_connection=self.mockgun,
-                current_login="john.smith"
+                current_login="john.smith",
             )
         self.assertEqual(config._path.current_os, expected_path)
 
@@ -484,9 +507,7 @@ class TestResolverPriority(TestResolverBase):
         for pc in pcs:
             # Make sure that the pipeline is attached to a project or if it isn't ensure it is
             # a user sandbox.
-            self.assertTrue(
-                pc["project"] is not None or pc["code"] != "Primary"
-            )
+            self.assertTrue(pc["project"] is not None or pc["code"] != "Primary")
 
     def test_centralized_primary_overrides_all_other_primaries(self):
         """
@@ -525,7 +546,7 @@ class TestResolverPriority(TestResolverBase):
             None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.mockgun,
-            current_login="john.smith"
+            current_login="john.smith",
         )
 
         self.assertEqual(config._path.current_os, "first_pipeline_path")
@@ -543,13 +564,17 @@ class TestResolverPriority(TestResolverBase):
             {"code": "Primary", "plugin_ids": "foo.bar", "id": 1},
             {"code": "Primary", "plugin_ids": "foo.bar", "id": 2},
             {"code": "Primary", "plugin_ids": None, "id": 3},
-
             {"code": "Primary", "plugin_ids": "foo.bar", "id": 4},
             {"code": "Primary", "plugin_ids": "foo.bar", "id": 5},
-            {"code": "Primary", "plugin_ids": None, "id": 6}
+            {"code": "Primary", "plugin_ids": None, "id": 6},
         ]
         for mixed_primaries in itertools.permutations(primaries):
-            self.assertEqual(self.resolver._pick_primary_pipeline_config(mixed_primaries, "something")["id"], 3)
+            self.assertEqual(
+                self.resolver._pick_primary_pipeline_config(
+                    mixed_primaries, "something"
+                )["id"],
+                3,
+            )
 
     def test_pipeline_configuration_ordering(self):
         """
@@ -561,7 +586,11 @@ class TestResolverPriority(TestResolverBase):
             return
 
         pcs = [
-            {"code": "Primary", "project": self._project, "id": 1}, # This one goes in front.
+            {
+                "code": "Primary",
+                "project": self._project,
+                "id": 1,
+            },  # This one goes in front.
             {"code": "lowercase sandbox", "project": None, "id": 2},
             {"code": "lowercase sandbox", "project": None, "id": 3},
             {"code": "lowercase sandbox", "project": self._project, "id": 4},
@@ -601,15 +630,15 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
                 "content_type": "application/zip",
                 "type": "Attachment",
                 "id": 139,
-                "link_type": "upload"
-            }
+                "link_type": "upload",
+            },
         )
 
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.mockgun,
-            current_login="john.smith"
+            current_login="john.smith",
         )
 
         self.assertEqual(config._path.current_os, "sg_path")
@@ -629,20 +658,20 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
                 "content_type": "application/zip",
                 "type": "Attachment",
                 "id": 139,
-                "link_type": "upload"
-            }
+                "link_type": "upload",
+            },
         )
 
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.mockgun,
-            current_login="john.smith"
+            current_login="john.smith",
         )
 
         self.assertEqual(
             config._descriptor.get_dict(),
-            {"name": "tk-config-test", "type": "app_store", "version": "v3.1.2"}
+            {"name": "tk-config-test", "type": "app_store", "version": "v3.1.2"},
         )
 
     def test_pc_uploaded(self):
@@ -659,15 +688,15 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
                 "content_type": "application/zip",
                 "type": "Attachment",
                 "id": 139,
-                "link_type": "upload"
-            }
+                "link_type": "upload",
+            },
         )
 
         config = self.resolver.resolve_shotgun_configuration(
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.mockgun,
-            current_login="john.smith"
+            current_login="john.smith",
         )
 
         self.assertEqual(
@@ -677,8 +706,8 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
                 "field": "uploaded_config",
                 "id": 124,
                 "type": "shotgun",
-                "version": 139
-            }
+                "version": 139,
+            },
         )
 
     def test_pipeline_without_location(self):
@@ -688,16 +717,10 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         """
 
         # First make sure we return something when there the path is set.
-        pc_id = self._create_pc(
-            "Primary",
-            path="sg_path",
-            plugin_ids="foo.*",
-        )["id"]
+        pc_id = self._create_pc("Primary", path="sg_path", plugin_ids="foo.*")["id"]
 
         pcs = self.resolver.find_matching_pipeline_configurations(
-            None,
-            "john.smith",
-            self.mockgun
+            None, "john.smith", self.mockgun
         )
         self.assertEqual(len(pcs), 1)
         self.assertEqual(pcs[0]["id"], pc_id)
@@ -710,15 +733,13 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
                 "windows_path": None,
                 "linux_path": None,
                 "mac_path": None,
-                "descriptor": None
-            }
+                "descriptor": None,
+            },
         )
 
         # Nothing should be found.
         pcs = self.resolver.find_matching_pipeline_configurations(
-            None,
-            "john.smith",
-            self.mockgun
+            None, "john.smith", self.mockgun
         )
         self.assertEqual(len(pcs), 0)
 
@@ -728,25 +749,17 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         and that it doesn't contain a descriptor object.
         """
         # First make sure we return something when there the path is set.
-        pc_id = self._create_pc(
-            "Primary",
-            path="sg_path",
-            plugin_ids="foo.*",
-        )["id"]
+        pc_id = self._create_pc("Primary", path="sg_path", plugin_ids="foo.*")["id"]
 
         pcs = self.resolver.find_matching_pipeline_configurations(
-            None,
-            "john.smith",
-            self.mockgun
+            None, "john.smith", self.mockgun
         )
         self.assertEqual(len(pcs), 1)
         self.assertEqual(pcs[0]["id"], pc_id)
         self.assertIsNotNone(pcs[0]["config_descriptor"])
 
         field_lookup = dict(
-            linux2="linux_path",
-            darwin="mac_path",
-            win32="windows_path",
+            linux2="linux_path", darwin="mac_path", win32="windows_path"
         )
 
         base_path = "sg_path"
@@ -760,19 +773,13 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
         base_paths[field_lookup[sys.platform]] = None
 
         # Now remove every locators.
-        self.mockgun.update(
-            "PipelineConfiguration",
-            pc_id,
-            base_paths,
-        )
+        self.mockgun.update("PipelineConfiguration", pc_id, base_paths)
 
         # We should get back one config, though it should contain a None
         # for its "config_descriptor" key, as the lack of a path for the
         # current OS will mean we couldn't create the descriptor object.
         pcs = self.resolver.find_matching_pipeline_configurations(
-            None,
-            "john.smith",
-            self.mockgun
+            None, "john.smith", self.mockgun
         )
 
         self.assertEqual(len(pcs), 1)
@@ -790,23 +797,21 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             "Primary",
             project=self._project,
             descriptor="sgtk:descriptor:app_store?version=v3.1.2&name=tk-config-test",
-            plugin_ids="foo.*"
+            plugin_ids="foo.*",
         )["id"]
-        pcs = self.resolver.find_matching_pipeline_configurations(None, "john.smith", self.mockgun)
+        pcs = self.resolver.find_matching_pipeline_configurations(
+            None, "john.smith", self.mockgun
+        )
         self.assertEqual(len(pcs), 1)
         self.assertEqual(pcs[0]["id"], pc_id)
 
         # Not clear the plugin fields and the pipeline should not be reported by
         # find_matching_pipeline_configurations.
-        self.mockgun.update(
-            "PipelineConfiguration",
-            pc_id,
-            {
-                "plugin_ids": None
-            }
-        )
+        self.mockgun.update("PipelineConfiguration", pc_id, {"plugin_ids": None})
 
-        pcs = self.resolver.find_matching_pipeline_configurations(None, "john.smith", self.mockgun)
+        pcs = self.resolver.find_matching_pipeline_configurations(
+            None, "john.smith", self.mockgun
+        )
         self.assertListEqual(pcs, [])
 
 
@@ -822,7 +827,7 @@ class TestResolverSiteConfig(TestResolverBase):
         self.resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
             plugin_id="foo.maya",
             project_id=None,
-            bundle_cache_fallback_paths=[self.install_root]
+            bundle_cache_fallback_paths=[self.install_root],
         )
 
     @patch("os.path.isdir", return_value=True)
@@ -837,7 +842,7 @@ class TestResolverSiteConfig(TestResolverBase):
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.mockgun,
-            current_login="john.smith"
+            current_login="john.smith",
         )
 
         self.assertIsInstance(config, sgtk.bootstrap.resolver.InstalledConfiguration)
@@ -852,7 +857,7 @@ class TestResolverSiteConfig(TestResolverBase):
             pipeline_config_identifier=None,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.mockgun,
-            current_login="john.smith"
+            current_login="john.smith",
         )
 
         self.assertIsInstance(config, sgtk.bootstrap.resolver.CachedConfiguration)
@@ -868,8 +873,7 @@ class TestResolvedConfiguration(TankTestBase):
 
         self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
         self._resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
-            plugin_id="tk-maya",
-            bundle_cache_fallback_paths=[self._tmp_bundle_cache]
+            plugin_id="tk-maya", bundle_cache_fallback_paths=[self._tmp_bundle_cache]
         )
 
     def test_resolve_installed_configuration(self):
@@ -882,12 +886,9 @@ class TestResolvedConfiguration(TankTestBase):
             self.tk.pipeline_configuration.get_shotgun_id(),
             "sgtk:descriptor:not?a=descriptor",
             self.mockgun,
-            "john.smith"
+            "john.smith",
         )
-        self.assertIsInstance(
-            config,
-            sgtk.bootstrap.resolver.InstalledConfiguration
-        )
+        self.assertIsInstance(config, sgtk.bootstrap.resolver.InstalledConfiguration)
 
     def test_resolve_baked_configuration(self):
         """
@@ -901,10 +902,7 @@ class TestResolvedConfiguration(TankTestBase):
             {"type": "baked", "name": "unit_tests", "version": "v0.4.2"}, self.mockgun
         )
 
-        self.assertIsInstance(
-            config,
-            sgtk.bootstrap.resolver.BakedConfiguration
-        )
+        self.assertIsInstance(config, sgtk.bootstrap.resolver.BakedConfiguration)
 
     def test_resolve_cached_configuration(self):
         """
@@ -915,13 +913,11 @@ class TestResolvedConfiguration(TankTestBase):
         )
 
         config = self._resolver.resolve_configuration(
-            {"type": "app_store", "name": "unit_tests", "version": "v0.4.2"}, self.mockgun
+            {"type": "app_store", "name": "unit_tests", "version": "v0.4.2"},
+            self.mockgun,
         )
 
-        self.assertIsInstance(
-            config,
-            sgtk.bootstrap.resolver.CachedConfiguration
-        )
+        self.assertIsInstance(config, sgtk.bootstrap.resolver.CachedConfiguration)
 
 
 class TestResolvedLatestConfiguration(TankTestBase):
@@ -934,8 +930,7 @@ class TestResolvedLatestConfiguration(TankTestBase):
 
         self._tmp_bundle_cache = os.path.join(self.tank_temp, "bundle_cache")
         self._resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
-            plugin_id="tk-maya",
-            bundle_cache_fallback_paths=[self._tmp_bundle_cache]
+            plugin_id="tk-maya", bundle_cache_fallback_paths=[self._tmp_bundle_cache]
         )
 
     def test_resolve_latest_cached_configuration(self):
@@ -948,13 +943,12 @@ class TestResolvedLatestConfiguration(TankTestBase):
         )
 
         config = self._resolver.resolve_configuration(
-            {"type": "app_store", "name": "latest_test"},
-            self.mockgun
+            {"type": "app_store", "name": "latest_test"}, self.mockgun
         )
 
         self.assertEqual(
             config.descriptor.get_uri(),
-            "sgtk:descriptor:app_store?name=latest_test&version=v0.1.0"
+            "sgtk:descriptor:app_store?name=latest_test&version=v0.1.0",
         )
 
         os.makedirs(
@@ -962,39 +956,37 @@ class TestResolvedLatestConfiguration(TankTestBase):
         )
 
         config = self._resolver.resolve_configuration(
-            {"type": "app_store", "name": "latest_test"},
-            self.mockgun
+            {"type": "app_store", "name": "latest_test"}, self.mockgun
         )
 
         self.assertEqual(
             config.descriptor.get_uri(),
-            "sgtk:descriptor:app_store?name=latest_test&version=v0.1.1"
+            "sgtk:descriptor:app_store?name=latest_test&version=v0.1.1",
         )
 
         # make sure direct lookup also works
         config = self._resolver.resolve_configuration(
             {"type": "app_store", "name": "latest_test", "version": "v0.1.0"},
-            self.mockgun
+            self.mockgun,
         )
 
         self.assertEqual(
             config.descriptor.get_uri(),
-            "sgtk:descriptor:app_store?name=latest_test&version=v0.1.0"
+            "sgtk:descriptor:app_store?name=latest_test&version=v0.1.0",
         )
 
         config = self._resolver.resolve_configuration(
             {"type": "app_store", "name": "latest_test", "version": "v0.1.1"},
-            self.mockgun
+            self.mockgun,
         )
 
         self.assertEqual(
             config.descriptor.get_uri(),
-            "sgtk:descriptor:app_store?name=latest_test&version=v0.1.1"
+            "sgtk:descriptor:app_store?name=latest_test&version=v0.1.1",
         )
 
 
 class TestResolveWithFilter(TestResolverBase):
-
     @patch("os.path.isdir", return_value=True)
     def test_existing_pc_ic(self, _):
         """
@@ -1008,7 +1000,7 @@ class TestResolveWithFilter(TestResolverBase):
             pipeline_config_identifier=pc_id,
             fallback_config_descriptor=self.config_1,
             sg_connection=self.mockgun,
-            current_login="john.smith"
+            current_login="john.smith",
         )
 
         self.assertEqual(config._path.current_os, "sg_path")
@@ -1018,12 +1010,14 @@ class TestResolveWithFilter(TestResolverBase):
         """
         Resolve a non-existent pipeline configuration by id should fail.
         """
-        with self.assertRaisesRegex(sgtk.bootstrap.TankBootstrapError, "Pipeline configuration with id"):
+        with self.assertRaisesRegex(
+            sgtk.bootstrap.TankBootstrapError, "Pipeline configuration with id"
+        ):
             self.resolver.resolve_shotgun_configuration(
                 pipeline_config_identifier=42,
                 fallback_config_descriptor=self.config_1,
                 sg_connection=self.mockgun,
-                current_login="john.smith"
+                current_login="john.smith",
             )
 
     @patch("os.path.isdir", return_value=True)
@@ -1039,7 +1033,9 @@ class TestResolveWithFilter(TestResolverBase):
         self._create_pc("Primary", path="primary_configuration", plugin_ids="foo.*")
 
         # Create a second user that will own similar sandboxes.
-        john_doe = self.mockgun.create("HumanUser", {"login": "john.doe", "name": "John Doe"})
+        john_doe = self.mockgun.create(
+            "HumanUser", {"login": "john.doe", "name": "John Doe"}
+        )
 
         for user in [john_doe, self._john_smith]:
             # Create project sandbox.
@@ -1048,31 +1044,31 @@ class TestResolveWithFilter(TestResolverBase):
                 path="project_sandbox",
                 plugin_ids="foo.*",
                 users=[user],
-                project=self._project
+                project=self._project,
             )
             # Create site sandbox.
             self._create_pc(
-                "Site sandbox",
-                path="site_sandbox",
-                plugin_ids="foo.*",
-                users=[user]
+                "Site sandbox", path="site_sandbox", plugin_ids="foo.*", users=[user]
             )
 
         # Ensure we are resolving only three and they are the primary or owned by John Smith.
         pcs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name=None,
             current_login="john.smith",
-            sg_connection=self.mockgun
+            sg_connection=self.mockgun,
         )
         self.assertEqual(len(pcs), 3)
         for pc in pcs:
-            self.assertTrue(pc["code"] == "Primary" or pc["users"][0]["id"] == self._john_smith["id"])
+            self.assertTrue(
+                pc["code"] == "Primary"
+                or pc["users"][0]["id"] == self._john_smith["id"]
+            )
 
         # Ensure we are resolving only the primary sandbox.
         pcs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name="Primary",
             current_login="john.smith",
-            sg_connection=self.mockgun
+            sg_connection=self.mockgun,
         )
         self.assertEqual(len(pcs), 1)
         self.assertEqual(pcs[0]["code"], "Primary")
@@ -1081,7 +1077,7 @@ class TestResolveWithFilter(TestResolverBase):
         pcs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name="Site sandbox",
             current_login="john.doe",
-            sg_connection=self.mockgun
+            sg_connection=self.mockgun,
         )
 
         self.assertEqual(len(pcs), 1)
@@ -1093,7 +1089,7 @@ class TestResolveWithFilter(TestResolverBase):
         pcs = self.resolver.find_matching_pipeline_configurations(
             pipeline_config_name="Site sandbox",
             current_login="john.smith",
-            sg_connection=self.mockgun
+            sg_connection=self.mockgun,
         )
 
         self.assertEqual(len(pcs), 1)
@@ -1103,7 +1099,6 @@ class TestResolveWithFilter(TestResolverBase):
 
 
 class TestErrorHandling(TestResolverBase):
-
     def test_installed_configuration_not_on_disk(self):
         """
         Ensure that the resolver detects when an installed configuration has not been set for the
@@ -1111,31 +1106,26 @@ class TestErrorHandling(TestResolverBase):
         """
         # Create a pipeline configuration.
         pc_id = self._create_pc(
-            "Primary",
-            self._project,
-            "sg_path",
-            plugin_ids="foo.*",
+            "Primary", self._project, "sg_path", plugin_ids="foo.*"
         )["id"]
 
         # Remove the current platform's path.
         self.mockgun.update(
             "PipelineConfiguration",
             pc_id,
-            {
-                ShotgunPath.get_shotgun_storage_key(): None
-            }
+            {ShotgunPath.get_shotgun_storage_key(): None},
         )
 
         with self.assertRaisesRegex(
             sgtk.bootstrap.TankBootstrapError,
             "The Shotgun pipeline configuration with id %s has no source location specified for "
-            "your operating system." % pc_id
+            "your operating system." % pc_id,
         ):
             self.resolver.resolve_shotgun_configuration(
                 pipeline_config_identifier=pc_id,
                 fallback_config_descriptor=self.config_1,
                 sg_connection=self.mockgun,
-                current_login="john.smith"
+                current_login="john.smith",
             )
 
     def test_invalid_descriptors_without_plugin_id_cant_break_enumeration(self):
@@ -1145,17 +1135,17 @@ class TestErrorHandling(TestResolverBase):
         self._create_pc(
             "Primary",
             # We're creating a descriptor to something we can't possibly have cached locally.
-            descriptor="sgtk:descriptor:app_store?name=tk-unknown-config"
+            descriptor="sgtk:descriptor:app_store?name=tk-unknown-config",
         )
 
         with patch(
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore.has_remote_access",
-            return_value=False
+            return_value=False,
         ):
             self.resolver.find_matching_pipeline_configurations(
                 pipeline_config_name=None,
                 current_login="john.smith",
-                sg_connection=self.mockgun
+                sg_connection=self.mockgun,
             )
 
     def test_configuration_not_found_on_disk(self):
@@ -1164,24 +1154,19 @@ class TestErrorHandling(TestResolverBase):
         current platform.
         """
         this_path_does_not_exists = "/this/does/not/exists/on/disk"
-        pc_id = self._create_pc(
-            "Primary",
-            None,
-            this_path_does_not_exists
-        )["id"]
+        pc_id = self._create_pc("Primary", None, this_path_does_not_exists)["id"]
 
         expected_descriptor_dict = ShotgunPath(
-            this_path_does_not_exists, this_path_does_not_exists, this_path_does_not_exists
+            this_path_does_not_exists,
+            this_path_does_not_exists,
+            this_path_does_not_exists,
         ).as_shotgun_dict()
         expected_descriptor_dict["type"] = "path"
 
         with self.assertRaisesRegex(
             sgtk.bootstrap.TankBootstrapError,
-            "Installed pipeline configuration '.*' does not exist on disk!"
+            "Installed pipeline configuration '.*' does not exist on disk!",
         ):
             self.resolver.resolve_shotgun_configuration(
-                pc_id,
-                [],
-                self.mockgun,
-                "john.smith"
+                pc_id, [], self.mockgun, "john.smith"
             )

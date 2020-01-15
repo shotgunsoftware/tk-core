@@ -45,8 +45,14 @@ def _convert_unicode_keys_to_string(input_value):
 
 # This is the Python 2.6 signature. 2.7 has an extra object_hook_pairs argument.
 def load(
-    fp, encoding=None, cls=None, object_hook=None, parse_float=None,
-    parse_int=None, parse_constant=None, **kw
+    fp,
+    encoding=None,
+    cls=None,
+    object_hook=None,
+    parse_float=None,
+    parse_int=None,
+    parse_constant=None,
+    **kw
 ):
     """
     Deserialize ``fp`` (a ``.read()``-supporting file-like object containing
@@ -58,8 +64,7 @@ def load(
     See the documentation for :func:`json.load` to learn more about this method.
     """
     loaded_value = json.load(
-        fp, encoding, cls, object_hook, parse_float,
-        parse_int, parse_constant, **kw
+        fp, encoding, cls, object_hook, parse_float, parse_int, parse_constant, **kw
     )
 
     return _convert_unicode_keys_to_string(loaded_value)
@@ -67,8 +72,14 @@ def load(
 
 # This is the Python 2.6 signature. 2.7 has an extra object_hook_pairs argument.
 def loads(
-    s, encoding=None, cls=None, object_hook=None, parse_float=None,
-    parse_int=None, parse_constant=None, **kw
+    s,
+    encoding=None,
+    cls=None,
+    object_hook=None,
+    parse_float=None,
+    parse_int=None,
+    parse_constant=None,
+    **kw
 ):
     """
     Deserialize ``s`` (a ``str`` or ``unicode`` instance containing a JSON
@@ -80,8 +91,7 @@ def loads(
     See the documentation for :func:`json.loads` to learn more about this method.
     """
     loaded_value = json.loads(
-        s, encoding, cls, object_hook, parse_float,
-        parse_int, parse_constant, **kw
+        s, encoding, cls, object_hook, parse_float, parse_int, parse_constant, **kw
     )
 
     return _convert_unicode_keys_to_string(loaded_value)

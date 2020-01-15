@@ -61,4 +61,3 @@ exclude =
 # E999 SyntaxError: invalid syntax (hack for hound CI which runs python 3.x)
 
 ignore = E501, W291, W293, W391, W503, E221, E261, E402, N802, N806, E999
-

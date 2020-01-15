@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -14,20 +14,23 @@ Tests of class TemplateString
 
 import os
 
-from tank_test.tank_test_base import ShotgunTestBase, setUpModule # noqa
+from tank_test.tank_test_base import ShotgunTestBase, setUpModule  # noqa
 
 from tank.errors import TankError
 from tank.template import TemplateString
-from tank.templatekey import (StringKey, IntegerKey)
+from tank.templatekey import StringKey, IntegerKey
 
 
 class TestTemplateString(ShotgunTestBase):
     """Base class for TemplateString tests."""
+
     def setUp(self):
         super(TestTemplateString, self).setUp()
-        self.keys = {"Sequence": StringKey("Sequence"),
-                     "Shot": StringKey("Shot"),
-                     "version": IntegerKey("version")}
+        self.keys = {
+            "Sequence": StringKey("Sequence"),
+            "Shot": StringKey("Shot"),
+            "version": IntegerKey("version"),
+        }
         self.template_string = TemplateString("something-{Shot}.{Sequence}", self.keys)
 
 
@@ -46,7 +49,7 @@ class TestInit(TestTemplateString):
 
     def test_definition_preseves_leading_slash(self):
         """
-        The TemplateString should not change the use of os seperators in the 
+        The TemplateString should not change the use of os seperators in the
         input definition.
         """
         # forward slashes with leading slash
@@ -59,6 +62,7 @@ class TestInit(TestTemplateString):
         definition = r"\something\{Shot}\\"
         template_string = TemplateString(definition, self.keys)
         self.assertEqual(definition, template_string.definition)
+
 
 class TestParent(TestTemplateString):
     def test_none(self):
@@ -90,11 +94,9 @@ class TestValidate(TestTemplateString):
         template_string = TemplateString("something-{Shot}[.{Sequence}]", self.keys)
 
         input_string = "something-shot_1.seq_2"
-        expected = {"Shot": "shot_1",
-                    "Sequence": "seq_2"}
+        expected = {"Shot": "shot_1", "Sequence": "seq_2"}
 
         self.assertTrue(template_string.validate(input_string))
-
 
         # without optional value
         input_string = "something-shot_1"
@@ -105,8 +107,7 @@ class TestValidate(TestTemplateString):
 
 class TestApplyFields(TestTemplateString):
     def test_good(self):
-        fields = {"Shot": "shot_1",
-                  "Sequence": "seq_2"}
+        fields = {"Shot": "shot_1", "Sequence": "seq_2"}
         expected = "something-shot_1.seq_2"
         result = self.template_string.apply_fields(fields)
         self.assertEqual(expected, result)
@@ -117,34 +118,30 @@ class TestApplyFields(TestTemplateString):
 
     def test_optional_value(self):
         template_string = TemplateString("something-{Shot}[.{Sequence}]", self.keys)
-        fields = {"Shot": "shot_1",
-                  "Sequence": "seq_2"}
+        fields = {"Shot": "shot_1", "Sequence": "seq_2"}
         expected = "something-shot_1.seq_2"
         result = template_string.apply_fields(fields)
         self.assertEqual(expected, result)
 
         # remove optional value
-        del(fields["Sequence"])
+        del fields["Sequence"]
         expected = "something-shot_1"
         result = template_string.apply_fields(fields)
         self.assertEqual(expected, result)
 
 
 class TestGetFields(TestTemplateString):
-
     def test_simple(self):
         input_string = "something-shot_1.Seq_12"
-        expected = {"Shot": "shot_1",
-                    "Sequence": "Seq_12"}
+        expected = {"Shot": "shot_1", "Sequence": "Seq_12"}
         result = self.template_string.get_fields(input_string)
         self.assertEqual(expected, result)
-        
+
     def test_key_first(self):
         definition = "{Shot}.{Sequence}"
         template_string = TemplateString(definition, self.keys)
         input_string = "shot_1.Seq_12"
-        expected = {"Shot": "shot_1",
-                    "Sequence": "Seq_12"}
+        expected = {"Shot": "shot_1", "Sequence": "Seq_12"}
         result = template_string.get_fields(input_string)
         self.assertEqual(expected, result)
 
@@ -180,12 +177,10 @@ class TestGetFields(TestTemplateString):
         template_string = TemplateString("something-{Shot}[.{Sequence}]", self.keys)
 
         input_string = "something-shot_1.seq_2"
-        expected = {"Shot": "shot_1",
-                    "Sequence": "seq_2"}
+        expected = {"Shot": "shot_1", "Sequence": "seq_2"}
 
         result = template_string.get_fields(input_string)
         self.assertEqual(expected, result)
-
 
         # without optional value
         input_string = "something-shot_1"
@@ -193,18 +188,13 @@ class TestGetFields(TestTemplateString):
 
         result = template_string.get_fields(input_string)
         self.assertEqual(expected, result)
-    
-    #TODO this won't pass with current algorithm
+
+    # TODO this won't pass with current algorithm
+
+
 #    def test_definition_short_end_key(self):
 #        """Tests case when input string longer than definition which ends with key."""
 #        definition = "something.{Shot}"
 #        template_string = TemplateString(definition, self.keys)
 #        input_string = "something.shot_1-more-stuff"
 #        self.assertRaises(TankError, self.template_string.get_fields, input_string)
-
-
-
-
-    
-
-

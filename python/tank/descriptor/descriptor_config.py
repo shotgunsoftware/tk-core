@@ -31,7 +31,9 @@ class ConfigDescriptor(Descriptor):
     Descriptor that describes a Toolkit Configuration
     """
 
-    def __init__(self, sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots):
+    def __init__(
+        self, sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots
+    ):
         """
         .. note:: Use the factory method :meth:`create_descriptor` when
                   creating new descriptor objects.
@@ -57,7 +59,9 @@ class ConfigDescriptor(Descriptor):
 
         :returns: Core descriptor dict or uri or ``None`` if not defined
         """
-        raise NotImplementedError("ConfigDescriptor.associated_core_descriptor is not implemented.")
+        raise NotImplementedError(
+            "ConfigDescriptor.associated_core_descriptor is not implemented."
+        )
 
     @property
     def python_interpreter(self):
@@ -74,7 +78,9 @@ class ConfigDescriptor(Descriptor):
 
         :returns: Path value stored in the interpreter file.
         """
-        raise NotImplementedError("ConfigDescriptor.python_interpreter is not implemented.")
+        raise NotImplementedError(
+            "ConfigDescriptor.python_interpreter is not implemented."
+        )
 
     def resolve_core_descriptor(self):
         """
@@ -89,9 +95,7 @@ class ConfigDescriptor(Descriptor):
         # When resolving the descriptor, we need to take into account that the config folder may be
         # holding a bundle cache with the core in it, so we're adding it to the list of fallback
         # roots.
-        config_bundle_cache = os.path.join(
-            self.get_config_folder(), "bundle_cache"
-        )
+        config_bundle_cache = os.path.join(self.get_config_folder(), "bundle_cache")
 
         if not self._cached_core_descriptor:
             self._cached_core_descriptor = create_descriptor(
@@ -100,7 +104,9 @@ class ConfigDescriptor(Descriptor):
                 self.associated_core_descriptor,
                 self._bundle_cache_root_override,
                 [config_bundle_cache] + self._fallback_roots,
-                resolve_latest=is_descriptor_version_missing(self.associated_core_descriptor)
+                resolve_latest=is_descriptor_version_missing(
+                    self.associated_core_descriptor
+                ),
             )
 
         return self._cached_core_descriptor
@@ -121,7 +127,9 @@ class ConfigDescriptor(Descriptor):
         :returns: The value for the feature if present, ``default_value`` otherwise.
         """
         if self.resolve_core_descriptor():
-            return self.resolve_core_descriptor().get_feature_info(feature_name, default_value)
+            return self.resolve_core_descriptor().get_feature_info(
+                feature_name, default_value
+            )
         return default_value
 
     @property
@@ -157,8 +165,7 @@ class ConfigDescriptor(Descriptor):
         readme_content = []
 
         readme_file = os.path.join(
-            self.get_config_folder(),
-            constants.CONFIG_README_FILE
+            self.get_config_folder(), constants.CONFIG_README_FILE
         )
         if os.path.exists(readme_file):
             with open(readme_file) as fh:
@@ -202,7 +209,9 @@ class ConfigDescriptor(Descriptor):
 
         :returns: Path to the configuration files folder.
         """
-        raise NotImplementedError("ConfigDescriptor.get_config_folder is not implemented.")
+        raise NotImplementedError(
+            "ConfigDescriptor.get_config_folder is not implemented."
+        )
 
     def _get_current_platform_interpreter_file_name(self, install_root):
         """
@@ -230,9 +239,7 @@ class ConfigDescriptor(Descriptor):
         :returns: Path to the Python interpreter.
         """
         # Find the interpreter file for the current platform.
-        interpreter_config_file = self._get_current_platform_interpreter_file_name(
-            path
-        )
+        interpreter_config_file = self._get_current_platform_interpreter_file_name(path)
 
         if os.path.exists(interpreter_config_file):
             with open(interpreter_config_file, "r") as f:
@@ -247,7 +254,8 @@ class ConfigDescriptor(Descriptor):
                 return path_to_python
         else:
             raise TankFileDoesNotExistError(
-                "No interpreter file for the current platform found at '%s'." % interpreter_config_file
+                "No interpreter file for the current platform found at '%s'."
+                % interpreter_config_file
             )
 
     @property

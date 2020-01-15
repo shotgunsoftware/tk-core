@@ -41,7 +41,13 @@ from tank.util.user_settings import UserSettings
 
 TANK_TEMP = None
 
-__all__ = ['setUpModule', 'TankTestBase', 'tank', 'interactive', 'skip_if_pyside_missing']
+__all__ = [
+    "setUpModule",
+    "TankTestBase",
+    "tank",
+    "interactive",
+    "skip_if_pyside_missing",
+]
 
 
 def interactive(func):
@@ -53,8 +59,7 @@ def interactive(func):
     """
     interactive_in_argv = "--interactive" not in sys.argv
     return unittest.skipIf(
-        interactive_in_argv,
-        "add --interactive on the command line to run this test."
+        interactive_in_argv, "add --interactive on the command line to run this test."
     )(func)
 
 
@@ -65,10 +70,7 @@ def only_run_on_windows(func):
     :returns: The decorated function.
     """
     running_nix = sys.platform != "win32"
-    return unittest.skipIf(
-        running_nix,
-        "Windows only test."
-    )(func)
+    return unittest.skipIf(running_nix, "Windows only test.")(func)
 
 
 def only_run_on_nix(func):
@@ -78,10 +80,7 @@ def only_run_on_nix(func):
     :returns: The decorated function.
     """
     running_windows = sys.platform == "win32"
-    return unittest.skipIf(
-        running_windows,
-        "Linux/Macosx only test."
-    )(func)
+    return unittest.skipIf(running_windows, "Linux/Macosx only test.")(func)
 
 
 def _is_git_missing():
@@ -104,8 +103,10 @@ def skip_if_on_travis_ci(reason):
     Skips a test if we're on travis-ci and display the error.
     :returns: The decorated function.
     """
+
     def wrapper(func):
         return unittest.skipIf("TRAVIS" in os.environ, reason)(func)
+
     return wrapper
 
 
@@ -124,7 +125,8 @@ def _is_pyside_missing():
     :returns: True is PySide is available, False otherwise.
     """
     try:
-        import PySide # noqa
+        import PySide  # noqa
+
         return False
     except ImportError:
         return True
@@ -171,6 +173,7 @@ class UnitTestTimer(object):
         """
         Tracks how much time was spent in a method as well as the number of times it was invoked.
         """
+
         def __init__(self):
             self.total_time = 0
             self.nb_invokes = 0
@@ -198,6 +201,7 @@ class UnitTestTimer(object):
 
         :param name: Name of the scope being timed.
         """
+
         def decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
@@ -207,6 +211,7 @@ class UnitTestTimer(object):
                 finally:
                     elapsed = time.time() - before
                     self._timers[name].add_entry(elapsed)
+
             return wrapper
 
         return decorator
@@ -218,12 +223,20 @@ class UnitTestTimer(object):
         print()
         print("Test run stats")
         print("==============")
-        for name, stat in sorted(self._timers.items(), key=lambda x: x[1].total_time, reverse=True):
-            print("{0} : {1} ({2} hits, {3:.3f} avg)".format(name, stat.total_time, stat.nb_invokes, stat.average))
+        for name, stat in sorted(
+            self._timers.items(), key=lambda x: x[1].total_time, reverse=True
+        ):
+            print(
+                "{0} : {1} ({2} hits, {3:.3f} avg)".format(
+                    name, stat.total_time, stat.nb_invokes, stat.average
+                )
+            )
 
         print(
-            "Time spent in tracked methods: %s" % sum(x.total_time for x in self._timers.values())
+            "Time spent in tracked methods: %s"
+            % sum(x.total_time for x in self._timers.values())
         )
+
 
 timer = UnitTestTimer()
 atexit.register(timer.print_stats)
@@ -286,7 +299,9 @@ class TankTestBase(unittest.TestCase):
         self.project_config = None
 
         # path to the tk-core repo root point
-        self.tank_source_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+        self.tank_source_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "..", "..")
+        )
 
         self.tk_core_repo_root = os.path.normpath(
             os.path.join(os.path.dirname(__file__), "..", "..", "..")
@@ -305,7 +320,8 @@ class TankTestBase(unittest.TestCase):
         test name in the console and paste it to run it.
         """
         return "%s (%s)" % (
-            self._testMethodName, unittest.util.strclass(self.__class__) + "." + self._testMethodName
+            self._testMethodName,
+            unittest.util.strclass(self.__class__) + "." + self._testMethodName,
         )
 
     @property
@@ -368,19 +384,13 @@ class TankTestBase(unittest.TestCase):
 
         elif os.path.exists(os.path.join(self.fixtures_root, "mockgun")):
             mockgun_schema_path = os.path.join(
-                self.fixtures_root,
-                "mockgun",
-                "schema.pickle"
+                self.fixtures_root, "mockgun", "schema.pickle"
             )
 
         else:
             # use the std core fixtures
             mockgun_schema_path = os.path.join(
-                self.tank_source_path,
-                "tests",
-                "fixtures",
-                "mockgun",
-                "schema.pickle"
+                self.tank_source_path, "tests", "fixtures", "mockgun", "schema.pickle"
             )
 
         if "mockgun_schema_entity_path" in parameters:
@@ -388,9 +398,7 @@ class TankTestBase(unittest.TestCase):
 
         elif os.path.exists(os.path.join(self.fixtures_root, "mockgun")):
             mockgun_schema_entity_path = os.path.join(
-                self.fixtures_root,
-                "mockgun",
-                "schema_entity.pickle"
+                self.fixtures_root, "mockgun", "schema_entity.pickle"
             )
 
         else:
@@ -400,14 +408,16 @@ class TankTestBase(unittest.TestCase):
                 "tests",
                 "fixtures",
                 "mockgun",
-                "schema_entity.pickle"
+                "schema_entity.pickle",
             )
 
         # The name to use for our primary storage
         self.primary_root_name = parameters.get("primary_root_name", "unit_tests")
 
         # set up mockgun to use our schema
-        mockgun.Shotgun.set_schema_paths(mockgun_schema_path, mockgun_schema_entity_path)
+        mockgun.Shotgun.set_schema_paths(
+            mockgun_schema_path, mockgun_schema_entity_path
+        )
 
         self.tank_temp = TANK_TEMP
 
@@ -417,7 +427,7 @@ class TankTestBase(unittest.TestCase):
         # If we don't mock it than the path cache calling get_current_user will fail.
         self._mock_return_value(
             "tank.util.shotgun.connection.get_associated_sg_config_data",
-            {"host": "https://somewhere.shotgunstudio.com"}
+            {"host": "https://somewhere.shotgunstudio.com"},
         )
 
         # define entity for test project
@@ -429,9 +439,13 @@ class TankTestBase(unittest.TestCase):
             "archived": False,
         }
 
-        self.project_root = os.path.join(self.tank_temp, self.project["tank_name"].replace("/", os.path.sep))
+        self.project_root = os.path.join(
+            self.tank_temp, self.project["tank_name"].replace("/", os.path.sep)
+        )
 
-        self.pipeline_config_root = os.path.join(self.tank_temp, "pipeline_configuration")
+        self.pipeline_config_root = os.path.join(
+            self.tank_temp, "pipeline_configuration"
+        )
 
         if self._do_io:
             # move away previous data
@@ -444,11 +458,13 @@ class TankTestBase(unittest.TestCase):
             # # copy tank util scripts
             shutil.copy(
                 os.path.join(self.tank_source_path, "setup", "root_binaries", "tank"),
-                os.path.join(self.pipeline_config_root, "tank")
+                os.path.join(self.pipeline_config_root, "tank"),
             )
             shutil.copy(
-                os.path.join(self.tank_source_path, "setup", "root_binaries", "tank.bat"),
-                os.path.join(self.pipeline_config_root, "tank.bat")
+                os.path.join(
+                    self.tank_source_path, "setup", "root_binaries", "tank.bat"
+                ),
+                os.path.join(self.pipeline_config_root, "tank.bat"),
             )
 
         # project level config directories
@@ -460,34 +476,49 @@ class TankTestBase(unittest.TestCase):
             os.mkdir(project_cache_dir)
 
         # define entity for pipeline configuration
-        self.sg_pc_entity = {"type": "PipelineConfiguration",
-                             "code": "Primary",
-                             "id": 123,
-                             "project": self.project,
-                             "windows_path": self.pipeline_config_root,
-                             "mac_path": self.pipeline_config_root,
-                             "linux_path": self.pipeline_config_root}
+        self.sg_pc_entity = {
+            "type": "PipelineConfiguration",
+            "code": "Primary",
+            "id": 123,
+            "project": self.project,
+            "windows_path": self.pipeline_config_root,
+            "mac_path": self.pipeline_config_root,
+            "linux_path": self.pipeline_config_root,
+        }
 
         # add files needed by the pipeline config
-        pc_yml = os.path.join(self.pipeline_config_root, "config", "core", "pipeline_configuration.yml")
-        pc_yml_data = ("{ project_name: %s, use_shotgun_path_cache: true, pc_id: %d, "
-                       "project_id: %d, pc_name: %s}\n\n" % (self.project["tank_name"],
-                                                             self.sg_pc_entity["id"],
-                                                             self.project["id"],
-                                                             self.sg_pc_entity["code"]))
+        pc_yml = os.path.join(
+            self.pipeline_config_root, "config", "core", "pipeline_configuration.yml"
+        )
+        pc_yml_data = (
+            "{ project_name: %s, use_shotgun_path_cache: true, pc_id: %d, "
+            "project_id: %d, pc_name: %s}\n\n"
+            % (
+                self.project["tank_name"],
+                self.sg_pc_entity["id"],
+                self.project["id"],
+                self.sg_pc_entity["code"],
+            )
+        )
         if self._do_io:
             self.create_file(pc_yml, pc_yml_data)
 
-        loc_yml = os.path.join(self.pipeline_config_root, "config", "core", "install_location.yml")
+        loc_yml = os.path.join(
+            self.pipeline_config_root, "config", "core", "install_location.yml"
+        )
         loc_yml_data = "Windows: '%s'\nDarwin: '%s'\nLinux: '%s'" % (
-            self.pipeline_config_root, self.pipeline_config_root, self.pipeline_config_root
+            self.pipeline_config_root,
+            self.pipeline_config_root,
+            self.pipeline_config_root,
         )
         if self._do_io:
             self.create_file(loc_yml, loc_yml_data)
 
         # inject this file which toolkit is probing for to determine
         # if an installation has been localized.
-        localize_token_file = os.path.join(self.pipeline_config_root, "install", "core", "_core_upgrader.py")
+        localize_token_file = os.path.join(
+            self.pipeline_config_root, "install", "core", "_core_upgrader.py"
+        )
         if self._do_io:
             self.create_file(localize_token_file, "foo bar")
 
@@ -497,23 +528,36 @@ class TankTestBase(unittest.TestCase):
             roots[self.primary_root_name][os_name] = self.tank_temp
 
         if self._do_io:
-            roots_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")
+            roots_path = os.path.join(
+                self.pipeline_config_root, "config", "core", "roots.yml"
+            )
             roots_file = open(roots_path, "w")
             roots_file.write(yaml.dump(roots))
             roots_file.close()
 
         if self._do_io:
-            self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
+            self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(
+                self.pipeline_config_root
+            )
             self.tk = tank.Tank(self.pipeline_configuration)
 
         # set up mockgun and make sure shotgun connection calls route via mockgun
-        self.mockgun = mockgun.Shotgun("http://unit_test_mock_sg", "mock_user", "mock_key")
+        self.mockgun = mockgun.Shotgun(
+            "http://unit_test_mock_sg", "mock_user", "mock_key"
+        )
         # fake a version response from the server
         self.mockgun.server_info = {"version": (7, 0, 0)}
 
-        self._mock_return_value("tank.util.shotgun.connection.get_associated_sg_base_url", "http://unit_test_mock_sg")
-        self._mock_return_value("tank.util.shotgun.connection.create_sg_connection", self.mockgun)
-        self._mock_return_value("tank.util.shotgun.get_associated_sg_base_url", "http://unit_test_mock_sg")
+        self._mock_return_value(
+            "tank.util.shotgun.connection.get_associated_sg_base_url",
+            "http://unit_test_mock_sg",
+        )
+        self._mock_return_value(
+            "tank.util.shotgun.connection.create_sg_connection", self.mockgun
+        )
+        self._mock_return_value(
+            "tank.util.shotgun.get_associated_sg_base_url", "http://unit_test_mock_sg"
+        )
         self._mock_return_value("tank.util.shotgun.create_sg_connection", self.mockgun)
 
         # add project to mock sg and path cache db
@@ -525,12 +569,14 @@ class TankTestBase(unittest.TestCase):
         self.add_to_sg_mock_db(self.sg_pc_entity)
 
         # add local storage
-        self.primary_storage = {"type": "LocalStorage",
-                                "id": 7777,
-                                "code": self.primary_root_name,
-                                "windows_path": self.tank_temp,
-                                "linux_path": self.tank_temp,
-                                "mac_path": self.tank_temp}
+        self.primary_storage = {
+            "type": "LocalStorage",
+            "id": 7777,
+            "code": self.primary_root_name,
+            "windows_path": self.tank_temp,
+            "linux_path": self.tank_temp,
+            "mac_path": self.tank_temp,
+        }
 
         self.add_to_sg_mock_db(self.primary_storage)
 
@@ -593,7 +639,7 @@ class TankTestBase(unittest.TestCase):
                 del os.environ[self.SHOTGUN_HOME]
 
     @timer.clock_func("TankTestBase.setup_fixtures")
-    def setup_fixtures(self, name='config', parameters=None):
+    def setup_fixtures(self, name="config", parameters=None):
         """
         Helper method which sets up a standard toolkit configuration
         given a configuration template.
@@ -671,7 +717,12 @@ class TankTestBase(unittest.TestCase):
                     self._copy_folder(config_source, config_target)
         else:
             # We're going to be using a cached configuration, so set up the source_descriptor.
-            pc_yml_location = os.path.join(self.pipeline_config_root, "config", "core", "pipeline_configuration.yml")
+            pc_yml_location = os.path.join(
+                self.pipeline_config_root,
+                "config",
+                "core",
+                "pipeline_configuration.yml",
+            )
             with open(pc_yml_location, "r") as fh:
                 pc_data = yaml.safe_load(fh)
             pc_data["source_descriptor"] = {"path": config_root, "type": "path"}
@@ -685,7 +736,9 @@ class TankTestBase(unittest.TestCase):
         # the fixtures
         self.reload_pipeline_config()
 
-        if not ("skip_template_reload" in parameters and parameters["skip_template_reload"]):
+        if not (
+            "skip_template_reload" in parameters and parameters["skip_template_reload"]
+        ):
             # no skip_template_reload flag set to true. So go ahead and reload
             self.tk.reload_templates()
 
@@ -697,17 +750,23 @@ class TankTestBase(unittest.TestCase):
         # The primary storage needs to be named "primary" in multi-root mode.
         if self.primary_root_name != "primary":
             self.primary_root_name = "primary"
-            self.primary_storage = {"type": "LocalStorage",
-                                    "id": 8888,
-                                    "code": self.primary_root_name,
-                                    "windows_path": self.tank_temp,
-                                    "linux_path": self.tank_temp,
-                                    "mac_path": self.tank_temp}
+            self.primary_storage = {
+                "type": "LocalStorage",
+                "id": 8888,
+                "code": self.primary_root_name,
+                "windows_path": self.tank_temp,
+                "linux_path": self.tank_temp,
+                "mac_path": self.tank_temp,
+            }
 
             self.add_to_sg_mock_db(self.primary_storage)
 
-        self._setup_fixtures(parameters={"core": "core.override/multi_root_core",
-                                         "skip_template_reload": True})
+        self._setup_fixtures(
+            parameters={
+                "core": "core.override/multi_root_core",
+                "skip_template_reload": True,
+            }
+        )
 
         # Add multiple project roots
         project_name = os.path.basename(self.project_root)
@@ -717,43 +776,57 @@ class TankTestBase(unittest.TestCase):
         self.alt_root_4 = os.path.join(self.tank_temp, "alternate_4", project_name)
 
         # add local storages to represent the alternate root points
-        self.alt_storage_1 = {"type": "LocalStorage",
-                              "id": 7778,
-                              "code": "alternate_1",
-                              "windows_path": os.path.join(self.tank_temp, "alternate_1"),
-                              "linux_path": os.path.join(self.tank_temp, "alternate_1"),
-                              "mac_path": os.path.join(self.tank_temp, "alternate_1")}
+        self.alt_storage_1 = {
+            "type": "LocalStorage",
+            "id": 7778,
+            "code": "alternate_1",
+            "windows_path": os.path.join(self.tank_temp, "alternate_1"),
+            "linux_path": os.path.join(self.tank_temp, "alternate_1"),
+            "mac_path": os.path.join(self.tank_temp, "alternate_1"),
+        }
         self.add_to_sg_mock_db(self.alt_storage_1)
 
-        self.alt_storage_2 = {"type": "LocalStorage",
-                              "id": 7779,
-                              "code": "alternate_2",
-                              "windows_path": os.path.join(self.tank_temp, "alternate_2"),
-                              "linux_path": os.path.join(self.tank_temp, "alternate_2"),
-                              "mac_path": os.path.join(self.tank_temp, "alternate_2")}
+        self.alt_storage_2 = {
+            "type": "LocalStorage",
+            "id": 7779,
+            "code": "alternate_2",
+            "windows_path": os.path.join(self.tank_temp, "alternate_2"),
+            "linux_path": os.path.join(self.tank_temp, "alternate_2"),
+            "mac_path": os.path.join(self.tank_temp, "alternate_2"),
+        }
         self.add_to_sg_mock_db(self.alt_storage_2)
 
-        self.alt_storage_3 = {"type": "LocalStorage",
-                              "id": 7780,
-                              "code": "alternate_3",
-                              "windows_path": os.path.join(self.tank_temp, "alternate_3"),
-                              "linux_path": os.path.join(self.tank_temp, "alternate_3"),
-                              "mac_path": os.path.join(self.tank_temp, "alternate_3")}
+        self.alt_storage_3 = {
+            "type": "LocalStorage",
+            "id": 7780,
+            "code": "alternate_3",
+            "windows_path": os.path.join(self.tank_temp, "alternate_3"),
+            "linux_path": os.path.join(self.tank_temp, "alternate_3"),
+            "mac_path": os.path.join(self.tank_temp, "alternate_3"),
+        }
         self.add_to_sg_mock_db(self.alt_storage_3)
 
-        self.alt_storage_4 = {"type": "LocalStorage",
-                              "id": 7781,
-                              "code": "alternate_4",
-                              "windows_path": os.path.join(self.tank_temp, "alternate_4"),
-                              "linux_path": os.path.join(self.tank_temp, "alternate_4"),
-                              "mac_path": os.path.join(self.tank_temp, "alternate_4")}
+        self.alt_storage_4 = {
+            "type": "LocalStorage",
+            "id": 7781,
+            "code": "alternate_4",
+            "windows_path": os.path.join(self.tank_temp, "alternate_4"),
+            "linux_path": os.path.join(self.tank_temp, "alternate_4"),
+            "mac_path": os.path.join(self.tank_temp, "alternate_4"),
+        }
         self.add_to_sg_mock_db(self.alt_storage_4)
 
         # Write roots file
-        roots = {"primary": {}, "alternate_1": {}, "alternate_2": {}, "alternate_3": {}, "alternate_4": {}}
+        roots = {
+            "primary": {},
+            "alternate_1": {},
+            "alternate_2": {},
+            "alternate_3": {},
+            "alternate_4": {},
+        }
         for os_name in ["windows_path", "linux_path", "mac_path"]:
             # TODO make os specific roots
-            roots["primary"][os_name]     = os.path.dirname(self.project_root)
+            roots["primary"][os_name] = os.path.dirname(self.project_root)
             roots["alternate_1"][os_name] = os.path.dirname(self.alt_root_1)
             roots["alternate_2"][os_name] = os.path.dirname(self.alt_root_2)
 
@@ -765,7 +838,9 @@ class TankTestBase(unittest.TestCase):
         roots["alternate_3"]["shotgun_storage_id"] = 7781  # local storage 4
         roots["alternate_4"]["shotgun_storage_id"] = 7780  # local storage 3
 
-        roots_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")
+        roots_path = os.path.join(
+            self.pipeline_config_root, "config", "core", "roots.yml"
+        )
         roots_file = open(roots_path, "w")
         roots_file.write(yaml.dump(roots))
         roots_file.close()
@@ -818,24 +893,32 @@ class TankTestBase(unittest.TestCase):
 
         path_cache = tank.path_cache.PathCache(self.tk)
 
-        data = [{"entity": {"id": entity["id"],
-                            "type": entity["type"],
-                            "name": entity["name"]},
-                 "metadata": [],
-                 "path": path,
-                 "primary": True}]
+        data = [
+            {
+                "entity": {
+                    "id": entity["id"],
+                    "type": entity["type"],
+                    "name": entity["name"],
+                },
+                "metadata": [],
+                "path": path,
+                "primary": True,
+            }
+        ]
         path_cache.add_mappings(data, None, [])
 
         # On windows path cache has persisted, interfering with teardowns, so get rid of it.
         path_cache.close()
-        del(path_cache)
+        del path_cache
 
     def debug_dump(self):
         """
         Prints out the contents of the mockgun shotgun database and the path cache
         """
         print("")
-        print("-----------------------------------------------------------------------------")
+        print(
+            "-----------------------------------------------------------------------------"
+        )
         print(" Shotgun contents:")
 
         print(pprint.pformat(self.mockgun._db))
@@ -850,7 +933,9 @@ class TankTestBase(unittest.TestCase):
         c.close()
         path_cache.close()
 
-        print("-----------------------------------------------------------------------------")
+        print(
+            "-----------------------------------------------------------------------------"
+        )
         print("")
 
     def add_to_sg_mock_db(self, entities):
@@ -890,7 +975,10 @@ class TankTestBase(unittest.TestCase):
 
                     elif "code" not in entity[x]:
                         # auto generate a code field
-                        link_dict["name"] = "mockgun_autogenerated_%s_id_%s" % (entity[x]["type"], entity[x]["id"])
+                        link_dict["name"] = "mockgun_autogenerated_%s_id_%s" % (
+                            entity[x]["type"],
+                            entity[x]["id"],
+                        )
 
                     else:
                         link_dict["name"] = entity[x]["code"]
@@ -909,7 +997,9 @@ class TankTestBase(unittest.TestCase):
         :param data: (Optional)Data to be written in the file.
         """
         if not file_path.startswith(self.tank_temp):
-            raise Exception("Only files in the test data area should be created with this method.")
+            raise Exception(
+                "Only files in the test data area should be created with this method."
+            )
 
         dir_path = os.path.dirname(file_path)
         if not os.path.exists(dir_path):
@@ -969,7 +1059,9 @@ class TankTestBase(unittest.TestCase):
 
         # The setUp phase cleared the singleton. So set the preferences environment variable and
         # instantiate the singleton, which will read the env var and open that location.
-        with mock.patch.dict(os.environ, {"SGTK_PREFERENCES_LOCATION": ini_file_location}):
+        with mock.patch.dict(
+            os.environ, {"SGTK_PREFERENCES_LOCATION": ini_file_location}
+        ):
             UserSettings()
 
         return ini_file_location
@@ -1027,6 +1119,7 @@ class SealedMock(mock.Mock):
     """
     Sealed mock ensures that no one is accessing something we have not planned for.
     """
+
     def __init__(self, **kwargs):
         """
         :param kwargs: Passed down directly to the base class as kwargs. Each keys are passed to the ``spec_set``
@@ -1054,9 +1147,10 @@ def _move_data(path):
             pc = path_cache.PathCache(tk)
             db_path = pc._get_path_cache_location()
             if os.path.exists(db_path):
-                print('Removing db %s' % db_path)
+                print("Removing db %s" % db_path)
                 # Importing pdb allows the deletion of the sqlite db sometimes...
-                import pdb # noqa
+                import pdb  # noqa
+
                 # try multiple times, waiting longer in between
                 for count in range(5):
                     try:
@@ -1074,6 +1168,7 @@ class ShotgunTestBase(TankTestBase):
     to many tests who don't even read what is on disk and therefore couldn't
     care less about the scaffold.
     """
+
     def setUp(self, parameters=None):
         parameters = parameters or {}
         parameters["do_io"] = False

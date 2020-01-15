@@ -38,7 +38,9 @@ class TankCommands(SgtkIntegrationTest):
         cls.site_config_location = os.path.join(cls.temp_dir, "site")
         cls.shared_core_location = os.path.join(cls.temp_dir, "shared")
         cls.legacy_bootstrap_core = os.path.join(cls.temp_dir, "bootstrap")
-        cls.simple_config_location = os.path.join(os.path.dirname(__file__), "data", "simple_config")
+        cls.simple_config_location = os.path.join(
+            os.path.dirname(__file__), "data", "simple_config"
+        )
 
         # Create a sandbox project for this this suite to run under.
         cls.project = cls.create_or_find_project("TankCommandsTest", {})
@@ -59,27 +61,33 @@ class TankCommands(SgtkIntegrationTest):
 
         cw = sgtk.bootstrap.configuration_writer.ConfigurationWriter(
             sgtk.util.ShotgunPath.from_current_os_path(self.legacy_bootstrap_core),
-            self.sg
+            self.sg,
         )
 
         # Activate the core.
         cw.ensure_project_scaffold()
 
-        install_core_folder = os.path.join(self.legacy_bootstrap_core, "install", "core")
+        install_core_folder = os.path.join(
+            self.legacy_bootstrap_core, "install", "core"
+        )
         os.makedirs(install_core_folder)
 
         cw.write_shotgun_file(Mock(get_path=lambda: "does_not_exist"))
         cw.write_install_location_file()
 
         sgtk.util.filesystem.copy_folder(
-            self.tk_core_repo_root, install_core_folder, skip_list=[".git", "docs", "tests"]
+            self.tk_core_repo_root,
+            install_core_folder,
+            skip_list=[".git", "docs", "tests"],
         )
         cw.create_tank_command()
 
         # Setup the site config in the legacy auto_path mode that the Desktop used.
         params = {
             "auto_path": True,
-            "config_uri": os.path.join(os.path.dirname(__file__), "data", "site_config"),
+            "config_uri": os.path.join(
+                os.path.dirname(__file__), "data", "site_config"
+            ),
             "project_folder_name": "site",
             "project_id": None,
             path_param: self.site_config_location,
@@ -93,7 +101,7 @@ class TankCommands(SgtkIntegrationTest):
             "tank.pipelineconfig_utils.resolve_all_os_paths_to_core",
             return_value=sgtk.util.ShotgunPath.from_current_os_path(
                 self.legacy_bootstrap_core
-            ).as_system_dict()
+            ).as_system_dict(),
         ):
             setup_project.execute(params)
 
@@ -106,7 +114,7 @@ class TankCommands(SgtkIntegrationTest):
         self.run_tank_cmd(
             self.site_config_location,
             ("share_core",) + (self.shared_core_location,) * 3,
-            user_input=("y",)
+            user_input=("y",),
         )
 
     def test_03_setup_project_from_site_core(self):
@@ -121,7 +129,7 @@ class TankCommands(SgtkIntegrationTest):
             self.project["id"],
             "tankcommandtest",
             pipeline_location,
-            force=True
+            force=True,
         )
 
     def test_04_list_actions_for_project_with_shared_core(self):
@@ -130,8 +138,7 @@ class TankCommands(SgtkIntegrationTest):
         configurations will be able to match the project nonetheless.
         """
         self.run_tank_cmd(
-            self.shared_core_location,
-            ("Project", str(self.project["id"]))
+            self.shared_core_location, ("Project", str(self.project["id"]))
         )
 
 

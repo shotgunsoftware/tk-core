@@ -99,11 +99,19 @@ class JSONTests(TestCase):
         """
         Ensure we can properly encode an array.
         """
-        self._assert_no_unicode_after_load([
-            1, 100000000000000000000000, 1.0, True, False, None,
-            {"a": "b", u"c": u"d"},
-            "e", u"f"
-        ])
+        self._assert_no_unicode_after_load(
+            [
+                1,
+                100000000000000000000000,
+                1.0,
+                True,
+                False,
+                None,
+                {"a": "b", u"c": u"d"},
+                "e",
+                u"f",
+            ]
+        )
 
     def test_dict_value(self):
         """
@@ -111,13 +119,10 @@ class JSONTests(TestCase):
         """
         self._assert_no_unicode_after_load({})
         self._assert_no_unicode_after_load({"a": "b", u"c": u"d"})
-        self._assert_no_unicode_after_load({
-            "e": ["f"], u"g": [u"h"]
-        })
-        self._assert_no_unicode_after_load({
-            "i": [{"j": ["k"]}],
-            u"l": [{u"m": [u"n"]}],
-        })
+        self._assert_no_unicode_after_load({"e": ["f"], u"g": [u"h"]})
+        self._assert_no_unicode_after_load(
+            {"i": [{"j": ["k"]}], u"l": [{u"m": [u"n"]}]}
+        )
 
     def _assert_no_unicode_after_load(self, original_value, converter=None):
         """

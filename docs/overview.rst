@@ -60,5 +60,3 @@ package level whenever possible::
 
     # we recommend *avoiding* deeper, module level imports
     from sgtk.authentication.shotgun_authenticator import ShotgunAuthenticator
-
-

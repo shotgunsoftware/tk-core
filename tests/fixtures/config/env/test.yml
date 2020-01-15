@@ -15,7 +15,7 @@ frameworks:
 engines:
   # this is a comment after the engines section
     test_included_engine:
-        apps: 
+        apps:
         location: '@engine.location'
 
     incomplete_engine:
@@ -130,5 +130,3 @@ engines:
         apps:
             test_app:
                 location: {'type': 'dev', 'path': 'TEST_APP_LOCATION'}
-
-

@@ -52,6 +52,7 @@ logger = LogManager.get_logger(__name__)
 ###############################################################################################
 # internal classes and methods
 
+
 def _get_current_os_user():
     """
     Gets the current operating system username.
@@ -64,6 +65,7 @@ def _get_current_os_user():
     else:
         try:
             import pwd
+
             pwd_entry = pwd.getpwuid(os.geteuid())
             return pwd_entry[0]
         except:
@@ -73,7 +75,7 @@ def _get_current_os_user():
 def _get_ui_state():
     """
     Returns the state of UI: do we have a ui or not.
-    :returns: True or False)
+    :returns: True or False
     """
     if QtGui and QtGui.QApplication.instance() is not None:
         return True
@@ -146,9 +148,7 @@ class SessionRenewal(object):
                 # @TODO: Refactor the authenticate methods to return a struct-like
                 #        object instead of a 4 elements tuple.
                 hostname, login, session_token, session_metadata = credentials_handler.authenticate(
-                    user.get_host(),
-                    user.get_login(),
-                    user.get_http_proxy()
+                    user.get_host(), user.get_login(), user.get_http_proxy()
                 )
                 SessionRenewal._auth_state = SessionRenewal.SUCCESS
                 logger.debug("Renewal successful!")
@@ -199,6 +199,7 @@ class SessionRenewal(object):
 ###############################################################################################
 # public methods
 
+
 def renew_session(user):
     """
     Prompts the user to enter this password on the console or in a ui to
@@ -213,7 +214,9 @@ def renew_session(user):
     has_ui = _get_ui_state()
     # If we have a gui, we need gui based authentication
     if has_ui:
-        authenticator = UiAuthenticationHandler(is_session_renewal=True, session_metadata=user.get_session_metadata())
+        authenticator = UiAuthenticationHandler(
+            is_session_renewal=True, session_metadata=user.get_session_metadata()
+        )
     else:
         authenticator = ConsoleRenewSessionHandler()
     SessionRenewal.renew_session(user, authenticator)
@@ -247,7 +250,9 @@ def authenticate(default_host, default_login, http_proxy, fixed_host):
     # If we have a gui, we need gui based authentication
     if has_ui:
         # If we are renewing for a background thread, use the invoker
-        authenticator = UiAuthenticationHandler(is_session_renewal=False, fixed_host=fixed_host)
+        authenticator = UiAuthenticationHandler(
+            is_session_renewal=False, fixed_host=fixed_host
+        )
     else:
         authenticator = ConsoleLoginHandler(fixed_host=fixed_host)
     return authenticator.authenticate(default_host, default_login, http_proxy)

@@ -56,7 +56,9 @@ class SgtkIntegrationTest(unittest2.TestCase):
         """
 
         # Set up logging
-        sgtk.LogManager().initialize_base_file_handler(cls._camel_to_snake(cls.__name__))
+        sgtk.LogManager().initialize_base_file_handler(
+            cls._camel_to_snake(cls.__name__)
+        )
         sgtk.LogManager().initialize_custom_handler()
 
         # Create a temporary directory for these tests and make sure
@@ -73,27 +75,21 @@ class SgtkIntegrationTest(unittest2.TestCase):
         tempfile.tempdir = cls.temp_dir
 
         # Ensure Toolkit writes to the temporary directory
-        os.environ["SHOTGUN_HOME"] = os.path.join(
-            cls.temp_dir, "shotgun_home"
-        )
+        os.environ["SHOTGUN_HOME"] = os.path.join(cls.temp_dir, "shotgun_home")
 
         # Create a user and connection to Shotgun.
         sa = sgtk.authentication.ShotgunAuthenticator()
         user = sa.create_script_user(
             os.environ["SHOTGUN_SCRIPT_NAME"],
             os.environ["SHOTGUN_SCRIPT_KEY"],
-            os.environ["SHOTGUN_HOST"]
+            os.environ["SHOTGUN_HOST"],
         )
         cls.user = user
         cls.sg = user.create_sg_connection()
 
         # Advertise the temporary directory and root of the tk-core repo
         cls.tk_core_repo_root = os.path.normpath(
-            os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                ".."
-            )
+            os.path.join(os.path.dirname(__file__), "..", "..")
         )
         # Set it also as an environment variable so it can be used by subprocess or a configuration.
         os.environ["TK_CORE_REPO_ROOT"] = cls.tk_core_repo_root
@@ -102,18 +98,25 @@ class SgtkIntegrationTest(unittest2.TestCase):
         # Create or update the integration_tests local storage with the current test run
         # temp folder location.
         storage_name = cls._create_unique_name("integration_tests")
-        cls.local_storage = cls.sg.find_one("LocalStorage", [["code", "is", storage_name]], ["code"])
+        cls.local_storage = cls.sg.find_one(
+            "LocalStorage", [["code", "is", storage_name]], ["code"]
+        )
         if cls.local_storage is None:
             cls.local_storage = cls.sg.create("LocalStorage", {"code": storage_name})
 
         # Use platform agnostic token to facilitate tests.
         cls.local_storage["path"] = os.path.join(cls.temp_dir, "storage")
         cls.sg.update(
-            "LocalStorage", cls.local_storage["id"],
+            "LocalStorage",
+            cls.local_storage["id"],
             # This means that a test suite can only run one at a time again a given site per
             # platform. This is reasonable limitation, as our CI runs on only one
             # node at a time.
-            {sgtk.util.ShotgunPath.get_shotgun_storage_key(): cls.local_storage["path"]}
+            {
+                sgtk.util.ShotgunPath.get_shotgun_storage_key(): cls.local_storage[
+                    "path"
+                ]
+            },
         )
 
         # Ensure the local storage folder exists on disk.
@@ -125,8 +128,8 @@ class SgtkIntegrationTest(unittest2.TestCase):
         """
         Converts a string from CamelCase to snake_case.
         """
-        str1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', text)
-        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', str1).lower()
+        str1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", text)
+        return re.sub("([a-z0-9])([A-Z])", r"\1_\2", str1).lower()
 
     @classmethod
     def _cleanup_temp_dir(cls):
@@ -186,10 +189,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
         entity_name_field = sgtk.util.get_sg_entity_name_field(entity_type)
 
         # Find the entity by this name in Shotgun.
-        entity = cls.sg.find_one(
-            entity_type,
-            [[entity_name_field, "is", name]]
-        )
+        entity = cls.sg.find_one(entity_type, [[entity_name_field, "is", name]])
         # If it doesn't exist, create it!
         if not entity:
             entity_fields[entity_name_field] = name
@@ -216,7 +216,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
             "plugin_ids": "",
             # Turn on the associated feature pref if this field is giving out errors.
             "uploaded_config": None,
-            "project": None
+            "project": None,
         }
         complete_pc_data.update(entity_data)
 
@@ -251,8 +251,14 @@ class SgtkIntegrationTest(unittest2.TestCase):
         # For this, we'll have to replicate the logic from the tank shell script.
 
         # Check if this is a shared core.
-        core_cfg_map = {"linux2": "core_Linux.cfg", "win32": "core_Windows.cfg", "darwin": "core_Darwin.cfg"}
-        core_location_file = os.path.join(location, "install", "core", core_cfg_map[sys.platform])
+        core_cfg_map = {
+            "linux2": "core_Linux.cfg",
+            "win32": "core_Windows.cfg",
+            "darwin": "core_Darwin.cfg",
+        }
+        core_location_file = os.path.join(
+            location, "install", "core", core_cfg_map[sys.platform]
+        )
         if os.path.exists(core_location_file):
             with open(core_location_file, "rt") as fh:
                 core_location = fh.read()
@@ -290,7 +296,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
             env=env,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            stdin=subprocess.PIPE
+            stdin=subprocess.PIPE,
         )
         thread = threading.Thread(target=self._tank_cmd_thread, args=(proc, user_input))
         thread.start()
@@ -345,7 +351,7 @@ class SgtkIntegrationTest(unittest2.TestCase):
         project_id,
         tank_name,
         pipeline_root,
-        force=False
+        force=False,
     ):
         """
         Setups a Toolkit project.
@@ -385,6 +391,6 @@ class SgtkIntegrationTest(unittest2.TestCase):
                 pipeline_root.windows or "",
                 pipeline_root.macosx or "",
                 # >> Continue with project setup?
-                "yes"
-            )
+                "yes",
+            ),
         )

@@ -17,6 +17,7 @@ from .. import LogManager
 
 log = LogManager.get_logger(__name__)
 
+
 class CoreImportHandler(object):
     """
     A custom import handler to allow for core version switching.
@@ -54,6 +55,7 @@ class CoreImportHandler(object):
         # and associated with the singleton as these will be lost
         # use local imports to ensure a fresh cut of the code
         from ..log import LogManager
+
         prev_log_file = LogManager().uninitialize_base_file_handler()
         # logging to file is now disabled and will be renamed after the
         # main tank import of the new code.
@@ -113,7 +115,6 @@ class CoreImportHandler(object):
                 "have a LogManager.initialize_base_file_handler_from_path method defined."
             )
 
-
     @classmethod
     def _initialize(cls):
         """
@@ -132,7 +133,6 @@ class CoreImportHandler(object):
         sys.meta_path.append(handler)
         log.debug("Added import handler to sys.meta_path to support core swapping.")
         return handler
-
 
     def __init__(self, core_path):
         """Initialize the custom importer.
@@ -176,7 +176,7 @@ class CoreImportHandler(object):
             module_names = sorted(
                 sys.modules.keys(),
                 key=lambda module_name: module_name.count("."),
-                reverse=True
+                reverse=True,
             )
 
             # unique prefix for stashing this session
@@ -219,8 +219,6 @@ class CoreImportHandler(object):
                         # log.debug("Removing sys.modules[%s]" % module_name)
                         del sys.modules[module_name]
 
-
-
             # reset importer to point at new core for future imports
             self._module_info = {}
             self._core_path = core_path
@@ -229,7 +227,6 @@ class CoreImportHandler(object):
             # release the lock so that other threads can continue importing from
             # the new core location.
             imp.release_lock()
-
 
     def find_module(self, module_fullname, package_path=None):
         """Locates the given module in the current core.
@@ -287,9 +284,7 @@ class CoreImportHandler(object):
                     # given what we know about core and the parent package path.
                     # this turns parent package "foo.bar" into:
                     #    /path/to/current/core/foo/bar
-                    package_path = [
-                        os.path.join(self._core_path, *parent_module_parts)
-                    ]
+                    package_path = [os.path.join(self._core_path, *parent_module_parts)]
         else:
             # this appears to be a top-level package. it should be in the
             # current core's root path.
@@ -336,7 +331,7 @@ class CoreImportHandler(object):
             (file_obj, filename, desc) = self._module_info[module_fullname]
 
             # uncomment for lots of import related debug :)
-            #log.debug("Custom load module! %s [%s]" % (module_fullname, filename))
+            # log.debug("Custom load module! %s [%s]" % (module_fullname, filename))
 
             # attempt to load the module. if this fails, allow it to raise
             # the usual `ImportError`
@@ -356,4 +351,3 @@ class CoreImportHandler(object):
 
         # the module has been loaded from the proper core location!
         return module
-

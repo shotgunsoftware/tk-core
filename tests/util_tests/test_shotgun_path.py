@@ -12,7 +12,7 @@ from __future__ import with_statement
 
 import sys
 
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase
 
 from tank.util import ShotgunPath
@@ -31,12 +31,16 @@ class TestShotgunPath(ShotgunTestBase):
         Tests get_cache_root
         """
         self.assertEqual(
-            ShotgunPath.SHOTGUN_PATH_FIELDS,
-            ["windows_path", "linux_path", "mac_path"]
+            ShotgunPath.SHOTGUN_PATH_FIELDS, ["windows_path", "linux_path", "mac_path"]
         )
 
         sg = ShotgunPath.from_shotgun_dict(
-            {"windows_path": "C:\\temp", "mac_path": "/tmp", "linux_path": "/tmp2", "foo": "bar"}
+            {
+                "windows_path": "C:\\temp",
+                "mac_path": "/tmp",
+                "linux_path": "/tmp2",
+                "foo": "bar",
+            }
         )
 
         self.assertEqual(sg.windows, "C:\\temp")
@@ -138,9 +142,15 @@ class TestShotgunPath(ShotgunTestBase):
         self.assertEqual(sp("c:/foo///bar\\\\baz//", "\\"), "c:\\foo\\bar\\baz")
         self.assertEqual(sp("/foo///bar\\\\baz//", "\\"), "\\foo\\bar\\baz")
 
-        self.assertEqual(sp("\\\\server\\share\\foo\\bar", "\\"), "\\\\server\\share\\foo\\bar")
-        self.assertEqual(sp("\\\\server\\share\\foo\\bar\\", "\\"), "\\\\server\\share\\foo\\bar")
-        self.assertEqual(sp("//server/share/foo//bar", "\\"), "\\\\server\\share\\foo\\bar")
+        self.assertEqual(
+            sp("\\\\server\\share\\foo\\bar", "\\"), "\\\\server\\share\\foo\\bar"
+        )
+        self.assertEqual(
+            sp("\\\\server\\share\\foo\\bar\\", "\\"), "\\\\server\\share\\foo\\bar"
+        )
+        self.assertEqual(
+            sp("//server/share/foo//bar", "\\"), "\\\\server\\share\\foo\\bar"
+        )
 
         self.assertEqual(sp("z:/", "\\"), "z:\\")
         self.assertEqual(sp("z:\\", "\\"), "z:\\")
@@ -167,8 +177,14 @@ class TestShotgunPath(ShotgunTestBase):
         Tests site cache root
         """
         p1 = ShotgunPath("C:\\temp", "/tmp")
-        self.assertEqual(p1.as_shotgun_dict(), {"windows_path": "C:\\temp", "linux_path": "/tmp", "mac_path": None})
-        self.assertEqual(p1.as_shotgun_dict(include_empty=False), {"windows_path": "C:\\temp", "linux_path": "/tmp"})
+        self.assertEqual(
+            p1.as_shotgun_dict(),
+            {"windows_path": "C:\\temp", "linux_path": "/tmp", "mac_path": None},
+        )
+        self.assertEqual(
+            p1.as_shotgun_dict(include_empty=False),
+            {"windows_path": "C:\\temp", "linux_path": "/tmp"},
+        )
 
     def test_join(self):
         """
@@ -232,27 +248,23 @@ class TestShotgunPath(ShotgunTestBase):
         """
         self.assertEqual(
             ShotgunPath.get_file_name_from_template(r"C:\%s.yml", "win32"),
-            r"C:\Windows.yml"
+            r"C:\Windows.yml",
         )
 
         self.assertEqual(
-            ShotgunPath.get_file_name_from_template("/%s.yml", "linux2"),
-            "/Linux.yml"
+            ShotgunPath.get_file_name_from_template("/%s.yml", "linux2"), "/Linux.yml"
         )
 
         self.assertEqual(
-            ShotgunPath.get_file_name_from_template("/%s.yml", "linux3"),
-            "/Linux.yml"
+            ShotgunPath.get_file_name_from_template("/%s.yml", "linux3"), "/Linux.yml"
         )
 
         self.assertEqual(
-            ShotgunPath.get_file_name_from_template("/%s.yml", "darwin"),
-            "/Darwin.yml"
+            ShotgunPath.get_file_name_from_template("/%s.yml", "darwin"), "/Darwin.yml"
         )
 
         with self.assertRaisesRegex(
-            ValueError,
-            "Cannot resolve file name - unsupported os platform 'potato'"
+            ValueError, "Cannot resolve file name - unsupported os platform 'potato'"
         ):
             ShotgunPath.get_file_name_from_template("/%s.yml", "potato")
 
@@ -279,19 +291,22 @@ class TestShotgunPath(ShotgunTestBase):
 
         mac_only = ShotgunPath(macosx_path="/foo/bar")
         self.assertEqual(
-            mac_only.as_descriptor_uri(),
-            "sgtk:descriptor:path?mac_path=/foo/bar"
+            mac_only.as_descriptor_uri(), "sgtk:descriptor:path?mac_path=/foo/bar"
         )
 
         # dev flag
         self.assertEqual(
             mac_only.as_descriptor_uri(for_development=True),
-            "sgtk:descriptor:dev?mac_path=/foo/bar"
+            "sgtk:descriptor:dev?mac_path=/foo/bar",
         )
 
         # full path and escaping
-        full_path = ShotgunPath(macosx_path="/foo/bar", windows_path="C:\\foo\\bar", linux_path="/foo bar/baz")
+        full_path = ShotgunPath(
+            macosx_path="/foo/bar",
+            windows_path="C:\\foo\\bar",
+            linux_path="/foo bar/baz",
+        )
         self.assertEqual(
             full_path.as_descriptor_uri(),
-            "sgtk:descriptor:path?linux_path=/foo%20bar/baz&mac_path=/foo/bar&windows_path=C:\\foo\\bar"
+            "sgtk:descriptor:path?linux_path=/foo%20bar/baz&mac_path=/foo/bar&windows_path=C:\\foo\\bar",
         )

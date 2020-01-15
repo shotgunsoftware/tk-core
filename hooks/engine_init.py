@@ -16,7 +16,6 @@ from tank import Hook
 
 
 class EngineInit(Hook):
-
     def execute(self, engine, **kwargs):
         """
         Executed when a Toolkit engine has been fully initialized.
