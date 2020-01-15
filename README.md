@@ -3,6 +3,7 @@
 [![Build Status Linux](https://secure.travis-ci.org/shotgunsoftware/tk-core.svg?branch=master)](http://travis-ci.org/shotgunsoftware/tk-core)
 [![Build status Windows](https://ci.appveyor.com/api/projects/status/wa0nkvpawf6020fi/branch/master?svg=true)](https://ci.appveyor.com/project/jfboismenu/tk-core/branch/master)
 [![Coverage Status](https://coveralls.io/repos/github/shotgunsoftware/tk-core/badge.svg?branch=master)](https://coveralls.io/github/shotgunsoftware/tk-core?branch=master)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Linting](https://img.shields.io/badge/PEP8%20by-Hound%20CI-a873d1.svg)](https://houndci.com)
 
 # Shotgun Pipeline Toolkit Core API
