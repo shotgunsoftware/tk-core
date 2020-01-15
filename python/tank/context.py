@@ -18,7 +18,6 @@ import copy
 import json
 
 from tank_vendor import yaml
-from tank_vendor import six
 from . import authentication
 
 from .util import login

@@ -16,7 +16,6 @@ Utility methods for unserializing JSON documents.
 from __future__ import absolute_import
 
 import json
-from tank_vendor import six
 
 from .unicode import ensure_contains_str
 
