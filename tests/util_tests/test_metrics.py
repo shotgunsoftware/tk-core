@@ -219,7 +219,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._create_engine()
 
         # Patch & Mock the `urlopen` method
-        self._urlopen_mock = patch("tank_vendor.shotgun_api3.lib.six.moves.urllib.request.urlopen")
+        self._urlopen_mock = patch("tank_vendor.six.moves.urllib.request.urlopen")
         self._mocked_method = self._urlopen_mock.start()
 
     def setUp(self):
