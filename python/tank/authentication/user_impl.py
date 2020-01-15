@@ -21,8 +21,8 @@ at any point.
 
 from .shotgun_wrapper import ShotgunWrapper
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault, ProtocolError
-from tank_vendor.shotgun_api3.lib import six
-from tank_vendor.shotgun_api3.lib.six.moves import http_client
+from tank_vendor import six
+from tank_vendor.six.moves import http_client
 
 from . import session_cache
 from .errors import IncompleteCredentials

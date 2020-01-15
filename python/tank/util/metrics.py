@@ -22,7 +22,7 @@ are not part of the public Sgtk API.
 from collections import deque
 from threading import Event, Thread, Lock
 import platform
-from tank_vendor.shotgun_api3.lib.six.moves import urllib
+from tank_vendor.six.moves import urllib
 from copy import deepcopy
 
 from . import constants, sgre as re

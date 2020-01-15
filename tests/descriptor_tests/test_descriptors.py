@@ -28,7 +28,6 @@ from mock import Mock, patch
 
 from tank_vendor.shotgun_api3.lib.mockgun import Shotgun as Mockgun
 from tank_vendor import yaml
-from tank_vendor.shotgun_api3.lib import six
 
 
 class TestCachedConfigDescriptor(ShotgunTestBase):

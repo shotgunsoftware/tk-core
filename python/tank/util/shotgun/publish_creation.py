@@ -14,7 +14,7 @@ Logic for publishing files to Shotgun.
 from __future__ import with_statement
 
 import os
-from tank_vendor.shotgun_api3.lib.six.moves import urllib
+from tank_vendor.six.moves import urllib
 import pprint
 
 from .publish_util import get_published_file_entity_type, get_cached_local_storages, find_publish
@@ -24,7 +24,7 @@ from ...log import LogManager
 from ..shotgun_path import ShotgunPath
 from .. import constants
 from .. import login
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
 

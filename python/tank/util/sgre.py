@@ -20,7 +20,7 @@ some functionality.
 # module and we get an ImportError. Renaming the module to anything else
 # works however, so that's what we are doing.
 
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor import six
 
 # Import constants and functions that won't be wrapped
 from re import (DEBUG, I, IGNORECASE, L, LOCALE, # noqa import into namespace

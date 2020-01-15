@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-from tank_vendor.shotgun_api3.lib.six.moves import urllib
+from tank_vendor.six.moves import urllib
 from . import filesystem
 from .platforms import is_linux, is_macos, is_windows
 from .. import LogManager

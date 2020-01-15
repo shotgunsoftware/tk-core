@@ -23,8 +23,9 @@ import itertools
 # use api json to cover py 2.5
 # todo - replace with proper external library  
 from tank_vendor import shotgun_api3  
-from tank_vendor.shotgun_api3.lib import six, sgsix
-from tank_vendor.shotgun_api3.lib.six.moves import range
+from tank_vendor import six
+from tank_vendor.shotgun_api3.lib import sgsix
+from tank_vendor.six.moves import range
 json = shotgun_api3.shotgun.json
 
 from .platform.engine import show_global_busy, clear_global_busy 
