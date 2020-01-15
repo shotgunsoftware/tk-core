@@ -17,7 +17,7 @@ There are also two optional environment variables:
 How to run an integration test
 ------------------------------
 Once the 3 main environment variables have been set, you can run the tests using `run_integration_tests.py`. This will run all the tests. If you only want to run one or more test, you can do so like this:
-    
+
     python run_integration_tests.py first_test.py second_test.py
 
 How to write an integration test

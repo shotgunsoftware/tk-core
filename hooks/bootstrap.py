@@ -20,8 +20,9 @@ from sgtk import get_hook_baseclass
 
 
 class Bootstrap(get_hook_baseclass()):
-
-    def init(self, shotgun, pipeline_configuration_id, configuration_descriptor, **kwargs):
+    def init(
+        self, shotgun, pipeline_configuration_id, configuration_descriptor, **kwargs
+    ):
         """
         Initializes the hook.
 

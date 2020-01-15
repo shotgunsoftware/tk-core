@@ -13,7 +13,7 @@ This repository represents the Shotgun Pipeline Toolkit Core API.
 
 Installing the Shotgun Pipeline Toolkit is normally done via our
 Shotgun App Store. For detailed instructions on how to get started
-with Toolkit, head over to our support site: 
+with Toolkit, head over to our support site:
 https://support.shotgunsoftware.com/entries/95442748
 
 ## Reference Documentation and Release Notes

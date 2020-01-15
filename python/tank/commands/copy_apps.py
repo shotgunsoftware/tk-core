@@ -16,13 +16,15 @@ class CopyAppsAction(Action):
     """
     Action for copying a set of apps from one engine to another
     """
+
     def __init__(self):
         Action.__init__(
             self,
             "copy_apps",
             Action.TK_INSTANCE,
             "Copies apps from one engine to another, overwriting any apps that already exist.",
-            "Configuration")
+            "Configuration",
+        )
 
         # this method can be executed via the API
         self.supports_api = True
@@ -50,9 +52,9 @@ class CopyAppsAction(Action):
 
     def run_noninteractive(self, log, parameters):
         """
-        Tank command API accessor. 
+        Tank command API accessor.
         Called when someone runs a tank command through the core API.
-        
+
         :param log: std python logger
         :param parameters: dictionary with tank command parameters
         """
@@ -68,13 +70,15 @@ class CopyAppsAction(Action):
     def run_interactive(self, log, args):
         """
         Tank command accessor
-        
+
         :param log: std python logger
         :param args: command line args
         """
 
         if len(args) != 3:
-            log.info("Syntax: copy_apps environment src_engine_instance_name dst_engine_instance_name")
+            log.info(
+                "Syntax: copy_apps environment src_engine_instance_name dst_engine_instance_name"
+            )
             log.info("")
             log.info("> tank copy_apps project tk-shell tk-desktop")
             log.info("")
@@ -88,13 +92,24 @@ class CopyAppsAction(Action):
 
     def _run(self, log, env_name, src_engine_instance_name, dst_engine_instance_name):
         try:
-            env = self.tk.pipeline_configuration.get_environment(env_name, writable=True)
+            env = self.tk.pipeline_configuration.get_environment(
+                env_name, writable=True
+            )
         except Exception as e:
-            raise TankError("Environment '%s' could not be loaded! Error reported: %s" % (env_name, e))
+            raise TankError(
+                "Environment '%s' could not be loaded! Error reported: %s"
+                % (env_name, e)
+            )
 
         if src_engine_instance_name not in env.get_engines():
-            raise TankError("Environment %s has no engine named %s!" % (env_name, src_engine_instance_name))
+            raise TankError(
+                "Environment %s has no engine named %s!"
+                % (env_name, src_engine_instance_name)
+            )
         if dst_engine_instance_name not in env.get_engines():
-            raise TankError("Environment %s has no engine named %s!" % (env_name, dst_engine_instance_name))
+            raise TankError(
+                "Environment %s has no engine named %s!"
+                % (env_name, dst_engine_instance_name)
+            )
 
         env.copy_apps(src_engine_instance_name, dst_engine_instance_name)

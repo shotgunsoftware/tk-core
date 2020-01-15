@@ -1,11 +1,11 @@
 # Copyright (c) 2017 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -77,14 +77,14 @@ def download_url(sg, url, location, use_url_extension=False):
         opener = urllib.request.build_opener(sg.config.proxy_handler)
 
         urllib.request.install_opener(opener)
-    
-    # inherit the timeout value from the sg API    
+
+    # inherit the timeout value from the sg API
     timeout = sg.config.timeout_secs
-    
+
     # download the given url
     try:
         request = urllib.request.Request(url)
-        if timeout and sys.version_info >= (2,6):
+        if timeout and sys.version_info >= (2, 6):
             # timeout parameter only available in python 2.6+
             response = urllib.request.urlopen(request, timeout=timeout)
         else:
@@ -95,17 +95,21 @@ def download_url(sg, url, location, use_url_extension=False):
             # Make sure the disk location has the same extension as the url path.
             # Would be nice to see this functionality moved to back into Shotgun
             # API and removed from here.
-            url_ext = os.path.splitext(urllib.parse.urlparse(response.geturl()).path)[-1]
+            url_ext = os.path.splitext(urllib.parse.urlparse(response.geturl()).path)[
+                -1
+            ]
             if url_ext:
                 location = "%s%s" % (location, url_ext)
-            
+
         f = open(location, "wb")
         try:
             f.write(response.read())
         finally:
             f.close()
     except Exception as e:
-        raise TankError("Could not download contents of url '%s'. Error reported: %s" % (url, e))
+        raise TankError(
+            "Could not download contents of url '%s'. Error reported: %s" % (url, e)
+        )
 
     return location
 
@@ -126,9 +130,24 @@ def __setup_sg_auth_and_proxy(sg):
 
     sid = sg.get_session_token()
     cj = http_cookiejar.LWPCookieJar()
-    c = http_cookiejar.Cookie('0', '_session_id', sid, None, False,
-        sg.config.server, False, False, "/", True, False, None, True,
-        None, None, {})
+    c = http_cookiejar.Cookie(
+        "0",
+        "_session_id",
+        sid,
+        None,
+        False,
+        sg.config.server,
+        False,
+        False,
+        "/",
+        True,
+        False,
+        None,
+        True,
+        None,
+        None,
+        {},
+    )
     cj.set_cookie(c)
     cookie_handler = urllib.request.HTTPCookieProcessor(cj)
     if sg.config.proxy_handler:
@@ -138,7 +157,9 @@ def __setup_sg_auth_and_proxy(sg):
     urllib.request.install_opener(opener)
 
 
-def download_and_unpack_attachment(sg, attachment_id, target, retries=5, auto_detect_bundle=False):
+def download_and_unpack_attachment(
+    sg, attachment_id, target, retries=5, auto_detect_bundle=False
+):
     """
     Downloads the given attachment from Shotgun, assumes it is a zip file
     and attempts to unpack it into the given location.
@@ -155,11 +176,7 @@ def download_and_unpack_attachment(sg, attachment_id, target, retries=5, auto_de
     :raises: ShotgunAttachmentDownloadError on failure
     """
     return _download_and_unpack(
-        sg,
-        target,
-        retries,
-        auto_detect_bundle,
-        attachment_id=attachment_id
+        sg, target, retries, auto_detect_bundle, attachment_id=attachment_id
     )
 
 
@@ -179,17 +196,13 @@ def download_and_unpack_url(sg, url, target, retries=5, auto_detect_bundle=False
         the bundle in a subfolder, this should be correctly unfolded.
     :raises: ShotgunAttachmentDownloadError on failure
     """
-    return _download_and_unpack(
-        sg,
-        target,
-        retries,
-        auto_detect_bundle,
-        url=url
-    )
+    return _download_and_unpack(sg, target, retries, auto_detect_bundle, url=url)
 
 
 @LogManager.log_timing
-def _download_and_unpack(sg, target, retries, auto_detect_bundle, attachment_id=None, url=None):
+def _download_and_unpack(
+    sg, target, retries, auto_detect_bundle, attachment_id=None, url=None
+):
     """
     Downloads the given attachment from Shotgun if an attachment ID is provided,
     otherwise downloads the content from the provided url.  Assumes the downloaded
@@ -230,7 +243,9 @@ def _download_and_unpack(sg, target, retries, auto_detect_bundle, attachment_id=
                 log.debug("Downloading content of url %s..." % url)
                 download_url(sg, url, zip_tmp)
             else:
-                raise ValueError("A value is required for one of kwargs `url` or `attachment_id`")
+                raise ValueError(
+                    "A value is required for one of kwargs `url` or `attachment_id`"
+                )
 
             file_size = os.path.getsize(zip_tmp)
 
@@ -254,11 +269,13 @@ def _download_and_unpack(sg, target, retries, auto_detect_bundle, attachment_id=
         except Exception as e:
             if attachment_id:
                 log.warning(
-                    "Attempt %s: Attachment download of id %s from %s failed: %s" % (attempt, attachment_id, sg.base_url, e)
+                    "Attempt %s: Attachment download of id %s from %s failed: %s"
+                    % (attempt, attachment_id, sg.base_url, e)
                 )
             elif url:
                 log.warning(
-                    "Attempt %s: Download of content of url %s failed: %s" % (attempt, url, e)
+                    "Attempt %s: Download of content of url %s failed: %s"
+                    % (attempt, url, e)
                 )
             else:
                 raise
@@ -274,15 +291,19 @@ def _download_and_unpack(sg, target, retries, auto_detect_bundle, attachment_id=
     if invalid_zip_file:
         # the attachment in shotgun could not be unpacked
         if attachment_id:
-            raise ShotgunAttachmentDownloadError("Shotgun attachment with id %s is not a zip file!" % attachment_id)
+            raise ShotgunAttachmentDownloadError(
+                "Shotgun attachment with id %s is not a zip file!" % attachment_id
+            )
         else:
-            raise ShotgunAttachmentDownloadError("Content of url %s is not a zip file!" % url)
+            raise ShotgunAttachmentDownloadError(
+                "Content of url %s is not a zip file!" % url
+            )
     elif not done:
         # we couldn't download for some reason
         raise ShotgunAttachmentDownloadError(
-            "Failed to download from '%s' after %s retries. See error log for details." % (sg.base_url, retries)
+            "Failed to download from '%s' after %s retries. See error log for details."
+            % (sg.base_url, retries)
         )
 
     else:
         log.debug("Attachment download and unpack complete.")
-

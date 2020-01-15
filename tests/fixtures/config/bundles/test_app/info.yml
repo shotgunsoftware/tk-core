@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 # Metadata defining the behaviour and requirements for this app
@@ -22,15 +22,15 @@ maturity: dev # dev, beta, testing, mature
 configuration:
     test_str:
         type: str
-        
-    test_int: 
+
+    test_int:
         type: int
-        
-    test_float: 
+
+    test_float:
         type: float
-        
-    test_bool: 
-        type: bool    
+
+    test_bool:
+        type: bool
 
     test_template:
         type: template
@@ -39,10 +39,10 @@ configuration:
     test_template_hook:
         type: template
         default_value: "hook:template_setting_resolution"
-    
+
     test_hook_std:
         type: hook
-    
+
     test_hook_default:
         type: hook
         default_value: "test_hook"
@@ -69,7 +69,7 @@ configuration:
     test_hook_inheritance_1:
         type: hook
         default_value: "{self}/inheritance1.py"
-    
+
     test_hook_inheritance_2:
         type: hook
         default_value: "{self}/inheritance2.py"
@@ -108,12 +108,12 @@ configuration:
     test_hook_inheritance_old_style:
         type: hook
         default_value: "{self}/inheritance_old_style.py"
-        
+
     test_hook_inheritance_old_style_fails:
         type: hook
         default_value: "{self}/inheritance_old_style_fails.py"
-        
-    
+
+
     test_hook_new_style_config_old_style_hook:
         type: hook
         default_value: "test_hook"
@@ -163,7 +163,7 @@ configuration:
                             type: str
                         test_int:
                             type: int
-    
+
     test_simple_list:
         type: list
         values:
@@ -194,7 +194,7 @@ configuration:
                 test_template:
                     type: template
                     required_fields: [name, version]
-                    
+
     test_very_complex_list:
         type: list
         values:

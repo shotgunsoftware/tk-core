@@ -11,11 +11,10 @@
 
 from tank import Hook
 
-class TestHook(Hook):
 
+class TestHook(Hook):
     def execute(self, dummy_param):
         return "named_hook_1"
 
     def second_method(self, another_dummy_param):
         return "named_hook_2"
-

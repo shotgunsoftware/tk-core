@@ -25,7 +25,9 @@ import sgtk
 logger = sgtk.LogManager.get_logger(__name__)
 
 
-@unittest2.skipIf(sys.version_info[0] > 2, "tk-config-basic is not Python 3 compatible.")
+@unittest2.skipIf(
+    sys.version_info[0] > 2, "tk-config-basic is not Python 3 compatible."
+)
 class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
     """
     Tests that it's possible to run bootstrap more than once.
@@ -54,7 +56,9 @@ class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
         super(MultipleBootstrapAcrossCoreSwap, cls).setUpClass()
 
         # Create a sandbox project for this this suite to run under.
-        cls.project = cls.create_or_update_project("MultipleBootstrapAcrossCoreSwap", {})
+        cls.project = cls.create_or_update_project(
+            "MultipleBootstrapAcrossCoreSwap", {}
+        )
 
     def test_bootstrap_more_than_once(self):
         """
@@ -64,7 +68,9 @@ class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
         manager = sgtk.bootstrap.ToolkitManager(self.user)
         manager.do_shotgun_config_lookup = False
         manager.base_configuration = "sgtk:descriptor:path?path={0}".format(
-            os.path.normpath(os.path.join(os.path.dirname(__file__), "data", "site_config"))
+            os.path.normpath(
+                os.path.join(os.path.dirname(__file__), "data", "site_config")
+            )
         )
         manager.caching_policy = sgtk.bootstrap.ToolkitManager.CACHE_SPARSE
         try:
@@ -75,7 +81,9 @@ class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
                 # First make sure we're getting the expected behaviour and the classes are not the same
                 self.assertNotEqual(e.__class__, sgtk.platform.TankMissingEngineError)
                 # Due to core swapping this comparison needs to happen by name
-                self.assertEqual(e.__class__.__name__, sgtk.platform.TankMissingEngineError.__name__)
+                self.assertEqual(
+                    e.__class__.__name__, sgtk.platform.TankMissingEngineError.__name__
+                )
             except Exception:
                 print("Error detected was:")
                 print(traceback_str)

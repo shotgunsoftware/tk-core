@@ -190,7 +190,9 @@ class TestSetupProjectWizard(TankTestBase):
         Ensure we can set up the project.
         """
         self._wizard.set_project_disk_name(self.short_test_name)
-        path = ShotgunPath.from_current_os_path(os.path.join(self.tank_temp, self.short_test_name, "pipeline"))
+        path = ShotgunPath.from_current_os_path(
+            os.path.join(self.tank_temp, self.short_test_name, "pipeline")
+        )
         self._wizard.set_configuration_location(path.linux, path.windows, path.macosx)
 
         # Upload method not implemented on Mockgun yet, so skip that bit.

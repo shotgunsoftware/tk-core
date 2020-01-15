@@ -41,7 +41,7 @@ def add_authentication_options(parser):
         "Shotgun Authentication",
         "In order to download content from the Toolkit app store, the script will need to authenticate "
         "against any shotgun site. By default, it will use the toolkit authentication APIs stored "
-        "credentials, and if such are not found, it will prompt for site, username and password."
+        "credentials, and if such are not found, it will prompt for site, username and password.",
     )
 
     group.add_option(
@@ -49,7 +49,7 @@ def add_authentication_options(parser):
         "--shotgun-host",
         default=None,
         action="store",
-        help="Shotgun host to authenticate with."
+        help="Shotgun host to authenticate with.",
     )
 
     group.add_option(
@@ -57,7 +57,7 @@ def add_authentication_options(parser):
         "--shotgun-script-name",
         default=None,
         action="store",
-        help="Script to use to authenticate with the given host."
+        help="Script to use to authenticate with the given host.",
     )
 
     group.add_option(
@@ -65,7 +65,7 @@ def add_authentication_options(parser):
         "--shotgun-script-key",
         default=None,
         action="store",
-        help="Script key to use to authenticate with the given host."
+        help="Script key to use to authenticate with the given host.",
     )
 
     parser.add_option_group(group)
@@ -84,14 +84,20 @@ def authenticate(options):
 
     shotgun_host = options.shotgun_host or os.environ.get("SHOTGUN_HOST")
     if shotgun_host:
-        script_name = options.shotgun_script_name or os.environ.get("SHOTGUN_SCRIPT_NAME")
+        script_name = options.shotgun_script_name or os.environ.get(
+            "SHOTGUN_SCRIPT_NAME"
+        )
         script_key = options.shotgun_script_key or os.environ.get("SHOTGUN_SCRIPT_KEY")
 
         if script_name is None or script_key is None:
-            logger.error("Need to provide, host, script name and script key! Run with -h for more info.")
+            logger.error(
+                "Need to provide, host, script name and script key! Run with -h for more info."
+            )
             return 2
 
-        logger.info("Connecting to %s using script user %s..." % (shotgun_host, script_name))
+        logger.info(
+            "Connecting to %s using script user %s..." % (shotgun_host, script_name)
+        )
         sg_user = sg_auth.create_script_user(script_name, script_key, shotgun_host)
 
     else:

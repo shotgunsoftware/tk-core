@@ -12,7 +12,7 @@ from __future__ import with_statement
 from mock import patch
 
 from tank_test.tank_test_base import ShotgunTestBase
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 
 
 from tank_vendor.shotgun_api3 import AuthenticationFault
@@ -27,7 +27,9 @@ class ShotgunWrapperTests(ShotgunTestBase):
     @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
     @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     @patch("tank.authentication.interactive_authentication.renew_session")
-    def test_create_connection_with_session_renewal(self, renew_session_mock, server_caps_mock, _call_rpc_mock):
+    def test_create_connection_with_session_renewal(
+        self, renew_session_mock, server_caps_mock, _call_rpc_mock
+    ):
         """
         When there is no valid session cached, the engine's renew session should take care of the
         session renewal
@@ -36,7 +38,9 @@ class ShotgunWrapperTests(ShotgunTestBase):
         mocked_result = {"entities": [1, 2, 3]}
         _call_rpc_mock.side_effect = AuthenticationFault()
 
-        user = user_impl.SessionUser("https://host.shotgunstudio.com", "login", "session", "proxy")
+        user = user_impl.SessionUser(
+            "https://host.shotgunstudio.com", "login", "session", "proxy"
+        )
         # Directly call _call_rpc. We should be invoking the derived class here, which will
         # then invoke the base class which is in fact our mock class so it should throw once and then
         # succeed.
@@ -58,18 +62,28 @@ class ShotgunWrapperTests(ShotgunTestBase):
     @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
     @patch("tank_vendor.shotgun_api3.Shotgun.server_caps")
     @patch("tank.authentication.interactive_authentication.renew_session")
-    def test_create_connection_with_session_renewal_failure(self, renew_session_mock, server_caps_mock, _call_rpc_mock):
+    def test_create_connection_with_session_renewal_failure(
+        self, renew_session_mock, server_caps_mock, _call_rpc_mock
+    ):
         """
         When there is no valid session cached, the engine's renew session should take care of the
         session renewal, but if the session renewal failed, we should get an AuthenticationFault as
         before.
         """
 
-        _call_rpc_mock.side_effect = AuthenticationFault("This is coming from the _call_rpc_mock.")
-        renew_session_mock.side_effect = ShotgunAuthenticationError("This is coming from renew_session_mock.")
+        _call_rpc_mock.side_effect = AuthenticationFault(
+            "This is coming from the _call_rpc_mock."
+        )
+        renew_session_mock.side_effect = ShotgunAuthenticationError(
+            "This is coming from renew_session_mock."
+        )
 
-        user = user_impl.SessionUser("https://host.shotgunstudio.com", "login", "session", "proxy")
-        with self.assertRaisesRegex(ShotgunAuthenticationError, "This is coming from renew_session_mock."):
+        user = user_impl.SessionUser(
+            "https://host.shotgunstudio.com", "login", "session", "proxy"
+        )
+        with self.assertRaisesRegex(
+            ShotgunAuthenticationError, "This is coming from renew_session_mock."
+        ):
             user.create_sg_connection()._call_rpc()
 
         # Make sure we tried to renew the sesion
@@ -80,24 +94,35 @@ class ShotgunWrapperTests(ShotgunTestBase):
     @patch("tank.authentication.interactive_authentication.renew_session")
     @patch("tank.authentication.session_cache.get_session_data")
     @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
-    def test_successfull_session_cache_snooping(self, _call_rpc_mock, get_session_data_mock, renew_session_mock, server_caps_mock):
+    def test_successfull_session_cache_snooping(
+        self,
+        _call_rpc_mock,
+        get_session_data_mock,
+        renew_session_mock,
+        server_caps_mock,
+    ):
         """
         Tests that if the session token is invalid (mocked by the _call_rpc mocker), that we will try to
         get the session token from disk first before trying to renew the session token.
         """
 
         # First create the user and the connection object
-        user = user_impl.SessionUser("https://host.shotgunstudio.com", "login", "session_token", "proxy")
+        user = user_impl.SessionUser(
+            "https://host.shotgunstudio.com", "login", "session_token", "proxy"
+        )
         connection = user.create_sg_connection()
 
         # Mock a call to the server that fails authentication.
-        _call_rpc_mock.side_effect = AuthenticationFault("This is coming from the _call_rpc_mock.")
+        _call_rpc_mock.side_effect = AuthenticationFault(
+            "This is coming from the _call_rpc_mock."
+        )
 
         # Implement a fake get_session_data that returns the required information.
         def fake_get_session_data(*args):
             # Disable the mock side effect so that the next time the method is called all is well.
             _call_rpc_mock.side_effect = None
             return {"login": "login", "session_token": "session_token_2"}
+
         get_session_data_mock.side_effect = fake_get_session_data
 
         # This should:
@@ -117,22 +142,33 @@ class ShotgunWrapperTests(ShotgunTestBase):
     @patch("tank.authentication.interactive_authentication.renew_session")
     @patch("tank.authentication.session_cache.get_session_data")
     @patch("tank_vendor.shotgun_api3.Shotgun._call_rpc")
-    def test_failed_session_cache_snooping(self, _call_rpc_mock, get_session_data_mock, renew_session_mock, server_caps_mock):
+    def test_failed_session_cache_snooping(
+        self,
+        _call_rpc_mock,
+        get_session_data_mock,
+        renew_session_mock,
+        server_caps_mock,
+    ):
         """
         Tests that if the session token is invalid (mocked by the _call_rpc mocker), that the session cache
         has been read, did provide an update and wasn't the right one, that we would renew the session.
         """
 
         # First create the user and the connection object
-        user = user_impl.SessionUser("https://host.shotgunstudio.com", "login", "session_token", "proxy")
+        user = user_impl.SessionUser(
+            "https://host.shotgunstudio.com", "login", "session_token", "proxy"
+        )
         connection = user.create_sg_connection()
 
         # Mock a call to the server that fails authentication.
-        _call_rpc_mock.side_effect = AuthenticationFault("This is coming from the _call_rpc_mock.")
+        _call_rpc_mock.side_effect = AuthenticationFault(
+            "This is coming from the _call_rpc_mock."
+        )
 
         # Implement a fake get_session_data that returns the required information.
         def fake_get_session_data(*args):
             return {"login": "login", "session_token": "session_token_2"}
+
         get_session_data_mock.side_effect = fake_get_session_data
 
         def fake_renew_session(*args):

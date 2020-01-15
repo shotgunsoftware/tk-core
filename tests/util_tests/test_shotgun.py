@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import with_statement
@@ -18,7 +18,7 @@ from mock import patch, MagicMock
 
 import tank
 from tank_test.tank_test_base import TankTestBase, ShotgunTestBase
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 from tank.template import TemplatePath
 from tank.templatekey import SequenceKey
 
@@ -34,7 +34,7 @@ def get_file_list(folder, prefix):
     items = []
     for x in os.listdir(folder):
         full_path = os.path.join(folder, x)
-        test_centric_path = full_path[len(prefix):]
+        test_centric_path = full_path[len(prefix) :]
         # translate to platform agnostic path
         test_centric_path = test_centric_path.replace(os.path.sep, "/")
         items.append(test_centric_path)
@@ -44,7 +44,6 @@ def get_file_list(folder, prefix):
 
 
 class TestShotgunFindPublish(TankTestBase):
-    
     def setUp(self):
         """Sets up entities in mocked shotgun database and creates Mock objects
         to pass in as callbacks to Schema.create_folders. The mock objects are
@@ -54,39 +53,47 @@ class TestShotgunFindPublish(TankTestBase):
 
         project_name = os.path.basename(self.project_root)
         # older publish to test we get the latest
-        self.pub_1 = {"type": "PublishedFile",
-                    "id": 1,
-                    "code": "hello",
-                    "path_cache": "%s/foo/bar" % project_name,
-                    "created_at": datetime.datetime(2012, 10, 12, 12, 1),
-                    "path_cache_storage": self.primary_storage}
+        self.pub_1 = {
+            "type": "PublishedFile",
+            "id": 1,
+            "code": "hello",
+            "path_cache": "%s/foo/bar" % project_name,
+            "created_at": datetime.datetime(2012, 10, 12, 12, 1),
+            "path_cache_storage": self.primary_storage,
+        }
 
         # publish matching older publish
-        self.pub_2 = {"type": "PublishedFile",
-                    "id": 2,
-                    "code": "more recent",
-                    "path_cache": "%s/foo/bar" % project_name,
-                    "created_at": datetime.datetime(2012, 10, 13, 12, 1),
-                    "path_cache_storage": self.primary_storage}
-        
-        self.pub_3 = {"type": "PublishedFile",
-                    "id": 3,
-                    "code": "world",
-                    "path_cache": "%s/foo/baz" % project_name,
-                    "created_at": datetime.datetime(2012, 10, 13, 12, 2),
-                    "path_cache_storage": self.primary_storage}
+        self.pub_2 = {
+            "type": "PublishedFile",
+            "id": 2,
+            "code": "more recent",
+            "path_cache": "%s/foo/bar" % project_name,
+            "created_at": datetime.datetime(2012, 10, 13, 12, 1),
+            "path_cache_storage": self.primary_storage,
+        }
+
+        self.pub_3 = {
+            "type": "PublishedFile",
+            "id": 3,
+            "code": "world",
+            "path_cache": "%s/foo/baz" % project_name,
+            "created_at": datetime.datetime(2012, 10, 13, 12, 2),
+            "path_cache_storage": self.primary_storage,
+        }
 
         # sequence publish
-        self.pub_4 = {"type": "PublishedFile",
-                    "id": 4,
-                    "code": "sequence_file",
-                    "path_cache": "%s/foo/seq_%%03d.ext" % project_name,
-                    "created_at": datetime.datetime(2012, 10, 13, 12, 2),
-                    "path_cache_storage": self.primary_storage}
+        self.pub_4 = {
+            "type": "PublishedFile",
+            "id": 4,
+            "code": "sequence_file",
+            "path_cache": "%s/foo/seq_%%03d.ext" % project_name,
+            "created_at": datetime.datetime(2012, 10, 13, 12, 2),
+            "path_cache_storage": self.primary_storage,
+        }
         # Add these to mocked shotgun
         self.add_to_sg_mock_db([self.pub_1, self.pub_2, self.pub_3, self.pub_4])
 
-    def test_find(self):        
+    def test_find(self):
         paths = [os.path.join(self.project_root, "foo", "bar")]
         d = tank.util.find_publish(self.tk, paths)
         self.assertEqual(len(d), 1)
@@ -99,7 +106,7 @@ class TestShotgunFindPublish(TankTestBase):
         self.assertEqual(set(sg_data.keys()), set(("type", "id")))
 
     def test_most_recent_path(self):
-        # check that dupes return the more recent record        
+        # check that dupes return the more recent record
         paths = [os.path.join(self.project_root, "foo", "bar")]
         d = tank.util.find_publish(self.tk, paths, fields=["code"])
         self.assertEqual(len(d), 1)
@@ -107,8 +114,10 @@ class TestShotgunFindPublish(TankTestBase):
         self.assertEqual(sg_data["code"], "more recent")
 
     def test_missing_paths(self):
-        paths = [os.path.join(self.project_root, "foo", "bar"),
-                 os.path.join("tmp", "foo")]
+        paths = [
+            os.path.join(self.project_root, "foo", "bar"),
+            os.path.join("tmp", "foo"),
+        ]
         d = tank.util.find_publish(self.tk, paths)
         self.assertEqual(len(d), 1)
         self.assertEqual(set(d.keys()), set((paths[0],)))
@@ -137,11 +146,11 @@ class TestShotgunFindPublish(TankTestBase):
         sg_data = d.get(paths[0])
         self.assertEqual(sg_data["id"], self.pub_4["id"])
 
-    def test_ignore_missing(self):  
+    def test_ignore_missing(self):
         """
         If a storage is not registered in shotgun, the path is ignored
         (previously it used to raise an error)
-        """      
+        """
         paths = [os.path.join(self.project_root, "foo", "doesnotexist")]
         d = tank.util.find_publish(self.tk, paths)
         self.assertEqual(len(d), 0)
@@ -152,31 +161,20 @@ class TestShotgunFindPublish(TankTestBase):
         self.assertEqual(
             "/jbee/is/awesome.0001.jpg",
             tank.util.shotgun.publish_creation._translate_abstract_fields(
-                self.tk,
-                "/jbee/is/awesome.0001.jpg",
+                self.tk, "/jbee/is/awesome.0001.jpg"
             ),
         )
 
         # Build a set of matching templates.
         keys = dict(
-            seq=tank.templatekey.SequenceKey(
-                "seq",
-                format_spec="03",
-            ),
-            frame=SequenceKey(
-                "frame",
-                format_spec="04",
-            ),
+            seq=tank.templatekey.SequenceKey("seq", format_spec="03"),
+            frame=SequenceKey("frame", format_spec="04"),
         )
         template = TemplatePath(
-            "folder/name_{seq}.{frame}.ext",
-            keys,
-            self.project_root,
+            "folder/name_{seq}.{frame}.ext", keys, self.project_root
         )
         dup_template = TemplatePath(
-            "folder/name_{seq}.{frame}.ext",
-            keys,
-            self.project_root,
+            "folder/name_{seq}.{frame}.ext", keys, self.project_root
         )
 
         self.tk.templates["translate_fields_test"] = template
@@ -189,8 +187,7 @@ class TestShotgunFindPublish(TankTestBase):
         self.assertEqual(
             t_path,
             tank.util.shotgun.publish_creation._translate_abstract_fields(
-                self.tk,
-                path,
+                self.tk, path
             ),
         )
 
@@ -200,14 +197,12 @@ class TestShotgunFindPublish(TankTestBase):
         self.assertEqual(
             path,
             tank.util.shotgun.publish_creation._translate_abstract_fields(
-                self.tk,
-                path,
+                self.tk, path
             ),
         )
 
 
 class TestMultiRoot(TankTestBase):
-
     def setUp(self):
         super(TestMultiRoot, self).setUp()
         self.setup_multi_root_fixtures()
@@ -216,12 +211,14 @@ class TestMultiRoot(TankTestBase):
 
         project_name = os.path.basename(self.project_root)
 
-        self.pub_5 = {"type": "PublishedFile",
-                      "id": 5,
-                      "code": "other storage",
-                      "path_cache": "%s/foo/bar" % project_name,
-                      "created_at": datetime.datetime(2012, 10, 12, 12, 1),
-                      "path_cache_storage": self.alt_storage_1}
+        self.pub_5 = {
+            "type": "PublishedFile",
+            "id": 5,
+            "code": "other storage",
+            "path_cache": "%s/foo/bar" % project_name,
+            "created_at": datetime.datetime(2012, 10, 12, 12, 1),
+            "path_cache_storage": self.alt_storage_1,
+        }
 
         # Add these to mocked shotgun
         self.add_to_sg_mock_db([self.pub_5])
@@ -243,19 +240,23 @@ class TestMultiRoot(TankTestBase):
         project_name = os.path.basename(self.project_root)
 
         # define 2 publishes with the same path, different storages
-        self.pub_6 = {"type": "PublishedFile",
-                      "id": 6,
-                      "code": "storage misdirection",
-                      "path_cache": "%s/foo/bar" % project_name,
-                      "created_at": datetime.datetime(2012, 10, 12, 12, 1),
-                      "path_cache_storage": self.alt_storage_3}
+        self.pub_6 = {
+            "type": "PublishedFile",
+            "id": 6,
+            "code": "storage misdirection",
+            "path_cache": "%s/foo/bar" % project_name,
+            "created_at": datetime.datetime(2012, 10, 12, 12, 1),
+            "path_cache_storage": self.alt_storage_3,
+        }
 
-        self.pub_7 = {"type": "PublishedFile",
-                      "id": 7,
-                      "code": "storage misdirection2",
-                      "path_cache": "%s/foo/bar" % project_name,
-                      "created_at": datetime.datetime(2012, 10, 12, 12, 1),
-                      "path_cache_storage": self.alt_storage_4}
+        self.pub_7 = {
+            "type": "PublishedFile",
+            "id": 7,
+            "code": "storage misdirection2",
+            "path_cache": "%s/foo/bar" % project_name,
+            "created_at": datetime.datetime(2012, 10, 12, 12, 1),
+            "path_cache_storage": self.alt_storage_4,
+        }
 
         self.add_to_sg_mock_db([self.pub_6, self.pub_7])
 
@@ -266,7 +267,9 @@ class TestMultiRoot(TankTestBase):
         pub_data = tank.util.find_publish(self.tk, paths, fields=["path_cache_storage"])
         self.assertEqual(len(pub_data), 1)
         self.assertEqual(set(pub_data.keys()), set(paths))
-        self.assertEqual(pub_data[paths[0]]["path_cache_storage"]["id"], self.alt_storage_3["id"])
+        self.assertEqual(
+            pub_data[paths[0]]["path_cache_storage"]["id"], self.alt_storage_3["id"]
+        )
 
         # querying root 4 path which is used by the "alternate_3" root in
         # roots.yml. the returned data should point to local storage 4 which
@@ -275,10 +278,12 @@ class TestMultiRoot(TankTestBase):
         pub_data = tank.util.find_publish(self.tk, paths, fields=["path_cache_storage"])
         self.assertEqual(len(pub_data), 1)
         self.assertEqual(set(pub_data.keys()), set(paths))
-        self.assertEqual(pub_data[paths[0]]["path_cache_storage"]["id"], self.alt_storage_4["id"])
+        self.assertEqual(
+            pub_data[paths[0]]["path_cache_storage"]["id"], self.alt_storage_4["id"]
+        )
+
 
 class TestShotgunDownloadUrl(ShotgunTestBase):
-
     def setUp(self):
         super(TestShotgunDownloadUrl, self).setUp()
 
@@ -296,8 +301,11 @@ class TestShotgunDownloadUrl(ShotgunTestBase):
 
         # Temporary destination to "download" source file to.
         self.download_destination = os.path.join(
-            self.tank_temp, self.short_test_name, "config", "foo",
-            "test_shotgun_download_url.png"
+            self.tank_temp,
+            self.short_test_name,
+            "config",
+            "foo",
+            "test_shotgun_download_url.png",
         )
         os.makedirs(os.path.dirname(self.download_destination))
         if os.path.exists(self.download_destination):
@@ -414,15 +422,15 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
 
             # fail once, then succeed, ensuring retries work.
             self.mockgun.download_attachment.side_effect = (
-                Exception("Test Exception"), download_result
+                Exception("Test Exception"),
+                download_result,
             )
             tank.util.shotgun.download_and_unpack_attachment(
                 self.mockgun, attachment_id, target_dir
             )
             self.mockgun.download_attachment.assert_called_with(attachment_id)
             self.assertEqual(
-                set(get_file_list(target_dir, target_dir)),
-                set(self.expected_output)
+                set(get_file_list(target_dir, target_dir)), set(self.expected_output)
             )
         finally:
             shutil.rmtree(target_dir)
@@ -448,8 +456,7 @@ class TestShotgunDownloadAndUnpack(ShotgunTestBase):
                 self.mockgun, self.good_zip_url, target_dir
             )
             self.assertEqual(
-                set(get_file_list(target_dir, target_dir)),
-                set(self.expected_output)
+                set(get_file_list(target_dir, target_dir)), set(self.expected_output)
             )
         finally:
             shutil.rmtree(target_dir)

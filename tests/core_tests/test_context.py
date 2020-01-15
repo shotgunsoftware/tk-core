@@ -16,7 +16,7 @@ import datetime
 from sgtk.util import pickle
 import json
 
-from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
+from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
 
 from mock import patch, PropertyMock
 
@@ -34,10 +34,12 @@ class TestContext(TankTestBase):
     def setUp(self):
         super(TestContext, self).setUp()
 
-        self.keys = {"Sequence": StringKey("Sequence"),
-                     "Shot": StringKey("Shot"),
-                     "Step": StringKey("Step"),
-                     "static_key": StringKey("static_key")}
+        self.keys = {
+            "Sequence": StringKey("Sequence"),
+            "Shot": StringKey("Shot"),
+            "Step": StringKey("Step"),
+            "static_key": StringKey("static_key"),
+        }
 
         # set up test data with single sequence, shot, step and human user
         self.seq = {"type": "Sequence", "code": "seq_name", "id": 3}
@@ -46,9 +48,9 @@ class TestContext(TankTestBase):
             "type": "Shot",
             "code": "shot_name",
             "id": 2,
-            "extra_field": "extravalue", # used to test query from template
+            "extra_field": "extravalue",  # used to test query from template
             "sg_sequence": self.seq,
-            "project": self.project
+            "project": self.project,
         }
 
         self.step = {"type": "Step", "code": "step_name", "id": 4}
@@ -58,14 +60,24 @@ class TestContext(TankTestBase):
             "code": "shot_name_alt",
             "id": 123,
             "sg_sequence": self.seq,
-            "project": self.project
+            "project": self.project,
         }
 
         # One human user not matching the current login
-        self.other_user = {"type":"HumanUser", "name":"user_name", "id":1, "login": "user_login"}
+        self.other_user = {
+            "type": "HumanUser",
+            "name": "user_name",
+            "id": 1,
+            "login": "user_login",
+        }
         # One human user matching the current login
         self.current_login = tank.util.login.get_login_name()
-        self.current_user = {"type":"HumanUser", "name":"user_name", "id":2, "login": self.current_login}
+        self.current_user = {
+            "type": "HumanUser",
+            "name": "user_name",
+            "id": 2,
+            "login": self.current_login,
+        }
 
         self.seq_path = os.path.join(self.project_root, "sequence/Seq")
         self.add_production_path(self.seq_path, self.seq)
@@ -110,7 +122,7 @@ class TestEq(TestContext):
     def test_not_equal(self):
         context_1 = context.Context(self.tk, **self.kws)
         kws2 = copy.deepcopy(self.kws)
-        kws2["task"] = {"id":45, "type": "Task"}
+        kws2["task"] = {"id": 45, "type": "Task"}
         context_2 = context.Context(self.tk, **kws2)
         self.assertFalse(context_1 == context_2)
         self.assertTrue(context_1 != context_2)
@@ -126,19 +138,19 @@ class TestEq(TestContext):
     def test_additional_entities_equal(self):
         kws1 = copy.deepcopy(self.kws)
         kws1["additional_entities"] = [
-            {"type":"Asset", "id":123, "foo":"bar"}, 
-            {"type":"Sequence", "id":456, "foo":"bar"}
+            {"type": "Asset", "id": 123, "foo": "bar"},
+            {"type": "Sequence", "id": 456, "foo": "bar"},
         ]
         context_1 = context.Context(self.tk, **kws1)
         kws2 = copy.deepcopy(self.kws)
         kws2["additional_entities"] = [
             # Only type & id difference should matter
-            {"type":"Sequence", "id":456, "bar":"foo"},
-            {"type":"Asset", "id":123, "bar":"foo"},
+            {"type": "Sequence", "id": 456, "bar": "foo"},
+            {"type": "Asset", "id": 123, "bar": "foo"},
             # None entries should be ignored
             None,
             # and ok to have the same entity twice
-            {"type":"Sequence", "id":456, "bar":"foo"}
+            {"type": "Sequence", "id": 456, "bar": "foo"},
         ]
         context_2 = context.Context(self.tk, **kws2)
         self.assertTrue(context_1 == context_2)
@@ -147,19 +159,19 @@ class TestEq(TestContext):
     def test_additional_entities_not_equal(self):
         kws1 = copy.deepcopy(self.kws)
         kws1["additional_entities"] = [
-            {"type":"Asset", "id":123}, 
-            {"type":"Sequence", "id":456}
+            {"type": "Asset", "id": 123},
+            {"type": "Sequence", "id": 456},
         ]
         context_1 = context.Context(self.tk, **kws1)
         kws2 = copy.deepcopy(self.kws)
         kws1["additional_entities"] = [
-            {"type":"Asset", "id":789},
-            {"type":"Sequence", "id":456}
+            {"type": "Asset", "id": 789},
+            {"type": "Sequence", "id": 456},
         ]
         context_2 = context.Context(self.tk, **kws2)
         self.assertFalse(context_1 == context_2)
         self.assertTrue(context_1 != context_2)
-        
+
     def test_not_context(self):
         context_1 = context.Context(self.tk, **self.kws)
         not_context = object()
@@ -168,21 +180,24 @@ class TestEq(TestContext):
 
     @patch("tank.util.login.get_current_user")
     def test_lazy_load_user(self, get_current_user):
-        
+
         get_current_user.return_value = self.current_user
-        
+
         # bug ticket 20272
         context_1 = context.Context(self.tk, **self.kws)
         kws2 = self.kws.copy()
-        # force seed the user for one of the contexts 
-        kws2["user"] = {"id": self.current_user["id"], 
-                        "type": self.current_user["type"], 
-                        "name": self.current_user["name"]} 
+        # force seed the user for one of the contexts
+        kws2["user"] = {
+            "id": self.current_user["id"],
+            "type": self.current_user["type"],
+            "name": self.current_user["name"],
+        }
         # the other context should pick up the context
         # automatically by the equals operator
         context_2 = context.Context(self.tk, **kws2)
         self.assertTrue(context_1 == context_2)
         self.assertFalse(context_1 != context_2)
+
 
 class TestUser(TestContext):
     def setUp(self):
@@ -200,12 +215,13 @@ class TestUser(TestContext):
         Test that if user is not supplied, the human user matching the
         local login is used.
         """
-        
+
         get_current_user.return_value = self.current_user
-        
+
         self.assertEqual(self.current_user["id"], self.context.user["id"])
         self.assertEqual(self.current_user["type"], self.context.user["type"])
         self.assertEqual(len(self.context.user), 3)
+
 
 class TestCreateEmpty(TestContext):
     def test_empty_context(self):
@@ -215,10 +231,9 @@ class TestCreateEmpty(TestContext):
 
 
 class TestFromPath(TestContext):
-
     @patch("tank.util.login.get_current_user")
     def test_shot(self, get_current_user):
-        
+
         get_current_user.return_value = self.current_user
         shot_path_abs = os.path.join(self.project_root, self.shot_path)
         result = self.tk.context_from_path(shot_path_abs)
@@ -249,7 +264,6 @@ class TestFromPath(TestContext):
     def test_user_path(self):
         """Check other_user is set when contained in the path."""
         result = self.tk.context_from_path(self.other_user_path)
-        
 
         # check context's attributes
         self.assertEqual(self.shot["id"], result.entity["id"])
@@ -260,31 +274,29 @@ class TestFromPath(TestContext):
         self.assertEqual(self.step["type"], result.step["type"])
         self.assertEqual(self.other_user["id"], result.user["id"])
         self.assertEqual(self.other_user["type"], result.user["type"])
-        
+
         self.assertIsNone(result.task)
 
 
-
 class TestFromPathWithPrevious(TestContext):
-
     @patch("tank.util.login.get_current_user")
     def test_shot(self, get_current_user):
 
         get_current_user.return_value = self.current_user
-        
-        # Add data to mocked shotgun
-        self.task = {"id": 1,
-                     "type": "Task",
-                     "content": "task_content",
-                     "project": self.project,
-                     "entity": self.shot,
-                     "step": self.step}
-        
-        self.add_to_sg_mock_db(self.task)
-        
-        
-        prev_ctx = context.from_entity(self.tk, self.task["type"], self.task["id"])
 
+        # Add data to mocked shotgun
+        self.task = {
+            "id": 1,
+            "type": "Task",
+            "content": "task_content",
+            "project": self.project,
+            "entity": self.shot,
+            "step": self.step,
+        }
+
+        self.add_to_sg_mock_db(self.task)
+
+        prev_ctx = context.from_entity(self.tk, self.task["type"], self.task["id"])
 
         shot_path_abs = os.path.join(self.project_root, self.shot_path)
         result = self.tk.context_from_path(shot_path_abs, prev_ctx)
@@ -303,32 +315,35 @@ class TestFromPathWithPrevious(TestContext):
 
 
 class TestUrl(TestContext):
-
     def setUp(self):
         super(TestUrl, self).setUp()
 
         # Add task data to mocked shotgun
-        self.task = {"id": 1,
-                     "type": "Task",
-                     "content": "task_content",
-                     "project": self.project,
-                     "entity": self.shot,
-                     "step": self.step}
-        
+        self.task = {
+            "id": 1,
+            "type": "Task",
+            "content": "task_content",
+            "project": self.project,
+            "entity": self.shot,
+            "step": self.step,
+        }
+
         self.add_to_sg_mock_db(self.task)
 
     def test_project(self):
         result = context.from_entity(self.tk, self.project["type"], self.project["id"])
-        self.assertEqual(result.shotgun_url, "http://unit_test_mock_sg/detail/Project/1")
+        self.assertEqual(
+            result.shotgun_url, "http://unit_test_mock_sg/detail/Project/1"
+        )
 
     def test_empty(self):
-        result =  context.create_empty(self.tk)
+        result = context.create_empty(self.tk)
         self.assertEqual(result.shotgun_url, "http://unit_test_mock_sg")
 
     def test_entity(self):
-        result =  context.from_entity(self.tk, self.shot["type"], self.shot["id"])
+        result = context.from_entity(self.tk, self.shot["type"], self.shot["id"])
         self.assertEqual(result.shotgun_url, "http://unit_test_mock_sg/detail/Shot/2")
-        
+
     def test_task(self):
         """
         Case that all data is found from shotgun query
@@ -336,9 +351,9 @@ class TestUrl(TestContext):
         context_additional_entities hook.
         """
         # add additional field value to task
-        add_value = {"name":"additional", "id": 3, "type": "add_type"}
+        add_value = {"name": "additional", "id": 3, "type": "add_type"}
         self.task["additional_field"] = add_value
-        
+
         result = context.from_entity(self.tk, self.task["type"], self.task["id"])
         self.assertEqual(result.shotgun_url, "http://unit_test_mock_sg/detail/Task/1")
 
@@ -352,15 +367,16 @@ class TestStringRepresentation(TestContext):
         super(TestStringRepresentation, self).setUp()
 
         # Add task data to mocked shotgun
-        self.task = {"id": 1,
-                     "type": "Task",
-                     "content": "task_content",
-                     "project": self.project,
-                     "entity": self.shot,
-                     "step": self.step}
+        self.task = {
+            "id": 1,
+            "type": "Task",
+            "content": "task_content",
+            "project": self.project,
+            "entity": self.shot,
+            "step": self.step,
+        }
 
         self.add_to_sg_mock_db(self.task)
-
 
     def test_site(self):
         """
@@ -387,7 +403,9 @@ class TestStringRepresentation(TestContext):
         """
         Tests string representation of shot context
         """
-        result = context.from_entity(self.tk, self.shot_alt["type"], self.shot_alt["id"])
+        result = context.from_entity(
+            self.tk, self.shot_alt["type"], self.shot_alt["id"]
+        )
         self.assertEqual(str(result), "Shot shot_name_alt")
 
     def test_task(self):
@@ -399,17 +417,18 @@ class TestStringRepresentation(TestContext):
 
 
 class TestFromEntity(TestContext):
-
     def setUp(self):
         super(TestFromEntity, self).setUp()
 
         # Add task data to mocked shotgun
-        self.task = {"id": 1,
-                     "type": "Task",
-                     "content": "task_content",
-                     "project": self.project,
-                     "entity": self.shot,
-                     "step": self.step}
+        self.task = {
+            "id": 1,
+            "type": "Task",
+            "content": "task_content",
+            "project": self.project,
+            "entity": self.shot,
+            "step": self.step,
+        }
 
         self.publishedfile = dict(
             id=2,
@@ -418,7 +437,7 @@ class TestFromEntity(TestContext):
             entity=self.shot,
             task=self.task,
         )
-        
+
         self.add_to_sg_mock_db(self.task)
         self.add_to_sg_mock_db(self.publishedfile)
 
@@ -430,16 +449,15 @@ class TestFromEntity(TestContext):
         # factories. We need to make sure they create a context object that is
         # built from what those entities are linked to, but with the original
         # entity kept as the source_entity of the context.
-        result = context.from_entity(self.tk, self.publishedfile["type"], self.publishedfile["id"])
+        result = context.from_entity(
+            self.tk, self.publishedfile["type"], self.publishedfile["id"]
+        )
         self.check_entity(self.project, result.project, check_name=False)
         self.check_entity(self.shot, result.entity, check_name=False)
         self.check_entity(self.task, result.task, check_name=False)
         self.check_entity(
             result.source_entity,
-            dict(
-                type=self.publishedfile["type"],
-                id=self.publishedfile["id"],
-            ),
+            dict(type=self.publishedfile["type"], id=self.publishedfile["id"]),
             check_name=False,
         )
 
@@ -449,48 +467,45 @@ class TestFromEntity(TestContext):
         self.check_entity(self.task, result.task, check_name=False)
         self.check_entity(
             result.source_entity,
-            dict(
-                type=self.publishedfile["type"],
-                id=self.publishedfile["id"],
-            ),
+            dict(type=self.publishedfile["type"], id=self.publishedfile["id"]),
             check_name=False,
         )
 
     @patch("tank.util.login.get_current_user")
     def test_entity_from_cache(self, get_current_user):
-        
+
         get_current_user.return_value = self.current_user
-        
-        result =  context.from_entity(self.tk, self.shot["type"], self.shot["id"])
+
+        result = context.from_entity(self.tk, self.shot["type"], self.shot["id"])
 
         self.check_entity(self.project, result.project)
         self.assertEqual(3, len(result.project))
 
         self.check_entity(self.shot, result.entity)
         self.assertEqual(3, len(result.entity))
-                
+
         self.check_entity(self.current_user, result.user)
 
         self.assertEqual(None, result.task)
-        
+
         self.check_entity(self.step, result.step)
         self.assertEqual(3, len(result.step))
-    
+
     @patch("tank.util.login.get_current_user")
     def test_step_higher_entity(self, get_current_user):
         """
         Case that step appears in path above entity.
         """
-        
+
         get_current_user.return_value = self.current_user
-        
+
         # Add shot below step
         step_path = os.path.join(self.seq_path, "step_short_name")
         shot_path = os.path.join(step_path, "shot_code")
         self.add_production_path(step_path, self.step)
         self.add_production_path(shot_path, self.shot)
 
-        result =  context.from_entity(self.tk, self.shot["type"], self.shot["id"])
+        result = context.from_entity(self.tk, self.shot["type"], self.shot["id"])
         self.check_entity(self.step, result.step)
         self.check_entity(self.shot, result.entity)
         self.check_entity(self.current_user, result.user)
@@ -504,11 +519,11 @@ class TestFromEntity(TestContext):
         """
         self.setup_fixtures()
         get_current_user.return_value = self.current_user
-        
+
         # add additional field value to task
         add_value = self.project
         self.task["additional_field"] = add_value
-        
+
         # store the find call count
         num_finds_before = self.tk.shotgun.finds
 
@@ -539,14 +554,13 @@ class TestFromEntity(TestContext):
         num_finds_after = self.tk.shotgun.finds
         self.assertTrue((num_finds_after - num_finds_before) == 1)
 
-
     @patch("tank.util.login.get_current_user")
     def test_data_missing_non_task(self, get_current_user):
         """
         Case that entity does not exist on local cache or in shotgun
         """
         get_current_user.return_value = self.current_user
-        
+
         # Use entity we have not setup in path cache not in mocked sg
         shot = {"type": "Shot", "id": 13, "name": "never_seen_me_before"}
         result = context.from_entity(self.tk, shot["type"], shot["id"])
@@ -560,14 +574,20 @@ class TestFromEntity(TestContext):
         self.assertIsNone(result.step)
         self.assertIsNone(result.task)
 
-
     def test_data_missing_task(self):
         """
         Case that entity does not exist on local cache or in shotgun
         """
         # Use task we have not setup in path cache not in mocked sg
-        task = {"type": "Task", "id": 13, "name": "never_seen_me_before", "content": "no_content"}
-        self.assertRaises(TankError, context.from_entity, self.tk, task["type"], task["id"])
+        task = {
+            "type": "Task",
+            "id": 13,
+            "name": "never_seen_me_before",
+            "content": "no_content",
+        }
+        self.assertRaises(
+            TankError, context.from_entity, self.tk, task["type"], task["id"]
+        )
 
     @patch("tank.context.from_entity")
     @patch("tank.util.login.get_current_user")
@@ -585,7 +605,11 @@ class TestFromEntity(TestContext):
         # falls back to it:
         from_entity.return_value = {}
 
-        ent_dict = {"type":self.shot["type"], "id":self.shot["id"], "code":self.shot["code"]}
+        ent_dict = {
+            "type": self.shot["type"],
+            "id": self.shot["id"],
+            "code": self.shot["code"],
+        }
         ent_dict["project"] = self.project
 
         result = context.from_entity_dictionary(self.tk, ent_dict)
@@ -596,27 +620,34 @@ class TestFromEntity(TestContext):
 
         self.check_entity(self.shot, result.entity)
         self.assertEqual(3, len(result.entity))
-        
+
         self.check_entity(self.current_user, result.user)
 
     @patch("tank.context.from_entity")
     @patch("tank.util.login.get_current_user")
-    def test_from_entity_dictionary_additional_entities(self, get_current_user, from_entity):
+    def test_from_entity_dictionary_additional_entities(
+        self, get_current_user, from_entity
+    ):
         """
         Test context.from_entity_dictionary - this can contruct a context from
         an entity dictionary looking at linked entities where available.
-        
+
         Falls back to 'from_entity' if the entity dictionary doesn't contain
         everything needed.
         """
         get_current_user.return_value = self.current_user
-        
+
         # overload from_entity to ensure it causes a test fail if from_entity_dictionary
         # falls back to it:
         from_entity.return_value = {}
 
-        add_value = {"name":"additional", "id": 3, "type": "add_type"}
-        ent_dict = {"type":"Task", "id":self.task["id"], "content":self.task["content"], "additional_field":add_value}
+        add_value = {"name": "additional", "id": 3, "type": "add_type"}
+        ent_dict = {
+            "type": "Task",
+            "id": self.task["id"],
+            "content": self.task["content"],
+            "additional_field": add_value,
+        }
         ent_dict["project"] = self.project
         ent_dict["entity"] = self.shot
         ent_dict["step"] = self.step
@@ -629,12 +660,12 @@ class TestFromEntity(TestContext):
 
         self.check_entity(self.shot, result.entity)
         self.assertEqual(3, len(result.entity))
-        
+
         self.check_entity(self.current_user, result.user)
-        
+
         self.check_entity(self.step, result.step)
         self.assertEqual(3, len(result.step))
-        
+
         self.assertEqual(self.task["type"], result.task["type"])
         self.assertEqual(self.task["id"], result.task["id"])
         self.assertEqual(self.task["content"], result.task["name"])
@@ -651,14 +682,22 @@ class TestFromEntity(TestContext):
         """
         Test exception are raised if bad entities are used.
         """
-        with self.assertRaisesRegex(TankError, "Cannot create a context from an entity type 'None'"):
+        with self.assertRaisesRegex(
+            TankError, "Cannot create a context from an entity type 'None'"
+        ):
             context.from_entity(self.tk, None, 7777)
-        with self.assertRaisesRegex(TankError, "Cannot create a context from an entity id set to 'None'"):
+        with self.assertRaisesRegex(
+            TankError, "Cannot create a context from an entity id set to 'None'"
+        ):
             context.from_entity(self.tk, "Task", None)
-        with self.assertRaisesRegex(TankError, "Unable to locate Task with id -1 in Shotgun"):
+        with self.assertRaisesRegex(
+            TankError, "Unable to locate Task with id -1 in Shotgun"
+        ):
             context.from_entity(self.tk, "Task", -1)
         # PublishedFiles go through some dedicated code.
-        with self.assertRaisesRegex(TankError, "Entity PublishedFile with id -1 not found in Shotgun!"):
+        with self.assertRaisesRegex(
+            TankError, "Entity PublishedFile with id -1 not found in Shotgun!"
+        ):
             context.from_entity(self.tk, "PublishedFile", -1)
 
 
@@ -669,22 +708,24 @@ class TestAsTemplateFields(TestContext):
         kws = {}
         kws["tk"] = self.tk
         kws["project"] = self.project
-        kws["entity"]  = self.shot
-        kws["step"]    = self.step
+        kws["entity"] = self.shot
+        kws["step"] = self.step
         self.ctx = context.Context(**kws)
 
         # create a template with which to filter
-        self.keys = {"Sequence": StringKey("Sequence"),
-                     "Shot": StringKey("Shot"),
-                     "Step": StringKey("Step"),
-                     "static_key": StringKey("static_key"),
-                     "shotgun_field": StringKey(
-                        "shotgun_field",
-                        shotgun_entity_type="Shot",
-                        shotgun_field_name="shotgun_field"
-                     )}
+        self.keys = {
+            "Sequence": StringKey("Sequence"),
+            "Shot": StringKey("Shot"),
+            "Step": StringKey("Step"),
+            "static_key": StringKey("static_key"),
+            "shotgun_field": StringKey(
+                "shotgun_field",
+                shotgun_entity_type="Shot",
+                shotgun_field_name="shotgun_field",
+            ),
+        }
 
-        template_def =  "/sequence/{Sequence}/{Shot}/{Step}/work"
+        template_def = "/sequence/{Sequence}/{Shot}/{Step}/work"
         self.template = TemplatePath(template_def, self.keys, self.project_root)
 
     def test_bad_path_cache_entry(self):
@@ -692,9 +733,9 @@ class TestAsTemplateFields(TestContext):
         Test that as_template_fields() doesn't return incorrect entity fields when entries in the
         path cache for an entity are invalid/out-of-date.  This can happen if the folder schema/templates
         are modified after folders have already been created/the path cache has already been populated.
-        
+
         For example, given the following path cache:
-        
+
         Type     | Id  | Name     | Path
         ----------------------------------------------------
         Sequence | 001 | Seq_001  | /Seq_001
@@ -702,24 +743,26 @@ class TestAsTemplateFields(TestContext):
         Step     | 003 | Lighting | /Seq_001/Shot_A/Lighting
         Step     | 003 | Lighting | /Seq_001/blah/Shot_B/Lighting   <- this is out of date!
         Shot     | 004 | Shot_B   | /Seq_001/blah/Shot_B            <- this is out of date!
-        
+
         This test ensures that searching for a context containing Step 'Lighting' and Shot 'Shot_B' doesn't
         return fields for Shot 'Shot_A' by mistake.  This would previously happen because the last two entries
         are out-of-date but the code still managed to find an entry for the Step which it then used to find the
         (wrong) value of the Shot field.
         """
         # build a new Shot entity and context:
-        test_shot = {"type":"Shot",
-                    "code": "shot_bad",
-                    "id":16,
-                    "sg_sequence": self.seq,
-                    "project": self.project
-                    }
-        kws = {"tk":self.tk,
-               "project":self.project,
-               "entity":test_shot,
-               "step":self.step
-               }
+        test_shot = {
+            "type": "Shot",
+            "code": "shot_bad",
+            "id": 16,
+            "sg_sequence": self.seq,
+            "project": self.project,
+        }
+        kws = {
+            "tk": self.tk,
+            "project": self.project,
+            "entity": test_shot,
+            "step": self.step,
+        }
         test_ctx = context.Context(**kws)
 
         # add some bad data for this new Shot to the path cache:
@@ -742,23 +785,29 @@ class TestAsTemplateFields(TestContext):
         """
         # test a context that should resolve a full set of fields:
         fields = self.ctx.as_template_fields(self.template, validate=True)
-        expected_fields = {"Sequence": "Seq", "Shot": "shot_code", "Step": "step_short_name"}
+        expected_fields = {
+            "Sequence": "Seq",
+            "Shot": "shot_code",
+            "Step": "step_short_name",
+        }
         self.assertEqual(fields, expected_fields)
 
         # test a context that shouldn't resolve a full set of fields.  For this, we create
         # a new shot and add it to the path cache but we don't add the Step to ensure the
         # Step key isn't found.
-        other_shot = {"type":"Shot",
-                    "code": "shot_other",
-                    "id":16,
-                    "sg_sequence": self.seq,
-                    "project": self.project
-                    }
-        kws = {"tk":self.tk,
-               "project":self.project,
-               "entity":other_shot,
-               "step":self.step
-               }
+        other_shot = {
+            "type": "Shot",
+            "code": "shot_other",
+            "id": 16,
+            "sg_sequence": self.seq,
+            "project": self.project,
+        }
+        kws = {
+            "tk": self.tk,
+            "project": self.project,
+            "entity": other_shot,
+            "step": self.step,
+        }
         other_shot_path = os.path.join(self.seq_path, "shot_other")
         self.add_production_path(other_shot_path, other_shot)
         test_ctx = context.Context(**kws)
@@ -771,9 +820,10 @@ class TestAsTemplateFields(TestContext):
         # now check that when validate=True, a TankError is raised:
         self.assertRaises(TankError, test_ctx.as_template_fields, self.template, True)
 
-
     def test_query_from_template(self):
-        query_key = StringKey("shot_extra", shotgun_entity_type="Shot", shotgun_field_name="extra_field")
+        query_key = StringKey(
+            "shot_extra", shotgun_entity_type="Shot", shotgun_field_name="extra_field"
+        )
         self.keys["shot_extra"] = query_key
         # shot_extra cannot be gotten from path cache
         template_def = "/sequence/{Sequence}/{Shot}/{Step}/work/{shot_extra}.ext"
@@ -783,7 +833,7 @@ class TestAsTemplateFields(TestContext):
 
     def test_step_first_template(self):
         """
-        Check that as_template_fields returns all fields for a template that 
+        Check that as_template_fields returns all fields for a template that
         starts with Step and has no static folders
         """
         template_def = "{Step}/{Sequence}/{Shot}"
@@ -796,8 +846,16 @@ class TestAsTemplateFields(TestContext):
     # It seems like Python 2.7.16+ is a bit less comfortable with paths with the wrong orientation
     # for the slashes, so we'll generate test data that is more conforming to the current platform.
     # This isn't an issue in the real world, as we always sanitize our inputs.
-    @patch("tank.context.Context._get_project_roots", return_value=["{0}{0}foo{0}bar".format(os.path.sep)])
-    @patch("tank.context.Context.entity_locations", new_callable=PropertyMock(return_value=["{0}{0}foo{0}bar{0}baz".format(os.path.sep)]))
+    @patch(
+        "tank.context.Context._get_project_roots",
+        return_value=["{0}{0}foo{0}bar".format(os.path.sep)],
+    )
+    @patch(
+        "tank.context.Context.entity_locations",
+        new_callable=PropertyMock(
+            return_value=["{0}{0}foo{0}bar{0}baz".format(os.path.sep)]
+        ),
+    )
     def test_fields_from_entity_paths_with_unc_project_root(self, *args):
         """
         Makes sure that if we're using UNC paths and the project root is at the top
@@ -816,7 +874,9 @@ class TestAsTemplateFields(TestContext):
         """
         Test template query to field linking to an entity.
         """
-        query_key = StringKey("shot_seq", shotgun_entity_type="Shot", shotgun_field_name="sg_sequence")
+        query_key = StringKey(
+            "shot_seq", shotgun_entity_type="Shot", shotgun_field_name="sg_sequence"
+        )
         self.keys["shot_seq"] = query_key
         # shot_extra cannot be gotten from path cache
         template_def = "/sequence/{Sequence}/{Shot}/{Step}/work/{shot_seq}.ext"
@@ -828,7 +888,9 @@ class TestAsTemplateFields(TestContext):
         """
         Check case that value returned from shotgun is invalid.
         """
-        query_key = IntegerKey("shot_seq", shotgun_entity_type="Shot", shotgun_field_name="sg_sequence")
+        query_key = IntegerKey(
+            "shot_seq", shotgun_entity_type="Shot", shotgun_field_name="sg_sequence"
+        )
         self.keys["shot_seq"] = query_key
         template_def = "/sequence/{Sequence}/{Shot}/{Step}/work/{shot_seq}.ext"
         template = TemplatePath(template_def, self.keys, self.project_root)
@@ -840,19 +902,23 @@ class TestAsTemplateFields(TestContext):
         """
         # set field value to None
         self.shot["sg_sequence"] = None
-        query_key = StringKey("shot_seq", shotgun_entity_type="Shot", shotgun_field_name="sg_sequence")
+        query_key = StringKey(
+            "shot_seq", shotgun_entity_type="Shot", shotgun_field_name="sg_sequence"
+        )
         self.keys["shot_seq"] = query_key
         template_def = "/sequence/{Sequence}/{Shot}/{Step}/work/{shot_seq}.ext"
         template = TemplatePath(template_def, self.keys, self.project_root)
         fields = self.ctx.as_template_fields(template)
-        self.assertEqual(fields['shot_seq'], None)
+        self.assertEqual(fields["shot_seq"], None)
 
     def test_query_cached(self):
         """
-        Test that if same key query is run more than once, the 
+        Test that if same key query is run more than once, the
         value is cached.
         """
-        query_key = StringKey("shot_extra", shotgun_entity_type="Shot", shotgun_field_name="extra_field")
+        query_key = StringKey(
+            "shot_extra", shotgun_entity_type="Shot", shotgun_field_name="extra_field"
+        )
         self.keys["shot_extra"] = query_key
         # shot_extra cannot be gotten from path cache
         template_def = "/sequence/{Sequence}/{Shot}/{Step}/work/{shot_extra}.ext"
@@ -874,18 +940,15 @@ class TestAsTemplateFields(TestContext):
         expected_step_name = "step_short_name"
         expected_shot_name = "shot_code"
         result = self.ctx.as_template_fields(self.template)
-        self.assertEqual(expected_step_name, result['Step'])
-        self.assertEqual(expected_shot_name, result['Shot'])
+        self.assertEqual(expected_step_name, result["Step"])
+        self.assertEqual(expected_shot_name, result["Shot"])
 
     def test_double_step(self):
         """
         Case that step has multiple locations cached.
         """
         # Add another shot with same step
-        shot = {"type":"Shot",
-                "name": "shot_name_3",
-                "id":3,
-                "project": self.project}
+        shot = {"type": "Shot", "name": "shot_name_3", "id": 3, "project": self.project}
         shot_path = os.path.join(self.seq_path, "shot_code_3")
         self.add_production_path(shot_path, shot)
         step_path = os.path.join(shot_path, "step_short_name")
@@ -893,10 +956,8 @@ class TestAsTemplateFields(TestContext):
         expected_step_name = "step_short_name"
         expected_shot_name = "shot_code"
         result = self.ctx.as_template_fields(self.template)
-        self.assertEqual(expected_step_name, result['Step'])
-        self.assertEqual(expected_shot_name, result['Shot'])
-
-
+        self.assertEqual(expected_step_name, result["Step"])
+        self.assertEqual(expected_shot_name, result["Shot"])
 
     def test_list_field_step_above_entity(self):
         """
@@ -906,12 +967,14 @@ class TestAsTemplateFields(TestContext):
         asset_type = "Character"
         asset_code = "asset_code"
         step_short_name = "step_short_name"
-        asset_1 = {"type": "Asset",
-                   "id": 1,
-                   "code": asset_code,
-                   "name": "asset_name",
-                   "project": self.project,
-                   "asset_type": asset_type}
+        asset_1 = {
+            "type": "Asset",
+            "id": 1,
+            "code": asset_code,
+            "name": "asset_name",
+            "project": self.project,
+            "asset_type": asset_type,
+        }
 
         step_path = os.path.join(self.project_root, asset_type, step_short_name)
         self.add_production_path(step_path, self.step)
@@ -921,12 +984,14 @@ class TestAsTemplateFields(TestContext):
 
         # second asset with different asset type
         asset_type_2 = "Prop"
-        asset_2 = {"type": "Asset",
-                   "id": 2,
-                   "code": "asset_code_2",
-                   "name": "asset_name_2",
-                   "project": self.project,
-                   "asset_type": asset_type_2}
+        asset_2 = {
+            "type": "Asset",
+            "id": 2,
+            "code": "asset_code_2",
+            "name": "asset_name_2",
+            "project": self.project,
+            "asset_type": asset_type_2,
+        }
 
         alt_step_path = os.path.join(self.project_root, asset_type_2, step_short_name)
         self.add_production_path(alt_step_path, self.step)
@@ -950,7 +1015,7 @@ class TestAsTemplateFields(TestContext):
         """
         Test that fields that have no value in the context are assigned a value.
         """
-        expected =  "Seq"
+        expected = "Seq"
         result = self.ctx.as_template_fields(self.template)
         self.assertEqual(expected, result.get("Sequence"))
 
@@ -962,15 +1027,15 @@ class TestAsTemplateFields(TestContext):
         shot = {"type": "Shot", "id": 3, "name": "shot_3"}
         shot_path = os.path.join(self.project_root, "static", "shot_3")
         self.add_production_path(shot_path, shot)
-        template_def =  "/{static_key}/{Shot}"
+        template_def = "/{static_key}/{Shot}"
         template = TemplatePath(template_def, self.keys, self.project_root)
 
         # Create context for this shot
         kws = {}
         kws["tk"] = self.tk
         kws["project"] = self.project
-        kws["entity"]  = shot
-        kws["step"]    = self.step
+        kws["entity"] = shot
+        kws["step"] = self.step
         ctx = context.Context(**kws)
         result = ctx.as_template_fields(template)
 
@@ -988,15 +1053,15 @@ class TestAsTemplateFields(TestContext):
         self.add_production_path(shot_path_1, shot)
         self.add_production_path(shot_path_2, shot)
 
-        template_def =  "/{static_key}/{Shot}"
+        template_def = "/{static_key}/{Shot}"
         template = TemplatePath(template_def, self.keys, self.project_root)
 
         # Create context for this shot
         kws = {}
         kws["tk"] = self.tk
         kws["project"] = self.project
-        kws["entity"]  = shot
-        kws["step"]    = self.step
+        kws["entity"] = shot
+        kws["step"] = self.step
         ctx = context.Context(**kws)
         result = ctx.as_template_fields(template)
 
@@ -1009,28 +1074,36 @@ class TestAsTemplateFields(TestContext):
         location for a given entity which is represented as a leaf in a
         path.
         """
-        edit_step = os.path.join(self.project_root, "editorial", "seq_folder", "shot_name", "step_short_name_ed")
+        edit_step = os.path.join(
+            self.project_root,
+            "editorial",
+            "seq_folder",
+            "shot_name",
+            "step_short_name_ed",
+        )
         self.add_production_path(edit_step, self.step)
 
         expected_step_name = "step_short_name"
         expected_shot_name = "shot_code"
         result = self.ctx.as_template_fields(self.template)
-        self.assertEqual(expected_step_name, result['Step'])
-        self.assertEqual(expected_shot_name, result['Shot'])
+        self.assertEqual(expected_step_name, result["Step"])
+        self.assertEqual(expected_shot_name, result["Shot"])
 
     def test_multifield_intermediate(self):
         """
         Tests using template to filter when there is more than one
         location for a given entity which is not a leaf in it's path(s).
         """
-        shot_ed = os.path.join(self.project_root, "editorial", "seq_folder", "shot_name")
+        shot_ed = os.path.join(
+            self.project_root, "editorial", "seq_folder", "shot_name"
+        )
         self.add_production_path(shot_ed, self.shot)
 
         expected_step_name = "step_short_name"
         expected_shot_name = "shot_code"
         result = self.ctx.as_template_fields(self.template)
-        self.assertEqual(expected_step_name, result['Step'])
-        self.assertEqual(expected_shot_name, result['Shot'])
+        self.assertEqual(expected_step_name, result["Step"])
+        self.assertEqual(expected_shot_name, result["Shot"])
 
     def test_ambiguous_entity_location(self):
         """
@@ -1039,7 +1112,7 @@ class TestAsTemplateFields(TestContext):
         # add a second shot location
         shot_path_2 = os.path.join(self.seq_path, "shot_code_2")
         self.add_production_path(shot_path_2, self.shot)
-        definition  = "sequence/{Sequence}/{Shot}"
+        definition = "sequence/{Sequence}/{Shot}"
         template = tank.template.TemplatePath(definition, self.keys, self.project_root)
         self.assertRaises(TankError, self.ctx.as_template_fields, template)
 
@@ -1056,7 +1129,7 @@ class TestAsTemplateFields(TestContext):
 
     def test_user_ctx(self):
         """Check other_user is set when contained in the path."""
-        
+
         # get a context containing a user
         ctx = self.tk.context_from_path(self.other_user_path)
 
@@ -1070,7 +1143,7 @@ class TestAsTemplateFields(TestContext):
         self.assertEqual(self.other_user["id"], ctx.user["id"])
         self.assertEqual(self.other_user["type"], ctx.user["type"])
         self.assertIsNone(ctx.task)
-        
+
         # create a template that uses user
         self.keys["HumanUser"] = StringKey("HumanUser")
         template_def = "/sequence/{Sequence}/{Shot}/{Step}/{HumanUser}"
@@ -1107,24 +1180,15 @@ class TestSerialize(TestContext):
                 "content": "task_content",
                 "project": self.project,
                 "entity": self.shot,
-                "step": self.step
-            }
+                "step": self.step,
+            },
         )
 
         self.version = self.mockgun.create(
-            "Version",
-            {
-                "code": "version_code",
-                "project": self.project
-            }
+            "Version", {"code": "version_code", "project": self.project}
         )
 
-        self.user = self.mockgun.create(
-            "HumanUser",
-            {
-                "name": "user_name"
-            }
-        )
+        self.user = self.mockgun.create("HumanUser", {"name": "user_name"})
 
         self.kws = {}
         self.kws["tk"] = self.tk
@@ -1156,8 +1220,8 @@ class TestSerialize(TestContext):
             self.tk,
             {
                 "project": {"type": "Project", "id": 1},
-                "unknown_entity_parameter": {"type": "CustomEntity01", "id": 1}
-            }
+                "unknown_entity_parameter": {"type": "CustomEntity01", "id": 1},
+            },
         )
 
     def test_dict_cleanup(self):
@@ -1176,41 +1240,24 @@ class TestSerialize(TestContext):
         self.kws["user"]["created_at"] = datetime.datetime.now()
 
         expected = {
-            "task": {
-                "type": "Task",
-                "id": self.task["id"],
-                "name": "task_content"
-            },
-            "step": {
-                "type": "Step",
-                "id": self.step["id"],
-                "name": "step_name"
-            },
+            "task": {"type": "Task", "id": self.task["id"], "name": "task_content"},
+            "step": {"type": "Step", "id": self.step["id"], "name": "step_name"},
             "entity": {
                 "type": "Shot",
                 "id": self.shot["id"],
-                "name": self.shot["code"]
+                "name": self.shot["code"],
             },
             "project": {
                 "type": "Project",
                 "id": self.project["id"],
-                "name": "project_name"
+                "name": "project_name",
             },
             # Contrary to other entities, the source entity and...
-            "source_entity": {
-                "type": "Version",
-                "id": self.version["id"],
-            },
-            "additional_entities": [{
-                "type": "Sequence",
-                "name": "seq_name",
-                "id": self.seq["id"],
-            }],
-            "user": {
-                "type": "HumanUser",
-                "id": self.user["id"],
-                "name": "user_name"
-            }
+            "source_entity": {"type": "Version", "id": self.version["id"]},
+            "additional_entities": [
+                {"type": "Sequence", "name": "seq_name", "id": self.seq["id"]}
+            ],
+            "user": {"type": "HumanUser", "id": self.user["id"], "name": "user_name"},
         }
 
         ctx = context.Context(**self.kws)
@@ -1341,7 +1388,6 @@ class TestSerialize(TestContext):
 
 
 class TestMultiRoot(TestContext):
-
     def setUp(self):
         super(TestMultiRoot, self).setUp()
 
@@ -1369,15 +1415,12 @@ class TestMultiRoot(TestContext):
         expected_shot_name = "shot_code"
 
         ctx = context.Context(
-            tk=self.tk,
-            project=self.project,
-            entity=self.shot,
-            step=self.step,
+            tk=self.tk, project=self.project, entity=self.shot, step=self.step
         )
 
         result = ctx.as_template_fields(template)
-        self.assertEqual(expected_step_name, result['Step'])
-        self.assertEqual(expected_shot_name, result['Shot'])
+        self.assertEqual(expected_step_name, result["Step"])
+        self.assertEqual(expected_shot_name, result["Shot"])
 
     @patch("tank.util.login.get_current_user")
     def test_non_primary_path(self, get_current_user):

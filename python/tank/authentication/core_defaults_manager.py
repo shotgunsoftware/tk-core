@@ -79,13 +79,11 @@ class CoreDefaultsManager(DefaultsManager):
         if not self._mask_script_user:
             data = shotgun.get_associated_sg_config_data()
             if data.get("api_script") and data.get("api_key"):
-                return {
-                    "api_script": data["api_script"],
-                    "api_key": data["api_key"]
-                }
+                return {"api_script": data["api_script"], "api_key": data["api_key"]}
         return super(CoreDefaultsManager, self).get_user_credentials()
 
 
 # For backwards compatibility.
 from .. import util
+
 util.CoreDefaultsManager = CoreDefaultsManager
