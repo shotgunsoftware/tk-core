@@ -37,4 +37,4 @@ class EnsureFolderExists(Hook):
         :type bundle_object: :class:`~sgtk.platform.Engine`, :class:`~sgtk.platform.Framework`
             or :class:`~sgtk.platform.Application`
         """
-        filesystem.ensure_folder_exists(path, permissions=0777)
+        filesystem.ensure_folder_exists(path, permissions=0o777)

@@ -118,7 +118,7 @@ class ProcessFolderCreation(Hook):
                     if not os.path.exists(path):
                         if not preview_mode:
                             # create the folder using open permissions
-                            os.makedirs(path, 0777)
+                            os.makedirs(path, 0o777)
                         locations.append(path)
 
                 elif action == "remote_entity_folder":
@@ -170,7 +170,7 @@ class ProcessFolderCreation(Hook):
                             # do a standard file copy
                             shutil.copy(source_path, target_path)
                             # set permissions to open
-                            os.chmod(target_path, 0666)
+                            os.chmod(target_path, 0o666)
                         locations.append(target_path)
 
                 elif action == "create_file":
@@ -179,7 +179,7 @@ class ProcessFolderCreation(Hook):
                     parent_folder = os.path.dirname(path)
                     content = i.get("content")
                     if not os.path.exists(parent_folder) and not preview_mode:
-                        os.makedirs(parent_folder, 0777)
+                        os.makedirs(parent_folder, 0o777)
                     if not os.path.exists(path):
                         if not preview_mode:
                             # create the file
@@ -187,7 +187,7 @@ class ProcessFolderCreation(Hook):
                             fp.write(content)
                             fp.close()
                             # and set permissions to open
-                            os.chmod(path, 0666)
+                            os.chmod(path, 0o666)
                         locations.append(path)
         finally:
             # reset umask
