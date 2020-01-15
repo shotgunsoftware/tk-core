@@ -1,0 +1,39 @@
+# Copyright (c) 2019 Shotgun Software Inc.
+#
+# CONFIDENTIAL AND PROPRIETARY
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+# Source Code License included in this distribution package. See LICENSE.
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
+# not expressly granted therein are reserved by Shotgun Software Inc.
+
+# Styles the code properly
+# Exclude the UI files, as they are auto-generated.
+exclude: "tank_vendor|third_party|ui\/.*py$"
+# List of super useful formatters.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.2.3
+    hooks:
+    # Ensures the code is syntaxically correct
+    - id: check-ast
+      language_version: python3
+    # Ensures a file name will resolve on all platform
+    - id: check-case-conflict
+    # Checks files with the execute bit set have shebangs
+    - id: check-executables-have-shebangs
+    # Ensure there's no incomplete merges
+    - id: check-merge-conflict
+    # Adds an empty line if missing at the end of a file.
+    - id: end-of-file-fixer
+    # Makes sure requirements.txt is properly formatted
+    - id: requirements-txt-fixer
+    # Removes trailing whitespaces.
+    - id: trailing-whitespace
+  # Leave black at the bottom so all touchups are done before it is run.
+  - repo: https://github.com/ambv/black
+    rev: stable
+    hooks:
+    - id: black
+      language_version: python3
