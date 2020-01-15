@@ -200,7 +200,7 @@ if __name__ == "__main__":
     exit_code = 1
     try:
         exit_code = main()
-    except Exception, e:
+    except Exception as e:
         logger.exception("An exception was raised: %s" % e)
 
     sys.exit(exit_code)

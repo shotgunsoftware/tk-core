@@ -271,7 +271,7 @@ def _validate_manifest(source_path):
     try:
         with open(manifest_path, "rt") as fh:
             manifest_data = yaml.load(fh)
-    except Exception, e:
+    except Exception as e:
         raise TankError("Cannot parse info.yml manifest: %s" % e)
 
     logger.debug("Validating manifest...")
@@ -316,7 +316,7 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
             fh.write("# this file was auto generated.\n")
             fh.write("from . import manifest\n")
             fh.write("# end of file.\n")
-    except Exception, e:
+    except Exception as e:
         raise TankError("Cannot write __init__.py file: %s" % e)
 
     # now bake out the manifest into code
@@ -446,7 +446,7 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
             fh.write("\n\n")
             fh.write("# end of file.\n")
 
-    except Exception, e:
+    except Exception as e:
         logger.exception(e)
         raise TankError("Cannot write manifest file: %s" % e)
 
@@ -761,7 +761,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     # make sure we are properly connected
     try:
         sg_connection.find_one("HumanUser", [])
-    except Exception, e:
+    except Exception as e:
         logger.error("Could not communicate with Shotgun: %s" % e)
         return 3
 
@@ -790,7 +790,7 @@ if __name__ == "__main__":
     exit_code = 1
     try:
         exit_code = main()
-    except Exception, e:
+    except Exception as e:
         logger.exception("An exception was raised: %s" % e)
 
     sys.exit(exit_code)
