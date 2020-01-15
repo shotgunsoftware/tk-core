@@ -37,14 +37,16 @@ class PySide2Patcher(object):
     # These classes have been moved from QtGui in Qt4 to QtCore in Qt5 and we're
     # moving them back from QtCore to QtGui to preserve backward compability with
     # PySide 1.
-    _core_to_qtgui = set([
-        "QAbstractProxyModel",
-        "QItemSelection",
-        "QItemSelectionModel",
-        "QItemSelectionRange",
-        "QSortFilterProxyModel",
-        "QStringListModel"
-    ])
+    _core_to_qtgui = set(
+        [
+            "QAbstractProxyModel",
+            "QItemSelection",
+            "QItemSelectionModel",
+            "QItemSelectionRange",
+            "QSortFilterProxyModel",
+            "QStringListModel",
+        ]
+    )
 
     # Flag that will be set at the module level so that if an engine is reloaded
     # the PySide 2 API won't be monkey patched twice.
@@ -110,6 +112,7 @@ class PySide2Patcher(object):
 
         class QCoreApplication(original_QCoreApplication):
             pass
+
         cls._fix_QCoreApplication_api(QCoreApplication, original_QCoreApplication)
         QtCore.QCoreApplication = QCoreApplication
 
@@ -164,6 +167,7 @@ class PySide2Patcher(object):
 
                     def dataChanged(tl, br, roles=None):
                         original_dataChanged(tl, br)
+
                     self.dataChanged = lambda tl, br, roles: dataChanged(tl, br)
 
         QtGui.QAbstractItemView = QAbstractItemView
@@ -217,7 +221,7 @@ class PySide2Patcher(object):
             QtGui.QMessageBox.NoToAll,
             QtGui.QMessageBox.Abort,
             QtGui.QMessageBox.Retry,
-            QtGui.QMessageBox.Ignore
+            QtGui.QMessageBox.Ignore,
         ]
 
         # PySide2 is currently broken and doesn't accept union of values in, so
@@ -226,7 +230,14 @@ class PySide2Patcher(object):
             """
             Creates a patch for one of the static methods to pop a QMessageBox.
             """
-            def patch(parent, title, text, buttons=QtGui.QMessageBox.Ok, defaultButton=QtGui.QMessageBox.NoButton):
+
+            def patch(
+                parent,
+                title,
+                text,
+                buttons=QtGui.QMessageBox.Ok,
+                defaultButton=QtGui.QMessageBox.NoButton,
+            ):
                 """
                 Shows the dialog with, just like QMessageBox.{critical,question,warning,information} would do.
 
@@ -268,10 +279,18 @@ class PySide2Patcher(object):
 
         class QMessageBox(original_QMessageBox):
 
-            critical = _method_factory(QtGui.QMessageBox.Critical, QtGui.QMessageBox.critical)
-            information = _method_factory(QtGui.QMessageBox.Information, QtGui.QMessageBox.information)
-            question = _method_factory(QtGui.QMessageBox.Question, QtGui.QMessageBox.question)
-            warning = _method_factory(QtGui.QMessageBox.Warning, QtGui.QMessageBox.warning)
+            critical = _method_factory(
+                QtGui.QMessageBox.Critical, QtGui.QMessageBox.critical
+            )
+            information = _method_factory(
+                QtGui.QMessageBox.Information, QtGui.QMessageBox.information
+            )
+            question = _method_factory(
+                QtGui.QMessageBox.Question, QtGui.QMessageBox.question
+            )
+            warning = _method_factory(
+                QtGui.QMessageBox.Warning, QtGui.QMessageBox.warning
+            )
 
         QtGui.QMessageBox = QMessageBox
 
@@ -283,7 +302,6 @@ class PySide2Patcher(object):
             return
 
         class QDesktopServices(object):
-
             @classmethod
             def openUrl(cls, url):
                 # Make sure we have a QUrl object.
@@ -331,8 +349,8 @@ class PySide2Patcher(object):
             @classmethod
             def __not_implemented_error(cls, method):
                 raise NotImplementedError(
-                    "PySide2 and Toolkit don't support 'QDesktopServices.%s' yet. Please contact %s" %
-                    (method.__func__, constants.SUPPORT_EMAIL)
+                    "PySide2 and Toolkit don't support 'QDesktopServices.%s' yet. Please contact %s"
+                    % (method.__func__, constants.SUPPORT_EMAIL)
                 )
 
         QtGui.QDesktopServices = QDesktopServices
@@ -357,7 +375,9 @@ class PySide2Patcher(object):
         # Some classes from QtGui have been moved to QtCore, so put them back into QtGui
         cls._move_attributes(qt_gui_shim, QtCore, cls._core_to_qtgui)
         # Move the rest of QtCore in the new core shim.
-        cls._move_attributes(qt_core_shim, QtCore, set(dir(QtCore)) - cls._core_to_qtgui)
+        cls._move_attributes(
+            qt_core_shim, QtCore, set(dir(QtCore)) - cls._core_to_qtgui
+        )
 
         cls._patch_QTextCodec(qt_core_shim)
         cls._patch_QCoreApplication(qt_core_shim)

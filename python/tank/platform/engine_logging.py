@@ -12,6 +12,7 @@ import logging
 import Queue
 import sys
 
+
 class ToolkitEngineHandler(logging.Handler):
     """
     Log handling for engines that are using the
@@ -125,4 +126,3 @@ class ToolkitEngineLegacyHandler(logging.Handler):
         finally:
             # take one item out
             self._inside_dispatch_stack.get()
-

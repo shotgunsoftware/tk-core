@@ -1,11 +1,11 @@
 # Copyright (c) 2015 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -16,7 +16,7 @@ from sgtk.util.yaml_cache import YamlCache
 from sgtk import TankError
 from tank_vendor import yaml
 from tank_test.tank_test_base import ShotgunTestBase
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 
 
 class TestYamlCache(ShotgunTestBase):
@@ -64,25 +64,26 @@ class TestYamlCache(ShotgunTestBase):
         """
         yaml_path = os.path.join(self._data_root, "test_data.yml")
 
-        test_data = [1, 
-                     "two", 
-                     {"three":"A", "four":[5,6,7], 8:{9:"nine", "ten":10}}, 
-                     [11, "twelve"], 
-                     {13:13, "fourteen":"fourteen"}
-                     ]
+        test_data = [
+            1,
+            "two",
+            {"three": "A", "four": [5, 6, 7], 8: {9: "nine", "ten": 10}},
+            [11, "twelve"],
+            {13: 13, "fourteen": "fourteen"},
+        ]
 
         modified_test_data = copy.deepcopy(test_data)
-        modified_test_data.append({15:[16, "seventeen"]})
+        modified_test_data.append({15: [16, "seventeen"]})
 
         # 1. Check that the cache loads the data correctly
         #
 
         # write out the test data:
         yaml_file = open(yaml_path, "w")
-        try: 
+        try:
             yaml_file.write(yaml.dump(test_data))
         finally:
-            yaml_file.close() 
+            yaml_file.close()
 
         # create a yaml cache instance and get the data from the file:
         yaml_cache = YamlCache()
@@ -94,7 +95,7 @@ class TestYamlCache(ShotgunTestBase):
         # 2. Ensure that the data returned is a copy of the cached data
         #
 
-        # inspect the cache itself and make sure that the data returned is a copy 
+        # inspect the cache itself and make sure that the data returned is a copy
         # of the internal cached data and not the internal cached data itself:
         self.assertEqual(len(yaml_cache._cache), 1)
         self.assertEqual(yaml_cache._cache.keys()[0], yaml_path)
@@ -118,7 +119,7 @@ class TestYamlCache(ShotgunTestBase):
 
         # update the data in the file:
         yaml_file = open(yaml_path, "w")
-        try: 
+        try:
             yaml_file.write(yaml.dump(modified_test_data))
         finally:
             yaml_file.close()
@@ -128,7 +129,3 @@ class TestYamlCache(ShotgunTestBase):
 
         # ...and check that the data in the cache has been updated:
         self.assertEqual(read_data, modified_test_data)
-
-
-
-

@@ -57,7 +57,9 @@ def is_localized(pipeline_config_path):
         return False
 
     # look for a localized API by searching for a _core_upgrader.py file
-    api_file = os.path.join(pipeline_config_path, "install", "core", "_core_upgrader.py")
+    api_file = os.path.join(
+        pipeline_config_path, "install", "core", "_core_upgrader.py"
+    )
     return os.path.exists(api_file)
 
 
@@ -83,10 +85,7 @@ def get_metadata(pipeline_config_path):
 
     # now read in the pipeline_configuration.yml file
     cfg_yml = os.path.join(
-        pipeline_config_path,
-        "config",
-        "core",
-        constants.PIPELINECONFIG_FILE
+        pipeline_config_path, "config", "core", constants.PIPELINECONFIG_FILE
     )
 
     try:
@@ -94,15 +93,20 @@ def get_metadata(pipeline_config_path):
         if data is None:
             raise Exception("File contains no data!")
     except Exception as e:
-        raise TankError("Looks like a config file is corrupt. Please contact "
-                        "support! File: '%s' Error: %s" % (cfg_yml, e))
+        raise TankError(
+            "Looks like a config file is corrupt. Please contact "
+            "support! File: '%s' Error: %s" % (cfg_yml, e)
+        )
     return data
 
 
 ####################################################################################################################
 # Core API resolve utils
 
-def get_core_descriptor(pipeline_config_path, shotgun_connection, bundle_cache_fallback_paths=None):
+
+def get_core_descriptor(
+    pipeline_config_path, shotgun_connection, bundle_cache_fallback_paths=None
+):
     """
     Returns a descriptor object for the uri/dict defined in the config's
     ``core_api.yml`` file (if it exists).
@@ -118,11 +122,7 @@ def get_core_descriptor(pipeline_config_path, shotgun_connection, bundle_cache_f
     """
 
     # avoid circular dependencies
-    from .descriptor import (
-        Descriptor,
-        create_descriptor,
-        is_descriptor_version_missing
-    )
+    from .descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
 
     descriptor_file_path = _get_core_descriptor_file(pipeline_config_path)
 
@@ -145,16 +145,16 @@ def get_core_descriptor(pipeline_config_path, shotgun_connection, bundle_cache_f
         core_descriptor_dict = data["location"]
     except Exception as e:
         raise TankError(
-            "Cannot read invalid core descriptor file '%s': %s" %
-            (descriptor_file_path, e)
+            "Cannot read invalid core descriptor file '%s': %s"
+            % (descriptor_file_path, e)
         )
     finally:
         fh.close()
 
     # we have a core descriptor specification. Get a descriptor object for it
     logger.debug(
-        "Config has a specific core defined in core/core_api.yml: %s" %
-        core_descriptor_dict,
+        "Config has a specific core defined in core/core_api.yml: %s"
+        % core_descriptor_dict
     )
 
     # when core is specified, check if it defines a specific version or not
@@ -165,7 +165,7 @@ def get_core_descriptor(pipeline_config_path, shotgun_connection, bundle_cache_f
         Descriptor.CORE,
         core_descriptor_dict,
         fallback_roots=bundle_cache_fallback_paths or [],
-        resolve_latest=use_latest
+        resolve_latest=use_latest,
     )
 
 
@@ -181,13 +181,17 @@ def get_path_to_current_core():
     
     :returns: string with path
     """
-    curr_os_core_root = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "..", ".."))
+    curr_os_core_root = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "..", "..")
+    )
     if not os.path.exists(curr_os_core_root):
         full_path_to_file = os.path.abspath(os.path.dirname(__file__))
-        raise TankError("Cannot resolve the core configuration from the location of the Toolkit Code! "
-                        "This can happen if you try to move or symlink the Toolkit API. The "
-                        "Toolkit API is currently picked up from %s which is an "
-                        "invalid location." % full_path_to_file)
+        raise TankError(
+            "Cannot resolve the core configuration from the location of the Toolkit Code! "
+            "This can happen if you try to move or symlink the Toolkit API. The "
+            "Toolkit API is currently picked up from %s which is an "
+            "invalid location." % full_path_to_file
+        )
     return curr_os_core_root
 
 
@@ -204,10 +208,11 @@ def _create_installed_config_descriptor(pipeline_config_path):
     # and pipelineconfig_utils import each other. At some point we will refactor the functionality from
     # this file on the ConfigDescriptor objects and these circular includes won't be necessary anymore.
     from .descriptor import Descriptor, create_descriptor
+
     return create_descriptor(
         get_deferred_sg_connection(),
         Descriptor.INSTALLED_CONFIG,
-        dict(path=pipeline_config_path, type="path")
+        dict(path=pipeline_config_path, type="path"),
     )
 
 
@@ -221,8 +226,10 @@ def get_core_python_path_for_config(pipeline_config_path):
     :rtype: str
     """
     return os.path.join(
-        _create_installed_config_descriptor(pipeline_config_path).associated_core_descriptor["path"],
-        "python"
+        _create_installed_config_descriptor(
+            pipeline_config_path
+        ).associated_core_descriptor["path"],
+        "python",
     )
 
 
@@ -242,11 +249,13 @@ def get_core_path_for_config(pipeline_config_path):
         # folder, so we'll strip out a few folders to get to the <config-or-studio-root>
         studio_folder = os.path.join(
             # <config-or-studio-root>/install/core
-            _create_installed_config_descriptor(pipeline_config_path).associated_core_descriptor["path"],
+            _create_installed_config_descriptor(
+                pipeline_config_path
+            ).associated_core_descriptor["path"],
             # <config-or-studio-root>/install
             "..",
             # <config-or-studio-root>/
-            ".."
+            "..",
         )
         studio_folder = os.path.normpath(studio_folder)
         return studio_folder
@@ -268,14 +277,20 @@ def get_sgtk_module_path():
 
     :returns: Path to the ``sgtk`` module on disk.
     """
-    pipelineconfig_utils_py_location = __file__ # tk-core/python/tank/pipelineconfig_utils.py
+    pipelineconfig_utils_py_location = (
+        __file__
+    )  # tk-core/python/tank/pipelineconfig_utils.py
 
     # If the path is not absolute, make it so.
     if not os.path.isabs(pipelineconfig_utils_py_location):
-        pipelineconfig_utils_py_location = os.path.join(os.getcwd(), pipelineconfig_utils_py_location)
+        pipelineconfig_utils_py_location = os.path.join(
+            os.getcwd(), pipelineconfig_utils_py_location
+        )
 
-    tank_folder = os.path.dirname(pipelineconfig_utils_py_location) # tk-core/python/tank
-    python_folder = os.path.dirname(tank_folder) # tk-core/python
+    tank_folder = os.path.dirname(
+        pipelineconfig_utils_py_location
+    )  # tk-core/python/tank
+    python_folder = os.path.dirname(tank_folder)  # tk-core/python
 
     return python_folder
 
@@ -327,6 +342,7 @@ def resolve_all_os_paths_to_core(core_path):
     # @todo - refactor this to return a ShotgunPath
     return _get_install_locations(core_path).as_system_dict()
 
+
 def resolve_all_os_paths_to_config(pc_path):
     """
     Given a pipeline configuration path on the current os platform, 
@@ -335,6 +351,7 @@ def resolve_all_os_paths_to_config(pc_path):
     :returns: ShotgunPath object
     """
     return _get_install_locations(pc_path)
+
 
 def get_config_install_location(path):
     """
@@ -357,6 +374,7 @@ def get_config_install_location(path):
     """
     return _get_install_locations(path).current_os
 
+
 def _get_install_locations(path):
     """
     Given a pipeline configuration OR core location, return paths on all platforms.
@@ -367,29 +385,33 @@ def _get_install_locations(path):
     # basic sanity check
     if not os.path.exists(path):
         raise TankError("The core path '%s' does not exist on disk!" % path)
-    
+
     # for other platforms, read in install_location
     location_file = os.path.join(path, "config", "core", "install_location.yml")
 
     # load the config file
     try:
-        location_data = yaml_cache.g_yaml_cache.get(location_file, deepcopy_data=False) or {}
+        location_data = (
+            yaml_cache.g_yaml_cache.get(location_file, deepcopy_data=False) or {}
+        )
     except Exception as error:
-        raise TankError("Cannot load core config file '%s'. Error: %s" % (location_file, error))
+        raise TankError(
+            "Cannot load core config file '%s'. Error: %s" % (location_file, error)
+        )
 
     # do some cleanup on this file - sometimes there are entries that say "undefined"
     # or is just an empty string - turn those into null values
     linux_path = location_data.get("Linux")
     macosx_path = location_data.get("Darwin")
     win_path = location_data.get("Windows")
-    
+
     # this file may contain environment variables. Try to expand these.
     if linux_path:
-        linux_path = os.path.expandvars(linux_path)     
+        linux_path = os.path.expandvars(linux_path)
     if macosx_path:
-        macosx_path = os.path.expandvars(macosx_path) 
+        macosx_path = os.path.expandvars(macosx_path)
     if win_path:
-        win_path = os.path.expandvars(win_path) 
+        win_path = os.path.expandvars(win_path)
 
     # lastly, sanity check the paths - sometimes these files contain non-path
     # values such as "None" or "unknown"
@@ -407,6 +429,7 @@ def _get_install_locations(path):
 ####################################################################################################################
 # utils for determining core version numbers
 
+
 def get_currently_running_api_version():
     """
     Returns the version number string for the core API, 
@@ -415,7 +438,9 @@ def get_currently_running_api_version():
     :returns: version string, e.g. 'v1.2.3'. 'unknown' if a version number cannot be determined.
     """
     # read this from info.yml
-    info_yml_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "info.yml"))
+    info_yml_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "info.yml")
+    )
     return _get_version_from_manifest(info_yml_path)
 
 
@@ -433,7 +458,8 @@ def get_core_api_version(core_install_root):
     # now try to get to the info.yml file to get the version number
     info_yml_path = os.path.join(core_install_root, "install", "core", "info.yml")
     return _get_version_from_manifest(info_yml_path)
-    
+
+
 def _get_version_from_manifest(info_yml_path):
     """
     Helper method. 
@@ -460,8 +486,5 @@ def _get_core_descriptor_file(pipeline_config_path):
     :return: A string path to the core_api.yml file within the config.
     """
     return os.path.join(
-        pipeline_config_path,
-        "config",
-        "core",
-        constants.CONFIG_CORE_DESCRIPTOR_FILE
+        pipeline_config_path, "config", "core", constants.CONFIG_CORE_DESCRIPTOR_FILE
     )

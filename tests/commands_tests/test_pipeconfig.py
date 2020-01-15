@@ -25,7 +25,7 @@ from tank.errors import TankError
 
 from mock import patch
 
-from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
+from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
 from tank_test.mock_appstore import patch_app_store
 
 
@@ -33,6 +33,7 @@ class TestPipelineConfig(TankTestBase):
     """
     Perform tests around pipeline configs
     """
+
     def setUp(self):
         """
         Prepare unit test.
@@ -51,9 +52,7 @@ class TestPipelineConfig(TankTestBase):
         # Check that we get an error if trying to push while having a single
         # pipeline config
         self.assertRaisesRegex(
-            TankError,
-            "Only one pipeline config",
-            push_cmd.execute, {"target_id": 666}
+            TankError, "Only one pipeline config", push_cmd.execute, {"target_id": 666}
         )
         # Clone the current pipeline config
         clone_cmd = self.tk.get_command("clone_configuration")
@@ -61,24 +60,28 @@ class TestPipelineConfig(TankTestBase):
         temp_dir = tempfile.mkdtemp()
         temp_pc_dir = os.path.join(temp_dir, "test_pc_push")
         temp_pc_config_dir = os.path.join(temp_pc_dir, "config")
-        cloned_pc_id = clone_cmd.execute({
-            "source_id": pc.get_shotgun_id(),
-            "name": "test_pc_push",
-            "path_mac": temp_pc_dir,
-            "path_win": temp_pc_dir,
-            "path_linux": temp_pc_dir,
-        })
+        cloned_pc_id = clone_cmd.execute(
+            {
+                "source_id": pc.get_shotgun_id(),
+                "name": "test_pc_push",
+                "path_mac": temp_pc_dir,
+                "path_win": temp_pc_dir,
+                "path_linux": temp_pc_dir,
+            }
+        )
         # Check we can't push on ourself
         self.assertRaisesRegex(
             TankError,
             "The target pipeline config id must be different from the current one",
-            push_cmd.execute, {"target_id": pc.get_shotgun_id()}
+            push_cmd.execute,
+            {"target_id": pc.get_shotgun_id()},
         )
         # Check we can't push with an invalid target id
         self.assertRaisesRegex(
             TankError,
             "Id 6666 is not a valid pipeline config id",
-            push_cmd.execute, {"target_id": 6666}
+            push_cmd.execute,
+            {"target_id": 6666},
         )
 
         # Push the current pipeline config to the cloned one
@@ -121,7 +124,8 @@ class TestPipelineConfig(TankTestBase):
                 self.assertRaisesRegex(
                     TankError,
                     "Permission denied|Access is denied",
-                    push_cmd.execute, {"target_id": cloned_pc_id}
+                    push_cmd.execute,
+                    {"target_id": cloned_pc_id},
                 )
                 # But the target config should still be valid
                 sgtk.sgtk_from_path(temp_pc_dir)
@@ -134,7 +138,8 @@ class TestPipelineConfig(TankTestBase):
             self.assertRaisesRegex(
                 TankError,
                 "Symbolic links are not supported",
-                push_cmd.execute, {"target_id": cloned_pc_id, "use_symlink": True}
+                push_cmd.execute,
+                {"target_id": cloned_pc_id, "use_symlink": True},
             )
         else:
             push_cmd.execute({"target_id": cloned_pc_id, "use_symlink": True})

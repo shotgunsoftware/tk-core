@@ -33,7 +33,6 @@ import sys
 
 
 class GetCurrentLogin(Hook):
-
     def execute(self, **kwargs):
         """
         Retrieves the login name for the Shotgun user.
@@ -52,6 +51,7 @@ class GetCurrentLogin(Hook):
         else:
             try:
                 import pwd
+
                 pwd_entry = pwd.getpwuid(os.geteuid())
                 return pwd_entry[0]
             except:

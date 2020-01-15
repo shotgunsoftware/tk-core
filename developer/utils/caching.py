@@ -34,9 +34,13 @@ def _cache_descriptor(sg, desc_type, desc_dict, target_path):
     desc = create_descriptor(sg, desc_type, desc_dict, fallback_roots=[target_path])
     desc.ensure_local()
     desc_size_kb = filesystem.compute_folder_size(desc.get_path()) / 1024
-    logger.info("Caching %s into plugin bundle cache (size %d KiB)" % (desc, desc_size_kb))
+    logger.info(
+        "Caching %s into plugin bundle cache (size %d KiB)" % (desc, desc_size_kb)
+    )
     if not desc._io_descriptor.is_immutable():
-        logger.warning("Descriptor %r may not work for other users using the plugin!" % desc)
+        logger.warning(
+            "Descriptor %r may not work for other users using the plugin!" % desc
+        )
     desc.clone_cache(target_path)
 
 
@@ -84,12 +88,7 @@ def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
             if _should_skip_caching(desc):
                 continue
             # resolve descriptor and clone cache into bundle cache
-            _cache_descriptor(
-                sg_connection,
-                Descriptor.ENGINE,
-                desc,
-                bundle_cache_root
-            )
+            _cache_descriptor(sg_connection, Descriptor.ENGINE, desc, bundle_cache_root)
 
             for app in env.get_apps(eng):
                 desc = env.get_app_descriptor_dict(eng, app)
@@ -97,10 +96,7 @@ def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
                     continue
                 # resolve descriptor and clone cache into bundle cache
                 _cache_descriptor(
-                    sg_connection,
-                    Descriptor.APP,
-                    desc,
-                    bundle_cache_root
+                    sg_connection, Descriptor.APP, desc, bundle_cache_root
                 )
 
         for framework in env.get_frameworks():
@@ -108,13 +104,13 @@ def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
             if _should_skip_caching(desc):
                 continue
             _cache_descriptor(
-                sg_connection,
-                Descriptor.FRAMEWORK,
-                desc,
-                bundle_cache_root
+                sg_connection, Descriptor.FRAMEWORK, desc, bundle_cache_root
             )
 
-    logger.info("Total size of bundle cache: %d KiB" % (filesystem.compute_folder_size(bundle_cache_root) / 1024))
+    logger.info(
+        "Total size of bundle cache: %d KiB"
+        % (filesystem.compute_folder_size(bundle_cache_root) / 1024)
+    )
 
 
 def _on_rm_error(func, path, exc_info):
@@ -151,19 +147,19 @@ def cleanup_bundle_cache(bundle_cache_root):
     glob_patterns = [
         os.path.join(
             bundle_cache_root,
-            "git*", # Grabs all git descriptors
-            "*", # Grabs all bundles inside those descriptors
-            "*", # Grabs all commits inside those bundles
-            ".git" # Grabs all git files inside those commits.
+            "git*",  # Grabs all git descriptors
+            "*",  # Grabs all bundles inside those descriptors
+            "*",  # Grabs all commits inside those bundles
+            ".git",  # Grabs all git files inside those commits.
         ),
         os.path.join(
             bundle_cache_root,
-            "*", # Grabs all descriptor types
-            "*", # Grabs all bundles inside those descriptors
-            "*", # Grabs all commits inside those bundles
-            "tests" # Grabs all tests folders.
+            "*",  # Grabs all descriptor types
+            "*",  # Grabs all bundles inside those descriptors
+            "*",  # Grabs all commits inside those bundles
+            "tests",  # Grabs all tests folders.
         ),
-        os.path.join(bundle_cache_root, "tmp")
+        os.path.join(bundle_cache_root, "tmp"),
     ]
     for glob_pattern in glob_patterns:
         for folder_to_remove in glob.glob(glob_pattern):

@@ -43,8 +43,5 @@ class ContextAdditionalEntities(Hook):
         :returns: A dictionary with keys ``entity_types_in_path`` and ``entity_fields_on_task``.
         :rtype dict:
         """
-        val = {
-            "entity_types_in_path": [],
-            "entity_fields_on_task": []
-        }
+        val = {"entity_types_in_path": [], "entity_fields_on_task": []}
         return val

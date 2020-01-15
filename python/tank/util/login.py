@@ -30,10 +30,12 @@ def get_login_name():
     else:
         try:
             import pwd
+
             pwd_entry = pwd.getpwuid(os.geteuid())
             return pwd_entry[0]
         except:
             return None
+
 
 # note! Because the shotgun caching method can return None, to indicate that no
 # user was found, we cannot use a None value to indicate that the cache has not been
@@ -65,7 +67,9 @@ def get_shotgun_user(sg):
     if g_shotgun_user_cache == "unknown":
         fields = ["id", "type", "email", "login", "name", "image"]
         local_login = get_login_name()
-        g_shotgun_user_cache = sg.find_one("HumanUser", filters=[["login", "is", local_login]], fields=fields)
+        g_shotgun_user_cache = sg.find_one(
+            "HumanUser", filters=[["login", "is", local_login]], fields=fields
+        )
 
     return g_shotgun_user_cache
 
@@ -106,11 +110,18 @@ def get_current_user(tk):
     if current_login is None:
         g_shotgun_current_user_cache = None
     else:
-        fields = ["id", "type", "email", "login", "name", "image", "firstname", "lastname"]
+        fields = [
+            "id",
+            "type",
+            "email",
+            "login",
+            "name",
+            "image",
+            "firstname",
+            "lastname",
+        ]
         g_shotgun_current_user_cache = tk.shotgun.find_one(
-            "HumanUser",
-            filters=[["login", "is", current_login]],
-            fields=fields
+            "HumanUser", filters=[["login", "is", current_login]], fields=fields
         )
 
     return g_shotgun_current_user_cache

@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -16,7 +16,11 @@ import copy
 
 from ...errors import TankError
 
-from .expression_tokens import FilterExpressionToken, CurrentStepExpressionToken, CurrentTaskExpressionToken
+from .expression_tokens import (
+    FilterExpressionToken,
+    CurrentStepExpressionToken,
+    CurrentTaskExpressionToken,
+)
 
 
 def resolve_shotgun_filters(filters, sg_data):
@@ -31,12 +35,12 @@ def resolve_shotgun_filters(filters, sg_data):
     resolved_filters = copy.deepcopy(filters)
     for condition in resolved_filters["conditions"]:
         vals = condition["values"]
-        
+
         if vals[0] and isinstance(vals[0], FilterExpressionToken):
             # we got a $filter! - replace with resolved value
             expr_token = vals[0]
             vals[0] = expr_token.resolve_shotgun_data(sg_data)
-        
+
         if vals[0] and isinstance(vals[0], CurrentStepExpressionToken):
             # we got a current step filter! - replace with resolved value
             expr_token = vals[0]
@@ -45,7 +49,7 @@ def resolve_shotgun_filters(filters, sg_data):
         if vals[0] and isinstance(vals[0], CurrentTaskExpressionToken):
             # we got a current task filter! - replace with resolved value
             expr_token = vals[0]
-            vals[0] = expr_token.resolve_shotgun_data(sg_data)                
+            vals[0] = expr_token.resolve_shotgun_data(sg_data)
 
     return resolved_filters
 
@@ -65,9 +69,9 @@ def translate_filter_tokens(filter_list, parent, yml_path):
                         "values": [ FilterExpressionTokens(project) ] } 
                     ] }
     """
-    
+
     resolved_filters = copy.deepcopy(filter_list)
-    
+
     for sg_filter in resolved_filters:
         values = sg_filter["values"]
         new_values = []
@@ -78,18 +82,19 @@ def translate_filter_tokens(filter_list, parent, yml_path):
                     expr_token = FilterExpressionToken(filter_value, parent)
                 except TankError as e:
                     # specialized message
-                    raise TankError("Error resolving filter expression "
-                                    "%s in %s.yml: %s" % (filter_list, yml_path, e))
+                    raise TankError(
+                        "Error resolving filter expression "
+                        "%s in %s.yml: %s" % (filter_list, yml_path, e)
+                    )
                 new_values.append(expr_token)
             else:
                 new_values.append(filter_value)
-                
+
         sg_filter["values"] = new_values
-    
-    # add the wrapper around the list to make shotgun happy 
+
+    # add the wrapper around the list to make shotgun happy
     entity_filter = {}
     entity_filter["logical_operator"] = "and"
     entity_filter["conditions"] = resolved_filters
-    
-    return entity_filter
 
+    return entity_filter

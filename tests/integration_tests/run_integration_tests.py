@@ -31,11 +31,13 @@ def main():
     # Set up the environment variables so the test can be run simply by running
     # the test script.
     environ = copy.deepcopy(os.environ)
-    environ["PYTHONPATH"] = os.path.pathsep.join([
-        os.path.join(current_folder, "..", "python"),
-        os.path.join(current_folder, "..", "python", "third_party"),
-        os.path.join(current_folder, "..", "..", "python"),
-    ])
+    environ["PYTHONPATH"] = os.path.pathsep.join(
+        [
+            os.path.join(current_folder, "..", "python"),
+            os.path.join(current_folder, "..", "python", "third_party"),
+            os.path.join(current_folder, "..", "..", "python"),
+        ]
+    )
     environ["SHOTGUN_SCRIPT_NAME"] = os.environ.get("SHOTGUN_SCRIPT_NAME")
     environ["SHOTGUN_SCRIPT_KEY"] = os.environ.get("SHOTGUN_SCRIPT_KEY")
     environ["SHOTGUN_HOST"] = os.environ.get("SHOTGUN_HOST")
@@ -56,17 +58,9 @@ def main():
             print("=" * 79)
 
             if "--with-coverage" in sys.argv:
-                args = [
-                    "coverage",
-                    "run",
-                    "-a",
-                    filename
-                ]
+                args = ["coverage", "run", "-a", filename]
             else:
-                args = [
-                    sys.executable,
-                    filename
-                ]
+                args = [sys.executable, filename]
 
             subprocess.check_call(args, env=environ)
 

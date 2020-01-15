@@ -18,7 +18,6 @@ from sgtk import Hook
 
 
 class EnsureFolderExists(Hook):
-
     def execute(self, path, bundle_obj, **kwargs):
         """
         Creates folders on disk.

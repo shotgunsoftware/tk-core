@@ -12,7 +12,7 @@ from __future__ import with_statement
 import os
 
 from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 
 import sgtk
 
@@ -30,53 +30,67 @@ class TestIODescriptors(ShotgunTestBase):
             sgtk.descriptor.is_descriptor_version_missing(
                 {"type": "app_store", "version": "v1.1.1", "name": "tk-bundle"}
             ),
-            False
+            False,
         )
         self.assertEqual(
             sgtk.descriptor.is_descriptor_version_missing(
                 {"type": "app_store", "name": "tk-bundle"}
             ),
-            True
+            True,
         )
         self.assertEqual(
             sgtk.descriptor.is_descriptor_version_missing(
                 "sgtk:descriptor:app_store?version=v0.1.2&name=tk-bundle"
             ),
-            False
+            False,
         )
         self.assertEqual(
             sgtk.descriptor.is_descriptor_version_missing(
                 "sgtk:descriptor:app_store?name=tk-bundle"
             ),
-            True
+            True,
         )
         self.assertEqual(
-            sgtk.descriptor.is_descriptor_version_missing({"type": "dev", "path": "/tmp"}),
-            False
+            sgtk.descriptor.is_descriptor_version_missing(
+                {"type": "dev", "path": "/tmp"}
+            ),
+            False,
         )
         self.assertEqual(
-            sgtk.descriptor.is_descriptor_version_missing({"type": "path", "path": "/tmp"}),
-            False
+            sgtk.descriptor.is_descriptor_version_missing(
+                {"type": "path", "path": "/tmp"}
+            ),
+            False,
         )
         self.assertEqual(
-            sgtk.descriptor.is_descriptor_version_missing({"type": "manual", "name": "foo"}),
-            True
+            sgtk.descriptor.is_descriptor_version_missing(
+                {"type": "manual", "name": "foo"}
+            ),
+            True,
         )
         self.assertEqual(
-            sgtk.descriptor.is_descriptor_version_missing({"type": "shotgun", "name": "foo"}),
-            True
+            sgtk.descriptor.is_descriptor_version_missing(
+                {"type": "shotgun", "name": "foo"}
+            ),
+            True,
         )
         self.assertEqual(
-            sgtk.descriptor.is_descriptor_version_missing({"type": "shotgun", "id": 123}),
-            True
+            sgtk.descriptor.is_descriptor_version_missing(
+                {"type": "shotgun", "id": 123}
+            ),
+            True,
         )
         self.assertEqual(
-            sgtk.descriptor.is_descriptor_version_missing({"type": "git", "path": "foo"}),
-            True
+            sgtk.descriptor.is_descriptor_version_missing(
+                {"type": "git", "path": "foo"}
+            ),
+            True,
         )
         self.assertEqual(
-            sgtk.descriptor.is_descriptor_version_missing({"type": "git_branch", "path": "foo"}),
-            True
+            sgtk.descriptor.is_descriptor_version_missing(
+                {"type": "git_branch", "path": "foo"}
+            ),
+            True,
         )
 
     def test_latest_cached(self):
@@ -90,21 +104,21 @@ class TestIODescriptors(ShotgunTestBase):
             sg,
             sgtk.descriptor.Descriptor.APP,
             {"type": "app_store", "version": "v1.1.1", "name": "tk-bundle"},
-            bundle_cache_root_override=root
+            bundle_cache_root_override=root,
         )
 
         d2 = sgtk.descriptor.create_descriptor(
             sg,
             sgtk.descriptor.Descriptor.APP,
             {"type": "app_store", "version": "v1.2.1", "name": "tk-bundle"},
-            bundle_cache_root_override=root
+            bundle_cache_root_override=root,
         )
 
         d3 = sgtk.descriptor.create_descriptor(
             sg,
             sgtk.descriptor.Descriptor.APP,
             {"type": "app_store", "version": "v1.3.1", "name": "tk-bundle"},
-            bundle_cache_root_override=root
+            bundle_cache_root_override=root,
         )
 
         self.assertEqual(d.get_path(), None)
@@ -166,12 +180,12 @@ class TestIODescriptors(ShotgunTestBase):
             sgtk.descriptor.Descriptor.APP,
             location,
             bundle_cache_root_override=root_a,
-            fallback_roots=[root_b, root_c, root_d]
+            fallback_roots=[root_b, root_c, root_d],
         )
 
         self.assertEqual(
             d._io_descriptor._get_primary_cache_path(),
-            os.path.join(root_a, "app_store", "tk-bundle", "v1.1.1")
+            os.path.join(root_a, "app_store", "tk-bundle", "v1.1.1"),
         )
 
         # the bundle cache path set in the environment should
@@ -182,12 +196,12 @@ class TestIODescriptors(ShotgunTestBase):
                 sgtk.descriptor.Descriptor.APP,
                 location,
                 bundle_cache_root_override=root_a,
-                fallback_roots=[root_b, root_c, root_d]
+                fallback_roots=[root_b, root_c, root_d],
             )
 
             self.assertEqual(
                 desc_env._io_descriptor._get_primary_cache_path(),
-                os.path.join(root_env, "app_store", "tk-bundle", "v1.1.1")
+                os.path.join(root_env, "app_store", "tk-bundle", "v1.1.1"),
             )
 
         self.assertEqual(
@@ -197,8 +211,10 @@ class TestIODescriptors(ShotgunTestBase):
                 os.path.join(root_c, "app_store", "tk-bundle", "v1.1.1"),
                 os.path.join(root_d, "app_store", "tk-bundle", "v1.1.1"),
                 os.path.join(root_a, "app_store", "tk-bundle", "v1.1.1"),
-                os.path.join(root_a, "apps", "app_store", "tk-bundle", "v1.1.1") # legacy path
-            ]
+                os.path.join(
+                    root_a, "apps", "app_store", "tk-bundle", "v1.1.1"
+                ),  # legacy path
+            ],
         )
 
     def test_download_receipt(self):
@@ -212,7 +228,7 @@ class TestIODescriptors(ShotgunTestBase):
             sg,
             sgtk.descriptor.Descriptor.APP,
             {"type": "app_store", "version": "v1.1.1", "name": "tk-bundle"},
-            bundle_cache_root_override=root
+            bundle_cache_root_override=root,
         )
 
         self.assertEqual(d.get_path(), None)

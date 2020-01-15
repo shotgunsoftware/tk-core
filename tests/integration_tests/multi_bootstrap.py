@@ -69,7 +69,9 @@ class MultipleBootstrapAcrossCoreSwap(SgtkIntegrationTest):
                 # First make sure we're getting the expected behaviour and the classes are not the same
                 self.assertNotEqual(e.__class__, sgtk.platform.TankMissingEngineError)
                 # Due to core swapping this comparison needs to happen by name
-                self.assertEqual(e.__class__.__name__, sgtk.platform.TankMissingEngineError.__name__)
+                self.assertEqual(
+                    e.__class__.__name__, sgtk.platform.TankMissingEngineError.__name__
+                )
             except Exception:
                 print("Error detected was:")
                 print(traceback_str)

@@ -70,24 +70,33 @@ class ShotgunWrapper(Shotgun):
             # saml_login_request URL. In that case we will proceed to renew
             # the session.
             if (
-                e.errcode == httplib.FOUND and
-                "location" in e.headers and
-                e.headers["location"].endswith("/saml/saml_login_request")
+                e.errcode == httplib.FOUND
+                and "location" in e.headers
+                and e.headers["location"].endswith("/saml/saml_login_request")
             ):
                 # Silently ignoring the exception, as we will trigger the
                 # renew_session() call later on.
-                logger.debug("The SAML claims have expired. We need to renew the session")
+                logger.debug(
+                    "The SAML claims have expired. We need to renew the session"
+                )
             else:
                 raise e
 
         # Before renewing the session token, let's see if there is another
         # one in the session_cache.
-        session_info = session_cache.get_session_data(self._user.get_host(), self._user.get_login())
+        session_info = session_cache.get_session_data(
+            self._user.get_host(), self._user.get_login()
+        )
 
         # If the one if the cache is different, maybe another process refreshed the token
         # for us, let's try that token instead.
-        if session_info and session_info["session_token"] != self._user.get_session_token():
-            logger.debug("Different session token found in the session cache. Will try it.")
+        if (
+            session_info
+            and session_info["session_token"] != self._user.get_session_token()
+        ):
+            logger.debug(
+                "Different session token found in the session cache. Will try it."
+            )
             self.config.session_token = session_info["session_token"]
             # Try again. If it fails with an authentication fault, that's ok
             try:

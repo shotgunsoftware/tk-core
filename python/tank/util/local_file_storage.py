@@ -53,6 +53,7 @@ class LocalFileStorageManager(object):
                            to be retained between sessions.
     :constant PREFERENCES: Indicates a path that suitable for storing settings files and preferences.
     """
+
     # generation of path structures
     (CORE_V17, CORE_V18) = range(2)
 
@@ -169,11 +170,17 @@ class LocalFileStorageManager(object):
 
             elif sys.platform == "win32":
                 if path_type == cls.CACHE:
-                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun")
+                    return os.path.join(
+                        os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun"
+                    )
                 elif path_type == cls.PERSISTENT:
-                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun")
+                    return os.path.join(
+                        os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun"
+                    )
                 elif path_type == cls.LOGGING:
-                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun")
+                    return os.path.join(
+                        os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun"
+                    )
                 else:
                     raise ValueError("Unsupported path type!")
 
@@ -229,20 +236,18 @@ class LocalFileStorageManager(object):
             #
             base_url = base_url.replace(".shotgunstudio.com", "")
 
-        return os.path.join(
-            cls.get_global_root(path_type, generation),
-            base_url
-        )
+        return os.path.join(cls.get_global_root(path_type, generation), base_url)
 
     @classmethod
     def get_configuration_root(
-            cls,
-            hostname,
-            project_id,
-            plugin_id,
-            pipeline_config_id,
-            path_type,
-            generation=CORE_V18):
+        cls,
+        hostname,
+        project_id,
+        plugin_id,
+        pipeline_config_id,
+        path_type,
+        generation=CORE_V18,
+    ):
         """
         Returns the storage root for any data that is project and config specific.
 
@@ -296,7 +301,7 @@ class LocalFileStorageManager(object):
             return os.path.join(
                 cls.get_site_root(hostname, path_type, generation),
                 "project_%s" % project_id,
-                "config_%s" % pipeline_config_id
+                "config_%s" % pipeline_config_id,
             )
 
         else:
@@ -314,7 +319,10 @@ class LocalFileStorageManager(object):
                 # no pc id but instead an plugin id string
                 pc_suffix = ".%s" % filesystem.create_valid_filename(plugin_id)
             elif plugin_id and pipeline_config_id:
-                pc_suffix = "c%d.%s" % (pipeline_config_id, filesystem.create_valid_filename(plugin_id))
+                pc_suffix = "c%d.%s" % (
+                    pipeline_config_id,
+                    filesystem.create_valid_filename(plugin_id),
+                )
             else:
                 # No pipeline config id nor plugin id which is possible for caching
                 # at the site level.
@@ -328,5 +336,5 @@ class LocalFileStorageManager(object):
 
             return os.path.join(
                 cls.get_site_root(hostname, path_type, generation),
-                project_config_folder
+                project_config_folder,
             )

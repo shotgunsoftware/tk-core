@@ -12,6 +12,7 @@ import re
 
 from distutils.version import LooseVersion
 
+
 def is_version_head(version):
     """
     Returns if the specified version is HEAD or MASTER. The comparison is case insensitive.
@@ -78,6 +79,7 @@ def is_version_older(a, b):
 
     return LooseVersion(a) < LooseVersion(b)
 
+
 def is_version_number(version):
     """
     Tests whether the given string is a properly formed
@@ -94,4 +96,3 @@ def is_version_number(version):
         return True
     else:
         return False
-

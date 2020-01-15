@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -22,6 +22,7 @@ from .. import pipelineconfig_utils
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
 from .interaction import YesToEverythingInteraction
+
 
 class SetupProjectFactoryAction(Action):
     """
@@ -47,13 +48,18 @@ class SetupProjectFactoryAction(Action):
     >>> wizard.execute()
 
     """
+
     def __init__(self):
-        Action.__init__(self,
-                        "setup_project_factory",
-                        Action.GLOBAL,
-                        ("Returns a factory object which can be used to construct setup wizards. These wizards "
-                         "can then be used to run an interactive setup process."),
-                        "Configuration")
+        Action.__init__(
+            self,
+            "setup_project_factory",
+            Action.GLOBAL,
+            (
+                "Returns a factory object which can be used to construct setup wizards. These wizards "
+                "can then be used to run an interactive setup process."
+            ),
+            "Configuration",
+        )
 
         # no tank command support for this one because it returns an object
         self.supports_tank_command = False
@@ -97,13 +103,12 @@ class SetupProjectFactoryAction(Action):
         try:
             log.info("Connecting to Shotgun...")
             sg = shotgun.create_sg_connection()
-            sg_version = ".".join([ str(x) for x in sg.server_info["version"]])
+            sg_version = ".".join([str(x) for x in sg.server_info["version"]])
             log.debug("Connected to target Shotgun server! (v%s)" % sg_version)
         except Exception as e:
             raise TankError("Could not connect to Shotgun server: %s" % e)
 
         return sg
-
 
 
 class SetupProjectWizard(object):
@@ -336,9 +341,15 @@ class SetupProjectWizard(object):
         return_data = {}
         for s in self._params.get_required_storages():
             return_data[s] = {}
-            return_data[s]["darwin"] = self._params.preview_project_path(s, project_disk_name, "darwin")
-            return_data[s]["win32"] = self._params.preview_project_path(s, project_disk_name, "win32")
-            return_data[s]["linux2"] = self._params.preview_project_path(s, project_disk_name, "linux2")
+            return_data[s]["darwin"] = self._params.preview_project_path(
+                s, project_disk_name, "darwin"
+            )
+            return_data[s]["win32"] = self._params.preview_project_path(
+                s, project_disk_name, "win32"
+            )
+            return_data[s]["linux2"] = self._params.preview_project_path(
+                s, project_disk_name, "linux2"
+            )
 
         return return_data
 
@@ -367,7 +378,9 @@ class SetupProjectWizard(object):
             for s in self._params.get_required_storages():
 
                 # get the full path
-                proj_path = self._params.preview_project_path(s, project_disk_name, sys.platform)
+                proj_path = self._params.preview_project_path(
+                    s, project_disk_name, sys.platform
+                )
 
                 if not os.path.exists(proj_path):
                     self._log.info("Creating project folder '%s'..." % proj_path)
@@ -379,7 +392,10 @@ class SetupProjectWizard(object):
                     self._log.debug("...done!")
 
                 else:
-                    self._log.debug("Storage '%s' - project folder '%s' - already exists!" % (s, proj_path))
+                    self._log.debug(
+                        "Storage '%s' - project folder '%s' - already exists!"
+                        % (s, proj_path)
+                    )
 
         # lastly, register the name in shotgun
         self._params.set_project_disk_name(project_disk_name)
@@ -401,30 +417,39 @@ class SetupProjectWizard(object):
         # 3. failing that (meaning no projects have been set up ever) return None
 
         # now check the shotgun data
-        new_proj_disk_name = self._params.get_project_disk_name() # e.g. 'foo/bar_baz'
-        new_proj_disk_name_win = new_proj_disk_name.replace("/", "\\")  # e.g. 'foo\bar_baz'
+        new_proj_disk_name = self._params.get_project_disk_name()  # e.g. 'foo/bar_baz'
+        new_proj_disk_name_win = new_proj_disk_name.replace(
+            "/", "\\"
+        )  # e.g. 'foo\bar_baz'
 
         data = self._params.get_configuration_shotgun_info()
 
         if not data:
             # we are not based on an existing project. Instead pick the last primary config
             # that is using storages (e.g. has got tank_name set)
-            data = self._sg.find_one("PipelineConfiguration",
-                                     [["code", "is", "primary"],
-                                      ["project.Project.tank_name", "is_not", ""]
-                                      ],
-                                     ["id", 
-                                      "mac_path", 
-                                      "windows_path", 
-                                      "linux_path", 
-                                      "project", 
-                                      "project.Project.tank_name"],
-                                     [{"field_name": "created_at", "direction": "desc"}])
+            data = self._sg.find_one(
+                "PipelineConfiguration",
+                [
+                    ["code", "is", "primary"],
+                    ["project.Project.tank_name", "is_not", ""],
+                ],
+                [
+                    "id",
+                    "mac_path",
+                    "windows_path",
+                    "linux_path",
+                    "project",
+                    "project.Project.tank_name",
+                ],
+                [{"field_name": "created_at", "direction": "desc"}],
+            )
 
         if not data:
             # there are no primary configurations registered. This means that we are setting up
             # our very first project and cannot really suggest any config locations
-            self._log.debug("No configs available to generate preview config values. Returning None.")            
+            self._log.debug(
+                "No configs available to generate preview config values. Returning None."
+            )
             suggested_defaults = {"darwin": None, "linux2": None, "win32": None}
 
         elif data["project.Project.tank_name"] is None:
@@ -434,15 +459,22 @@ class SetupProjectWizard(object):
         else:
             # now take the pipeline config paths, and try to replace the current project name
             # in these paths by the new project name
-            self._log.debug("Basing config values on the following shotgun pipeline config: %s" % data)
+            self._log.debug(
+                "Basing config values on the following shotgun pipeline config: %s"
+                % data
+            )
 
             # get the project path for this project
-            old_project_disk_name = data["project.Project.tank_name"]  # e.g. 'foo/bar_baz'
-            old_project_disk_name_win = old_project_disk_name.replace("/", "\\")  # e.g. 'foo\bar_baz'
-            
-            # now replace the project path in the pipeline configuration 
+            old_project_disk_name = data[
+                "project.Project.tank_name"
+            ]  # e.g. 'foo/bar_baz'
+            old_project_disk_name_win = old_project_disk_name.replace(
+                "/", "\\"
+            )  # e.g. 'foo\bar_baz'
+
+            # now replace the project path in the pipeline configuration
             suggested_defaults = {"darwin": None, "linux2": None, "win32": None}
-            
+
             # go through each pipeline config path, try to find the project disk name as part of this
             # path. if that exists, replace with the new project disk name
             # here's the logic:
@@ -457,16 +489,25 @@ class SetupProjectWizard(object):
             # pipeline config: /mnt/configs/myproj/configz -> None
             #
             if data["mac_path"] and old_project_disk_name in data["mac_path"]:
-                suggested_defaults["darwin"] = data["mac_path"].replace(old_project_disk_name, new_proj_disk_name)
+                suggested_defaults["darwin"] = data["mac_path"].replace(
+                    old_project_disk_name, new_proj_disk_name
+                )
 
             if data["linux_path"] and old_project_disk_name in data["linux_path"]:
-                suggested_defaults["linux2"] = data["linux_path"].replace(old_project_disk_name, new_proj_disk_name)
+                suggested_defaults["linux2"] = data["linux_path"].replace(
+                    old_project_disk_name, new_proj_disk_name
+                )
 
-            if data["windows_path"] and old_project_disk_name_win in data["windows_path"]:
-                suggested_defaults["win32"] = data["windows_path"].replace(old_project_disk_name_win, new_proj_disk_name_win)
-                
+            if (
+                data["windows_path"]
+                and old_project_disk_name_win in data["windows_path"]
+            ):
+                suggested_defaults["win32"] = data["windows_path"].replace(
+                    old_project_disk_name_win, new_proj_disk_name_win
+                )
+
         return suggested_defaults
-    
+
     def validate_configuration_location(self, linux_path, windows_path, macosx_path):
         """
         Validates a potential location for the pipeline configuration. 
@@ -476,8 +517,10 @@ class SetupProjectWizard(object):
         :param windows_path: Path on windows
         :param macosx_path: Path on mac
         """
-        self._params.validate_configuration_location(linux_path, windows_path, macosx_path)
-            
+        self._params.validate_configuration_location(
+            linux_path, windows_path, macosx_path
+        )
+
     def set_configuration_location(self, linux_path, windows_path, macosx_path):
         """
         Specifies where the pipeline configuration should be located.
@@ -487,7 +530,7 @@ class SetupProjectWizard(object):
         :param macosx_path: Path on mac
         """
         self._params.set_configuration_location(linux_path, windows_path, macosx_path)
-    
+
     def get_core_settings(self):
         """
         Calculates core API associations for the new project.
@@ -530,7 +573,7 @@ class SetupProjectWizard(object):
         
         :returns: dictionary, see above for details.
         """
-        
+
         # first, work out which version of the core we should be associate the new project with.
         # this logic follows a similar pattern to the default config generation.
         #
@@ -543,7 +586,9 @@ class SetupProjectWizard(object):
         curr_core_path = pipelineconfig_utils.get_path_to_current_core()
 
         try:
-            core_path_object = pipelineconfig_utils.resolve_all_os_paths_to_core(curr_core_path)
+            core_path_object = pipelineconfig_utils.resolve_all_os_paths_to_core(
+                curr_core_path
+            )
         except TankError:
             self._log.debug(
                 "Unable to resolve all OS paths for the current tk-core path. Forging ahead with "
@@ -568,34 +613,46 @@ class SetupProjectWizard(object):
                 raise TankError(msg)
 
             core_path_object = ShotgunPath(*path_args).as_system_dict()
-        
-        return_data = { "localize": True,
-                        "using_runtime": True,
-                        "core_path": core_path_object, 
-                        "pipeline_config": None
-                      }
-        
+
+        return_data = {
+            "localize": True,
+            "using_runtime": True,
+            "core_path": core_path_object,
+            "pipeline_config": None,
+        }
+
         # first try to get shotgun pipeline config data from the config template
         data = self._params.get_configuration_shotgun_info()
-        
+
         if data:
-            self._log.debug("Will try to inherit core from the config template: %s" % data)
-            
-            # get the right path field from the config        
+            self._log.debug(
+                "Will try to inherit core from the config template: %s" % data
+            )
+
+            # get the right path field from the config
             pipeline_config_root_path = data[ShotgunPath.get_shotgun_storage_key()]
-            
+
             if pipeline_config_root_path and os.path.exists(pipeline_config_root_path):
                 # looks like this exists - try to resolve its core API location
-                
-                core_api_root = pipelineconfig_utils.get_core_path_for_config(pipeline_config_root_path)
+
+                core_api_root = pipelineconfig_utils.get_core_path_for_config(
+                    pipeline_config_root_path
+                )
 
                 if core_api_root:
                     # core api resolved correctly. Let's try to base our core on this config.
-                    self._log.debug("Will use pipeline configuration here: %s" % pipeline_config_root_path)
-                    self._log.debug("This has an associated core here: %s" % core_api_root)
+                    self._log.debug(
+                        "Will use pipeline configuration here: %s"
+                        % pipeline_config_root_path
+                    )
+                    self._log.debug(
+                        "This has an associated core here: %s" % core_api_root
+                    )
                     return_data["using_runtime"] = False
                     return_data["pipeline_config"] = data
-                    return_data["core_path"] = pipelineconfig_utils.resolve_all_os_paths_to_core(core_api_root)
+                    return_data[
+                        "core_path"
+                    ] = pipelineconfig_utils.resolve_all_os_paths_to_core(core_api_root)
 
                     # finally, check the logic for localization:
                     # if this core that we have found and resolved is localized,
@@ -605,17 +662,21 @@ class SetupProjectWizard(object):
                     else:
                         return_data["localize"] = False
                 else:
-                    self._log.warning("Cannot locate the Core API associated with the configuration in '%s'. "
-                                      "As a fallback, the currently executing Toolkit Core API will "
-                                      "be used." % pipeline_config_root_path )
-            
+                    self._log.warning(
+                        "Cannot locate the Core API associated with the configuration in '%s'. "
+                        "As a fallback, the currently executing Toolkit Core API will "
+                        "be used." % pipeline_config_root_path
+                    )
+
             else:
-                self._log.warning("You are basing your new project on an existing configuration ('%s'), however "
-                                  "the configuration does not exist on disk. As a fallback, the currently executing "
-                                  "Toolkit Core API will be used." % pipeline_config_root_path )
-        
+                self._log.warning(
+                    "You are basing your new project on an existing configuration ('%s'), however "
+                    "the configuration does not exist on disk. As a fallback, the currently executing "
+                    "Toolkit Core API will be used." % pipeline_config_root_path
+                )
+
         return return_data
-        
+
     def pre_setup_validation(self):
         """
         Performs basic validation checks on all the specified data together.
@@ -634,11 +695,13 @@ class SetupProjectWizard(object):
         """
         # get core logic
         core_settings = self.get_core_settings()
-                
+
         # ok - we are good to go! Set the core to use
-        self._params.set_associated_core_path(core_settings["core_path"]["linux2"], 
-                                              core_settings["core_path"]["win32"], 
-                                              core_settings["core_path"]["darwin"])
+        self._params.set_associated_core_path(
+            core_settings["core_path"]["linux2"],
+            core_settings["core_path"]["win32"],
+            core_settings["core_path"]["darwin"],
+        )
 
     def _get_server_version(self, connection):
         """
@@ -685,7 +748,10 @@ class SetupProjectWizard(object):
         # and finally carry out the setup
         run_project_setup(self._log, self._sg, self._params)
 
-        if self._params.get_distribution_mode() == ProjectSetupParameters.CENTRALIZED_CONFIG:
+        if (
+            self._params.get_distribution_mode()
+            == ProjectSetupParameters.CENTRALIZED_CONFIG
+        ):
 
             # ---- check if we should run the localization afterwards
 
@@ -704,11 +770,13 @@ class SetupProjectWizard(object):
             # localize it to use that version of core. alternatively, if the current
             # core being used is localized (as returned via `get_core_settings`),
             # then localize the new core with it.
-            if (pipelineconfig_utils.has_core_descriptor(config_path) or
-                    core_settings["localize"]):
+            if (
+                pipelineconfig_utils.has_core_descriptor(config_path)
+                or core_settings["localize"]
+            ):
                 core_localize.do_localize(
                     self._log,
                     self._sg,
                     config_path,
-                    YesToEverythingInteraction()  # don't prompt
+                    YesToEverythingInteraction(),  # don't prompt
                 )

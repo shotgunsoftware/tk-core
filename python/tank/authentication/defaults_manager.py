@@ -78,7 +78,11 @@ class DefaultsManager(object):
 
         :returns: A string containing the default host name.
         """
-        return self._fixed_host or session_cache.get_current_host() or self._user_settings.default_site
+        return (
+            self._fixed_host
+            or session_cache.get_current_host()
+            or self._user_settings.default_site
+        )
 
     def set_host(self, host):
         """
@@ -127,7 +131,10 @@ class DefaultsManager(object):
         # Make sure there is a current host. There could be none if no-one has
         # logged in with Toolkit yet.
         if self.get_host():
-            return session_cache.get_current_user(self.get_host()) or self._user_settings.default_login
+            return (
+                session_cache.get_current_user(self.get_host())
+                or self._user_settings.default_login
+            )
         else:
             return self._user_settings.default_login
 

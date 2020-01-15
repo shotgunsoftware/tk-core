@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -28,6 +28,7 @@ from . import constants
 from .import_stack import ImportStack
 
 core_logger = LogManager.get_logger(__name__)
+
 
 class TankBundle(object):
     """
@@ -52,7 +53,7 @@ class TankBundle(object):
         self.__sg = None
         self.__cache_location = {}
         self.__module_uid = None
-        self.__descriptor = descriptor    
+        self.__descriptor = descriptor
         self.__frameworks = {}
         self.__environment = env
         self.__log = log
@@ -85,12 +86,12 @@ class TankBundle(object):
             action,
             properties=properties,
             log_once=log_once,
-            bundle=self
+            bundle=self,
         )
 
     ##########################################################################################
     # properties used by internal classes, not part of the public interface
-    
+
     @property
     def descriptor(self):
         """
@@ -110,7 +111,7 @@ class TankBundle(object):
         do not use in any app code. 
         """
         return self.__settings
-    
+
     ##########################################################################################
     # methods used by internal classes, not part of the public interface
 
@@ -137,7 +138,7 @@ class TankBundle(object):
         :param other_settings: dictionary to use to find setting
         :param key: setting name
         """
-        template_name = self.get_setting_from(other_settings, key)        
+        template_name = self.get_setting_from(other_settings, key)
         return self.get_template_by_name(template_name)
 
     ##########################################################################################
@@ -151,7 +152,7 @@ class TankBundle(object):
         :returns: name as string
         """
         return self.__descriptor.system_name
-    
+
     @property
     def display_name(self):
         """
@@ -210,7 +211,7 @@ class TankBundle(object):
         
         :returns: Dictionary. See above for example 
         """
-        return constants.SG_STYLESHEET_CONSTANTS    
+        return constants.SG_STYLESHEET_CONSTANTS
 
     @property
     def documentation_url(self):
@@ -290,7 +291,7 @@ class TankBundle(object):
                 project_id=None,
                 plugin_id=None,
                 pipeline_configuration_id=None,
-                bundle=self
+                bundle=self,
             )
 
         return self.__cache_location["site"]
@@ -323,10 +324,10 @@ class TankBundle(object):
         :returns: :class:`~sgtk.Tank`
         """
         return self.__tk
-    
-    # new name compatibility 
+
+    # new name compatibility
     sgtk = tank
-    
+
     @property
     def frameworks(self):
         """
@@ -439,34 +440,43 @@ class TankBundle(object):
 
         # first, set the module we are currently processing
         ImportStack.push_current_bundle(self)
-        
+
         try:
-        
+
             # get the python folder
-            python_folder = os.path.join(self.disk_location, constants.BUNDLE_PYTHON_FOLDER)
+            python_folder = os.path.join(
+                self.disk_location, constants.BUNDLE_PYTHON_FOLDER
+            )
             if not os.path.exists(python_folder):
-                raise TankError("Cannot import - folder %s does not exist!" % python_folder)
-            
+                raise TankError(
+                    "Cannot import - folder %s does not exist!" % python_folder
+                )
+
             # and import
             if self.__module_uid is None:
                 self.log_debug("Importing python modules in %s..." % python_folder)
                 # alias the python folder with a UID to ensure it is unique every time it is imported
                 self.__module_uid = "tkimp%s" % uuid.uuid4().hex
-                imp.load_module(self.__module_uid, None, python_folder, ("", "", imp.PKG_DIRECTORY) )
-            
+                imp.load_module(
+                    self.__module_uid, None, python_folder, ("", "", imp.PKG_DIRECTORY)
+                )
+
             # we can now find our actual module in sys.modules as GUID.module_name
             mod_name = "%s.%s" % (self.__module_uid, module_name)
             if mod_name not in sys.modules:
-                raise TankError("Cannot find module %s as part of %s!" % (module_name, python_folder))
-            
-            # lastly, append our own object to the added module. This is to make it easier to 
+                raise TankError(
+                    "Cannot find module %s as part of %s!"
+                    % (module_name, python_folder)
+                )
+
+            # lastly, append our own object to the added module. This is to make it easier to
             # do elegant imports in the class scope via the tank.platform.import_framework method
             sys.modules[mod_name]._tank_bundle = self
-        
+
         finally:
             # no longer processing this one
             ImportStack.pop_current_bundle()
-        
+
         return sys.modules[mod_name]
 
     def get_project_cache_location(self, project_id):
@@ -488,7 +498,7 @@ class TankBundle(object):
                 project_id=project_id,
                 plugin_id=self.__tk.pipeline_configuration.get_plugin_id(),
                 pipeline_configuration_id=self.__tk.pipeline_configuration.get_shotgun_id(),
-                bundle=self
+                bundle=self,
             )
 
         return self.__cache_location[project_id]
@@ -505,7 +515,7 @@ class TankBundle(object):
         :returns: Value from the environment configuration
         """
         return self.__resolve_setting_value(self.__settings, key, default)
-            
+
     def get_template(self, key):
         """
         Returns a template object for a particular template setting in the Framework configuration.
@@ -517,9 +527,9 @@ class TankBundle(object):
         :param key: Setting to retrieve template for
         :returns: :class:`~Template` object
         """
-        template_name = self.get_setting(key)        
+        template_name = self.get_setting(key)
         return self.get_template_by_name(template_name)
-    
+
     def get_template_by_name(self, template_name):
         """
         Note: This is for advanced use cases - Most of the time you should probably use 
@@ -537,7 +547,7 @@ class TankBundle(object):
         :returns: :class:`~Template` object
         """
         return self.tank.templates.get(template_name)
-                        
+
     def execute_hook(self, key, base_class=None, **kwargs):
         """
         Execute a hook that is part of the environment configuration for the current bundle.
@@ -568,13 +578,9 @@ class TankBundle(object):
         hook_name = self.get_setting(key)
         resolved_hook_paths = self.__resolve_hook_expression(key, hook_name)
         return hook.execute_hook_method(
-            resolved_hook_paths,
-            self,
-            None,
-            base_class=base_class,
-            **kwargs
+            resolved_hook_paths, self, None, base_class=base_class, **kwargs
         )
-        
+
     def execute_hook_method(self, key, method_name, base_class=None, **kwargs):
         """
         Execute a specific method in a hook that is part of the 
@@ -618,14 +624,12 @@ class TankBundle(object):
         hook_name = self.get_setting(key)
         resolved_hook_paths = self.__resolve_hook_expression(key, hook_name)
         return hook.execute_hook_method(
-            resolved_hook_paths,
-            self,
-            method_name,
-            base_class=base_class,
-            **kwargs
+            resolved_hook_paths, self, method_name, base_class=base_class, **kwargs
         )
 
-    def execute_hook_expression(self, hook_expression, method_name, base_class=None, **kwargs):
+    def execute_hook_expression(
+        self, hook_expression, method_name, base_class=None, **kwargs
+    ):
         """
         Execute an arbitrary hook via an expression. While the methods execute_hook
         and execute_hook_method allows you to execute a particular hook setting as
@@ -653,11 +657,8 @@ class TankBundle(object):
         """
         resolved_hook_paths = self.__resolve_hook_expression(None, hook_expression)
         return hook.execute_hook_method(
-            resolved_hook_paths,
-            self,
-            method_name,
-            base_class=base_class,
-            **kwargs)
+            resolved_hook_paths, self, method_name, base_class=base_class, **kwargs
+        )
 
     def execute_hook_by_name(self, hook_name, **kwargs):
         """
@@ -716,9 +717,7 @@ class TankBundle(object):
         """
         resolved_hook_paths = self.__resolve_hook_expression(None, hook_expression)
         return hook.create_hook_instance(
-            resolved_hook_paths,
-            self,
-            base_class=base_class
+            resolved_hook_paths, self, base_class=base_class
         )
 
     def ensure_folder_exists(self, path):
@@ -735,9 +734,11 @@ class TankBundle(object):
                   over the methods provided in ``sgtk.util.filesystem``.
 
         :param path: path to create
-        """        
+        """
         try:
-            self.__tk.execute_core_hook("ensure_folder_exists", path=path, bundle_obj=self)
+            self.__tk.execute_core_hook(
+                "ensure_folder_exists", path=path, bundle_obj=self
+            )
         except Exception as e:
             raise TankError("Error creating folder %s: %s" % (path, e))
 
@@ -785,8 +786,11 @@ class TankBundle(object):
         """
 
         if hook_expression is None:
-            raise TankError("%s config setting %s: Configuration value cannot be None!" % (self, settings_name))
-        
+            raise TankError(
+                "%s config setting %s: Configuration value cannot be None!"
+                % (self, settings_name)
+            )
+
         path = None
 
         # make sure to replace the `{engine_name}` token if it exists.
@@ -795,13 +799,13 @@ class TankBundle(object):
             if not engine_name:
                 raise TankError(
                     "No engine could be determined for hook expression '%s'. "
-                    "The hook could not be resolved." % (hook_expression,))
+                    "The hook could not be resolved." % (hook_expression,)
+                )
             else:
                 hook_expression = hook_expression.replace(
-                    constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN,
-                    engine_name,
+                    constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, engine_name
                 )
-        
+
         # first the legacy, old-style hooks case
         if hook_expression == constants.TANK_BUNDLE_DEFAULT_HOOK_SETTING:
             # hook settings points to the default one.
@@ -811,45 +815,51 @@ class TankBundle(object):
             engine_name = self._get_engine_name()
 
             # Entries are on the following form
-            #            
+            #
             # hook_publish_file:
             #    type: hook
             #    description: Called when a file is published, e.g. copied from a work area to a publish area.
             #    default_value: maya_publish_file
             #
             resolved_hook_name = resolve_default_value(
-                manifest.get(settings_name), engine_name=engine_name)
+                manifest.get(settings_name), engine_name=engine_name
+            )
 
             # get the full path for the resolved hook name:
             if resolved_hook_name.startswith("{self}"):
-                # new format hook: 
+                # new format hook:
                 #  default_value: '{self}/my_hook.py'
                 hooks_folder = os.path.join(self.disk_location, "hooks")
                 path = resolved_hook_name.replace("{self}", hooks_folder)
                 path = path.replace("/", os.path.sep)
             else:
-                # old style hook: 
+                # old style hook:
                 #  default_value: 'my_hook'
-                path = os.path.join(self.disk_location, "hooks", "%s.py" % resolved_hook_name)
+                path = os.path.join(
+                    self.disk_location, "hooks", "%s.py" % resolved_hook_name
+                )
 
-            # if the hook uses the engine name then output a more useful error message if a hook for 
+            # if the hook uses the engine name then output a more useful error message if a hook for
             # the engine can't be found.
             if engine_name and not os.path.exists(path):
                 # produce user friendly error message
-                raise TankError("%s config setting %s: This hook is using an engine specific "
-                                "hook setup (e.g '%s') but no hook '%s' has been provided with the app. "
-                                "In order for this app to work with engine %s, you need to provide a "
-                                "custom hook implementation. Please contact support for more "
-                                "information" % (self, settings_name, resolved_hook_name, path, engine_name))
-            
+                raise TankError(
+                    "%s config setting %s: This hook is using an engine specific "
+                    "hook setup (e.g '%s') but no hook '%s' has been provided with the app. "
+                    "In order for this app to work with engine %s, you need to provide a "
+                    "custom hook implementation. Please contact support for more "
+                    "information"
+                    % (self, settings_name, resolved_hook_name, path, engine_name)
+                )
+
         elif hook_expression.startswith("{self}"):
             # bundle local reference
             hooks_folder = os.path.join(self.disk_location, "hooks")
             path = hook_expression.replace("{self}", hooks_folder)
             path = path.replace("/", os.path.sep)
-        
+
         elif hook_expression.startswith("{config}"):
-            # config hook 
+            # config hook
             hooks_folder = self.tank.pipeline_configuration.get_hooks_location()
             path = hook_expression.replace("{config}", hooks_folder)
             path = path.replace("/", os.path.sep)
@@ -861,25 +871,27 @@ class TankBundle(object):
             except AttributeError:
                 raise TankError(
                     "%s config setting %s: Could not determine the current "
-                    "engine. Unable to resolve hook path for: '%s'" %
-                    (self, settings_name, hook_expression)
+                    "engine. Unable to resolve hook path for: '%s'"
+                    % (self, settings_name, hook_expression)
                 )
 
             hooks_folder = os.path.join(engine.disk_location, "hooks")
             path = hook_expression.replace("{engine}", hooks_folder)
             path = path.replace("/", os.path.sep)
-        
+
         elif hook_expression.startswith("{$") and "}" in hook_expression:
             # environment variable: {$HOOK_PATH}/path/to/foo.py
             env_var = re.match("^\{\$([^\}]+)\}", hook_expression).group(1)
             if env_var not in os.environ:
-                raise TankError("%s config setting %s: This hook is referring to the configuration value '%s', "
-                                "but no environment variable named '%s' can be "
-                                "found!" % (self, settings_name, hook_expression, env_var))
+                raise TankError(
+                    "%s config setting %s: This hook is referring to the configuration value '%s', "
+                    "but no environment variable named '%s' can be "
+                    "found!" % (self, settings_name, hook_expression, env_var)
+                )
             env_var_value = os.environ[env_var]
             path = hook_expression.replace("{$%s}" % env_var, env_var_value)
-            path = path.replace("/", os.path.sep)        
-        
+            path = path.replace("/", os.path.sep)
+
         elif hook_expression.startswith("{") and "}" in hook_expression:
             # bundle instance (e.g. '{tk-framework-perforce_v1.x.x}/foo/bar.py' )
             # first find the bundle instance
@@ -892,27 +904,39 @@ class TankBundle(object):
             # having the same instance name.
             fw_instances = self.__environment.get_frameworks()
             if instance not in fw_instances:
-                raise TankError("%s config setting %s: This hook is referring to the configuration value '%s', "
-                                "but no framework with instance name '%s' can be found in the currently "
-                                "running environment. The currently loaded frameworks "
-                                "are %s." % (self, settings_name, hook_expression, instance, ", ".join(fw_instances)))
+                raise TankError(
+                    "%s config setting %s: This hook is referring to the configuration value '%s', "
+                    "but no framework with instance name '%s' can be found in the currently "
+                    "running environment. The currently loaded frameworks "
+                    "are %s."
+                    % (
+                        self,
+                        settings_name,
+                        hook_expression,
+                        instance,
+                        ", ".join(fw_instances),
+                    )
+                )
 
             fw_desc = self.__environment.get_framework_descriptor(instance)
-            if not(fw_desc.exists_local()):
-                raise TankError("%s config setting %s: This hook is referring to the configuration value '%s', "
-                                "but the framework with instance name '%s' does not exist on disk. Please run "
-                                "the tank cache_apps command." % (self, settings_name, hook_expression, instance))
-            
+            if not (fw_desc.exists_local()):
+                raise TankError(
+                    "%s config setting %s: This hook is referring to the configuration value '%s', "
+                    "but the framework with instance name '%s' does not exist on disk. Please run "
+                    "the tank cache_apps command."
+                    % (self, settings_name, hook_expression, instance)
+                )
+
             # get path to framework on disk
             hooks_folder = os.path.join(fw_desc.get_path(), "hooks")
             # create the path to the file
             path = hook_expression.replace("{%s}" % instance, hooks_folder)
             path = path.replace("/", os.path.sep)
-            
+
         else:
             # old school config hook name, e.g. just 'foo'
             hook_folder = self.tank.pipeline_configuration.get_hooks_location()
-            path = os.path.join(hook_folder, "%s.py" % hook_expression)            
+            path = os.path.join(hook_folder, "%s.py" % hook_expression)
 
         return path
 
@@ -965,7 +989,9 @@ class TankBundle(object):
         # hook_paths: ["{self}/foo_tk-maya.py", "{config}/my_custom_hook.py" ]
         #
         # Check only new-style hooks. All new style hooks start with a {
-        if unresolved_hook_paths[0].startswith("{") and not unresolved_hook_paths[0].startswith("{self}"):
+        if unresolved_hook_paths[0].startswith("{") and not unresolved_hook_paths[
+            0
+        ].startswith("{self}"):
             # this is a new style hook that is not the default hook value.
             # now prepend the default hook first in the list
             manifest = self.__descriptor.configuration_schema
@@ -974,9 +1000,8 @@ class TankBundle(object):
 
             if settings_name:
                 default_value = resolve_default_value(
-                    manifest.get(settings_name),
-                    engine_name=self._get_engine_name(),
-            )
+                    manifest.get(settings_name), engine_name=self._get_engine_name()
+                )
 
             if default_value:  # possible not to have a default value!
 
@@ -998,14 +1023,13 @@ class TankBundle(object):
                     unresolved_hook_paths.insert(0, default_value)
 
         # resolve paths into actual file paths
-        resolved_hook_paths = [self.__resolve_hook_path(settings_name, x) for x in unresolved_hook_paths]
+        resolved_hook_paths = [
+            self.__resolve_hook_path(settings_name, x) for x in unresolved_hook_paths
+        ]
 
         core_logger.debug(
-            "%s: Resolved hook expression (associated with setting '%s'): '%s' -> %s" % (
-                self,
-                settings_name,
-                hook_expression,
-                resolved_hook_paths)
+            "%s: Resolved hook expression (associated with setting '%s'): '%s' -> %s"
+            % (self, settings_name, hook_expression, resolved_hook_paths)
         )
 
         return resolved_hook_paths
@@ -1091,11 +1115,7 @@ def _post_process_settings_r(tk, key, value, schema, bundle=None):
         for x in value:
             processed_val.append(
                 _post_process_settings_r(
-                    tk=tk,
-                    key=key,
-                    value=x,
-                    schema=value_schema,
-                    bundle=bundle,
+                    tk=tk, key=key, value=x, schema=value_schema, bundle=bundle
                 )
             )
 
@@ -1105,11 +1125,7 @@ def _post_process_settings_r(tk, key, value, schema, bundle=None):
         processed_val = value
         for (key, value_schema) in items.iteritems():
             processed_val[key] = _post_process_settings_r(
-                tk=tk,
-                key=key,
-                value=value[key],
-                schema=value_schema,
-                bundle=bundle,
+                tk=tk, key=key, value=value[key], schema=value_schema, bundle=bundle
             )
 
     elif settings_type == "config_path":
@@ -1167,9 +1183,10 @@ def resolve_setting_value(tk, engine_name, schema, settings, key, default, bundl
 
     return value
 
+
 def resolve_default_value(
-        schema, default=None, engine_name=None, raise_if_missing=False
-    ):
+    schema, default=None, engine_name=None, raise_if_missing=False
+):
     """
     Extract a default value from the supplied schema.
 
@@ -1192,7 +1209,7 @@ def resolve_default_value(
     if engine_name:
         engine_default_key = "%s_%s" % (
             constants.TANK_SCHEMA_DEFAULT_VALUE_KEY,
-            engine_name
+            engine_name,
         )
 
     # Now look for a default value to use.
@@ -1257,8 +1274,7 @@ def _resolve_default_hook_value(value, engine_name=None):
     # since hooks are actually evaluated just before they are executed. We'll
     # simply return the value with the engine name token intact.
     if engine_name and constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN in value:
-        value = value.replace(
-            constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, engine_name)
+        value = value.replace(constants.TANK_HOOK_ENGINE_REFERENCE_TOKEN, engine_name)
 
     if not value.startswith("{"):
         # This is an old-style hook. In order to maintain backward
@@ -1268,4 +1284,3 @@ def _resolve_default_hook_value(value, engine_name=None):
     # the remaining tokens ({self}, {config}, {tk-framework-...}) will be
     # resolved at runtime just before the hook is executed.
     return value
-

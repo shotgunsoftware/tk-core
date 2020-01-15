@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from ..errors import TankError
@@ -48,9 +48,9 @@ class Action(object):
     is the Action brigde which connects App commands with tank commands; this is how app commands
     are executed when you run the inside the Shell engine. 
     """
-    
+
     GLOBAL, TK_INSTANCE, CTX, ENGINE = range(4)
-    
+
     def __init__(self, name, mode, description, category):
         self.name = name
         self.mode = mode
@@ -59,20 +59,20 @@ class Action(object):
 
         self._interaction_interface = None
         self._terminate_requested = False
-        
+
         # set this property to False if your command doesn't support tank command access
-        self.supports_tank_command = True 
-        
+        self.supports_tank_command = True
+
         # set this property to True if your command supports API access
         self.supports_api = False
-        
+
         # when using the API mode, need to specify the parameters
         # this should be a dictionary on the form
         #
         # { "parameter_name": { "description": "Parameter info",
         #                    "default": None,
-        #                    "type": "str" }, 
-        #                    
+        #                    "type": "str" },
+        #
         #  ...
         #
         #  "return_value": { "description": "Return value (optional)",
@@ -80,19 +80,19 @@ class Action(object):
         # }
         #
         self.parameters = {}
-        
+
         # special flag for commands that run in multiple contexts where an engine
         # is optional, but beneficial. This is so that the system can determine
-        # whether it is worth starting the engine or not. 
+        # whether it is worth starting the engine or not.
         self.wants_running_shell_engine = False
         if self.mode == Action.ENGINE:
             self.wants_running_shell_engine = True
-        
+
         # these need to be filled in by calling code prior to execution
         self.tk = None
         self.context = None
         self.engine = None
-        
+
     def __repr__(self):
         mode_str = "UNKNOWN"
         if self.mode == Action.GLOBAL:
@@ -103,12 +103,16 @@ class Action(object):
             mode_str = "CTX"
         elif self.mode == Action.ENGINE:
             mode_str = "ENGINE"
-        
-        return "<Action Cmd: '%s' Category: '%s' MODE:%s>" % (self.name, self.category, mode_str)
-            
+
+        return "<Action Cmd: '%s' Category: '%s' MODE:%s>" % (
+            self.name,
+            self.category,
+            mode_str,
+        )
+
     def __str__(self):
         return "Command %s (Category %s)" % (self.name, self.category)
-        
+
     def _validate_parameters(self, parameters):
         """
         Helper method typically executed inside run_noninteractive.
@@ -126,25 +130,25 @@ class Action(object):
         
         :returns: A dictionary which is a full and validated list of parameters, keyed by parameter name.
                   Values not supplied by the user will have default values instead. 
-        """ 
+        """
         new_param_values = {}
-        
+
         # pass 1 - first get both user supplied and default values
         # into target dictionary
         for name in self.parameters:
-            
+
             if name == "return_value":
                 continue
-            
+
             if name in parameters:
                 # get param from input data
                 new_param_values[name] = parameters[name]
-            
+
             elif "default" in self.parameters[name]:
                 # no user defined value, but a default value
-                # use default value from param def 
+                # use default value from param def
                 new_param_values[name] = self.parameters[name]["default"]
-        
+
         # pass 2 - make sure all params are defined
         for name in self.parameters:
 
@@ -152,16 +156,21 @@ class Action(object):
                 continue
 
             if name not in new_param_values:
-                raise TankError("Cannot execute %s - parameter '%s' not specified!" % (self, name))
-            
+                raise TankError(
+                    "Cannot execute %s - parameter '%s' not specified!" % (self, name)
+                )
+
         # pass 3 - check types of all params.
         for name in new_param_values:
             val = new_param_values[name]
             val_type = val.__class__.__name__
             req_type = self.parameters[name].get("type")
             if val is not None and val_type != req_type:
-                raise TankError("Cannot execute %s - parameter '%s' not of required type %s" % (self, name, req_type))
-        
+                raise TankError(
+                    "Cannot execute %s - parameter '%s' not of required type %s"
+                    % (self, name, req_type)
+                )
+
         return new_param_values
 
     def set_interaction_interface(self, interaction_interface):
@@ -192,7 +201,7 @@ class Action(object):
             to be passed to the command.
         """
         raise NotImplementedError
-             
+
     def run_noninteractive(self, log, parameters):
         """
         Run command in non-interactive (API) mode.
@@ -207,4 +216,3 @@ class Action(object):
         :returns: Whatever the command specifies
         """
         raise NotImplementedError
-

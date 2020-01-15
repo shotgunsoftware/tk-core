@@ -19,6 +19,7 @@ class TestLauncher(SoftwareLauncher):
     """
     SoftwareLauncher stub for unit testing.
     """
+
     def scan_software(self):
         """
         Performs a scan for software installations.
@@ -35,12 +36,7 @@ class TestLauncher(SoftwareLauncher):
             sw_path = "/path/to/unit/test/app/%s/executable"
             sw_icon = "%s/icons/exec.png" % os.path.dirname(sw_path)
             sw_versions.append(
-                SoftwareVersion(
-                    version,
-                    "Unit Test App",  # product
-                    sw_path,
-                    sw_icon,
-                )
+                SoftwareVersion(version, "Unit Test App", sw_path, sw_icon)  # product
             )
         return sw_versions
 
@@ -69,4 +65,3 @@ class TestLauncher(SoftwareLauncher):
 
     def _is_product_supported(self, version):
         return self._SoftwareLauncher__is_product_supported(version)
-

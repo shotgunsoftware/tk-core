@@ -21,7 +21,7 @@ import random
 import time
 
 from tank_test.tank_test_base import TankTestBase, skip_if_pyside_missing
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 
 import contextlib
 import tank
@@ -48,17 +48,16 @@ class TestEngineBase(TankTestBase):
         seq = {"type": "Sequence", "name": "seq_name", "id": 3}
         seq_path = os.path.join(self.project_root, "sequences/Seq")
         self.add_production_path(seq_path, seq)
-        shot = {"type": "Shot",
-                "name": "shot_name",
-                "id": 2,
-                "project": self.project}
+        shot = {"type": "Shot", "name": "shot_name", "id": 2, "project": self.project}
         shot_path = os.path.join(seq_path, "shot_code")
         self.add_production_path(shot_path, shot)
         step = {"type": "Step", "name": "step_name", "id": 4}
         self.shot_step_path = os.path.join(shot_path, "step_name")
         self.add_production_path(self.shot_step_path, step)
 
-        self.test_resource = os.path.join(self.pipeline_config_root, "config", "foo", "bar.png")
+        self.test_resource = os.path.join(
+            self.pipeline_config_root, "config", "foo", "bar.png"
+        )
         os.makedirs(os.path.dirname(self.test_resource))
         fh = open(self.test_resource, "wt")
         fh.write("test")
@@ -88,8 +87,12 @@ class TestStartEngine(TestEngineBase):
         """
         Makes sure the engine is loaded from the right location.
         """
-        engine_path = tank.platform.get_engine_path("test_engine", self.tk, self.context)
-        expected_engine_path = os.path.join(self.project_config, "bundles", "test_engine")
+        engine_path = tank.platform.get_engine_path(
+            "test_engine", self.tk, self.context
+        )
+        expected_engine_path = os.path.join(
+            self.project_config, "bundles", "test_engine"
+        )
         self.assertEqual(engine_path, expected_engine_path)
 
     def test_valid_engine(self):
@@ -105,7 +108,9 @@ class TestStartEngine(TestEngineBase):
         """
         engine_name = "test_engine"
         tank.platform.start_engine(engine_name, self.tk, self.context)
-        self.assertRaises(TankError, tank.platform.start_engine, engine_name, self.tk, self.context)
+        self.assertRaises(
+            TankError, tank.platform.start_engine, engine_name, self.tk, self.context
+        )
 
     def test_properties(self):
         """
@@ -136,7 +141,7 @@ class TestLegacyStartShotgunEngine(TestEngineBase):
             TankError,
             tank.platform.engine.start_shotgun_engine,
             self.tk,
-            "empty", # This corresponds to shotgun_empty.yml in the fixture.
+            "empty",  # This corresponds to shotgun_empty.yml in the fixture.
             self.context,
         )
 
@@ -161,14 +166,18 @@ class TestExecuteInMainThread(TestEngineBase):
         """
         Checks that execute in main thread actually executes in the main thread.
         """
-        self._test_exec_in_main_thread(sgtk.platform.current_engine().execute_in_main_thread)
+        self._test_exec_in_main_thread(
+            sgtk.platform.current_engine().execute_in_main_thread
+        )
 
     @skip_if_pyside_missing
     def test_async_exec_in_main_thread(self):
         """
         Checks that execute in main thread actually executes in the main thread.
         """
-        self._test_exec_in_main_thread(sgtk.platform.current_engine().async_execute_in_main_thread)
+        self._test_exec_in_main_thread(
+            sgtk.platform.current_engine().async_execute_in_main_thread
+        )
 
     def _test_exec_in_main_thread(self, exec_in_main_thread_func):
         """
@@ -176,15 +185,22 @@ class TestExecuteInMainThread(TestEngineBase):
 
         :param exec_in_main_thread_func: Method that can send a request to the main thread.
         """
-        t = threading.Thread(target=lambda: exec_in_main_thread_func(self._assert_run_in_main_thread_and_quit))
+        t = threading.Thread(
+            target=lambda: exec_in_main_thread_func(
+                self._assert_run_in_main_thread_and_quit
+            )
+        )
         t.start()
         sgtk.platform.qt.QtCore.QCoreApplication.instance().exec_()
         t.join()
 
     def _assert_run_in_main_thread_and_quit(self):
         from sgtk.platform.qt import QtCore
+
         # Make sure we are running in the main thread.
-        self.assertEqual(QtCore.QThread.currentThread(), QtCore.QCoreApplication.instance().thread())
+        self.assertEqual(
+            QtCore.QThread.currentThread(), QtCore.QCoreApplication.instance().thread()
+        )
         QtCore.QCoreApplication.instance().quit()
 
     @skip_if_pyside_missing
@@ -192,14 +208,18 @@ class TestExecuteInMainThread(TestEngineBase):
         """
         Makes sure the main thread invoker doesn't deadlock when called from the main thread.
         """
-        sgtk.platform.current_engine().execute_in_main_thread(self._assert_run_in_main_thread_and_quit)
+        sgtk.platform.current_engine().execute_in_main_thread(
+            self._assert_run_in_main_thread_and_quit
+        )
 
     @skip_if_pyside_missing
     def test_async_exec_in_main_thread_deadlock(self):
         """
         Makes sure the main thread async invoker doesn't deadlock when called from the main thread.
         """
-        sgtk.platform.current_engine().async_execute_in_main_thread(self._assert_run_in_main_thread_and_quit)
+        sgtk.platform.current_engine().async_execute_in_main_thread(
+            self._assert_run_in_main_thread_and_quit
+        )
 
     # FIXME: Deactivating this test because it randomly freezes, but the code doesn't seem
     # to have any problem in production (which we would have heard of, since the background task
@@ -246,7 +266,7 @@ class TestExecuteInMainThread(TestEngineBase):
                     st = time.time()
                     ret_val = eng.execute_in_main_thread(run_in_main_thread, arg)
                     e = time.time()
-                    c_time += (e - st)
+                    c_time += e - st
                     self.assertEqual(ret_val, arg)
             except Exception as e:
                 print(e)
@@ -286,11 +306,11 @@ class TestContextChange(TestEngineBase):
         # they have been invoked and with what parameters.
         self._pre_patch = mock.patch(
             "sgtk.platform.engine._CoreContextChangeHookGuard._execute_pre_context_change",
-            wraps=engine._CoreContextChangeHookGuard._execute_pre_context_change
+            wraps=engine._CoreContextChangeHookGuard._execute_pre_context_change,
         )
         self._post_patch = mock.patch(
             "sgtk.platform.engine._CoreContextChangeHookGuard._execute_post_context_change",
-            wraps=engine._CoreContextChangeHookGuard._execute_post_context_change
+            wraps=engine._CoreContextChangeHookGuard._execute_post_context_change,
         )
 
     @contextlib.contextmanager
@@ -433,6 +453,7 @@ class TestRegisteredCommands(TestEngineBase):
     """
     Test functionality related to registering commands with an engine.
     """
+
     def _command_callback(self):
         pass
 
@@ -495,29 +516,33 @@ class TestRegisteredCommands(TestEngineBase):
                 "description": "This is test command one.",
                 "app": test_app_1,
                 "group": "Group One",
-            }, {
+            },
+            {
                 "short_name": "cmd2_sn",
                 "title": "Command Two",
                 "description": "This is test command two.",
                 "app": test_app_1,
                 "group": "Group Two",
-            }, {
+            },
+            {
                 "short_name": "cmd3_sn",
                 "title": "Command Three",
                 "description": "This is test command three.",
                 "app": test_app_2,
                 "group": "Group One",
-            }, {
+            },
+            {
                 "short_name": "cmd4_sn",
                 "title": "Command Four",
                 "description": "This is test command four.",
                 "app": test_app_2,
-            }, {
+            },
+            {
                 "short_name": "cmd5_sn",
                 "title": "Command Five",
                 "description": "This is test command five.",
                 "group": "Group One",
-            }
+            },
         ]
 
         # Register the first command and verify the command name key is
@@ -556,12 +581,8 @@ class TestRegisteredCommands(TestEngineBase):
 
 
 class TestCompatibility(TankTestBase):
-
     def test_backwards_compatible(self):
         """
         Ensures the API is backwards compatible as we've moved TankEngineInitErrorto a new location.
         """
-        self.assertEqual(
-            sgtk.platform.TankEngineInitError,
-            sgtk.TankEngineInitError
-        )
+        self.assertEqual(sgtk.platform.TankEngineInitError, sgtk.TankEngineInitError)

@@ -86,9 +86,8 @@ def resolve_include(file_name, include):
     # make sure that the paths all exist
     if not os.path.exists(path):
         raise TankError(
-            "Include resolve error in '%s': '%s' resolved to '%s' which does not exist!" % (
-                file_name, include, path
-            )
+            "Include resolve error in '%s': '%s' resolved to '%s' which does not exist!"
+            % (file_name, include, path)
         )
 
     return path
