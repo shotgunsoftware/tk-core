@@ -22,7 +22,7 @@ from ..util.version import is_version_older
 from .action_base import Action
 from .. import pipelineconfig_utils
 from .. import pipelineconfig_factory
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor import six
 from tank_vendor.shotgun_api3.lib import sgsix
 
 # these are the items that need to be copied across

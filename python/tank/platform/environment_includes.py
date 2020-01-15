@@ -42,7 +42,7 @@ from . import constants
 from ..util import sgre as re
 from ..util.yaml_cache import g_yaml_cache
 from ..util.includes import resolve_include
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
 

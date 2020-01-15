@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import logging
-from tank_vendor.shotgun_api3.lib.six.moves import queue
+from tank_vendor.six.moves import queue
 import sys
 
 class ToolkitEngineHandler(logging.Handler):

@@ -13,8 +13,8 @@ import os
 from .. import LogManager
 from .unicode import ensure_contains_str
 
-from tank_vendor.shotgun_api3.lib.six.moves import cPickle
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor.six.moves import cPickle
+from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
 

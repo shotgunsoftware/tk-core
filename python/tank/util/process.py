@@ -13,7 +13,7 @@ import pprint
 
 from .platforms import is_windows
 from ..log import LogManager
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor import six
 
 logger = LogManager.get_logger(__name__)
 

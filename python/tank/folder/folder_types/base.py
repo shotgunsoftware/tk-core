@@ -12,7 +12,7 @@ import os
 import copy
 
 from .expression_tokens import SymlinkToken
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor import six
 
 
 class Folder(object):

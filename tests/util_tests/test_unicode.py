@@ -11,7 +11,7 @@
 
 from unittest2 import TestCase, skipIf
 import sgtk
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor import six
 
 if six.PY2:
     char = "漢字"

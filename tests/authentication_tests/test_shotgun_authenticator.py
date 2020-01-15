@@ -13,7 +13,7 @@ from mock import patch
 import os
 import base64
 
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor import six
 
 from tank_test.tank_test_base import ShotgunTestBase
 from tank_test.tank_test_base import setUpModule # noqa

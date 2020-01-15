@@ -26,7 +26,7 @@ from tank_test.tank_test_base import setUpModule # noqa
 import sgtk
 import tank
 from tank.util import is_windows
-from tank_vendor.shotgun_api3.lib.six import b
+from tank_vendor.six import b
 
 
 def _raise_exception(placeholder_a="default_a", placeholder_b="default_b"):

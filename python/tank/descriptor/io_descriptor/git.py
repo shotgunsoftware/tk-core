@@ -21,7 +21,7 @@ from ..errors import TankError
 from ...util import filesystem
 from ...util import is_windows
 
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
 

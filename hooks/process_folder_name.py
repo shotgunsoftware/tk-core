@@ -26,7 +26,7 @@ is being used, for example:
 
 from tank import Hook
 import re
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor import six
 
 
 class ProcessFolderName(Hook):

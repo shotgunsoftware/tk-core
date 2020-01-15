@@ -22,7 +22,7 @@ from ..util import ShotgunPath
 import os
 import datetime
 import shutil
-from tank_vendor.shotgun_api3.lib.six.moves import input
+from tank_vendor.six.moves import input
 
 # Core configuration files which are associated with the core API installation and not
 # the pipeline configuration.
