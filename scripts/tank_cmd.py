@@ -413,11 +413,11 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
         if cache_file_created:
             old_umask = os.umask(0)
             try:
-                os.chmod(cache_path, 0666)
+                os.chmod(cache_path, 0o666)
             finally:
                 os.umask(old_umask)
 
-    except Exception, e:
+    except Exception as e:
         raise TankError("Could not write to cache file %s: %s" % (cache_path, e))
 
 
@@ -434,7 +434,7 @@ def shotgun_cache_actions(pipeline_config_root, args):
         # this will be detected by the shotgun and shell engines
         # and used.
         tk.log = logger
-    except TankError, e:
+    except TankError as e:
         raise TankError("Could not instantiate an Sgtk API Object! Details: %s" % e )
 
     # params: entity_type, cache_file_name
@@ -447,9 +447,9 @@ def shotgun_cache_actions(pipeline_config_root, args):
     num_log_messages_before = formatter.get_num_errors()
     try:
         _write_shotgun_cache(tk, entity_type, cache_file_name)
-    except TankError, e:
+    except TankError as e:
         logger.error("Error writing shotgun cache file: %s" % e)
-    except Exception, e:
+    except Exception as e:
         logger.exception("A general error occurred.")
     num_log_messages_after = formatter.get_num_errors()
 
@@ -634,7 +634,7 @@ def _shotgun_run_action(install_root, pipeline_config_root, is_localized, action
         # this will be detected by the shotgun and shell engines
         # and used.
         tk.log = logger
-    except TankError, e:
+    except TankError as e:
         raise TankError("Could not instantiate an Sgtk API Object! Details: %s" % e )
 
     if action_name == "__clone_pc":
@@ -914,7 +914,7 @@ def _resolve_shotgun_entity(entity_type, entity_search_token, constrain_by_proje
                            shotgun_filters,
                            [name_field, "description", "entity", "link", "project"])
         logger.debug("Got data: %r" % entities)
-    except Exception, e:
+    except Exception as e:
         raise TankError("An error occurred when searching in Shotgun: %s" % e)
 
     selected_entity = None
@@ -1084,7 +1084,7 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
             # we are running a studio wide command
             try:
                 tk = tank.tank_from_path(ctx_path)
-            except TankError, e:
+            except TankError as e:
                 # this path was not valid. That's ok - we just wont have a tank instance
                 # when we run our commands later. This may be if we for example have
                 # just run tank setup_project from any random folder
@@ -1641,7 +1641,7 @@ if __name__ == "__main__":
         # Error messages and such have already been handled by the method that threw this exception.
         exit_code = 8
 
-    except IncompleteCredentials, e:
+    except IncompleteCredentials as e:
         logger.info("")
         if LogManager().global_debug:
             # full stack trace
@@ -1651,7 +1651,7 @@ if __name__ == "__main__":
             logger.error(str(e))
         exit_code = 9
 
-    except ShotgunAuthenticationError, e:
+    except ShotgunAuthenticationError as e:
         logger.info("")
         if LogManager().global_debug:
             # full stack trace
@@ -1662,7 +1662,7 @@ if __name__ == "__main__":
         logger.info("")
         exit_code = 10
 
-    except TankError, e:
+    except TankError as e:
         logger.info("")
         if LogManager().global_debug:
             # full stack trace
@@ -1673,12 +1673,12 @@ if __name__ == "__main__":
         logger.info("")
         exit_code = 5
 
-    except KeyboardInterrupt, e:
+    except KeyboardInterrupt as e:
         logger.info("")
         logger.info("Exiting.")
         exit_code = 6
 
-    except Exception, e:
+    except Exception as e:
         # call stack
         logger.info("")
         logger.exception("A general error was reported: %s" % e)
