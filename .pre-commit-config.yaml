@@ -9,8 +9,13 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 # Styles the code properly
-# Exclude the UI files, as they are auto-generated.
-exclude: "tank_vendor|third_party|ui\/.*py$"
+# Exclude the following file types
+# - third party modules (tank_vendor/third_party)
+# - any UI files (ui/*.py)
+# - any images (*.png)
+# - any pickles (*.pickle)
+# - any files that are compared against the output of a tool (test_post_update_new_parser.yml, test_post_update_old_parser.yml)
+exclude: "tank_vendor|third_party|ui\/.*py$|\/.*png|\/.*pickle|tests/fixtures/config/env/post_update/test_post_update_new_parser.yml|tests/fixtures/config/env/post_update/test_post_update_old_parser.yml"
 # List of super useful formatters.
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
