@@ -405,7 +405,7 @@ class Engine(TankBundle):
         Payload for the show_busy method.
 
         For details, see the main show_busy documentation.
-        
+
         :param title: Short descriptive title of what is happening
         :param details: Detailed message describing what is going on.
         """
@@ -466,7 +466,7 @@ class Engine(TankBundle):
 
     def __clear_busy(self):
         """
-        Payload for clear_busy method. 
+        Payload for clear_busy method.
         For details, see the main clear_busy documentation.
         """
         if self.__global_progress_widget:
@@ -487,7 +487,7 @@ class Engine(TankBundle):
         The dictionary contains information about this engine: its name and version,
         and informations about the application hosting the engine: its name and
         version::
-        
+
             {
                 'Host App': 'Maya',
                 'Host App Version': '2017',
@@ -546,7 +546,7 @@ class Engine(TankBundle):
     def environment(self):
         """
         A dictionary with information about the environment.
-         
+
         :returns: dictionary with keys ``name``,
                   ``description`` and ``disk_location``.
         """
@@ -562,7 +562,7 @@ class Engine(TankBundle):
         """
         The instance name for this engine. The instance name
         is the entry that is defined in the environment file.
-        
+
         :returns: instance name as string, e.g. ``tk-maya``
         """
         return self.__engine_instance_name
@@ -571,7 +571,7 @@ class Engine(TankBundle):
     def apps(self):
         """
         Dictionary of apps associated with this engine
-        
+
         :returns: dictionary with keys being app name and values being app objects
         """
         return self.__applications
@@ -582,11 +582,11 @@ class Engine(TankBundle):
         A dictionary representing all the commands that have been registered
         by apps in this engine via :meth:`register_command`.
         Each dictionary item contains the following keys:
-        
+
         - ``callback`` - function pointer to function to execute for this command
         - ``properties`` - dictionary with free form options - these are typically
           engine specific and driven by convention.
-        
+
         :returns: commands dictionary, keyed by command name
         """
         return self.__commands
@@ -599,7 +599,7 @@ class Engine(TankBundle):
         ``callback`` and ``properties``.
 
         Returns all the panels which have been registered with the engine.
-        
+
         :returns: A dictionary keyed by panel unique ids. Each value is a dictionary
                   with keys 'callback' and 'properties'
         """
@@ -609,10 +609,10 @@ class Engine(TankBundle):
     def has_ui(self):
         """
         Indicates that the host application that the engine is connected to has a UI enabled.
-        This always returns False for some engines (such as the shell engine) and may vary 
+        This always returns False for some engines (such as the shell engine) and may vary
         for some engines, depending if the host application for example is in batch mode or
         UI mode.
-        
+
         :returns: boolean value indicating if a UI currently exists
         """
         # default implementation is to assume a UI exists
@@ -665,14 +665,14 @@ class Engine(TankBundle):
     def host_info(self):
         """
         Returns information about the application hosting this engine.
-        
-        This should be re-implemented in deriving classes to handle the logic 
+
+        This should be re-implemented in deriving classes to handle the logic
         specific to the application the engine is designed for.
-        
+
         A dictionary with at least a "name" and a "version" key should be returned
-        by derived implementations, with respectively the host application name 
+        by derived implementations, with respectively the host application name
         and its release string as values, e.g. ``{ "name": "Maya", "version": "2017.3"}``.
-        
+
         :returns: A ``{"name": "unknown", "version" : "unknown"}`` dictionary.
         """
         return {"name": "unknown", "version": "unknown"}
@@ -1093,25 +1093,25 @@ class Engine(TankBundle):
         Similar to :meth:`register_command()`, but instead of registering a menu item in the form of a
         command, this method registers a UI panel. A register_panel call should
         be used in conjunction with a register_command call.
-        
-        Panels need to be registered if they should persist between DCC sessions (e.g. 
+
+        Panels need to be registered if they should persist between DCC sessions (e.g.
         for example 'saved layouts').
-        
+
         Just like with the :meth:`register_command` method, panel registration should be executed
         from within the init phase of the app. Once a panel has been registered, it is possible
-        for the engine to correctly restore panel UIs at startup and profile switches. 
-        
-        Not all engines support this feature, but in for example Nuke, a panel can be added to 
+        for the engine to correctly restore panel UIs at startup and profile switches.
+
+        Not all engines support this feature, but in for example Nuke, a panel can be added to
         a saved layout. Apps wanting to be able to take advantage of the persistence given by
         these saved layouts will need to call register_panel as part of their init_app phase.
-        
+
         In order to show or focus on a panel, use the :meth:`show_panel` method instead.
-        
+
         :param callback: Callback to a factory method that creates the panel and returns a panel widget.
-        :param panel_name: A string to distinguish this panel from other panels created by 
+        :param panel_name: A string to distinguish this panel from other panels created by
                            the app. This will be used as part of the unique id for the panel.
         :param properties: Properties dictionary. Reserved for future use.
-        :returns: A unique identifier that can be used to consistently identify the 
+        :returns: A unique identifier that can be used to consistently identify the
                   panel across sessions. This identifier should be used to identify the panel
                   in all subsequent calls, e.g. for example :meth:`show_panel()`.
         """
@@ -1425,15 +1425,15 @@ class Engine(TankBundle):
     def get_debug_tracked_qt_widgets(self):
         """
         Returns a dictionary of debug info about created Qt dialogs and widgets.
-        
-        The keys of the dictionary are the string representation of a widget and the 
+
+        The keys of the dictionary are the string representation of a widget and the
         corresponding value is a reference to that widget.
         """
         return self.__qt_debug_info
 
     def __debug_track_qt_widget(self, widget):
         """
-        Add the qt widget to a list of objects to be tracked. 
+        Add the qt widget to a list of objects to be tracked.
         """
         if widget:
             self.__qt_debug_info[widget.__repr__()] = weakref.ref(widget)
@@ -1615,8 +1615,8 @@ class Engine(TankBundle):
     def _get_dialog_parent(self):
         """
         Get the QWidget parent for all dialogs created through :meth:`show_dialog` :meth:`show_modal`.
-        
-        Can be overriden in derived classes to return the QWidget to be used as the parent 
+
+        Can be overriden in derived classes to return the QWidget to be used as the parent
         for all TankQDialog's.
 
         :return: QT Parent window (:class:`PySide.QtGui.QWidget`)
@@ -1628,7 +1628,7 @@ class Engine(TankBundle):
 
     def _create_dialog(self, title, bundle, widget, parent):
         """
-        Create a TankQDialog with the specified widget embedded. This also connects to the 
+        Create a TankQDialog with the specified widget embedded. This also connects to the
         dialogs dialog_closed event so that it can clean up when the dialog is closed.
 
         .. note:: For more information, see the documentation for :meth:`show_dialog()`.
@@ -1660,8 +1660,8 @@ class Engine(TankBundle):
 
     def _create_widget(self, widget_class, *args, **kwargs):
         """
-        Create an instance of the specified widget_class.  This wraps the widget_class so that 
-        the TankQDialog it is embedded in can connect to it more easily in order to handle the 
+        Create an instance of the specified widget_class.  This wraps the widget_class so that
+        the TankQDialog it is embedded in can connect to it more easily in order to handle the
         close event.
 
         When overriding in a derived engine, be sure to call the base implementations of
@@ -1672,7 +1672,7 @@ class Engine(TankBundle):
 
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
         :type widget_class: :class:`PySide.QtGui.QWidget`
-            
+
         Additional parameters specified will be passed through to the widget_class constructor.
         """
         from .qt import tankqdialog
@@ -1688,7 +1688,7 @@ class Engine(TankBundle):
 
     def _create_dialog_with_widget(self, title, bundle, widget_class, *args, **kwargs):
         """
-        Convenience method to create an sgtk TankQDialog with a widget instantiated from 
+        Convenience method to create an sgtk TankQDialog with a widget instantiated from
         widget_class embedded in the main section.
 
         .. note:: For more information, see the documentation for :meth:`show_dialog()`.
@@ -1697,7 +1697,7 @@ class Engine(TankBundle):
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
         :type widget_class: :class:`PySide.QtGui.QWidget`
-            
+
         Additional parameters specified will be passed through to the widget_class constructor.
         """
 
@@ -1718,7 +1718,7 @@ class Engine(TankBundle):
     def _on_dialog_closed(self, dlg):
         """
         Called when a dialog created by this engine is closed.
-        
+
         :param dlg: The dialog being closed
         :type dlg: :class:`PySide.QtGui.QWidget`
 
@@ -1753,11 +1753,11 @@ class Engine(TankBundle):
         """
         Run through the widget trash and clean up any widgets
         that are no longer referenced by anything else.
-        
+
         Notes:  This is pretty dumb and only looks at reference
         counts.  This means that if a widget has cyclic references
         then it will never get released.
-        
+
         Better to be safe though as deleting/releasing a widget that
         still has events in the event queue will cause a hard crash!
         """
@@ -1790,7 +1790,7 @@ class Engine(TankBundle):
 
     def show_dialog(self, title, bundle, widget_class, *args, **kwargs):
         """
-        Shows a non-modal dialog window in a way suitable for this engine. 
+        Shows a non-modal dialog window in a way suitable for this engine.
         The engine will attempt to parent the dialog nicely to the host application.
         The dialog will be created with a standard Toolkit window title bar where
         the title will be displayed.
@@ -1835,7 +1835,7 @@ class Engine(TankBundle):
         :type widget_class: :class:`PySide.QtGui.QWidget`
 
         Additional parameters specified will be passed through to the widget_class constructor.
-        
+
         :returns: the created widget_class instance
         """
         if not self.has_ui:
@@ -1859,7 +1859,7 @@ class Engine(TankBundle):
     def show_modal(self, title, bundle, widget_class, *args, **kwargs):
         """
         Shows a modal dialog window in a way suitable for this engine. The engine will attempt to
-        integrate it as seamlessly as possible into the host application. This call is blocking 
+        integrate it as seamlessly as possible into the host application. This call is blocking
         until the user closes the dialog.
         The dialog will be created with a standard Toolkit window title bar where
         the title will be displayed.
@@ -1872,7 +1872,7 @@ class Engine(TankBundle):
                         def hide_tk_title_bar(self):
                             "Tell the system to not show the standard toolkit toolbar"
                             return True
-        
+
         :param title: The title of the window
         :param bundle: The app, engine or framework object that is associated with this window
         :param widget_class: The class of the UI to be constructed. This must derive from QWidget.
@@ -1903,11 +1903,11 @@ class Engine(TankBundle):
     def show_panel(self, panel_id, title, bundle, widget_class, *args, **kwargs):
         """
         Shows a panel in a way suitable for this engine. Engines should attempt to
-        integrate panel support as seamlessly as possible into the host application. 
+        integrate panel support as seamlessly as possible into the host application.
         Some engines have extensive panel support and workflows, others have none at all.
-        
-        If the engine does not specifically implement panel support, the window will 
-        be shown as a modeless dialog instead and the call is equivalent to 
+
+        If the engine does not specifically implement panel support, the window will
+        be shown as a modeless dialog instead and the call is equivalent to
         calling :meth:`show_dialog()`.
 
         The dialog will be created with a standard Toolkit window title bar where
@@ -1929,7 +1929,7 @@ class Engine(TankBundle):
         :type widget_class: :class:`PySide.QtGui.QWidget`
 
         Additional parameters specified will be passed through to the widget_class constructor.
-        
+
         :returns: the created widget_class instance
         """
         # engines implementing panel support should subclass this method.
@@ -1944,9 +1944,9 @@ class Engine(TankBundle):
         """
         Given a string containing a qt style sheet,
         perform replacements of key toolkit tokens.
-        
+
         For example, "{{SG_HIGHLIGHT_COLOR}}" is converted to "#30A7E3"
-        
+
         :param style_sheet: Stylesheet string to process
         :returns: Stylesheet string with replacements applied
         """
@@ -1960,20 +1960,20 @@ class Engine(TankBundle):
     def _apply_external_stylesheet(self, bundle, widget):
         """
         Apply an std external stylesheet, associated with a bundle, to a widget.
-        
+
         This will check if a standard style.css file exists in the
-        app/engine/framework root location on disk and if so load it from 
-        disk and apply to the given widget. The style sheet is cascading, meaning 
+        app/engine/framework root location on disk and if so load it from
+        disk and apply to the given widget. The style sheet is cascading, meaning
         that it will affect all children of the given widget. Typically this is used
         at window creation in order to allow newly created dialogs to apply app specific
         styles easily.
-        
+
         If the `SHOTGUN_QSS_FILE_WATCHER` env variable is set to "1", the style sheet
         will be reloaded and re-applied if changed. This can be useful when developing
         apps to do some interactive styling but shouldn't be used in production.
 
         :param bundle: app/engine/framework instance to load style sheet from
-        :param widget: widget to apply stylesheet to 
+        :param widget: widget to apply stylesheet to
         """
         qss_file = os.path.join(bundle.disk_location, constants.BUNDLE_STYLESHEET_FILE)
         if not os.path.exists(qss_file):
@@ -2131,24 +2131,24 @@ class Engine(TankBundle):
         """
         Initializes a standard toolkit look and feel using a combination of
         QPalette and stylesheets.
-        
+
         If your engine is running inside an environment which already has
-        a dark style defined, do not call this method. The Toolkit apps are 
+        a dark style defined, do not call this method. The Toolkit apps are
         designed to work well with most dark themes.
-        
+
         However, if you are for example creating your own QApplication instance
-        you can execute this method to put the session into Toolkit's 
+        you can execute this method to put the session into Toolkit's
         standard dark mode.
-        
+
         This will initialize the plastique style (for Qt4) or the fusion style
         (for Qt5), and set it up with a standard dark palette and supporting
         stylesheet.
 
         `Qt4 setStyle documentation <http://doc.qt.io/archives/qt-4.8/qapplication.html#setStyle-2>`_
         `Qt5 setStyle documentation <https://doc.qt.io/qt-5.10/qapplication.html#setStyle-1>`_
-        
+
         Apps and UIs can then extend this further by using further css.
-        
+
         Due to restrictions in QT, this needs to run after a QApplication object
         has been instantiated.
         """
@@ -2459,9 +2459,9 @@ class Engine(TankBundle):
         Registers a framework with the specified instance name.
         This allows framework instances to be shared between bundles.
         This method is exposed for use by the platform.framework module.
-        
+
         :param instance_name: Name of framework instance, as defined in the
-                              environment. For example 'tk-framework-widget_v1.x.x'  
+                              environment. For example 'tk-framework-widget_v1.x.x'
         :param fw_obj: Framework object.
         """
         self.__shared_frameworks[instance_name] = fw_obj
@@ -2471,9 +2471,9 @@ class Engine(TankBundle):
         Get a framework instance by name. If no framework with the specified
         name has been loaded yet, None is returned.
         This method is exposed for use by the platform.framework module.
-        
+
         :param instance_name: Name of framework instance, as defined in the
-                              environment. For example 'tk-framework-widget_v1.x.x'        
+                              environment. For example 'tk-framework-widget_v1.x.x'
         """
         return self.__shared_frameworks.get(instance_name, None)
 
@@ -3141,14 +3141,14 @@ def find_app_settings(engine_name, app_name, tk, context, engine_instance_name=N
     """
     Utility method to find the settings for an app in an engine in the
     environment determined for the context by pick environment hook.
-    
+
     :param engine_name: system name of the engine to look for, e.g tk-maya
     :param app_name: system name of the app to look for, e.g. tk-multi-publish
     :param tk: :class:`~sgtk.Sgtk` instance
     :param context: :class:`~sgtk.Context` object to use when picking environment
     :param engine_instance_name: The instance name of the engine to look for.
-    
-    :returns: list of dictionaries containing the engine name, 
+
+    :returns: list of dictionaries containing the engine name,
               application name and settings for any matching
               applications that are found and that have valid
               settings
@@ -3270,8 +3270,8 @@ def start_shotgun_engine(tk, entity_type, context):
 
 def get_environment_from_context(tk, context):
     """
-    Returns an environment object given a context. 
-    Returns None if no environment was found. 
+    Returns an environment object given a context.
+    Returns None if no environment was found.
     """
     try:
         env_name = tk.execute_core_hook(
@@ -3292,7 +3292,7 @@ def get_environment_from_context(tk, context):
 def show_global_busy(title, details):
     """
     Convenience method.
-    
+
     Displays or updates a global busy/progress indicator window tied to the currently running engine.
     For more details and documentation, see the engine class documentation of this method.
 
@@ -3307,7 +3307,7 @@ def show_global_busy(title, details):
 def clear_global_busy():
     """
     Convenience method.
-    
+
     Closes any open global progress indicator window tied to the currently running engine.
     For more details and documentation, see engine class documentation of this method.
     """

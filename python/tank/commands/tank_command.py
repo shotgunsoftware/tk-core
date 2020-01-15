@@ -162,18 +162,18 @@ def list_commands(tk=None):
 
     If you leave the optional tk parameter as None, a list of
     global commands will be returned. These commands can be executed
-    at any point and do not require a project or a configuration to 
+    at any point and do not require a project or a configuration to
     be present. Examples of such commands are the core upgrade
     check and the setup_project commands::
 
         >>> import sgtk
         >>> sgtk.list_commands()
         ['setup_project', 'core']
-    
+
     If you do pass in a tk API handle (or alternatively use the
     convenience method :meth:`Sgtk.list_commands`), all commands which
     are available in the context of a project configuration will be returned.
-    This includes for example commands for configuration management, 
+    This includes for example commands for configuration management,
     anything app or engine related and validation and overview functionality.
     In addition to these commands, the global commands will also be returned::
 
@@ -206,17 +206,17 @@ def list_commands(tk=None):
 def get_command(command_name, tk=None):
     """
     Returns an instance of a command object that can be used to execute a command.
-    
-    Once you have retrieved the command instance, you can perform introspection to 
+
+    Once you have retrieved the command instance, you can perform introspection to
     check for example the required parameters for the command, name, description etc.
     Lastly, you can execute the command by running the execute() method.
-    
+
     In order to get a list of the available commands, use the :meth:`list_commands` method.
-    
+
     Certain commands require a project configuration context in order to operate. This
     needs to be passed on in the form of a toolkit API instance via the tk parameter.
     See the list_command() documentation for more details.
-    
+
     :param command_name: Name of command to execute. Get a list of all available commands
                          using the :meth:`list_commands` method.
     :param tk: Optional Toolkit API instance
@@ -238,8 +238,8 @@ def get_command(command_name, tk=None):
 class SgtkSystemCommand(object):
     """
     Represents a toolkit system command.
-    
-    You can use this object to introspect command properties such as 
+
+    You can use this object to introspect command properties such as
     name, description, parameters etc. Execution is carried out by calling the :meth:`execute` method.
 
     For a global command which doesn't require an active configuration,
@@ -304,7 +304,7 @@ class SgtkSystemCommand(object):
         """
         The different parameters that needs to be specified and if a
         parameter has any default values. For example::
-        
+
             { "parameter_name": { "description": "Parameter info",
                                 "default": None,
                                 "type": "str" },
@@ -363,7 +363,7 @@ class SgtkSystemCommand(object):
     def execute(self, params, interaction_interface=None):
         """
         Execute this command.
-        
+
         :param params: dictionary of parameters to pass to this command.
                        the dictionary key is the name of the parameter and the value
                        is the value you want to pass. You can query which parameters
@@ -450,19 +450,19 @@ def get_actions(log, tk, ctx):
 def run_action(log, tk, ctx, command, args):
     """
     Find an action and start execution. This method is tightly coupled with the tank_cmd script.
-    
+
     The command handles multiple states and contains logic for validating that the mode of the desired command
     is actually compatible with the state which is passed in.
-    
+
     Because tank commands can run in environments with varying degrees of completeness (ranging from only
     knowing the code location to having a fully qualified context), some of the parameters deliberately overlap.
-    
+
     :param log: Python logger to pass command output to
     :param tk: API instance to pass to command. For a state where no notion of a pipeline config/current project
                exists, this will be None.
     :param ctx: Context object. For a state where a current context is not known, this will be none.
     :param args: list of strings forming additional arguments to be passed to the command.
-    
+
     """
     engine = None
 

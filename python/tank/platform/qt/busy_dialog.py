@@ -14,10 +14,10 @@ from .ui_busy_dialog import Ui_BusyDialog
 
 class BusyDialog(QtGui.QWidget):
     """
-    Global progress dialog. Displays a dialog that contains a small progress message. 
-    This is handled by the engine.display_global_progress() and engine.clear_global_progress() 
+    Global progress dialog. Displays a dialog that contains a small progress message.
+    This is handled by the engine.display_global_progress() and engine.clear_global_progress()
     methods and is typically used when for example the Core API wants to display some progress
-    information back to the user during long running tasks or processing. 
+    information back to the user during long running tasks or processing.
     """
 
     def __init__(self):
@@ -34,9 +34,9 @@ class BusyDialog(QtGui.QWidget):
     def set_contents(self, title, details):
         """
         Set the message to be displayed in the progress dialog
-        
+
         :param title: Title text to display
-        :param details: detailed message to display 
+        :param details: detailed message to display
         """
         self.ui.title.setText(title)
         self.ui.details.setText(details)
@@ -44,7 +44,7 @@ class BusyDialog(QtGui.QWidget):
     def mousePressEvent(self, event):
         """
         Called when the mouse is clicked in the widget
-        
+
         :param event: QEvent
         """
         QtGui.QWidget.mousePressEvent(self, event)

@@ -44,9 +44,9 @@ def add_item_to_cache(path_cache, entity, path, primary=True):
 def sync_path_cache(tk, force_full_sync=False):
     """
     Synchronizes the path cache with Shotgun.
-    
+
     :param force_full_sync: Force a full sync.
-    :returns: log output in a variable 
+    :returns: log output in a variable
     """
 
     # capture sync log to string
@@ -393,7 +393,7 @@ class TestAddMapping(TestPathCache):
 
 class TestGetEntity(TestPathCache):
     """
-    Tests for get_entity. 
+    Tests for get_entity.
     Project and non-project entities are stored differently so tests are seperated between the two.
     """
 
@@ -651,7 +651,7 @@ class TestShotgunSync(TankTestBase):
 
     def test_no_new_folders_created(self):
         """
-        Test the case when folder creation is running for an already existing path 
+        Test the case when folder creation is running for an already existing path
         """
 
         # we should have one Toolkit_Folders_Create record in the path cache,
@@ -728,7 +728,7 @@ class TestShotgunSync(TankTestBase):
 
     def test_missing_roots_mapping(self):
         """
-        Tests that invalid roots.yml lookups result in ignored records 
+        Tests that invalid roots.yml lookups result in ignored records
         """
 
         # create folders

@@ -115,7 +115,7 @@ handle and then emits a FileOpenEvent::
         Runs before apps are initialized.
         """
         frontend.file_opened.connect(self._handle_file_open)
-    
+
     def _handle_file_open(self, file_path):
         """
         Emits a file open event that apps can listen for.

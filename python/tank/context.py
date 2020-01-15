@@ -150,9 +150,9 @@ class Context(object):
     def __eq__(self, other):
         """
         Test if this Context instance is equal to the other Context instance
-                        
+
         :param other:   The other Context instance to compare with
-        :returns:       True if self represents the same context as other, 
+        :returns:       True if self represents the same context as other,
                         otherwise False
         """
 
@@ -161,15 +161,15 @@ class Context(object):
             Test to see if two entity dictionaries are equal.  They are considered
             equal if both are dictionaries containing 'type' and 'id' with the same
             values for both keys, For example:
-            
+
             Comparing these two dictionaries would return True:
             - {"type":"Shot", "id":123, "foo":"foo"}
             - {"type":"Shot", "id":123, "foo":"bar", "bar":"foo"}
-            
+
             But comparing these two dictionaries would return False:
             - {"type":"Shot", "id":123, "foo":"foo"}
-            - {"type":"Shot", "id":567, "foo":"foo"} 
-    
+            - {"type":"Shot", "id":567, "foo":"foo"}
+
             :param d1:  First entity dictionary
             :param d2:  Second entity dictionary
             :returns:   True if d1 and d2 are considered equal, otherwise False.
@@ -221,7 +221,7 @@ class Context(object):
     def __ne__(self, other):
         """
         Test if this Context instance is not equal to the other Context instance
-                        
+
         :param other:   The other Context instance to compare with
         :returns:       True if self != other, False otherwise
         """
@@ -415,8 +415,8 @@ class Context(object):
     @property
     def shotgun_url(self):
         """
-        Returns the shotgun detail page url that best represents this context. Depending on 
-        the context, this may be a task, a shot, an asset or a project. If the context is 
+        Returns the shotgun detail page url that best represents this context. Depending on
+        the context, this may be a task, a shot, an asset or a project. If the context is
         completely empty, the root url of the associated shotgun installation is returned.
 
             >>> import sgtk
@@ -587,7 +587,7 @@ class Context(object):
         :returns:           A dictionary of template files representing the context. Handy to pass to for example
                             :meth:`Template.apply_fields`.
         :raises:            :class:`TankError` if the fields can't be resolved for some reason or if 'validate' is True
-                            and any of the context fields for the template weren't found. 
+                            and any of the context fields for the template weren't found.
         """
         # Get all entities into a dictionary
         entities = {}
@@ -1033,14 +1033,14 @@ class Context(object):
         Determines values for a template's keys based on the context by walking down the template tree
         matching template keys with entity types.
 
-        This method attempts to find as many fields as possible from the path cache but will try to ensure 
-        that incorrect fields are never returned, even if the path cache is not 100% clean (e.g. contains 
-        out-of-date paths for one or more of the entities in the context). 
+        This method attempts to find as many fields as possible from the path cache but will try to ensure
+        that incorrect fields are never returned, even if the path cache is not 100% clean (e.g. contains
+        out-of-date paths for one or more of the entities in the context).
 
         :param template:            The template to find fields for
         :param known_fields:        Dictionary of fields that are already known for this template.  The
                                     logic in this method will ensure that any fields found match these.
-        :param context_entities:    A dictionary of {entity_type:entity_dict} that contains all the entities 
+        :param context_entities:    A dictionary of {entity_type:entity_dict} that contains all the entities
                                     belonging to this context.
         :returns:                   A dictionary of all fields found by this method
         """
@@ -1423,7 +1423,7 @@ def _from_entity_dictionary(tk, entity_dictionary, source_entity=None):
             out all other fields.
 
             :param ent: The entity dictionary to build a clean dictionary from
-            :returns:   A clean entity dictionary containing just 'type', 'id' 
+            :returns:   A clean entity dictionary containing just 'type', 'id'
                         and 'name' if all three exist in the input dictionary
                         or None if they don't.
             """
@@ -1735,12 +1735,12 @@ def _task_from_sg(tk, task_id, additional_fields=None):
     which has both a project, an entity a step and a task associated with it.
 
     Manne 9 April 2013: could we use the path cache primarily and fall back onto
-                        a shotgun lookup? 
+                        a shotgun lookup?
 
     :param tk:                   An Sgtk API instance
     :param task_id:              The shotgun task id to produce a context for.
     :param additional_fields:    List of additional fields to query for additional entities.  If this is
-                                'None' then the function will execute the hook to determine them. 
+                                'None' then the function will execute the hook to determine them.
     """
     context = {}
 
@@ -1794,22 +1794,22 @@ def _task_from_sg(tk, task_id, additional_fields=None):
 def _entity_from_sg(tk, entity_type, entity_id):
     """
     Determines the entity details for the specified entity type and id by querying Shotgun.
-                        
+
     If entity_type is 'Project' then this will return a single dictionary for the project.  For all
-    other entity types, this will return dictionaries for both the entity and the project the entity 
+    other entity types, this will return dictionaries for both the entity and the project the entity
     exists under.
-                        
+
     :param tk:          The sgtk api instance
     :param entity_type: The entity type to build a context for
     :param entity_id:   The entity id to build a context for
     :returns:           Dictionary containing either a project entity-dictionary or both
                         project and entity entity-dictionaries depending on the input entity type.
-                        e.g. 
+                        e.g.
                         {
                             "project":{"type":"Project", "id":123, "name":"My Project"},
                             "entity":{"type":"Shot", "id":456, "name":"My Shot"}
                         }
-                            
+
     """
     # get the sg name field for the specified entity type:
     name_field = shotgun_entity.get_sg_entity_name_field(entity_type)
@@ -1920,7 +1920,7 @@ def _context_data_from_cache(tk, entity_type, entity_id):
 def _values_from_path_cache(entity, cur_template, path_cache, required_fields):
     """
     Determine values for template fields based on an entities cached paths.
-                            
+
     :param entity:          The entity to search for fields for
     :param cur_template:    The template to use to search the path cache
     :path_cache:            An instance of the path_cache to search in

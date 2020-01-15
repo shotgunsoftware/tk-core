@@ -73,7 +73,7 @@ class Template(object):
         :param definition: Template definition.
         :type definition: String
         :param keys: Mapping of key names to keys
-        :type keys: Dictionary 
+        :type keys: Dictionary
         :param name: (Optional) name for this template.
         :type name: String
         """
@@ -128,7 +128,7 @@ class Template(object):
         The keys that this template is using. For a template
         ``shots/{Shot}/{Step}/pub/{name}.v{version}.ma``, the keys are ``{Shot}``,
         ``{Step}`` and ``{name}``.
-        
+
         :returns: a dictionary of class:`TemplateKey` objects, keyed by token name.
         """
         # First keys should be most inclusive
@@ -157,12 +157,12 @@ class Template(object):
         """
         Determines keys required for use of template which do not exist
         in a given fields.
-        
+
         Example::
-        
+
             >>> tk.templates["max_asset_work"].missing_keys({})
             ['Step', 'sg_asset_type', 'Asset', 'version', 'name']
-        
+
             >>> tk.templates["max_asset_work"].missing_keys({"name": "foo"})
             ['Step', 'sg_asset_type', 'Asset', 'version']
 
@@ -171,7 +171,7 @@ class Template(object):
         :type fields: mapping (dictionary or other)
         :param skip_defaults: If true, do not treat keys with default values as missing.
         :type skip_defaults: Bool
-        
+
         :returns: Fields needed by template which are not in inputs keys or which have
                   values of None.
         :rtype: list
@@ -232,10 +232,10 @@ class Template(object):
             'Maya Scene henry, v003'
 
 
-        :param fields: Mapping of keys to fields. Keys must match those in template 
+        :param fields: Mapping of keys to fields. Keys must match those in template
                        definition.
-        :param platform: Optional operating system platform. If you leave it at the 
-                         default value of None, paths will be created to match the 
+        :param platform: Optional operating system platform. If you leave it at the
+                         default value of None, paths will be created to match the
                          current operating system. If you pass in a sys.platform-style string
                          (e.g. ``win32``, ``linux2`` or ``darwin``), paths will be generated to
                          match that platform.
@@ -248,14 +248,14 @@ class Template(object):
         """
         Creates path using fields.
 
-        :param fields: Mapping of keys to fields. Keys must match those in template 
+        :param fields: Mapping of keys to fields. Keys must match those in template
                        definition.
         :param ignore_types: Keys for whom the defined type is ignored as list of strings.
                             This allows setting a Key whose type is int with a string value.
-        :param platform: Optional operating system platform. If you leave it at the 
-                         default value of None, paths will be created to match the 
+        :param platform: Optional operating system platform. If you leave it at the
+                         default value of None, paths will be created to match the
                          current operating system. If you pass in a sys.platform-style string
-                         (e.g. 'win32', 'linux2' or 'darwin'), paths will be generated to 
+                         (e.g. 'win32', 'linux2' or 'darwin'), paths will be generated to
                          match that platform.
 
         :returns: Full path, matching the template with the given fields inserted.
@@ -293,12 +293,12 @@ class Template(object):
     def _definition_variations(self, definition):
         """
         Determines all possible definition based on combinations of optional sectionals.
-        
+
         "{foo}"               ==> ['{foo}']
         "{foo}_{bar}"         ==> ['{foo}_{bar}']
         "{foo}[_{bar}]"       ==> ['{foo}', '{foo}_{bar}']
         "{foo}_[{bar}_{baz}]" ==> ['{foo}_', '{foo}_{bar}_{baz}']
-        
+
         """
         # split definition by optional sections
         tokens = re.split("(\[[^]]*\])", definition)
@@ -402,11 +402,11 @@ class Template(object):
 
 
         :param path:            Path to validate
-        :param required_fields: An optional dictionary of key names to key values. If supplied these values must 
+        :param required_fields: An optional dictionary of key names to key values. If supplied these values must
                                 be present in the input path and found by the template.
         :param skip_keys:       List of field names whose values should be ignored
 
-        :returns:               Dictionary of fields found from the path or None if path fails to validate 
+        :returns:               Dictionary of fields found from the path or None if path fails to validate
         """
         required_fields = required_fields or {}
         skip_keys = skip_keys or []
@@ -436,10 +436,10 @@ class Template(object):
             >>> bad_path = '/studio_root/sgtk/demo_project_1/shot_2/comp/publish/henry.v003.ma'
             >>> template_path.validate(bad_path)
             False
-                            
+
         :param path:        Path to validate
         :type path:         String
-        :param fields:      An optional dictionary of key names to key values. If supplied these values must 
+        :param fields:      An optional dictionary of key names to key values. If supplied these values must
                             be present in the input path and found by the template.
         :type fields:       Dictionary
         :param skip_keys:   Field names whose values should be ignored
@@ -461,7 +461,7 @@ class Template(object):
              'Step': 'comp',
              'name': 'henry',
              'version': 3}
-        
+
         :param input_path: Source path for values
         :type input_path: String
         :param skip_keys: Optional keys to skip
@@ -500,7 +500,7 @@ class TemplatePath(Template):
         :param keys: Mapping of key names to keys (dict)
         :param root_path: Path to project root for this template.
         :param name: Optional name for this template.
-        :param per_platform_roots: Root paths for all supported operating systems. 
+        :param per_platform_roots: Root paths for all supported operating systems.
                                    This is a dictionary with sys.platform-style keys
         """
         super(TemplatePath, self).__init__(definition, keys, name=name)
@@ -552,14 +552,14 @@ class TemplatePath(Template):
         """
         Creates path using fields.
 
-        :param fields: Mapping of keys to fields. Keys must match those in template 
+        :param fields: Mapping of keys to fields. Keys must match those in template
                        definition.
         :param ignore_types: Keys for whom the defined type is ignored as list of strings.
                             This allows setting a Key whose type is int with a string value.
-        :param platform: Optional operating system platform. If you leave it at the 
-                         default value of None, paths will be created to match the 
+        :param platform: Optional operating system platform. If you leave it at the
+                         default value of None, paths will be created to match the
                          current operating system. If you pass in a sys.platform-style string
-                         (e.g. 'win32', 'linux2' or 'darwin'), paths will be generated to 
+                         (e.g. 'win32', 'linux2' or 'darwin'), paths will be generated to
                          match that platform.
 
         :returns: Full path, matching the template with the given fields inserted.
@@ -751,7 +751,7 @@ def make_template_paths(data, keys, all_per_platform_roots, default_root=None):
     :param data: Data from which to construct the template paths.
                  Dictionary of form: {<template name>: {<option>: <option value>}}
     :param keys: Available keys. Dictionary of form: {<key name> : <TemplateKey object>}
-    :param all_per_platform_roots: Root paths for all platforms. nested dictionary first keyed by 
+    :param all_per_platform_roots: Root paths for all platforms. nested dictionary first keyed by
                                    storage root name and then by sys.platform-style os name.
 
     :returns: Dictionary of form {<template name> : <TemplatePath object>}

@@ -101,7 +101,7 @@ class ListField(Folder):
 
     def _should_item_be_processed(self, engine_str, is_primary):
         """
-        Checks if this node should be processed, given its deferred status.        
+        Checks if this node should be processed, given its deferred status.
         """
         # list fields are only created when they are on the primary path,
         # e.g. we don't recurse down to create asset types when shots are created,
@@ -126,7 +126,7 @@ class ListField(Folder):
 
     def _create_folders_impl(self, io_receiver, parent_path, sg_data):
         """
-        Creates a list field folder. 
+        Creates a list field folder.
         """
 
         # first see if this item has already been declared inside the sg_data structure
@@ -244,13 +244,13 @@ class ListField(Folder):
     def __filter_unused_list_values(self, entity_type, field_name, values, project):
         """
         Remove values which are not used by entities in this project.
-        
+
         - WARNING! SLOW! Will do a shotgun query for every value in values.
         - WARNING! This logic will check if a value is 'unused' by looking at all items
                    for that entity type. This may be perfectly fine (in the case of asset type
                    and asset for example, however it will not be relevant if other filter criteria
-                   are also applied at the same time (e.g. if we are for example only processing 
-                   tasks of type Foo then we would ideally want to query the unused-ness based on 
+                   are also applied at the same time (e.g. if we are for example only processing
+                   tasks of type Foo then we would ideally want to query the unused-ness based on
                    this subset, not based on all tasks in the project.
         """
         used_values = []

@@ -14,39 +14,39 @@ from ..errors import TankError
 class Action(object):
     """
     Describes an executable action. Base class that all tank command actions derive from.
-    
+
     The execution payload should be defined in the run_* methods, which will be called
     by the system, either via a tank command or via an API accessor.
-    
+
     The action runs in an operational state controlled by the mode parameter.
-    At the point when one of the run_* method are called by the system, certain member 
+    At the point when one of the run_* method are called by the system, certain member
     variables are guaranteed to have been populated, depending on the *mode*.
-    
+
     Action.GLOBAL
     -------------
     No state is set up. Basically, you don't even have access to a tk interface at this point.
     Commands that run in this state are commands that handle things that happen outside a project.
     Examples are project setup and upgrading the core api.
-    
+
     Action.TK_INSTANCE
     ------------------
     A TK API instance exists. This implicitly means that a pipeline configuration also exists.
     An executing action can access the associated tk instance via the self.tk member variable.
     This is the most common state in which toolkit commands run. Examples include all commands
     which operate on a project (install_app, updates, validation, cloning, etc).
-    
+
     Action.CTX
     ----------
     A TK API instance exists and a context has been established. Your command can access the
-    member variables self.tk and self.context. An example of an Action / tank command that 
+    member variables self.tk and self.context. An example of an Action / tank command that
     uses this mode is the folder creation and folder preview commands.
-    
+
     Action.ENGINE
     -------------
     A TK API instance exists, a context has been established and an engine has been started.
     The engine can be accessed via self.engine. An example of a command running using this level
     is the Action brigde which connects App commands with tank commands; this is how app commands
-    are executed when you run the inside the Shell engine. 
+    are executed when you run the inside the Shell engine.
     """
 
     GLOBAL, TK_INSTANCE, CTX, ENGINE = range(4)
@@ -116,20 +116,20 @@ class Action(object):
     def _validate_parameters(self, parameters):
         """
         Helper method typically executed inside run_noninteractive.
-        validate the given parameters dict based on the self.parameters definition. 
-        
+        validate the given parameters dict based on the self.parameters definition.
+
         { "parameter_name": { "description": "Parameter info",
                             "default": None,
-                            "type": "str" }, 
-                            
+                            "type": "str" },
+
          ...
-        
+
          "return_value": { "description": "Return value (optional)",
                            "type": "str" }
-        }        
-        
+        }
+
         :returns: A dictionary which is a full and validated list of parameters, keyed by parameter name.
-                  Values not supplied by the user will have default values instead. 
+                  Values not supplied by the user will have default values instead.
         """
         new_param_values = {}
 
@@ -193,7 +193,7 @@ class Action(object):
 
     def run_interactive(self, log, args):
         """
-        Run this API in interactive mode. 
+        Run this API in interactive mode.
         This mode may prompt the user for input via stdin.
 
         :param log: Logger to use.

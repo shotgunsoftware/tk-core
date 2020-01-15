@@ -56,7 +56,7 @@ class TestYamlCache(ShotgunTestBase):
         """
         Test that the correct data is retrieved when a valid path is
         provided to YamlCache.get().
-        
+
         Also ensure that the data returned from the cache is a copy of the
         cached data (to ensure it is clean and hasn't been accidentally
         overrwritten by the calling code) and that the cache correctly reloads

@@ -510,9 +510,9 @@ class SetupProjectWizard(object):
 
     def validate_configuration_location(self, linux_path, windows_path, macosx_path):
         """
-        Validates a potential location for the pipeline configuration. 
+        Validates a potential location for the pipeline configuration.
         Raises exceptions in case the validation fails.
-        
+
         :param linux_path: Path on linux
         :param windows_path: Path on windows
         :param macosx_path: Path on mac
@@ -524,8 +524,8 @@ class SetupProjectWizard(object):
     def set_configuration_location(self, linux_path, windows_path, macosx_path):
         """
         Specifies where the pipeline configuration should be located.
-        
-        :param linux_path: Path on linux 
+
+        :param linux_path: Path on linux
         :param windows_path: Path on windows
         :param macosx_path: Path on mac
         """
@@ -536,41 +536,41 @@ class SetupProjectWizard(object):
         Calculates core API associations for the new project.
 
         Returns a data structure on the following form:
-        
+
         { "localize": True,
-          "using_runtime": False, 
+          "using_runtime": False,
           "core_path: { "linux2": "/path/to/core",
                         "darwin": "/path/to/core",
                         "win32": None }
-          "pipeline_config": { "type": "PipelineConfiguration", 
+          "pipeline_config": { "type": "PipelineConfiguration",
                                "id": 12,
                                "code": "primary",
                                "project": {"id": 123, "type": "Project", "name": "big buck bunny"},
                                "project.Project.tank_name": "big_buck_bunny"
                                }
         }
-        
+
         Below is a summary of the various return parameters:
-        
+
         localize - If set to True, the localize boolean indicates that the core API will be 'baked in' to the
-                   project configuration to form an autonomous (localized) setup which doesn't depend on 
+                   project configuration to form an autonomous (localized) setup which doesn't depend on
                    any other locations on disk. In this case, the core_path data represents the location from
-                   where the core API will be obtained. In this case, the only path in the core_path which 
+                   where the core API will be obtained. In this case, the only path in the core_path which
                    is relevant  will be the one that corresponds to the current operating system.
-        
+
         using_runtime - If set to true, this indicates that the core used for the setup will be picked up
                         from the currently executing core API.
-        
-        pipeline_config - If the core is picked up from an existing pipeline configuration in Shotgun, this 
-                          parameter will hold a dictionary with various shotgun values representing the 
+
+        pipeline_config - If the core is picked up from an existing pipeline configuration in Shotgun, this
+                          parameter will hold a dictionary with various shotgun values representing the
                           pipeline configuration and its associated project. If the core used to create the project
                           is not associated with an existing pipeline configuration, None is returned.
-        
-        core_path - If localize is set to False, the configuration will share an API and it will be picked up 
+
+        core_path - If localize is set to False, the configuration will share an API and it will be picked up
                     from the location indicated in the core_path parameter. In this case, a None value for a path
                     indicates that this platform will not be supported and the project will not be able to execute
-                    on that platform unless further configuration adjustments are carried out.   
-        
+                    on that platform unless further configuration adjustments are carried out.
+
         :returns: dictionary, see above for details.
         """
 
@@ -681,7 +681,7 @@ class SetupProjectWizard(object):
         """
         Performs basic validation checks on all the specified data together.
         This method should be executed prior to running the setup projet logic to ensure
-        that the process will succeed.         
+        that the process will succeed.
         """
         self._params.pre_setup_validation()
 

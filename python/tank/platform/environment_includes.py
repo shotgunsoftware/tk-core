@@ -173,11 +173,11 @@ def _resolve_frameworks(lookup_dict, data):
 def process_includes(file_name, data, context):
     """
     Process includes for an environment file.
-    
+
     :param file_name:   The root yml file to process
     :param data:        The contents of the root yml file to process
     :param context:     The current context
-    
+
     :returns:           The flattened yml data after all includes have
                         been recursively processed.
     """
@@ -189,20 +189,20 @@ def process_includes(file_name, data, context):
 def _process_includes_r(file_name, data, context):
     """
     Recursively process includes for an environment file.
-    
+
     Algorithm (recursive):
-    
+
     1. Load include data into a big dictionary X
-    2. recursively go through the current file and replace any 
+    2. recursively go through the current file and replace any
        @ref with a dictionary value from X
-    
+
     :param file_name:   The root yml file to process
     :param data:        The contents of the root yml file to process
     :param context:     The current context
 
-    :returns:           A tuple containing the flattened yml data 
+    :returns:           A tuple containing the flattened yml data
                         after all includes have been recursively processed
-                        together with a lookup for frameworks to the file 
+                        together with a lookup for frameworks to the file
                         they were loaded from.
     """
     # first build our big fat lookup dict
@@ -255,12 +255,12 @@ def find_framework_location(file_name, framework_name, context):
     """
     Find the location of the instance of a framework that will
     be used after all includes have been resolved.
-    
+
     :param file_name:       The root yml file
     :param framework_name:  The name of the framework to find
     :param context:         The current context
-    
-    :returns:               The yml file that the framework is 
+
+    :returns:               The yml file that the framework is
                             defined in or None if not found.
     """
     # load the data in for the root file:

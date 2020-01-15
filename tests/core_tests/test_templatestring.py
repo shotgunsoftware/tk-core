@@ -49,7 +49,7 @@ class TestInit(TestTemplateString):
 
     def test_definition_preseves_leading_slash(self):
         """
-        The TemplateString should not change the use of os seperators in the 
+        The TemplateString should not change the use of os seperators in the
         input definition.
         """
         # forward slashes with leading slash

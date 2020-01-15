@@ -9,8 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
-Methods relating to the Path cache, a central repository where metadata about 
-all Tank items in the file system are kept. 
+Methods relating to the Path cache, a central repository where metadata about
+all Tank items in the file system are kept.
 
 """
 
@@ -49,7 +49,7 @@ log = LogManager.get_logger(__name__)
 class PathCache(object):
     """
     A global cache which holds the mapping between a shotgun entity and a location on disk.
-    
+
     NOTE! This uses sqlite and the db is typically hosted on an NFS storage.
     Ensure that the code is developed with the constraints that this entails in mind.
     """
@@ -70,7 +70,7 @@ class PathCache(object):
     def __init__(self, tk):
         """
         Constructor.
-        
+
         :param tk: Toolkit API instance
         """
         self._connection = None
@@ -125,17 +125,17 @@ class PathCache(object):
                     PRAGMA page_size=8192;
 
                     CREATE TABLE path_cache (entity_type text, entity_id integer, entity_name text, root text, path text, primary_entity integer);
-                
+
                     CREATE INDEX path_cache_entity ON path_cache(entity_type, entity_id);
-                
+
                     CREATE INDEX path_cache_path ON path_cache(root, path, primary_entity);
-                
+
                     CREATE UNIQUE INDEX path_cache_all ON path_cache(entity_type, entity_id, root, path, primary_entity);
-                    
+
                     CREATE TABLE event_log_sync (last_id integer);
-                    
+
                     CREATE TABLE shotgun_status (path_cache_id integer, shotgun_id integer);
-                    
+
                     CREATE UNIQUE INDEX shotgun_status_id ON shotgun_status(path_cache_id);
 
                     CREATE INDEX shotgun_status_shotgun_id ON shotgun_status(shotgun_id);
@@ -169,10 +169,10 @@ class PathCache(object):
                         """
                         ALTER TABLE path_cache ADD COLUMN primary_entity integer;
                         UPDATE path_cache SET primary_entity=1;
-        
+
                         DROP INDEX IF EXISTS path_cache_path;
                         CREATE INDEX IF NOT EXISTS path_cache_path ON path_cache(root, path, primary_entity);
-                        
+
                         DROP INDEX IF EXISTS path_cache_all;
                         CREATE UNIQUE INDEX IF NOT EXISTS path_cache_all ON path_cache(entity_type, entity_id, root, path, primary_entity);
                         """
@@ -286,7 +286,7 @@ class PathCache(object):
         converts a dbpath to path for the local platform
 
         linux:    /foo/bar --> /studio/proj/foo/bar
-        windows:  /foo/bar --> \\studio\proj\foo\bar         
+        windows:  /foo/bar --> \\studio\proj\foo\bar
 
         :param root_path: Project root path
         :param db_path: Relative path
@@ -313,18 +313,18 @@ class PathCache(object):
 
     def synchronize(self, full_sync=False):
         """
-        Ensure the local path cache is in sync with Shotgun. 
-        
-        If the method decides to do a full sync, it will attempt to 
+        Ensure the local path cache is in sync with Shotgun.
+
+        If the method decides to do a full sync, it will attempt to
         launch the busy overlay window.
 
-        :param full_sync: Boolean to indicate that a full sync should be carried out. 
-        
+        :param full_sync: Boolean to indicate that a full sync should be carried out.
+
         :returns: A list of remote items which were detected, created remotely
-                  and not existing in this path cache. These are returned as a list of 
+                  and not existing in this path cache. These are returned as a list of
                   dictionaries, each containing keys:
                     - entity
-                    - metadata 
+                    - metadata
                     - path
         """
 
@@ -451,21 +451,21 @@ class PathCache(object):
         Takes a standard chunk of Shotgun data and uploads it to Shotgun
         using a single batch statement. Then writes a single event log entry record
         which binds the created path records. Returns the id of this event log record.
-        
+
         data needs to be a list of dicts with the following keys:
         - entity - std sg entity dict with name, id and type
         - primary - boolean to indicate if something is primary
         - metadata - metadata dict
         - path - local os path
         - path_cache_row_id - the path cache db row id for the entry
-        
+
         :param data: List of dicts. See details above.
         :param event_log_desc: Description to add to the event log entry created.
         :returns: A tuple with (event_log_id, sg_id_lookup)
-                  - event_log_id is the id for the event log entry which summarizes the 
+                  - event_log_id is the id for the event log entry which summarizes the
                     creation event.
-                  - sg_id_lookup is a dictionary where the keys are path cache row ids 
-                    and the values are the newly created corresponding shotgun ids. 
+                  - sg_id_lookup is a dictionary where the keys are path cache row ids
+                    and the values are the newly created corresponding shotgun ids.
         """
 
         if self._tk.pipeline_configuration.is_unmanaged():
@@ -591,14 +591,14 @@ class PathCache(object):
     def _do_full_sync(self, cursor):
         """
         Ensure the local path cache is in sync with Shotgun.
-        
+
         Returns a list of remote items which were detected, created remotely
-        and not existing in this path cache. These are returned as a list of 
+        and not existing in this path cache. These are returned as a list of
         dictionaries, each containing keys:
             - entity
-            - metadata 
+            - metadata
             - path
-            
+
         :param cursor: Sqlite database cursor
         """
 
@@ -1157,8 +1157,8 @@ class PathCache(object):
         """
         Checks a series of path mappings to ensure that they don't conflict with
         existing path cache data.
-        
-        :param data: list of dictionaries. Each dictionary should contain 
+
+        :param data: list of dictionaries. Each dictionary should contain
                      the following keys:
                       - entity: a dictionary with keys name, id and type
                       - path: a path on disk
@@ -1172,7 +1172,7 @@ class PathCache(object):
         """
         Consistency checks happening prior to folder creation. May raise a TankError
         if an inconsistency is detected.
-        
+
         :param path: The path calculated
         :param entity: Sg entity dict with keys id, type and name
         :param is_primary: indicates that this is a primary mapping - each folder may have
@@ -1274,21 +1274,21 @@ class PathCache(object):
 
     def add_mappings(self, data, entity_type, entity_ids):
         """
-        Adds a collection of mappings to the path cache in case they are not 
-        already there. 
-        
-        :param data: list of dictionaries. Each dictionary contains 
+        Adds a collection of mappings to the path cache in case they are not
+        already there.
+
+        :param data: list of dictionaries. Each dictionary contains
                      the following keys:
                       - entity: a dictionary with keys name, id and type
                       - path: a path on disk
                       - primary: a boolean indicating if this is a primary entry
                       - metadata: folder configuration metadata
-                      
-        :param entity_type: sg entity type for the original high level folder creation 
+
+        :param entity_type: sg entity type for the original high level folder creation
                             request that represents this series of mappings
-        :param entity_ids: list of sg entity ids (ints) that represents which objects triggered 
+        :param entity_ids: list of sg entity ids (ints) that represents which objects triggered
                            the high level folder creation request.
-                           
+
         """
         if self._path_cache_disabled:
             raise TankError(
@@ -1354,16 +1354,16 @@ class PathCache(object):
         """
         Adds an association to the database. If the association already exists, it will
         do nothing, just return.
-        
-        If there is another association which conflicts with the association that is 
+
+        If there is another association which conflicts with the association that is
         to be inserted, a TankError is raised.
 
         :param cursor: database cursor to use
         :param path: a path on disk representing the entity.
         :param entity: a shotgun entity dict with keys type, id and name
-        :param primary: is this the primary entry for this particular path     
-        
-        :returns: None if nothing was added to the db, otherwise the ROWID for the new row   
+        :param primary: is this the primary entry for this particular path
+
+        :returns: None if nothing was added to the db, otherwise the ROWID for the new row
         """
 
         if primary:
@@ -1482,7 +1482,7 @@ class PathCache(object):
     def get_shotgun_id_from_path(self, path):
         """
         Returns a FilesystemLocation id given a path.
-        
+
         :param path: Path to look for in the path cache
         :returns: A shotgun FilesystemLocation id or None if not found.
         """
@@ -1502,8 +1502,8 @@ class PathCache(object):
             db_path = self._path_to_dbpath(relative_path)
             res = c.execute(
                 """
-                            select ss.shotgun_id 
-                            from shotgun_status ss 
+                            select ss.shotgun_id
+                            from shotgun_status ss
                             inner join path_cache pc on pc.rowid = ss.path_cache_id
                             where pc.path = ? and pc.root = ? and pc.primary_entity = 1
                             """,
@@ -1529,7 +1529,7 @@ class PathCache(object):
         """
         Returns a list of items making up the subtree below a certain shotgun id
         Each item in the list is a dictionary with keys path and sg_id.
-        
+
         :param shotgun_id: The shotgun filesystem location id which should be unregistered.
         :returns: A list of items making up the subtree below the given id
         """
@@ -1537,7 +1537,7 @@ class PathCache(object):
         c = self._connection.cursor()
         # first get the path
         res = c.execute(
-            """SELECT pc.root, pc.path 
+            """SELECT pc.root, pc.path
                           FROM path_cache pc
                           INNER JOIN shotgun_status ss on pc.rowid = ss.path_cache_id
                           WHERE ss.shotgun_id = ? """,
@@ -1636,16 +1636,16 @@ class PathCache(object):
     def get_entity(self, path, cursor=None):
         """
         Returns an entity given a path.
-        
+
         If this path is made up of nested entities (e.g. has a folder creation expression
-        on the form Shot: "{code}_{sg_sequence.Sequence.code}"), the primary entity (in 
+        on the form Shot: "{code}_{sg_sequence.Sequence.code}"), the primary entity (in
         this case the Shot) will be returned.
 
         Note that if the lookup fails, none is returned.
 
         :param path: a path on disk
         :param cursor: Database cursor to use. If none, a new cursor will be created.
-        :returns: Shotgun entity dict, e.g. {"type": "Shot", "name": "xxx", "id": 123} 
+        :returns: Shotgun entity dict, e.g. {"type": "Shot", "name": "xxx", "id": 123}
                   or None if not found
         """
         if self._path_cache_disabled:
@@ -1692,9 +1692,9 @@ class PathCache(object):
     def get_secondary_entities(self, path):
         """
         Returns all the secondary entities for a path.
-        
+
         :param path: a path on disk
-        :returns: list of shotgun entity dicts, e.g. [{"type": "Shot", "name": "xxx", "id": 123}] 
+        :returns: list of shotgun entity dicts, e.g. [{"type": "Shot", "name": "xxx", "id": 123}]
                   or [] if no entities associated.
         """
 
@@ -1732,10 +1732,10 @@ class PathCache(object):
     def ensure_all_entries_are_in_shotgun(self):
         """
         Ensures that all the path cache data in this database is also registered in Shotgun.
-        
-        This will go through each entity in the path cache database and check if it exists in 
+
+        This will go through each entity in the path cache database and check if it exists in
         Shotgun. If not, it will be created.
-        
+
         No updates will be made to the path cache database.
         """
 
@@ -1773,12 +1773,12 @@ class PathCache(object):
             pc_data = list(
                 cursor.execute(
                     """select pc.rowid,
-                                                    pc.entity_type, 
-                                                    pc.entity_id, 
-                                                    pc.entity_name, 
-                                                    pc.root, 
-                                                    pc.path, 
-                                                    pc.primary_entity 
+                                                    pc.entity_type,
+                                                    pc.entity_id,
+                                                    pc.entity_name,
+                                                    pc.root,
+                                                    pc.path,
+                                                    pc.primary_entity
                                              from path_cache pc"""
                 )
             )

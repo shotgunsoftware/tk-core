@@ -41,20 +41,20 @@ class TankQDialog(TankDialogBase):
     def _stop_buggy_background_worker_qthreads(widget):
         """
         There is a bug in the worker/threading code in the BrowserWidget that was fixed
-        in v0.1.17 and the tk-multi-workfiles Save As dialog that was fixed in v0.3.22.  
-        
+        in v0.1.17 and the tk-multi-workfiles Save As dialog that was fixed in v0.3.22.
+
         The bug results in a fatal crash if the BrowserWidget is cleaned up properly or
-        if the Save As dialog is closed before the thread has completely stopped!  
-        
-        However, because the engine was previously not releasing any dialogs, the cleanup 
+        if the Save As dialog is closed before the thread has completely stopped!
+
+        However, because the engine was previously not releasing any dialogs, the cleanup
         code was never running which meant the bug was hidden!
-        
-        Now the engine has been fixed so that it cleans up correctly, all old versions 
+
+        Now the engine has been fixed so that it cleans up correctly, all old versions
         of Multi Publish and apps using a pre-v0.1.17 version of the BrowserWidget became
         extremely unstable.
-        
-        As a workaround, this function finds all pre-v0.1.17 BrowserWidgets and 
-        pre-v0.3.22 SaveAsForms and applies a fix (basically waits for the worker thread 
+
+        As a workaround, this function finds all pre-v0.1.17 BrowserWidgets and
+        pre-v0.3.22 SaveAsForms and applies a fix (basically waits for the worker thread
         to stop) to avoid instability!
         """
         checked_classes = {}
@@ -137,7 +137,7 @@ class TankQDialog(TankDialogBase):
         Return a new class derived from widget_class that overrides
         the closeEvent method and emits a signal if the event is
         accepted by the widget_class implementation.
-        
+
         This is the cleanest way I've found to catch when the widget
         has been closed that doesn't mess with either Qt or Python
         memory/gc management!
@@ -429,10 +429,10 @@ class TankQDialog(TankDialogBase):
 
     def event(self, event):
         """
-        To avoid key press events being posted to the host application (e.g. hotkeys 
+        To avoid key press events being posted to the host application (e.g. hotkeys
         in Maya), we need to filter them out.
-        
-        Events will still be handled by child controls (e.g. text edits) correctly, 
+
+        Events will still be handled by child controls (e.g. text edits) correctly,
         this just stops those events being posted any further up than this widget.
         """
         if (
@@ -448,9 +448,9 @@ class TankQDialog(TankDialogBase):
 
     def closeEvent(self, event):
         """
-        Override the dialog closeEvent handler so that it first tries 
+        Override the dialog closeEvent handler so that it first tries
         to close the enclosed widget.
-        
+
         If the enclosed widget doesn't close then we should ignore the
         event so the dialog doesn't close.
 
@@ -465,9 +465,9 @@ class TankQDialog(TankDialogBase):
     def done(self, exit_code):
         """
         Override 'done' method to emit the dialog_closed
-        event.  This method is called regardless of how 
+        event.  This method is called regardless of how
         the dialog is closed.
-        
+
         :param exit_code:   The exit code to use if this is
                             being shown as a modal dialog.
         """
@@ -492,12 +492,12 @@ class TankQDialog(TankDialogBase):
         """
         Internal method used to execute the base class done() method
         and emit the dialog_closed signal.
-        
+
         This may get called directly from 'done' but may also get called
         when the embedded widget is closed and the dialog is modal.
 
         :param exit_code:   The exit code to use if this is
-                            being shown as a modal dialog.        
+                            being shown as a modal dialog.
         """
         # call base done() implementation - this sets
         # the exit code returned from exec()/show_modal():
@@ -508,7 +508,7 @@ class TankQDialog(TankDialogBase):
 
     def detach_widget(self):
         """
-        Detach the widget from the dialog so that it 
+        Detach the widget from the dialog so that it
         remains alive when the dialog is removed gc'd
         """
         if not self._widget:
@@ -564,7 +564,7 @@ class TankQDialog(TankDialogBase):
 
     def _on_widget_closed(self):
         """
-        This is called when the contained widget is closed - it 
+        This is called when the contained widget is closed - it
         handles the event and then closes the dialog
         """
         exit_code = QtGui.QDialog.Accepted

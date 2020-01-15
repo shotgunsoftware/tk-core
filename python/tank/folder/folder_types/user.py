@@ -17,8 +17,8 @@ from .util import translate_filter_tokens
 
 class UserWorkspace(Entity):
     """
-    Represents a user workspace folder. 
-    
+    Represents a user workspace folder.
+
     A workspace folder is deferred by default and is typically created
     in a second pass, just before application startup.
     """

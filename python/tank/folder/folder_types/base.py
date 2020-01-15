@@ -69,8 +69,8 @@ class Folder(object):
     def extract_shotgun_data_upwards(self, sg, shotgun_data):
         """
         Extract data from shotgun for a specific pathway upwards through the
-        schema. 
-        
+        schema.
+
         This is subclassed by deriving classes which process Shotgun data.
         For more information, see the Entity implementation.
 
@@ -86,7 +86,7 @@ class Folder(object):
     def get_parents(self):
         """
         Returns all parent nodes as a list with the top most item last in the list
-        
+
         e.g. [ </foo/bar/baz>, </foo/bar>, </foo> ]
         """
         if self._parent is None:
@@ -107,7 +107,7 @@ class Folder(object):
         """
         Adds a symlink definition to this node. As part of the processing phase, symlink
         targets will be resolved and created.
-        
+
         :param name: name of the symlink
         :param target: symlink target expression
         :param metadata: full config yml metadata for symlink
@@ -123,37 +123,37 @@ class Folder(object):
     ):
         """
         Recursive folder creation. Creates folders for this node and all its children.
-        
+
         :param io_receiver: An object which handles any io processing request. Note that
                             processing may be deferred and happen after the recursion has completed.
-               
-        :param path: The file system path to the location where this folder should be 
+
+        :param path: The file system path to the location where this folder should be
                      created.
-                     
-        :param sg_data: All Shotgun data, organized in a dictionary, as returned by 
+
+        :param sg_data: All Shotgun data, organized in a dictionary, as returned by
                         extract_shotgun_data_upwards()
-                     
+
         :param is_primary: Indicates that the folder is part of the primary creation chain
-                           and not part of the secondary recursion. For example, if the 
+                           and not part of the secondary recursion. For example, if the
                            folder creation is running for shot ABC, the primary chain
                            folders would be Project X -> Sequence Y -> Shot ABC.
                            The secondary folders would be the children of Shot ABC.
-                          
+
         :param explicit_child_list: A list of specific folders to process as the algorithm
                                     traverses down. Each time a new level is traversed, the child
-                                    list is popped, and that object is processed. If the 
+                                    list is popped, and that object is processed. If the
                                     child list is empty, all children will be processed rather
                                     than the explicit object given at each level.
-                                    
+
                                     This effectively means that folder creation often starts off
                                     using an explicit child list (for example project->sequence->shot)
                                     and then when the child list has been emptied (at the shot level),
-                                    the recursion will switch to a creation mode where all Folder 
-                                    object children are processed. 
-                                  
+                                    the recursion will switch to a creation mode where all Folder
+                                    object children are processed.
+
         :param engine: String used to limit folder creation. If engine is not None, folder creation
                        traversal will include nodes that have their deferred flag set.
-        
+
         :returns: Nothing
         """
 
@@ -225,7 +225,7 @@ class Folder(object):
     def _create_folders_impl(self, io_receiver, parent_path, sg_data):
         """
         Folder creation implementation. Implemented by all subclasses.
-        
+
         Should return a list of tuples. Each tuple is a path + a matching shotgun data dictionary
         """
         raise NotImplementedError
@@ -233,14 +233,14 @@ class Folder(object):
     def _should_item_be_processed(self, engine_str, is_primary):
         """
         Checks if this node should be processed, given its deferred status.
-        
+
         If deriving classes have other logic for deciding if a node should be processed,
         this method can be subclassed. However, the base class should also be executed.
-        
+
         Is Primary indicates that the folder is part of the primary creation pass.
-        
+
         in the metadata, expect the following values:
-        
+
         --                                    # no config parameter at all, means always create
         defer_creation:                       # no value specified, means create folders
         defer_creation: false                 # create folders
@@ -290,7 +290,7 @@ class Folder(object):
         """
         Helper method.
         Resolves all symlinks and requests creation via the io_receiver object.
-        
+
         :param io_receiver: IO handler instance
         :param path: Path where the symlinks should be located
         :param sg_data: std shotgun data collection for the current object
@@ -320,7 +320,7 @@ class Folder(object):
         Helper.
         Copies all files that have been registered with this folder object
         to a specific target folder on disk, using the dedicated hook.
-        
+
         :param io_receiver: IO handler instance
         :param path: Path where the symlinks should be located
         """

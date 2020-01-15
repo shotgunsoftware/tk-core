@@ -161,7 +161,7 @@ class YamlCache(object):
         Retrieve the yaml data for the specified path.  If it's not already
         in the cache of the cached version is out of date then this will load
         the Yaml file from disk.
-        
+
         :param path:            The path of the yaml file to load.
         :param deepcopy_data:   Return deepcopy of data. Default is True.
         :returns:               The raw yaml data loaded from the file.
@@ -207,7 +207,7 @@ class YamlCache(object):
         the caller. If the given item is added to the cache and it has not already
         been populated with the yaml data from disk, that data will be read prior
         to the item being added to the cache.
-        
+
         :param item:    The CacheItem to add to the cache.
         :returns:       The cached CacheItem.
         """

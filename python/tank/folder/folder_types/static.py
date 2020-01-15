@@ -132,7 +132,7 @@ class Static(Folder):
 
     def _should_item_be_processed(self, engine_str, is_primary):
         """
-        Checks if this node should be processed, given its deferred status.        
+        Checks if this node should be processed, given its deferred status.
         """
         # check our special condition - is this node set to be auto-created with its parent node?
         # note that primary nodes are always created with their parent nodes!

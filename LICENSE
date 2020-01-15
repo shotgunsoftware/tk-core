@@ -4,9 +4,9 @@ Version: 7/07/2013
 
 Shotgun Software Inc. ("Company") provides the Shotgun Pipeline Toolkit,
 software, including source code, in this package or repository folder (the
-"Shotgun Toolkit Code") subject to your acceptance of and compliance with 
+"Shotgun Toolkit Code") subject to your acceptance of and compliance with
 the following terms and conditions (the "License Terms"). By accessing,
-downloading, copying, using or modifying any of the Shotgun Toolkit Code, 
+downloading, copying, using or modifying any of the Shotgun Toolkit Code,
 you agree to these License Terms.
 
 Eligibility
@@ -33,7 +33,7 @@ to the Shotgun Toolkit Code or any of Company's other software or intellectual
 property rights. You agree not to take any action with respect to the Shotgun
 Toolkit Code that is not expressly authorized above.
 
-You must keep intact (and, in the case of copies, reproduce) all copyright 
+You must keep intact (and, in the case of copies, reproduce) all copyright
 and other proprietary notices, including all references to and copies of these
 License Terms, as originally included on, in, or with the Shotgun Toolkit
 Code. You must ensure that all derivative works you make of the Shotgun
@@ -64,7 +64,7 @@ Company).
 Liability
 
 You agree to be solely responsible for your use and modifications of the
-Shotgun Toolkit Code, and for any harm or liability arising out of such use 
+Shotgun Toolkit Code, and for any harm or liability arising out of such use
 or modifications, including but not limited to any liability for infringement
 of third-party intellectual property rights.
 
@@ -78,7 +78,7 @@ advised of the possibility of such damages; and (b) in any event, Company's
 aggregate liability under these License Terms or in connection with the
 Shotgun Toolkit Code, regardless of the form of action and under any theory
 (whether in contract, tort, statutory, or otherwise), will not exceed the
-greater of $50 or the amount (if any) that you actually paid for access to 
+greater of $50 or the amount (if any) that you actually paid for access to
 the Shotgun Toolkit Code.
 
 Ownership
@@ -115,7 +115,7 @@ Company grants you a non-exclusive right to continue to modify, make
 derivative works of, reproduce, and use the Contribution for your
 non-commercial or internal business purposes, and to further Company's
 development of Company Programs. This grant does not: (a) limit Company's
-rights, (b) grant you any rights with respect to the Company Programs; nor 
+rights, (b) grant you any rights with respect to the Company Programs; nor
 (c) permit you to distribute, operate for the benefit of third parties (for
 example, on a hosted basis), or otherwise commercially exploit the
 Contribution.

@@ -88,9 +88,9 @@ class CloneConfigAction(Action):
 
     def run_noninteractive(self, log, parameters):
         """
-        Tank command API accessor. 
+        Tank command API accessor.
         Called when someone runs a tank command through the core API.
-        
+
         :param log: std python logger
         :param parameters: dictionary with tank command parameters
         """
@@ -114,7 +114,7 @@ class CloneConfigAction(Action):
     def run_interactive(self, log, args):
         """
         Tank command accessor
-        
+
         :param log: std python logger
         :param args: command line args
         """
@@ -134,9 +134,9 @@ def clone_pipeline_configuration_html(
 ):
     """
     Clones a pipeline configuration, not necessarily the one associated with the current tk handle.
-    
+
     This script is called from the tank command directly and is what gets executed if someone
-    tries to run the clone command from inside of Shotgun by right clicking on a Pipeline 
+    tries to run the clone command from inside of Shotgun by right clicking on a Pipeline
     Configuration entry and go select the clone action.
     """
 

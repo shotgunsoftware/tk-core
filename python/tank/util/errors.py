@@ -60,7 +60,7 @@ class EnvironmentVariableFileLookupError(TankError):
 class ShotgunPublishError(TankError):
     """
     Raised when Toolkit is not able to register a published file in Shotgun.
-    
+
     The original message for the reported error is available in the 'error_message' property.
 
     If a published file entity was created before the error happened, it will be

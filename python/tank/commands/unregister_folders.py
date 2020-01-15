@@ -21,8 +21,8 @@ from ..util.login import get_current_user
 class UnregisterFoldersAction(Action):
     """
     Tank command for unregistering a folder on disk from Shotgun. This is part of the process of
-    the deletion of a folder on disk. As part of removing or moving, the folder needs to be 
-    unregistered with Shotgun to ensure that the connection between that path and the related 
+    the deletion of a folder on disk. As part of removing or moving, the folder needs to be
+    unregistered with Shotgun to ensure that the connection between that path and the related
     entity is undone.
     """
 
@@ -69,9 +69,9 @@ class UnregisterFoldersAction(Action):
     def run_interactive(self, log, args):
         """
         Tank command accessor
-        
+
         :param log: Std logging object
-        :param parameters: Std tank command parameters dict        
+        :param parameters: Std tank command parameters dict
         """
 
         if self.tk.pipeline_configuration.is_site_configuration():
@@ -180,13 +180,13 @@ class UnregisterFoldersAction(Action):
     def run_noninteractive(self, log, parameters):
         """
         API accessor
-        
+
         :param log: Std logging object
         :param parameters: Std tank command parameters dict
         :returns: List of dictionaries to represents the items that were unregistered.
                   Each dictionary has keys path and entity, where entity is a standard
-                  Shotgun-style link dictionary containing the keys type and id. 
-                  Note that the shotgun ids returned will refer to retired objects in 
+                  Shotgun-style link dictionary containing the keys type and id.
+                  Note that the shotgun ids returned will refer to retired objects in
                   Shotgun rather than live ones.
         """
 
@@ -218,14 +218,14 @@ class UnregisterFoldersAction(Action):
     def _unregister_paths(self, paths, log, prompt):
         """
         Unregisters a path.
-        
+
         :param paths: list of paths to unregister
         :param log: python logger
         :param prompt: Boolean to indicate that we can prompt the user for information or confirmation
         :returns: List of dictionaries to represents the items that were unregistered.
                   Each dictionary has keys path and entity, where entity is a standard
-                  Shotgun-style link dictionary containing the keys type and id. 
-                  Note that the shotgun ids returned will refer to retired objects in 
+                  Shotgun-style link dictionary containing the keys type and id.
+                  Note that the shotgun ids returned will refer to retired objects in
                   Shotgun rather than live ones.
         """
         log.debug("Will unregister folders for the following root paths:")
@@ -262,14 +262,14 @@ class UnregisterFoldersAction(Action):
     def _unregister_entity(self, entity, log, prompt):
         """
         Unregisters an entity from the path cache in Shotgun.
-        
+
         :param entity: Shotgun entity dict (e.g Shot, Asset or Task) with keys type and id
         :param log: Logger
         :param prompt: If true, the command may prompt the user for confirmation
         :returns: List of dictionaries to represents the items that were unregistered.
                   Each dictionary has keys path and entity, where entity is a standard
-                  Shotgun-style link dictionary containing the keys type and id. 
-                  Note that the shotgun ids returned will refer to retired objects in 
+                  Shotgun-style link dictionary containing the keys type and id.
+                  Note that the shotgun ids returned will refer to retired objects in
                   Shotgun rather than live ones.
         """
         log.debug("Unregister folders for Shotgun Entity %s..." % entity)

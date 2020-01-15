@@ -21,7 +21,7 @@ from .action_base import Action
 
 class SynchronizePathCache(Action):
     """
-    Tank command to synchronize the local disk path cache 
+    Tank command to synchronize the local disk path cache
     with the FilesystemLocation entity on disk.
     """
 
@@ -50,9 +50,9 @@ class SynchronizePathCache(Action):
 
     def run_noninteractive(self, log, parameters):
         """
-        Tank command API accessor. 
+        Tank command API accessor.
         Called when someone runs a tank command through the core API.
-        
+
         :param log: std python logger
         :param parameters: dictionary with tank command parameters
         """
@@ -63,7 +63,7 @@ class SynchronizePathCache(Action):
     def run_interactive(self, log, args):
         """
         Tank command accessor
-        
+
         :param log: std python logger
         :param args: command line args
         """
@@ -81,7 +81,7 @@ class SynchronizePathCache(Action):
     def _run(self, log, full_sync):
         """
         Actual business logic for command
-        
+
         :param log: logger
         :param full_sync: boolean flag to indicate that a full sync should be carried out
         """
@@ -136,7 +136,7 @@ class PathCacheMigrationAction(Action):
     def run_interactive(self, log, args):
         """
         Tank command accessor
-        
+
         :param log: std python logger
         :param args: command line args
         """

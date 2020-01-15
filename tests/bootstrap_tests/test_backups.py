@@ -65,7 +65,7 @@ class TestBackups(ShotgunTestBase):
     def test_cleanup(self):
         """
         Ensures that after a successful update the backup folder created by the
-        update process is properly deleted 
+        update process is properly deleted
         """
         resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
             plugin_id="backup_tests"
@@ -98,7 +98,7 @@ class TestBackups(ShotgunTestBase):
 
     def test_cleanup_with_fail(self):
         """
-        Ensures that after an update with a cleanup failure, the succeeding update 
+        Ensures that after an update with a cleanup failure, the succeeding update
         process completes smoothly
         """
         resolver = sgtk.bootstrap.resolver.ConfigurationResolver(

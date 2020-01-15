@@ -64,7 +64,7 @@ def __get_api_core_config_location():
 def __get_sg_config():
     """
     Returns the site sg config yml file for this install
-    
+
     :returns: full path to to shotgun.yml config file
     """
     core_cfg = __get_api_core_config_location()
@@ -75,7 +75,7 @@ def __get_sg_config():
 def get_project_name_studio_hook_location():
     """
     Returns the studio level hook that is used to compute the default project name
-    
+
     :returns: The path to the studio level project naming hook.
     """
 
@@ -95,22 +95,22 @@ def get_project_name_studio_hook_location():
 def __get_sg_config_data(shotgun_cfg_path, user="default"):
     """
     Returns the shotgun configuration yml parameters given a config file.
-    
+
     The shotgun.yml may look like:
 
         host: str
         api_script: str
         api_key: str
         http_proxy: str
-    
+
         or may now look like:
-    
+
         <User>:
             host: str
             api_script: str
             api_key: str
             http_proxy: str
-    
+
         <User>:
             host: str
             api_script: str
@@ -118,10 +118,10 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
             http_proxy: str
 
     The optional user param refers to the <User> in the shotgun.yml.
-    If a user is not found the old style is attempted.    
-    
+    If a user is not found the old style is attempted.
+
     :param shotgun_cfg_path: path to config file
-    :param user: Optional user to pass when a multi-user config is being read 
+    :param user: Optional user to pass when a multi-user config is being read
 
     :returns: dictionary with key host and optional keys api_script, api_key and http_proxy
     """
@@ -496,7 +496,7 @@ class ToolkitUserAgentHandler(object):
 
     def set_current_app(self, name, version, engine_name, engine_version):
         """
-        Update the user agent headers for the currently active app 
+        Update the user agent headers for the currently active app
         """
         # first clear out the other bundle settings - there can only
         # be one active bundle at a time
@@ -511,7 +511,7 @@ class ToolkitUserAgentHandler(object):
 
     def set_current_framework(self, name, version, engine_name, engine_version):
         """
-        Update the user agent headers for the currently active framework 
+        Update the user agent headers for the currently active framework
         """
         # first clear out the other bundle settings - there can only
         # be one active bundle at a time
@@ -526,7 +526,7 @@ class ToolkitUserAgentHandler(object):
 
     def set_current_engine(self, name, version):
         """
-        Update the user agent headers for the currently active engine 
+        Update the user agent headers for the currently active engine
         """
         # first clear out the other bundle settings - there can only
         # be one active bundle at a time

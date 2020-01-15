@@ -1243,7 +1243,7 @@ def make_keys(data):
 
     :param data: Key data.
     :type data: Dictionary of the form: {<key name>: {'type': <key type>, <option>: <option value}
-     
+
     :returns: Dictionary of the form: {<key name>: <TemplateKey object>}
     """
     keys = {}

@@ -152,12 +152,12 @@ class FolderConfiguration(object):
     def _get_symlinks_in_folder(self, parent_path):
         """
         Returns all xxx.symlink.yml files in a location.
-        
+
         :param parent_path: file system folder to scan
-        :returns: list of (name, target_expression, full_metadata) where name is the name of the symlink 
-                  and target_expression is a target expression to be passed into the folder creation. 
-                  For example, if the file in the schema location is called "foo_bar.symlink.yml", 
-                  the name parameter will be 'foo_bar'. 
+        :returns: list of (name, target_expression, full_metadata) where name is the name of the symlink
+                  and target_expression is a target expression to be passed into the folder creation.
+                  For example, if the file in the schema location is called "foo_bar.symlink.yml",
+                  the name parameter will be 'foo_bar'.
         """
         SYMLINK_SUFFIX = ".symlink.yml"
 

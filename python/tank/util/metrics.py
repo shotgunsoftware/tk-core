@@ -371,7 +371,7 @@ class MetricsDispatchWorkerThread(Thread):
 
     DISPATCH_SHORT_INTERVAL = 0.1
     """
-    Delay in seconds between the posting of consecutive batches within a 
+    Delay in seconds between the posting of consecutive batches within a
     dispatcher cycle.
     """
 
@@ -469,7 +469,7 @@ class MetricsDispatchWorkerThread(Thread):
 
     def _dispatch_to_endpoint(self, metrics):
         """
-        Dispatch the supplied metric to the sg api registration endpoint. 
+        Dispatch the supplied metric to the sg api registration endpoint.
 
         :param metrics: A list of :class:`EventMetric` instances.
         """
@@ -642,9 +642,9 @@ class EventMetric(object):
         :param str group: A group or category this metric event falls into.
                           Any value can be used to implement your own taxonomy.
                           The "Toolkit" group name is reserved for internal use.
-        :param str name: A short descriptive event name or performed action, 
+        :param str name: A short descriptive event name or performed action,
                          e.g. 'Launched Command', 'Opened Workfile', etc..
-        :param dict properties: An optional dictionary of extra properties to be 
+        :param dict properties: An optional dictionary of extra properties to be
                                 attached to the metric event.
         """
         self._group = str(group)
@@ -753,7 +753,7 @@ class EventMetric(object):
 
 
 def log_metric(metric, log_once=False):
-    """ 
+    """
     This method is deprecated and shouldn't be used anymore.
     Please use the `EventMetric.log` method.
     """
@@ -761,7 +761,7 @@ def log_metric(metric, log_once=False):
 
 
 def log_user_activity_metric(module, action, log_once=False):
-    """ 
+    """
     This method is deprecated and shouldn't be used anymore.
     Please use the `EventMetric.log` method.
     """
@@ -769,7 +769,7 @@ def log_user_activity_metric(module, action, log_once=False):
 
 
 def log_user_attribute_metric(attr_name, attr_value, log_once=False):
-    """ 
+    """
     This method is deprecated and shouldn't be used anymore.
     Please use the `EventMetric.log` method.
     """

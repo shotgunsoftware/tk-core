@@ -365,7 +365,7 @@ class TestGithubIODescriptorWithoutRemoteAccess(GithubIODescriptorTestBase):
 
 class TestGithubIODescriptorRemoteAccessCheck(GithubIODescriptorTestBase):
     """
-    Test the remote aspect check functionality of GithubIODescriptor.   
+    Test the remote aspect check functionality of GithubIODescriptor.
     """
 
     def test_has_remote_access(self):

@@ -10,12 +10,12 @@
 
 """
 Methods for pushing an associated version of the Toolkit Core API
-into its appropriate install location. This script is typically 
+into its appropriate install location. This script is typically
 loaded and executed from another script (either an activation script
 or an upgrade script) but can be executed manually if needed.
 
 The script assumes that there is an sgtk core payload located
-next to it in the file system. This is what it will attempt to install. 
+next to it in the file system. This is what it will attempt to install.
 
 """
 
@@ -52,9 +52,9 @@ import yaml
 
 def __is_upgrade(sgtk_install_root):
     """
-    Returns true if this is not the first time the sgtk code is being 
+    Returns true if this is not the first time the sgtk code is being
     installed (activation).
-    
+
     :param sgtk_install_root: Location where the core is installed
     :returns: true if activation, false if not
     """
@@ -63,9 +63,9 @@ def __is_upgrade(sgtk_install_root):
 
 def __current_version_less_than(log, sgtk_install_root, ver):
     """
-    returns true if the current API version installed is less than the 
+    returns true if the current API version installed is less than the
     specified version. ver is "v0.1.2"
-    
+
     :param sgtk_install_root: Location where the core is installed
     :param ver: Version string to check (e.g. 'v0.1.2')
     :returns: true or false
@@ -170,7 +170,7 @@ def _copy_folder(log, src, dst):
 def _upgrade_path_cache(log):
     """
     Migration to upgrade to 0.15. Info blurb only.
-    
+
     :param log: std python logger
     """
     log.info("")
@@ -210,7 +210,7 @@ def __copy_tank_cmd_binaries(src_dir, dst_dir, tank_scripts, log):
     """
     Copy the tank cmd binaries from the source (core install) to the destination
     (pipeline config/studio root) locations.
-    
+
     :param src_dir:         The source directory to copy them from
     :param dst_dir:         The destination directory to copy them to
     :param tank_scripts:    A list of the tank command binary scripts to copy
@@ -329,10 +329,10 @@ if __name__ == "__main__":
 
     desc = """
     This is a system script used by the upgrade process.
-    
+
     If you want to upgrade the toolkit Core API, run the
     'tank core' command.
-    
+
     """
     print(desc)
     sys.exit(1)

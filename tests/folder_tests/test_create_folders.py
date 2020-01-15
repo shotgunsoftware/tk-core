@@ -324,10 +324,10 @@ class TestSchemaCreateFolders(TankTestBase):
 
 class TestSchemaCreateFoldersMultiLevelProjectRoot(TestSchemaCreateFolders):
 
-    """ 
+    """
     Test a setup where there are more than a single folder in the Project.tank_name.
-    
-    We just run the standard tests but with an extended project root path. 
+
+    We just run the standard tests but with an extended project root path.
     """
 
     def setUp(self):
@@ -626,7 +626,7 @@ class TestSchemaCreateFoldersWorkspaces(TankTestBase):
     entity) which has a sg_entity single link field which can point to both
     assets and shots. If you run folder creation on this, the algorithm
     should be able to correctly distinguish between items linked to shots
-    and items linked to assets.    
+    and items linked to assets.
     """
 
     def setUp(self):

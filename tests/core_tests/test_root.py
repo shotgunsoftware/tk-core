@@ -90,7 +90,7 @@ class TestGetProjectRoots(TankTestBase):
 
     def test_all_paths(self):
         """
-        Tests getting storage paths back from a pipeline config. 
+        Tests getting storage paths back from a pipeline config.
         """
 
         # take one path out and mark as undefined

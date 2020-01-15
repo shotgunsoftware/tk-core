@@ -44,14 +44,14 @@ def sg_entity_to_string(tk, sg_entity_type, sg_id, sg_field_name, data):
     """
     Generates a string value given a Shotgun value.
     This logic is in a hook but it typically does conversions such as:
-    
+
     * "foo" ==> "foo"
     * {"type":"Shot", "id":123, "name":"foo"} ==> "foo"
     * 123 ==> "123"
     * [{"type":"Shot", "id":1, "name":"foo"}, {"type":"Shot", "id":2, "name":"bar"}] ==> "foo_bar"
-    
+
     This method may also raise exceptions in the case the string value is not valid.
-    
+
     :param tk: Sgtk api instance
     :param sg_entity_type: the Shotgun entity type e.g. 'Shot'
     :param sg_id: The Shotgun id for the record, e.g 1234
@@ -72,15 +72,15 @@ class EntityExpression(object):
     """
     Represents a name expression for a Shotgun entity.
     A name expression converts a pattern and a set of Shotgun data into a string:
-      
+
     Expression                 Shotgun Entity Data                          String Result
     ----------------------------------------------------------------------------------------
     * "code"                 + {"code": "foo_bar"}                      ==> "foo_bar"
     * "{code}_{asset_type}"  + {"code": "foo_bar", "asset_type": "car"} ==> "foo_bar_car"
     * "{code}/{asset_type}"  + {"code": "foo_bar", "asset_type": "car"} ==> "foo_bar/car"
-    
+
     Optional fields are [bracketed]:
-    
+
     * "{code}[_{asset_type}]" + {"code": "foo_bar", "asset_type": "car"} ==> "foo_bar_car"
     * "{code}[_{asset_type}]" + {"code": "foo_bar", "asset_type": None} ==> "foo_bar"
 
@@ -181,7 +181,7 @@ class EntityExpression(object):
     def _get_expression_variations(self, definition):
         """
         Returns all possible optional variations for an expression.
-        
+
         "{foo}"               ==> ['{foo}']
         "{foo:[xxx]}_{bar}"   ==> ['{foo:[xxx]}_{bar}']
         "{foo}[_{bar}]"       ==> ['{foo}', '{foo}_{bar}']
@@ -218,7 +218,7 @@ class EntityExpression(object):
         """
         Returns the Shotgun fields that are needed in order to
         build this name expression. Returns all fields, including optional.
-        
+
         :returns: Set of Shotgun field names, e.g. ('code', 'sg_sequence.Sequence.code')
         """
         # use the longest expression - this contains the most fields
@@ -229,7 +229,7 @@ class EntityExpression(object):
 
     def get_shotgun_link_fields(self):
         """
-        Returns a list of all entity links that are used in the name expression, 
+        Returns a list of all entity links that are used in the name expression,
         including optional ones.
         For example, if a name expression for a Shot is '{code}_{sg_sequence.Sequence.code}',
         the link fields for this expression is ['sg_sequence'].
@@ -249,10 +249,10 @@ class EntityExpression(object):
     def generate_name(self, values):
         """
         Generates a name given some fields.
-        
+
         Assumes the name will be used as a folder name and validates
         that the evaluated expression is suitable for disk use.
-        
+
         :param dict values: Dictionary of values to use.
         :returns: Fully resolved name string.
         """
@@ -302,11 +302,11 @@ class EntityExpression(object):
     def _generate_name(self, expression, values):
         """
         Generates a name given some fields.
-        
+
         Assumes the name will be used as a folder name and validates
         that the evaluated expression is suitable for disk use.
-        
-        :param values: dictionary of values to use 
+
+        :param values: dictionary of values to use
         :returns: fully resolved name string or None if it cannot be resolved.
         """
         field_defs = self._variations[expression]

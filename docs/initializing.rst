@@ -165,7 +165,7 @@ To use this workflow, simply zip up your configuration and upload it as an attac
     :width: 700px
     :align: center
 
-.. note:: For backwards compatibility, configurations uploaded to the custom ``sg_uploaded_config`` field 
+.. note:: For backwards compatibility, configurations uploaded to the custom ``sg_uploaded_config`` field
     are also supported.
 
     Older versions of Shotgun may not have an **Uploaded Config** field enabled by

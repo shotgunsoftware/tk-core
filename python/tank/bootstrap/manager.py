@@ -438,7 +438,7 @@ class ToolkitManager(object):
                 '''
 
         .. note:: When registering a progress callback, ensure that it is ALWAYS
-            thread safe. There is no guarantee that it will be called from the 
+            thread safe. There is no guarantee that it will be called from the
             main thread.
         """
         return self._progress_cb or self._default_progress_callback

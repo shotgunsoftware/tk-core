@@ -80,17 +80,17 @@ class Entity(Folder):
     ):
         """
         Constructor.
-        
+
         The filter syntax for deciding which folders to create
         is a dictionary, often looking something like this:
-        
+
              {
                  "logical_operator": "and",
                  "conditions": [ { "path": "project", "relation": "is", "values": [ FilterExpressionToken(<Project>) ] } ]
              }
-        
-        This is basically a shotgun API filter dictionary, but with interleaved tokens 
-        (e.g. the FilterExpressionToken object). Tank will resolve any Token fields prior to 
+
+        This is basically a shotgun API filter dictionary, but with interleaved tokens
+        (e.g. the FilterExpressionToken object). Tank will resolve any Token fields prior to
         passing the filter to Shotgun for evaluation.
         """
 
@@ -113,7 +113,7 @@ class Entity(Folder):
 
     def _should_item_be_processed(self, engine_str, is_primary):
         """
-        Checks if this node should be processed, given its deferred status.        
+        Checks if this node should be processed, given its deferred status.
         """
         # check our special condition - is this node set to be auto-created with its parent node?
         # note that primary nodes are always created with their parent nodes!
@@ -191,7 +191,7 @@ class Entity(Folder):
 
     def _register_secondary_entities(self, io_receiver, path, entity):
         """
-        Looks in the entity dict for any linked entities and register these 
+        Looks in the entity dict for any linked entities and register these
         """
         # get all the link fields from the name expression
         for lf in self._entity_expression.get_shotgun_link_fields():
@@ -249,30 +249,30 @@ class Entity(Folder):
         Extracts the shotgun data necessary to create this object and all its parents.
         The shotgun_data input needs to contain a dictionary with a "seed". For example:
         { "Shot": {"type": "Shot", "id": 1234 } }
-        
-        
+
+
         This method will then first extend this structure to ensure that fields needed for
         folder creation are available:
         { "Shot": {"type": "Shot", "id": 1234, "code": "foo", "sg_status": "ip" } }
-        
+
         Now, if you have structure with Project > Sequence > Shot, the Shot level needs
-        to define a configuration entry roughly on the form 
+        to define a configuration entry roughly on the form
         filters: [ { "path": "sg_sequence", "relation": "is", "values": [ "$sequence" ] } ]
-        
+
         So in addition to getting the fields required for naming the current entry, we also
         get all the fields that are represented by $tokens. These will form the 'seed' for
         when we recurse to the parent level and do the same thing there.
-        
-        
+
+
         The return data is on the form:
         {
             'Project':   {'id': 4, 'name': 'Demo Project', 'type': 'Project'},
             'Sequence':  {'code': 'Sequence1', 'id': 2, 'name': 'Sequence1', 'type': 'Sequence'},
             'Shot':      {'code': 'shot_010', 'id': 2, 'type': 'Shot'}
-        }        
-        
+        }
+
         NOTE! Because we are using a dictionary where we key by type, it would not be possible
-        to have a pathway where the same entity type exists multiple times. For example an 
+        to have a pathway where the same entity type exists multiple times. For example an
         asset / sub asset relationship.
         """
 

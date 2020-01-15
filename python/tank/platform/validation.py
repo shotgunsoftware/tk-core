@@ -31,7 +31,7 @@ core_logger = LogManager.get_logger(__name__)
 def validate_schema(app_or_engine_display_name, schema):
     """
     Validates the schema definition (info.yml) of an app or engine.
-    
+
     Will raise a TankError if validation fails, will return None
     if validation suceeds.
     """
@@ -43,7 +43,7 @@ def validate_settings(app_or_engine_display_name, tank_api, context, schema, set
     """
     Validates the settings of an app or engine against its
     schema definition (info.yml).
-    
+
     Will raise a TankError if validation fails, will return None
     if validation succeeds.
     """
@@ -82,7 +82,7 @@ def validate_context(descriptor, context):
 
 def validate_platform(descriptor):
     """
-    Validates that the given bundle is compatible with the 
+    Validates that the given bundle is compatible with the
     current operating system
     """
     # make sure the current operating system platform is supported
@@ -137,10 +137,10 @@ def get_missing_frameworks(descriptor, environment, yml_file):
 def validate_and_return_frameworks(descriptor, environment):
     """
     Validates the frameworks needed for a given descriptor.
-    
+
     Returns a list of the instance names for each of the frameworks needed by the input descriptor.
-    
-    Will raise exceptions if there are frameworks missing from the environment. 
+
+    Will raise exceptions if there are frameworks missing from the environment.
     """
     required_frameworks = descriptor.required_frameworks
 
@@ -273,13 +273,13 @@ def validate_single_setting(
     app_or_engine_display_name, tank_api, schema, setting_name, setting_value
 ):
     """
-    Validates a single setting for an app or engine against its 
+    Validates a single setting for an app or engine against its
     schema definition (info.yml).
-    
+
     Will raise a TankError if validation fails, will return None if validation succeeds.
-    
-    Note that this method does not require a context to be present in order to 
-    perform the validation, however it will not be able to fully validate some 
+
+    Note that this method does not require a context to be present in order to
+    perform the validation, however it will not be able to fully validate some
     template types, since a full validaton would require a context.
     """
     v = _SettingsValidator(app_or_engine_display_name, tank_api, schema)

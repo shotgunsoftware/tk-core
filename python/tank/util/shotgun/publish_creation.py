@@ -673,13 +673,13 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
     """
     Creates dependencies in shotgun from a given entity to
     a list of paths and ids. Paths not recognized are skipped.
-    
+
     :param tk: API handle
     :param publish_entity: The publish entity to set the dependencies for. This is a dictionary
                            with keys type and id.
     :param dependency_paths: List of paths on disk. List of strings.
     :param dependency_ids: List of publish entity ids to associate. List of ints
-    
+
     """
     published_file_entity_type = get_published_file_entity_type(tk)
 

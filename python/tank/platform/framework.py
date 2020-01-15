@@ -32,7 +32,7 @@ class Framework(TankBundle):
         """
         Called by the bundle loading framework. The constructor
         is not meant to be overridden by deriving classes.
-        
+
         :param engine: The engine instance to connect this fw to
         :type engine: :class:`Engine`
         :param app_name: The short name of this framework (e.g. tk-framework-widget)
@@ -256,8 +256,8 @@ def setup_frameworks(engine_obj, parent_obj, env, parent_descriptor):
 
 def load_framework(engine_obj, env, fw_instance_name):
     """
-    Validates, loads and initializes a framework.  If the framework is available from the list of 
-    shared frameworks maintained by the engine then the shared framework is returned, otherwise a 
+    Validates, loads and initializes a framework.  If the framework is available from the list of
+    shared frameworks maintained by the engine then the shared framework is returned, otherwise a
     new instance of the framework will be returned.
 
     :param engine_obj:          The engine instance to use when loading the framework
@@ -335,9 +335,9 @@ def load_framework(engine_obj, env, fw_instance_name):
 
 def _create_framework_instance(engine, descriptor, settings, env):
     """
-    Internal helper method. 
+    Internal helper method.
     Returns an framework object given an engine and fw settings.
-    
+
     :param engine: the engine this app should run in
     :param descriptor: descriptor for the fw
     :param settings: a settings dict to pass to the fw

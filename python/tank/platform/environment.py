@@ -38,7 +38,7 @@ class Environment(object):
     files from the various apps and engines referenced in the environment file)
 
     This class contains immutable methods only, e.g. you can only read from
-    the yaml file. If you want to modify the yaml content, create a 
+    the yaml file. If you want to modify the yaml content, create a
     WritableEnvironment instance instead.
     """
 
@@ -938,11 +938,11 @@ class WritableEnvironment(InstalledEnvironment):
 
     def set_yaml_preserve_mode(self, val):
         """
-        If set to true, the ruamel parser will be used instead of the 
-        traditional pyyaml one. This parser will preserve structure and 
-        comments and generally try to more gracefully update the yaml 
+        If set to true, the ruamel parser will be used instead of the
+        traditional pyyaml one. This parser will preserve structure and
+        comments and generally try to more gracefully update the yaml
         content
-        
+
         :param val: True to enable new parser, false to disable
         """
         # environment variable setting overrides

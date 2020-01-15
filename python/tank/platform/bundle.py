@@ -97,8 +97,8 @@ class TankBundle(object):
         """
         Internal method - not part of Tank's public interface.
         This method may be changed or even removed at some point in the future.
-        We leave no guarantees that it will remain unchanged over time, so 
-        do not use in any app code. 
+        We leave no guarantees that it will remain unchanged over time, so
+        do not use in any app code.
         """
         return self.__descriptor
 
@@ -107,8 +107,8 @@ class TankBundle(object):
         """
         Internal method - not part of Tank's public interface.
         This method may be changed or even removed at some point in the future.
-        We leave no guarantees that it will remain unchanged over time, so 
-        do not use in any app code. 
+        We leave no guarantees that it will remain unchanged over time, so
+        do not use in any app code.
         """
         return self.__settings
 
@@ -118,7 +118,7 @@ class TankBundle(object):
     def get_setting_from(self, other_settings, key, default=None):
         """
         Internal method - not part of Tank's public interface.
-        
+
         Get a value from the settings dictionary passed in
         using the logic from this application
 
@@ -131,10 +131,10 @@ class TankBundle(object):
     def get_template_from(self, other_settings, key):
         """
         Internal method - not part of Tank's public interface.
-        
+
         A shortcut for looking up which template is referenced in the given setting from
         the settings dictionary passed in.  It then calls get_template_by_name() on it.
-        
+
         :param other_settings: dictionary to use to find setting
         :param key: setting name
         """
@@ -148,7 +148,7 @@ class TankBundle(object):
     def name(self):
         """
         The short name for the item (e.g. tk-maya)
-        
+
         :returns: name as string
         """
         return self.__descriptor.system_name
@@ -157,7 +157,7 @@ class TankBundle(object):
     def display_name(self):
         """
         The display name for the item (e.g. Maya Engine)
-        
+
         :returns: display name as string
         """
         return self.__descriptor.display_name
@@ -166,7 +166,7 @@ class TankBundle(object):
     def description(self):
         """
         A short description of the item
-        
+
         :returns: string
         """
         return self.__descriptor.description
@@ -175,7 +175,7 @@ class TankBundle(object):
     def version(self):
         """
         The version of the item (e.g. 'v0.2.3')
-        
+
         :returns: string representing the version
         """
         return self.__descriptor.version
@@ -192,24 +192,24 @@ class TankBundle(object):
         """
         Returns a dictionary of style constants. These can be used to build
         UIs using standard colors and other style components. All keys returned
-        in this dictionary can also be used inside a style.qss that lives 
-        at the root level of the app, engine or framework. Use a 
+        in this dictionary can also be used inside a style.qss that lives
+        at the root level of the app, engine or framework. Use a
         ``{{DOUBLE_BACKET}}`` syntax in the stylesheet file, for example::
-        
+
             QWidget
-            { 
+            {
                 color: {{SG_FOREGROUND_COLOR}};
             }
-        
+
         This property returns the values for all constants, for example::
-        
-            { 
+
+            {
               "SG_HIGHLIGHT_COLOR": "#18A7E3",
               "SG_ALERT_COLOR": "#FC6246",
               "SG_FOREGROUND_COLOR": "#C8C8C8"
             }
-        
-        :returns: Dictionary. See above for example 
+
+        :returns: Dictionary. See above for example
         """
         return constants.SG_STYLESHEET_CONSTANTS
 
@@ -217,7 +217,7 @@ class TankBundle(object):
     def documentation_url(self):
         """
         Return the relevant documentation url for this item.
-        
+
         :returns: url string, None if no documentation was found
         """
         return self.__descriptor.documentation_url
@@ -226,7 +226,7 @@ class TankBundle(object):
     def support_url(self):
         """
         Return the relevant support url for this item.
-        
+
         :returns: url string, None if no documentation was found
         """
         return self.__descriptor.support_url
@@ -300,7 +300,7 @@ class TankBundle(object):
     def context(self):
         """
         The context associated with this item.
-        
+
         :returns: :class:`~sgtk.Context`
         """
         return self.__context
@@ -320,7 +320,7 @@ class TankBundle(object):
     def tank(self):
         """
         Returns the Toolkit API instance associated with this item
-        
+
         :returns: :class:`~sgtk.Tank`
         """
         return self.__tk
@@ -332,7 +332,7 @@ class TankBundle(object):
     def frameworks(self):
         """
         List of all frameworks associated with this item
-        
+
         :returns: List of framework objects
         """
         return self.__frameworks
@@ -519,9 +519,9 @@ class TankBundle(object):
     def get_template(self, key):
         """
         Returns a template object for a particular template setting in the Framework configuration.
-        This method will look at the app configuration, determine which template is being referred to 
+        This method will look at the app configuration, determine which template is being referred to
         in the setting, go into the main platform Template API and fetch that particular template object.
-    
+
         This is a convenience method. Shorthand for ``self.sgtk.templates[ self.get_setting(key) ]``.
 
         :param key: Setting to retrieve template for
@@ -532,15 +532,15 @@ class TankBundle(object):
 
     def get_template_by_name(self, template_name):
         """
-        Note: This is for advanced use cases - Most of the time you should probably use 
+        Note: This is for advanced use cases - Most of the time you should probably use
         :meth:`get_template()`. Find a particular template, the way it is named in the master
         config file ``templates.yml``. This method will access the master templates file
-        directly and pull out a specifically named template without using the app config. 
-        Note that using this method may result in code which is less portable across 
-        studios, since it makes assumptions about how templates are named and defined in 
-        the master config. Generally speaking, it is often better to access templates using 
+        directly and pull out a specifically named template without using the app config.
+        Note that using this method may result in code which is less portable across
+        studios, since it makes assumptions about how templates are named and defined in
+        the master config. Generally speaking, it is often better to access templates using
         the app configuration and the get_template() method.
-        
+
         This is a convenience method. Shorthand for ``self.sgtk.templates[template_name]``.
 
         :param template_name
@@ -559,9 +559,9 @@ class TankBundle(object):
                      all new hooks, we recommend using :meth:`execute_hook_method`
                      instead.
 
-        You simply pass the name of the hook setting that you want to execute and 
+        You simply pass the name of the hook setting that you want to execute and
         the accompanying arguments, and toolkit will find the correct hook file based
-        on the currently configured setting and then execute the execute() method for 
+        on the currently configured setting and then execute the execute() method for
         that hook.
 
         An optional ``base_class`` can be provided to override the default :class:`~sgtk.Hook`
@@ -569,7 +569,7 @@ class TankBundle(object):
         interface for hooks. The classes defined in the hook have to derived from this classes.
 
         .. note:: For more information about hooks, see :class:`~sgtk.Hook`
-        
+
         :param key: The name of the hook setting you want to execute.
         :param base_class: A python class to use as the base class for the created
             hook. This will override the default hook base class, ``Hook``.
@@ -583,12 +583,12 @@ class TankBundle(object):
 
     def execute_hook_method(self, key, method_name, base_class=None, **kwargs):
         """
-        Execute a specific method in a hook that is part of the 
+        Execute a specific method in a hook that is part of the
         environment configuration for the current bundle.
-        
-        You simply pass the name of the hook setting that you want to execute, the 
-        name of the method you want to execute and the accompanying arguments. 
-        Toolkit will find the correct hook file based on the currently configured 
+
+        You simply pass the name of the hook setting that you want to execute, the
+        name of the method you want to execute and the accompanying arguments.
+        Toolkit will find the correct hook file based on the currently configured
         setting and then execute the specified method.
 
         Hooks form a flexible way to extend and make toolkit apps or engines configurable.
@@ -633,12 +633,12 @@ class TankBundle(object):
         """
         Execute an arbitrary hook via an expression. While the methods execute_hook
         and execute_hook_method allows you to execute a particular hook setting as
-        specified in the app configuration manifest, this methods allows you to 
-        execute a hook directly by passing a hook expression, for example 
+        specified in the app configuration manifest, this methods allows you to
+        execute a hook directly by passing a hook expression, for example
         ``{config}/path/to/my_hook.py``
 
         This is useful if you are doing rapid app development and don't necessarily
-        want to expose a hook as a configuration setting just yet. It is also useful 
+        want to expose a hook as a configuration setting just yet. It is also useful
         if you have app settings that are nested deep inside of lists or dictionaries.
         In that case, you cannot use execute_hook, but instead will have to retrieve
         the value specifically and then run it.
@@ -665,8 +665,8 @@ class TankBundle(object):
         Execute an arbitrary hook located in the hooks folder for this project.
         The hook_name is the name of the python file in which the hook resides,
         without the file extension.
-        
-        In most use cases, the execute_hook method is the preferred way to 
+
+        In most use cases, the execute_hook method is the preferred way to
         access a hook from an app.
 
         .. warning:: Now deprecated - Please use :meth:`execute_hook_expression`
@@ -773,15 +773,15 @@ class TankBundle(object):
     def __resolve_hook_path(self, settings_name, hook_expression):
         """
         Resolves a hook settings path into an absolute path.
-        
-        :param settings_name: The name of the hook setting in the configuration. If the 
+
+        :param settings_name: The name of the hook setting in the configuration. If the
                               hook expression passed in to this method is not directly
                               associated with a configuration setting, for example if it
-                              comes from a nested settings structure and is resolved via 
-                              execute_hook_by_name, this parameter will be None. 
-                               
+                              comes from a nested settings structure and is resolved via
+                              execute_hook_by_name, this parameter will be None.
+
         :param hook_expression: The hook expression value that should be resolved.
-        
+
         :returns: A full path to a hook file.
         """
 

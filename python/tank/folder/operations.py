@@ -24,7 +24,7 @@ def create_single_folder_item(
 ):
     """
     Creates folders for an entity type and an entity id.
-    
+
     :param config_obj: a FolderConfiguration object representing the folder configuration
     :param io_receiver: a FolderIOReceiver representing the folder operation callbacks
     :param entity_type: Shotgun entity type
@@ -97,9 +97,9 @@ def create_single_folder_item(
 
 def synchronize_folders(tk, full_sync):
     """
-    Synchronizes any remote folders to ensure they are present both 
+    Synchronizes any remote folders to ensure they are present both
     in the file system and in any local folder caches
-    
+
     :param tk: A tk API instance
     :param full_sync: Do a full sync
     :returns: list of items processed
@@ -111,7 +111,7 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
     """
     Creates filesystem structure in Tank based on Shotgun and a schema config.
     Internal implementation.
-    
+
     :param tk: A tk instance
     :param entity_type: A shotgun entity type to create folders for
     :param entity_ids: list of entity ids to process or a single entity id
@@ -120,9 +120,9 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
                    option indicates to the system that a second pass should be executed and all
                    which are marked as deferred are processed. Pass None for non-deferred mode.
                    The convention is to pass the name of the current engine, e.g 'tk-maya'.
-    
+
     :returns: list of items processed
-    
+
     """
 
     # check that engine is either a string or None

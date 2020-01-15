@@ -34,7 +34,7 @@ class TemplatePathParser(object):
         def __init__(self, value, downstream_values, fully_resolved, last_error):
             """
             Construction
-                                        
+
             :param value:               The resolved value to keep track of
             :param downstream_values:   ResolvedValue instances for all possible downstream branches of
                                         possible resolved values
@@ -51,7 +51,7 @@ class TemplatePathParser(object):
     def __init__(self, ordered_keys, static_tokens):
         """
         Construction
-                                
+
         :param ordered_keys:    Template key objects in order that they appear in the
                                 template definition.
         :param static_tokens:   Pieces of the definition that don't represent Template Keys.
@@ -66,28 +66,28 @@ class TemplatePathParser(object):
         """
         Parses a path against the set of keys and static tokens to extract valid values
         for the keys.  This will make use of as much information as it can within all
-        keys to correctly determine the value for a field and will detect if a key 
-        resolves to ambiguous values where there is not enough information to resolve 
+        keys to correctly determine the value for a field and will detect if a key
+        resolves to ambiguous values where there is not enough information to resolve
         correctly!
-        
+
         e.g. with the template:
-        
+
             {shot}_{name}_v{version}.ma
-            
+
         and a path:
-        
+
             shot_010_name_v001.ma
-            
-        The algorithm would correctly determine that the value for the shot key is 
-        'shot_010' assuming that the name key is restricted to be alphanumeric.  If 
+
+        The algorithm would correctly determine that the value for the shot key is
+        'shot_010' assuming that the name key is restricted to be alphanumeric.  If
         name allowed underscores then the shot key would be ambiguous and would resolve
         to either 'shot' or 'shot_010' which would error.
 
         :param input_path:  The path to parse.
         :param skip_keys:   List of keys for whom we do not need to find values.
 
-        :returns:           If succesful, a dictionary of fields mapping key names to 
-                            their values. None if the fields can't be resolved. 
+        :returns:           If succesful, a dictionary of fields mapping key names to
+                            their values. None if the fields can't be resolved.
         """
         skip_keys = skip_keys or []
         input_path = os.path.normpath(input_path)
@@ -283,7 +283,7 @@ class TemplatePathParser(object):
         :param keys:            A list of the remaining keys to find values for
         :param skip_keys:       A list of keys that can be skipped from the result
         :param key_values:      A dictionary of all values that were previously found for any keys
-        
+
         :returns:               A list of ResolvedValue instances representing the hierarchy of possible
                                 values for all keys being parsed.
         """

@@ -30,12 +30,12 @@ class FolderIOReceiver(object):
     def __init__(self, tk, preview, entity_type, entity_ids):
         """
         Constructor.
-        
+
         :param tk: A tk api instance
         :param preview: boolean set to true if run in preview mode
         :param entity_type: string with the sg entity type from the main folder creation request
         :param entity_ids: list of ids of the sg object for which folder creation was requested.
-        
+
         """
         self._tk = tk
         self._preview_mode = preview
@@ -51,7 +51,7 @@ class FolderIOReceiver(object):
     def sync_path_cache(cls, tk, full_sync):
         """
         Synchronizes the path cache folders.
-        This happens as part of execute_folder_creation(), but sometimes it is 
+        This happens as part of execute_folder_creation(), but sometimes it is
         useful to be able to execute this as a separate process.
 
         :param tk: A tk API instance
@@ -113,8 +113,8 @@ class FolderIOReceiver(object):
 
     def execute_folder_creation(self):
         """
-        Runs the actual folder execution. 
-        
+        Runs the actual folder execution.
+
         :returns: A list of paths which were calculated to be created
         """
 
@@ -235,7 +235,7 @@ class FolderIOReceiver(object):
         For example, a Shot folder configured to use the name
         {code}_{sg_sequence.Sequence.code} is implicity also linked
         to the associated sequence entity. This is the secondary entity.
-        
+
         :param path: The path on disk to register
         :param entity: The associated shotgun entitiy as a dictionary with type and id
         :param config_metadata: The configuration file contents used to drive the creation
@@ -294,10 +294,10 @@ class FolderIOReceiver(object):
     def create_symlink(self, path, target, config_metadata):
         """
         Called by the folder creation classes when a symlink is to be created.
-        
+
         :param path: path to the symlink that should be created
         :param target: symlink target
-        :param metadata: configuration metadata from folder creation system 
+        :param metadata: configuration metadata from folder creation system
         """
         self._items.append(
             {

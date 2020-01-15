@@ -100,7 +100,7 @@ class Sgtk(object):
 
         Internal Use Only - We provide no guarantees that this method
         will be backwards compatible.
-        
+
         :param hook_name: Name of hook to execute.
         :param kwargs:  Additional named parameters will be passed to the hook.
         :returns:         Return value of the hook.
@@ -116,12 +116,12 @@ class Sgtk(object):
 
     def execute_core_hook_method(self, hook_name, method_name, **kwargs):
         """
-        Executes a specific method on a core level hook, 
+        Executes a specific method on a core level hook,
         passing it any keyword arguments supplied.
 
         Internal Use Only - We provide no guarantees that this method
         will be backwards compatible.
-        
+
         :param hook_name:   Name of hook to execute.
         :param method_name: Name of method to execute.
         :param **kwargs:    Additional named parameters will be passed to the hook.
@@ -240,7 +240,7 @@ class Sgtk(object):
 
         This Shotgun API is threadlocal, meaning that each thread will get
         a separate instance of the Shotgun API. This is in order to prevent
-        concurrency issues and add a layer of basic protection around the 
+        concurrency issues and add a layer of basic protection around the
         Shotgun API, which isn't threadsafe.
         """
         sg = shotgun.get_sg_connection()
@@ -360,10 +360,10 @@ class Sgtk(object):
     def list_commands(self):
         """
         Lists the system commands registered with the system.
-        
-        This method will return all system commands which 
+
+        This method will return all system commands which
         are available in the context of a project configuration will be returned.
-        This includes for example commands for configuration management, 
+        This includes for example commands for configuration management,
         anything app or engine related and validation and overview functionality.
         In addition to these commands, the global commands such as project setup
         and core API check commands will also be returned.
@@ -380,18 +380,18 @@ class Sgtk(object):
     def get_command(self, command_name):
         """
         Returns an instance of a command object that can be used to execute a command.
-        
-        Once you have retrieved the command instance, you can perform introspection to 
+
+        Once you have retrieved the command instance, you can perform introspection to
         check for example the required parameters for the command, name, description etc.
         Lastly, you can execute the command by running the execute() method.
-        
+
         In order to get a list of the available commands, use the list_commands() method.
 
         For more information, see :meth:`sgtk.get_command`
 
         :param command_name: Name of command to execute. Get a list of all available commands
                              using the :meth:`list_commands` method.
-        
+
         :returns: :class:`~sgtk.SgtkSystemCommand` object instance
         """
         # avoid cyclic dependencies
@@ -499,7 +499,7 @@ class Sgtk(object):
         :type  fields: Dictionary
         :param skip_keys: Keys whose values should be ignored from the fields parameter.
         :type  skip_keys: List of key names
-        :param skip_missing_optional_keys: Specify if optional keys should be skipped if they 
+        :param skip_missing_optional_keys: Specify if optional keys should be skipped if they
                                         aren't found in the fields collection
         :returns: Matching file paths
         :rtype: List of strings.
@@ -834,12 +834,12 @@ class Sgtk(object):
     def synchronize_filesystem_structure(self, full_sync=False):
         """
         Ensures that the filesystem structure on this machine is in sync
-        with Shotgun. This synchronization is implicitly carried out as part of the 
+        with Shotgun. This synchronization is implicitly carried out as part of the
         normal folder creation process, however sometimes it is useful to
         be able to call it on its own.
-        
+
         .. note:: That this method is equivalent to the **synchronize_folders** tank command.
-        
+
         :param full_sync: If set to true, a complete sync will be carried out.
                           By default, the sync is incremental.
         :returns: List of folders that were synchronized.

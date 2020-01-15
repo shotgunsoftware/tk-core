@@ -32,7 +32,7 @@ from .interaction import YesToEverythingInteraction
 class SetupProjectAction(Action):
     """
     Action that sets up a new Toolkit Project.
-    
+
     This is the standard command that is exposed via the setup_project tank command
     and API equivalent.
     """
@@ -159,9 +159,9 @@ class SetupProjectAction(Action):
 
     def run_noninteractive(self, log, parameters):
         """
-        Tank command API accessor. 
+        Tank command API accessor.
         Called when someone runs a tank command through the core API.
-        
+
         :param log: std python logger
         :param parameters: dictionary with tank command parameters
         """
@@ -239,7 +239,7 @@ class SetupProjectAction(Action):
     def run_interactive(self, log, args):
         """
         Tank command accessor
-        
+
         :param log: std python logger
         :param args: command line args
         """
@@ -371,7 +371,7 @@ class SetupProjectAction(Action):
     def _confirm_continue(self, log):
         """
         Called when the logic needs an interactive session to issue a "ok to continue" prompt
-        
+
         :returns: true or false
         """
         evaluated_value = None
@@ -389,10 +389,10 @@ class SetupProjectAction(Action):
     def _select_template_configuration(self, log, sg):
         """
         Ask the user which config to use. Returns a config uri string.
-        
+
         :param log: python logger
         :param sg: Shotgun API instance
-        
+
         :returns: config uri string
         """
         log.info("")
@@ -469,11 +469,11 @@ class SetupProjectAction(Action):
         """
         Returns the project id and name for a project for which setup should be done.
         Will request the user to input console input to select project.
-        
+
         :param log: python logger
         :param sg: Shotgun API instance
         :param show_initialized_projects: Should alrady initialized projects be displayed in the listing?
-        
+
         :returns: project_id
         """
 
@@ -564,8 +564,8 @@ class SetupProjectAction(Action):
         :param log: python logger
         :param sg: Shotgun API instance
         :param params: ProjectSetupParameters instance which holds the project setup parameters.
-        :returns: The project disk name which is selected, this name may 
-                  include slashes if the selected location is multi-directory. 
+        :returns: The project disk name which is selected, this name may
+                  include slashes if the selected location is multi-directory.
         """
 
         suggested_folder_name = params.get_default_project_disk_name()
@@ -668,8 +668,8 @@ class SetupProjectAction(Action):
 
     def _get_disk_location(self, log, params):
         """
-        Ask the user where the pipeline configuration should be located on disk.       
-        
+        Ask the user where the pipeline configuration should be located on disk.
+
         :param log: python logger
         :param params: ProjectSetupParameters instance which holds the project setup parameters.
         """
@@ -704,10 +704,10 @@ class SetupProjectAction(Action):
         """
         Returns default suggested location for configurations.
         Returns a dictionary with sys.platform style keys linux2/win32/darwin, e.g.
-        
-        { "darwin": "/foo/bar/project_name", 
+
+        { "darwin": "/foo/bar/project_name",
           "linux2": "/foo/bar/project_name",
-          "win32" : "c:\foo\bar\project_name"}        
+          "win32" : "c:\foo\bar\project_name"}
 
         :param log: python logger
         :param params: project setup params object
@@ -830,7 +830,7 @@ class SetupProjectAction(Action):
     def _ask_location(self, log, default, os_nice_name):
         """
         Helper method - asks the user where to put a pipeline config.
-        
+
         :param log: python logger
         :param default: default value
         :param os_nice_name: A display name for an operating system
@@ -857,7 +857,7 @@ class SetupProjectAction(Action):
     def _emit_project_setup_summary(self, log, params):
         """
         Emit project summary to the given logger
-        
+
         :param log: python logger object
         :param params: Parameters object which holds gathered project settings
         """

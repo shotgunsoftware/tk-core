@@ -105,7 +105,7 @@ class TestSchemaCreateFoldersSecondaryEntity(TankTestBase):
 
     def test_other_isnt_none(self):
         """
-        sg_other_field is not none and full expression is used. 
+        sg_other_field is not none and full expression is used.
         """
         expected_paths = []
         self.shot["sg_other_field"] = "xxx"

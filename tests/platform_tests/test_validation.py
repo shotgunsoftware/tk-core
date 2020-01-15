@@ -576,7 +576,7 @@ class TestValidateSettings(TankTestBase):
 
 
 class TestValidateContext(TankTestBase):
-    """Tests related to validating context through the config.validate_and_populate_config function. 
+    """Tests related to validating context through the config.validate_and_populate_config function.
 
     These tests are seperated so as to enable different setup.
     """
@@ -633,7 +633,7 @@ class TestValidateContext(TankTestBase):
 
     def test_fields_from_context(self):
         """
-        Case that a template's fields that are not part of the metadata's 
+        Case that a template's fields that are not part of the metadata's
         required fields have value in the context.
         """
         # template with fields matching context attributes
@@ -652,7 +652,7 @@ class TestValidateContext(TankTestBase):
 
     def test_context_missing_fields(self):
         """
-        Case that a template's fields(keys) that are not part of the metadata's 
+        Case that a template's fields(keys) that are not part of the metadata's
         required fields are have no value in the context.
         """
         # template with fields not in required fields or context

@@ -516,7 +516,7 @@ def _get_published_file_entity_type(log, sg):
     """
     Find the published file entity type to use for this project.
     Communicates with Shotgun, introspects the sg schema.
-    
+
     :returns: 'PublishedFile' if the PublishedFile entity type has
               been enabled, otherwise returns 'TankPublishedFile'
     """

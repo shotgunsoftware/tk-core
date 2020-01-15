@@ -77,6 +77,6 @@ class Project(Entity):
         This method returns the local OS path that is associated with the
         local storage that this project node is associated with.
         (By default, this is the primary storage, but if you have a multi
-        root config, there may be more than one project node.)        
+        root config, there may be more than one project node.)
         """
         return self._storage_root_path

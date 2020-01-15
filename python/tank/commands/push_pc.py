@@ -90,7 +90,7 @@ class PushPCAction(Action):
     def run_interactive(self, log, args):
         """
         Tank command accessor.
-        
+
         :param log: Standard python logger.
         :param args: Command line args.
         """

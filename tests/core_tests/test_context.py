@@ -627,7 +627,7 @@ class TestFromEntity(TestContext):
         """
         Test context.from_entity_dictionary - this can contruct a context from
         an entity dictionary looking at linked entities where available.
-        
+
         Falls back to 'from_entity' if the entity dictionary doesn't contain
         everything needed.
         """
@@ -729,9 +729,9 @@ class TestAsTemplateFields(TestContext):
         Test that as_template_fields() doesn't return incorrect entity fields when entries in the
         path cache for an entity are invalid/out-of-date.  This can happen if the folder schema/templates
         are modified after folders have already been created/the path cache has already been populated.
-        
+
         For example, given the following path cache:
-        
+
         Type     | Id  | Name     | Path
         ----------------------------------------------------
         Sequence | 001 | Seq_001  | /Seq_001
@@ -739,7 +739,7 @@ class TestAsTemplateFields(TestContext):
         Step     | 003 | Lighting | /Seq_001/Shot_A/Lighting
         Step     | 003 | Lighting | /Seq_001/blah/Shot_B/Lighting   <- this is out of date!
         Shot     | 004 | Shot_B   | /Seq_001/blah/Shot_B            <- this is out of date!
-        
+
         This test ensures that searching for a context containing Step 'Lighting' and Shot 'Shot_B' doesn't
         return fields for Shot 'Shot_A' by mistake.  This would previously happen because the last two entries
         are out-of-date but the code still managed to find an entry for the Step which it then used to find the
@@ -829,7 +829,7 @@ class TestAsTemplateFields(TestContext):
 
     def test_step_first_template(self):
         """
-        Check that as_template_fields returns all fields for a template that 
+        Check that as_template_fields returns all fields for a template that
         starts with Step and has no static folders
         """
         template_def = "{Step}/{Sequence}/{Shot}"
@@ -901,7 +901,7 @@ class TestAsTemplateFields(TestContext):
 
     def test_query_cached(self):
         """
-        Test that if same key query is run more than once, the 
+        Test that if same key query is run more than once, the
         value is cached.
         """
         query_key = StringKey(

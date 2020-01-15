@@ -32,7 +32,7 @@ class Application(TankBundle):
         """
         Application instances are constructed by the toolkit launch process
         and various factory methods such as :meth:`start_engine`.
-        
+
         :param engine: The engine instance to connect this app to
         :param app_name: The short name of this app (e.g. tk-nukepublish)
         :param settings: a settings dictionary for this app
@@ -292,10 +292,10 @@ class Application(TankBundle):
 
 def get_application(engine, app_folder, descriptor, settings, instance_name, env):
     """
-    Internal helper method. 
+    Internal helper method.
     (Removed from the engine base class to make it easier to run unit tests).
     Returns an application object given an engine and app settings.
-    
+
     :param engine: the engine this app should run in
     :param app_folder: the folder on disk where the app is located
     :param descriptor: descriptor for the app

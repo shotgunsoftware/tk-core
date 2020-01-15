@@ -45,8 +45,8 @@ def assert_paths_to_create(expected_paths):
 
 def execute_folder_creation_proxy(self):
     """
-    Runs the actual folder execution. 
-    
+    Runs the actual folder execution.
+
     :returns: A list of paths which were calculated to be created
     """
 

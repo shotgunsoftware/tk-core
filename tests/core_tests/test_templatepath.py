@@ -249,7 +249,7 @@ class TestValidate(TestTemplatePath):
     def assert_sequence_paths_invalid(self, frames_values):
         """Checks that paths created using a list of values for the frames token of a path are invalid.
 
-        :param frames_values: List of invalid frame values 
+        :param frames_values: List of invalid frame values
         :type  frames_values: List.
         """
         base_path = "path/to/seq.%s.ext"
