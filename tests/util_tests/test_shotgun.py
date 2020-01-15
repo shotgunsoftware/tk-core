@@ -12,7 +12,7 @@ from __future__ import with_statement
 import os
 import shutil
 import datetime
-from tank_vendor.shotgun_api3.lib.six.moves import urllib
+from tank_vendor.six.moves import urllib
 
 from mock import patch, MagicMock
 

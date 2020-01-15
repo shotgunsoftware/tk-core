@@ -17,8 +17,8 @@ import datetime
 from . import constants
 from .errors import TankError
 from .util import sgre as re
-from tank_vendor.shotgun_api3.lib import six
-from tank_vendor.shotgun_api3.lib.six.moves import zip
+from tank_vendor import six
+from tank_vendor.six.moves import zip
 
 class TemplateKey(object):
     """

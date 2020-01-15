@@ -13,9 +13,9 @@ Toolkit App Store Descriptor.
 """
 
 import os
-from tank_vendor.shotgun_api3.lib.six.moves import urllib
+from tank_vendor.six.moves import urllib
 import fnmatch
-from tank_vendor.shotgun_api3.lib.six.moves import http_client
+from tank_vendor.six.moves import http_client
 from tank_vendor.shotgun_api3.lib import httplib2
 
 from ...util import shotgun
@@ -36,7 +36,7 @@ from ...constants import SUPPORT_EMAIL
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor import six
 json = shotgun_api3.shotgun.json
 
 log = LogManager.get_logger(__name__)

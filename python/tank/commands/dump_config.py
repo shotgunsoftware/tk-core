@@ -11,7 +11,7 @@
 from __future__ import print_function
 
 import os
-from tank_vendor.shotgun_api3.lib.six import StringIO
+from tank_vendor.six import StringIO
 
 from ..errors import TankError
 from .action_base import Action

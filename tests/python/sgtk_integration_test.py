@@ -29,7 +29,8 @@ import unittest2
 import sgtk
 from sgtk.util import sgre as re
 from sgtk.util.filesystem import safe_delete_folder, safe_delete_file
-from tank_vendor.shotgun_api3.lib import six, sgsix
+from tank_vendor import six
+from tank_vendor.shotgun_api3.lib import sgsix
 from tank_vendor import yaml
 
 

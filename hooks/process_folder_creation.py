@@ -17,7 +17,7 @@ from tank import Hook
 import os
 import sys
 import shutil
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor import six
 from tank.util import is_windows
 
 

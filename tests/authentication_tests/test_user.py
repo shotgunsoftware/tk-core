@@ -18,7 +18,7 @@ from mock import patch
 
 from tank.authentication import user, user_impl
 from tank_vendor.shotgun_api3 import AuthenticationFault
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor import six
 
 # Create a set of valid cookies, for SSO and Web related tests.
 # For a Web session, we detect the presence of the shotgun_current_session_expiration cookie.

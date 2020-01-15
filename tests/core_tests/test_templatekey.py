@@ -22,7 +22,7 @@ from mock import patch
 from tank_test.tank_test_base import ShotgunTestBase
 from tank_test.tank_test_base import setUpModule # noqa
 from tank.templatekey import StringKey, IntegerKey, SequenceKey, TimestampKey, make_keys
-from tank_vendor.shotgun_api3.lib import six
+from tank_vendor import six
 
 
 class TestTemplateKey(ShotgunTestBase):
