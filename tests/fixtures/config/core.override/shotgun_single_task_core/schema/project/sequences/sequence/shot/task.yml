@@ -13,4 +13,3 @@ type: "shotgun_task"
 
 # the shotgun field to use for the folder name
 name: "{content}"
-

@@ -26,4 +26,3 @@ create_with_parent: True
 # (this is std shotgun API syntax)
 # any values starting with $ are resolved into path objects
 filters: [{"path":"$FROM$Task.step.entity", "relation": "is", "values":["$asset"]}]
-

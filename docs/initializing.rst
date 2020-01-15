@@ -922,4 +922,3 @@ LaunchInformation
 
 .. autoclass:: LaunchInformation
     :members:
-

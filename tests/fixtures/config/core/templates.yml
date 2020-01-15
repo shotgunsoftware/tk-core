@@ -191,5 +191,3 @@ strings:
 
     # when a publish record is created in shotgun, populate the name with the following
     houdini_asset_publish_name: "Houdini Scene {name_alpha}, v{version}"
-
-

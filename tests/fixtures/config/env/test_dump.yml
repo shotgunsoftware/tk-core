@@ -97,6 +97,3 @@ engines:
         apps:
             test_app:
                 location: {'type': 'dev', 'path': 'TEST_APP_LOCATION'}
-
-
-

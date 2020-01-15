@@ -15,4 +15,3 @@ constrain_by_entity: "$shot"
 
 constraints:
     - { "path": "code", "relation": "is", "values": [ "aaa" ] }
-

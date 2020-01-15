@@ -23,4 +23,3 @@ entity_type: "Step"
 # (this is std shotgun API syntax)
 # any values starting with $ are resolved into path objects
 filters: [{"path":"entity_type", "relation": "is", "values":["Scene"]}]
-

@@ -21,4 +21,3 @@ skip_unused: false
 
 # the shotgun field to use for the folder name
 field_name: "sg_asset_type"
-

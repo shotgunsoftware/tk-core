@@ -109,6 +109,3 @@ exit /b 1
 :NO_PARENT_LOCATION
 echo Cannot find parent location %PARENT_LOCATION% defined in file %PARENT_CONFIG_FILE%!
 exit /b 1
-
-
-
