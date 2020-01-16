@@ -117,7 +117,12 @@ class ShotgunAuthenticator(object):
 
         :returns: The SessionUser based on the login information provided.
         """
-        host, login, session_token, session_metadata = interactive_authentication.authenticate(
+        (
+            host,
+            login,
+            session_token,
+            session_metadata,
+        ) = interactive_authentication.authenticate(
             self._defaults_manager.get_host(),
             self._defaults_manager.get_login(),
             self._defaults_manager.get_http_proxy(),

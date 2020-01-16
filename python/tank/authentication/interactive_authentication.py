@@ -147,7 +147,12 @@ class SessionRenewal(object):
 
                 # @TODO: Refactor the authenticate methods to return a struct-like
                 #        object instead of a 4 elements tuple.
-                hostname, login, session_token, session_metadata = credentials_handler.authenticate(
+                (
+                    hostname,
+                    login,
+                    session_token,
+                    session_metadata,
+                ) = credentials_handler.authenticate(
                     user.get_host(), user.get_login(), user.get_http_proxy()
                 )
                 SessionRenewal._auth_state = SessionRenewal.SUCCESS

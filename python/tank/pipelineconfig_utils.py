@@ -131,10 +131,10 @@ def get_core_descriptor(
 
     # the core_api.yml contains info about the core:
     #
-    # location:
-    #    name: tk-core
-    #    type: app_store
-    #    version: v0.16.34
+    # | location:
+    # |   name: tk-core
+    # |   type: app_store
+    # |   version: v0.16.34
 
     logger.debug("Found core descriptor file '%s'" % descriptor_file_path)
 
@@ -278,8 +278,8 @@ def get_sgtk_module_path():
     :returns: Path to the ``sgtk`` module on disk.
     """
     pipelineconfig_utils_py_location = (
-        __file__
-    )  # tk-core/python/tank/pipelineconfig_utils.py
+        __file__  # tk-core/python/tank/pipelineconfig_utils.py
+    )
 
     # If the path is not absolute, make it so.
     if not os.path.isabs(pipelineconfig_utils_py_location):

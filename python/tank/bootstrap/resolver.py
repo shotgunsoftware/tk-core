@@ -678,9 +678,11 @@ class ConfigurationResolver(object):
         )
 
         # Filter out pipeline configurations that are not usable.
-        primary, user_sandboxes_project, user_sandboxes_site = self._filter_pipeline_configurations(
-            pcs
-        )
+        (
+            primary,
+            user_sandboxes_project,
+            user_sandboxes_site,
+        ) = self._filter_pipeline_configurations(pcs)
 
         return self._sort_pipeline_configurations(
             ([primary] if primary else [])

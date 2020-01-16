@@ -173,7 +173,12 @@ class InteractiveTests(ShotgunTestBase):
             test_console,
         )
         # Get the basic user credentials.
-        host, login, session_token, session_metadata = interactive_authentication.authenticate(
+        (
+            host,
+            login,
+            session_token,
+            session_metadata,
+        ) = interactive_authentication.authenticate(
             "https://enter_your_host_name_here.shotgunstudio.com",
             "enter_your_username_here",
             "",
