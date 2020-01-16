@@ -16,9 +16,7 @@ Integration with Shotgun API.
 # pylint: disable=too-many-arguments
 # pylint: disable=unused-import
 
-from .core import (  # noqa
-    SsoSaml2Core,
-)
+from .core import SsoSaml2Core  # noqa
 
 from .utils import (  # noqa
     is_sso_enabled_on_site,
@@ -47,7 +45,9 @@ class SsoSaml2(object):
 
         self._core = SsoSaml2Core(window_title=window_title, qt_modules=qt_modules)
 
-    def login_attempt(self, host, cookies=None, product=None, http_proxy=None, use_watchdog=False):
+    def login_attempt(
+        self, host, cookies=None, product=None, http_proxy=None, use_watchdog=False
+    ):
         """
         Called to attempt a login process.
 
@@ -68,12 +68,15 @@ class SsoSaml2(object):
         """
         product = product or "undefined"
 
-        success = self._core.on_sso_login_attempt({
-            "host": host,
-            "http_proxy": http_proxy,
-            "cookies": cookies,
-            "product": product,
-        }, use_watchdog)
+        success = self._core.on_sso_login_attempt(
+            {
+                "host": host,
+                "http_proxy": http_proxy,
+                "cookies": cookies,
+                "product": product,
+            },
+            use_watchdog,
+        )
         return success == 1
 
     # pylint: disable=invalid-name

@@ -32,9 +32,7 @@ except ImportError:
     from Cookie import SimpleCookie
 
 
-from .errors import (
-    SsoSaml2MultiSessionNotSupportedError,
-)
+from .errors import SsoSaml2MultiSessionNotSupportedError
 
 
 def get_logger():
@@ -128,7 +126,9 @@ def _get_shotgun_user_id(cookies):
                 # that we are using cookies from a multi-session environment. We
                 # have no way to identify the proper user id in the lot.
                 message = "The cookies for this user seem to come from two different shotgun sites: '%s' and '%s'"
-                raise SsoSaml2MultiSessionNotSupportedError(message % (user_domain, cookies[cookie]['domain']))
+                raise SsoSaml2MultiSessionNotSupportedError(
+                    message % (user_domain, cookies[cookie]["domain"])
+                )
             user_id = cookie[12:]
             user_domain = cookies[cookie]["domain"]
     return user_id
@@ -183,7 +183,9 @@ def _sanitize_http_proxy(http_proxy):
     http_proxy = http_proxy or ""
     http_proxy = http_proxy.lower().strip()
 
-    if http_proxy and not (http_proxy.startswith("http://") or http_proxy.startswith("https://")):
+    if http_proxy and not (
+        http_proxy.startswith("http://") or http_proxy.startswith("https://")
+    ):
         get_logger().debug("Assuming the proxy to be HTTP")
         alt_http_proxy = "http://%s" % http_proxy
         parsed_url = urlparse.urlparse(alt_http_proxy)
@@ -204,10 +206,9 @@ def get_saml_claims_expiration(encoded_cookies):
     """
     # Shotgun appends the unique numerical ID of the user to the cookie name:
     # ex: shotgun_sso_session_expiration_u78
-    saml_claims_expiration = (
-        _get_cookie(encoded_cookies, "shotgun_current_user_sso_claims_expiration") or
-        _get_cookie_from_prefix(encoded_cookies, "shotgun_sso_session_expiration_u")
-    )
+    saml_claims_expiration = _get_cookie(
+        encoded_cookies, "shotgun_current_user_sso_claims_expiration"
+    ) or _get_cookie_from_prefix(encoded_cookies, "shotgun_sso_session_expiration_u")
     if saml_claims_expiration is not None:
         saml_claims_expiration = int(saml_claims_expiration)
     return saml_claims_expiration
@@ -222,7 +223,9 @@ def get_session_expiration(encoded_cookies):
     :returns: An int with the time in seconds since January 1st 1970 UTC, or None if the cookie
               'shotgun_current_session_expiration' is not defined.
     """
-    session_expiration = _get_cookie(encoded_cookies, "shotgun_current_session_expiration")
+    session_expiration = _get_cookie(
+        encoded_cookies, "shotgun_current_session_expiration"
+    )
     if session_expiration is not None:
         session_expiration = int(session_expiration)
     return session_expiration
@@ -238,10 +241,9 @@ def get_user_name(encoded_cookies):
     """
     # Shotgun appends the unique numerical ID of the user to the cookie name:
     # ex: shotgun_sso_session_userid_u78
-    user_name = (
-        _get_cookie(encoded_cookies, "shotgun_current_user_login") or
-        _get_cookie_from_prefix(encoded_cookies, "shotgun_sso_session_userid_u")
-    )
+    user_name = _get_cookie(
+        encoded_cookies, "shotgun_current_user_login"
+    ) or _get_cookie_from_prefix(encoded_cookies, "shotgun_sso_session_userid_u")
     if user_name is not None:
         user_name = urllib.unquote(user_name)
     return user_name

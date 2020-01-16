@@ -14,10 +14,7 @@ Module to support Web login via a web browser and automated session renewal.
 from __future__ import print_function
 
 # pylint: disable=import-error
-from ...ui.qt_abstraction import (
-    QtCore,
-    QtGui,
-)
+from ...ui.qt_abstraction import QtCore, QtGui
 
 # No point in proceeding if QtGui is None.
 if QtGui is None:
@@ -74,7 +71,9 @@ class UsernamePasswordDialog(QtGui.QDialog):
 
         self.setLayout(form_grid_layout)
 
-        buttons.button(QtGui.QDialogButtonBox.Ok).clicked.connect(self._on_enter_credentials)
+        buttons.button(QtGui.QDialogButtonBox.Ok).clicked.connect(
+            self._on_enter_credentials
+        )
         buttons.button(QtGui.QDialogButtonBox.Cancel).clicked.connect(self.close)
 
         # On Qt4, this sets the look-and-feel to that of the toolkit.
@@ -101,7 +100,8 @@ class UsernamePasswordDialog(QtGui.QDialog):
                 color: rgb(248, 248, 248);
                 background-color: rgb(35, 165, 225);
             }
-            """)
+            """
+        )
 
     @property
     def username(self):

@@ -13,5 +13,3 @@ foobar:
   linux_path: /tmp/foobar
   mac_path: /tmp/foobar
   windows_path: "X:\\tmp\\foobar"
-
-

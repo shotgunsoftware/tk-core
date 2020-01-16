@@ -14,7 +14,7 @@ import logging
 import os
 
 from tank_test.tank_test_base import TankTestBase
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 
 from mock import PropertyMock, patch
 
@@ -37,7 +37,12 @@ class TestEngineLauncher(TankTestBase):
         seq_path = os.path.join(self.project_root, "sequences/Seq")
         self.add_production_path(seq_path, seq)
 
-        self.shot = {"type": "Shot", "name": "shot_name", "id": 2, "project": self.project}
+        self.shot = {
+            "type": "Shot",
+            "name": "shot_name",
+            "id": 2,
+            "project": self.project,
+        }
         shot_path = os.path.join(seq_path, "shot_code")
         self.add_production_path(shot_path, self.shot)
 
@@ -48,11 +53,13 @@ class TestEngineLauncher(TankTestBase):
         self.context = self.tk.context_from_path(self.shot_step_path)
         self.engine_name = "test_engine"
 
-        self.task = {"type": "Task",
-                     "id": 23,
-                     "entity": self.shot,
-                     "step": self.step,
-                     "project": self.project}
+        self.task = {
+            "type": "Task",
+            "id": 23,
+            "entity": self.shot,
+            "step": self.step,
+            "project": self.project,
+        }
 
         entities = [self.task]
 
@@ -69,7 +76,9 @@ class TestEngineLauncher(TankTestBase):
         self.assertRaises(
             TankEngineInitError,
             create_engine_launcher,
-            self.tk, self.context, "not an engine",
+            self.tk,
+            self.context,
+            "not an engine",
         )
 
         # Verify that engines without startup.py files will return None
@@ -89,7 +98,7 @@ class TestEngineLauncher(TankTestBase):
             self.context,
             self.engine_name,
             versions=versions_list,
-            products=products_list
+            products=products_list,
         )
         self.assertIsInstance(launcher, SoftwareLauncher)
         self.assertIsInstance(launcher.logger, logging.Logger)
@@ -125,8 +134,9 @@ class TestEngineLauncher(TankTestBase):
             ctx = self.tk.context_from_entity(entity["type"], entity["id"])
             # Monkey patch the pipeline configuration object to provide a set of bundle cache
             # fallback paths to serialize into environment variables.
-            self.tk.pipeline_configuration.get_bundle_cache_fallback_paths = \
+            self.tk.pipeline_configuration.get_bundle_cache_fallback_paths = (
                 lambda: MOCKED_FALLBACKS
+            )
             launcher = create_engine_launcher(self.tk, ctx, self.engine_name)
             env = launcher.get_standard_plugin_environment()
             expected_env = {
@@ -135,7 +145,9 @@ class TestEngineLauncher(TankTestBase):
                 "SHOTGUN_ENTITY_TYPE": entity["type"],
                 "SHOTGUN_ENTITY_ID": str(entity["id"]),
                 "SHOTGUN_ENTITY_ID": str(entity["id"]),
-                "SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS": os.pathsep.join(MOCKED_FALLBACKS)
+                "SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS": os.pathsep.join(
+                    MOCKED_FALLBACKS
+                ),
             }
             self.assertDictEqual(expected_env, env)
 
@@ -148,7 +160,7 @@ class TestEngineLauncher(TankTestBase):
         env = launcher.get_standard_plugin_environment()
         expected_env = {
             "SHOTGUN_PIPELINE_CONFIGURATION_ID": "123",
-            "SHOTGUN_SITE": "http://unit_test_mock_sg"
+            "SHOTGUN_SITE": "http://unit_test_mock_sg",
         }
         self.assertDictEqual(expected_env, env)
 
@@ -163,7 +175,9 @@ class TestEngineLauncher(TankTestBase):
         self.assertEqual(launcher.minimum_supported_version, None)
 
         # mock the property
-        min_version_method = "sgtk.platform.software_launcher.SoftwareLauncher.minimum_supported_version"
+        min_version_method = (
+            "sgtk.platform.software_launcher.SoftwareLauncher.minimum_supported_version"
+        )
         with patch(min_version_method, new_callable=PropertyMock) as min_version_mock:
 
             min_version_mock.return_value = "2017.2"
@@ -202,29 +216,46 @@ class TestEngineLauncher(TankTestBase):
         self.assertEqual(launcher._is_version_supported("v0.1.2"), True)
         self.assertEqual(launcher._is_version_supported("v0.1"), True)
 
-        versions_list = [
-            "2018",
-            "2019v0.1",
-            "2020.1",
-            "v0.1.2"
-        ]
+        versions_list = ["2018", "2019v0.1", "2020.1", "v0.1.2"]
 
-        launcher = create_engine_launcher(self.tk, self.context, self.engine_name, versions=versions_list)
+        launcher = create_engine_launcher(
+            self.tk, self.context, self.engine_name, versions=versions_list
+        )
 
-        min_version_method = "sgtk.platform.software_launcher.SoftwareLauncher.minimum_supported_version"
+        min_version_method = (
+            "sgtk.platform.software_launcher.SoftwareLauncher.minimum_supported_version"
+        )
         with patch(min_version_method, new_callable=PropertyMock) as min_version_mock:
 
             min_version_mock.return_value = "2019"
 
-            self.assertEqual(launcher._is_version_supported("2017"), False) # should fail min version
-            self.assertEqual(launcher._is_version_supported("2018"), False) # should fail min version
-            self.assertEqual(launcher._is_version_supported("2019"), False) # not in version list
-            self.assertEqual(launcher._is_version_supported("2019v0"), False) # not in version list
-            self.assertEqual(launcher._is_version_supported("2019v0.1"), True) # in version list
-            self.assertEqual(launcher._is_version_supported("2020.1"), True) # in version list
-            self.assertEqual(launcher._is_version_supported("2020"), False) # not in version list
-            self.assertEqual(launcher._is_version_supported("v0.1.2"), False) # fails min version
-            self.assertEqual(launcher._is_version_supported("v0.1"), False) # fails min version and not in list
+            self.assertEqual(
+                launcher._is_version_supported("2017"), False
+            )  # should fail min version
+            self.assertEqual(
+                launcher._is_version_supported("2018"), False
+            )  # should fail min version
+            self.assertEqual(
+                launcher._is_version_supported("2019"), False
+            )  # not in version list
+            self.assertEqual(
+                launcher._is_version_supported("2019v0"), False
+            )  # not in version list
+            self.assertEqual(
+                launcher._is_version_supported("2019v0.1"), True
+            )  # in version list
+            self.assertEqual(
+                launcher._is_version_supported("2020.1"), True
+            )  # in version list
+            self.assertEqual(
+                launcher._is_version_supported("2020"), False
+            )  # not in version list
+            self.assertEqual(
+                launcher._is_version_supported("v0.1.2"), False
+            )  # fails min version
+            self.assertEqual(
+                launcher._is_version_supported("v0.1"), False
+            )  # fails min version and not in list
 
     def test_product_supported(self):
 
@@ -237,13 +268,11 @@ class TestEngineLauncher(TankTestBase):
         self.assertEqual(launcher._is_product_supported("asfas1 124 1231 dfakj"), True)
         self.assertEqual(launcher._is_product_supported("111 1 1asfasdfakj"), True)
 
-        products_list = [
-            "A B C",
-            "DEF",
-            "G HI",
-        ]
+        products_list = ["A B C", "DEF", "G HI"]
 
-        launcher = create_engine_launcher(self.tk, self.context, self.engine_name, products=products_list)
+        launcher = create_engine_launcher(
+            self.tk, self.context, self.engine_name, products=products_list
+        )
 
         self.assertEqual(launcher._is_product_supported("A B C"), True)
         self.assertEqual(launcher._is_product_supported("A B c"), True)
@@ -261,10 +290,7 @@ class TestEngineLauncher(TankTestBase):
         versions_list = [2, 3, 4]
 
         launcher = create_engine_launcher(
-            self.tk,
-            self.context,
-            self.engine_name,
-            versions=versions_list,
+            self.tk, self.context, self.engine_name, versions=versions_list
         )
         sw_versions = launcher.scan_software()
         for sw_version in sw_versions:
@@ -301,11 +327,16 @@ class TestEngineLauncher(TankTestBase):
         """
         Ensures we are globbing and matching files regardless of the orientation of the slashes.
         """
-        pattern_template = os.path.join(self.fixtures_root, "misc", "glob_and_match", "maya{version}")
+        pattern_template = os.path.join(
+            self.fixtures_root, "misc", "glob_and_match", "maya{version}"
+        )
         launcher = create_engine_launcher(self.tk, self.context, self.engine_name)
 
         # regardless of the platform, the path orientation should not be an issue
-        for template in [pattern_template.replace("/", "\\"), pattern_template.replace("\\", "/")]:
+        for template in [
+            pattern_template.replace("/", "\\"),
+            pattern_template.replace("\\", "/"),
+        ]:
             matches = launcher._glob_and_match(template, {"version": r"\d+"})
             # Sort alphabetically so we can more easily validate the result.
             matches = sorted(matches, key=lambda x: x[0])
@@ -313,18 +344,24 @@ class TestEngineLauncher(TankTestBase):
                 matches,
                 [
                     (
-                        os.path.join(self.fixtures_root, "misc", "glob_and_match", "maya2014"),
-                        {"version": "2014"}
+                        os.path.join(
+                            self.fixtures_root, "misc", "glob_and_match", "maya2014"
+                        ),
+                        {"version": "2014"},
                     ),
                     (
-                        os.path.join(self.fixtures_root, "misc", "glob_and_match", "maya2015"),
-                        {"version": "2015"}
+                        os.path.join(
+                            self.fixtures_root, "misc", "glob_and_match", "maya2015"
+                        ),
+                        {"version": "2015"},
                     ),
                     (
-                        os.path.join(self.fixtures_root, "misc", "glob_and_match", "maya2016"),
-                        {"version": "2016"}
+                        os.path.join(
+                            self.fixtures_root, "misc", "glob_and_match", "maya2016"
+                        ),
+                        {"version": "2016"},
                     ),
-                ]
+                ],
             )
 
 
@@ -340,16 +377,14 @@ class TestSoftwareVersion(TankTestBase):
 
     def test_init_software_version(self):
         sw_version = SoftwareVersion(
-            self._version,
-            self._product,
-            self._path,
-            self._icon,
-            self.args
+            self._version, self._product, self._path, self._icon, self.args
         )
 
         self.assertEqual(self._version, sw_version.version)
         self.assertEqual(self._product, sw_version.product)
-        self.assertEqual("%s %s" % (self._product, self._version), sw_version.display_name)
+        self.assertEqual(
+            "%s %s" % (self._product, self._version), sw_version.display_name
+        )
         self.assertEqual(self._path, sw_version.path)
         self.assertEqual(self._icon, sw_version.icon)
         self.assertEqual(self.args, sw_version.args)
@@ -368,11 +403,7 @@ class TestLaunchInformation(TankTestBase):
         }
 
     def test_init_launch_information(self):
-        launch_info = LaunchInformation(
-            self._path,
-            self._args,
-            self._environment
-        )
+        launch_info = LaunchInformation(self._path, self._args, self._environment)
 
         self.assertEqual(self._path, launch_info.path)
         self.assertEqual(self._args, launch_info.args)

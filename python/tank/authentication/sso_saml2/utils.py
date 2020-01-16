@@ -67,13 +67,12 @@ def _get_site_infos(url, http_proxy=None):
                 "Using HTTP proxy to connect to the Shotgun server: %s", http_proxy
             )
         # Checks if the information is in the cache, is missing or out of date.
-        if url not in INFOS_CACHE or ((time.time() - INFOS_CACHE[url][0]) > INFOS_CACHE_TIMEOUT):
+        if url not in INFOS_CACHE or (
+            (time.time() - INFOS_CACHE[url][0]) > INFOS_CACHE_TIMEOUT
+        ):
             get_logger().info("Infos for site '%s' not in cache or expired", url)
             sg = shotgun_api3.Shotgun(
-                url,
-                session_token="dummy",
-                connect=False,
-                http_proxy=http_proxy
+                url, session_token="dummy", connect=False, http_proxy=http_proxy
             )
             # Remove delay between attempts at getting the site info.  Since
             # this is called in situations where blocking during multiple
@@ -110,7 +109,7 @@ def _get_user_authentication_method(url, http_proxy=None):
         get_logger().debug(
             "User authentication method for %s: %s",
             url,
-            infos["user_authentication_method"]
+            infos["user_authentication_method"],
         )
         user_authentication_method = infos["user_authentication_method"]
     return user_authentication_method
@@ -134,7 +133,7 @@ def is_unified_login_flow_enabled_on_site(url, http_proxy=None):
         get_logger().debug(
             "unified_login_flow_enabled for %s: %s",
             url,
-            infos["unified_login_flow_enabled"]
+            infos["unified_login_flow_enabled"],
         )
         return infos["unified_login_flow_enabled"]
     return False

@@ -1,11 +1,11 @@
 # Copyright (c) 2017 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import with_statement
@@ -13,20 +13,21 @@ from __future__ import with_statement
 import os
 from tank.util import is_linux, is_macos, is_windows
 from tank_test.tank_test_base import TankTestBase
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 import tank.util.filesystem as fs
 
 from mock import patch
-import subprocess # noqa
+import subprocess  # noqa
 import shutil
 import stat
 
 
 class TestFileSystem(TankTestBase):
-    
     def setUp(self):
         super(TestFileSystem, self).setUp()
-        self.util_filesystem_test_folder_location = os.path.join(self.fixtures_root, "util", "filesystem")
+        self.util_filesystem_test_folder_location = os.path.join(
+            self.fixtures_root, "util", "filesystem"
+        )
 
     def test_safe_delete_non_existing_folder(self):
         """
@@ -41,7 +42,9 @@ class TestFileSystem(TankTestBase):
         """
         Check that the test folder and all its contents are deleted recursively
         """
-        src_folder = os.path.join(self.util_filesystem_test_folder_location, "delete_folder")
+        src_folder = os.path.join(
+            self.util_filesystem_test_folder_location, "delete_folder"
+        )
         dst_folder = os.path.join(self.tank_temp, "folder")
         shutil.copytree(src_folder, dst_folder)
         self.assertTrue(os.path.exists(dst_folder))
@@ -54,7 +57,9 @@ class TestFileSystem(TankTestBase):
         it encounters errors like failures to delete some of the items in
         the folder
         """
-        src_folder = os.path.join(self.util_filesystem_test_folder_location, "delete_folder")
+        src_folder = os.path.join(
+            self.util_filesystem_test_folder_location, "delete_folder"
+        )
         dst_folder = os.path.join(self.tank_temp, "folder_in_use")
         shutil.copytree(src_folder, dst_folder)
         self.assertTrue(os.path.exists(dst_folder))
@@ -64,15 +69,21 @@ class TestFileSystem(TankTestBase):
             fs.safe_delete_folder(dst_folder)
             if is_windows():
                 # A failure occurred, folder should still be there
-                self.assertTrue(os.path.exists(dst_folder)) # on Windows removal of in-use files behaves differently than...
+                self.assertTrue(
+                    os.path.exists(dst_folder)
+                )  # on Windows removal of in-use files behaves differently than...
             else:
-                self.assertFalse(os.path.exists(dst_folder)) # ... on Unix, see comments for https://docs.python.org/2/library/os.html#os.remove
+                self.assertFalse(
+                    os.path.exists(dst_folder)
+                )  # ... on Unix, see comments for https://docs.python.org/2/library/os.html#os.remove
 
     def test_safe_delete_folder_with_read_only_items(self):
         """
         Check that safe_delete_folder will delete all items in the folder, even read only ones
         """
-        src_folder = os.path.join(self.util_filesystem_test_folder_location, "delete_folder")
+        src_folder = os.path.join(
+            self.util_filesystem_test_folder_location, "delete_folder"
+        )
         dst_folder = os.path.join(self.tank_temp, "folder_with_read_only_items")
         shutil.copytree(src_folder, dst_folder)
         self.assertTrue(os.path.exists(dst_folder))
@@ -108,14 +119,18 @@ class TestFileSystem(TankTestBase):
         path = os.path.join(test_folder, "foo.0020.exr")
         self.assertEqual(fs.get_unused_path(path), path)
         fs.touch_file(path)
-        self.assertEqual(fs.get_unused_path(path), os.path.join(test_folder, "foo_1.0020.exr"))
+        self.assertEqual(
+            fs.get_unused_path(path), os.path.join(test_folder, "foo_1.0020.exr")
+        )
 
         # Test multiple iterations
         fs.touch_file(os.path.join(test_folder, "foo_1.0020.exr"))
         fs.touch_file(os.path.join(test_folder, "foo_2.0020.exr"))
         fs.touch_file(os.path.join(test_folder, "foo_3.0020.exr"))
         fs.touch_file(os.path.join(test_folder, "foo_4.0020.exr"))
-        self.assertEqual(fs.get_unused_path(path), os.path.join(test_folder, "foo_5.0020.exr"))
+        self.assertEqual(
+            fs.get_unused_path(path), os.path.join(test_folder, "foo_5.0020.exr")
+        )
 
         # Clean up
         fs.safe_delete_folder(test_folder)
@@ -168,11 +183,7 @@ class TestOpenInFileBrowser(TankTestBase):
         """
         Test failing opening folder
         """
-        self.assertRaises(
-            RuntimeError,
-            fs.open_file_browser,
-            self.test_folder
-        )
+        self.assertRaises(RuntimeError, fs.open_file_browser, self.test_folder)
 
     @patch("subprocess.call", return_value=0)
     def test_file(self, subprocess_mock):
@@ -197,11 +208,7 @@ class TestOpenInFileBrowser(TankTestBase):
         Test failing opening folder on mac/linux
         """
         if not is_windows():
-            self.assertRaises(
-                RuntimeError,
-                fs.open_file_browser,
-                self.test_file
-            )
+            self.assertRaises(RuntimeError, fs.open_file_browser, self.test_file)
 
     @patch("subprocess.call", return_value=0)
     def test_sequence(self, subprocess_mock):
@@ -212,18 +219,12 @@ class TestOpenInFileBrowser(TankTestBase):
         args, kwargs = subprocess_mock.call_args
 
         if is_linux():
-            self.assertEqual(
-                args[0], ["xdg-open", os.path.dirname(self.test_sequence)]
-            )
+            self.assertEqual(args[0], ["xdg-open", os.path.dirname(self.test_sequence)])
 
         elif is_macos():
-            self.assertEqual(
-                args[0],
-                ["open", os.path.dirname(self.test_sequence)]
-            )
+            self.assertEqual(args[0], ["open", os.path.dirname(self.test_sequence)])
 
         elif is_windows():
             self.assertEqual(
-                args[0],
-                ["cmd.exe", "/C", "start", os.path.dirname(self.test_sequence)]
+                args[0], ["cmd.exe", "/C", "start", os.path.dirname(self.test_sequence)]
             )

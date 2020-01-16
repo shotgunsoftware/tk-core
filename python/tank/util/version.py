@@ -11,6 +11,7 @@
 from distutils.version import LooseVersion
 from . import sgre as re
 
+
 def is_version_head(version):
     """
     Returns if the specified version is HEAD or MASTER. The comparison is case insensitive.

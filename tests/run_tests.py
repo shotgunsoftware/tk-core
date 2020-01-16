@@ -21,13 +21,16 @@ from optparse import OptionParser
 
 # Let the user know which Python is picked up to run the tests.
 print()
-print("Using Python version \"%s\" at \"%s\"" % (".".join(
-    str(i) for i in sys.version_info[0:3]
-), sys.executable))
+print(
+    'Using Python version "%s" at "%s"'
+    % (".".join(str(i) for i in sys.version_info[0:3]), sys.executable)
+)
 
 # prepend tank_vendor location to PYTHONPATH to make sure we are running
 # the tests against the vendor libs, not local libs on the machine
-core_python_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "python"))
+core_python_path = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "python")
+)
 print("")
 print("Adding tank location to python_path: %s" % core_python_path)
 sys.path = [core_python_path] + sys.path
@@ -46,7 +49,6 @@ import unittest2 as unittest
 
 
 class TankTestRunner(object):
-
     def __init__(self, test_root=None):
 
         curr_dir = os.path.dirname(os.path.abspath(__file__))
@@ -76,7 +78,9 @@ class TankTestRunner(object):
         # args used to specify specific module.TestCase.test
         if test_names:
             test_names_iterator = self._massage_test_names(test_names)
-            self.suite = unittest.loader.TestLoader().loadTestsFromNames(test_names_iterator)
+            self.suite = unittest.loader.TestLoader().loadTestsFromNames(
+                test_names_iterator
+            )
         else:
             self.suite = unittest.loader.TestLoader().discover(self.test_path)
 
@@ -103,7 +107,9 @@ class TankTestRunner(object):
 
             # If a test name looks like a file name, turn the slashes into . and remove the
             # extension.
-            test_name = test_name.replace("/", ".").replace("\\", ".").replace(".py", "")
+            test_name = (
+                test_name.replace("/", ".").replace("\\", ".").replace(".py", "")
+            )
 
             # If we have a simple module name, no sub-module, then, run all the tests in that
             # module.
@@ -113,7 +119,9 @@ class TankTestRunner(object):
                     # Generate clean module/submodule.py files without the fully qualified path.
                     # Skip the extra /
                     os.path.abspath(filename).replace(self.test_path, "")[1:]
-                    for filename in glob.iglob(os.path.join(self.test_path, test_name, "test_*.py"))
+                    for filename in glob.iglob(
+                        os.path.join(self.test_path, test_name, "test_*.py")
+                    )
                 ):
                     yield filename
             else:
@@ -130,23 +138,25 @@ def _initialize_coverage(test_root):
         import coverage
     except ImportError:
         print()
-        print("The 'coverage' module is missing. Run 'pip install coverage' to install it.")
+        print(
+            "The 'coverage' module is missing. Run 'pip install coverage' to install it."
+        )
         sys.exit(1)
 
     if test_root:
         coveragerc_location = os.path.abspath(
             os.path.join(
-                test_root, # <root>/tests
-                "..", # <root>
-                ".coveragerc") # <root>/.coveragerc
+                test_root, "..", ".coveragerc"  # <root>/tests  # <root>
+            )  # <root>/.coveragerc
         )
     else:
         run_tests_py_location = __file__
         coveragerc_location = os.path.abspath(
             os.path.join(
-                os.path.dirname(run_tests_py_location), # <root>/tests
-                "..", # <root>
-                ".coveragerc") # <root>/.coveragerc
+                os.path.dirname(run_tests_py_location),  # <root>/tests
+                "..",  # <root>
+                ".coveragerc",
+            )  # <root>/.coveragerc
         )
     cov = coverage.coverage(config_file=coveragerc_location)
     cov.start()
@@ -172,7 +182,9 @@ def _finalize_coverage(cov):
     except Exception as e:
         print("WARNING: Html coverage report could not be written: %s" % e)
     else:
-        print("Note: Full html coverage report can be found in the coverage_html_report folder.")
+        print(
+            "Note: Full html coverage report can be found in the coverage_html_report folder."
+        )
 
 
 def _initialize_logging():
@@ -180,6 +192,7 @@ def _initialize_logging():
     Sets up a log file for the unit tests and optionally logs everything to the console.
     """
     import tank
+
     tank.LogManager().initialize_base_file_handler("run_tests")
 
     if options.log_to_console:
@@ -214,24 +227,33 @@ def _parse_command_line():
     :returns: The options and the name of the unit test specified on the command line, if any.
     """
     parser = OptionParser()
-    parser.add_option("--with-coverage",
-                      action="store_true",
-                      dest="coverage",
-                      help="run with coverage (requires coverage is installed)")
-    parser.add_option("--interactive",
-                      action="store_true",
-                      dest="interactive",
-                      help="run tests that have been decorated with the interactive decorator")
-    parser.add_option("--test-root",
-                      action="store",
-                      dest="test_root",
-                      help="Specify a folder where to look for tests.")
-    parser.add_option("--debug", "-d",
-                      action="store_true",
-                      help="Enable debug logging.")
-    parser.add_option("--log-to-console", "-l",
-                      action="store_true",
-                      help="Run tests and redirect logging output to the console.")
+    parser.add_option(
+        "--with-coverage",
+        action="store_true",
+        dest="coverage",
+        help="run with coverage (requires coverage is installed)",
+    )
+    parser.add_option(
+        "--interactive",
+        action="store_true",
+        dest="interactive",
+        help="run tests that have been decorated with the interactive decorator",
+    )
+    parser.add_option(
+        "--test-root",
+        action="store",
+        dest="test_root",
+        help="Specify a folder where to look for tests.",
+    )
+    parser.add_option(
+        "--debug", "-d", action="store_true", help="Enable debug logging."
+    )
+    parser.add_option(
+        "--log-to-console",
+        "-l",
+        action="store_true",
+        help="Run tests and redirect logging output to the console.",
+    )
 
     (options, args) = parser.parse_args()
 

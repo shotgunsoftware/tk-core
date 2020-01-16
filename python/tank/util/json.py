@@ -22,8 +22,14 @@ from .unicode import ensure_contains_str
 
 # This is the Python 2.6 signature. 2.7 has an extra object_hook_pairs argument.
 def load(
-    fp, encoding=None, cls=None, object_hook=None, parse_float=None,
-    parse_int=None, parse_constant=None, **kw
+    fp,
+    encoding=None,
+    cls=None,
+    object_hook=None,
+    parse_float=None,
+    parse_int=None,
+    parse_constant=None,
+    **kw
 ):
     """
     Deserialize ``fp`` (a ``.read()``-supporting file-like object containing
@@ -39,8 +45,14 @@ def load(
     # See https://docs.python.org/3/library/json.html#json.load and
     # https://docs.python.org/2/library/json.html#json.load for both signatures.
     loaded_value = json.load(
-        fp, encoding=encoding, cls=cls, object_hook=object_hook, parse_float=parse_float,
-        parse_int=parse_int, parse_constant=parse_constant, **kw
+        fp,
+        encoding=encoding,
+        cls=cls,
+        object_hook=object_hook,
+        parse_float=parse_float,
+        parse_int=parse_int,
+        parse_constant=parse_constant,
+        **kw
     )
 
     return ensure_contains_str(loaded_value)
@@ -48,8 +60,14 @@ def load(
 
 # This is the Python 2.6 signature. 2.7 has an extra object_hook_pairs argument.
 def loads(
-    s, encoding=None, cls=None, object_hook=None, parse_float=None,
-    parse_int=None, parse_constant=None, **kw
+    s,
+    encoding=None,
+    cls=None,
+    object_hook=None,
+    parse_float=None,
+    parse_int=None,
+    parse_constant=None,
+    **kw
 ):
     """
     Deserialize ``s`` (a ``str`` or ``unicode`` instance containing a JSON
@@ -65,8 +83,14 @@ def loads(
     # See https://docs.python.org/3/library/json.html#json.loads and
     # https://docs.python.org/2/library/json.html#json.loads for both signatures.
     loaded_value = json.loads(
-        s, encoding=encoding, cls=cls, object_hook=object_hook, parse_float=parse_float,
-        parse_int=parse_int, parse_constant=parse_constant, **kw
+        s,
+        encoding=encoding,
+        cls=cls,
+        object_hook=object_hook,
+        parse_float=parse_float,
+        parse_int=parse_int,
+        parse_constant=parse_constant,
+        **kw
     )
 
     return ensure_contains_str(loaded_value)

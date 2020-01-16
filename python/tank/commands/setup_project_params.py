@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -129,7 +129,6 @@ class ProjectSetupParameters(object):
         """
         self._progress_callback = fp
 
-
     def report_progress_from_installer(self, chapter, progress=None):
         """
         This method is executed from the setup core as it is executing the setup.
@@ -151,7 +150,6 @@ class ProjectSetupParameters(object):
         The name of the default storage.
         """
         return self._config_template.default_storage_name
-
 
     def validate_config_uri(self, config_uri):
         r"""
@@ -188,9 +186,7 @@ class ProjectSetupParameters(object):
         if config_uri not in self._cached_config_templates:
             # first download, read and parse the configuration template
             # this call may mean downloading stuff from the internet.
-            config_template = TemplateConfiguration(config_uri,
-                                                    self._sg,
-                                                    self._log)
+            config_template = TemplateConfiguration(config_uri, self._sg, self._log)
             self._cached_config_templates[config_uri] = config_template
 
         return self._cached_config_templates[config_uri].resolve_storages()
@@ -230,18 +226,26 @@ class ProjectSetupParameters(object):
         for storage_name in storage_data:
 
             if not storage_data[storage_name]["defined_in_shotgun"]:
-                raise TankError("The storage '%s' required by the configuration has not been defined in Shotgun. "
-                                "In order to fix this, please navigate to the Site Preferences in Shotgun "
-                                "and set up a new local file storage." % storage_name)
+                raise TankError(
+                    "The storage '%s' required by the configuration has not been defined in Shotgun. "
+                    "In order to fix this, please navigate to the Site Preferences in Shotgun "
+                    "and set up a new local file storage." % storage_name
+                )
 
             elif storage_data[storage_name][sgsix.platform] is None:
-                raise TankError("The Shotgun Local File Storage '%s' does not have a path defined "
-                                "for the current operating system!" % storage_name)
+                raise TankError(
+                    "The Shotgun Local File Storage '%s' does not have a path defined "
+                    "for the current operating system!" % storage_name
+                )
 
-            elif check_storage_path and not storage_data[storage_name]["exists_on_disk"]:
+            elif (
+                check_storage_path and not storage_data[storage_name]["exists_on_disk"]
+            ):
                 local_path = storage_data[storage_name][sgsix.platform]
-                raise TankError("The path on disk '%s' defined in the Shotgun Local File Storage '%s' does "
-                                "not exist!" % (local_path, storage_name))
+                raise TankError(
+                    "The path on disk '%s' defined in the Shotgun Local File Storage '%s' does "
+                    "not exist!" % (local_path, storage_name)
+                )
 
         # all checks passed! Populate official variables
         # note that the validate_config_uri method cached the config for us
@@ -304,13 +308,15 @@ class ProjectSetupParameters(object):
         data = self._sg.find_one(
             "PipelineConfiguration",
             [[field_name, "is", self._config_template.get_pipeline_configuration()]],
-            ["id",
-             "code",
-             "mac_path",
-             "windows_path",
-             "linux_path",
-             "project",
-             "project.Project.tank_name"]
+            [
+                "id",
+                "code",
+                "mac_path",
+                "windows_path",
+                "linux_path",
+                "project",
+                "project.Project.tank_name",
+            ],
         )
 
         return data
@@ -349,7 +355,10 @@ class ProjectSetupParameters(object):
             raise TankError("Please specify a configuration template!")
 
         if storage_name not in self._storage_data:
-            raise TankError("Configuration template does not contain a storage with name '%s'!" % storage_name)
+            raise TankError(
+                "Configuration template does not contain a storage with name '%s'!"
+                % storage_name
+            )
 
         return self._storage_data.get(storage_name).get("description")
 
@@ -374,9 +383,14 @@ class ProjectSetupParameters(object):
             raise TankError("Please specify a configuration template!")
 
         if storage_name not in self._storage_data:
-            raise TankError("Configuration template does not contain a storage with name '%s'!" % storage_name)
+            raise TankError(
+                "Configuration template does not contain a storage with name '%s'!"
+                % storage_name
+            )
 
-        return self._storage_data.get(storage_name).get(sgsix.normalize_platform(platform))
+        return self._storage_data.get(storage_name).get(
+            sgsix.normalize_platform(platform)
+        )
 
     def update_storage_root(self, config_uri, root_name, storage_data):
         """
@@ -385,7 +399,8 @@ class ProjectSetupParameters(object):
         info.
         """
         self._cached_config_templates[config_uri].update_storage_root(
-            root_name, storage_data)
+            root_name, storage_data
+        )
 
     def upload_configuration(self, pipeline_config_id):
         """
@@ -435,7 +450,10 @@ class ProjectSetupParameters(object):
 
                 # if this is the default storage,
                 # ensure it is explicitly marked in the roots file
-                if self.default_storage_name and storage_name == self.default_storage_name:
+                if (
+                    self.default_storage_name
+                    and storage_name == self.default_storage_name
+                ):
                     roots_data[storage_name]["default"] = True
 
                 # if there is a SG local storage associated with this root, make sure
@@ -464,7 +482,6 @@ class ProjectSetupParameters(object):
         finally:
             filesystem.safe_delete_folder(temp_root)
 
-
     def create_configuration(self, target_path):
         """
         Sets up the associated template configuration. Copies files.
@@ -488,13 +505,21 @@ class ProjectSetupParameters(object):
         :param force: If true, existing projects can be overwritten
         """
         if project_id is not None:
-            proj = self._sg.find_one("Project", [["id", "is", project_id]], ["name", "tank_name"])
+            proj = self._sg.find_one(
+                "Project", [["id", "is", project_id]], ["name", "tank_name"]
+            )
 
             if proj is None:
-                raise TankError("Could not find a project with id %s!" % self._project_id)
+                raise TankError(
+                    "Could not find a project with id %s!" % self._project_id
+                )
 
             # if force is false then tank_name must be empty
-            if self.get_auto_path_mode() == False and force == False and proj["tank_name"] is not None:
+            if (
+                self.get_auto_path_mode() == False
+                and force == False
+                and proj["tank_name"] is not None
+            ):
                 raise TankErrorProjectIsSetup()
 
         self._project_id = project_id
@@ -515,13 +540,14 @@ class ProjectSetupParameters(object):
         project_name_hook = shotgun.get_project_name_studio_hook_location()
         if os.path.exists(project_name_hook):
             # custom hook is available!
-            suggested_folder_name = hook.execute_hook(project_name_hook,
-                                                      parent=None,
-                                                      sg=self._sg,
-                                                      project_id=self._project_id)
+            suggested_folder_name = hook.execute_hook(
+                project_name_hook, parent=None, sg=self._sg, project_id=self._project_id
+            )
         else:
             # construct a valid name - replace white space with underscore and lower case it.
-            proj = self._sg.find_one("Project", [["id", "is", self._project_id]], ["name"])
+            proj = self._sg.find_one(
+                "Project", [["id", "is", self._project_id]], ["name"]
+            )
             suggested_folder_name = re.sub(r"\W", "_", proj.get("name")).lower()
 
         return suggested_folder_name
@@ -542,8 +568,10 @@ class ProjectSetupParameters(object):
         # basic validation of folder name
         # note that the value can contain slashes and span across multiple folders
         if re.match(r"^[\./a-zA-Z0-9_-]+$", project_name) is None:
-            raise TankError("Invalid project folder '%s'! Please use alphanumerics, "
-                            "underscores and dashes." % project_name)
+            raise TankError(
+                "Invalid project folder '%s'! Please use alphanumerics, "
+                "underscores and dashes." % project_name
+            )
 
     def preview_project_path(self, storage_name, project_name, platform):
         """
@@ -644,8 +672,9 @@ class ProjectSetupParameters(object):
         if self._config_template is None:
             raise TankError("Please specify a configuration template!")
 
-        return self.preview_project_path(storage_name, self._project_disk_name, platform)
-
+        return self.preview_project_path(
+            storage_name, self._project_disk_name, platform
+        )
 
     ################################################################################################################
     # Configuration template related logic
@@ -712,39 +741,53 @@ class ProjectSetupParameters(object):
         if linux_path and linux_path != "":
             base_name = linux_path.split("/")[-1]
             if re.match(CONFIG_NAME_VALIDATION_REGEX, base_name) is None:
-                raise TankError("Invalid Linux configuration folder name '%s'! Please use alphanumerics, "
-                                "underscores and dashes." % base_name)
+                raise TankError(
+                    "Invalid Linux configuration folder name '%s'! Please use alphanumerics, "
+                    "underscores and dashes." % base_name
+                )
 
         if windows_path and windows_path != "":
             base_name = windows_path.split("\\")[-1]
             if re.match(CONFIG_NAME_VALIDATION_REGEX, base_name) is None:
-                raise TankError("Invalid Windows configuration folder name '%s'! Please use alphanumerics, "
-                                "underscores and dashes." % base_name)
+                raise TankError(
+                    "Invalid Windows configuration folder name '%s'! Please use alphanumerics, "
+                    "underscores and dashes." % base_name
+                )
 
         if macosx_path and macosx_path != "":
             base_name = macosx_path.split("/")[-1]
             if re.match(CONFIG_NAME_VALIDATION_REGEX, base_name) is None:
-                raise TankError("Invalid Mac configuration folder name '%s'! Please use alphanumerics, "
-                                "underscores and dashes." % base_name)
+                raise TankError(
+                    "Invalid Mac configuration folder name '%s'! Please use alphanumerics, "
+                    "underscores and dashes." % base_name
+                )
 
         # get the location of the configuration
         config_path_current_os = config_path[sgsix.platform]
 
         if config_path_current_os is None or config_path_current_os == "":
-            raise TankError("Please specify a configuration path for your current operating system!")
+            raise TankError(
+                "Please specify a configuration path for your current operating system!"
+            )
 
         # validate that the config location is not taken
         if os.path.exists(config_path_current_os):
             # pipeline config location already exists -
             # make sure it doesn't already contain an install
-            if os.path.exists(os.path.join(config_path_current_os, "install")) or \
-               os.path.exists(os.path.join(config_path_current_os, "config")):
-                raise TankError("Looks like the location '%s' already contains a "
-                                "configuration!" % config_path_current_os)
+            if os.path.exists(
+                os.path.join(config_path_current_os, "install")
+            ) or os.path.exists(os.path.join(config_path_current_os, "config")):
+                raise TankError(
+                    "Looks like the location '%s' already contains a "
+                    "configuration!" % config_path_current_os
+                )
             # also make sure it has right permissions
-            if not os.access(config_path_current_os, os.W_OK|os.R_OK|os.X_OK):
-                raise TankError("The permissions setting for '%s' is too strict. The current user "
-                                "cannot create files or folders in this location." % config_path_current_os)
+            if not os.access(config_path_current_os, os.W_OK | os.R_OK | os.X_OK):
+                raise TankError(
+                    "The permissions setting for '%s' is too strict. The current user "
+                    "cannot create files or folders in this location."
+                    % config_path_current_os
+                )
 
         else:
             # path does not exist!
@@ -755,17 +798,23 @@ class ProjectSetupParameters(object):
             parent_config_path_current_os = os.path.dirname(config_path_current_os)
 
             if not os.path.exists(parent_config_path_current_os):
-                raise TankError("The folder '%s' does not exist! Please create "
-                                "it before proceeding!" % parent_config_path_current_os)
+                raise TankError(
+                    "The folder '%s' does not exist! Please create "
+                    "it before proceeding!" % parent_config_path_current_os
+                )
 
             # and make sure we can create a folder in it
-            if not os.access(parent_config_path_current_os, os.W_OK|os.R_OK|os.X_OK):
-                raise TankError("Cannot create a project configuration in location '%s'! "
-                                "The permissions setting for the parent folder '%s' "
-                                "is too strict. The current user "
-                                "cannot create folders in this location. Please create the "
-                                "project configuration folder by hand and then re-run the project "
-                                "setup." % (config_path_current_os, parent_config_path_current_os))
+            if not os.access(
+                parent_config_path_current_os, os.W_OK | os.R_OK | os.X_OK
+            ):
+                raise TankError(
+                    "Cannot create a project configuration in location '%s'! "
+                    "The permissions setting for the parent folder '%s' "
+                    "is too strict. The current user "
+                    "cannot create folders in this location. Please create the "
+                    "project configuration folder by hand and then re-run the project "
+                    "setup." % (config_path_current_os, parent_config_path_current_os)
+                )
 
     def set_configuration_location(self, linux_path, windows_path, macosx_path):
         """
@@ -799,7 +848,6 @@ class ProjectSetupParameters(object):
 
         return self._config_path[sgsix.normalize_platform(platform)]
 
-
     ################################################################################################################
     # Accessing which core API to use
 
@@ -830,7 +878,6 @@ class ProjectSetupParameters(object):
         """
         return self._core_path[sgsix.normalize_platform(platform)]
 
-
     ################################################################################################################
     # Validation
 
@@ -845,16 +892,23 @@ class ProjectSetupParameters(object):
             raise TankError("Need to define a core location!")
 
         if self._core_path[sgsix.platform] is None:
-            raise TankError("The core API you are trying to use in conjunction with this project "
-                            "has not been set up to operate on the current operating system. Please update "
-                            "the install_location.yml file and try again.")
+            raise TankError(
+                "The core API you are trying to use in conjunction with this project "
+                "has not been set up to operate on the current operating system. Please update "
+                "the install_location.yml file and try again."
+            )
 
         # make sure all parameters have been specified
         if self._config_template is None:
             raise TankError("Configuration template has not been specified!")
 
-        if self._distribution_mode == self.CENTRALIZED_CONFIG and self._config_path is None:
-            raise TankError("Path to the target configuration install has not been specified!")
+        if (
+            self._distribution_mode == self.CENTRALIZED_CONFIG
+            and self._config_path is None
+        ):
+            raise TankError(
+                "Path to the target configuration install has not been specified!"
+            )
 
         if self._project_disk_name is None:
             raise TankError("Project disk name has not been specified!")
@@ -879,12 +933,15 @@ class ProjectSetupParameters(object):
 
                 # get the project path for this storage
                 # note! at this point, the storage root has been checked and exists on disk.
-                project_path_local_os = self.get_project_path(storage_name, sgsix.platform)
+                project_path_local_os = self.get_project_path(
+                    storage_name, sgsix.platform
+                )
 
                 if config_path_current_os == project_path_local_os:
                     raise TankError(
                         "Your configuration location '%s' has been set to the same "
-                        "as one of the storage locations. This is not supported!" % config_path_current_os
+                        "as one of the storage locations. This is not supported!"
+                        % config_path_current_os
                     )
 
         # validate the local storages
@@ -895,8 +952,11 @@ class ProjectSetupParameters(object):
             project_path_local_os = self.get_project_path(storage_name, sgsix.platform)
 
             if not os.path.exists(project_path_local_os):
-                raise TankError("The Project path %s for storage %s does not exist on disk! "
-                                "Please create it and try again!" % (project_path_local_os, storage_name))
+                raise TankError(
+                    "The Project path %s for storage %s does not exist on disk! "
+                    "Please create it and try again!"
+                    % (project_path_local_os, storage_name)
+                )
 
         # check if the config template has required minimum core version and make sure that
         # the core we are trying to marry up with the config is recent enough
@@ -908,15 +968,17 @@ class ProjectSetupParameters(object):
             curr_core_version = pipelineconfig_utils.get_core_api_version(api_location)
 
             if is_version_newer(required_core_version, curr_core_version):
-                raise TankError("This configuration requires Toolkit Core version %s "
-                                "but you are running version %s" % (required_core_version, curr_core_version))
+                raise TankError(
+                    "This configuration requires Toolkit Core version %s "
+                    "but you are running version %s"
+                    % (required_core_version, curr_core_version)
+                )
             else:
-                self._log.debug("Config requires Toolkit Core %s. "
-                                "You are running %s which is fine." % (required_core_version, curr_core_version))
-
-
-
-
+                self._log.debug(
+                    "Config requires Toolkit Core %s. "
+                    "You are running %s which is fine."
+                    % (required_core_version, curr_core_version)
+                )
 
 
 class TemplateConfiguration(object):
@@ -959,7 +1021,9 @@ class TemplateConfiguration(object):
         # now extract the cfg and validate
         old_umask = os.umask(0)
         try:
-            (self._cfg_folder, self._version, self._config_mode) = self._process_config(config_uri)
+            (self._cfg_folder, self._version, self._config_mode) = self._process_config(
+                config_uri
+            )
         finally:
             os.umask(old_umask)
         self._config_uri = config_uri
@@ -979,8 +1043,8 @@ class TemplateConfiguration(object):
                 "Looks like your configuration has required storage roots but "
                 "does not specify a default root. You can mark a storage root "
                 "as default in your config's '%s' folder by adding a `default: "
-                "true` key/value pair to a storage's definition." %
-                (self._storage_roots.STORAGE_ROOTS_FILE_PATH,)
+                "true` key/value pair to a storage's definition."
+                % (self._storage_roots.STORAGE_ROOTS_FILE_PATH,)
             )
 
         # see if there is a readme file
@@ -996,8 +1060,10 @@ class TemplateConfiguration(object):
         info_yml = os.path.join(self._cfg_folder, constants.BUNDLE_METADATA_FILE)
         if not os.path.exists(info_yml):
             self._manifest = {}
-            self._log.warning("Could not find manifest file %s. "
-                              "Project setup will proceed without validation." % info_yml)
+            self._log.warning(
+                "Could not find manifest file %s. "
+                "Project setup will proceed without validation." % info_yml
+            )
         else:
             # check manifest
             try:
@@ -1007,7 +1073,9 @@ class TemplateConfiguration(object):
                 finally:
                     file_data.close()
             except Exception as e:
-                raise TankError("Cannot load configuration manifest '%s'. Error: %s" % (info_yml, e))
+                raise TankError(
+                    "Cannot load configuration manifest '%s'. Error: %s" % (info_yml, e)
+                )
 
             # perform checks
             if "requires_shotgun_version" in self._manifest:
@@ -1016,15 +1084,22 @@ class TemplateConfiguration(object):
                 required_version = self._manifest["requires_shotgun_version"]
 
                 # get the version for the current sg site as a string (1.2.3)
-                sg_version_str = ".".join([ str(x) for x in self._sg.server_info["version"]])
+                sg_version_str = ".".join(
+                    [str(x) for x in self._sg.server_info["version"]]
+                )
 
                 if is_version_newer(required_version, sg_version_str):
-                    raise TankError("This configuration requires Shotgun version %s "
-                                    "but you are running version %s" % (required_version, sg_version_str))
+                    raise TankError(
+                        "This configuration requires Shotgun version %s "
+                        "but you are running version %s"
+                        % (required_version, sg_version_str)
+                    )
                 else:
-                    self._log.debug("Config requires shotgun %s. "
-                                    "You are running %s which is fine." % (required_version, sg_version_str))
-
+                    self._log.debug(
+                        "Config requires shotgun %s. "
+                        "You are running %s which is fine."
+                        % (required_version, sg_version_str)
+                    )
 
     ################################################################################################
     # Helper methods
@@ -1061,7 +1136,9 @@ class TemplateConfiguration(object):
         template_items = os.listdir(zip_unpack_tmp)
         for item in ["core", "env", "hooks"]:
             if item not in template_items:
-                raise TankError("Config zip '%s' is missing a %s folder!" % (zip_path, item))
+                raise TankError(
+                    "Config zip '%s' is missing a %s folder!" % (zip_path, item)
+                )
         self._log.debug("Configuration looks valid!")
 
         return zip_unpack_tmp
@@ -1073,7 +1150,9 @@ class TemplateConfiguration(object):
         template_items = os.listdir(dir_path)
         for item in ["core", "env", "hooks"]:
             if item not in template_items:
-                raise TankError("Config location '%s' missing a %s folder!" % (dir_path, item))
+                raise TankError(
+                    "Config location '%s' missing a %s folder!" % (dir_path, item)
+                )
         self._log.debug("Configuration looks valid!")
         return dir_path
 
@@ -1124,7 +1203,7 @@ class TemplateConfiguration(object):
                 Descriptor.CONFIG,
                 {"type": "app_store", "name": config_uri},
                 resolve_latest=True,
-                local_fallback_when_disconnected=False
+                local_fallback_when_disconnected=False,
             )
             descriptor.ensure_local()
             return descriptor.get_path(), descriptor.version, "app_store"
@@ -1195,8 +1274,9 @@ class TemplateConfiguration(object):
         storage_info = {}
 
         # do the storage lookup and mapping in SG
-        (local_storage_lookup, unmapped_roots) = \
-            self._storage_roots.get_local_storages(self._sg)
+        (local_storage_lookup, unmapped_roots) = self._storage_roots.get_local_storages(
+            self._sg
+        )
 
         default_storage_name = self._storage_roots.default
 
@@ -1204,9 +1284,7 @@ class TemplateConfiguration(object):
         for root_name, root_info in self._storage_roots:
 
             # description
-            storage_info[root_name] = {
-                "description": root_info.get("description"),
-            }
+            storage_info[root_name] = {"description": root_info.get("description")}
 
             # default
             if default_storage_name and default_storage_name == root_name:
@@ -1291,8 +1369,8 @@ class TemplateConfiguration(object):
         """
         if not self.is_local_config():
             raise TankError(
-                "Cannot resolve pipeline configuration for '%s' because it doesn't belong to an existing project!" %
-                self._config_uri
+                "Cannot resolve pipeline configuration for '%s' because it doesn't belong to an existing project!"
+                % self._config_uri
             )
 
         # The config uri points to the config folder inside the pipeline configuration, so we'll have to step out

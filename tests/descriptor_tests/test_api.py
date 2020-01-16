@@ -15,7 +15,7 @@ import sgtk
 import tank
 
 from tank_test.tank_test_base import ShotgunTestBase
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 
 
 class TestApi(ShotgunTestBase):
@@ -40,15 +40,17 @@ class TestApi(ShotgunTestBase):
         d = sgtk.descriptor.create_descriptor(
             self.mockgun,
             sgtk.descriptor.Descriptor.CONFIG,
-            {"type": "app_store", "version": "v0.1.6", "name": "tk-testbundlefactory"}
+            {"type": "app_store", "version": "v0.1.6", "name": "tk-testbundlefactory"},
         )
 
         app_root_path = os.path.join(
-            tank.util.LocalFileStorageManager.get_global_root(tank.util.LocalFileStorageManager.CACHE),
+            tank.util.LocalFileStorageManager.get_global_root(
+                tank.util.LocalFileStorageManager.CACHE
+            ),
             "bundle_cache",
             "app_store",
             "tk-testbundlefactory",
-            "v0.1.6"
+            "v0.1.6",
         )
 
         self._touch_info_yaml(app_root_path)
@@ -57,19 +59,23 @@ class TestApi(ShotgunTestBase):
         d1 = sgtk.descriptor.create_descriptor(
             self.mockgun,
             sgtk.descriptor.Descriptor.CONFIG,
-            "sgtk:descriptor:git?path=https%3A//github.com/shotgunsoftware/tk-core.git&version=v0.1.2"
+            "sgtk:descriptor:git?path=https%3A//github.com/shotgunsoftware/tk-core.git&version=v0.1.2",
         )
 
         d2 = sgtk.descriptor.create_descriptor(
             self.mockgun,
             sgtk.descriptor.Descriptor.CONFIG,
-            "sgtk:descriptor:git?path=https://github.com/shotgunsoftware/tk-core.git&version=v0.1.2"
+            "sgtk:descriptor:git?path=https://github.com/shotgunsoftware/tk-core.git&version=v0.1.2",
         )
 
         d3 = sgtk.descriptor.create_descriptor(
             self.mockgun,
             sgtk.descriptor.Descriptor.CONFIG,
-            {"type": "git", "version": "v0.1.2", "path": "https://github.com/shotgunsoftware/tk-core.git"}
+            {
+                "type": "git",
+                "version": "v0.1.2",
+                "path": "https://github.com/shotgunsoftware/tk-core.git",
+            },
         )
 
         self.assertEqual(d1, d2)
@@ -86,61 +92,80 @@ class TestApi(ShotgunTestBase):
             sgtk.descriptor.create_descriptor,
             self.mockgun,
             sgtk.descriptor.Descriptor.CONFIG,
-            {"type": "app_store", "name": "tk-testbundlefactory"}
+            {"type": "app_store", "name": "tk-testbundlefactory"},
         )
 
         # if we omit the version number, a latest check is carried out
         app_root_path = os.path.join(
-            tank.util.LocalFileStorageManager.get_global_root(tank.util.LocalFileStorageManager.CACHE),
+            tank.util.LocalFileStorageManager.get_global_root(
+                tank.util.LocalFileStorageManager.CACHE
+            ),
             "bundle_cache",
             "app_store",
             "tk-testbundlefactory",
-            "v0.1.6"
+            "v0.1.6",
         )
         self._touch_info_yaml(app_root_path)
         d = sgtk.descriptor.create_descriptor(
             self.mockgun,
             sgtk.descriptor.Descriptor.CONFIG,
             {"type": "app_store", "name": "tk-testbundlefactory"},
-            resolve_latest=True
+            resolve_latest=True,
         )
-        self.assertEqual(d.get_uri(), "sgtk:descriptor:app_store?name=tk-testbundlefactory&version=v0.1.6")
+        self.assertEqual(
+            d.get_uri(),
+            "sgtk:descriptor:app_store?name=tk-testbundlefactory&version=v0.1.6",
+        )
 
         # if we add a new local version, this will be picked up as latest
         app_root_path = os.path.join(
-            tank.util.LocalFileStorageManager.get_global_root(tank.util.LocalFileStorageManager.CACHE),
+            tank.util.LocalFileStorageManager.get_global_root(
+                tank.util.LocalFileStorageManager.CACHE
+            ),
             "bundle_cache",
             "app_store",
             "tk-testbundlefactory",
-            "v0.2.3"
+            "v0.2.3",
         )
         self._touch_info_yaml(app_root_path)
         d = sgtk.descriptor.create_descriptor(
             self.mockgun,
             sgtk.descriptor.Descriptor.CONFIG,
             {"type": "app_store", "name": "tk-testbundlefactory"},
-            resolve_latest=True
+            resolve_latest=True,
         )
-        self.assertEqual(d.get_uri(), "sgtk:descriptor:app_store?name=tk-testbundlefactory&version=v0.2.3")
+        self.assertEqual(
+            d.get_uri(),
+            "sgtk:descriptor:app_store?name=tk-testbundlefactory&version=v0.2.3",
+        )
 
         # we can do a direct lookup even when the version flag is set
         # but it will result in a latest version translation
         d = sgtk.descriptor.create_descriptor(
             self.mockgun,
             sgtk.descriptor.Descriptor.CONFIG,
-            {"type": "app_store", "version": "v9999.1.6", "name": "tk-testbundlefactory"},
-            resolve_latest=True
+            {
+                "type": "app_store",
+                "version": "v9999.1.6",
+                "name": "tk-testbundlefactory",
+            },
+            resolve_latest=True,
         )
-        self.assertEqual(d.get_uri(), "sgtk:descriptor:app_store?name=tk-testbundlefactory&version=v0.2.3")
+        self.assertEqual(
+            d.get_uri(),
+            "sgtk:descriptor:app_store?name=tk-testbundlefactory&version=v0.2.3",
+        )
 
         # test opting out of the local fallback
-        with self.assertRaisesRegex(tank.descriptor.TankDescriptorError, "Could not get latest version of"):
+        with self.assertRaisesRegex(
+            tank.descriptor.TankDescriptorError, "Could not get latest version of"
+        ):
             sgtk.descriptor.create_descriptor(
                 self.mockgun,
                 sgtk.descriptor.Descriptor.CONFIG,
                 {"type": "app_store", "name": "tk-testbundlefactory"},
                 resolve_latest=True,
-                local_fallback_when_disconnected=False
+                local_fallback_when_disconnected=False,
             )
 
     def test_alt_cache_root(self):
@@ -158,7 +183,7 @@ class TestApi(ShotgunTestBase):
             sg,
             sgtk.descriptor.Descriptor.CONFIG,
             {"type": "app_store", "version": "v0.4.3", "name": "tk-testaltcacheroot2"},
-            bundle_root
+            bundle_root,
         )
 
         # get_path() returns none if path doesn't exists
@@ -166,10 +191,8 @@ class TestApi(ShotgunTestBase):
 
         # now create info.yml file and try again
         app_root_path = os.path.join(
-            bundle_root,
-            "app_store",
-            "tk-testaltcacheroot2",
-            "v0.4.3")
+            bundle_root, "app_store", "tk-testaltcacheroot2", "v0.4.3"
+        )
         self._touch_info_yaml(app_root_path)
         self.assertEqual(d.get_path(), app_root_path)
 
@@ -206,7 +229,11 @@ class TestApi(ShotgunTestBase):
         self._test_dict_to_uri(uri, dict)
 
         uri = "sgtk:descriptor:git?path=git@github.com:shotgunsoftware/tk-core.git&version=v0.1.2"
-        dict = {"type": "git", "version": "v0.1.2", "path": "git@github.com:shotgunsoftware/tk-core.git"}
+        dict = {
+            "type": "git",
+            "version": "v0.1.2",
+            "path": "git@github.com:shotgunsoftware/tk-core.git",
+        }
         self._test_uri_to_dict(uri, dict)
         self._test_dict_to_uri(uri, dict)
 
@@ -217,7 +244,11 @@ class TestApi(ShotgunTestBase):
 
         # test that escaped uris can be correctly converted to dicts
         uri = "sgtk:descriptor:git?path=https%3A//github.com/shotgunsoftware/tk-core.git&version=v0.1.2"
-        dict = {"type": "git", "version": "v0.1.2", "path": "https://github.com/shotgunsoftware/tk-core.git"}
+        dict = {
+            "type": "git",
+            "version": "v0.1.2",
+            "path": "https://github.com/shotgunsoftware/tk-core.git",
+        }
         self._test_uri_to_dict(uri, dict)
 
         uri = "sgtk:descriptor:path?path=C%3A%5Cfoo%5Cbar"
@@ -225,8 +256,14 @@ class TestApi(ShotgunTestBase):
         self._test_uri_to_dict(uri, dict)
 
         # test that special characters used by parsing logic are escaped correctly
-        uri = "sgtk:descriptor:git?path=bad_path%26with%3Dspecial%3Fchars&version=v0.1.2"
-        dict = {"type": "git", "version": "v0.1.2", "path": "bad_path&with=special?chars"}
+        uri = (
+            "sgtk:descriptor:git?path=bad_path%26with%3Dspecial%3Fchars&version=v0.1.2"
+        )
+        dict = {
+            "type": "git",
+            "version": "v0.1.2",
+            "path": "bad_path&with=special?chars",
+        }
         self._test_dict_to_uri(uri, dict)
         self._test_uri_to_dict(uri, dict)
 
@@ -237,14 +274,14 @@ class TestApi(ShotgunTestBase):
         # Descriptor backwards compatibility
         self.assertEqual(
             sgtk.descriptor.TankInvalidAppStoreCredentialsError,
-            sgtk.descriptor.InvalidAppStoreCredentialsError
+            sgtk.descriptor.InvalidAppStoreCredentialsError,
         )
         self.assertEqual(
             sgtk.descriptor.TankCheckVersionConstraintsError,
-            sgtk.descriptor.CheckVersionConstraintsError
+            sgtk.descriptor.CheckVersionConstraintsError,
         )
         # Core api compatibility
         self.assertEqual(
             sgtk.descriptor.TankInvalidInterpreterLocationError,
-            sgtk.TankInvalidInterpreterLocationError
+            sgtk.TankInvalidInterpreterLocationError,
         )

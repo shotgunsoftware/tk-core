@@ -22,7 +22,6 @@ from tank.util import is_windows
 
 
 class ProcessFolderCreation(Hook):
-
     def execute(self, items, preview_mode, **kwargs):
         """
         Creates a list of files and folders.

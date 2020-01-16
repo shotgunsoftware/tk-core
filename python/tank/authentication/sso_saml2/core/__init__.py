@@ -12,6 +12,4 @@ This module contains files which are shared between RV and Toolkit.
 """
 
 # Classes
-from .sso_saml2_core import (  # noqa
-    SsoSaml2Core,
-)
+from .sso_saml2_core import SsoSaml2Core  # noqa

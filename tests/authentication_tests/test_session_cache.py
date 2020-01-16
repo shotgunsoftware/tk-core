@@ -14,7 +14,7 @@ import os
 from mock import patch
 
 from tank_test.tank_test_base import ShotgunTestBase
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 
 from tank.authentication import session_cache
 from tank.util import LocalFileStorageManager
@@ -22,7 +22,6 @@ from tank_vendor import yaml
 
 
 class SessionCacheTests(ShotgunTestBase):
-
     def setUp(self):
         super(SessionCacheTests, self).setUp()
         # Wipe the global session file that has been edited by previous tests.
@@ -33,8 +32,7 @@ class SessionCacheTests(ShotgunTestBase):
         Writes the global authentication file.
         """
         session_cache._write_yaml_file(
-            session_cache._get_global_authentication_file_location(),
-            content
+            session_cache._get_global_authentication_file_location(), content
         )
 
     def _write_site_yml(self, site, content):
@@ -42,8 +40,7 @@ class SessionCacheTests(ShotgunTestBase):
         Writes the site authentication file.
         """
         session_cache._write_yaml_file(
-            session_cache._get_site_authentication_file_location(site),
-            content
+            session_cache._get_site_authentication_file_location(site), content
         )
 
     def _clear_site_yml(self, site):
@@ -62,14 +59,9 @@ class SessionCacheTests(ShotgunTestBase):
         # The recent_users array is not present in the authentication.yml
         # file, so make sure that the session cache reports the user as the
         # most recent.
-        self._write_site_yml(
-            HOST, {"current_user": "current.user", "users": []}
-        )
+        self._write_site_yml(HOST, {"current_user": "current.user", "users": []})
 
-        self.assertEqual(
-            session_cache.get_recent_users(HOST),
-            ["current.user"]
-        )
+        self.assertEqual(session_cache.get_recent_users(HOST), ["current.user"])
 
     def test_recent_hosts_upgrade(self):
         """
@@ -79,13 +71,10 @@ class SessionCacheTests(ShotgunTestBase):
         # The recent_users array is not present in the authentication.yml
         # file, so make sure that the session cache reports the user as the
         # most recent.
-        self._write_global_yml(
-            {"current_host": "https://host.shotgunstudio.com"}
-        )
+        self._write_global_yml({"current_host": "https://host.shotgunstudio.com"})
 
         self.assertEqual(
-            session_cache.get_recent_hosts(),
-            ["https://host.shotgunstudio.com"]
+            session_cache.get_recent_hosts(), ["https://host.shotgunstudio.com"]
         )
 
     def test_recent_users_downgrade(self):
@@ -97,7 +86,10 @@ class SessionCacheTests(ShotgunTestBase):
         HOST = "https://host.shotgunstudio.com"
         self._write_site_yml(
             HOST,
-            {"current_user": "current.user", "recent_users": ["older.user", "current.user"]}
+            {
+                "current_user": "current.user",
+                "recent_users": ["older.user", "current.user"],
+            },
         )
 
         self.assertEqual(
@@ -111,15 +103,18 @@ class SessionCacheTests(ShotgunTestBase):
         has the current_host at the front.
         """
         self._write_global_yml(
-            {"current_host": "https://current.shotgunstudio.com",
-             "recent_hosts": ["https://older.shotgunstudio.com", "https://current.shotgunstudio.com"]}
+            {
+                "current_host": "https://current.shotgunstudio.com",
+                "recent_hosts": [
+                    "https://older.shotgunstudio.com",
+                    "https://current.shotgunstudio.com",
+                ],
+            }
         )
 
         self.assertEqual(
-            session_cache.get_recent_hosts(), [
-                "https://current.shotgunstudio.com",
-                "https://older.shotgunstudio.com"
-            ]
+            session_cache.get_recent_hosts(),
+            ["https://current.shotgunstudio.com", "https://older.shotgunstudio.com"],
         )
 
     def test_recent_hosts(self):
@@ -153,7 +148,9 @@ class SessionCacheTests(ShotgunTestBase):
             session_cache.set_current_host(host)
 
         # We should now have hosts 9 down to 2 in the most recent list.
-        most_recents = ["https://host-%d.shotgunstudio.com" % i for i in range(9, 1, -1)]
+        most_recents = [
+            "https://host-%d.shotgunstudio.com" % i for i in range(9, 1, -1)
+        ]
 
         self.assertEqual(session_cache.get_recent_hosts(), most_recents)
 
@@ -220,29 +217,28 @@ class SessionCacheTests(ShotgunTestBase):
         with patch("sgtk.util.shotgun.connection.sanitize_url", wraps=lambda x: x):
             session_cache.set_current_host("https://host.cleaned.up.on.read/")
             # ... then sure we indeed disabled cleanup and that the malformed value was written to disk...
-            self.assertEqual("https://host.cleaned.up.on.read/", session_cache.get_current_host())
+            self.assertEqual(
+                "https://host.cleaned.up.on.read/", session_cache.get_current_host()
+            )
 
         # ... and finaly that the value is filtered when being read back from disk.
-        self.assertEqual("https://host.cleaned.up.on.read", session_cache.get_current_host())
+        self.assertEqual(
+            "https://host.cleaned.up.on.read", session_cache.get_current_host()
+        )
 
         # Make sure we're cleaning up the hostname when saving it.
         session_cache.set_current_host("https://host.cleaned.up.on.write/")
 
         with open(
             os.path.join(
-                LocalFileStorageManager.get_global_root(
-                    LocalFileStorageManager.CACHE
-                ),
-                "authentication.yml"
+                LocalFileStorageManager.get_global_root(LocalFileStorageManager.CACHE),
+                "authentication.yml",
             ),
-            "r"
+            "r",
         ) as fh:
             # Let's read the file directly to see if the data was cleaned up.
             data = yaml.load(fh)
-            self.assertEqual(
-                data["current_host"],
-                "https://host.cleaned.up.on.write"
-            )
+            self.assertEqual(data["current_host"], "https://host.cleaned.up.on.write")
 
     def test_current_user(self):
         """
@@ -274,48 +270,50 @@ class SessionCacheTests(ShotgunTestBase):
         # Make sure we stored the session token.
         host = "https://host.shotgunstudio.com"
         session_cache.cache_session_data(
-            host,
-            "bob",
+            host, "bob", "bob_session_token", "bob_session_metadata"
+        )
+        self.assertEqual(
+            session_cache.get_session_data(host, "bob")["session_token"],
             "bob_session_token",
-            "bob_session_metadata"
         )
         self.assertEqual(
-            session_cache.get_session_data(host, "bob")["session_token"], "bob_session_token"
-        )
-        self.assertEqual(
-            session_cache.get_session_data(host, "bob")["session_metadata"], "bob_session_metadata"
+            session_cache.get_session_data(host, "bob")["session_metadata"],
+            "bob_session_metadata",
         )
 
         # Make sure we can store a second one.
         session_cache.cache_session_data(
-            host,
-            "alice",
-            "alice_session_token",
-            "alice_session_metadata"
+            host, "alice", "alice_session_token", "alice_session_metadata"
         )
         # We can see the old one
         self.assertEqual(
-            session_cache.get_session_data(host, "bob")["session_token"], "bob_session_token"
+            session_cache.get_session_data(host, "bob")["session_token"],
+            "bob_session_token",
         )
         self.assertEqual(
-            session_cache.get_session_data(host, "bob")["session_metadata"], "bob_session_metadata"
+            session_cache.get_session_data(host, "bob")["session_metadata"],
+            "bob_session_metadata",
         )
         # check for the new one
         self.assertEqual(
-            session_cache.get_session_data(host, "alice")["session_token"], "alice_session_token"
+            session_cache.get_session_data(host, "alice")["session_token"],
+            "alice_session_token",
         )
         self.assertEqual(
-            session_cache.get_session_data(host, "alice")["session_metadata"], "alice_session_metadata"
+            session_cache.get_session_data(host, "alice")["session_metadata"],
+            "alice_session_metadata",
         )
 
         session_cache.delete_session_data(host, "bob")
 
         self.assertEqual(session_cache.get_session_data(host, "bob"), None)
         self.assertEqual(
-            session_cache.get_session_data(host, "alice")["session_token"], "alice_session_token"
+            session_cache.get_session_data(host, "alice")["session_token"],
+            "alice_session_token",
         )
         self.assertEqual(
-            session_cache.get_session_data(host, "alice")["session_metadata"], "alice_session_metadata"
+            session_cache.get_session_data(host, "alice")["session_metadata"],
+            "alice_session_metadata",
         )
 
     def test_login_case_insensitivity(self):
@@ -326,40 +324,27 @@ class SessionCacheTests(ShotgunTestBase):
         lowercase_bob = "bob"
         uppercase_bob = "BOB"
         session_token = "123"
-        session_data = {
-            "login": lowercase_bob,
-            "session_token": session_token
-        }
+        session_data = {"login": lowercase_bob, "session_token": session_token}
 
         # Store using lower
-        session_cache.cache_session_data(
-            host,
-            lowercase_bob,
-            session_token
-        )
+        session_cache.cache_session_data(host, lowercase_bob, session_token)
 
         # Same inputs should resolve the token.
         self.assertEqual(
-            session_cache.get_session_data(host, lowercase_bob),
-            session_data
+            session_cache.get_session_data(host, lowercase_bob), session_data
         )
 
         # upper case user should still recover the session token.
         self.assertEqual(
-            session_cache.get_session_data(host, uppercase_bob),
-            session_data
+            session_cache.get_session_data(host, uppercase_bob), session_data
         )
 
         # Deleting with the upper case user should also work.
         session_cache.delete_session_data(host, uppercase_bob)
 
         # Should not be able to resolve the user, with any case
-        self.assertIsNone(
-            session_cache.get_session_data(host, uppercase_bob)
-        )
-        self.assertIsNone(
-            session_cache.get_session_data(host, lowercase_bob),
-        )
+        self.assertIsNone(session_cache.get_session_data(host, uppercase_bob))
+        self.assertIsNone(session_cache.get_session_data(host, lowercase_bob))
 
     def test_host_case_insensitivity(self):
         """
@@ -370,37 +355,24 @@ class SessionCacheTests(ShotgunTestBase):
 
         user = "bob"
         session_token = "123"
-        session_data = {
-            "login": user,
-            "session_token": session_token
-        }
+        session_data = {"login": user, "session_token": session_token}
 
         # Store using lower case
-        session_cache.cache_session_data(
-            lowercase_host,
-            user,
-            session_token
-        )
+        session_cache.cache_session_data(lowercase_host, user, session_token)
 
         # Same inputs should resolve the token.
         self.assertEqual(
-            session_cache.get_session_data(lowercase_host, user),
-            session_data
+            session_cache.get_session_data(lowercase_host, user), session_data
         )
 
         # upper case user should still recover the session token.
         self.assertEqual(
-            session_cache.get_session_data(uppercase_host, user),
-            session_data
+            session_cache.get_session_data(uppercase_host, user), session_data
         )
 
         # Deleting with the upper case user should also work.
         session_cache.delete_session_data(uppercase_host, user)
 
         # Should not be able to resolve the user, with any case
-        self.assertIsNone(
-            session_cache.get_session_data(uppercase_host, user)
-        )
-        self.assertIsNone(
-            session_cache.get_session_data(lowercase_host, user),
-        )
+        self.assertIsNone(session_cache.get_session_data(uppercase_host, user))
+        self.assertIsNone(session_cache.get_session_data(lowercase_host, user))

@@ -48,13 +48,13 @@ class IODescriptorGitTag(IODescriptorGit):
         """
         # make sure all required fields are there
         self._validate_descriptor(
-            descriptor_dict,
-            required=["type", "path", "version"],
-            optional=[]
+            descriptor_dict, required=["type", "path", "version"], optional=[]
         )
 
         # call base class
-        super(IODescriptorGitTag, self).__init__(descriptor_dict, sg_connection, bundle_type)
+        super(IODescriptorGitTag, self).__init__(
+            descriptor_dict, sg_connection, bundle_type
+        )
 
         # path is handled by base class - all git descriptors
         # have a path to a repo
@@ -81,12 +81,7 @@ class IODescriptorGitTag(IODescriptorGit):
         # /full/path/to/local/repo.git -> repo.git
         name = os.path.basename(self._path)
 
-        return os.path.join(
-            bundle_cache_root,
-            "git",
-            name,
-            self.get_version()
-        )
+        return os.path.join(bundle_cache_root, "git", name, self.get_version())
 
     def _get_cache_paths(self):
         """
@@ -115,11 +110,7 @@ class IODescriptorGitTag(IODescriptorGit):
         name = os.path.basename(self._path)
 
         legacy_folder = self._get_legacy_bundle_install_folder(
-            "git",
-            self._bundle_cache_root,
-            self._bundle_type,
-            name,
-            self.get_version()
+            "git", self._bundle_cache_root, self._bundle_type, name, self.get_version()
         )
         if legacy_folder:
             paths.append(legacy_folder)
@@ -150,12 +141,11 @@ class IODescriptorGitTag(IODescriptorGit):
         """
         try:
             # clone the repo, checkout the given tag
-            commands = ["checkout -q \"%s\"" % self._version]
+            commands = ['checkout -q "%s"' % self._version]
             self._clone_then_execute_git_commands(destination_path, commands)
         except Exception as e:
             raise TankDescriptorError(
-                "Could not download %s, "
-                "tag %s: %s" % (self._path, self._version, e)
+                "Could not download %s, " "tag %s: %s" % (self._path, self._version, e)
             )
 
     def get_latest_version(self, constraint_pattern=None):
@@ -208,7 +198,9 @@ class IODescriptorGitTag(IODescriptorGit):
             # clone the repo, list all tags
             # for the repository, across all branches
             commands = ["tag"]
-            git_tags = six.ensure_text(self._tmp_clone_then_execute_git_commands(commands)).split("\n")
+            git_tags = six.ensure_text(
+                self._tmp_clone_then_execute_git_commands(commands)
+            ).split("\n")
 
         except Exception as e:
             raise TankDescriptorError(
@@ -224,7 +216,8 @@ class IODescriptorGitTag(IODescriptorGit):
         if latest_tag is None:
             raise TankDescriptorError(
                 "'%s' does not have a version matching the pattern '%s'. "
-                "Available versions are: %s" % (self.get_system_name(), pattern, ", ".join(git_tags))
+                "Available versions are: %s"
+                % (self.get_system_name(), pattern, ", ".join(git_tags))
             )
 
         return latest_tag
@@ -276,7 +269,9 @@ class IODescriptorGitTag(IODescriptorGit):
             return None
 
         # get latest
-        version_to_use = self._find_latest_tag_by_pattern(all_versions, constraint_pattern)
+        version_to_use = self._find_latest_tag_by_pattern(
+            all_versions, constraint_pattern
+        )
         if version_to_use is None:
             return None
 
