@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -24,7 +24,7 @@ def get_file_list(folder, prefix):
     items = []
     for x in os.listdir(folder):
         full_path = os.path.join(folder, x)
-        test_centric_path = full_path[len(prefix):]
+        test_centric_path = full_path[len(prefix) :]
         # translate to platform agnostic path
         test_centric_path = test_centric_path.replace(os.path.sep, "/")
         items.append(test_centric_path)
@@ -64,16 +64,14 @@ class TestUnzipping(ShotgunTestBase):
         output_path_1 = os.path.join(self.project_root, "core_zip_test_1")
         tank.util.zip.unzip_file(zip, output_path_1)
         self.assertEqual(
-            set(get_file_list(output_path_1, output_path_1)),
-            set(expected_output)
+            set(get_file_list(output_path_1, output_path_1)), set(expected_output)
         )
 
         # if we enable auto_detect we should get the same result
         output_path_2 = os.path.join(self.project_root, "core_zip_test_2")
         tank.util.zip.unzip_file(zip, output_path_2, auto_detect_bundle=True)
         self.assertEqual(
-            set(get_file_list(output_path_2, output_path_2)),
-            set(expected_output)
+            set(get_file_list(output_path_2, output_path_2)), set(expected_output)
         )
 
     def test_single_folder_unzip(self):
@@ -89,16 +87,14 @@ class TestUnzipping(ShotgunTestBase):
         output_path_1 = os.path.join(self.project_root, "config_zip_test_1")
         tank.util.zip.unzip_file(zip, output_path_1)
         self.assertEqual(
-            set(get_file_list(output_path_1, output_path_1)),
-            set(expected_output)
+            set(get_file_list(output_path_1, output_path_1)), set(expected_output)
         )
 
         # if we enable auto_detect we should get the same result
         output_path_2 = os.path.join(self.project_root, "config_zip_test_2")
         tank.util.zip.unzip_file(zip, output_path_2, auto_detect_bundle=True)
         self.assertEqual(
-            set(get_file_list(output_path_2, output_path_2)),
-            set(expected_output_auto)
+            set(get_file_list(output_path_2, output_path_2)), set(expected_output_auto)
         )
 
     def test_single_file_unzip(self):
@@ -115,11 +111,10 @@ class TestUnzipping(ShotgunTestBase):
 
         self.assertEqual(
             set(get_file_list(output_path_1, output_path_1)),
-            set(get_file_list(output_path_2, output_path_2))
+            set(get_file_list(output_path_2, output_path_2)),
         )
 
         # if we enable auto_detect we should get the same result
         self.assertEqual(
-            set(get_file_list(output_path_2, output_path_2)),
-            set(["/info.yml"])
+            set(get_file_list(output_path_2, output_path_2)), set(["/info.yml"])
         )

@@ -91,8 +91,7 @@ class ShotgunPath(object):
             os_name = "Linux"
         else:
             raise ValueError(
-                "Cannot resolve file name - unsupported "
-                "os platform '%s'" % platform
+                "Cannot resolve file name - unsupported " "os platform '%s'" % platform
             )
         return template % os_name
 
@@ -238,7 +237,7 @@ class ShotgunPath(object):
         return "<Path win:'%s', linux:'%s', macosx:'%s'>" % (
             self._windows_path,
             self._linux_path,
-            self._macosx_path
+            self._macosx_path,
         )
 
     def __eq__(self, other):
@@ -251,7 +250,11 @@ class ShotgunPath(object):
         if not isinstance(other, ShotgunPath):
             return NotImplemented
 
-        return self.macosx == other.macosx and self.windows == other.windows and self.linux == other.linux
+        return (
+            self.macosx == other.macosx
+            and self.windows == other.windows
+            and self.linux == other.linux
+        )
 
     def __hash__(self):
         """
@@ -500,8 +503,20 @@ class ShotgunPath(object):
         # get rid of any slashes at the end
         # so value is "/foo/bar", "c:" or "\\hello"
         # then append separator and new folder
-        linux_path = "%s/%s" % (self._linux_path.rstrip("/\\"), folder) if self._linux_path else None
-        macosx_path = "%s/%s" % (self._macosx_path.rstrip("/\\"), folder) if self._macosx_path else None
-        win_path = "%s\\%s" % (self._windows_path.rstrip("/\\"), folder) if self._windows_path else None
+        linux_path = (
+            "%s/%s" % (self._linux_path.rstrip("/\\"), folder)
+            if self._linux_path
+            else None
+        )
+        macosx_path = (
+            "%s/%s" % (self._macosx_path.rstrip("/\\"), folder)
+            if self._macosx_path
+            else None
+        )
+        win_path = (
+            "%s\\%s" % (self._windows_path.rstrip("/\\"), folder)
+            if self._windows_path
+            else None
+        )
 
         return ShotgunPath(win_path, linux_path, macosx_path)

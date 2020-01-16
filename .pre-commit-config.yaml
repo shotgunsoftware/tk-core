@@ -8,12 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-# TODO: Once we ship the Python 3 branch to master, we can reformat the
-# code with Black and enable all the disabled checks.
-
 # Styles the code properly
-# Exclude the UI files, as they are auto-generated.
-exclude: "(ui\/.*py$)|(python\/tank_vendor)"
+# Exclude the following file types
+# - third party modules (tank_vendor/third_party)
+# - any UI files (ui/*.py)
+# - any images (*.png)
+# - any pickles (*.pickle)
+# - any files that are compared against the output of a tool (test_post_update_new_parser.yml, test_post_update_old_parser.yml, tank_core.txt)
+exclude: "tank_vendor|third_party|ui\/.*py$|\/.*png|\/.*pickle|test_post_update_new_parser.yml|test_post_update_old_parser.yml|tank_core.txt|zip_with_root_folder.txt|zip_with_root_auto_detect.txt"
 # List of super useful formatters.
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -29,14 +31,14 @@ repos:
     # Ensure there's no incomplete merges
     - id: check-merge-conflict
     # Adds an empty line if missing at the end of a file.
-    # - id: end-of-file-fixer
+    - id: end-of-file-fixer
     # Makes sure requirements.txt is properly formatted
     - id: requirements-txt-fixer
     # Removes trailing whitespaces.
-    # - id: trailing-whitespace
+    - id: trailing-whitespace
   # Leave black at the bottom so all touchups are done before it is run.
-  # - repo: https://github.com/ambv/black
-  #   rev: stable
-  #   hooks:
-  #   - id: black
-  #     language_version: python3
+  - repo: https://github.com/ambv/black
+    rev: stable
+    hooks:
+    - id: black
+      language_version: python3

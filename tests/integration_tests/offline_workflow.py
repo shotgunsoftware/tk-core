@@ -39,10 +39,15 @@ class OfflineWorkflow(SgtkIntegrationTest):
         cls.config_dir = os.path.join(cls.temp_dir, "config")
 
         # Ensure the project exists.
-        cls.project = cls.create_or_update_project(cls.OFFLINE_WORKFLOW_TEST, {"tank_name": cls.OFFLINE_WORKFLOW_TEST})
+        cls.project = cls.create_or_update_project(
+            cls.OFFLINE_WORKFLOW_TEST, {"tank_name": cls.OFFLINE_WORKFLOW_TEST}
+        )
 
         # Ensure the pipeline configuration exists.
-        cls.pc = cls.create_or_update_pipeline_configuration("Primary", {"code": "Primary", "project": cls.project, "plugin_ids": "basic.*"})
+        cls.pc = cls.create_or_update_pipeline_configuration(
+            "Primary",
+            {"code": "Primary", "project": cls.project, "plugin_ids": "basic.*"},
+        )
 
     def test_01_copy_config_to_test_folder(self):
         """
@@ -54,12 +59,8 @@ class OfflineWorkflow(SgtkIntegrationTest):
             sgtk.descriptor.Descriptor.CONFIG,
             {
                 "type": "path",
-                "path": os.path.join(
-                    os.path.dirname(__file__),
-                    "data",
-                    "site_config"
-                )
-            }
+                "path": os.path.join(os.path.dirname(__file__), "data", "site_config"),
+            },
         )
         os.makedirs(self.config_dir)
         desc.copy(self.config_dir)
@@ -68,13 +69,10 @@ class OfflineWorkflow(SgtkIntegrationTest):
         """
         Generates the zipped configuration file containing the configuration and bundles.
         """
-        repo_root = os.path.join(
-            os.path.dirname(__file__),
-            "..", ".."
-        )
+        repo_root = os.path.join(os.path.dirname(__file__), "..", "..")
         # Run with coverage only if it is being used.
         try:
-            import coverage # noqa
+            import coverage  # noqa
         except ImportError:
             runner = ["python"]
         else:
@@ -82,10 +80,11 @@ class OfflineWorkflow(SgtkIntegrationTest):
 
         try:
             sgtk.util.process.subprocess_check_output(
-                runner + [
+                runner
+                + [
                     os.path.join(repo_root, "developer", "populate_bundle_cache.py"),
                     "sgtk:descriptor:path?path={0}".format(self.config_dir),
-                    self.config_dir
+                    self.config_dir,
                 ]
             )
         except sgtk.util.process.SubprocessCalledProcessError as e:
@@ -93,8 +92,7 @@ class OfflineWorkflow(SgtkIntegrationTest):
             raise
 
         sgtk.util.zip.zip_file(
-            self.config_dir,
-            "{temp_dir}/config.zip".format(temp_dir=self.temp_dir),
+            self.config_dir, "{temp_dir}/config.zip".format(temp_dir=self.temp_dir)
         )
 
     def test_03_upload_to_pipeline_configuration(self):
@@ -105,10 +103,11 @@ class OfflineWorkflow(SgtkIntegrationTest):
 
         # Upload the zip file to Shotgun.
         self.sg.upload(
-            "PipelineConfiguration", self.pc["id"],
+            "PipelineConfiguration",
+            self.pc["id"],
             "{temp_dir}/config.zip".format(temp_dir=self.temp_dir),
             "uploaded_config",
-            "Uploaded by tk-core integration tests."
+            "Uploaded by tk-core integration tests.",
         )
 
     def test_04_bootstrap(self):
@@ -118,9 +117,7 @@ class OfflineWorkflow(SgtkIntegrationTest):
         """
 
         # Change the Toolkit sandbox so we don't reuse the previous cache.
-        os.environ["SHOTGUN_HOME"] = os.path.join(
-            self.temp_dir, "new_shotgun_home"
-        )
+        os.environ["SHOTGUN_HOME"] = os.path.join(self.temp_dir, "new_shotgun_home")
         self.assertFalse(os.path.exists(os.environ["SHOTGUN_HOME"]))
 
         # Bootstrap into the tk-shell engine.
@@ -132,11 +129,9 @@ class OfflineWorkflow(SgtkIntegrationTest):
         # Make sure we only have a sg descriptor cache.
         self.assertEqual(
             sorted(
-                os.listdir(
-                    os.path.join(os.environ["SHOTGUN_HOME"], "bundle_cache")
-                )
+                os.listdir(os.path.join(os.environ["SHOTGUN_HOME"], "bundle_cache"))
             ),
-            ["sg", "tmp"]
+            ["sg", "tmp"],
         )
 
 

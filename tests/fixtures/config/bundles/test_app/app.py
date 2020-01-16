@@ -14,6 +14,7 @@ A simple app to support unit tests.
 
 from tank.platform import Application
 
+
 class TestApp(Application):
     """
     Test app with a single action that displays a dialog with a button
@@ -22,6 +23,7 @@ class TestApp(Application):
     You can close the dialog by doing
     ``engine.apps["test_app"].dismiss_button.click()``
     """
+
     def init_app(self):
         self.dismiss_button = None
         if not self.engine.has_ui:

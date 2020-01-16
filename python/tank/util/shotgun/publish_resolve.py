@@ -65,7 +65,8 @@ def resolve_publish_path(tk, sg_publish_data):
 
     log.debug(
         "Publish id %s: Attempting to resolve publish path "
-        "to local file on disk: '%s'" % (sg_publish_data["id"], pprint.pformat(path_field))
+        "to local file on disk: '%s'"
+        % (sg_publish_data["id"], pprint.pformat(path_field))
     )
 
     # first offer the resolve to the core hook
@@ -76,9 +77,7 @@ def resolve_publish_path(tk, sg_publish_data):
     # this is possible. If we put the hook last, we could affect the conditions under which
     # the hook is being executed by introducing new features.
     custom_path = tk.execute_core_hook_method(
-        "resolve_publish",
-        "resolve_path",
-        sg_publish_data=sg_publish_data
+        "resolve_publish", "resolve_path", sg_publish_data=sg_publish_data
     )
     if custom_path:
         log.debug("Publish resolve core hook returned path '%s'" % custom_path)
@@ -88,7 +87,8 @@ def resolve_publish_path(tk, sg_publish_data):
     if path_field is None:
         # no path defined for publish
         raise PublishPathNotDefinedError(
-            "Publish %s (id %s) does not have a path set" % (sg_publish_data["code"], sg_publish_data["id"])
+            "Publish %s (id %s) does not have a path set"
+            % (sg_publish_data["code"], sg_publish_data["id"])
         )
 
     elif path_field["link_type"] == "local":
@@ -98,7 +98,8 @@ def resolve_publish_path(tk, sg_publish_data):
 
             raise PublishPathNotDefinedError(
                 "Publish %s (id %s) has a local file link that could not be resolved "
-                "on this os platform." % (sg_publish_data["code"], sg_publish_data["id"])
+                "on this os platform."
+                % (sg_publish_data["code"], sg_publish_data["id"])
             )
         return path
 
@@ -110,7 +111,8 @@ def resolve_publish_path(tk, sg_publish_data):
         # unknown attachment type
         raise PublishPathNotSupported(
             "Publish %s (id %s): Local file link type '%s' "
-            "not supported." % (sg_publish_data["code"], sg_publish_data["id"], path_field["link_type"])
+            "not supported."
+            % (sg_publish_data["code"], sg_publish_data["id"], path_field["link_type"])
         )
 
 
@@ -140,8 +142,10 @@ def __resolve_local_file_link(tk, attachment_data):
     #  'type': 'Attachment',
     #  'url': 'file:///Users/foo.png'}
 
-    log.debug("Attempting to resolve local file link attachment data "
-              "into a local path: %s" % pprint.pformat(attachment_data))
+    log.debug(
+        "Attempting to resolve local file link attachment data "
+        "into a local path: %s" % pprint.pformat(attachment_data)
+    )
 
     # see if we have a path for this storage
     local_path = attachment_data.get("local_path")
@@ -192,14 +196,16 @@ def __resolve_local_file_link(tk, attachment_data):
             )
 
             # get the local storage that we are augmenting
-            storage = [s for s in get_cached_local_storages(tk) if s["id"] == storage_id][0]
+            storage = [
+                s for s in get_cached_local_storages(tk) if s["id"] == storage_id
+            ][0]
 
             # find a storage where the path is defined
             # we know that it must be defined for at least one os :)
             storage_field_map = {
                 "windows_path": "local_path_windows",
                 "linux_path": "local_path_linux",
-                "mac_path": "local_path_mac"
+                "mac_path": "local_path_mac",
             }
 
             for (storage_field, path_field) in storage_field_map.items():
@@ -211,13 +217,18 @@ def __resolve_local_file_link(tk, attachment_data):
                     # chopping off the root
 
                     # chop off the root from the path and append override root
-                    local_path = override_root + os.path.sep + this_os_full_path[len(this_os_storage_root):]
+                    local_path = (
+                        override_root
+                        + os.path.sep
+                        + this_os_full_path[len(this_os_storage_root) :]
+                    )
                     log.debug(
-                        "Transforming '%s' and root '%s' via env var '%s' into '%s'" % (
+                        "Transforming '%s' and root '%s' via env var '%s' into '%s'"
+                        % (
                             this_os_full_path,
                             this_os_storage_root,
                             override_root,
-                            local_path
+                            local_path,
                         )
                     )
                     break
@@ -241,8 +252,10 @@ def __resolve_url_link(tk, attachment_data):
 
     :raises: :class:`~sgtk.util.PublishPathNotSupported` if the path cannot be resolved.
     """
-    log.debug("Attempting to resolve url attachment data "
-              "into a local path: %s" % pprint.pformat(attachment_data))
+    log.debug(
+        "Attempting to resolve url attachment data "
+        "into a local path: %s" % pprint.pformat(attachment_data)
+    )
 
     # url data looks like this:
     #
@@ -268,7 +281,8 @@ def __resolve_url_link(tk, attachment_data):
     if parsed_url.scheme != "file":
         # we currently only support file:// style urls
         raise PublishPathNotSupported(
-            "Cannot resolve unsupported url '%s' into a local path." % attachment_data["url"]
+            "Cannot resolve unsupported url '%s' into a local path."
+            % attachment_data["url"]
         )
 
     # file urls can be on the following standard form:
@@ -296,7 +310,9 @@ def __resolve_url_link(tk, attachment_data):
 
     if parsed_url.netloc:
         # unc path
-        resolved_path = urllib.parse.unquote("//%s%s" % (parsed_url.netloc, parsed_url.path))
+        resolved_path = urllib.parse.unquote(
+            "//%s%s" % (parsed_url.netloc, parsed_url.path)
+        )
     else:
         resolved_path = urllib.parse.unquote(parsed_url.path)
 
@@ -317,16 +333,20 @@ def __resolve_url_link(tk, attachment_data):
     for storage in get_cached_local_storages(tk):
         storage_key = storage["code"].upper()
         storage_lookup[storage_key] = ShotgunPath.from_shotgun_dict(storage)
-        log.debug("Added Shotgun Storage %s: %s" % (storage_key, storage_lookup[storage_key]))
+        log.debug(
+            "Added Shotgun Storage %s: %s" % (storage_key, storage_lookup[storage_key])
+        )
 
     # get default environment variable set
     # note that this may generate a None/None/None entry
     storage_lookup["_DEFAULT_ENV_VAR_OVERRIDE"] = ShotgunPath(
-            os.environ.get("SHOTGUN_PATH_WINDOWS"),
-            os.environ.get("SHOTGUN_PATH_LINUX"),
-            os.environ.get("SHOTGUN_PATH_MAC")
-        )
-    log.debug("Added default env override: %s" % storage_lookup["_DEFAULT_ENV_VAR_OVERRIDE"])
+        os.environ.get("SHOTGUN_PATH_WINDOWS"),
+        os.environ.get("SHOTGUN_PATH_LINUX"),
+        os.environ.get("SHOTGUN_PATH_MAC"),
+    )
+    log.debug(
+        "Added default env override: %s" % storage_lookup["_DEFAULT_ENV_VAR_OVERRIDE"]
+    )
 
     # look for storage overrides
     for env_var in os.environ.keys():
@@ -335,7 +355,8 @@ def __resolve_url_link(tk, attachment_data):
             platform = expr.group(1)
             storage_name = expr.group(2).upper()
             log.debug(
-                "Added %s environment override for %s: %s" % (platform, storage_name, os.environ[env_var])
+                "Added %s environment override for %s: %s"
+                % (platform, storage_name, os.environ[env_var])
             )
 
             if storage_name not in storage_lookup:
@@ -348,7 +369,8 @@ def __resolve_url_link(tk, attachment_data):
                     log.warning(
                         "Discovered env var %s, however a Shotgun local storage already "
                         "defines '%s' to be '%s'. Your environment override "
-                        "will be ignored." % (env_var, storage_name, storage_lookup[storage_name].windows)
+                        "will be ignored."
+                        % (env_var, storage_name, storage_lookup[storage_name].windows)
                     )
                 else:
                     storage_lookup[storage_name].windows = os.environ[env_var]
@@ -359,7 +381,8 @@ def __resolve_url_link(tk, attachment_data):
                     log.warning(
                         "Discovered env var %s, however a Shotgun local storage already "
                         "defines '%s' to be '%s'. Your environment override "
-                        "will be ignored." % (env_var, storage_name, storage_lookup[storage_name].macosx)
+                        "will be ignored."
+                        % (env_var, storage_name, storage_lookup[storage_name].macosx)
                     )
                 else:
                     storage_lookup[storage_name].macosx = os.environ[env_var]
@@ -370,7 +393,8 @@ def __resolve_url_link(tk, attachment_data):
                     log.warning(
                         "Discovered env var %s, however a Shotgun local storage already "
                         "defines '%s' to be '%s'. Your environment override "
-                        "will be ignored." % (env_var, storage_name, storage_lookup[storage_name].linux)
+                        "will be ignored."
+                        % (env_var, storage_name, storage_lookup[storage_name].linux)
                     )
                 else:
                     storage_lookup[storage_name].linux = os.environ[env_var]
@@ -382,23 +406,27 @@ def __resolve_url_link(tk, attachment_data):
         # path defs for the storage matches the beginning of the
         # url path. Compare lower case (most file systems are case preserving).
         adjusted_path = None
-        if sg_path.windows and resolved_path.lower().startswith(sg_path.windows.replace("\\", "/").lower()):
-            adjusted_path = sg_path.join(resolved_path[len(sg_path.windows):]).current_os
+        if sg_path.windows and resolved_path.lower().startswith(
+            sg_path.windows.replace("\\", "/").lower()
+        ):
+            adjusted_path = sg_path.join(
+                resolved_path[len(sg_path.windows) :]
+            ).current_os
 
         elif sg_path.linux and resolved_path.lower().startswith(sg_path.linux.lower()):
-            adjusted_path = sg_path.join(resolved_path[len(sg_path.linux):]).current_os
+            adjusted_path = sg_path.join(resolved_path[len(sg_path.linux) :]).current_os
 
-        elif sg_path.macosx and resolved_path.lower().startswith(sg_path.macosx.lower()):
-            adjusted_path = sg_path.join(resolved_path[len(sg_path.macosx):]).current_os
+        elif sg_path.macosx and resolved_path.lower().startswith(
+            sg_path.macosx.lower()
+        ):
+            adjusted_path = sg_path.join(
+                resolved_path[len(sg_path.macosx) :]
+            ).current_os
 
         if adjusted_path:
             log.debug(
-                "Adjusted path '%s' -> '%s' based on override '%s' (%s)" % (
-                    resolved_path,
-                    adjusted_path,
-                    storage,
-                    sg_path
-                )
+                "Adjusted path '%s' -> '%s' based on override '%s' (%s)"
+                % (resolved_path, adjusted_path, storage, sg_path)
             )
             resolved_path = adjusted_path
             break

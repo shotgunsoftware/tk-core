@@ -19,7 +19,7 @@ from sgtk.pipelineconfig_utils import get_metadata
 from tank.util import is_windows
 from shutil import copytree
 
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import temp_env_var
 from tank_test.tank_test_base import ShotgunTestBase
 
@@ -30,11 +30,13 @@ def ignore_patterns(*patterns):
 
     Patterns is a sequence of glob-style patterns
     that are used to exclude files"""
+
     def _ignore_patterns(path, names):
         ignored_names = []
         for pattern in patterns:
             ignored_names.extend(fnmatch.filter(names, pattern))
         return set(ignored_names)
+
     return _ignore_patterns
 
 
@@ -43,47 +45,60 @@ class TestBackups(ShotgunTestBase):
         super(TestBackups, self).setUp()
 
         pathHead, pathTail = os.path.split(__file__)
-        self._core_repo_path=os.path.join(pathHead,"..", "..")
-        self._temp_test_path=os.path.join(pathHead, "..", "fixtures", "bootstrap_tests", "test_backups")
-        if is_windows():  # On Windows, filenames in temp path are too long for straight copy ...
-            core_copy_path=os.path.join(self.tank_temp, "tk-core-copy")
+        self._core_repo_path = os.path.join(pathHead, "..", "..")
+        self._temp_test_path = os.path.join(
+            pathHead, "..", "fixtures", "bootstrap_tests", "test_backups"
+        )
+        if (
+            is_windows()
+        ):  # On Windows, filenames in temp path are too long for straight copy ...
+            core_copy_path = os.path.join(self.tank_temp, "tk-core-copy")
             if not os.path.exists(core_copy_path):
                 # ... so avoid copying ignore folders to avoid errors when copying the core repo
-                copytree(self._core_repo_path, core_copy_path, ignore=ignore_patterns('tests', 'docs', 'coverage_html_report')) 
+                copytree(
+                    self._core_repo_path,
+                    core_copy_path,
+                    ignore=ignore_patterns("tests", "docs", "coverage_html_report"),
+                )
             self._core_repo_path = core_copy_path
 
     def test_cleanup(self):
         """
         Ensures that after a successful update the backup folder created by the
-        update process is properly deleted 
+        update process is properly deleted
         """
         resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
             plugin_id="backup_tests"
         )
         with temp_env_var(SGTK_REPO_ROOT=self._core_repo_path):
             config = resolver.resolve_configuration(
-                {"type": "dev", "name": "backup_tests", "path": self._temp_test_path}, self.mockgun
+                {"type": "dev", "name": "backup_tests", "path": self._temp_test_path},
+                self.mockgun,
             )
             self.assertIsInstance(config, sgtk.bootstrap.resolver.CachedConfiguration)
             config_root_path = config.path.current_os
 
             # Update the configuration
             config.update_configuration()
-            core_install_backup_path = os.path.join(config_root_path, "install", "core.backup")
+            core_install_backup_path = os.path.join(
+                config_root_path, "install", "core.backup"
+            )
             # check that there are no directory items in core backup folder other than then placeholder file
-            self.assertEqual(os.listdir(core_install_backup_path), ['placeholder'])
-            config_install_backup_path = os.path.join(config_root_path, "install", "config.backup")
+            self.assertEqual(os.listdir(core_install_backup_path), ["placeholder"])
+            config_install_backup_path = os.path.join(
+                config_root_path, "install", "config.backup"
+            )
             # check that there are no directory items in config backup folder other than then placeholder file
-            self.assertEqual(os.listdir(config_install_backup_path), ['placeholder'])
+            self.assertEqual(os.listdir(config_install_backup_path), ["placeholder"])
 
             # Update a second time and check that backup was cleaned up again
             config.update_configuration()
-            self.assertEqual(os.listdir(core_install_backup_path), ['placeholder'])
-            self.assertEqual(os.listdir(config_install_backup_path), ['placeholder'])
+            self.assertEqual(os.listdir(core_install_backup_path), ["placeholder"])
+            self.assertEqual(os.listdir(config_install_backup_path), ["placeholder"])
 
     def test_cleanup_with_fail(self):
         """
-        Ensures that after an update with a cleanup failure, the succeeding update 
+        Ensures that after an update with a cleanup failure, the succeeding update
         process completes smoothly
         """
         resolver = sgtk.bootstrap.resolver.ConfigurationResolver(
@@ -91,11 +106,18 @@ class TestBackups(ShotgunTestBase):
         )
         with temp_env_var(SGTK_REPO_ROOT=self._core_repo_path):
             config = resolver.resolve_configuration(
-                {"type": "dev", "name": "backup_tests_with_fail", "path": self._temp_test_path}, self.mockgun
+                {
+                    "type": "dev",
+                    "name": "backup_tests_with_fail",
+                    "path": self._temp_test_path,
+                },
+                self.mockgun,
             )
             self.assertIsInstance(config, sgtk.bootstrap.resolver.CachedConfiguration)
             config_root_path = config.path.current_os
-            core_install_backup_path = os.path.join(config_root_path, "install", "core.backup")
+            core_install_backup_path = os.path.join(
+                config_root_path, "install", "core.backup"
+            )
 
             # First update, no backup
             config.update_configuration()
@@ -105,35 +127,47 @@ class TestBackups(ShotgunTestBase):
                 self.core_backup_folder_path = core
 
             # Update the configuration, but don't clean up backups
-            with patch.object(sgtk.bootstrap.resolver.CachedConfiguration, '_cleanup_backup_folders', new=dont_cleanup_backup_folders):
+            with patch.object(
+                sgtk.bootstrap.resolver.CachedConfiguration,
+                "_cleanup_backup_folders",
+                new=dont_cleanup_backup_folders,
+            ):
                 config.update_configuration()
                 config_backup_folder_path = config.config_backup_folder_path
                 core_backup_folder_path = config.core_backup_folder_path
                 in_use_file_name = os.path.join(core_backup_folder_path, "test.txt")
-            
+
             # Create a file
             with open(in_use_file_name, "w") as f:
                 f.write("Test")
-                config._cleanup_backup_folders(config_backup_folder_path, core_backup_folder_path)
+                config._cleanup_backup_folders(
+                    config_backup_folder_path, core_backup_folder_path
+                )
 
             if is_windows():
                 # check that the backup folder was left behind, it is one of the 2 items, the cleanup failed
-                self.assertEqual(2, len(os.listdir(core_install_backup_path)))  # ['placeholder', core_backup_folder_path]
+                self.assertEqual(
+                    2, len(os.listdir(core_install_backup_path))
+                )  # ['placeholder', core_backup_folder_path]
             else:
                 # on Unix, having the file open won't fail the folder removal
-                self.assertEqual(os.listdir(core_install_backup_path), ['placeholder'])
-            config_install_backup_path = os.path.join(config_root_path, "install", "config.backup")
+                self.assertEqual(os.listdir(core_install_backup_path), ["placeholder"])
+            config_install_backup_path = os.path.join(
+                config_root_path, "install", "config.backup"
+            )
             # check that there are no directory items in config backup folder other than then placeholder file
-            self.assertEqual(os.listdir(config_install_backup_path), ['placeholder'])
+            self.assertEqual(os.listdir(config_install_backup_path), ["placeholder"])
 
             # Update a second time and check that the new backup was cleaned up...
             config.update_configuration()
             if is_windows():
                 # ... but the previous backup remains
-                self.assertEqual(2, len(os.listdir(core_install_backup_path))) # ['placeholder', core_backup_folder_path]
+                self.assertEqual(
+                    2, len(os.listdir(core_install_backup_path))
+                )  # ['placeholder', core_backup_folder_path]
             else:
-                self.assertEqual(os.listdir(core_install_backup_path), ['placeholder'])
-            self.assertEqual(os.listdir(config_install_backup_path), ['placeholder'])
+                self.assertEqual(os.listdir(core_install_backup_path), ["placeholder"])
+            self.assertEqual(os.listdir(config_install_backup_path), ["placeholder"])
 
     def test_cleanup_read_only(self):
         """
@@ -144,21 +178,34 @@ class TestBackups(ShotgunTestBase):
         )
         with temp_env_var(SGTK_REPO_ROOT=self._core_repo_path):
             config = resolver.resolve_configuration(
-                {"type": "dev", "name": "backup_tests_read_only", "path": self._temp_test_path}, self.mockgun
+                {
+                    "type": "dev",
+                    "name": "backup_tests_read_only",
+                    "path": self._temp_test_path,
+                },
+                self.mockgun,
             )
             self.assertIsInstance(config, sgtk.bootstrap.resolver.CachedConfiguration)
             config_root_path = config.path.current_os
-            core_install_backup_path = os.path.join(config_root_path, "install", "core.backup")
-            config_install_backup_path = os.path.join(config_root_path, "install", "config.backup")
+            core_install_backup_path = os.path.join(
+                config_root_path, "install", "core.backup"
+            )
+            config_install_backup_path = os.path.join(
+                config_root_path, "install", "config.backup"
+            )
 
             # First update, no backup
             config.update_configuration()
-            
+
             def dont_cleanup_backup_folders(self, config, core):
                 self.config_backup_folder_path = config
                 self.core_backup_folder_path = core
 
-            with patch.object(sgtk.bootstrap.resolver.CachedConfiguration, '_cleanup_backup_folders', new=dont_cleanup_backup_folders):
+            with patch.object(
+                sgtk.bootstrap.resolver.CachedConfiguration,
+                "_cleanup_backup_folders",
+                new=dont_cleanup_backup_folders,
+            ):
                 # Update the configuration, but don't clean up backups in order to ...
                 config.update_configuration()
                 config_backup_folder_path = config.config_backup_folder_path
@@ -173,15 +220,19 @@ class TestBackups(ShotgunTestBase):
             if is_windows():
                 # ... and a read only folder
                 folder_permissions = os.stat(config_install_backup_path)[stat.ST_MODE]
-                os.chmod(config_install_backup_path, folder_permissions & ~stat.S_IWRITE)
+                os.chmod(
+                    config_install_backup_path, folder_permissions & ~stat.S_IWRITE
+                )
 
             # Now try to clean up the backup folders with read-only file
-            config._cleanup_backup_folders(config_backup_folder_path, core_backup_folder_path)
+            config._cleanup_backup_folders(
+                config_backup_folder_path, core_backup_folder_path
+            )
 
             # Verify that backup folders were cleaned up
             # Only the 'placeholder' file should remain
-            self.assertEqual(os.listdir(core_install_backup_path), ['placeholder'])
-            self.assertEqual(os.listdir(config_install_backup_path), ['placeholder'])
+            self.assertEqual(os.listdir(core_install_backup_path), ["placeholder"])
+            self.assertEqual(os.listdir(config_install_backup_path), ["placeholder"])
 
             # Try deleting the 'config_install_backup_path' parent folder
             # which was deliberately set to READ_ONLY on Windows
@@ -201,17 +252,10 @@ class TestBackups(ShotgunTestBase):
         with temp_env_var(SGTK_REPO_ROOT=self._core_repo_path):
 
             config = resolver.resolve_configuration(
-                {
-                    "type": "dev",
-                    "name": "backup_tests",
-                    "path": self._temp_test_path
-                },
-                self.mockgun
+                {"type": "dev", "name": "backup_tests", "path": self._temp_test_path},
+                self.mockgun,
             )
-            self.assertIsInstance(
-                config,
-                sgtk.bootstrap.resolver.CachedConfiguration
-            )
+            self.assertIsInstance(config, sgtk.bootstrap.resolver.CachedConfiguration)
 
             config_root_path = config.path.current_os
 
@@ -223,13 +267,12 @@ class TestBackups(ShotgunTestBase):
             config_metadata = get_metadata(config_root_path)
 
             local_bundle_cache_path = os.path.join(
-                config.descriptor.get_path(),
-                "bundle_cache"
+                config.descriptor.get_path(), "bundle_cache"
             )
 
             # make sure the local bundle cache path is part of the written
             # config metadata file
             self.assertTrue(
-                local_bundle_cache_path in
-                config_metadata["bundle_cache_fallback_roots"]
+                local_bundle_cache_path
+                in config_metadata["bundle_cache_fallback_roots"]
             )

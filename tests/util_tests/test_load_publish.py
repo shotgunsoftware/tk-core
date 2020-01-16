@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import with_statement
@@ -44,15 +44,15 @@ class TestCoreHook(TankTestBase):
                 "type": "Attachment",
                 "name": "url.com",
                 "link_type": "web",
-                "content_type": None
-            }
+                "content_type": None,
+            },
         }
 
         self.assertRaises(
             sgtk.util.PublishPathNotSupported,
             sgtk.util.resolve_publish_path,
             self.tk,
-            sg_dict
+            sg_dict,
         )
 
     def test_supported_url(self):
@@ -68,8 +68,8 @@ class TestCoreHook(TankTestBase):
                 "type": "Attachment",
                 "name": "url.com",
                 "link_type": "web",
-                "content_type": None
-            }
+                "content_type": None,
+            },
         }
 
         local_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
@@ -88,8 +88,8 @@ class TestCoreHook(TankTestBase):
                 "type": "Attachment",
                 "name": "url.com",
                 "link_type": "web",
-                "content_type": None
-            }
+                "content_type": None,
+            },
         }
 
         local_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
@@ -109,18 +109,13 @@ class TestUnsupported(TankTestBase):
         """
         Test publishes with no path set
         """
-        sg_dict = {
-            "id": 123,
-            "type": "PublishedFile",
-            "code": "foo",
-            "path": None,
-        }
+        sg_dict = {"id": 123, "type": "PublishedFile", "code": "foo", "path": None}
 
         self.assertRaises(
             sgtk.util.PublishPathNotDefinedError,
             sgtk.util.resolve_publish_path,
             self.tk,
-            sg_dict
+            sg_dict,
         )
 
     def test_upload(self):
@@ -132,10 +127,10 @@ class TestUnsupported(TankTestBase):
             "type": "PublishedFile",
             "code": "foo",
             "path": {
-                'content_type': 'image/jpeg',
-                'link_type': 'upload',
-                'name': 'western1FULL.jpg',
-                'url': 'https://superdeathcarracer.shotgunstudio.com/file_serve/attachment/538'
+                "content_type": "image/jpeg",
+                "link_type": "upload",
+                "name": "western1FULL.jpg",
+                "url": "https://superdeathcarracer.shotgunstudio.com/file_serve/attachment/538",
             },
         }
 
@@ -143,7 +138,7 @@ class TestUnsupported(TankTestBase):
             sgtk.util.PublishPathNotSupported,
             sgtk.util.resolve_publish_path,
             self.tk,
-            sg_dict
+            sg_dict,
         )
 
     def test_unsupported_url(self):
@@ -159,15 +154,15 @@ class TestUnsupported(TankTestBase):
                 "type": "Attachment",
                 "name": "url.com",
                 "link_type": "web",
-                "content_type": None
-            }
+                "content_type": None,
+            },
         }
 
         self.assertRaises(
             sgtk.util.PublishPathNotSupported,
             sgtk.util.resolve_publish_path,
             self.tk,
-            sg_dict
+            sg_dict,
         )
 
 
@@ -186,7 +181,7 @@ class TestLocalFileLink(TankTestBase):
             "code": "home",
             "mac_path": "/local",
             "windows_path": "x:\\",
-            "linux_path": "/local"
+            "linux_path": "/local",
         }
 
         self.add_to_sg_mock_db([self.storage])
@@ -204,7 +199,6 @@ class TestLocalFileLink(TankTestBase):
 
         super(TestLocalFileLink, self).tearDown()
 
-
     def test_basic_case(self):
         """
         Test no overrides
@@ -214,20 +208,18 @@ class TestLocalFileLink(TankTestBase):
             "type": "PublishedFile",
             "code": "foo",
             "path": {
-                'content_type': 'image/png',
-                'id': 25826,
-                'link_type': 'local',
-                'local_path': None,
-                'local_path_linux': '/local/path/to/file.ext',
-                'local_path_mac': '/local/path/to/file.ext',
-                'local_path_windows': r'X:\path\to\file.ext',
-                'local_storage': {'id': 2,
-                               'name': 'home',
-                               'type': 'LocalStorage'},
-                'name': 'foo.png',
-                'type': 'Attachment',
-                'url': 'file:///local/path/to/file.ext'
-            }
+                "content_type": "image/png",
+                "id": 25826,
+                "link_type": "local",
+                "local_path": None,
+                "local_path_linux": "/local/path/to/file.ext",
+                "local_path_mac": "/local/path/to/file.ext",
+                "local_path_windows": r"X:\path\to\file.ext",
+                "local_storage": {"id": 2, "name": "home", "type": "LocalStorage"},
+                "name": "foo.png",
+                "type": "Attachment",
+                "url": "file:///local/path/to/file.ext",
+            },
         }
 
         # get the current os platform
@@ -252,20 +244,18 @@ class TestLocalFileLink(TankTestBase):
             "type": "PublishedFile",
             "code": "foo",
             "path": {
-                'content_type': 'image/png',
-                'id': 25826,
-                'link_type': 'local',
-                'local_path': None,
-                'local_path_linux': '/local/path/to/file.ext',
-                'local_path_mac': '/local/path/to/file.ext',
-                'local_path_windows': r'X:\path\to\file.ext',
-                'local_storage': {'id': 2,
-                               'name': 'home',
-                               'type': 'LocalStorage'},
-                'name': 'foo.png',
-                'type': 'Attachment',
-                'url': 'file:///local/path/to/file.ext'
-            }
+                "content_type": "image/png",
+                "id": 25826,
+                "link_type": "local",
+                "local_path": None,
+                "local_path_linux": "/local/path/to/file.ext",
+                "local_path_mac": "/local/path/to/file.ext",
+                "local_path_windows": r"X:\path\to\file.ext",
+                "local_storage": {"id": 2, "name": "home", "type": "LocalStorage"},
+                "name": "foo.png",
+                "type": "Attachment",
+                "url": "file:///local/path/to/file.ext",
+            },
         }
 
         # set up env var overrides
@@ -310,7 +300,7 @@ class TestLocalFileLinkRaises(TankTestBase):
             "code": "home",
             "mac_path": "/local",
             "windows_path": "x:\\",
-            "linux_path": "/local"
+            "linux_path": "/local",
         }
 
         current_path_field = {
@@ -322,27 +312,24 @@ class TestLocalFileLinkRaises(TankTestBase):
         self.storage[current_path_field] = None
         self.add_to_sg_mock_db([self.storage])
 
-
         # add a publish and omit current os
         sg_dict = {
             "id": 123,
             "type": "PublishedFile",
             "code": "foo",
             "path": {
-                'content_type': 'image/png',
-                'id': 25826,
-                'link_type': 'local',
-                'local_path': None,
-                'local_path_linux': '/local/path/to/file.ext',
-                'local_path_mac': '/local/path/to/file.ext',
-                'local_path_windows': r'X:\path\to\file.ext',
-                'local_storage': {'id': 2,
-                               'name': 'home',
-                               'type': 'LocalStorage'},
-                'name': 'foo.png',
-                'type': 'Attachment',
-                'url': 'file:///local/path/to/file.ext'
-            }
+                "content_type": "image/png",
+                "id": 25826,
+                "link_type": "local",
+                "local_path": None,
+                "local_path_linux": "/local/path/to/file.ext",
+                "local_path_mac": "/local/path/to/file.ext",
+                "local_path_windows": r"X:\path\to\file.ext",
+                "local_storage": {"id": 2, "name": "home", "type": "LocalStorage"},
+                "name": "foo.png",
+                "type": "Attachment",
+                "url": "file:///local/path/to/file.ext",
+            },
         }
 
         current_path_field = {
@@ -357,7 +344,7 @@ class TestLocalFileLinkRaises(TankTestBase):
             sgtk.util.PublishPathNotDefinedError,
             sgtk.util.resolve_publish_path,
             self.tk,
-            sg_dict
+            sg_dict,
         )
 
 
@@ -387,7 +374,6 @@ class TestLocalFileLinkEnvVarOverride(TankTestBase):
 
         super(TestLocalFileLinkEnvVarOverride, self).tearDown()
 
-
     def test_env_var(self):
         """
         Tests that if the current os is not defined
@@ -401,7 +387,7 @@ class TestLocalFileLinkEnvVarOverride(TankTestBase):
             "code": "home",
             "mac_path": "/local",
             "windows_path": "x:\\",
-            "linux_path": "/local"
+            "linux_path": "/local",
         }
 
         current_path_field = {
@@ -419,20 +405,18 @@ class TestLocalFileLinkEnvVarOverride(TankTestBase):
             "type": "PublishedFile",
             "code": "foo",
             "path": {
-                'content_type': 'image/png',
-                'id': 25826,
-                'link_type': 'local',
-                'local_path': None,
-                'local_path_linux': '/local/path/to/file.ext',
-                'local_path_mac': '/local/path/to/file.ext',
-                'local_path_windows': r'X:\path\to\file.ext',
-                'local_storage': {'id': 2,
-                               'name': 'home',
-                               'type': 'LocalStorage'},
-                'name': 'foo.png',
-                'type': 'Attachment',
-                'url': 'file:///local/path/to/file.ext'
-            }
+                "content_type": "image/png",
+                "id": 25826,
+                "link_type": "local",
+                "local_path": None,
+                "local_path_linux": "/local/path/to/file.ext",
+                "local_path_mac": "/local/path/to/file.ext",
+                "local_path_windows": r"X:\path\to\file.ext",
+                "local_storage": {"id": 2, "name": "home", "type": "LocalStorage"},
+                "name": "foo.png",
+                "type": "Attachment",
+                "url": "file:///local/path/to/file.ext",
+            },
         }
 
         if is_windows():
@@ -450,10 +434,6 @@ class TestLocalFileLinkEnvVarOverride(TankTestBase):
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, local_path)
-
-
-
-
 
 
 class TestUrlNoStorages(TankTestBase):
@@ -478,8 +458,8 @@ class TestUrlNoStorages(TankTestBase):
                 "type": "Attachment",
                 "name": "bar.baz",
                 "link_type": "web",
-                "content_type": None
-            }
+                "content_type": None,
+            },
         }
 
         local_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
@@ -501,8 +481,8 @@ class TestUrlNoStorages(TankTestBase):
                 "type": "Attachment",
                 "name": "bar.baz",
                 "link_type": "web",
-                "content_type": None
-            }
+                "content_type": None,
+            },
         }
 
         local_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
@@ -524,8 +504,8 @@ class TestUrlNoStorages(TankTestBase):
                 "type": "Attachment",
                 "name": "bar.baz",
                 "link_type": "web",
-                "content_type": None
-            }
+                "content_type": None,
+            },
         }
 
         local_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
@@ -588,8 +568,8 @@ class TestUrlWithEnvVars(TankTestBase):
                 "type": "Attachment",
                 "name": "bar.baz",
                 "link_type": "web",
-                "content_type": None
-            }
+                "content_type": None,
+            },
         }
 
         # final paths
@@ -615,8 +595,8 @@ class TestUrlWithEnvVars(TankTestBase):
                 "type": "Attachment",
                 "name": "bar.baz",
                 "link_type": "web",
-                "content_type": None
-            }
+                "content_type": None,
+            },
         }
 
         # final paths
@@ -642,8 +622,8 @@ class TestUrlWithEnvVars(TankTestBase):
                 "type": "Attachment",
                 "name": "bar.baz",
                 "link_type": "web",
-                "content_type": None
-            }
+                "content_type": None,
+            },
         }
 
         # final paths
@@ -669,8 +649,8 @@ class TestUrlWithEnvVars(TankTestBase):
                 "type": "Attachment",
                 "name": "bar.baz",
                 "link_type": "web",
-                "content_type": None
-            }
+                "content_type": None,
+            },
         }
 
         # final paths
@@ -700,7 +680,7 @@ class TestUrlWithStorages(TankTestBase):
             "code": "storage_1",
             "mac_path": "/storage1_mac",
             "windows_path": "x:\\storage1_win\\",
-            "linux_path": "/storage1_linux/"
+            "linux_path": "/storage1_linux/",
         }
 
         self.storage_2 = {
@@ -709,12 +689,11 @@ class TestUrlWithStorages(TankTestBase):
             "code": "storage_2",
             "mac_path": "/storage2_mac/",
             "windows_path": r"\\storage2_win",
-            "linux_path": "/storage2_linux"
+            "linux_path": "/storage2_linux",
         }
 
         # Add these to mocked shotgun
         self.add_to_sg_mock_db([self.storage, self.storage_2])
-
 
     def test_no_storages(self):
         """
@@ -729,8 +708,8 @@ class TestUrlWithStorages(TankTestBase):
                 "type": "Attachment",
                 "name": "bar.baz",
                 "link_type": "web",
-                "content_type": None
-            }
+                "content_type": None,
+            },
         }
 
         # final paths
@@ -742,7 +721,6 @@ class TestUrlWithStorages(TankTestBase):
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
-
 
     def test_local_storage_windows_unc(self):
         """
@@ -757,8 +735,8 @@ class TestUrlWithStorages(TankTestBase):
                 "type": "Attachment",
                 "name": "bar.baz",
                 "link_type": "web",
-                "content_type": None
-            }
+                "content_type": None,
+            },
         }
 
         # final paths
@@ -784,8 +762,8 @@ class TestUrlWithStorages(TankTestBase):
                 "type": "Attachment",
                 "name": "bar.baz",
                 "link_type": "web",
-                "content_type": None
-            }
+                "content_type": None,
+            },
         }
 
         # final paths
@@ -797,7 +775,6 @@ class TestUrlWithStorages(TankTestBase):
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
-
 
     def test_local_storage_nix(self):
         """
@@ -812,8 +789,8 @@ class TestUrlWithStorages(TankTestBase):
                 "type": "Attachment",
                 "name": "bar.baz",
                 "link_type": "web",
-                "content_type": None
-            }
+                "content_type": None,
+            },
         }
 
         # final paths
@@ -847,7 +824,6 @@ class TestUrlWithStoragesAndOverrides(TankTestBase):
         # Add these to mocked shotgun
         self.add_to_sg_mock_db([self.storage])
 
-
     def test_augument_local_storage(self):
         """
         Test that we can add add an os platform via an env var
@@ -861,8 +837,8 @@ class TestUrlWithStoragesAndOverrides(TankTestBase):
                 "type": "Attachment",
                 "name": "bar.baz",
                 "link_type": "web",
-                "content_type": None
-            }
+                "content_type": None,
+            },
         }
 
         os.environ["SHOTGUN_PATH_MAC_STORAGE_1"] = "/storage_mac"
@@ -896,8 +872,7 @@ class TestUrlWithStoragesAndOverrides2(TankTestBase):
             "code": "storage_1",
             "mac_path": "/storage_mac",
             "windows_path": "x:\\storage_win\\",
-            "linux_path": "/storage_linux/"
-
+            "linux_path": "/storage_linux/",
         }
 
         # Add these to mocked shotgun
@@ -927,8 +902,8 @@ class TestUrlWithStoragesAndOverrides2(TankTestBase):
                 "type": "Attachment",
                 "name": "bar.baz",
                 "link_type": "web",
-                "content_type": None
-            }
+                "content_type": None,
+            },
         }
 
         # final paths
@@ -940,4 +915,3 @@ class TestUrlWithStoragesAndOverrides2(TankTestBase):
 
         evaluated_path = sgtk.util.resolve_publish_path(self.tk, sg_dict)
         self.assertEqual(evaluated_path, expected_path)
-

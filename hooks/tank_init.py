@@ -16,7 +16,6 @@ from tank import Hook
 
 
 class TankInit(Hook):
-
     def execute(self, **kwargs):
         """
         Executed when a new Toolkit API instance is initialized.

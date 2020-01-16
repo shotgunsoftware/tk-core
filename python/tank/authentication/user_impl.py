@@ -124,10 +124,7 @@ class ShotgunUserImpl(object):
                                      this method will raise a
                                      NotImplementedError.
         """
-        return {
-            "http_proxy": self._http_proxy,
-            "host": self._host
-        }
+        return {"http_proxy": self._http_proxy, "host": self._host}
 
     @classmethod
     def from_dict(cls, payload):
@@ -155,9 +152,7 @@ class ShotgunUserImpl(object):
         :raises NotImplementedError: Thrown with the message "<class-name>.<method-name>
                                      is not implemented."
         """
-        raise NotImplementedError(
-            "%s.%s is not implemented." % (cls.__name__, method)
-        )
+        raise NotImplementedError("%s.%s is not implemented." % (cls.__name__, method))
 
 
 class SessionUser(ShotgunUserImpl):
@@ -165,7 +160,15 @@ class SessionUser(ShotgunUserImpl):
     A user that authenticates to the Shotgun server using a session token.
     """
 
-    def __init__(self, host, login, session_token, http_proxy, password=None, session_metadata=None):
+    def __init__(
+        self,
+        host,
+        login,
+        session_token,
+        http_proxy,
+        password=None,
+        session_metadata=None,
+    ):
         """
         Constructor.
 
@@ -188,15 +191,14 @@ class SessionUser(ShotgunUserImpl):
 
         # If we only have a password, generate a session token.
         if password and not session_token:
-            session_token = session_cache.generate_session_token(host, login, password, http_proxy)
+            session_token = session_cache.generate_session_token(
+                host, login, password, http_proxy
+            )
 
         # If we still don't have a session token, look in the session cache
         # to see if this user was already authenticated in the past.
         if not session_token:
-            session_data = session_cache.get_session_data(
-                host,
-                login
-            )
+            session_data = session_cache.get_session_data(host, login)
             # If session data was cached, load it.
             if session_data:
                 session_token = session_data["session_token"]
@@ -274,10 +276,11 @@ class SessionUser(ShotgunUserImpl):
         :returns: A Shotgun instance.
         """
         return _shotgun_instance_factory(
-            self.get_host(), session_token=self.get_session_token(),
+            self.get_host(),
+            session_token=self.get_session_token(),
             http_proxy=self.get_http_proxy(),
             sg_auth_user=self,
-            connect=False
+            connect=False,
         )
 
     @LogManager.log_timing
@@ -290,11 +293,13 @@ class SessionUser(ShotgunUserImpl):
 
         :returns: True if the credentials are expired, False otherwise.
         """
-        logger.debug("Connecting to shotgun to determine if credentials have expired...")
+        logger.debug(
+            "Connecting to shotgun to determine if credentials have expired..."
+        )
         sg = Shotgun(
             self.get_host(),
             session_token=self.get_session_token(),
-            http_proxy=self.get_http_proxy()
+            http_proxy=self.get_http_proxy(),
         )
         try:
             sg.find_one("HumanUser", [])
@@ -311,10 +316,14 @@ class SessionUser(ShotgunUserImpl):
                 and e.headers["location"].endswith("/saml/saml_login_request")
             ):
                 # If we get here, the session_token is still valid.
-                logger.debug("The SAML claims have expired. But the session_token is still valid")
+                logger.debug(
+                    "The SAML claims have expired. But the session_token is still valid"
+                )
                 return False
             else:
-                logger.error("Unexpected exception while validating credentials: %s" % e)
+                logger.error(
+                    "Unexpected exception while validating credentials: %s" % e
+                )
             return True
         except AuthenticationFault:
             return True
@@ -349,7 +358,7 @@ class SessionUser(ShotgunUserImpl):
             login=payload.get("login"),
             session_token=payload.get("session_token"),
             http_proxy=payload.get("http_proxy"),
-            session_metadata=payload.get("session_metadata")
+            session_metadata=payload.get("session_metadata"),
         )
 
     def to_dict(self):
@@ -377,7 +386,7 @@ class SessionUser(ShotgunUserImpl):
                 self.get_host(),
                 self.get_login(),
                 self.get_session_token(),
-                self.get_session_metadata()
+                self.get_session_metadata(),
             )
         except Exception:
             # Do not break execution because somehow we couldn't
@@ -423,7 +432,7 @@ class ScriptUser(ShotgunUserImpl):
             script_name=self._api_script,
             api_key=self._api_key,
             http_proxy=self._http_proxy,
-            connect=False
+            connect=False,
         )
 
     def refresh_credentials(self):
@@ -514,14 +523,14 @@ class ScriptUser(ShotgunUserImpl):
             host=payload.get("host"),
             api_script=payload.get("api_script"),
             api_key=payload.get("api_key"),
-            http_proxy=payload.get("http_proxy")
+            http_proxy=payload.get("http_proxy"),
         )
 
 
 __factories = {
     # LoginPassword-like-User should go here in we ever implement it.
     SessionUser.__name__: SessionUser.from_dict,
-    ScriptUser.__name__: ScriptUser.from_dict
+    ScriptUser.__name__: ScriptUser.from_dict,
 }
 
 
@@ -537,10 +546,7 @@ def serialize_user(user, use_json=False):
     """
     # Pickle the dictionary and inject the user type in the payload so we know
     # how to unpickle the user.
-    user_data = {
-        "type": user.__class__.__name__,
-        "data": user.to_dict()
-    }
+    user_data = {"type": user.__class__.__name__, "data": user.to_dict()}
     if use_json:
         return json.dumps(user_data)
     else:
@@ -568,6 +574,8 @@ def deserialize_user(payload):
     factory = __factories.get(user_dict.get("type"))
     # Unknown type, something is wrong. Maybe backward compatible code broke?
     if not factory:
-        raise Exception("Could not deserialize Shotgun user. Invalid user type: %s" % user_dict)
+        raise Exception(
+            "Could not deserialize Shotgun user. Invalid user type: %s" % user_dict
+        )
     # Instantiate the user object.
     return factory(user_dict["data"])

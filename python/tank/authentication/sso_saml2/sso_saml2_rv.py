@@ -13,9 +13,7 @@ Integration with Shotgun RV.
 
 import json
 
-from .sso_saml2 import (  # noqa
-    SsoSaml2,
-)
+from .sso_saml2 import SsoSaml2  # noqa
 
 
 class SsoSaml2Rv(SsoSaml2):
@@ -64,10 +62,12 @@ class SsoSaml2Rv(SsoSaml2):
         contents = json.loads(event.contents())
 
         if self._session is None:
-            self.start_new_session({
-                "host": contents["params"]["site_url"],
-                "cookies": contents["params"]["cookies"]
-            })
+            self.start_new_session(
+                {
+                    "host": contents["params"]["site_url"],
+                    "cookies": contents["params"]["cookies"],
+                }
+            )
         self.start_sso_renewal()
 
     def on_sso_disable_renewal(self, event):

@@ -23,9 +23,22 @@ some functionality.
 from tank_vendor import six
 
 # Import constants and functions that won't be wrapped
-from re import (DEBUG, I, IGNORECASE, L, LOCALE, # noqa import into namespace
-                M, MULTILINE, S, DOTALL, U, UNICODE, X, VERBOSE)
-from re import escape # noqa import into namespace
+from re import (
+    DEBUG,
+    I,
+    IGNORECASE,
+    L,
+    LOCALE,  # noqa import into namespace
+    M,
+    MULTILINE,
+    S,
+    DOTALL,
+    U,
+    UNICODE,
+    X,
+    VERBOSE,
+)
+from re import escape  # noqa import into namespace
 
 # In Python 3, regular expression metacharacters match unicode characters where in
 # Python 2 they hadn't.  To reproduce the previous behavior, Python 3 introduces a
@@ -47,15 +60,16 @@ else:
                 if not args[flags_arg_position] & _re.UNICODE:
                     args = list(args)
                     args[flags_arg_position] |= _re.ASCII
-            elif 'flags' in kwargs and not kwargs['flags'] & _re.UNICODE:
+            elif "flags" in kwargs and not kwargs["flags"] & _re.UNICODE:
                 # If flags is provided as a kwarg, and the UNICODE flag
                 # is not present, add the ASCII flag
-                kwargs['flags'] |= _re.ASCII
+                kwargs["flags"] |= _re.ASCII
             else:
                 # If no flags were specified, add a flags kwarg with the ASCII
                 # flag.
-                kwargs['flags'] = _re.ASCII
+                kwargs["flags"] = _re.ASCII
             return fn(*args, **kwargs)
+
         return wrapper
 
     # Since the flags arg is sometimes provided positionally, we'll specify the
