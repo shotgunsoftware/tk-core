@@ -182,6 +182,19 @@ LocalFileStorageManager
 .. autoclass:: sgtk.util.LocalFileStorageManager
     :members:
 
+
+.. currentmodule:: sgtk.util
+
+OS detection
+=============================
+
+Below are a collection of convenience methods to detect which operating system is in use:
+
+.. autofunction:: is_linux
+.. autofunction:: is_windows
+.. autofunction:: is_macos
+
+
 Shotgun Related
 =============================
 
