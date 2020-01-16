@@ -15,16 +15,15 @@ Methods for resolving publish data into local representations
 from __future__ import with_statement
 
 import os
-import re
-import sys
-import urlparse
-import urllib
+from tank_vendor.shotgun_api3.lib import sgsix
+from tank_vendor.six.moves import urllib
 import pprint
 
 from .publish_util import get_cached_local_storages
 from ...log import LogManager
 from ..shotgun_path import ShotgunPath
 from ..errors import PublishPathNotDefinedError, PublishPathNotSupported
+from tank.util import sgre as re
 
 log = LogManager.get_logger(__name__)
 
@@ -166,7 +165,7 @@ def __resolve_local_file_link(tk, attachment_data):
     # look for override env var for our local os
     storage_name = attachment_data["local_storage"]["name"].upper()
     storage_id = attachment_data["local_storage"]["id"]
-    os_name = {"win32": "WINDOWS", "linux2": "LINUX", "darwin": "MAC"}[sys.platform]
+    os_name = {"win32": "WINDOWS", "linux2": "LINUX", "darwin": "MAC"}[sgsix.platform]
     env_var_name = "SHOTGUN_PATH_%s_%s" % (os_name, storage_name)
     log.debug("Looking for override env var '%s'" % env_var_name)
 
@@ -209,7 +208,7 @@ def __resolve_local_file_link(tk, attachment_data):
                 "mac_path": "local_path_mac",
             }
 
-            for (storage_field, path_field) in storage_field_map.iteritems():
+            for (storage_field, path_field) in storage_field_map.items():
                 this_os_storage_root = storage[storage_field]
                 this_os_full_path = attachment_data[path_field]
 
@@ -267,7 +266,7 @@ def __resolve_url_link(tk, attachment_data):
     #  'type': 'Attachment',
     #  'url': 'file:///C:/Users/Manne%20Ohrstrom/Downloads/toolkitty.jpg'},
 
-    parsed_url = urlparse.urlparse(attachment_data["url"])
+    parsed_url = urllib.parse.urlparse(attachment_data["url"])
 
     # url = "file:///path/to/some/file.txt"
     # ParseResult(
@@ -311,9 +310,11 @@ def __resolve_url_link(tk, attachment_data):
 
     if parsed_url.netloc:
         # unc path
-        resolved_path = urllib.unquote("//%s%s" % (parsed_url.netloc, parsed_url.path))
+        resolved_path = urllib.parse.unquote(
+            "//%s%s" % (parsed_url.netloc, parsed_url.path)
+        )
     else:
-        resolved_path = urllib.unquote(parsed_url.path)
+        resolved_path = urllib.parse.unquote(parsed_url.path)
 
     # python returns drive letter paths incorrectly and need adjusting.
     if re.match("^/[A-Za-z]:/", resolved_path):
@@ -399,7 +400,7 @@ def __resolve_url_link(tk, attachment_data):
                     storage_lookup[storage_name].linux = os.environ[env_var]
 
     # now see if the given url starts with any storage def in our setup
-    for storage, sg_path in storage_lookup.iteritems():
+    for storage, sg_path in storage_lookup.items():
 
         # go through each storage, see if any of the os
         # path defs for the storage matches the beginning of the

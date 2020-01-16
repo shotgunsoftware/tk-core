@@ -19,7 +19,7 @@ exclude: "tank_vendor|third_party|ui\/.*py$|\/.*png|\/.*pickle|test_post_update_
 # List of super useful formatters.
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.2.3
+    rev: v2.4.0
     hooks:
     # Ensures the code is syntaxically correct
     - id: check-ast
@@ -38,7 +38,7 @@ repos:
     - id: trailing-whitespace
   # Leave black at the bottom so all touchups are done before it is run.
   - repo: https://github.com/ambv/black
-    rev: stable
+    rev: 19.10b0
     hooks:
     - id: black
       language_version: python3

@@ -142,7 +142,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
 
     # get a list of all storages that we should look up.
     # for 0.12 backwards compatibility, add the Tank Storage.
-    root_names = storage_root_to_paths.keys()
+    root_names = list(storage_root_to_paths.keys())
     if constants.PRIMARY_STORAGE_NAME in root_names:
         root_names.append("Tank")
 

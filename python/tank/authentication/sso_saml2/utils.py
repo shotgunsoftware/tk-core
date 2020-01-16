@@ -71,9 +71,16 @@ def _get_site_infos(url, http_proxy=None):
             (time.time() - INFOS_CACHE[url][0]) > INFOS_CACHE_TIMEOUT
         ):
             get_logger().info("Infos for site '%s' not in cache or expired", url)
-            infos = shotgun_api3.Shotgun(
+            sg = shotgun_api3.Shotgun(
                 url, session_token="dummy", connect=False, http_proxy=http_proxy
-            ).info()
+            )
+            # Remove delay between attempts at getting the site info.  Since
+            # this is called in situations where blocking during multiple
+            # attempts can make UIs less responsive, we'll avoid sleeping.
+            # This change was introduced after delayed retries were added in
+            # python-api v3.0.41
+            sg.config.rpc_attempt_interval = 0
+            infos = sg.info()
             INFOS_CACHE[url] = (time.time(), infos)
         else:
             get_logger().info("Infos for site '%s' found in cache", url)

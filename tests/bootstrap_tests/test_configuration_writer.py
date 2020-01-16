@@ -19,6 +19,7 @@ from tank_test.tank_test_base import ShotgunTestBase
 import sgtk
 from sgtk.bootstrap.configuration_writer import ConfigurationWriter
 from sgtk.util import ShotgunPath
+from tank.util import is_macos, is_windows
 from tank_vendor import yaml
 from mock import patch, MagicMock
 
@@ -205,11 +206,11 @@ class TestInterpreterFilesWriter(TestConfigurationWriterBase):
         Checks that if we're running in the Shotgun Desktop we're writing the correct interpreter.
         """
         expected_interpreters = self._get_default_intepreters()
-        if sys.platform == "win32":
+        if is_windows():
             sys_prefix = r"C:\Program Files\Shotgun.v1.4.3\Python"
             sys_executable = r"C:\Program Files\Shotgun_v1.4.3\Shotgun.exe"
             python_exe = os.path.join(sys_prefix, "python.exe")
-        elif sys.platform == "darwin":
+        elif is_macos():
             sys_prefix = "/Applications/Shotgun.v1.4.3.app/Contents/Resources/Python"
             sys_executable = "/Applications/Shotgun.v1.4.3.app/Contents/MacOS/Shotgun"
             python_exe = os.path.join(sys_prefix, "bin", "python")
@@ -287,7 +288,7 @@ class TestWritePipelineConfigFile(ShotgunTestBase):
         if create_project:
             self.__project = self.mockgun.create(
                 "Project",
-                {"code": "TestWritePipelineConfigFile", "tank_name": "pc_tank_name"},
+                {"name": "TestWritePipelineConfigFile", "tank_name": "pc_tank_name"},
             )
         else:
             self.__project = None

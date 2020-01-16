@@ -50,7 +50,7 @@ CONFIG_CORE_DESCRIPTOR_FILE = "core_api.yml"
 PRIMARY_PIPELINE_CONFIG_NAME = "Primary"
 
 # valid characters for a template key name
-TEMPLATE_KEY_NAME_REGEX = "[a-zA-Z_ 0-9\.]+"
+TEMPLATE_KEY_NAME_REGEX = r"[a-zA-Z_ 0-9\.]+"
 
 # the name of the include section in env and template files
 SINGLE_INCLUDE_SECTION = "include"

@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-
+from .platforms import is_windows, is_linux, is_macos
 from .shotgun import register_publish
 from .shotgun import resolve_publish_path
 from .shotgun import find_publish
@@ -34,6 +34,7 @@ from .shotgun_path import ShotgunPath
 
 from . import filesystem
 from . import json
+from . import pickle
 
 from .local_file_storage import LocalFileStorageManager
 

@@ -15,7 +15,6 @@ Defines the base class for all Tank Engines.
 from __future__ import with_statement
 
 import os
-import re
 import sys
 import logging
 import pprint
@@ -23,6 +22,8 @@ import traceback
 import inspect
 import weakref
 import threading
+
+from tank_vendor import six
 
 from ..util.qt_importer import QtImporter
 from ..util.loader import load_plugin
@@ -36,6 +37,7 @@ from .errors import (
     TankMissingEngineError,
 )
 
+from ..util import sgre as re
 from ..util.metrics import EventMetric
 from ..util.metrics import MetricsDispatcher
 from ..log import LogManager
@@ -173,7 +175,7 @@ class Engine(TankBundle):
 
         qt5_base = self.__define_qt5_base()
         self.__has_qt5 = len(qt5_base) > 0
-        for name, value in qt5_base.iteritems():
+        for name, value in qt5_base.items():
             setattr(qt5, name, value)
 
         # Update the authentication module to use the engine's Qt.
@@ -332,20 +334,11 @@ class Engine(TankBundle):
         running_method = getattr(self, method_name)
         base_method = getattr(Engine, method_name)
 
-        # now determine if the runtime implementation
-        # is the base class implementation or not
-        subclassed = False
-
-        if sys.version_info < (2, 6):
-            # older pythons use im_func rather than __func__
-            if running_method.__func__ is not base_method.__func__:
-                subclassed = True
-        else:
-            # pyton 2.6 and above use __func__
-            if running_method.__func__ is not base_method.__func__:
-                subclassed = True
-
-        return subclassed
+        # This should be a safe way to test, and is both Python 2 and 3 compatible.
+        # the __func__ attribute of callables that was previously used was removed
+        # in Python 3.4, and rather than continue to use that only in python 2, we
+        # will use the universally available __module__ attribute.
+        return running_method.__module__ != base_method.__module__
 
     def __has_018_logging_support(self):
         """
@@ -812,8 +805,8 @@ class Engine(TankBundle):
             # from the persistent app pool, which will force it to be
             # rebuilt when apps are loaded later on.
             non_compliant_app_paths = []
-            for install_path, app_instances in self.__application_pool.iteritems():
-                for instance_name, app in app_instances.iteritems():
+            for install_path, app_instances in self.__application_pool.items():
+                for instance_name, app in app_instances.items():
                     self.log_debug(
                         "Executing pre_context_change for %r, changing from %r to %r."
                         % (app, self.context, new_context)
@@ -1060,7 +1053,14 @@ class Engine(TankBundle):
         # to highlight this state. This is used by the tank_command
         # execution logic to correctly dispatch the callback during
         # runtime.
-        arg_spec = inspect.getargspec(callback)
+        # getargspec has been deprecated in Python 3 and generates a copious
+        # amount of warnings, so use getfullargspec which is backwards
+        # compatible in Python 3. Unfortunately, it doesn't exist in Python
+        # 2 and six doesn't offer a wrapper for it.
+        if six.PY2:
+            arg_spec = inspect.getargspec(callback)
+        else:
+            arg_spec = inspect.getfullargspec(callback)
         # note - cannot use named tuple form because it is py2.6+
         arg_list = arg_spec[0]
 
@@ -1136,7 +1136,7 @@ class Engine(TankBundle):
         panel_id = "%s_%s" % (current_app.instance_name, panel_name)
         # to ensure the string is safe to use in most engines,
         # sanitize to simple alpha-numeric form
-        panel_id = re.sub("\W", "_", panel_id)
+        panel_id = re.sub(r"\W", "_", panel_id)
         panel_id = panel_id.lower()
 
         # add it to the list of registered panels
@@ -1253,7 +1253,7 @@ class Engine(TankBundle):
         """
         # return a dictionary grouping all the commands by instance name
         commands_by_instance = {}
-        for (name, value) in self.commands.iteritems():
+        for (name, value) in self.commands.items():
             app_instance = value["properties"].get("app")
             if app_instance is None:
                 continue
@@ -1462,7 +1462,7 @@ class Engine(TankBundle):
 
         self.log_debug("Emitting event: %r" % event)
 
-        for app_instance_name, app in self.__applications.iteritems():
+        for app_instance_name, app in self.__applications.items():
             self.log_debug("Sending event to %r..." % app)
 
             # We send the event to the generic engine event handler
@@ -1951,7 +1951,7 @@ class Engine(TankBundle):
         :returns: Stylesheet string with replacements applied
         """
         processed_style_sheet = style_sheet
-        for (token, value) in constants.SG_STYLESHEET_CONSTANTS.iteritems():
+        for (token, value) in constants.SG_STYLESHEET_CONSTANTS.items():
             processed_style_sheet = processed_style_sheet.replace(
                 "{{%s}}" % token, value
             )
@@ -2704,7 +2704,7 @@ class Engine(TankBundle):
                         setup_frameworks(self, app, self.__env, descriptor)
 
                         # Repopulate the app's commands into the engine.
-                        for command_name, command in self.__command_pool.iteritems():
+                        for command_name, command in self.__command_pool.items():
                             if app is command.get("properties", dict()).get("app"):
                                 self.__commands[command_name] = command
 
@@ -2804,7 +2804,7 @@ class Engine(TankBundle):
                     self.__application_pool[app_path][app_instance_name] = app
 
             # Update the persistent commands pool for use in context changes.
-            for command_name, command in self.__commands.iteritems():
+            for command_name, command in self.__commands.items():
                 self.__command_pool[command_name] = command
 
     def __destroy_frameworks(self):

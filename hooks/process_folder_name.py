@@ -26,6 +26,7 @@ is being used, for example:
 
 from tank import Hook
 import re
+from tank_vendor import six
 
 
 class ProcessFolderName(Hook):
@@ -76,7 +77,7 @@ class ProcessFolderName(Hook):
             except KeyError:
                 str_value = str(value)
 
-        elif isinstance(value, basestring):
+        elif isinstance(value, six.string_types):
             # no conversion required
             str_value = value
 
@@ -102,14 +103,14 @@ class ProcessFolderName(Hook):
 
         if is_project_name:
             # regex to find non-word characters, except slashes and periods, which are preserved
-            exp = re.compile(u"[^\w/\.]", re.UNICODE)
+            exp = re.compile(r"[^\w/\.]", re.UNICODE)
         else:
             # regex to find non-word characters - in ascii land, that is [^A-Za-z0-9_]
             # note that we use a unicode expression, meaning that it will include other
             # "word" characters, not just A-Z.
-            exp = re.compile(u"\W", re.UNICODE)
+            exp = re.compile(r"\W", re.UNICODE)
 
-        if isinstance(src, unicode):
+        if isinstance(src, six.text_type):
             # src is unicode so we don't need to convert!
             return exp.sub("-", src)
         else:

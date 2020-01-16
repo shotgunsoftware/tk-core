@@ -14,8 +14,7 @@ Logic for publishing files to Shotgun.
 from __future__ import with_statement
 
 import os
-import urlparse
-import urllib
+from tank_vendor.six.moves import urllib
 import pprint
 
 from .publish_util import (
@@ -29,6 +28,7 @@ from ...log import LogManager
 from ..shotgun_path import ShotgunPath
 from .. import constants
 from .. import login
+from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
 
@@ -254,7 +254,7 @@ def register_publish(tk, context, path, name, version_number, **kwargs):
         sg_published_file_type = None
         # query shotgun for the published_file_type
         if published_file_type:
-            if not isinstance(published_file_type, basestring):
+            if not isinstance(published_file_type, six.string_types):
                 raise TankError("published_file_type must be a string")
 
             if published_file_entity_type == "PublishedFile":
@@ -465,7 +465,7 @@ def _create_published_file(
     #     scheme://netloc/path
     #
     path_is_url = False
-    res = urlparse.urlparse(path)
+    res = urllib.parse.urlparse(path)
     if res.scheme:
         # handle Windows drive letters - note this adds a limitation
         # but one that is not likely to be a problem as single-character
@@ -496,7 +496,7 @@ def _create_published_file(
         # note: by applying a safe pattern like this, we guarantee that already quoted paths
         #       are not touched, e.g. quote('foo bar') == quote('foo%20bar')
         data["path"] = {
-            "url": urllib.quote(path, safe="%/:=&?~#+!$,;'@()*[]"),
+            "url": urllib.parse.quote(path, safe="%/:=&?~#+!$,;'@()*[]"),
             "name": data["code"],  # same as publish name
         }
 
@@ -606,7 +606,9 @@ def _create_published_file(
                 )
 
                 # (see http://stackoverflow.com/questions/11687478/convert-a-filename-to-a-file-url)
-                file_url = urlparse.urljoin("file:", urllib.pathname2url(path))
+                file_url = urllib.parse.urljoin(
+                    "file:", urllib.request.pathname2url(path)
+                )
                 log.debug("Converting '%s' -> '%s'" % (path, file_url))
                 data["path"] = {
                     "url": file_url,
@@ -756,7 +758,7 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
 
 
 def _calc_path_cache(tk, path):
-    """
+    r"""
     Calculates root path name and relative path (including project directory).
     returns (root_name, path_cache). The relative path is always using forward
     slashes.
@@ -823,7 +825,7 @@ def _calc_path_cache(tk, path):
 
 
 def group_by_storage(tk, list_of_paths):
-    """
+    r"""
     Given a list of paths on disk, groups them into a data structure suitable for
     shotgun. In shotgun, the path_cache field contains an abstracted representation
     of the publish field, with a normalized path and the storage chopped off.

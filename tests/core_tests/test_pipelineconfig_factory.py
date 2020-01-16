@@ -9,16 +9,17 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import sys
 from tank_vendor import yaml
 import sgtk
 import tank
 from tank.api import Tank
+from tank.util import is_windows
 from tank.errors import TankInitError
 from sgtk.util import ShotgunPath
 from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule  # noqa
 from mock import patch
-import cPickle as pickle
+import tank_vendor.six.moves.cPickle as pickle
+from tank_vendor.shotgun_api3.lib import sgsix
 
 
 class TestTankFromPath(TankTestBase):
@@ -415,7 +416,11 @@ class TestPipelineConfigurationEnumeration(ShotgunTestBase):
         )
         self.assertEqual(
             self._sg_data["local_storages"],
-            [self._remove_items(self.primary_storage, "__retired")],
+            [
+                self._remove_items(
+                    self.primary_storage, ["__retired", "created_at", "updated_at"]
+                )
+            ],
         )
 
     def test_get_pipeline_configs_from_path(self):
@@ -489,9 +494,7 @@ class TestPipelineConfigurationEnumeration(ShotgunTestBase):
 
         :returns: A new dictionary without the keys specified.
         """
-        return dict(
-            (k, v) for k, v in dictionary.iteritems() if k not in keys_to_remove
-        )
+        return dict((k, v) for k, v in dictionary.items() if k not in keys_to_remove)
 
 
 class TestLookupCache(ShotgunTestBase):
@@ -625,7 +628,7 @@ class TestTankFromEntityWithMixedSlashes(TankTestBase):
         Check that a sgtk init works for this path
         """
         # only run this test on windows
-        if sys.platform == "win32":
+        if is_windows():
 
             self.sg_pc_entity["windows_path"] = self.pipeline_config_root.replace(
                 "\\", "/"
@@ -691,7 +694,7 @@ class TestTankFromPathWindowsNoSlash(TankTestBase):
         Check that a sgtk init works for this path
         """
         # only run this test on windows
-        if sys.platform == "win32":
+        if is_windows():
 
             # probe a path inside of project
             test_path = "%s\\%s\\toolkit_test_path" % (
@@ -704,7 +707,7 @@ class TestTankFromPathWindowsNoSlash(TankTestBase):
 
 
 class TestTankFromPathOverlapStorage(TankTestBase):
-    """
+    r"""
     Tests edge case with overlapping storages
 
     For example, imagine the following setup:
@@ -813,7 +816,7 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         probe_path["darwin"] = "/tmp/foo/bar/test.ma"
         probe_path["linux2"] = "/tmp/foo/bar/test.ma"
 
-        test_path = probe_path[sys.platform]
+        test_path = probe_path[sgsix.platform]
         test_path_dir = os.path.dirname(test_path)
 
         if not os.path.exists(test_path_dir):
@@ -843,7 +846,7 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         probe_path["darwin"] = "/tmp/foo/bar/test.ma"
         probe_path["linux2"] = "/tmp/foo/bar/test.ma"
 
-        test_path = probe_path[sys.platform]
+        test_path = probe_path[sgsix.platform]
         test_path_dir = os.path.dirname(test_path)
 
         if not os.path.exists(test_path_dir):

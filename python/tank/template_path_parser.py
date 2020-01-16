@@ -369,7 +369,9 @@ class TemplatePathParser(object):
                         token_positions,
                         keys,
                         skip_keys,
-                        dict(key_values.items() + [(key.name, possible_value_str)]),
+                        dict(
+                            list(key_values.items()) + [(key.name, possible_value_str)]
+                        ),
                     )
 
                     # check that at least one of the returned values is fully

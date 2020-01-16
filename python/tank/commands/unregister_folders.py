@@ -16,6 +16,7 @@ from ..errors import TankError
 from .. import path_cache
 from .action_base import Action
 from ..util.login import get_current_user
+from tank_vendor.six.moves import input, zip
 
 
 class UnregisterFoldersAction(Action):
@@ -350,7 +351,7 @@ class UnregisterFoldersAction(Action):
         )
         log.info("")
         if prompt:
-            val = raw_input(
+            val = input(
                 "Proceed with unregistering the above folders? (Yes/No) ? [Yes]: "
             )
             if val != "" and not val.lower().startswith("y"):

@@ -24,6 +24,7 @@ import tempfile
 import contextlib
 import atexit
 import uuid
+import datetime
 from functools import wraps
 
 from collections import defaultdict
@@ -37,6 +38,7 @@ import sgtk
 import tank
 from tank import path_cache, pipelineconfig_factory
 from tank_vendor import yaml
+from tank.util import is_windows
 from tank.util.user_settings import UserSettings
 
 TANK_TEMP = None
@@ -69,7 +71,7 @@ def only_run_on_windows(func):
     :param func: Function to be decorated.
     :returns: The decorated function.
     """
-    running_nix = sys.platform != "win32"
+    running_nix = not is_windows()
     return unittest.skipIf(running_nix, "Windows only test.")(func)
 
 
@@ -79,7 +81,7 @@ def only_run_on_nix(func):
     :param func: Function to be decorated.
     :returns: The decorated function.
     """
-    running_windows = sys.platform == "win32"
+    running_windows = is_windows()
     return unittest.skipIf(running_windows, "Linux/Macosx only test.")(func)
 
 
@@ -125,7 +127,16 @@ def _is_pyside_missing():
     :returns: True is PySide is available, False otherwise.
     """
     try:
+        # First try PySide
         import PySide  # noqa
+
+        return False
+    except ImportError:
+        pass
+
+    try:
+        # If PySide wasn't found, check for PySide2
+        import PySide2  # noqa
 
         return False
     except ImportError:
@@ -143,13 +154,13 @@ def skip_if_pyside_missing(func):
 
 @contextlib.contextmanager
 def temp_env_var(**kwargs):
-    """
+    r"""
     Scope the life-scope of temporary environment variable within a ``with`` block.
 
     :param \**kwargs: key-value pairs of environment variables to set.
     """
     backup_values = {}
-    for k, v in kwargs.iteritems():
+    for k, v in kwargs.items():
         if k in os.environ:
             backup_values[k] = os.environ[k]
         os.environ[k] = v
@@ -157,7 +168,7 @@ def temp_env_var(**kwargs):
     try:
         yield
     finally:
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             if k in backup_values:
                 os.environ[k] = backup_values[k]
             else:
@@ -224,7 +235,7 @@ class UnitTestTimer(object):
         print("Test run stats")
         print("==============")
         for name, stat in sorted(
-            self._timers.items(), key=lambda x: x[1].total_time, reverse=True
+            list(self._timers.items()), key=lambda x: x[1].total_time, reverse=True
         ):
             print(
                 "{0} : {1} ({2} hits, {3:.3f} avg)".format(
@@ -258,20 +269,6 @@ def setUpModule():
     print("\n" + "=" * len(msg))
     print(msg)
     print("=" * len(msg) + "\n")
-
-    # move tank directory if left by previous tests
-    _move_data(TANK_TEMP)
-    os.makedirs(TANK_TEMP)
-
-    # create studio level tank directories
-    studio_tank = os.path.join(TANK_TEMP, "tank")
-
-    # make studio level subdirectories
-    os.makedirs(os.path.join(studio_tank, "config", "core"))
-    install_dir = os.path.join(studio_tank, "install")
-
-    # copy tank engine code into place
-    os.makedirs(os.path.join(install_dir, "engines"))
 
 
 class TankTestBase(unittest.TestCase):
@@ -354,6 +351,12 @@ class TankTestBase(unittest.TestCase):
                            - 'primary_root_name': 'name' - Set the primary root name, default to 'unit_tests'.
 
 
+        """
+        self._setUp(parameters)
+
+    def _setUp(self, parameters):
+        """
+        See documentation for setUp.
         """
         self.addCleanup(self._assert_teardown_called)
         # Override SHOTGUN_HOME so that unit tests can be sandboxed.
@@ -455,7 +458,7 @@ class TankTestBase(unittest.TestCase):
             os.makedirs(self.project_root)
             os.makedirs(self.pipeline_config_root)
 
-            # # copy tank util scripts
+            # copy tank util scripts
             shutil.copy(
                 os.path.join(self.tank_source_path, "setup", "root_binaries", "tank"),
                 os.path.join(self.pipeline_config_root, "tank"),
@@ -467,7 +470,6 @@ class TankTestBase(unittest.TestCase):
                 os.path.join(self.pipeline_config_root, "tank.bat"),
             )
 
-        # project level config directories
         self.project_config = os.path.join(self.pipeline_config_root, "config")
 
         # create project cache directory
@@ -548,6 +550,9 @@ class TankTestBase(unittest.TestCase):
         # fake a version response from the server
         self.mockgun.server_info = {"version": (7, 0, 0)}
 
+        self.add_to_sg_mock_db(self.project)
+        self.add_to_sg_mock_db(self.sg_pc_entity)
+
         self._mock_return_value(
             "tank.util.shotgun.connection.get_associated_sg_base_url",
             "http://unit_test_mock_sg",
@@ -563,10 +568,6 @@ class TankTestBase(unittest.TestCase):
         # add project to mock sg and path cache db
         if self._do_io:
             self.add_production_path(self.project_root, self.project)
-
-        # add pipeline configuration
-        self.add_to_sg_mock_db(self.project)
-        self.add_to_sg_mock_db(self.sg_pc_entity)
 
         # add local storage
         self.primary_storage = {
@@ -606,6 +607,12 @@ class TankTestBase(unittest.TestCase):
 
     @timer.clock_func("TankTestBase.tearDown")
     def tearDown(self):
+        """
+        Cleans up after tests.
+        """
+        self._tearDown()
+
+    def _tearDown(self):
         """
         Cleans up after tests.
         """
@@ -874,10 +881,10 @@ class TankTestBase(unittest.TestCase):
             # create directories
             os.makedirs(full_path)
         if entity:
-            # add to path cache
-            self.add_to_path_cache(full_path, entity)
             # populate mock sg
             self.add_to_sg_mock_db(entity)
+            # add to path cache
+            self.add_to_path_cache(full_path, entity)
 
     def add_to_path_cache(self, path, entity):
         """
@@ -956,6 +963,11 @@ class TankTestBase(unittest.TestCase):
 
             # special retired flag for mockgun
             entity["__retired"] = False
+
+            if "created_at" not in entity:
+                entity["created_at"] = datetime.datetime.now()
+            if "updated_at" not in entity:
+                entity["updated_at"] = datetime.datetime.now()
 
             # turn any dicts into proper type/id/name refs
             for x in entity:
@@ -1049,12 +1061,12 @@ class TankTestBase(unittest.TestCase):
         ini_file_location = os.path.join(folder, "toolkit.ini")
         with open(ini_file_location, "w") as f:
             f.writelines(["[Login]\n"])
-            for key, value in login_section.iteritems():
+            for key, value in login_section.items():
                 f.writelines(["%s=%s\n" % (key, value)])
 
             for section in kwargs:
                 f.writelines(["[%s]\n" % section])
-                for key, value in kwargs[section].iteritems():
+                for key, value in kwargs[section].items():
                     f.writelines(["%s=%s\n" % (key, value)])
 
         # The setUp phase cleared the singleton. So set the preferences environment variable and
@@ -1125,7 +1137,7 @@ class SealedMock(mock.Mock):
         :param kwargs: Passed down directly to the base class as kwargs. Each keys are passed to the ``spec_set``
             argument from the base class to seal the gettable and settable properties.
         """
-        super(SealedMock, self).__init__(spec_set=kwargs.keys(), **kwargs)
+        super(SealedMock, self).__init__(spec_set=list(kwargs.keys()), **kwargs)
 
 
 def _move_data(path):
@@ -1169,7 +1181,12 @@ class ShotgunTestBase(TankTestBase):
     care less about the scaffold.
     """
 
+    @timer.clock_func("ShotgunTestBase.setUp")
     def setUp(self, parameters=None):
         parameters = parameters or {}
         parameters["do_io"] = False
-        super(ShotgunTestBase, self).setUp(parameters)
+        self._setUp(parameters)
+
+    @timer.clock_func("ShotgunTestBase.tearDown")
+    def tearDown(self):
+        self._tearDown()

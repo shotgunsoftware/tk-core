@@ -25,6 +25,7 @@ from ...errors import TankError
 import sys
 import os
 import inspect
+from tank_vendor import six
 
 
 class TankQDialog(TankDialogBase):
@@ -299,7 +300,7 @@ class TankQDialog(TankDialogBase):
                 else:
                     formatted = "%s" % p.get("name")
 
-                if isinstance(formatted, unicode):
+                if isinstance(formatted, six.text_type):
                     formatted = formatted.encode("utf-8")
 
                 return formatted
@@ -640,7 +641,7 @@ class TankQDialog(TankDialogBase):
             finally:
                 self.setUpdatesEnabled(True)
 
-            self.anim = QtCore.QPropertyAnimation(self.ui.page_1, "pos")
+            self.anim = QtCore.QPropertyAnimation(self.ui.page_1, b"pos")
             self.anim.setDuration(600)
             self.anim.setStartValue(
                 QtCore.QPoint(self.ui.page_1.x(), self.ui.page_1.y())
@@ -655,7 +656,7 @@ class TankQDialog(TankDialogBase):
             self.anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
             self.anim.finished.connect(self._finished_show_anim)
 
-            self.anim2 = QtCore.QPropertyAnimation(self.ui.page_2, "pos")
+            self.anim2 = QtCore.QPropertyAnimation(self.ui.page_2, b"pos")
             self.anim2.setDuration(600)
             self.anim2.setStartValue(
                 QtCore.QPoint(self.ui.page_2.x(), self.ui.page_2.y())
@@ -684,7 +685,7 @@ class TankQDialog(TankDialogBase):
             # but make sure page1 stays on top
             self.ui.page_1.raise_()
 
-            self.anim = QtCore.QPropertyAnimation(self.ui.page_2, "pos")
+            self.anim = QtCore.QPropertyAnimation(self.ui.page_2, b"pos")
             self.anim.setDuration(600)
             self.anim.setStartValue(
                 QtCore.QPoint(
@@ -696,7 +697,7 @@ class TankQDialog(TankDialogBase):
             self.anim.setEndValue(QtCore.QPoint(self.ui.page_2.x(), self.ui.page_2.y()))
             self.anim.setEasingCurve(QtCore.QEasingCurve.OutCubic)
 
-            self.anim2 = QtCore.QPropertyAnimation(self.ui.page_1, "pos")
+            self.anim2 = QtCore.QPropertyAnimation(self.ui.page_1, b"pos")
             self.anim2.setDuration(600)
             self.anim2.setStartValue(
                 QtCore.QPoint(self.ui.page_1.x(), self.ui.page_1.y())

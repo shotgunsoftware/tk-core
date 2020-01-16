@@ -15,7 +15,6 @@ Unit tests tank updates.
 from __future__ import with_statement
 
 import os
-import re
 import logging
 import functools
 import tempfile
@@ -28,6 +27,7 @@ import sgtk
 from sgtk.descriptor import Descriptor
 from sgtk.descriptor.io_descriptor.base import IODescriptorBase
 from sgtk.descriptor import create_descriptor
+from sgtk.util import sgre as re
 
 from tank import TankError
 from tank.platform.environment import InstalledEnvironment
@@ -195,7 +195,7 @@ class MockStore(object):
 
         :returns: List of version strings for a particular bundle.
         """
-        return self._bundles[bundle_type][name].keys()
+        return list(self._bundles[bundle_type][name].keys())
 
 
 # Simpler than having to write three class types that would also have to be documented.

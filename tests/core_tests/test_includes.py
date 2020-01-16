@@ -10,7 +10,6 @@
 
 from __future__ import with_statement
 import os
-import sys
 import itertools
 
 import tank
@@ -20,6 +19,7 @@ from tank.template_includes import _get_includes as get_template_includes
 from tank.platform.environment_includes import (
     _resolve_includes as get_environment_includes,
 )
+from tank_vendor.shotgun_api3.lib import sgsix
 from mock import patch
 
 
@@ -119,7 +119,7 @@ class Includes(object):
             # Make sure that we are returning the include for the current platform.
             self.assertEqual(
                 self._resolve_includes(set(paths.values())),  # get unique values.
-                [paths[sys.platform]],  # get the value for the current platform
+                [paths[sgsix.platform]],  # get the value for the current platform
             )
 
         @patch("os.path.exists", return_value=True)

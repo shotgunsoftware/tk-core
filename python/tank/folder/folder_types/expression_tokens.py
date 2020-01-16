@@ -18,6 +18,7 @@ dynamic tokens such as $something.
 import os
 
 from ...errors import TankError
+from tank_vendor import six
 
 
 class SymlinkToken(object):
@@ -59,14 +60,14 @@ class SymlinkToken(object):
             # - listfield tokens contain the value
             # - sg entity values contain the value in a compute_name key
             name_value = None
-            for (field_name, field_value) in sg_data.iteritems():
+            for (field_name, field_value) in sg_data.items():
 
                 if token == field_name:
                     if isinstance(field_value, dict):
                         # entity data is contained in a computed_name key (see above)
                         name_value = field_value.get("computed_name")
                         break
-                    elif isinstance(field_value, basestring):
+                    elif isinstance(field_value, six.string_types):
                         # listfields contain their values as a string
                         name_value = field_value
                         break
@@ -81,7 +82,7 @@ class SymlinkToken(object):
                 raise TankError(
                     "Cannot compute symlink target for %s: The reference token '%s' cannot be resolved. "
                     "Available tokens are %s."
-                    % (folder_obj, self._name, sg_data.keys())
+                    % (folder_obj, self._name, list(sg_data.keys()))
                 )
 
             return name_value

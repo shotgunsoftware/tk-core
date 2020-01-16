@@ -11,7 +11,6 @@
 from __future__ import print_function
 
 import os
-import sys
 import textwrap
 import traceback
 
@@ -20,6 +19,7 @@ from . import core_localize
 from ..errors import TankError
 from ..util import shotgun
 from ..util import ShotgunPath
+from ..util import is_linux, is_macos, is_windows
 from . import constants
 from .. import pipelineconfig_utils
 from ..util.filesystem import ensure_folder_exists
@@ -27,6 +27,8 @@ from ..util.filesystem import ensure_folder_exists
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
 from .interaction import YesToEverythingInteraction
+from tank_vendor.shotgun_api3.lib import sgsix
+from tank_vendor.six.moves import input
 
 
 class SetupProjectAction(Action):
@@ -117,7 +119,7 @@ class SetupProjectAction(Action):
                 "The path on disk where the configuration should be "
                 "installed on Macosx."
             ),
-            "default": (None if sys.platform == "darwin" else ""),
+            "default": (None if is_macos() else ""),
             "type": "str",
         }
 
@@ -126,7 +128,7 @@ class SetupProjectAction(Action):
                 "The path on disk where the configuration should be "
                 "installed on Windows."
             ),
-            "default": (None if sys.platform == "win32" else ""),
+            "default": (None if is_windows() else ""),
             "type": "str",
         }
 
@@ -135,7 +137,7 @@ class SetupProjectAction(Action):
                 "The path on disk where the configuration should be "
                 "installed on Linux."
             ),
-            "default": (None if sys.platform == "linux2" else ""),
+            "default": (None if is_linux() else ""),
             "type": "str",
         }
 
@@ -219,7 +221,7 @@ class SetupProjectAction(Action):
 
         if params.get_distribution_mode() == ProjectSetupParameters.CENTRALIZED_CONFIG:
 
-            config_path = params.get_configuration_location(sys.platform)
+            config_path = params.get_configuration_location(sgsix.platform)
 
             # if the new project's config has a core descriptor, then we should
             # localize it to use that version of core. alternatively, if the current
@@ -314,7 +316,7 @@ class SetupProjectAction(Action):
         # and finally carry out the setup
         run_project_setup(log, sg, params)
 
-        config_path = params.get_configuration_location(sys.platform)
+        config_path = params.get_configuration_location(sgsix.platform)
 
         # if the new project's config has a core descriptor, then we should
         # localize it to use that version of core. alternatively, if the current
@@ -376,7 +378,7 @@ class SetupProjectAction(Action):
         """
         evaluated_value = None
         while evaluated_value is None:
-            val = raw_input("Continue with project setup (Yes/No)? [Yes]: ")
+            val = input("Continue with project setup (Yes/No)? [Yes]: ")
             if val == "" or val.lower().startswith("y"):
                 evaluated_value = True
             elif val.lower().startswith("n"):
@@ -460,7 +462,7 @@ class SetupProjectAction(Action):
         )
         log.info("")
 
-        config_name = raw_input("[%s]: " % constants.DEFAULT_CFG).strip()
+        config_name = input("[%s]: " % constants.DEFAULT_CFG).strip()
         if config_name == "":
             config_name = constants.DEFAULT_CFG
         return config_name
@@ -539,7 +541,7 @@ class SetupProjectAction(Action):
             log.info("")
 
         log.info("")
-        answer = raw_input(
+        answer = input(
             "Please type in the id of the project to connect to or ENTER to exit: "
         )
         if answer == "":
@@ -582,7 +584,7 @@ class SetupProjectAction(Action):
         log.info("defined in the Shotgun Site Preferences:")
         log.info("")
         for storage_name in params.get_required_storages():
-            current_os_path = params.get_storage_path(storage_name, sys.platform)
+            current_os_path = params.get_storage_path(storage_name, sgsix.platform)
             log.info(" - %s: '%s'" % (storage_name, current_os_path))
 
         # first, display a preview
@@ -597,7 +599,7 @@ class SetupProjectAction(Action):
         log.info("")
         for storage_name in params.get_required_storages():
             proj_path = params.preview_project_path(
-                storage_name, suggested_folder_name, sys.platform
+                storage_name, suggested_folder_name, sgsix.platform
             )
             log.info(" - %s: %s" % (storage_name, proj_path))
 
@@ -606,7 +608,7 @@ class SetupProjectAction(Action):
         # now ask for a value and validate
         while True:
             log.info("")
-            proj_name = raw_input(
+            proj_name = input(
                 "Please enter a folder name [%s]: " % suggested_folder_name
             ).strip()
             if proj_name == "":
@@ -627,7 +629,7 @@ class SetupProjectAction(Action):
             for storage_name in params.get_required_storages():
 
                 proj_path = params.preview_project_path(
-                    storage_name, proj_name, sys.platform
+                    storage_name, proj_name, sgsix.platform
                 )
 
                 if os.path.exists(proj_path):
@@ -656,7 +658,7 @@ class SetupProjectAction(Action):
             if storages_valid:
                 # looks like folders exist on disk
 
-                val = raw_input("Paths look valid. Continue? (Yes/No)? [Yes]: ")
+                val = input("Paths look valid. Continue? (Yes/No)? [Yes]: ")
                 if val == "" or val.lower().startswith("y"):
                     break
             else:
@@ -701,7 +703,7 @@ class SetupProjectAction(Action):
         params.set_configuration_location(linux_path, windows_path, macosx_path)
 
     def _get_default_configuration_location(self, log, params):
-        """
+        r"""
         Returns default suggested location for configurations.
         Returns a dictionary with sys.platform style keys linux2/win32/darwin, e.g.
 
@@ -729,7 +731,15 @@ class SetupProjectAction(Action):
         # our default on that. If only a single storage is available, we just use it.
         storage_names = params.get_required_storages()
         default_storage_name = params.default_storage_name
-        primary_local_path = params.get_storage_path(default_storage_name, sys.platform)
+
+        # There is no default storage name for a config that doesn't use roots, like
+        # tk-config-basic, so we should skip storage detection.
+        if default_storage_name:
+            primary_local_path = params.get_storage_path(
+                default_storage_name, sgsix.platform
+            )
+        else:
+            primary_local_path = None
 
         curr_core_path = pipelineconfig_utils.get_path_to_current_core()
         core_locations = pipelineconfig_utils.resolve_all_os_paths_to_core(
@@ -745,14 +755,17 @@ class SetupProjectAction(Action):
             # a default parameter.
             pass
 
-        elif core_locations[sys.platform] is None:
+        elif core_locations[sgsix.platform] is None:
             # edge case: the shared core location that we are trying to install from
             # is not set up to work with this operating system. In that case, skip
             # default generation
             pass
 
         elif (
-            os.path.abspath(os.path.join(core_locations[sys.platform], "..")).lower()
+            primary_local_path is not None
+            and os.path.abspath(
+                os.path.join(core_locations[sgsix.platform], "..")
+            ).lower()
             == primary_local_path.lower()
         ):
             # ok the parent of the install root matches the primary storage - means OLD STYLE (pre core 0.12)
@@ -839,7 +852,7 @@ class SetupProjectAction(Action):
         curr_val = default
 
         if curr_val is None:
-            val = raw_input("%s : " % os_nice_name)
+            val = input("%s : " % os_nice_name)
             if val == "":
                 log.info(
                     "Skipping. This Pipeline configuration will not support %s."
@@ -849,7 +862,7 @@ class SetupProjectAction(Action):
                 curr_val = val.strip()
 
         else:
-            val = raw_input("%s [%s]: " % (os_nice_name, curr_val))
+            val = input("%s [%s]: " % (os_nice_name, curr_val))
             if val != "":
                 curr_val = val.strip()
         return curr_val
@@ -940,7 +953,7 @@ class SetupProjectAction(Action):
         mapped_roots = []
 
         # loop over required storage roots
-        for (root_name, root_info) in required_roots.iteritems():
+        for (root_name, root_info) in required_roots.items():
 
             log.info("%s" % (root_name,))
             log.info("-" * len(root_name))
@@ -984,7 +997,7 @@ class SetupProjectAction(Action):
                 suggested_storage_display = ": "
 
             # ask the user which storage to associate with this root
-            storage_to_use = raw_input(
+            storage_to_use = input(
                 "Which local storage would you like to associate root '%s'%s"
                 % (root_name, suggested_storage_display)
             ).strip()
@@ -1014,7 +1027,7 @@ class SetupProjectAction(Action):
             if not current_os_path:
                 # the current os path for the selected storage is not populated.
                 # prompt the user and update the path in SG.
-                current_os_path = raw_input(
+                current_os_path = input(
                     "Please enter a path for this storage on the current OS: "
                 )
 

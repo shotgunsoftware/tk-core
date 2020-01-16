@@ -9,19 +9,20 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import sys
 from distutils.version import StrictVersion
 
 from .action_base import Action
 from . import core_localize
 from ..util import shotgun
 from ..util import ShotgunPath
+from ..util import is_linux, is_macos, is_windows
 from ..errors import TankError
 from .. import pipelineconfig_utils
 
 from .setup_project_core import run_project_setup
 from .setup_project_params import ProjectSetupParameters
 from .interaction import YesToEverythingInteraction
+from tank_vendor.shotgun_api3.lib import sgsix
 
 
 class SetupProjectFactoryAction(Action):
@@ -179,7 +180,7 @@ class SetupProjectWizard(object):
         self._params.set_distribution_mode(ProjectSetupParameters.DISTRIBUTED_CONFIG)
 
     def validate_config_uri(self, config_uri):
-        """
+        r"""
         Validates a configuration template to check if it is compatible with the current Shotgun setup.
         This will download the configuration, validate it to ensure that it is compatible with the
         constraints (versions of core and shotgun) of this system.
@@ -249,7 +250,7 @@ class SetupProjectWizard(object):
         self._params.set_config_uri(config_uri)
 
     def update_storage_root(self, config_uri, root_name, storage_data):
-        """
+        r"""
         Given a required storage root name, update the template config's storage
         root information.
 
@@ -316,7 +317,7 @@ class SetupProjectWizard(object):
         self._params.validate_project_disk_name(project_disk_name)
 
     def preview_project_paths(self, project_disk_name):
-        """
+        r"""
         Return preview project paths given a project name.
 
         { "primary": { "darwin": "/foo/bar/project_name",
@@ -379,7 +380,7 @@ class SetupProjectWizard(object):
 
                 # get the full path
                 proj_path = self._params.preview_project_path(
-                    s, project_disk_name, sys.platform
+                    s, project_disk_name, sgsix.platform
                 )
 
                 if not os.path.exists(proj_path):
@@ -401,7 +402,7 @@ class SetupProjectWizard(object):
         self._params.set_project_disk_name(project_disk_name)
 
     def get_default_configuration_location(self):
-        """
+        r"""
         Returns default suggested install location for configurations.
         Returns a dictionary with sys.platform style keys linux2/win32/darwin, e.g.
 
@@ -602,14 +603,14 @@ class SetupProjectWizard(object):
             # from baked configurations, as an example, and we don't want to stop
             # project setups if the process is being run from an environment running
             # from a baked config.
-            if sys.platform.startswith("linux"):
+            if is_linux():
                 path_args = [None, os.path.expandvars(curr_core_path), None]
-            elif sys.platform == "darwin":
+            elif is_macos():
                 path_args = [None, None, os.path.expandvars(curr_core_path)]
-            elif sys.platform == "win32":
+            elif is_windows():
                 path_args = [os.path.expandvars(curr_core_path), None, None]
             else:
-                msg = "Unsupported OS detected: %s" % sys.platform
+                msg = "Unsupported OS detected: %s" % sgsix.platform
                 raise TankError(msg)
 
             core_path_object = ShotgunPath(*path_args).as_system_dict()
@@ -764,7 +765,7 @@ class SetupProjectWizard(object):
             # the shotgun desktop's site configuration contains script credentials,
             # these are not propagated into newly created toolkit projects.
 
-            config_path = self._params.get_configuration_location(sys.platform)
+            config_path = self._params.get_configuration_location(sgsix.platform)
 
             # if the new project's config has a core descriptor, then we should
             # localize it to use that version of core. alternatively, if the current

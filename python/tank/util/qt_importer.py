@@ -42,9 +42,13 @@ class QtImporter(object):
 
         :param interface_version_request: Indicates which version of the Qt API is requested.
         """
-        self._binding_name, self._binding_version, self._binding, self._modules, self._qt_version_tuple = self._import_modules(
-            interface_version_requested
-        )
+        (
+            self._binding_name,
+            self._binding_version,
+            self._binding,
+            self._modules,
+            self._qt_version_tuple,
+        ) = self._import_modules(interface_version_requested)
 
     @property
     def QtCore(self):

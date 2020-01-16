@@ -185,7 +185,7 @@ class YamlCache(object):
         """
         Returns a list of all CacheItems stored in the cache.
         """
-        return self._cache.values()
+        return list(self._cache.values())
 
     def merge_cache_items(self, cache_items):
         """

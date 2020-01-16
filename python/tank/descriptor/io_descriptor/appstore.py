@@ -13,14 +13,13 @@ Toolkit App Store Descriptor.
 """
 
 import os
-import urllib
+from tank_vendor.six.moves import urllib
 import fnmatch
-import urllib2
-import httplib
+from tank_vendor.six.moves import http_client
 from tank_vendor.shotgun_api3.lib import httplib2
-import cPickle as pickle
 
 from ...util import shotgun
+from ...util import pickle
 from ...util import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError
 from ...util.user_settings import UserSettings
 
@@ -37,6 +36,7 @@ from ...constants import SUPPORT_EMAIL
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
+from tank_vendor import six
 
 json = shotgun_api3.shotgun.json
 
@@ -178,7 +178,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         """
         cache_file = os.path.join(path, METADATA_FILE)
         if os.path.exists(cache_file):
-            fp = open(cache_file, "rt")
+            fp = open(cache_file, "rb")
             try:
                 metadata = pickle.load(fp)
             finally:
@@ -282,7 +282,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         # readonly bundle cache - if the caching fails, gracefully
         # fall back and log
         try:
-            fp = open(cache_file, "wt")
+            fp = open(cache_file, "wb")
             try:
                 pickle.dump(metadata, fp)
                 log.debug("Wrote app store metadata cache '%s'" % cache_file)
@@ -494,7 +494,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             # the sought-after label
             version_numbers = []
             log.debug("culling out versions not labelled '%s'..." % self._label)
-            for (version_str, path) in all_versions.iteritems():
+            for (version_str, path) in all_versions.items():
                 metadata = self.__load_cached_app_store_metadata(path)
                 try:
                     tags = [x["name"] for x in metadata["sg_version_data"]["tags"]]
@@ -508,7 +508,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
 
         else:
             # no label based filtering. all versions are valid.
-            version_numbers = all_versions.keys()
+            version_numbers = list(all_versions.keys())
 
         if len(version_numbers) == 0:
             return None
@@ -737,7 +737,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             # connect to the app store site
             try:
                 (script_name, script_key) = self.__get_app_store_key_from_shotgun()
-            except urllib2.HTTPError as e:
+            except urllib.error.HTTPError as e:
                 if e.code == 403:
                     # edge case alert!
                     # this is likely because our session token in shotgun has expired.
@@ -785,7 +785,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             except (
                 httplib2.HttpLib2Error,
                 httplib2.socks.HTTPError,
-                httplib.HTTPException,
+                http_client.HTTPException,
             ) as e:
                 raise TankAppStoreConnectionError(e)
             # In cases where there is a firewall/proxy blocking access to the app store, sometimes
@@ -856,14 +856,15 @@ class IODescriptorAppStore(IODescriptorDownloadable):
 
         # handle proxy setup by pulling the proxy details from the main shotgun connection
         if sg.config.proxy_handler:
-            opener = urllib2.build_opener(sg.config.proxy_handler)
-            urllib2.install_opener(opener)
+            opener = urllib.request.build_opener(sg.config.proxy_handler)
+            urllib.request.install_opener(opener)
 
         # now connect to our site and use a special url to retrieve the app store script key
         session_token = sg.get_session_token()
         post_data = {"session_token": session_token}
-        response = urllib2.urlopen(
-            "%s/api3/sgtk_install_script" % sg.base_url, urllib.urlencode(post_data)
+        response = urllib.request.urlopen(
+            "%s/api3/sgtk_install_script" % sg.base_url,
+            six.ensure_binary(urllib.parse.urlencode(post_data)),
         )
         html = response.read()
         data = json.loads(html)

@@ -158,6 +158,18 @@ sgtk.util.json
 .. autofunction:: loads
 
 
+.. currentmodule:: sgtk.util.pickle
+
+
+sgtk.util.pickle
+-----------------------------------
+
+.. autofunction:: dump
+.. autofunction:: dumps
+.. autofunction:: load
+.. autofunction:: loads
+
+
 ShotgunPath
 -----------------------------------
 

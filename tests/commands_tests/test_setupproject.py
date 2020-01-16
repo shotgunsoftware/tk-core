@@ -14,10 +14,10 @@ Unit tests tank setup_project.
 from __future__ import with_statement
 
 import os
-import sys
 import logging
 
 import tank
+from tank.util import is_linux, is_macos, is_windows
 from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
 
 from tank_test.mock_appstore import patch_app_store
@@ -84,7 +84,7 @@ class TestSetupProject(TankTestBase):
         mocked.side_effect = mocked_resolve_core_path
 
         # create new project
-        new_project = {"type": "Project", "id": 1234, "code": "new_project_1234"}
+        new_project = {"type": "Project", "id": 1234, "name": "new_project_1234"}
         self.add_to_sg_mock_db(new_project)
         # location where the config will be installed
         new_config_root = os.path.join(self.tank_temp, "new_project_1234_config")
@@ -99,19 +99,15 @@ class TestSetupProject(TankTestBase):
                 "project_id": new_project["id"],
                 "project_folder_name": "new_project_1234",
                 "config_uri": self.project_config,
-                "config_path_mac": new_config_root
-                if sys.platform == "darwin"
-                else None,
-                "config_path_win": new_config_root if sys.platform == "win32" else None,
-                "config_path_linux": new_config_root
-                if sys.platform.startswith("linux")
-                else None,
+                "config_path_mac": new_config_root if is_macos() else None,
+                "config_path_win": new_config_root if is_windows() else None,
+                "config_path_linux": new_config_root if is_linux() else None,
             }
         )
 
         # Check we get back our custom primary root name
         new_pc = tank.pipelineconfig_factory.from_path(new_config_root)
-        self.assertEqual(new_pc.get_data_roots().keys(), ["setup_project_root"])
+        self.assertEqual(list(new_pc.get_data_roots().keys()), ["setup_project_root"])
 
         # make sure the fake core didn't get copied across, e.g. that
         # we didn't localize the setup
@@ -150,7 +146,7 @@ class TestSetupProject(TankTestBase):
         upload_mock.side_effect = mocked_upload
 
         # create new project
-        new_project = {"type": "Project", "id": 1678, "code": "distributed_proj"}
+        new_project = {"type": "Project", "id": 1678, "name": "distributed_proj"}
         self.add_to_sg_mock_db(new_project)
         # location where the data will be installed
         os.makedirs(os.path.join(self.tank_temp, "distributed_proj"))
@@ -221,7 +217,7 @@ class TestSetupProject(TankTestBase):
 
         try:
             # create new project
-            new_project = {"type": "Project", "id": 1235, "code": "new_project_1235"}
+            new_project = {"type": "Project", "id": 1235, "name": "new_project_1235"}
             self.add_to_sg_mock_db(new_project)
             new_config_root = os.path.join(self.tank_temp, "new_project_1235_config")
             # location where the data will be installed
@@ -235,21 +231,17 @@ class TestSetupProject(TankTestBase):
                     "project_id": new_project["id"],
                     "project_folder_name": "new_project_1235",
                     "config_uri": self.project_config,
-                    "config_path_mac": new_config_root
-                    if sys.platform == "darwin"
-                    else None,
-                    "config_path_win": new_config_root
-                    if sys.platform == "win32"
-                    else None,
-                    "config_path_linux": new_config_root
-                    if sys.platform.startswith("linux")
-                    else None,
+                    "config_path_mac": new_config_root if is_macos() else None,
+                    "config_path_win": new_config_root if is_windows() else None,
+                    "config_path_linux": new_config_root if is_linux() else None,
                 }
             )
 
             # Check we get back our custom primary root name
             new_pc = tank.pipelineconfig_factory.from_path(new_config_root)
-            self.assertEqual(new_pc.get_data_roots().keys(), ["setup_project_root"])
+            self.assertEqual(
+                list(new_pc.get_data_roots().keys()), ["setup_project_root"]
+            )
 
             # the 'fake' core that we mocked earlier has a 'bad_path' folder
             self.assertFalse(

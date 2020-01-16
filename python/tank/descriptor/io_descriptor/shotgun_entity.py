@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import urlparse
+from tank_vendor.six.moves import urllib
 
 from .downloadable import IODescriptorDownloadable
 from ...util import filesystem, shotgun
@@ -163,7 +163,9 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         # Firstly, because the bundle cache can be global, make sure we include the sg site name.
         # first, get site only; https://www.FOO.com:8080 -> www.foo.com
         base_url = (
-            urlparse.urlparse(self._sg_connection.base_url).netloc.split(":")[0].lower()
+            urllib.parse.urlparse(self._sg_connection.base_url)
+            .netloc.split(":")[0]
+            .lower()
         )
         # make it as short as possible for hosted sites
         base_url = base_url.replace(".shotgunstudio.com", "")

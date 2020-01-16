@@ -48,16 +48,18 @@ class InteractiveTests(ShotgunTestBase):
         """
         Adds Qt modules to tank.platform.qt and initializes QApplication
         """
-        from PySide import QtGui
+        from tank.authentication.ui.qt_abstraction import QtGui
 
-        # Only configure qApp once, it's a singleton.
-        if QtGui.qApp is None:
+        # See if a QApplication instance exists, and if not create one.  Use the
+        # QApplication.instance() method, since qApp can contain a non-None
+        # value even if no QApplication has been constructed on PySide2.
+        if not QtGui.QApplication.instance():
             self._app = QtGui.QApplication(sys.argv)
         super(InteractiveTests, self).setUp()
 
     def tearDown(self):
         super(InteractiveTests, self).tearDown()
-        from PySide import QtGui
+        from tank.authentication.ui.qt_abstraction import QtGui
 
         QtGui.QApplication.processEvents()
 
@@ -74,13 +76,13 @@ class InteractiveTests(ShotgunTestBase):
         Prepares the dialog so the events get processed and focus is attributed to the right
         widget.
         """
-        from PySide.QtGui import QApplication
+        from tank.authentication.ui.qt_abstraction import QtGui
 
         ld.show()
         ld.raise_()
         ld.activateWindow()
 
-        QApplication.processEvents()
+        QtGui.QApplication.processEvents()
 
     @contextlib.contextmanager
     def _login_dialog(self, is_session_renewal, login=None, hostname=None):
@@ -152,7 +154,7 @@ class InteractiveTests(ShotgunTestBase):
             print(text)
             print("=" * len(text))
         else:
-            from PySide import QtGui
+            from tank.authentication.ui.qt_abstraction import QtGui
 
             mb = QtGui.QMessageBox()
             mb.setText(text)
@@ -171,7 +173,12 @@ class InteractiveTests(ShotgunTestBase):
             test_console,
         )
         # Get the basic user credentials.
-        host, login, session_token, session_metadata = interactive_authentication.authenticate(
+        (
+            host,
+            login,
+            session_token,
+            session_metadata,
+        ) = interactive_authentication.authenticate(
             "https://enter_your_host_name_here.shotgunstudio.com",
             "enter_your_username_here",
             "",
@@ -225,7 +232,7 @@ class InteractiveTests(ShotgunTestBase):
 
             pass
 
-        from PySide import QtCore, QtGui
+        from tank.authentication.ui.qt_abstraction import QtCore, QtGui
 
         # Create a QApplication instance.
         if not QtGui.QApplication.instance():
@@ -298,7 +305,7 @@ class InteractiveTests(ShotgunTestBase):
             bg.wait()
 
     @patch(
-        "__builtin__.raw_input",
+        "tank.authentication.console_authentication.input",
         side_effect=[
             "  https://test.shotgunstudio.com ",
             "  username   ",
@@ -321,7 +328,8 @@ class InteractiveTests(ShotgunTestBase):
         self.assertEqual(handler._get_2fa_code(), "2fa code")
 
     @patch(
-        "__builtin__.raw_input", side_effect=["  https://test-sso.shotgunstudio.com "]
+        "tank.authentication.console_authentication.input",
+        side_effect=["  https://test-sso.shotgunstudio.com "],
     )
     @patch(
         "tank.authentication.console_authentication.is_sso_enabled_on_site",
@@ -338,7 +346,8 @@ class InteractiveTests(ShotgunTestBase):
             handler._get_user_credentials(None, None, None)
 
     @patch(
-        "__builtin__.raw_input", side_effect=["  https://test-sso.shotgunstudio.com "]
+        "tank.authentication.console_authentication.input",
+        side_effect=["  https://test-sso.shotgunstudio.com "],
     )
     @patch(
         "tank.authentication.console_authentication.is_sso_enabled_on_site",
@@ -354,7 +363,7 @@ class InteractiveTests(ShotgunTestBase):
             handler._get_user_credentials(None, None, None)
 
     @patch(
-        "__builtin__.raw_input",
+        "tank.authentication.console_authentication.input",
         side_effect=["  https://test-identity.shotgunstudio.com "],
     )
     @patch(
@@ -376,7 +385,7 @@ class InteractiveTests(ShotgunTestBase):
         Makes sure that the ui strips out whitespaces.
         """
         # Import locally since login_dialog has a dependency on Qt and it might be missing
-        from PySide import QtGui
+        from tank.authentication.ui.qt_abstraction import QtGui
 
         with self._login_dialog(is_session_renewal=False) as ld:
             # For each widget in the ui, make sure that the text is properly cleaned

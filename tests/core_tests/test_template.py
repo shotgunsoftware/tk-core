@@ -10,7 +10,6 @@
 
 import copy
 import os
-import sys
 import time
 
 import unittest2
@@ -26,6 +25,8 @@ from tank.templatekey import (
     SequenceKey,
     TimestampKey,
 )
+
+from tank_vendor.shotgun_api3.lib import sgsix
 
 
 class TestTemplate(unittest2.TestCase):
@@ -286,7 +287,7 @@ class TestMissingKeys(TestTemplate):
 class TestSplitPath(unittest2.TestCase):
     def test_mixed_sep(self):
         "tests that split works with mixed seperators"
-        input_path = "hoken/poken\moken//doken"
+        input_path = r"hoken/poken\moken//doken"
         expected = ["hoken", "poken", "moken", "doken"]
         result = tank.template.split_path(input_path)
         self.assertEqual(expected, result)
@@ -369,7 +370,7 @@ class TestMakeTemplatePaths(ShotgunTestBase):
         alt_templatte = result.get("another_template")
         self.assertEqual(self.project_root, prim_template.root_path)
         self.assertEqual(
-            modified_roots["alternate_1"][sys.platform], alt_templatte.root_path
+            modified_roots["alternate_1"][sgsix.platform], alt_templatte.root_path
         )
 
         # Now test with the primary root name not specified, tk-core will assume
@@ -390,7 +391,7 @@ class TestMakeTemplatePaths(ShotgunTestBase):
         alt_templatte = result.get("another_template")
         self.assertEqual(self.project_root, prim_template.root_path)
         self.assertEqual(
-            modified_roots["alternate_1"][sys.platform], alt_templatte.root_path
+            modified_roots["alternate_1"][sgsix.platform], alt_templatte.root_path
         )
 
 

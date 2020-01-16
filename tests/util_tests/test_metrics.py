@@ -32,9 +32,9 @@ import os
 import json
 import time
 import threading
-import urllib2
-import time
 import unittest2
+from tank_vendor import six
+from tank_vendor.six.moves import urllib
 
 
 class TestEventMetric(ShotgunTestBase):
@@ -225,7 +225,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._create_engine()
 
         # Patch & Mock the `urlopen` method
-        self._urlopen_mock = patch("urllib2.urlopen")
+        self._urlopen_mock = patch("tank_vendor.six.moves.urllib.request.urlopen")
         self._mocked_method = self._urlopen_mock.start()
 
     def setUp(self):
@@ -253,11 +253,11 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # important to call base class so it can clean up memory
         super(TestMetricsDispatchWorkerThread, self).tearDown()
 
-    def _get_urllib2_request_calls(self, return_only_calls_after_reset=False):
+    def _get_urllib_request_calls(self, return_only_calls_after_reset=False):
         """
-        Helper test method that traverses `mock_calls` and return a list of `urllib2.Request` specific calls
+        Helper test method that traverses `mock_calls` and return a list of `urllib.Request` specific calls
 
-        :return: a list a `urllib2.Request` specific calls
+        :return: a list a `urllib.Request` specific calls
         """
 
         mocked_request_calls = []
@@ -275,12 +275,16 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                 if "call.reset()" in str(mocked_call):
                     found_reset = True
 
-            if found_reset and "urllib2.Request" in str(mocked_call):
+            # Quick sanity check to ensure that the mocked call includes a
+            # Request call.  Don't use the full module name since it varies from
+            # Python 2 to 3.  The isinstance check below will prevent any false
+            # positives.
+            if found_reset and "Request" in str(mocked_call):
                 # TODO: find out what class type is 'something'
-                for something in mocked_call:
-                    for instance in something:
-                        if isinstance(instance, urllib2.Request):
-                            mocked_request_calls.append(instance)
+                for args in mocked_call:
+                    for arg in args:
+                        if isinstance(arg, urllib.request.Request):
+                            mocked_request_calls.append(arg)
 
         return mocked_request_calls
 
@@ -294,10 +298,16 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         :return: a list a metric dictionaries
         """
         metrics = []
-        for mocked_request in self._get_urllib2_request_calls(
+        for mocked_request in self._get_urllib_request_calls(
             return_only_calls_after_reset
         ):
-            data = json.loads(mocked_request.get_data())
+            # get_data was removed in Python 3.4. since we're testing against 3.6 and
+            # 3.7, this should be sufficient.
+            if six.PY3:
+                data = mocked_request.data
+            else:
+                data = mocked_request.get_data()
+            data = json.loads(data)
             # Now that we have request data
             # Traverse the metrics to find the one we've logged above
             if "metrics" in data:
@@ -341,14 +351,20 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # Simple flag just to differenciate one of two conditions:
         # a) didn't even find a mocked request call
         # b) a + didn't find expected metric
-        found_urllib2_request_call = False
+        found_urllib_request_call = False
 
         while time.time() < timeout:
             time.sleep(TestMetricsDispatchWorkerThread.SLEEP_INTERVAL)
 
-            for mocked_request in self._get_urllib2_request_calls():
-                found_urllib2_request_call = True
-                data = json.loads(mocked_request.get_data())
+            for mocked_request in self._get_urllib_request_calls():
+                found_urllib_request_call = True
+                # get_data was removed in Python 3.4. since we're testing against 3.6 and
+                # 3.7, this should be sufficient.
+                if six.PY3:
+                    data = mocked_request.data
+                else:
+                    data = mocked_request.get_data()
+                data = json.loads(data)
                 # Now that we have request data
                 # Traverse the metrics to find the one we've logged above
                 if "metrics" in data:
@@ -372,7 +388,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                             # Tests all of the received metric properties that went through two conversions
                             return metric
 
-        if found_urllib2_request_call:
+        if found_urllib_request_call:
             self.fail("Timed out waiting for expected metric.")
         else:
             self.fail("Timed out waiting for a mocked urlopen request call.")
@@ -424,14 +440,16 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue("DictProp" in server_received_metric["event_properties"])
         self.assertTrue("ListProp" in server_received_metric["event_properties"])
 
-        self.assertTrue(isinstance(server_received_metric["event_group"], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_name"], unicode))
+        self.assertTrue(
+            isinstance(server_received_metric["event_group"], six.text_type)
+        )
+        self.assertTrue(isinstance(server_received_metric["event_name"], six.text_type))
         self.assertTrue(isinstance(server_received_metric["event_properties"], dict))
 
         self.assertTrue(
             isinstance(
                 server_received_metric["event_properties"][EventMetric.KEY_HOST_APP],
-                unicode,
+                six.text_type,
             )
         )
         self.assertTrue(
@@ -439,18 +457,19 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                 server_received_metric["event_properties"][
                     EventMetric.KEY_HOST_APP_VERSION
                 ],
-                unicode,
+                six.text_type,
             )
         )
         self.assertTrue(
             isinstance(
-                server_received_metric["event_properties"][EventMetric.KEY_APP], unicode
+                server_received_metric["event_properties"][EventMetric.KEY_APP],
+                six.text_type,
             )
         )
         self.assertTrue(
             isinstance(
                 server_received_metric["event_properties"][EventMetric.KEY_APP_VERSION],
-                unicode,
+                six.text_type,
             )
         )
 
@@ -569,14 +588,16 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue("DictProp" in preserved_properties)
         self.assertTrue("ListProp" in preserved_properties)
 
-        self.assertTrue(isinstance(server_received_metric["event_group"], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_name"], unicode))
+        self.assertTrue(
+            isinstance(server_received_metric["event_group"], six.text_type)
+        )
+        self.assertTrue(isinstance(server_received_metric["event_name"], six.text_type))
         self.assertTrue(isinstance(server_received_metric["event_properties"], dict))
 
         self.assertTrue(
             isinstance(
                 server_received_metric["event_properties"][EventMetric.KEY_HOST_APP],
-                unicode,
+                six.text_type,
             )
         )
         self.assertTrue(
@@ -584,18 +605,19 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                 server_received_metric["event_properties"][
                     EventMetric.KEY_HOST_APP_VERSION
                 ],
-                unicode,
+                six.text_type,
             )
         )
         self.assertTrue(
             isinstance(
-                server_received_metric["event_properties"][EventMetric.KEY_APP], unicode
+                server_received_metric["event_properties"][EventMetric.KEY_APP],
+                six.text_type,
             )
         )
         self.assertTrue(
             isinstance(
                 server_received_metric["event_properties"][EventMetric.KEY_APP_VERSION],
-                unicode,
+                six.text_type,
             )
         )
 
@@ -615,8 +637,8 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
             EventMetric.GROUP_TOOLKIT,
             "Test test_end_to_end",
             properties={
-                "Name with accents": "Éric Hébert",
-                "String with tricky characters": "''\"\\//%%$$?&?$^^,¨¨`",
+                "Name with accents": "Ã‰ric HÃ©bert",
+                "String with tricky characters": "''\"\\//%%$$?&?$^^,Â¨Â¨`",
             },
         )
 
@@ -624,7 +646,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         """
         Test that logging metrics is not possible from an older version
         of toolkit as it can't even pass metric version check and therefore
-        won't call urllib2.urlopen mock calls
+        won't call urllib.urlopen mock calls
         """
 
         # Define a local server caps mock locally since it only
@@ -654,7 +676,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                 )
 
         #
-        # If we get here, this is SUCCESS as we didn't receive urllib2.Request calls
+        # If we get here, this is SUCCESS as we didn't receive urllib.Request calls
         #
 
     def test_misc_constants(self):
@@ -753,7 +775,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._urlopen_mock.stop()
         self._urlopen_mock = None
         self._urlopen_mock = patch(
-            "urllib2.urlopen",
+            "tank_vendor.six.moves.urllib.request.urlopen",
             side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size,
         )
         self._mocked_method = self._urlopen_mock.start()
@@ -817,7 +839,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._urlopen_mock.stop()
         self._urlopen_mock = None
         self._urlopen_mock = patch(
-            "urllib2.urlopen",
+            "tank_vendor.six.moves.urllib.request.urlopen",
             side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size,
         )
         self._mocked_method = self._urlopen_mock.start()
@@ -1096,7 +1118,7 @@ class TestBundleMetrics(TankTestBase):
         # after the loops
         able_to_test_a_framework = False
         # Check metrics logged from apps
-        for app in engine.apps.itervalues():
+        for app in six.itervalues(engine.apps):
             app.log_metric("App test")
             metrics = metrics_queue.get_metrics()
             self.assertEqual(len(metrics), 1)
@@ -1143,7 +1165,7 @@ class TestBundleMetrics(TankTestBase):
                 data["event_properties"][EventMetric.KEY_APP_VERSION], app.version
             )
             self.assertEqual(data["event_properties"][EventMetric.KEY_COMMAND], "Blah")
-            for fw in app.frameworks.itervalues():
+            for fw in six.itervalues(app.frameworks):
                 able_to_test_a_framework = True
                 fw.log_metric("Framework test")
                 metrics = metrics_queue.get_metrics()
@@ -1175,7 +1197,7 @@ class TestBundleMetrics(TankTestBase):
         # Make sure we tested at least one app with a framework
         self.assertTrue(able_to_test_a_framework)
 
-    @patch("urllib2.open")
+    @patch("urllib.open")
     def test_log_metrics_hook(self, patched):
         """
         Test the log_metric hook is fired when logging metrics

@@ -17,6 +17,7 @@ import os
 import sys
 
 from . import constants
+from .platforms import is_windows
 
 
 def get_login_name():
@@ -24,7 +25,7 @@ def get_login_name():
     Retrieves the login name of the current user.
     Returns None if no login name was found
     """
-    if sys.platform == "win32":
+    if is_windows():
         # http://stackoverflow.com/questions/117014/how-to-retrieve-name-of-current-windows-user-ad-or-local-using-python
         return os.environ.get("USERNAME", None)
     else:

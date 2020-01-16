@@ -13,8 +13,8 @@ from __future__ import with_statement, print_function
 import os
 import sys
 import time
-import Queue
-import StringIO
+from tank_vendor.six.moves.queue import Empty
+from tank_vendor.six import StringIO
 import shutil
 import contextlib
 import logging
@@ -28,9 +28,11 @@ from tank import path_cache
 from tank import folder
 from tank import constants
 from tank import LogManager
+from tank.util import is_windows
 import tank
 
 from tank.util import StorageRoots
+from tank_vendor.six.moves import range
 
 log = LogManager.get_logger(__name__)
 
@@ -50,7 +52,7 @@ def sync_path_cache(tk, force_full_sync=False):
     """
 
     # capture sync log to string
-    stream = StringIO.StringIO()
+    stream = StringIO()
     handler = logging.StreamHandler(stream)
     log = logging.getLogger("sgtk.core.path_cache")
     log.setLevel(logging.DEBUG)
@@ -900,7 +902,7 @@ class TestConcurrentShotgunSync(TankTestBase):
         """
 
         # skip this test on windows or py2.5 where multiprocessing isn't available
-        if sys.platform == "win32" or sys.version_info < (2, 6):
+        if is_windows() or sys.version_info < (2, 6):
             return
 
         import multiprocessing
@@ -937,7 +939,7 @@ class TestConcurrentShotgunSync(TankTestBase):
                 # update the local mockgun db that we have in memory
                 try:
                     self.tk.shotgun._db = queue.get_nowait()
-                except Queue.Empty:
+                except Empty:
                     pass
                 self.tk.synchronize_filesystem_structure()
         except Exception as e:
@@ -950,7 +952,7 @@ class TestConcurrentShotgunSync(TankTestBase):
         """
 
         # skip this test on windows or py2.5 where multiprocessing isn't available
-        if sys.platform == "win32" or sys.version_info < (2, 6):
+        if is_windows() or sys.version_info < (2, 6):
             return
 
         import multiprocessing
@@ -1367,7 +1369,7 @@ class TestPathCacheBatchOperation(TankTestBase):
         # insert dummy data so we can delete it
         folder_ids = []
         entity_type = "Shot"
-        for idx in xrange(3147):
+        for idx in range(3147):
             entity_id = idx
             entity_name = "name_%s" % idx
 

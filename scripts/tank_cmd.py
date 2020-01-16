@@ -12,7 +12,6 @@ from __future__ import with_statement
 import sys
 import os
 import cgi
-import re
 import logging
 import string
 import tank
@@ -25,6 +24,8 @@ from tank.commands.core_upgrade import TankCoreUpdater
 from tank.commands.action_base import Action
 from tank.util import shotgun
 from tank.util import shotgun_entity
+from tank.util import is_windows
+from tank.util import sgre as re
 from tank.platform import constants as platform_constants
 from tank.authentication import ShotgunAuthenticator
 from tank.authentication import AuthenticationError
@@ -34,9 +35,11 @@ from tank.authentication import IncompleteCredentials
 from tank.authentication import CoreDefaultsManager
 from tank.commands import constants as command_constants
 from tank_vendor import yaml
+from tank_vendor.shotgun_api3.lib.sgsix import normalize_platform
 from tank.platform import engine
 from tank import pipelineconfig_utils
 from tank import LogManager
+from tank_vendor import six
 
 # the logger used by this file is sgtk.tank_cmd
 logger = LogManager.get_logger("tank_cmd")
@@ -183,13 +186,19 @@ class AltCustomFormatter(logging.Formatter):
     in order to make it easily readable.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, no_line_wrapping):
         """
         Constructor
         """
         self._html = False
         self._num_errors = 0
-        logging.Formatter.__init__(self, *args, **kwargs)
+        # We can't tell the formatter to do no wrapping, but we can
+        # provide a value big enough that it wouldn't make sense
+        # for something to wrap on this much. The parameter that
+        # allows to trigger this is used only in testing and is
+        # not documented.
+        self._line_length = 200 if no_line_wrapping else 78
+        logging.Formatter.__init__(self)
 
     def enable_html_mode(self):
         """
@@ -256,12 +265,12 @@ class AltCustomFormatter(logging.Formatter):
                 if sys.version_info < (2, 6):
                     # python 2.5 doesn't support all params
                     wrapped_lines = textwrap.wrap(
-                        record.msg, width=78, break_long_words=False
+                        record.msg, width=self._line_length, break_long_words=False
                     )
                 else:
                     wrapped_lines = textwrap.wrap(
                         record.msg,
-                        width=78,
+                        width=self._line_length,
                         break_long_words=False,
                         break_on_hyphens=False,
                     )
@@ -407,7 +416,7 @@ def _run_shotgun_command(tk, action_name, entity_type, entity_ids):
     e = engine.start_shotgun_engine(tk, entity_type, ctx)
 
     logger.debug("Launched engine %s" % e)
-    logger.debug("Registered commands: %s" % e.commands.keys())
+    logger.debug("Registered commands: %s" % list(e.commands.keys()))
 
     cmd = e.commands.get(action_name)
     if cmd:
@@ -487,7 +496,7 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
         if "deny_platforms" in cmd_params["properties"]:
             # setting can be Linux, Windows or Mac
             curr_os = {"linux2": "Linux", "darwin": "Mac", "win32": "Windows"}[
-                sys.platform
+                normalize_platform(sys.platform)
             ]
             if curr_os in cmd_params["properties"]["deny_platforms"]:
                 # deny this platform! :)
@@ -523,7 +532,7 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
         # otherwise with wt mode, \n on windows will be turned into \n\r
         # which is not interpreted correctly by the jacascript code.
         f = open(cache_path, "wb")
-        f.write(data)
+        f.write(six.ensure_binary(data))
         f.close()
 
         # make sure cache file has proper permissions
@@ -566,7 +575,7 @@ def shotgun_cache_actions(pipeline_config_root, args):
         _write_shotgun_cache(tk, entity_type, cache_file_name)
     except TankError as e:
         logger.error("Error writing shotgun cache file: %s" % e)
-    except Exception as e:
+    except Exception:
         logger.exception("A general error occurred.")
     num_log_messages_after = formatter.get_num_errors()
 
@@ -583,7 +592,7 @@ def shotgun_cache_actions(pipeline_config_root, args):
         code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
 
         logger.info("")
-        if sys.platform == "win32":
+        if is_windows():
             tank_cmd = os.path.join(pipeline_config_root, "tank.bat")
         else:
             tank_cmd = os.path.join(pipeline_config_root, "tank")
@@ -853,7 +862,7 @@ def _shotgun_run_action(
             )
             logger.info("")
 
-            if sys.platform == "win32":
+            if is_windows():
                 tank_cmd = os.path.join(install_root, "tank.bat")
             else:
                 tank_cmd = os.path.join(install_root, "tank")
@@ -878,7 +887,7 @@ def _shotgun_run_action(
 
         logger.info("")
 
-        if sys.platform == "win32":
+        if is_windows():
             tank_cmd = os.path.join(pipeline_config_root, "tank.bat")
         else:
             tank_cmd = os.path.join(pipeline_config_root, "tank")
@@ -1546,7 +1555,7 @@ def _validate_only_once(args, arg):
     :raises IncompleteCredentials: If an argument has been specified more than once,
                                 this exception is raised.
     """
-    occurences = filter(lambda a: a[0] == arg, args)
+    occurences = [a for a in args if a[0] == arg]
     if len(occurences) > 1:
         raise IncompleteCredentials("argument '%s' specified more than once." % arg)
 
@@ -1599,9 +1608,7 @@ def _read_credentials_from_file(auth_path):
         file_data = yaml.load(auth_file)
 
     args = [
-        (k, v)
-        for k, v in file_data.iteritems()
-        if k in [ARG_SCRIPT_NAME, ARG_SCRIPT_KEY]
+        (k, v) for k, v in file_data.items() if k in [ARG_SCRIPT_NAME, ARG_SCRIPT_KEY]
     ]
 
     return args
@@ -1659,7 +1666,7 @@ if __name__ == "__main__":
     )
 
     # set up the custom html formatter
-    formatter = AltCustomFormatter()
+    formatter = AltCustomFormatter(no_line_wrapping="--no-line-wrapping" in sys.argv)
     log_handler.setFormatter(formatter)
 
     # the first argument is always the path to the code root
@@ -1672,6 +1679,9 @@ if __name__ == "__main__":
 
     # pass the rest of the args into our checker
     cmd_line = sys.argv[2:]
+
+    # We can now remove the --no-line-warping argument.
+    cmd_line = [arg for arg in cmd_line if arg != "--no-line-wrapping"]
 
     # check if there is a --debug flag anywhere in the args list.
     # in that case turn on debug logging and remove the flag
@@ -1897,7 +1907,7 @@ if __name__ == "__main__":
         logger.info("")
         exit_code = 5
 
-    except KeyboardInterrupt as e:
+    except KeyboardInterrupt:
         logger.info("")
         logger.info("Exiting.")
         exit_code = 6

@@ -167,7 +167,7 @@ class TestFunctionality(ShotgunTestBase):
         self.assertIsInstance(modified_settings, dict)
 
         # Make sure the unit test properly changes all the settings from their default values.
-        for k, v in modified_settings.iteritems():
+        for k, v in modified_settings.items():
             self.assertNotEqual(v, clean_settings[k])
 
         # Restore the settings from the manager.

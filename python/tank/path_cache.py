@@ -23,6 +23,9 @@ import itertools
 # use api json to cover py 2.5
 # todo - replace with proper external library
 from tank_vendor import shotgun_api3
+from tank_vendor import six
+from tank_vendor.shotgun_api3.lib import sgsix
+from tank_vendor.six.moves import range
 
 json = shotgun_api3.shotgun.json
 
@@ -271,7 +274,7 @@ class PathCache(object):
 
         if not root_name:
 
-            storages_str = ",".join(self._roots.values())
+            storages_str = ",".join(list(self._roots.values()))
 
             raise TankError(
                 "The path '%s' could not be split up into a project centric path for "
@@ -282,7 +285,7 @@ class PathCache(object):
         return root_name, relative_path
 
     def _dbpath_to_path(self, root_path, dbpath):
-        """
+        r"""
         converts a dbpath to path for the local platform
 
         linux:    /foo/bar --> /studio/proj/foo/bar
@@ -1013,7 +1016,7 @@ class PathCache(object):
             "win32": "local_path_windows",
             "darwin": "local_path_mac",
         }
-        local_os_path_field = sg_local_storage_os_map[sys.platform]
+        local_os_path_field = sg_local_storage_os_map[sgsix.platform]
         local_os_path = fsl_entity[SG_PATH_FIELD].get(local_os_path_field)
 
         # if the storage is not correctly configured for an OS, it is possible
@@ -1533,7 +1536,6 @@ class PathCache(object):
         :param shotgun_id: The shotgun filesystem location id which should be unregistered.
         :returns: A list of items making up the subtree below the given id
         """
-
         c = self._connection.cursor()
         # first get the path
         res = c.execute(
@@ -1857,7 +1859,7 @@ class PathCache(object):
         # now query shotgun for each of the types
         ids_in_shotgun = {}
         sg_valid_records = []
-        for (et, sg_records_for_et) in ids_to_look_for.iteritems():
+        for (et, sg_records_for_et) in six.iteritems(ids_to_look_for):
 
             log.info(" - Checking %s %ss in Shotgun..." % (len(sg_records_for_et), et))
 
@@ -1883,7 +1885,7 @@ class PathCache(object):
             log.info("Step 5 - Uploading path entries to shotgun.")
             sg_batches = [
                 sg_valid_records[x : x + SG_BATCH_SIZE]
-                for x in xrange(0, len(pc_data), SG_BATCH_SIZE)
+                for x in range(0, len(pc_data), SG_BATCH_SIZE)
             ]
             event_log_description = "Path cache migration."
             for batch_idx, curr_batch in enumerate(sg_batches):

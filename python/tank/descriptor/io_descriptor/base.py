@@ -9,19 +9,16 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import re
-import cgi
-import urllib
-import urlparse
 import contextlib
 
 from .. import constants
 from ... import LogManager
-from ...util import filesystem
+from ...util import filesystem, sgre as re
 from ...util.version import is_version_newer
 from ..errors import TankDescriptorError, TankMissingManifestError
 
 from tank_vendor import yaml
+from tank_vendor.six.moves import map, urllib
 
 log = LogManager.get_logger(__name__)
 
@@ -262,7 +259,7 @@ class IODescriptorBase(object):
         versions = {}
         for version_num in version_numbers:
             try:
-                version_split = map(int, version_num[1:].split("."))
+                version_split = list(map(int, version_num[1:].split(".")))
             except Exception:
                 # this git tag is not on the expected form vX.Y.Z where X Y and Z are ints. skip.
                 continue
@@ -305,7 +302,7 @@ class IODescriptorBase(object):
         if "x" in version_split:
             # check that we don't have an incorrect pattern using x
             # then a digit, eg. v4.x.2
-            if re.match("^v[0-9\.]+[x\.]+[0-9\.]+$", pattern):
+            if re.match(r"^v[0-9\.]+[x\.]+[0-9\.]+$", pattern):
                 raise TankDescriptorError(
                     "Incorrect version pattern '%s'. "
                     "There should be no digit after a 'x'." % pattern
@@ -317,7 +314,7 @@ class IODescriptorBase(object):
         for version_digit in version_split:
             if version_digit == "x":
                 # replace the 'x' by the latest at this level
-                version_digit = max(current.keys(), key=int)
+                version_digit = max(list(current.keys()), key=int)
             version_digit = int(version_digit)
             if version_digit not in current:
                 # no matches
@@ -485,7 +482,7 @@ class IODescriptorBase(object):
                  in the item_keys parameter matched up by items in the
                  uri string.
         """
-        parsed_uri = urlparse.urlparse(uri)
+        parsed_uri = urllib.parse.urlparse(uri)
 
         # example:
         #
@@ -541,11 +538,7 @@ class IODescriptorBase(object):
         descriptor_dict["type"] = split_path[1]
 
         # now pop remaining keys into a dict and key by item_keys
-        # note: using deprecated cfg method for 2.5 compatibility
-        # example:
-        # >>> cgi.parse_qs("path=foo&version=v1.2.3")
-        # {'path': ['foo'], 'version': ['v1.2.3']}
-        for (param, value) in cgi.parse_qs(query).iteritems():
+        for (param, value) in urllib.parse.parse_qs(query).items():
             if len(value) > 1:
                 raise TankDescriptorError(
                     "Invalid uri '%s' - duplicate parameters" % uri
@@ -591,7 +584,7 @@ class IODescriptorBase(object):
                 continue
 
             # note: for readability of windows and git paths, do not convert '/@:\'
-            quoted_value = urllib.quote(str(descriptor_dict[param]), safe="@/:\\")
+            quoted_value = urllib.parse.quote(str(descriptor_dict[param]), safe="@/:\\")
             qs_chunks.append("%s=%s" % (param, quoted_value))
 
         qs = "&".join(qs_chunks)

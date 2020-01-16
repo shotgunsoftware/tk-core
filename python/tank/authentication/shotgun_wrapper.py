@@ -15,10 +15,10 @@ not be called directly. Interfaces and implementation of this module may change
 at any point.
 --------------------------------------------------------------------------------
 """
-import httplib
+from tank_vendor.six.moves import http_client
 
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault
-from tank_vendor.shotgun_api3.lib.xmlrpclib import ProtocolError
+from tank_vendor.six.moves.xmlrpc_client import ProtocolError
 from . import interactive_authentication, session_cache
 from .. import LogManager
 
@@ -70,7 +70,7 @@ class ShotgunWrapper(Shotgun):
             # saml_login_request URL. In that case we will proceed to renew
             # the session.
             if (
-                e.errcode == httplib.FOUND
+                e.errcode == http_client.FOUND
                 and "location" in e.headers
                 and e.headers["location"].endswith("/saml/saml_login_request")
             ):

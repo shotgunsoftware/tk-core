@@ -17,6 +17,8 @@ from tank import Hook
 import os
 import sys
 import shutil
+from tank_vendor import six
+from tank.util import is_windows
 
 
 class ProcessFolderCreation(Hook):
@@ -148,7 +150,7 @@ class ProcessFolderCreation(Hook):
 
                 elif action == "symlink":
                     # symbolic link
-                    if sys.platform == "win32":
+                    if is_windows():
                         # no windows support
                         continue
                     path = i.get("path")
@@ -183,7 +185,7 @@ class ProcessFolderCreation(Hook):
                         if not preview_mode:
                             # create the file
                             fp = open(path, "wb")
-                            fp.write(content)
+                            fp.write(six.ensure_binary(content))
                             fp.close()
                             # and set permissions to open
                             os.chmod(path, 0o666)

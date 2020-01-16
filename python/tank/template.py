@@ -14,13 +14,15 @@ Management of file and directory templates.
 """
 
 import os
-import re
-import sys
 
 from . import templatekey
 from .errors import TankError
 from . import constants
 from .template_path_parser import TemplatePathParser
+from tank_vendor import six
+from tank_vendor.shotgun_api3.lib import sgsix
+from tank_vendor.six.moves import zip
+from tank.util import is_linux, is_macos, is_windows, sgre as re
 
 
 class Template(object):
@@ -134,6 +136,19 @@ class Template(object):
         # First keys should be most inclusive
         return self._keys[0].copy()
 
+    @property
+    def ordered_keys(self):
+        """
+        The keys that this template is using in the order they appear. For a
+        template ``shots/{Shot}/{Step}/pub/{name}.v{version}.ma``, the keys are
+        ``{Shot}``, ``{Step}`` and ``{name}``.
+
+        :returns: a list of class:`TemplateKey` objects.
+        """
+        # First keys should be most inclusive.  Return a copy of the list by
+        # instantiating a new list from it.
+        return list(self._ordered_keys[0])
+
     def is_optional(self, key_name):
         """
         Returns true if the given key name is optional for this template.
@@ -147,7 +162,7 @@ class Template(object):
         """
         # the key is required if it's in the
         # minimum set of keys for this template
-        if key_name in min(self._keys):
+        if key_name in min(self._keys, key=lambda i: len(i.keys())):
             # this key is required
             return False
         else:
@@ -177,7 +192,7 @@ class Template(object):
         :rtype: list
         """
         # find shortest keys dictionary
-        keys = min(self._keys)
+        keys = min(self._keys, key=lambda i: len(i.keys()))
         return self._missing_keys(fields, keys, skip_defaults)
 
     def _missing_keys(self, fields, keys, skip_defaults):
@@ -198,7 +213,7 @@ class Template(object):
         return [x for x in required_keys if (x not in fields) or (fields[x] is None)]
 
     def apply_fields(self, fields, platform=None):
-        """
+        r"""
         Creates path using fields. Certain fields may be processed in special ways, for
         example :class:`SequenceKey` fields, which can take a `FORMAT` string which will intelligently
         format a image sequence specifier based on the type of data is being handled. Example::
@@ -301,7 +316,7 @@ class Template(object):
 
         """
         # split definition by optional sections
-        tokens = re.split("(\[[^]]*\])", definition)
+        tokens = re.split(r"(\[[^]]*\])", definition)
 
         # seed with empty string
         definitions = [""]
@@ -321,10 +336,10 @@ class Template(object):
                 # Add definitions skipping this optional value
                 temp_definitions = definitions[:]
                 # strip brackets from token
-                token = re.sub("[\[\]]", "", token)
+                token = re.sub(r"[\[\]]", "", token)
 
             # check non-optional contains no dangleing brackets
-            if re.search("[\[\]]", token):
+            if re.search(r"[\[\]]", token):
                 raise TankError(
                     "Square brackets are not allowed outside of optional section definitions."
                 )
@@ -356,7 +371,7 @@ class Template(object):
     def _clean_definition(self, definition):
         # Create definition with key names as strings with no format, enum or default values
         regex = r"{(%s)}" % constants.TEMPLATE_KEY_NAME_REGEX
-        cleaned_definition = re.sub(regex, "%(\g<1>)s", definition)
+        cleaned_definition = re.sub(regex, r"%(\g<1>)s", definition)
         return cleaned_definition
 
     def _calc_static_tokens(self, definition):
@@ -577,6 +592,7 @@ class TemplatePath(Template):
             )
 
         else:
+            platform = sgsix.normalize_platform(platform)
             # caller has requested a path for another OS
             if self._per_platform_roots is None:
                 # it's possible that the additional os paths are not set for a template
@@ -597,7 +613,7 @@ class TemplatePath(Template):
                     "that you have a valid storage set up for this platform." % platform
                 )
 
-            elif platform == "win32":
+            elif is_windows(platform):
                 # use backslashes for windows
                 if relative_path:
                     return "%s\\%s" % (
@@ -608,7 +624,7 @@ class TemplatePath(Template):
                     # not path generated - just return the root path
                     return platform_root_path
 
-            elif platform == "darwin" or "linux" in platform:
+            elif is_macos(platform) or is_linux(platform):
                 # unix-like plaforms - use slashes
                 if relative_path:
                     return "%s/%s" % (
@@ -792,7 +808,7 @@ def make_template_paths(data, keys, all_per_platform_roots, default_root=None):
                 "instead?" % (template_name, definition)
             )
 
-        root_path = all_per_platform_roots.get(root_name, {}).get(sys.platform)
+        root_path = all_per_platform_roots.get(root_name, {}).get(sgsix.platform)
         if root_path is None:
             raise TankError(
                 "Undefined Shotgun storage! The local file storage '%s' is not defined for this "
@@ -849,7 +865,7 @@ def _conform_template_data(template_data, template_name):
     """
     Takes data for single template and conforms it expected data structure.
     """
-    if isinstance(template_data, basestring):
+    if isinstance(template_data, six.string_types):
         template_data = {"definition": template_data}
     elif not isinstance(template_data, dict):
         raise TankError(

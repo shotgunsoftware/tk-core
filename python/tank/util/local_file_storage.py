@@ -9,11 +9,12 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import sys
-import urlparse
+from tank_vendor.six.moves import urllib
 from . import filesystem
+from .platforms import is_linux, is_macos, is_windows
 from .. import LogManager
 from ..errors import TankError
+from tank_vendor.shotgun_api3.lib import sgsix
 
 log = LogManager.get_logger(__name__)
 
@@ -115,7 +116,7 @@ class LocalFileStorageManager(object):
                 else:
                     raise ValueError("Unsupported path type!")
             # current generation of paths
-            elif sys.platform == "darwin":
+            elif is_macos():
                 if path_type == cls.CACHE:
                     return os.path.expanduser("~/Library/Caches/Shotgun")
                 elif path_type == cls.PERSISTENT:
@@ -127,7 +128,7 @@ class LocalFileStorageManager(object):
                 else:
                     raise ValueError("Unsupported path type!")
 
-            elif sys.platform == "win32":
+            elif is_windows():
                 app_data = os.environ.get("APPDATA", "APPDATA_NOT_SET")
                 if path_type == cls.CACHE:
                     return os.path.join(app_data, "Shotgun")
@@ -140,7 +141,7 @@ class LocalFileStorageManager(object):
                 else:
                     raise ValueError("Unsupported path type!")
 
-            elif sys.platform.startswith("linux"):
+            elif is_linux():
                 if path_type == cls.CACHE:
                     return os.path.expanduser("~/.shotgun")
                 elif path_type == cls.PERSISTENT:
@@ -153,12 +154,12 @@ class LocalFileStorageManager(object):
                     raise ValueError("Unsupported path type!")
 
             else:
-                raise ValueError("Unknown platform: %s" % sys.platform)
+                raise ValueError("Unknown platform: %s" % sgsix.platform)
 
         if generation == cls.CORE_V17:
 
             # previous generation of paths
-            if sys.platform == "darwin":
+            if is_macos():
                 if path_type == cls.CACHE:
                     return os.path.expanduser("~/Library/Caches/Shotgun")
                 elif path_type == cls.PERSISTENT:
@@ -168,7 +169,7 @@ class LocalFileStorageManager(object):
                 else:
                     raise ValueError("Unsupported path type!")
 
-            elif sys.platform == "win32":
+            elif is_windows():
                 if path_type == cls.CACHE:
                     return os.path.join(
                         os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun"
@@ -184,7 +185,7 @@ class LocalFileStorageManager(object):
                 else:
                     raise ValueError("Unsupported path type!")
 
-            elif sys.platform.startswith("linux"):
+            elif is_linux():
                 if path_type == cls.CACHE:
                     return os.path.expanduser("~/.shotgun")
                 elif path_type == cls.PERSISTENT:
@@ -195,7 +196,7 @@ class LocalFileStorageManager(object):
                     raise ValueError("Unsupported path type!")
 
             else:
-                raise ValueError("Unknown platform: %s" % sys.platform)
+                raise ValueError("Unknown platform: %s" % sgsix.platform)
 
     @classmethod
     def get_site_root(cls, hostname, path_type, generation=CORE_V18):
@@ -224,7 +225,7 @@ class LocalFileStorageManager(object):
             )
 
         # get site only; https://www.FOO.com:8080 -> www.foo.com
-        base_url = urlparse.urlparse(hostname).netloc.split(":")[0].lower()
+        base_url = urllib.parse.urlparse(hostname).netloc.split(":")[0].lower()
 
         if generation > cls.CORE_V17:
             # for 0.18, in order to apply further shortcuts to avoid hitting

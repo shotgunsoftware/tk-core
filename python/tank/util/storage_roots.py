@@ -223,7 +223,7 @@ class StorageRoots(object):
 
         Yields root names and corresponding metadata upon iteration.
         """
-        for root_name, root_info in self._storage_roots_metadata.iteritems():
+        for root_name, root_info in self._storage_roots_metadata.items():
             yield root_name, root_info
 
     def __repr__(self):
@@ -295,7 +295,7 @@ class StorageRoots(object):
         A list of all required storage root names (``str``) by this
         configuration.
         """
-        return self._storage_roots_metadata.keys()
+        return list(self._storage_roots_metadata.keys())
 
     ############################################################################
     # public methods
@@ -457,7 +457,7 @@ class StorageRoots(object):
             )
 
     def update_root(self, root_name, storage_data):
-        """
+        r"""
         Given a required storage root name, update the object's storage
         metadata.
 
@@ -581,7 +581,7 @@ class StorageRoots(object):
 
             # if there is only one, then that is the default
             if len(roots_metadata) == 1:
-                sole_storage_root = roots_metadata.keys()[0]
+                sole_storage_root = list(roots_metadata.keys())[0]
                 log.debug(
                     "Storage %s identified as the default root because it is "
                     "the only root required by the configuration" % (sole_storage_root,)

@@ -14,9 +14,9 @@ across storages, configurations etc.
 """
 import os
 import glob
-import cPickle as pickle
 
 from tank_vendor import yaml
+import tank_vendor.six.moves.cPickle as pickle
 
 from .errors import TankError, TankUnreadableFileError
 from .util.version import is_version_older
@@ -25,12 +25,14 @@ from .platform.environment import InstalledEnvironment, WritableEnvironment
 from .util import shotgun, yaml_cache
 from .util import ShotgunPath
 from .util import StorageRoots
+from .util.pickle import retrieve_env_var_pickled
 from . import hook
 from . import pipelineconfig_utils
 from . import template_includes
 from . import LogManager
 
 from .descriptor import Descriptor, create_descriptor, descriptor_uri_to_dict
+from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
 
@@ -243,11 +245,12 @@ class PipelineConfiguration(object):
         #
         if constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA in os.environ:
             try:
-                external_data = pickle.loads(
-                    os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA]
+                external_data = retrieve_env_var_pickled(
+                    constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA
                 )
             except Exception as e:
                 log.warning("Could not load external config data from: %s" % e)
+                external_data = {}
             finally:
                 # The passing of state from bootstrap to core is complete.
                 # Make sure we clean up so we don't interfere any further
@@ -392,7 +395,7 @@ class PipelineConfiguration(object):
             self._pc_root, "config", "core", constants.PIPELINECONFIG_FILE
         )
 
-    def _get_yaml_cache_location(self):
+    def get_yaml_cache_location(self):
         """
         Returns the location of the yaml cache for this configuration.
         """
@@ -403,7 +406,7 @@ class PipelineConfiguration(object):
         Loads pickled yaml_cache items if they are found and merges them into
         the global YamlCache.
         """
-        cache_file = self._get_yaml_cache_location()
+        cache_file = self.get_yaml_cache_location()
         if not os.path.exists(cache_file):
             return
 
@@ -623,7 +626,7 @@ class PipelineConfiguration(object):
 
         current_os_path_lookup = {}
 
-        for root_name, sg_path in self._storage_roots.as_shotgun_paths.iteritems():
+        for root_name, sg_path in self._storage_roots.as_shotgun_paths.items():
 
             # get current os path
             local_path = sg_path.current_os
@@ -723,7 +726,7 @@ class PipelineConfiguration(object):
         return self._storage_roots.get_local_storages(sg)
 
     def get_all_platform_data_roots(self):
-        """
+        r"""
         Similar to get_data_roots but instead of returning project data roots
         for a single operating system, the data roots for all operating systems
         are returned.
@@ -752,7 +755,7 @@ class PipelineConfiguration(object):
 
         project_roots_lookup = {}
 
-        for root_name, sg_path in self._storage_roots.as_shotgun_paths.iteritems():
+        for root_name, sg_path in self._storage_roots.as_shotgun_paths.items():
 
             # join the project name to the storage ShotgunPath
             project_root = sg_path.join(self._project_name)
@@ -780,7 +783,7 @@ class PipelineConfiguration(object):
 
         project_roots_lookup = {}
 
-        for root_name, sg_path in self._storage_roots.as_shotgun_paths.iteritems():
+        for root_name, sg_path in self._storage_roots.as_shotgun_paths.items():
 
             # join the project name to the storage ShotgunPath
             project_root = sg_path.join(self._project_name)
@@ -920,7 +923,7 @@ class PipelineConfiguration(object):
 
         # For each token, check if the platform or the generic path key are specified
         # and replace the token if found.
-        for token, substitution in substitutions.iteritems():
+        for token, substitution in substitutions.items():
             for key in ["path", ShotgunPath.get_shotgun_storage_key()]:
                 if key in descriptor_dict:
                     descriptor_dict[key] = descriptor_dict[key].replace(
@@ -960,7 +963,7 @@ class PipelineConfiguration(object):
         # methods do not require a connection.
         sg_connection = shotgun.get_deferred_sg_connection()
 
-        if isinstance(dict_or_uri, basestring):
+        if isinstance(dict_or_uri, six.string_types):
             descriptor_dict = descriptor_uri_to_dict(dict_or_uri)
         else:
             descriptor_dict = dict_or_uri

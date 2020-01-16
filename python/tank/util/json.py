@@ -17,30 +17,7 @@ from __future__ import absolute_import
 
 import json
 
-
-def _convert_unicode_keys_to_string(input_value):
-    """
-    Converts any :class:`unicode` instances in the input value into a utf-8
-    encoded :class`str` instance.
-
-    :param input_value: Value to convert. Can be a scalar, list or dictionary.
-
-    :returns: A value with utf-8 encoded :class:`str` instances.
-    """
-
-    if isinstance(input_value, unicode):
-        return input_value.encode("utf8")
-
-    if isinstance(input_value, list):
-        return [_convert_unicode_keys_to_string(item) for item in input_value]
-
-    if isinstance(input_value, dict):
-        return dict(
-            (_convert_unicode_keys_to_string(k), _convert_unicode_keys_to_string(v))
-            for k, v in input_value.iteritems()
-        )
-
-    return input_value
+from .unicode import ensure_contains_str
 
 
 # This is the Python 2.6 signature. 2.7 has an extra object_hook_pairs argument.
@@ -63,11 +40,22 @@ def load(
 
     See the documentation for :func:`json.load` to learn more about this method.
     """
+    # Specify kwargs explicitly to avoid problems caused by the signature change
+    # between Python 2 and 3.
+    # See https://docs.python.org/3/library/json.html#json.load and
+    # https://docs.python.org/2/library/json.html#json.load for both signatures.
     loaded_value = json.load(
-        fp, encoding, cls, object_hook, parse_float, parse_int, parse_constant, **kw
+        fp,
+        encoding=encoding,
+        cls=cls,
+        object_hook=object_hook,
+        parse_float=parse_float,
+        parse_int=parse_int,
+        parse_constant=parse_constant,
+        **kw
     )
 
-    return _convert_unicode_keys_to_string(loaded_value)
+    return ensure_contains_str(loaded_value)
 
 
 # This is the Python 2.6 signature. 2.7 has an extra object_hook_pairs argument.
@@ -90,8 +78,19 @@ def loads(
 
     See the documentation for :func:`json.loads` to learn more about this method.
     """
+    # Specify kwargs explicitly to avoid problems caused by the signature change
+    # between Python 2 and 3.
+    # See https://docs.python.org/3/library/json.html#json.loads and
+    # https://docs.python.org/2/library/json.html#json.loads for both signatures.
     loaded_value = json.loads(
-        s, encoding, cls, object_hook, parse_float, parse_int, parse_constant, **kw
+        s,
+        encoding=encoding,
+        cls=cls,
+        object_hook=object_hook,
+        parse_float=parse_float,
+        parse_int=parse_int,
+        parse_constant=parse_constant,
+        **kw
     )
 
-    return _convert_unicode_keys_to_string(loaded_value)
+    return ensure_contains_str(loaded_value)

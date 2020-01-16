@@ -11,7 +11,7 @@
 from __future__ import print_function
 
 import os
-import StringIO
+from tank_vendor.six import StringIO
 
 from ..errors import TankError
 from .action_base import Action

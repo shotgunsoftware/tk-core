@@ -645,7 +645,7 @@ class AppUpdatesAction(Action):
 
         elif status["out_of_date"] is False:
             log.info(
-                " \-- You are running version %s which is the most recent release."
+                r" \-- You are running version %s which is the most recent release."
                 % status["latest"].version
             )
 

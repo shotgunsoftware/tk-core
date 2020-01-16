@@ -22,6 +22,7 @@ from ..util import ShotgunPath
 import os
 import datetime
 import shutil
+from tank_vendor.six.moves import input
 
 # Core configuration files which are associated with the core API installation and not
 # the pipeline configuration.
@@ -129,7 +130,7 @@ class PushPCAction(Action):
             log.info(" - [%d] %s (%s)" % (pc["id"], pc["code"], local_path))
         log.info("")
 
-        answer = raw_input(
+        answer = input(
             "Please type in the id of the configuration to push to (ENTER to exit): "
         )
         if answer == "":

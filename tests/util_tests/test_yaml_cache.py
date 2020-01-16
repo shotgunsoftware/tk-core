@@ -62,7 +62,7 @@ class TestYamlCache(ShotgunTestBase):
         overrwritten by the calling code) and that the cache correctly reloads
         the data from the file when it has been modified.
         """
-        yaml_path = os.path.join(self._data_root, "test_data.yml")
+        yaml_path = os.path.join(self.tank_temp, "test_data.yml")
 
         test_data = [
             1,
@@ -98,9 +98,9 @@ class TestYamlCache(ShotgunTestBase):
         # inspect the cache itself and make sure that the data returned is a copy
         # of the internal cached data and not the internal cached data itself:
         self.assertEqual(len(yaml_cache._cache), 1)
-        self.assertEqual(yaml_cache._cache.keys()[0], yaml_path)
-        self.assertEqual(yaml_cache._cache.values()[0]["data"], read_data)
-        cached_data_id = id(yaml_cache._cache.values()[0]["data"])
+        self.assertEqual(list(yaml_cache._cache.keys())[0], yaml_path)
+        self.assertEqual(list(yaml_cache._cache.values())[0]["data"], read_data)
+        cached_data_id = id(list(yaml_cache._cache.values())[0]["data"])
         self.assertNotEqual(cached_data_id, id(read_data))
 
         # 3. Check that the data doesn't get reloaded if it hasn't changed
@@ -111,7 +111,7 @@ class TestYamlCache(ShotgunTestBase):
 
         # ...and check that the cached data is exactly the same (has the same id):
         self.assertEqual(len(yaml_cache._cache), 1)
-        new_cached_data_id = id(yaml_cache._cache.values()[0]["data"])
+        new_cached_data_id = id(list(yaml_cache._cache.values())[0]["data"])
         self.assertEqual(cached_data_id, new_cached_data_id)
 
         # 4. Check that the data does get reloaded if it has changed:

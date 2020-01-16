@@ -76,7 +76,7 @@ class TestTemplatesLoaded(TankTestBase):
         self.expected_names = ["maya_shot_work", "nuke_shot_work"]
 
     def test_templates_loaded(self):
-        actual_names = self.tk.templates.keys()
+        actual_names = list(self.tk.templates.keys())
         for expected_name in self.expected_names:
             self.assertTrue(expected_name in actual_names)
 

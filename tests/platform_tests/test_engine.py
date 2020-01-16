@@ -146,22 +146,32 @@ class TestLegacyStartShotgunEngine(TestEngineBase):
         )
 
 
+@skip_if_pyside_missing
 class TestExecuteInMainThread(TestEngineBase):
     """
     Tests the execute_in_main_thread and async_execute_in_main_thread methods.
     """
 
-    @skip_if_pyside_missing
     def setUp(self):
         """
         Starts up an engine and makes sure Qt is ready to be used.
         """
         super(TestExecuteInMainThread, self).setUp()
-        tank.platform.start_engine("test_engine", self.tk, self.context)
-        if sgtk.platform.qt.QtGui.qApp is None:
-            sgtk.platform.qt.QtGui.QApplication(sys.argv)
 
-    @skip_if_pyside_missing
+        # Init QApplication before engine starts or the engine's invokers can be
+        # deleted internally by Qt before they are used on PySide2.
+        from tank.authentication.ui.qt_abstraction import QtGui
+
+        # See if a QApplication instance exists, and if not create one.  Use the
+        # QApplication.instance() method, since qApp can contain a non-None
+        # value even if no QApplication has been constructed on PySide2.
+        if not QtGui.QApplication.instance():
+            self._app = sgtk.platform.qt.QtGui.QApplication(sys.argv)
+        else:
+            self._app = sgtk.platform.qt.QtGui.QApplication.instance()
+
+        tank.platform.start_engine("test_engine", self.tk, self.context)
+
     def test_exec_in_main_thread(self):
         """
         Checks that execute in main thread actually executes in the main thread.
@@ -170,7 +180,6 @@ class TestExecuteInMainThread(TestEngineBase):
             sgtk.platform.current_engine().execute_in_main_thread
         )
 
-    @skip_if_pyside_missing
     def test_async_exec_in_main_thread(self):
         """
         Checks that execute in main thread actually executes in the main thread.
@@ -191,7 +200,7 @@ class TestExecuteInMainThread(TestEngineBase):
             )
         )
         t.start()
-        sgtk.platform.qt.QtCore.QCoreApplication.instance().exec_()
+        self._app.exec_()
         t.join()
 
     def _assert_run_in_main_thread_and_quit(self):
@@ -201,7 +210,7 @@ class TestExecuteInMainThread(TestEngineBase):
         self.assertEqual(
             QtCore.QThread.currentThread(), QtCore.QCoreApplication.instance().thread()
         )
-        QtCore.QCoreApplication.instance().quit()
+        self._app.quit()
 
     @skip_if_pyside_missing
     def test_exec_in_main_thread_deadlock(self):
@@ -230,7 +239,6 @@ class TestExecuteInMainThread(TestEngineBase):
     #
     # No amount of Googling could figure it out. Converting to QThreads doesn't fix it either.
     # Also, it seems the test only fails if it is run with all the other tests. On its own it appears to be fine.
-    @skip_if_pyside_missing
     def _test_thead_safe_exec_in_main_thread(self):
         """
         Checks that execute_in_main_thread is itself thread-safe!  It
@@ -485,7 +493,7 @@ class TestRegisteredCommands(TestEngineBase):
         command_properties = engine.commands["test_command"].get("properties")
         self.assertIsInstance(command_properties, dict)
 
-        for property, reg_value in register_properties.iteritems():
+        for property, reg_value in register_properties.items():
             self.assertEqual(command_properties[property], reg_value)
         self.assertIsNone(command_properties["prefix"])
 
@@ -572,7 +580,7 @@ class TestRegisteredCommands(TestEngineBase):
 
             self.assertIsInstance(engine.commands[command_key], dict)
             engine_command_properties = engine.commands[command_key]["properties"]
-            for property, reg_value in command_properties.iteritems():
+            for property, reg_value in command_properties.items():
                 self.assertEqual(engine_command_properties[property], reg_value)
             self.assertEqual(engine_command_properties["prefix"], command_prefix)
 
@@ -586,3 +594,43 @@ class TestCompatibility(TankTestBase):
         Ensures the API is backwards compatible as we've moved TankEngineInitErrorto a new location.
         """
         self.assertEqual(sgtk.platform.TankEngineInitError, sgtk.TankEngineInitError)
+
+
+@skip_if_pyside_missing
+class TestShowDialog(TestEngineBase):
+    """
+    Tests the engine.show_dialog method.
+    """
+
+    def setUp(self):
+        """
+        Prepares the engine and makes sure Qt is ready.
+        """
+        super(TestShowDialog, self).setUp()
+        self.setup_fixtures()
+
+        self.engine = sgtk.platform.start_engine("test_engine", self.tk, self.context)
+        # Create an application instance so we can take control of the execution
+        # of the dialog.
+        from sgtk.platform.qt import QtGui
+
+        if QtGui.QApplication.instance() is None:
+            self._app = QtGui.QApplication(sys.argv)
+        else:
+            self._app = QtGui.QApplication.instance()
+
+        self._dialog_dimissed = False
+
+    def tearDown(self):
+        self.engine.destroy()
+        super(TestShowDialog, self).tearDown()
+
+    def test_gui_app_and_close(self):
+        # Show the dialog
+        self.engine.commands["test_app"]["callback"]()
+        # Process events
+        self._app.processEvents()
+        # Click the dismiss button
+        self.engine.apps["test_app"].dismiss_button.click()
+        # Process the remaining events.
+        self._app.processEvents()

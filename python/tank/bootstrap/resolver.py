@@ -404,7 +404,6 @@ class ConfigurationResolver(object):
         cfg_descriptor = None
 
         if path:
-
             if sg_descriptor_uri or sg_uploaded_config:
                 log.debug(
                     "Multiple configuration fields defined for pipeline configuration %s. "
@@ -679,9 +678,11 @@ class ConfigurationResolver(object):
         )
 
         # Filter out pipeline configurations that are not usable.
-        primary, user_sandboxes_project, user_sandboxes_site = self._filter_pipeline_configurations(
-            pcs
-        )
+        (
+            primary,
+            user_sandboxes_project,
+            user_sandboxes_site,
+        ) = self._filter_pipeline_configurations(pcs)
 
         return self._sort_pipeline_configurations(
             ([primary] if primary else [])
@@ -711,7 +712,12 @@ class ConfigurationResolver(object):
             else:
                 primary_index = 1
 
-            return (primary_index, pc["code"].lower(), pc["project"], pc["id"])
+            # Dictionary comparison is not supported in Python 3.  We will
+            # replicate the previous behavior by sorting on project ID, and putting
+            # configurations with no project first.
+            project = -1 if pc["project"] is None else pc["project"].get("id", 0)
+
+            return (primary_index, pc["code"].lower(), project, pc["id"])
 
         return sorted(pcs, key=pc_key_func)
 

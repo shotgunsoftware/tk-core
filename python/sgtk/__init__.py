@@ -18,7 +18,9 @@ import tank
 # now go through and duplicate all entries in sys.modules
 import sys
 
-for x in sys.modules.keys():
+# Generate a list of keys to iterate over,
+# since we'll be mutating the dict as we iterate.
+for x in list(sys.modules.keys()):
 
     if x.startswith("%s." % ALT_API_NAME):
         # this is a submodule inside the alternative API

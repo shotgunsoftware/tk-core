@@ -19,14 +19,17 @@ at any point.
 --------------------------------------------------------------------------------
 """
 
-import cPickle
-import httplib
 from .shotgun_wrapper import ShotgunWrapper
 from tank_vendor.shotgun_api3 import Shotgun, AuthenticationFault, ProtocolError
+from tank_vendor import six
+from tank_vendor.six.moves import http_client
 
 from . import session_cache
 from .errors import IncompleteCredentials
 from .. import LogManager
+from ..util import pickle
+from ..util import json as sgjson
+import json
 
 # Indirection to create ShotgunWrapper instances. Great for unit testing.
 _shotgun_instance_factory = ShotgunWrapper
@@ -53,11 +56,10 @@ class ShotgunUserImpl(object):
         # we don't end up infecting API instances with unicode strings
         # that would then cause some string data to be unicoded during
         # concatenation operations.
-        if isinstance(http_proxy, unicode):
-            http_proxy = http_proxy.encode("utf-8")
+        if http_proxy is not None:
+            http_proxy = six.ensure_str(http_proxy)
 
-        if isinstance(host, unicode):
-            host = host.encode("utf-8")
+        host = six.ensure_str(host)
 
         self._host = host
         self._http_proxy = http_proxy
@@ -309,7 +311,7 @@ class SessionUser(ShotgunUserImpl):
             # But if we get there, it means our session_token is still valid
             # as far as Shotgun is concerned.
             if (
-                e.errcode == httplib.FOUND
+                e.errcode == http_client.FOUND
                 and "location" in e.headers
                 and e.headers["location"].endswith("/saml/saml_login_request")
             ):
@@ -532,17 +534,23 @@ __factories = {
 }
 
 
-def serialize_user(user):
+def serialize_user(user, use_json=False):
     """
     Serializes a user. Meant to be consumed by deserialize.
 
     :param user: User object that needs to be serialized.
+    :param use_json: If ``True``, a ``json`` representation will be generated.
+        A pickled representation will be generated otherwise.
 
     :returns: The payload representing the user.
     """
     # Pickle the dictionary and inject the user type in the payload so we know
     # how to unpickle the user.
-    return cPickle.dumps({"type": user.__class__.__name__, "data": user.to_dict()})
+    user_data = {"type": user.__class__.__name__, "data": user.to_dict()}
+    if use_json:
+        return json.dumps(user_data)
+    else:
+        return pickle.dumps(user_data)
 
 
 def deserialize_user(payload):
@@ -554,8 +562,12 @@ def deserialize_user(payload):
 
     :returns: A ShotgunUser derived instance.
     """
-    # Unpickle the dictionary
-    user_dict = cPickle.loads(payload)
+    # If the serialized payload starts with a {, we have a JSON-encoded string.
+    if payload[0] in ("{", b"{"):
+        user_dict = sgjson.loads(six.ensure_binary(payload))
+    else:
+        # Unpickle the dictionary
+        user_dict = pickle.loads(six.ensure_binary(payload))
 
     # Find which user type we have
     global __factories

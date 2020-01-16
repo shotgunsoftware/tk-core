@@ -81,7 +81,7 @@ def format_bundle_info(log, descriptor, required_updates=None):
         for name in required_updates[1:]:
             log.info("|                   %s" % name)
 
-    log.info("\%s" % ("-" * 70))
+    log.info(r"\%s" % ("-" * 70))
 
 
 def get_configuration(
@@ -152,7 +152,7 @@ def _get_configuration_recursive(
     parent_path = parent_path or []
 
     param_values = {}
-    for param_name, param_data in params.iteritems():
+    for param_name, param_data in params.items():
         if "children" in param_data:
             # recurse to children:
             param_path = list(parent_path) + [
@@ -179,7 +179,7 @@ def _get_configuration_recursive(
             log.info("/%s" % ("-" * 70))
             log.info("| Item:    %s" % param_path[0])
             for level, name in enumerate(param_path[1:]):
-                log.info("|          %s  \ %s" % ("  " * level, name))
+                log.info(r"|          %s  \ %s" % ("  " * level, name))
             log.info("| Type:    %s" % param_data["type"])
             str_to_wrap = "Summary: %s" % param_data["description"]
             for x in textwrap.wrap(
@@ -189,7 +189,7 @@ def _get_configuration_recursive(
                 subsequent_indent="|          ",
             ):
                 log.info(x)
-            log.info("\%s" % ("-" * 70))
+            log.info(r"\%s" % ("-" * 70))
 
             if "value" in param_data:
                 # default value in param data, just log the info for the user
@@ -438,7 +438,7 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
 
     new_params = {}
 
-    for param_name, new_param_definition_dict in new_schema.iteritems():
+    for param_name, new_param_definition_dict in new_schema.items():
 
         param_type = new_param_definition_dict.get("type", "Unknown")
         param_desc = new_param_definition_dict.get("description", "No description.")

@@ -19,6 +19,7 @@ from ..util import filesystem
 from ..api import sgtk_from_path
 
 from tank_vendor import yaml
+from tank_vendor.shotgun_api3.lib import sgsix
 
 
 @filesystem.with_cleared_umask
@@ -144,7 +145,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
     :param setup_params: Parameters object which holds gathered project settings
     """
     # get the location of the configuration
-    config_location_curr_os = setup_params.get_configuration_location(sys.platform)
+    config_location_curr_os = setup_params.get_configuration_location(sgsix.platform)
     config_location_mac = setup_params.get_configuration_location("darwin")
     config_location_linux = setup_params.get_configuration_location("linux2")
     config_location_win = setup_params.get_configuration_location("win32")

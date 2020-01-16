@@ -58,7 +58,8 @@ class TestUnzipping(ShotgunTestBase):
         """
         zip = os.path.join(self.zip_file_location, "tank_core.zip")
         txt = os.path.join(self.zip_file_location, "tank_core.txt")
-        expected_output = open(txt).read().split("\n")
+        with open(txt) as txt_file:
+            expected_output = txt_file.read().split("\n")
 
         output_path_1 = os.path.join(self.project_root, "core_zip_test_1")
         tank.util.zip.unzip_file(zip, output_path_1)

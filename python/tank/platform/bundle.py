@@ -14,18 +14,19 @@ Base class for Abstract classes for Engines, Apps and Frameworks
 """
 
 import os
-import re
 import sys
 import imp
 import uuid
 
 from .. import hook
+from ..util import sgre as re
 from ..util.metrics import EventMetric
 from ..log import LogManager
 from ..errors import TankError, TankNoDefaultValueError
 from .errors import TankContextChangeNotSupportedError
 from . import constants
 from .import_stack import ImportStack
+from tank_vendor import six
 
 core_logger = LogManager.get_logger(__name__)
 
@@ -409,7 +410,7 @@ class TankBundle(object):
         pass
 
     def import_module(self, module_name):
-        """
+        r"""
         Special import command for Toolkit bundles. Imports the python folder inside
         an app and returns the specified module name that exists inside the python folder.
 
@@ -881,7 +882,7 @@ class TankBundle(object):
 
         elif hook_expression.startswith("{$") and "}" in hook_expression:
             # environment variable: {$HOOK_PATH}/path/to/foo.py
-            env_var = re.match("^\{\$([^\}]+)\}", hook_expression).group(1)
+            env_var = re.match(r"^\{\$([^\}]+)\}", hook_expression).group(1)
             if env_var not in os.environ:
                 raise TankError(
                     "%s config setting %s: This hook is referring to the configuration value '%s', "
@@ -895,7 +896,7 @@ class TankBundle(object):
         elif hook_expression.startswith("{") and "}" in hook_expression:
             # bundle instance (e.g. '{tk-framework-perforce_v1.x.x}/foo/bar.py' )
             # first find the bundle instance
-            instance = re.match("^\{([^\}]+)\}", hook_expression).group(1)
+            instance = re.match(r"^\{([^\}]+)\}", hook_expression).group(1)
             # for now, only look at framework instance names. Later on,
             # if the request ever comes up, we could consider extending
             # to supporting app instances etc. However we would need to
@@ -1089,7 +1090,7 @@ def _post_process_settings_r(tk, key, value, schema, bundle=None):
     # first check for procedural overrides where instead of getting a value,
     # directly from the config, we call a hook to evaluate a config value
     # at runtime:
-    if isinstance(value, basestring) and value.startswith("hook:"):
+    if isinstance(value, six.string_types) and value.startswith("hook:"):
         # handle the special form where the value is computed in a hook.
         #
         # if the template parameter is on the form
@@ -1123,7 +1124,7 @@ def _post_process_settings_r(tk, key, value, schema, bundle=None):
         items = schema.get("items", {})
         # note - we assign the original values here because we
         processed_val = value
-        for (key, value_schema) in items.iteritems():
+        for (key, value_schema) in items.items():
             processed_val[key] = _post_process_settings_r(
                 tk=tk, key=key, value=value[key], schema=value_schema, bundle=bundle
             )

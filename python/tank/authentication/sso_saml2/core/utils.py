@@ -13,11 +13,23 @@ SSO/SAML2 Core utility functions.
 
 # pylint: disable=line-too-long
 
+import sys
 import base64
+import binascii
 import logging
 import urllib
-import urlparse
-from Cookie import SimpleCookie
+
+# For Python 2/3 compatibility without a dependency on six, we'll just try
+# to import as in Python 2, and fall back to Python 3 locations if the imports
+# fail.
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
+try:
+    from http.cookies import SimpleCookie
+except ImportError:
+    from Cookie import SimpleCookie
 
 
 from .errors import SsoSaml2MultiSessionNotSupportedError
@@ -57,9 +69,15 @@ def _decode_cookies(encoded_cookies):
     if encoded_cookies:
         try:
             decoded_cookies = base64.b64decode(encoded_cookies)
+            if not isinstance(decoded_cookies, str):
+                # If decoded_cookies is not a string, it's likely we're on
+                # Python3, and decoded_cookies is binary.  Try to decode it.
+                decoded_cookies = decoded_cookies.decode()
             cookies.load(decoded_cookies)
-        except TypeError as exc:
-            get_logger().error("Unable to decode the cookies: %s", exc.message)
+        except (TypeError, binascii.Error) as e:
+            # In Python 2 this raises a TypeError, while in 3 it will raise a
+            # binascii.Error.  Catch either and handle them the same.
+            get_logger().error("Unable to decode the cookies: %s", str(e))
     return cookies
 
 
@@ -71,7 +89,16 @@ def _encode_cookies(cookies):
 
     :returns: An encoded string representing the cookie jar.
     """
-    encoded_cookies = base64.b64encode(cookies.output())
+    PY3 = sys.version_info[0] == 3
+    output = cookies.output()
+    if PY3 and isinstance(output, str):
+        # On Python 3, encode str to binary before passing it to b64encode.
+        output = output.encode()
+    encoded_cookies = base64.b64encode(output)
+    if PY3:
+        # On Python 3, b64encode returns a bytes object that we'll want to
+        # decode to a string for compatibility between Python 2 and 3.
+        encoded_cookies = encoded_cookies.decode()
     return encoded_cookies
 
 

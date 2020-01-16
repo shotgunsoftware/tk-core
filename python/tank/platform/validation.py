@@ -13,7 +13,6 @@ App configuration and schema validation.
 
 """
 import os
-import sys
 
 from . import constants
 from ..errors import TankError, TankNoDefaultValueError
@@ -21,6 +20,7 @@ from ..template import TemplateString
 from .bundle import resolve_default_value
 from ..util.version import is_version_older, is_version_number
 from ..log import LogManager
+from tank_vendor.shotgun_api3.lib import sgsix
 
 # We're potentially running here in an environment with
 # no engine available via current_engine(), so we'll have
@@ -91,7 +91,7 @@ def validate_platform(descriptor):
         # supported platforms defined in manifest
         # get a human friendly mapping of current platform: linux/mac/windows
         nice_system_name = {"linux2": "linux", "darwin": "mac", "win32": "windows"}[
-            sys.platform
+            sgsix.platform
         ]
         if nice_system_name not in supported_platforms:
             raise TankError(
@@ -183,7 +183,7 @@ def validate_and_return_frameworks(descriptor, environment):
         desired_fw_instance = "%s_%s" % (required_fw_name, version)
         min_version_satisfied = True
 
-        for fw_instance_name, fw_desc in fw_descriptors.iteritems():
+        for fw_instance_name, fw_desc in fw_descriptors.items():
 
             # We've found a matching framework.
             if fw_instance_name == desired_fw_instance:
@@ -258,7 +258,7 @@ def validate_and_return_frameworks(descriptor, environment):
 
                 msg += "The currently installed frameworks are: \n"
                 fw_strings = []
-                for x, fw in fw_descriptors.iteritems():
+                for x, fw in fw_descriptors.items():
                     fw_strings.append(
                         "Name: '%s', Version: '%s'" % (fw.system_name, fw.version)
                     )

@@ -12,7 +12,6 @@ from __future__ import with_statement
 
 import sys
 import os
-import StringIO
 import shutil
 import logging
 import tempfile
@@ -25,6 +24,8 @@ from tank.errors import TankError, TankHookMethodDoesNotExistError
 from tank.platform import application, constants, validation
 from tank.template import Template
 from tank.deploy import descriptor
+from tank_vendor import six
+from tank_vendor.six import StringIO
 
 
 class TestApplication(TankTestBase):
@@ -80,7 +81,7 @@ class TestAppFrameworks(TestApplication):
         reported by framework.name, which is derived from the descriptor.
         """
         frameworks = self.engine.apps["test_app"].frameworks
-        self.assertEqual(["test_framework"], frameworks.keys())
+        self.assertEqual(["test_framework"], list(frameworks.keys()))
 
     def test_minimum_version(self):
         """
@@ -417,7 +418,7 @@ class TestExecuteHook(TestApplication):
         tests the logger property for application hooks
         """
         # capture sync log to string
-        stream = StringIO.StringIO()
+        stream = StringIO()
         handler = logging.StreamHandler(stream)
 
         app = self.engine.apps["test_app"]
@@ -473,16 +474,39 @@ class TestExecuteHook(TestApplication):
         )
 
     def test_self_format(self):
+        """
+        Ensure we can call a hook located inside the current bundle.
+        """
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook("test_hook_self", dummy_param=True))
 
     def test_config_format(self):
+        """
+        Ensure we can call a hook located inside a config from an app.
+        """
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook("test_hook_config", dummy_param=True))
 
     def test_engine_format(self):
+        """
+        Ensure we can call a hook located inside an engine from an app.
+        """
         app = self.engine.apps["test_app"]
         self.assertTrue(app.execute_hook("test_hook_engine", dummy_param=True))
+
+    def test_framework_format(self):
+        """
+        Ensure we can call a hook located inside a framework from an app.
+        """
+        app = self.engine.apps["test_app"]
+        self.assertTrue(app.execute_hook("test_hook_framework", dummy_param=True))
+        with self.assertRaisesRegex(
+            TankError,
+            "but no framework with instance name 'test_framework_v2.x.x' can be found",
+        ):
+            self.assertTrue(
+                app.execute_hook("test_hook_unknown_framework", dummy_param=True)
+            )
 
     def test_default_format(self):
         app = self.engine.apps["test_app"]
@@ -701,7 +725,7 @@ class TestBundleDataCache(TestApplication):
             )
         )
         # Test frameworks
-        for fw in app.frameworks.itervalues():
+        for fw in six.itervalues(app.frameworks):
             fw_data_cache_path = fw.cache_location
             # We should have the project id in the path
             self.assertTrue(

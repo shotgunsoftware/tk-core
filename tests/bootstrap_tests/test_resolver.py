@@ -16,6 +16,7 @@ import sys
 from mock import patch
 import sgtk
 from sgtk.util import ShotgunPath
+from tank_vendor.shotgun_api3.lib import sgsix
 
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import TankTestBase
@@ -60,9 +61,8 @@ class TestResolverBase(TankTestBase):
         create a mock info.yml
         """
         sgtk.util.filesystem.ensure_folder_exists(path)
-        fh = open(os.path.join(path, "info.yml"), "wt")
-        fh.write("foo")
-        fh.close()
+        with open(os.path.join(path, "info.yml"), "wt") as fh:
+            fh.write("foo")
 
     def _create_pc(
         self,
@@ -111,7 +111,9 @@ class TestUserRestriction(TestResolverBase):
     def setUp(self):
         super(TestUserRestriction, self).setUp()
 
-        self._john_doe = self.mockgun.create("HumanUser", {"login": "john.doe"})
+        self._john_doe = self.mockgun.create(
+            "HumanUser", {"login": "john.doe", "name": "John Doe"}
+        )
 
         self._john_doe_pc = self._create_pc(
             "Doe Sandbox",
@@ -527,7 +529,7 @@ class TestResolverPriority(TestResolverBase):
         # so only the primary and the 3 sandboxes should show up.
         self.assertEqual(len(pcs), 4)
 
-        primaries = filter(lambda x: x["code"] == "Primary", pcs)
+        primaries = [x for x in pcs if x["code"] == "Primary"]
         self.assertEqual(len(primaries), 1)
         self.assertEqual(primaries[0]["project"], self._project)
         self.assertEqual(primaries[0]["plugin_ids"], None)
@@ -770,7 +772,7 @@ class TestPipelineLocationFieldPriority(TestResolverBase):
             descriptor=None,
         )
 
-        base_paths[field_lookup[sys.platform]] = None
+        base_paths[field_lookup[sgsix.platform]] = None
 
         # Now remove every locators.
         self.mockgun.update("PipelineConfiguration", pc_id, base_paths)
@@ -1027,7 +1029,7 @@ class TestResolveWithFilter(TestResolverBase):
         """
 
         # Create a second user that will own similar sandboxes.
-        self.mockgun.create("HumanUser", {"login": "john.doe"})
+        self.mockgun.create("HumanUser", {"login": "john.doe", "name": "John Doe"})
 
         # Create site primary
         self._create_pc("Primary", path="primary_configuration", plugin_ids="foo.*")

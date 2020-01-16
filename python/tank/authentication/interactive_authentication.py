@@ -33,8 +33,8 @@ from .ui_authentication import UiAuthenticationHandler
 from .. import LogManager
 
 import threading
-import sys
 import os
+from tank.util import is_windows
 
 # When importing qt_abstraction, a lot of code is executed to detects which
 # version of Qt is being used. Running business logic at import time is not
@@ -59,7 +59,7 @@ def _get_current_os_user():
 
     :returns: The username string.
     """
-    if sys.platform == "win32":
+    if is_windows():
         # http://stackoverflow.com/questions/117014/how-to-retrieve-name-of-current-windows-user-ad-or-local-using-python
         return os.environ.get("USERNAME", None)
     else:
@@ -75,7 +75,7 @@ def _get_current_os_user():
 def _get_ui_state():
     """
     Returns the state of UI: do we have a ui or not.
-    :returns: True or False
+    :returns: True or False)
     """
     if QtGui and QtGui.QApplication.instance() is not None:
         return True
@@ -147,7 +147,12 @@ class SessionRenewal(object):
 
                 # @TODO: Refactor the authenticate methods to return a struct-like
                 #        object instead of a 4 elements tuple.
-                hostname, login, session_token, session_metadata = credentials_handler.authenticate(
+                (
+                    hostname,
+                    login,
+                    session_token,
+                    session_metadata,
+                ) = credentials_handler.authenticate(
                     user.get_host(), user.get_login(), user.get_http_proxy()
                 )
                 SessionRenewal._auth_state = SessionRenewal.SUCCESS

@@ -14,6 +14,8 @@ from .git import IODescriptorGit
 from ..errors import TankDescriptorError
 from ... import LogManager
 
+from tank_vendor import six
+
 log = LogManager.get_logger(__name__)
 
 
@@ -173,7 +175,7 @@ class IODescriptorGitTag(IODescriptorGit):
             tag_name = self._get_latest_version()
 
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
-        new_loc_dict["version"] = tag_name
+        new_loc_dict["version"] = six.ensure_str(tag_name)
 
         # create new descriptor to represent this tag
         desc = IODescriptorGitTag(new_loc_dict, self._sg_connection, self._bundle_type)
@@ -196,7 +198,9 @@ class IODescriptorGitTag(IODescriptorGit):
             # clone the repo, list all tags
             # for the repository, across all branches
             commands = ["tag"]
-            git_tags = self._tmp_clone_then_execute_git_commands(commands).split("\n")
+            git_tags = six.ensure_text(
+                self._tmp_clone_then_execute_git_commands(commands)
+            ).split("\n")
 
         except Exception as e:
             raise TankDescriptorError(
@@ -258,7 +262,7 @@ class IODescriptorGitTag(IODescriptorGit):
         :returns: instance deriving from IODescriptorBase or None if not found
         """
         log.debug("Looking for cached versions of %r..." % self)
-        all_versions = self._get_locally_cached_versions().keys()
+        all_versions = list(self._get_locally_cached_versions().keys())
         log.debug("Found %d versions" % len(all_versions))
 
         if len(all_versions) == 0:

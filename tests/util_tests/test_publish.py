@@ -10,12 +10,12 @@
 
 from __future__ import with_statement
 import os
-import sys
 
 from mock import patch, call
 
 import tank
 from tank import context, errors
+from tank.util import is_windows
 from tank_test.tank_test_base import (
     TankTestBase,
     setUpModule,
@@ -86,7 +86,7 @@ class TestShotgunRegisterPublish(TankTestBase):
             side_effect=Exception("[Attachment.local_storage] does not exist"),
         ):
 
-            if sys.platform == "win32":
+            if is_windows():
                 local_path = r"x:\tmp\win\path\to\file.txt"
             else:
                 local_path = "/tmp/nix/path/to/file.txt"
@@ -213,7 +213,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         """
         Tests that we generate local file links when publishing to a known storage
         """
-        if sys.platform == "win32":
+        if is_windows():
             values = [
                 r"x:\tmp\win\path\to\file.txt",
                 r"\\server\share\path\to\file.txt",
@@ -247,7 +247,7 @@ class TestShotgunRegisterPublish(TankTestBase):
         """
         Tests that we generate url file:// links for freeform paths
         """
-        if sys.platform == "win32":
+        if is_windows():
             values = {
                 "C:/path/to/test file.png": {
                     "url": "file:///C:/path/to/test%20file.png",
@@ -284,7 +284,7 @@ class TestShotgunRegisterPublish(TankTestBase):
             }
 
         # Various paths we support, Unix and Windows styles
-        for (local_path, path_dict) in values.iteritems():
+        for (local_path, path_dict) in values.items():
 
             publish_data = tank.util.register_publish(
                 self.tk, self.context, local_path, self.name, self.version, dry_run=True

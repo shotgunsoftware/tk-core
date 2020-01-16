@@ -8,17 +8,17 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import sys
 import os
-import re
 import tempfile
 import uuid
 
 from . import constants
 
 from ..util import StorageRoots
+from ..util import sgre as re
 from ..util import shotgun
 from ..util import filesystem
+from ..util import is_windows
 from ..util.version import is_version_newer
 from ..util.zip import unzip_file, zip_file
 
@@ -30,6 +30,7 @@ from ..descriptor import create_descriptor, Descriptor
 from tank_vendor import yaml
 
 from ..util import ShotgunPath
+from tank_vendor.shotgun_api3.lib import sgsix
 
 
 class ProjectSetupParameters(object):
@@ -151,7 +152,7 @@ class ProjectSetupParameters(object):
         return self._config_template.default_storage_name
 
     def validate_config_uri(self, config_uri):
-        """
+        r"""
         Validates a configuration template to check if it is compatible with the current Shotgun setup.
         This will download the config, validate it to ensure that it is compatible with the
         constraints (versions of core and shotgun) of this system.
@@ -231,7 +232,7 @@ class ProjectSetupParameters(object):
                     "and set up a new local file storage." % storage_name
                 )
 
-            elif storage_data[storage_name][sys.platform] is None:
+            elif storage_data[storage_name][sgsix.platform] is None:
                 raise TankError(
                     "The Shotgun Local File Storage '%s' does not have a path defined "
                     "for the current operating system!" % storage_name
@@ -240,7 +241,7 @@ class ProjectSetupParameters(object):
             elif (
                 check_storage_path and not storage_data[storage_name]["exists_on_disk"]
             ):
-                local_path = storage_data[storage_name][sys.platform]
+                local_path = storage_data[storage_name][sgsix.platform]
                 raise TankError(
                     "The path on disk '%s' defined in the Shotgun Local File Storage '%s' does "
                     "not exist!" % (local_path, storage_name)
@@ -341,7 +342,7 @@ class ProjectSetupParameters(object):
         if self._config_template is None:
             raise TankError("Please specify a configuration template!")
 
-        return self._storage_data.keys()
+        return list(self._storage_data.keys())
 
     def get_storage_description(self, storage_name):
         """
@@ -387,7 +388,9 @@ class ProjectSetupParameters(object):
                 % storage_name
             )
 
-        return self._storage_data.get(storage_name).get(platform)
+        return self._storage_data.get(storage_name).get(
+            sgsix.normalize_platform(platform)
+        )
 
     def update_storage_root(self, config_uri, root_name, storage_data):
         """
@@ -545,7 +548,7 @@ class ProjectSetupParameters(object):
             proj = self._sg.find_one(
                 "Project", [["id", "is", self._project_id]], ["name"]
             )
-            suggested_folder_name = re.sub("\W", "_", proj.get("name")).lower()
+            suggested_folder_name = re.sub(r"\W", "_", proj.get("name")).lower()
 
         return suggested_folder_name
 
@@ -564,7 +567,7 @@ class ProjectSetupParameters(object):
 
         # basic validation of folder name
         # note that the value can contain slashes and span across multiple folders
-        if re.match("^[\./a-zA-Z0-9_-]+$", project_name) is None:
+        if re.match(r"^[\./a-zA-Z0-9_-]+$", project_name) is None:
             raise TankError(
                 "Invalid project folder '%s'! Please use alphanumerics, "
                 "underscores and dashes." % project_name
@@ -603,6 +606,7 @@ class ProjectSetupParameters(object):
         # append the project name
         storage_path += "/%s" % project_name
         # note that project name can be 'foo/bar' with a forward slash for all platforms
+        # Fixes any slashes that might be in the wrong direction.
         if platform == "win32":
             # ensure back slashes all the way
             storage_path = storage_path.replace("/", "\\")
@@ -759,7 +763,7 @@ class ProjectSetupParameters(object):
                 )
 
         # get the location of the configuration
-        config_path_current_os = config_path[sys.platform]
+        config_path_current_os = config_path[sgsix.platform]
 
         if config_path_current_os is None or config_path_current_os == "":
             raise TankError(
@@ -842,7 +846,7 @@ class ProjectSetupParameters(object):
         if self._config_path is None:
             raise TankError("No configuration location has been set!")
 
-        return self._config_path[platform]
+        return self._config_path[sgsix.normalize_platform(platform)]
 
     ################################################################################################################
     # Accessing which core API to use
@@ -869,10 +873,10 @@ class ProjectSetupParameters(object):
         Note that values returned can be none in case the core API location
         has not been defined on a platform.
 
-        :param platform: Os platform as a string, sys.platform style (e.g. linux2/win32/darwin)
+        :param platform: Os platform as a string, sys.platform style (e.g. linux/win32/darwin)
         :returns: path to pipeline configuration.
         """
-        return self._core_path[platform]
+        return self._core_path[sgsix.normalize_platform(platform)]
 
     ################################################################################################################
     # Validation
@@ -887,7 +891,7 @@ class ProjectSetupParameters(object):
         if self._core_path is None:
             raise TankError("Need to define a core location!")
 
-        if self._core_path[sys.platform] is None:
+        if self._core_path[sgsix.platform] is None:
             raise TankError(
                 "The core API you are trying to use in conjunction with this project "
                 "has not been set up to operate on the current operating system. Please update "
@@ -924,13 +928,13 @@ class ProjectSetupParameters(object):
 
             # make sure that the storage location is not the same folder
             # as the pipeline config location. That will confuse tank.
-            config_path_current_os = self.get_configuration_location(sys.platform)
+            config_path_current_os = self.get_configuration_location(sgsix.platform)
             for storage_name in self.get_required_storages():
 
                 # get the project path for this storage
                 # note! at this point, the storage root has been checked and exists on disk.
                 project_path_local_os = self.get_project_path(
-                    storage_name, sys.platform
+                    storage_name, sgsix.platform
                 )
 
                 if config_path_current_os == project_path_local_os:
@@ -945,7 +949,7 @@ class ProjectSetupParameters(object):
 
             # get the project path for this storage
             # note! at this point, the storage root has been checked and exists on disk.
-            project_path_local_os = self.get_project_path(storage_name, sys.platform)
+            project_path_local_os = self.get_project_path(storage_name, sgsix.platform)
 
             if not os.path.exists(project_path_local_os):
                 raise TankError(
@@ -960,7 +964,7 @@ class ProjectSetupParameters(object):
         if required_core_version:
 
             # now figure out the version of the desired API
-            api_location = self.get_associated_core_path(sys.platform)
+            api_location = self.get_associated_core_path(sgsix.platform)
             curr_core_version = pipelineconfig_utils.get_core_api_version(api_location)
 
             if is_version_newer(required_core_version, curr_core_version):
@@ -1225,7 +1229,7 @@ class TemplateConfiguration(object):
         return self._version
 
     def resolve_storages(self):
-        """
+        r"""
         Validate that the roots exist in shotgun. Communicates with Shotgun.
 
         Returns the root paths from shotgun for each storage.
@@ -1417,7 +1421,7 @@ class TemplateConfiguration(object):
             filesystem.copy_folder(self._cfg_folder, target_path)
 
     def update_storage_root(self, root_name, storage_data):
-        """
+        r"""
         Given a required storage root name, update the template config's storage
         root information.
 

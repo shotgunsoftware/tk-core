@@ -16,8 +16,7 @@ from __future__ import with_statement
 import os
 import sys
 import uuid
-import urllib2
-import urlparse
+from tank_vendor.six.moves import urllib
 import time
 import tempfile
 import zipfile
@@ -75,28 +74,30 @@ def download_url(sg, url, location, use_url_extension=False):
         # in the form: https://sg-media-staging-usor-01.s3.amazonaws.com/9d93f...
         # %3D&response-content-disposition=filename%3D%22jackpot_icon.png%22.
         # Grab proxy server settings from the shotgun API
-        opener = urllib2.build_opener(sg.config.proxy_handler)
+        opener = urllib.request.build_opener(sg.config.proxy_handler)
 
-        urllib2.install_opener(opener)
+        urllib.request.install_opener(opener)
 
     # inherit the timeout value from the sg API
     timeout = sg.config.timeout_secs
 
     # download the given url
     try:
-        request = urllib2.Request(url)
+        request = urllib.request.Request(url)
         if timeout and sys.version_info >= (2, 6):
             # timeout parameter only available in python 2.6+
-            response = urllib2.urlopen(request, timeout=timeout)
+            response = urllib.request.urlopen(request, timeout=timeout)
         else:
             # use system default
-            response = urllib2.urlopen(request)
+            response = urllib.request.urlopen(request)
 
         if use_url_extension:
             # Make sure the disk location has the same extension as the url path.
             # Would be nice to see this functionality moved to back into Shotgun
             # API and removed from here.
-            url_ext = os.path.splitext(urlparse.urlparse(response.geturl()).path)[-1]
+            url_ext = os.path.splitext(urllib.parse.urlparse(response.geturl()).path)[
+                -1
+            ]
             if url_ext:
                 location = "%s%s" % (location, url_ext)
 
@@ -125,11 +126,11 @@ def __setup_sg_auth_and_proxy(sg):
     """
     # Importing this module locally to reduce clutter and facilitate clean up when/if this
     # functionality gets ported back into the Shotgun API.
-    import cookielib
+    from tank_vendor.six.moves import http_cookiejar
 
     sid = sg.get_session_token()
-    cj = cookielib.LWPCookieJar()
-    c = cookielib.Cookie(
+    cj = http_cookiejar.LWPCookieJar()
+    c = http_cookiejar.Cookie(
         "0",
         "_session_id",
         sid,
@@ -148,12 +149,12 @@ def __setup_sg_auth_and_proxy(sg):
         {},
     )
     cj.set_cookie(c)
-    cookie_handler = urllib2.HTTPCookieProcessor(cj)
+    cookie_handler = urllib.request.HTTPCookieProcessor(cj)
     if sg.config.proxy_handler:
-        opener = urllib2.build_opener(sg.config.proxy_handler, cookie_handler)
+        opener = urllib.request.build_opener(sg.config.proxy_handler, cookie_handler)
     else:
-        opener = urllib2.build_opener(cookie_handler)
-    urllib2.install_opener(opener)
+        opener = urllib.request.build_opener(cookie_handler)
+    urllib.request.install_opener(opener)
 
 
 def download_and_unpack_attachment(

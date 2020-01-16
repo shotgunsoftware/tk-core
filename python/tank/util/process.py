@@ -10,9 +10,10 @@
 
 import subprocess
 import pprint
-import sys
 
+from .platforms import is_windows
 from ..log import LogManager
+from tank_vendor import six
 
 logger = LogManager.get_logger(__name__)
 
@@ -67,9 +68,14 @@ def subprocess_check_output(*popenargs, **kwargs):
         **kwargs
     )
     # Very important to close stdin on Windows. See issue mentioned above.
-    if sys.platform == "win32":
+    if is_windows():
         process.stdin.close()
     output, unused_err = process.communicate()
+    # It's okay to expect a string out of subprocess. We're only calling this tool
+    # to retrieve text from the console to parse it and not binary, so for our
+    # use case converting to a str will always make case and simplifies
+    # the caller's logic.
+    output = six.ensure_str(output)
     retcode = process.poll()
 
     if retcode:

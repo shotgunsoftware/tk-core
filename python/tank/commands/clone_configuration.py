@@ -12,12 +12,12 @@ from ..util import ShotgunPath
 from ..errors import TankError
 from . import constants
 from ..util import filesystem
+from ..util import is_linux, is_macos, is_windows
 
 from tank_vendor import yaml
 
 from .action_base import Action
 
-import sys
 import os
 import shutil
 
@@ -65,19 +65,19 @@ class CloneConfigAction(Action):
         # note how the current platform's default value is None in order to make that required
         self.parameters["path_mac"] = {
             "description": "Path to the new configuration on Macosx.",
-            "default": (None if sys.platform == "darwin" else ""),
+            "default": (None if is_macos() else ""),
             "type": "str",
         }
 
         self.parameters["path_win"] = {
             "description": "Path to the new configuration on Windows.",
-            "default": (None if sys.platform == "win32" else ""),
+            "default": (None if is_windows() else ""),
             "type": "str",
         }
 
         self.parameters["path_linux"] = {
             "description": "Path to the new configuration on Linux.",
-            "default": (None if sys.platform == "linux2" else ""),
+            "default": (None if is_linux() else ""),
             "type": "str",
         }
 
@@ -171,7 +171,7 @@ def clone_pipeline_configuration_html(
             "of the Toolkit API, you can execute the following command: "
         )
 
-        if sys.platform == "win32":
+        if is_windows():
             tank_cmd = os.path.join(target_folder, "tank.bat")
         else:
             tank_cmd = os.path.join(target_folder, "tank")
@@ -201,9 +201,13 @@ def _do_clone(
     )
     source_folder = source_pc.get(curr_os)
 
-    target_folder = {"linux2": target_linux, "win32": target_win, "darwin": target_mac}[
-        sys.platform
-    ]
+    target_folder = None
+    if is_windows():
+        target_folder = target_win
+    elif is_macos():
+        target_folder = target_mac
+    elif is_linux():
+        target_folder = target_linux
 
     log.debug("Cloning %s -> %s" % (source_folder, target_folder))
 

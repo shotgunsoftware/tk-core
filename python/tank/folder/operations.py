@@ -17,6 +17,7 @@ from .configuration import FolderConfiguration
 from .folder_io import FolderIOReceiver
 from .folder_types import EntityLinkTypeMismatch
 from ..errors import TankError
+from tank_vendor import six
 
 
 def create_single_folder_item(
@@ -126,7 +127,7 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
     """
 
     # check that engine is either a string or None
-    if not (isinstance(engine, basestring) or engine is None):
+    if not (isinstance(engine, six.string_types) or engine is None):
         raise ValueError("engine parameter needs to be a string or None")
 
     # Ensure ids is a list

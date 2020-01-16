@@ -17,6 +17,7 @@ from .. import path_cache
 from .. import folder
 
 from .action_base import Action
+from tank_vendor.six.moves import input
 
 
 class SynchronizePathCache(Action):
@@ -166,7 +167,7 @@ class PathCacheMigrationAction(Action):
             "from Shotgun."
         )
         log.info("")
-        val = raw_input(
+        val = input(
             "Turn on syncing for this pipeline configuration (Yes/No) ? [Yes]: "
         )
         if val != "" and not val.lower().startswith("y"):

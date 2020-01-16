@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright (c) 2018 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
@@ -46,7 +47,7 @@ def main():
 
     before = time.time()
     try:
-        filenames = glob.iglob(os.path.join(current_folder, "*.py"))
+        filenames = sys.argv[1:] or glob.iglob(os.path.join(current_folder, "*.py"))
         for filename in filenames:
 
             # Skip the launcher. :)
@@ -57,8 +58,15 @@ def main():
             print("Running %s" % os.path.basename(filename))
             print("=" * 79)
 
-            if "--with-coverage" in sys.argv:
-                args = ["coverage", "run", "-a", filename]
+            if "SHOTGUN_TEST_COVERAGE" in os.environ:
+                args = [
+                    sys.executable,
+                    "-m",
+                    "coverage",
+                    "run",
+                    "--parallel-mode",
+                    filename,
+                ]
             else:
                 args = [sys.executable, filename]
 

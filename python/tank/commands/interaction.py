@@ -12,7 +12,9 @@
 Interfaces for prompting the user for input during tank command execution.
 """
 
+from __future__ import print_function
 from .. import LogManager
+from tank_vendor.six.moves import input
 
 
 log = LogManager.get_logger(__name__)
@@ -99,7 +101,7 @@ class RawInputCommandInteraction(CommandInteraction):
         :returns: Information entered by user.
         :rtype: str
         """
-        return raw_input(message)
+        return input(message)
 
     def ask_yn_question(self, message):
         """
@@ -108,11 +110,11 @@ class RawInputCommandInteraction(CommandInteraction):
         :param str message: Message to display
         :returns: True if user selects yes, false if no.
         """
-        answer = raw_input("%s [yn]" % message)
+        answer = input("%s [yn]" % message)
         answer = answer.lower()
         if answer != "n" and answer != "y":
             print("Press y for YES, n for NO")
-            answer = raw_input("%s [yn]" % message)
+            answer = input("%s [yn]" % message)
 
         if answer == "y":
             return True
@@ -134,11 +136,11 @@ class RawInputCommandInteraction(CommandInteraction):
             # auto-press YES
             return True
 
-        answer = raw_input("%s [Yna?]" % message)
+        answer = input("%s [Yna?]" % message)
         answer = answer.lower()
         if answer != "n" and answer != "a" and answer != "y" and answer != "":
             print("Press ENTER or y for YES, n for NO and a for ALWAYS.")
-            answer = raw_input("%s [Yna?]" % message)
+            answer = input("%s [Yna?]" % message)
 
         if answer == "a":
             self._ask_questions = False

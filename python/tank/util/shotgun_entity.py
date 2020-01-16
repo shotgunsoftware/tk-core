@@ -12,10 +12,9 @@
 Utilities relating to Shotgun entities
 """
 
-import re
-
-from . import constants
+from . import constants, sgre as re
 from ..errors import TankError
+from tank_vendor import six
 
 # A dictionary for Shotgun entities which do not store their name
 # in the standard "code" field.
@@ -194,7 +193,7 @@ class EntityExpression(object):
         # Look for square brackets that contains at least one
         # {expression} and ignore any square bracket inside
         # expressions:
-        tokens = re.split("(\[[^\]]*\{.*\}[^\]]*\])", definition)
+        tokens = re.split(r"(\[[^\]]*\{.*\}[^\]]*\])", definition)
         # seed with empty string
         definitions = [""]
         for token in tokens:
@@ -346,7 +345,7 @@ class EntityExpression(object):
         #
         # Replace tokens in the string with actual values:
         resolved_expression = expression
-        for token, value in str_data.iteritems():
+        for token, value in str_data.items():
             resolved_expression = resolved_expression.replace("{%s}" % token, value)
 
         # now validate the entire value!
@@ -378,7 +377,7 @@ class EntityExpression(object):
 
         # iterate over all tokens and validate
         for folder_subgroup in name.split("/"):
-            if isinstance(folder_subgroup, unicode):
+            if isinstance(folder_subgroup, six.text_type):
                 u_name = folder_subgroup
             else:
                 # try decoding from utf-8:
@@ -402,7 +401,7 @@ class EntityExpression(object):
             return ""
 
         # perform the regex calculation in unicode space
-        if not isinstance(value, unicode):
+        if not isinstance(value, six.text_type):
             input_is_utf8 = True
             value_to_convert = value.decode("utf-8")
         else:
@@ -420,7 +419,7 @@ class EntityExpression(object):
 
         # resolved value is now unicode. Convert it
         # so that it is consistent with input
-        if isinstance(resolved_value, unicode) and input_is_utf8:
+        if isinstance(resolved_value, six.text_type) and input_is_utf8:
             # input was utf-8, regex result is unicode, cast it back
             return resolved_value.encode("utf-8")
         else:

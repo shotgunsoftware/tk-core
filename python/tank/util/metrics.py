@@ -21,12 +21,11 @@ are not part of the public Sgtk API.
 
 from collections import deque
 from threading import Event, Thread, Lock
-import re
 import platform
-import urllib2
+from tank_vendor.six.moves import urllib
 from copy import deepcopy
 
-from . import constants
+from . import constants, sgre as re
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
@@ -528,8 +527,8 @@ class MetricsDispatchWorkerThread(Thread):
         # handle proxy setup by pulling the proxy details from the main
         # shotgun connection
         if sg_connection.config.proxy_handler:
-            opener = urllib2.build_opener(sg_connection.config.proxy_handler)
-            urllib2.install_opener(opener)
+            opener = urllib.request.build_opener(sg_connection.config.proxy_handler)
+            urllib.request.install_opener(opener)
 
         # build the full endpoint url with the shotgun site url
         url = "%s/%s" % (sg_connection.base_url, self.API_ENDPOINT)
@@ -543,9 +542,9 @@ class MetricsDispatchWorkerThread(Thread):
 
         header = {"Content-Type": "application/json"}
         try:
-            request = urllib2.Request(url, payload_json, header)
-            urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
+            request = urllib.request.Request(url, payload_json, header)
+            urllib.request.urlopen(request)
+        except urllib.error.HTTPError:
             # fire and forget, so if there's an error, ignore it.
             pass
 

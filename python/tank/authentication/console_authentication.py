@@ -32,6 +32,7 @@ from .sso_saml2 import is_autodesk_identity_enabled_on_site, is_sso_enabled_on_s
 from ..util.shotgun.connection import sanitize_url
 
 from getpass import getpass
+from tank_vendor.six.moves import input
 
 logger = LogManager.get_logger(__name__)
 
@@ -143,7 +144,7 @@ class ConsoleAuthenticationHandlerBase(object):
 
         :returns: The user's text input.
         """
-        return raw_input(text).strip()
+        return input(text).strip()
 
     def _get_keyboard_input(self, label, default_value=""):
         """

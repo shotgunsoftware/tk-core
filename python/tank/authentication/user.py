@@ -306,15 +306,17 @@ class ShotgunSamlUser(ShotgunWebUser):
             return False
 
 
-def serialize_user(user):
+def serialize_user(user, use_json=False):
     """
     Serializes a user. Meant to be consumed by deserialize.
 
     :param user: User object that needs to be serialized.
+    :param use_json: If ``True``, a ``json`` representation will be generated.
+        A pickled representation will be generated otherwise.
 
     :returns: The payload representing the user.
     """
-    return user_impl.serialize_user(user.impl)
+    return user_impl.serialize_user(user.impl, use_json=use_json)
 
 
 def deserialize_user(payload):

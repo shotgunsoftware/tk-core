@@ -18,6 +18,7 @@ at any point.
 --------------------------------------------------------------------------------
 """
 from tank_vendor import shotgun_api3
+from tank_vendor import six
 from .web_login_support import get_shotgun_authenticator_support_web_login
 from .ui import resources_rc  # noqa
 from .ui import login_dialog
@@ -276,8 +277,8 @@ class LoginDialog(QtGui.QDialog):
 
         :returns: The site to connect to.
         """
-        return connection.sanitize_url(self.ui.site.currentText().strip()).encode(
-            "utf-8"
+        return six.ensure_str(
+            connection.sanitize_url(self.ui.site.currentText().strip())
         )
 
     def _get_current_user(self):
@@ -286,7 +287,7 @@ class LoginDialog(QtGui.QDialog):
 
         :returns: The login to use for authentication.
         """
-        return self.ui.login.currentText().strip().encode("utf-8")
+        return six.ensure_str(self.ui.login.currentText().strip())
 
     def _update_ui_according_to_sso_support(self):
         """

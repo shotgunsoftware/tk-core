@@ -16,11 +16,18 @@ Module to support Web login via a web browser and automated session renewal.
 # pylint: disable=too-many-instance-attributes
 
 import base64
-from Cookie import SimpleCookie
 import logging
 import os
 import sys
 import time
+
+try:
+    # For Python 2/3 compatibility without a dependency on six, we'll just try
+    # to import SimpleCookie as in Python 2...
+    from http.cookies import SimpleCookie
+except ImportError:
+    # and fall back to its Python 3 location if not found.
+    from Cookie import SimpleCookie
 
 from .authentication_session_data import AuthenticationSessionData
 from .errors import (

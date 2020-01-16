@@ -9,8 +9,8 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import sys
 import logging
+import shutil
 
 from mock import patch
 
@@ -22,7 +22,7 @@ from tank.commands import get_command
 from tank.bootstrap.configuration_writer import ConfigurationWriter
 from tank.descriptor import Descriptor, create_descriptor
 from tank_vendor import yaml
-from tank.util import ShotgunPath
+from tank.util import ShotgunPath, is_linux, is_macos, is_windows
 
 
 class TestPipelineConfig(TankTestBase):
@@ -43,7 +43,7 @@ class TestPipelineConfig(TankTestBase):
                 "pc_name": "$SGTK_TEST_PC_NAME",
             },
         )
-        if sys.platform == "win32":
+        if is_windows():
             self._test_read_env_var_in_pipeline_configuration_yml(
                 "env_var_pipeline_windows",
                 {
@@ -270,6 +270,13 @@ class TestConfigLocations(TankTestBase):
         core_install_folder = os.path.join(core_root, "install", "core")
         os.makedirs(core_install_folder)
 
+        # Copy the core info.yml, since the config expects a certain version of
+        # core and the setup project needs to be able to compare versions.
+        shutil.copy(
+            os.path.join(os.path.dirname(__file__), "..", "..", "info.yml"),
+            os.path.join(core_install_folder, "info.yml"),
+        )
+
         # Mock a localized core if required.
         if is_localized:
             self.create_file(
@@ -293,9 +300,9 @@ class TestConfigLocations(TankTestBase):
             with patch(
                 "sgtk.pipelineconfig_utils.resolve_all_os_paths_to_core",
                 return_value={
-                    "linux2": core_root if sys.platform == "linux2" else None,
-                    "win32": core_root if sys.platform == "win32" else None,
-                    "darwin": core_root if sys.platform == "darwin" else None,
+                    "linux2": core_root if is_linux() else None,
+                    "win32": core_root if is_windows() else None,
+                    "darwin": core_root if is_macos() else None,
                 },
             ):
                 command = get_command("setup_project", self.tk)
@@ -305,15 +312,9 @@ class TestConfigLocations(TankTestBase):
                         config_uri=os.path.join(self.fixtures_root, "config"),
                         project_id=self._project["id"],
                         project_folder_name=project_folder_name,
-                        config_path_mac=config_root
-                        if sys.platform == "darwin"
-                        else None,
-                        config_path_win=config_root
-                        if sys.platform == "win32"
-                        else None,
-                        config_path_linux=config_root
-                        if sys.platform == "linux2"
-                        else None,
+                        config_path_mac=config_root if is_macos() else None,
+                        config_path_win=config_root if is_windows() else None,
+                        config_path_linux=config_root if is_linux() else None,
                         check_storage_path_exists=False,
                     )
                 )
@@ -342,7 +343,7 @@ class TestConfigLocations(TankTestBase):
         # Pipeline configuration location tests.
         self.assertEqual(pc.get_path(), autogen_files_root)
         self.assertEqual(
-            pc._get_yaml_cache_location(),
+            pc.get_yaml_cache_location(),
             os.path.join(autogen_files_root, "yaml_cache.pickle"),
         )
         self.assertEqual(
@@ -358,9 +359,9 @@ class TestConfigLocations(TankTestBase):
         self.assertEqual(
             pc.get_all_os_paths(),
             tank.util.ShotgunPath(
-                autogen_files_root if sys.platform == "win32" else None,
-                autogen_files_root if sys.platform == "linux2" else None,
-                autogen_files_root if sys.platform == "darwin" else None,
+                autogen_files_root if is_windows() else None,
+                autogen_files_root if is_linux() else None,
+                autogen_files_root if is_macos() else None,
             ),
         )
 

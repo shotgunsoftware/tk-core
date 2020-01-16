@@ -8,7 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-"""
+r"""
 include files management for template.yml
 
 includes
@@ -34,6 +34,7 @@ from .errors import TankError
 from . import constants
 from .util import yaml_cache
 from .util.includes import resolve_include
+from tank_vendor import six
 
 
 def _get_includes(file_name, data):
@@ -137,13 +138,13 @@ def process_includes(file_name, data):
     template_strings = resolved_includes_data[constants.TEMPLATE_STRING_SECTION]
 
     # process the template paths section:
-    for template_name, template_definition in template_paths.iteritems():
+    for template_name, template_definition in template_paths.items():
         _resolve_template_r(
             template_paths, template_strings, template_name, template_definition, "path"
         )
 
     # and process the strings section:
-    for template_name, template_definition in template_strings.iteritems():
+    for template_name, template_definition in template_strings.items():
         _resolve_template_r(
             template_paths,
             template_strings,
@@ -154,14 +155,14 @@ def process_includes(file_name, data):
 
     # finally, resolve escaped @'s in template definitions:
     for templates in [template_paths, template_strings]:
-        for template_name, template_definition in templates.iteritems():
+        for template_name, template_definition in templates.items():
             # find the template string from the definition:
             template_str = None
             complex_syntax = False
             if isinstance(template_definition, dict):
                 template_str = template_definition.get("definition")
                 complex_syntax = True
-            elif isinstance(template_definition, basestring):
+            elif isinstance(template_definition, six.string_types):
                 template_str = template_definition
             if not template_str:
                 raise TankError(
@@ -196,7 +197,7 @@ def _find_matching_ref_template(template_paths, template_strings, ref_string):
         (template_paths, "path"),
         (template_strings, "string"),
     ]:
-        for name, definition in templates.iteritems():
+        for name, definition in templates.items():
             if ref_string.startswith(name):
                 matching_templates.append((name, definition, template_type))
 
@@ -254,7 +255,7 @@ def _resolve_template_r(
     if isinstance(template_definition, dict):
         template_str = template_definition.get("definition")
         complex_syntax = True
-    elif isinstance(template_definition, basestring):
+    elif isinstance(template_definition, six.string_types):
         template_str = template_definition
     if not template_str:
         raise TankError(

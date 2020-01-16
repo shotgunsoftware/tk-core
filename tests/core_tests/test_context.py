@@ -12,6 +12,9 @@ from __future__ import with_statement
 
 import os
 import copy
+import datetime
+from sgtk.util import pickle
+import json
 
 from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
 
@@ -23,6 +26,7 @@ from tank.errors import TankError, TankContextDeserializationError
 from tank.template import TemplatePath
 from tank.templatekey import StringKey, IntegerKey
 from tank_vendor import yaml
+from tank_vendor import six
 from tank.authentication import ShotgunAuthenticator
 
 
@@ -49,7 +53,7 @@ class TestContext(TankTestBase):
             "project": self.project,
         }
 
-        self.step = {"type": "Step", "name": "step_name", "id": 4}
+        self.step = {"type": "Step", "code": "step_name", "id": 4}
 
         self.shot_alt = {
             "type": "Shot",
@@ -517,7 +521,7 @@ class TestFromEntity(TestContext):
         get_current_user.return_value = self.current_user
 
         # add additional field value to task
-        add_value = {"name": "additional", "id": 3, "type": "add_type"}
+        add_value = self.project
         self.task["additional_field"] = add_value
 
         # store the find call count
@@ -839,10 +843,18 @@ class TestAsTemplateFields(TestContext):
         self.assertEqual("Seq", result["Sequence"])
         self.assertEqual("shot_code", result["Shot"])
 
-    @patch("tank.context.Context._get_project_roots", return_value=["//foo/bar"])
+    # It seems like Python 2.7.16+ is a bit less comfortable with paths with the wrong orientation
+    # for the slashes, so we'll generate test data that is more conforming to the current platform.
+    # This isn't an issue in the real world, as we always sanitize our inputs.
+    @patch(
+        "tank.context.Context._get_project_roots",
+        return_value=["{0}{0}foo{0}bar".format(os.path.sep)],
+    )
     @patch(
         "tank.context.Context.entity_locations",
-        new_callable=PropertyMock(return_value=["//foo/bar/baz"]),
+        new_callable=PropertyMock(
+            return_value=["{0}{0}foo{0}bar{0}baz".format(os.path.sep)]
+        ),
     )
     def test_fields_from_entity_paths_with_unc_project_root(self, *args):
         """
@@ -1161,16 +1173,41 @@ class TestSerialize(TestContext):
     def setUp(self):
         super(TestSerialize, self).setUp()
         # params used in creating contexts
+        # Add data to mocked shotgun
+        self.task = self.mockgun.create(
+            "Task",
+            {
+                "content": "task_content",
+                "project": self.project,
+                "entity": self.shot,
+                "step": self.step,
+            },
+        )
+
+        self.version = self.mockgun.create(
+            "Version", {"code": "version_code", "project": self.project}
+        )
+
+        self.user = self.mockgun.create("HumanUser", {"name": "user_name"})
+
         self.kws = {}
         self.kws["tk"] = self.tk
         self.kws["project"] = self.project
         self.kws["entity"] = self.shot
         self.kws["step"] = self.step
-        self.kws["task"] = {"id": 45, "type": "Task"}
-        self.kws["additional_entities"] = [{"id": 42, "type": "Sequence"}]
-        self.kws["source_entity"] = {"id": 12, "type": "Version"}
+        self.kws["task"] = self.task
+        # FIXME: Mockgun does not properly set the name field on a
+        # Task so pass it in.
+        self.kws["task"]["name"] = "task_content"
+        self.kws["user"] = self.user
+        self.kws["additional_entities"] = [self.seq]
+        self.kws["source_entity"] = self.version
 
-        self._user = ShotgunAuthenticator().create_script_user(
+        # self._auth_user differs from self.kws["user"], because self._auth_user
+        # is the user we are authenticated as when talking to Shotgun
+        # while self.kws["user"] is the user associated with the current
+        # context.
+        self._auth_user = ShotgunAuthenticator().create_script_user(
             "script_user", "script_key", "https://abc.shotgunstudio.com"
         )
 
@@ -1187,6 +1224,48 @@ class TestSerialize(TestContext):
             },
         )
 
+    def test_dict_cleanup(self):
+        """
+        Ensure that archived dictionaries only contain relevant information
+        about the entity, notably, type, id and name relevant fields.
+        """
+        self.kws["project"]["created_at"] = datetime.datetime.now()
+        self.kws["entity"]["created_at"] = datetime.datetime.now()
+        self.kws["entity"]["name"] = "shot_name"
+        self.kws["step"]["created_at"] = datetime.datetime.now()
+        self.kws["task"]["created_at"] = datetime.datetime.now()
+        for entity in self.kws["additional_entities"]:
+            entity["created_at"] = datetime.datetime.now()
+        self.kws["source_entity"]["created_at"] = datetime.datetime.now()
+        self.kws["user"]["created_at"] = datetime.datetime.now()
+
+        expected = {
+            "task": {"type": "Task", "id": self.task["id"], "name": "task_content"},
+            "step": {"type": "Step", "id": self.step["id"], "name": "step_name"},
+            "entity": {
+                "type": "Shot",
+                "id": self.shot["id"],
+                "name": self.shot["code"],
+            },
+            "project": {
+                "type": "Project",
+                "id": self.project["id"],
+                "name": "project_name",
+            },
+            # Contrary to other entities, the source entity and...
+            "source_entity": {"type": "Version", "id": self.version["id"]},
+            "additional_entities": [
+                {"type": "Sequence", "name": "seq_name", "id": self.seq["id"]}
+            ],
+            "user": {"type": "HumanUser", "id": self.user["id"], "name": "user_name"},
+        }
+
+        ctx = context.Context(**self.kws)
+        pickled_data = ctx.serialize()
+
+        ctx = context.deserialize(pickled_data)
+        self.assertEqual(ctx.to_dict(), expected)
+
     def test_equal_yml(self):
         context_1 = context.Context(**self.kws)
         serialized = yaml.dump(context_1)
@@ -1195,7 +1274,9 @@ class TestSerialize(TestContext):
 
     def test_equal_custom(self):
         context_1 = context.Context(**self.kws)
-        serialized = context_1.serialize(context_1)
+        serialized = context_1.serialize()
+        # Ensure the serialized context is a string
+        self.assertIsInstance(serialized, six.string_types)
         context_2 = tank.Context.deserialize(serialized)
         self._assert_equal_contexts(context_1, context_2)
 
@@ -1207,26 +1288,59 @@ class TestSerialize(TestContext):
 
     def test_serialize_with_user(self):
         """
-        Make sure the user is serialized and restored.
+        Make sure the user is serialized and restored using pickle.
         """
-        tank.set_authenticated_user(self._user)
+        tank.set_authenticated_user(self._auth_user)
         ctx = context.Context(**self.kws)
-        ctx_str = tank.Context.serialize(ctx)
+        ctx_str = tank.Context.serialize(ctx, use_json=False)
+
+        # Everything should have been serialized using the pickle module.
+        # If an exception is raised, then it wasn't.
+        unserialized_pickle = pickle.loads(ctx_str)
+        pickle.loads(unserialized_pickle["_current_user"])
+
+        # Ensure the serialized context is a string
+        self.assertIsInstance(ctx_str, six.string_types)
 
         # Reset the current user to later check if it is restored.
         tank.set_authenticated_user(None)
 
         # Unserializing should restore the user.
         tank.Context.deserialize(ctx_str)
-        self._assert_same_user(tank.get_authenticated_user(), self._user)
+        self._assert_same_user(tank.get_authenticated_user(), self._auth_user)
+
+    def test_serialize_with_user_using_json(self):
+        """
+        Make sure the user is serialized and restored using json.
+        """
+        tank.set_authenticated_user(self._auth_user)
+        ctx = context.Context(**self.kws)
+        ctx_str = tank.Context.serialize(ctx, use_json=True)
+
+        # Everything should have been serialized using the json module.
+        # If an exception is raised, then it wasn't.
+        unserialized_json = json.loads(ctx_str)
+        json.loads(unserialized_json["_current_user"])
+
+        # Ensure the serialized context is a string
+        self.assertIsInstance(ctx_str, six.string_types)
+
+        # Reset the current user to later check if it is restored.
+        tank.set_authenticated_user(None)
+
+        # Unserializing should restore the user.
+        tank.Context.deserialize(ctx_str)
+        self._assert_same_user(tank.get_authenticated_user(), self._auth_user)
 
     def test_serialize_without_user(self):
         """
         Make sure the user is not serialized and not restored.
         """
-        tank.set_authenticated_user(self._user)
+        tank.set_authenticated_user(self._auth_user)
         ctx = context.Context(**self.kws)
         ctx_str = tank.Context.serialize(ctx)
+        # Ensure the serialized context is a string
+        self.assertIsInstance(ctx_str, six.string_types)
 
         # Change the current user to make sure that the deserialize operation doesn't
         # change it back to the original user.
@@ -1255,8 +1369,15 @@ class TestSerialize(TestContext):
         but since we're interested into making sure everything gets serialized
         property we'll add the value there.
         """
-        self.assertTrue(ctx_1 == ctx_2)
-        self.assertTrue(ctx_1.source_entity == ctx_2.source_entity)
+        self.assertEqual(ctx_1, ctx_2)
+        # Only compare type and id, serialized contexts are lossy due the fields
+        # being dropped in order to ensure there are no unrealizable characters
+        # sent from Python 3 to Python 2 when pickling.
+        # Interestingly, as you can see from the comparison above, the __eq__
+        # operator on context already compares only the type and id,
+        # which is why we don't have to compare all the fields manually.
+        self.assertEqual(ctx_1.source_entity["type"], ctx_2.source_entity["type"])
+        self.assertEqual(ctx_1.source_entity["id"], ctx_2.source_entity["id"])
 
     def test_deserialized_invalid_data(self):
         """

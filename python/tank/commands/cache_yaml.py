@@ -10,11 +10,11 @@
 
 import os
 import fnmatch
-import cPickle
+
 
 from .action_base import Action
 from ..errors import TankError
-from ..util import yaml_cache
+from ..util import yaml_cache, pickle
 
 
 class CacheYamlAction(Action):
@@ -81,7 +81,7 @@ class CacheYamlAction(Action):
             yaml_cache.g_yaml_cache.get(path)
 
         items = yaml_cache.g_yaml_cache.get_cached_items()
-        pickle_path = os.path.join(root_dir, "yaml_cache.pickle")
+        pickle_path = self.tk.pipeline_configuration.get_yaml_cache_location()
         log.debug("Writing cache to %s" % pickle_path)
 
         try:
@@ -90,7 +90,7 @@ class CacheYamlAction(Action):
             raise TankError("Unable to open '%s' for writing: %s" % (pickle_path, e))
 
         try:
-            cPickle.dump(items, fh)
+            pickle.dump(items, fh)
         except Exception as e:
             raise TankError("Unable to dump pickled cache data: %s" % e)
 

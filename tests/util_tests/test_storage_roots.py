@@ -233,7 +233,7 @@ class TestStorageRoots(ShotgunTestBase):
 
         for config_root_folder in config_root_folders:
             storage_roots = StorageRoots.from_config(config_root_folder)
-            for root_name, sg_path in storage_roots.as_shotgun_paths.iteritems():
+            for root_name, sg_path in storage_roots.as_shotgun_paths.items():
                 self.assertIsInstance(sg_path, ShotgunPath)
 
     def test_storage_roots_default(self):

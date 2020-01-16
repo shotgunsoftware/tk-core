@@ -15,13 +15,14 @@ PySide 2 backwards compatibility layer for use with PySide 1 code.
 from __future__ import with_statement
 
 import os
+import sys
 import functools
 import imp
 import subprocess
-import sys
 import webbrowser
 
 from .. import constants
+from .platforms import is_linux, is_macos, is_windows
 
 
 class PySide2Patcher(object):
@@ -311,13 +312,13 @@ class PySide2Patcher(object):
                 if url.isLocalFile():
                     url = url.toLocalFile().encode("utf-8")
 
-                    if sys.platform == "darwin":
+                    if is_macos():
                         return subprocess.call(["open", url]) == 0
-                    elif sys.platform == "win32":
+                    elif is_windows():
                         os.startfile(url)
                         # Start file returns None, so this is the best we can do.
                         return os.path.exists(url)
-                    elif sys.platform.startswith("linux"):
+                    elif is_linux():
                         return subprocess.call(["xdg-open", url]) == 0
                     else:
                         raise ValueError("Unknown platform: %s" % sys.platform)

@@ -11,6 +11,7 @@
 
 # thin proxy wrapper which finds the real sgtk and replaces itself with that
 
+from __future__ import absolute_import
 import os
 import sys
 
@@ -22,7 +23,9 @@ file_name_lookup = {
     "win32": "core_Windows.cfg",
     "darwin": "core_Darwin.cfg",
 }
-parent_file_name = file_name_lookup[sys.platform]
+# Ensure that we get the correct linux key, even if sys.platform returns just "linux"
+platform = "linux2" if sys.platform.startswith("linux") else sys.platform
+parent_file_name = file_name_lookup[platform]
 parent_cfg_path = os.path.join(current_folder, "..", "..", parent_file_name)
 parent_cfg_path = os.path.abspath(parent_cfg_path)
 

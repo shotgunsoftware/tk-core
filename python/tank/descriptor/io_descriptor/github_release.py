@@ -10,12 +10,12 @@
 
 import json
 import os
-import re
-import urllib2
+from tank_vendor.six.moves import urllib
 
 from .downloadable import IODescriptorDownloadable
 from ..errors import TankError, TankDescriptorError
 from ... import LogManager
+from ...util import sgre as re
 from ...util.shotgun import download
 
 log = LogManager.get_logger(__name__)
@@ -127,8 +127,10 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
         if self._sg_connection.config.proxy_handler:
             log.debug("Installing Proxy Handler for Github API requests...")
             # Grab proxy server settings from the shotgun API.
-            opener = urllib2.build_opener(self._sg_connection.config.proxy_handler)
-            urllib2.install_opener(opener)
+            opener = urllib.request.build_opener(
+                self._sg_connection.config.proxy_handler
+            )
+            urllib.request.install_opener(opener)
         if latest_only:
             url += "/latest"
         # Find the "next" rel link from the headers, if one is present, and return it, so
@@ -136,7 +138,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
         next_link = None
         try:
             log.debug("Requesting Releases from Github API: %s" % url)
-            response = urllib2.urlopen(url)
+            response = urllib.request.urlopen(url)
             response_data = json.load(response)
             log.debug("Got a valid JSON response from Github API.")
             m = re.search(r"<(.+)>; rel=\"next\"", response.headers.get("link", ""))
@@ -145,7 +147,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
                 log.debug(
                     "Github API response indicates an additional page at %s" % next_link
                 )
-        except urllib2.HTTPError as e:
+        except urllib.error.HTTPError as e:
             if e.code == 404:
                 # Github API gives a 404 when no releases have been published. Additionally,
                 # 404 could mean a non-existant or private repo, but this should have been caught
@@ -155,7 +157,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
             else:
                 log.warning("Github API responed with code %d." % e.code)
                 raise TankDescriptorError("Error communicating with Github API: %s" % e)
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             log.warning("Error connecting to Github API: %s" % e)
             raise TankDescriptorError("Unable to contact Github API: %s" % e)
         # zipballs are stored under the tag name, not the release name,
@@ -232,7 +234,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
         :returns: instance deriving from IODescriptorBase or None if not found
         """
         all_versions = self._get_locally_cached_versions()
-        version_numbers = all_versions.keys()
+        version_numbers = list(all_versions.keys())
 
         if not version_numbers:
             return None
@@ -279,14 +281,16 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
         )
         if self._sg_connection.config.proxy_handler:
             # Grab proxy server settings from the shotgun API
-            opener = urllib2.build_opener(self._sg_connection.config.proxy_handler)
-            urllib2.install_opener(opener)
+            opener = urllib.request.build_opener(
+                self._sg_connection.config.proxy_handler
+            )
+            urllib.request.install_opener(opener)
         try:
             log.debug(
                 "%r: Probing if a connection to Github can be established..." % self
             )
             # ensure we get response code 200
-            response_code = urllib2.urlopen(url).getcode()
+            response_code = urllib.request.urlopen(url).getcode()
             # Unfortunately, to prevent probing private repos, GH API also gives a 404 response
             # for private repos accessed without a token, so there's no way to helpfully warn the
             # user if they try to download from a private repo.
@@ -299,7 +303,7 @@ class IODescriptorGithubRelease(IODescriptorDownloadable):
                 log.debug("...connection established!")
             else:
                 log.debug("...got unexpected response code %s" % response_code)
-        except urllib2.URLError as e:
+        except urllib.error.URLError as e:
             log.debug("...could not establish connection: %s" % e)
             can_connect = False
         return can_connect

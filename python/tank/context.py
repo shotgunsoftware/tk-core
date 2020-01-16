@@ -14,8 +14,8 @@ Management of the current context, e.g. the current shotgun entity/step/task.
 """
 
 import os
-import pickle
 import copy
+import json
 
 from tank_vendor import yaml
 from . import authentication
@@ -23,6 +23,8 @@ from . import authentication
 from .util import login
 from .util import shotgun_entity
 from .util import shotgun
+from .util import get_sg_entity_name_field
+from .util import pickle, json as sgjson
 from . import constants
 from .errors import TankError, TankContextDeserializationError
 from .path_cache import PathCache
@@ -642,7 +644,7 @@ class Context(object):
             # Note: A 'None' value for a field indicates an ambiguity and was set in the
             # _fields_from_entity_paths method (!)
             non_none_fields = dict(
-                [(key, value) for key, value in fields.iteritems() if value is not None]
+                [(key, value) for key, value in fields.items() if value is not None]
             )
 
             # Determine additional field values by walking down the template tree
@@ -698,7 +700,7 @@ class Context(object):
     ################################################################################################
     # serialization
 
-    def serialize(self, with_user_credentials=True):
+    def serialize(self, with_user_credentials=True, use_json=False):
         """
         Serializes the context into a string.
 
@@ -716,6 +718,9 @@ class Context(object):
 
         :param with_user_credentials: If ``True``, the currently authenticated user's credentials, as
             returned by :meth:`sgtk.get_authenticated_user`, will also be serialized with the context.
+
+        :param use_json: If ``True``, the context will be stored in the JSON representation
+            instead of using the pickled representation.
 
         .. note:: For example, credentials should be omitted (``with_user_credentials=False``) when
             serializing the context from a user's current session to send it to a render farm. By doing
@@ -736,8 +741,14 @@ class Context(object):
             if user:
                 # We should serialize it as well so that the next process knows who to
                 # run as.
-                data["_current_user"] = authentication.serialize_user(user)
-        return pickle.dumps(data)
+                data["_current_user"] = authentication.serialize_user(
+                    user, use_json=use_json
+                )
+
+        if use_json:
+            return json.dumps(data)
+        else:
+            return pickle.dumps(data)
 
     @classmethod
     def deserialize(cls, context_str):
@@ -755,7 +766,12 @@ class Context(object):
         from .api import Tank, set_authenticated_user
 
         try:
-            data = pickle.loads(context_str)
+            # If the serialized payload starts with a {, we have a
+            # JSON-encoded string.
+            if context_str[0] in ("{", b"{"):
+                data = sgjson.loads(context_str)
+            else:
+                data = pickle.loads(context_str)
         except Exception as e:
             raise TankContextDeserializationError(str(e))
 
@@ -799,14 +815,42 @@ class Context(object):
         :returns: A dictionary representing the context.
         """
         return {
-            "project": self.project,
-            "entity": self.entity,
-            "user": self.user,
-            "step": self.step,
-            "task": self.task,
-            "additional_entities": self.additional_entities,
-            "source_entity": self.source_entity,
+            "project": self._cleanup_entity(self.project),
+            "entity": self._cleanup_entity(self.entity),
+            "user": self._cleanup_entity(self.user),
+            "step": self._cleanup_entity(self.step),
+            "task": self._cleanup_entity(self.task),
+            "additional_entities": [
+                self._cleanup_entity(entity) for entity in self.additional_entities
+            ],
+            "source_entity": self._cleanup_entity(self.source_entity),
         }
+
+    def _cleanup_entity(self, entity):
+        """
+        Cleanup the entity dictionary.
+
+        :param dict entity: Shotgun entity object.
+
+        On Python 3, we have to be very careful about what we pickle because if we start
+        serializing non-builtin types like datetimes we won't be able to cast back the pickle
+        into a string and we won't be able to use those values in environment variables.
+
+        Because of this, we will keep the smallest amount of fields we need for the context.
+        This is the type, id, name and the actual real name field for the entity
+        (code, content, etc...)
+
+        :returns: Dictionary with keys id and type and optionally name and the entity's
+            real name field.
+        """
+        if entity is None:
+            return None
+
+        filtered_entity = {"type": entity["type"], "id": entity["id"]}
+        if "name" in entity:
+            filtered_entity["name"] = entity["name"]
+
+        return filtered_entity
 
     @classmethod
     def from_dict(cls, tk, data):
@@ -839,7 +883,6 @@ class Context(object):
 
         :returns: :class:`Context`
         """
-        # Get all argument names except for self.
         return Context(
             tk=data.get("tk"),
             project=data.get("project"),
@@ -1068,10 +1111,11 @@ class Context(object):
         path_cache = PathCache(self.__tk)
         try:
             for template in templates:
-                # iterate over all keys in the {key_name:key} dictionary for the template
-                # looking for any that represent context entities (key name == entity type)
-                template_key_dict = template.keys
-                for key_name in template_key_dict.keys():
+                # iterate over all keys in the list of keys for the template
+                # from lowest to highest looking for any that represent context
+                # entities (key name == entity type)
+                for key in reversed(template.ordered_keys):
+                    key_name = key.name
                     # Check to see if we already have a value for this key:
                     if key_name in known_fields or key_name in found_fields:
                         # already have a value so skip
@@ -1142,7 +1186,7 @@ class Context(object):
                     # previously/higher up in the template definition.  If we did then the entries that were found
                     # may not be correct so we have to discard them!
                     found_mismatching_field = False
-                    for field_name, field_value in entity_fields.iteritems():
+                    for field_name, field_value in entity_fields.items():
                         if field_name in known_fields:
                             # We found a field we already knew about...
                             if field_value != known_fields[field_name]:
@@ -1178,7 +1222,7 @@ class Context(object):
         :returns: A list of project root file paths as strings.
         :rtype: list
         """
-        return self.__tk.pipeline_configuration.get_data_roots().values()
+        return list(self.__tk.pipeline_configuration.get_data_roots().values())
 
 
 ################################################################################################
@@ -1865,7 +1909,7 @@ def _context_data_from_cache(tk, entity_type, entity_id):
     path_cache = PathCache(tk)
 
     # Grab all project roots
-    project_roots = tk.pipeline_configuration.get_data_roots().values()
+    project_roots = list(tk.pipeline_configuration.get_data_roots().values())
 
     # Special case for project as we have the primary data path, which
     # always points at a project. We only check if the associated configuration

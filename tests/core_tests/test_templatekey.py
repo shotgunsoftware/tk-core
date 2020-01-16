@@ -22,6 +22,7 @@ from mock import patch
 from tank_test.tank_test_base import ShotgunTestBase
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank.templatekey import StringKey, IntegerKey, SequenceKey, TimestampKey, make_keys
+from tank_vendor import six
 
 
 class TestTemplateKey(ShotgunTestBase):
@@ -1221,7 +1222,7 @@ class TestTimestampKey(ShotgunTestBase):
         key = TimestampKey("test")
         self.assertEqual(key.value_from_str(self._datetime_string), self._datetime)
         self.assertEqual(
-            key.value_from_str(unicode(self._datetime_string)), self._datetime
+            key.value_from_str(six.text_type(self._datetime_string)), self._datetime
         )
 
     def test_bad_str(self):

@@ -24,6 +24,7 @@ from tank.platform import SoftwareVersion
 from tank.platform import LaunchInformation
 
 from tank.errors import TankEngineInitError
+from tank_vendor import six
 
 
 class TestEngineLauncher(TankTestBase):
@@ -299,7 +300,7 @@ class TestEngineLauncher(TankTestBase):
                 self.assertEqual(reason, "")
             else:
                 self.assertEqual(supported, False)
-                self.assertIsInstance(reason, basestring)
+                self.assertIsInstance(reason, six.string_types)
 
     def test_launcher_prepare_launch(self):
         prep_path = "/some/path/to/an/executable"
@@ -336,7 +337,7 @@ class TestEngineLauncher(TankTestBase):
             pattern_template.replace("/", "\\"),
             pattern_template.replace("\\", "/"),
         ]:
-            matches = launcher._glob_and_match(template, {"version": "\d+"})
+            matches = launcher._glob_and_match(template, {"version": r"\d+"})
             # Sort alphabetically so we can more easily validate the result.
             matches = sorted(matches, key=lambda x: x[0])
             self.assertEqual(

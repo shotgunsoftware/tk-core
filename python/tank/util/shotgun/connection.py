@@ -16,7 +16,7 @@ from __future__ import with_statement
 
 import os
 import threading
-import urlparse
+from tank_vendor.six.moves import urllib
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
@@ -32,7 +32,7 @@ log = LogManager.get_logger(__name__)
 
 
 def __get_api_core_config_location():
-    """
+    r"""
 
     Walk from the location of this file on disk to the config area.
     this operation is guaranteed to work on any valid tank installation
@@ -252,10 +252,10 @@ def __sanitize_url(server_url):
     # network location
 
     # Then break up the url into chunks
-    tokens_parsed = urlparse.urlparse(server_url)
+    tokens_parsed = urllib.parse.urlparse(server_url)
 
     # Then extract the good parts from the url
-    clean_url_tokens = urlparse.ParseResult(
+    clean_url_tokens = urllib.parse.ParseResult(
         # We want https when there is no specified scheme.
         scheme=tokens_parsed.scheme or "https",
         # If only a host has been provided, path will be set.
@@ -267,7 +267,7 @@ def __sanitize_url(server_url):
         fragment="",
     )
 
-    return urlparse.urlunparse(clean_url_tokens)
+    return urllib.parse.urlunparse(clean_url_tokens)
 
 
 def sanitize_url(server_url):

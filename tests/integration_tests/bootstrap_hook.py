@@ -160,10 +160,10 @@ class BootstrapHookTests(SgtkIntegrationTest):
         )
         cls._upload_core("sgtk:descriptor:app_store?name=tk-core&version=v10.11.12")
 
-        cls.project = cls.create_or_find_project("Descriptor Operations Hooks")
+        cls.project = cls.create_or_update_project("Descriptor Operations Hooks")
         # Create a descriptor-based pipeline configuration we will be using to bootstrap.
-        cls.pipeline_configuration = cls.ensure_pipeline_configuration_exists(
-            "descriptor_hooks_configuration",
+        cls.pipeline_configuration = cls.create_or_update_pipeline_configuration(
+            "Primary",
             {
                 "plugin_ids": "basic.*",
                 "descriptor": "sgtk:descriptor:path?path=%s"
@@ -175,7 +175,7 @@ class BootstrapHookTests(SgtkIntegrationTest):
                 "project": cls.project,
             },
         )
-        cls.asset = cls.create_or_find_entity(
+        cls.asset = cls.create_or_update_entity(
             "Asset", "TestAsset", {"project": cls.project}
         )
 

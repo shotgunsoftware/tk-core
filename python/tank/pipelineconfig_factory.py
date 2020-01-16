@@ -11,17 +11,19 @@
 import os
 import collections
 import pprint
-import cPickle as pickle
+
 
 from .errors import TankError, TankInitError
 from . import LogManager
 from .util import shotgun
+from .util import pickle
 from .util import filesystem
 from .util import ShotgunPath
 from . import constants
 from . import pipelineconfig_utils
 from .pipelineconfig import PipelineConfiguration
 from .util import LocalFileStorageManager
+from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
 
@@ -150,7 +152,7 @@ def _from_path(path, force_reread_shotgun_cache):
     :rtype: :class:`PipelineConfiguration`
     :raises: :class:`TankInitError`
     """
-    if not isinstance(path, basestring):
+    if not isinstance(path, six.string_types):
         raise ValueError(
             "Cannot create a configuration from path '%s' - path must be a string."
             % path
@@ -492,7 +494,7 @@ def _get_pipeline_configuration_data(sg_pipeline_configs):
 
 
 def _get_pipeline_configs_for_path(path, data):
-    """
+    r"""
     Given a path on disk and a cache data structure, return a list of
     associated pipeline configurations.
 
