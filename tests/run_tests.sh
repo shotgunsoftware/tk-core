@@ -16,4 +16,3 @@
 
 find . -name "*.pyc" -delete
 python -Wd `dirname $0`/run_tests.py $*
-python3 -Wd `dirname $0`/run_tests.py $*
