@@ -169,8 +169,6 @@ sgtk.util.pickle
 .. autofunction:: load
 .. autofunction:: loads
 
-.. currentmodule:: sgtk.util
-
 
 ShotgunPath
 -----------------------------------
@@ -183,6 +181,9 @@ LocalFileStorageManager
 
 .. autoclass:: sgtk.util.LocalFileStorageManager
     :members:
+
+
+.. currentmodule:: sgtk.util
 
 OS detection
 =============================
