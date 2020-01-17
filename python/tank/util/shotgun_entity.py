@@ -1,21 +1,20 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
 Utilities relating to Shotgun entities
 """
 
-import re
-
-from . import constants
+from . import constants, sgre as re
 from ..errors import TankError
+from tank_vendor import six
 
 # A dictionary for Shotgun entities which do not store their name
 # in the standard "code" field.
@@ -44,14 +43,14 @@ def sg_entity_to_string(tk, sg_entity_type, sg_id, sg_field_name, data):
     """
     Generates a string value given a Shotgun value.
     This logic is in a hook but it typically does conversions such as:
-    
+
     * "foo" ==> "foo"
     * {"type":"Shot", "id":123, "name":"foo"} ==> "foo"
     * 123 ==> "123"
     * [{"type":"Shot", "id":1, "name":"foo"}, {"type":"Shot", "id":2, "name":"bar"}] ==> "foo_bar"
-    
+
     This method may also raise exceptions in the case the string value is not valid.
-    
+
     :param tk: Sgtk api instance
     :param sg_entity_type: the Shotgun entity type e.g. 'Shot'
     :param sg_id: The Shotgun id for the record, e.g 1234
@@ -59,26 +58,28 @@ def sg_entity_to_string(tk, sg_entity_type, sg_id, sg_field_name, data):
     :param data: The Shotgun entity data chunk that should be converted to a string.
     """
     # call out to core hook
-    return tk.execute_core_hook(constants.PROCESS_FOLDER_NAME_HOOK_NAME, 
-                                entity_type=sg_entity_type, 
-                                entity_id=sg_id,
-                                field_name=sg_field_name,
-                                value=data)
+    return tk.execute_core_hook(
+        constants.PROCESS_FOLDER_NAME_HOOK_NAME,
+        entity_type=sg_entity_type,
+        entity_id=sg_id,
+        field_name=sg_field_name,
+        value=data,
+    )
 
 
 class EntityExpression(object):
     """
     Represents a name expression for a Shotgun entity.
     A name expression converts a pattern and a set of Shotgun data into a string:
-      
+
     Expression                 Shotgun Entity Data                          String Result
     ----------------------------------------------------------------------------------------
     * "code"                 + {"code": "foo_bar"}                      ==> "foo_bar"
     * "{code}_{asset_type}"  + {"code": "foo_bar", "asset_type": "car"} ==> "foo_bar_car"
     * "{code}/{asset_type}"  + {"code": "foo_bar", "asset_type": "car"} ==> "foo_bar/car"
-    
+
     Optional fields are [bracketed]:
-    
+
     * "{code}[_{asset_type}]" + {"code": "foo_bar", "asset_type": "car"} ==> "foo_bar_car"
     * "{code}[_{asset_type}]" + {"code": "foo_bar", "asset_type": None} ==> "foo_bar"
 
@@ -89,7 +90,7 @@ class EntityExpression(object):
     It it is always connected to a specific Shotgun entity type and
     the fields need to be Shotgun fields that exists for that entity type.
     """
-    
+
     def __init__(self, tk, entity_type, field_name_expr):
         """
         :param str entity_type: Associated Shotgun entity type.
@@ -103,7 +104,7 @@ class EntityExpression(object):
         if "{" not in field_name_expr:
             # simple form - surround with brackets to turn into a expression
             field_name_expr = "{%s}" % field_name_expr
-        
+
         # now get all permutations for expressions with optional fields
         expr_variations = self._get_expression_variations(field_name_expr)
 
@@ -113,12 +114,12 @@ class EntityExpression(object):
         # Extract and store a bunch of data for each variation.
         self._variations = {}
         for expr_variation in expr_variations:
-            
+
             try:
                 # find all field names, for example:
                 # "{xx}_{yy}_{zz.xx}" ----> ["xx", "yy", "zz.xx"]
                 # "{code:([^_]+)}_{yy}" --> ["code:([^_]+)", "yy"]
-                fields = set(re.findall('{([^}]*)}', expr_variation))
+                fields = set(re.findall("{([^}]*)}", expr_variation))
             except Exception as error:
                 raise TankError(
                     "Could not parse the configuration field '%s' - "
@@ -169,7 +170,7 @@ class EntityExpression(object):
                         "token": field_token_expression,
                         "full_field_name": full_field_name,
                         "link_field_name": link_field_name,
-                        "regex_obj": regex_obj
+                        "regex_obj": regex_obj,
                     }
                 )
 
@@ -179,7 +180,7 @@ class EntityExpression(object):
     def _get_expression_variations(self, definition):
         """
         Returns all possible optional variations for an expression.
-        
+
         "{foo}"               ==> ['{foo}']
         "{foo:[xxx]}_{bar}"   ==> ['{foo:[xxx]}_{bar}']
         "{foo}[_{bar}]"       ==> ['{foo}', '{foo}_{bar}']
@@ -192,7 +193,7 @@ class EntityExpression(object):
         # Look for square brackets that contains at least one
         # {expression} and ignore any square bracket inside
         # expressions:
-        tokens = re.split("(\[[^\]]*\{.*\}[^\]]*\])", definition)
+        tokens = re.split(r"(\[[^\]]*\{.*\}[^\]]*\])", definition)
         # seed with empty string
         definitions = [""]
         for token in tokens:
@@ -216,18 +217,18 @@ class EntityExpression(object):
         """
         Returns the Shotgun fields that are needed in order to
         build this name expression. Returns all fields, including optional.
-        
+
         :returns: Set of Shotgun field names, e.g. ('code', 'sg_sequence.Sequence.code')
-        """        
+        """
         # use the longest expression - this contains the most fields
         longest_expr = self._sorted_exprs[0]
         field_defs = self._variations[longest_expr]
         field_names = [field["full_field_name"] for field in field_defs]
         return set(field_names)
-    
+
     def get_shotgun_link_fields(self):
         """
-        Returns a list of all entity links that are used in the name expression, 
+        Returns a list of all entity links that are used in the name expression,
         including optional ones.
         For example, if a name expression for a Shot is '{code}_{sg_sequence.Sequence.code}',
         the link fields for this expression is ['sg_sequence'].
@@ -238,17 +239,19 @@ class EntityExpression(object):
         longest_expr = self._sorted_exprs[0]
         field_defs = self._variations[longest_expr]
         link_names = [
-            field["link_field_name"] for field in field_defs if field["link_field_name"] is not None
+            field["link_field_name"]
+            for field in field_defs
+            if field["link_field_name"] is not None
         ]
         return set(link_names)
 
     def generate_name(self, values):
         """
         Generates a name given some fields.
-        
+
         Assumes the name will be used as a folder name and validates
         that the evaluated expression is suitable for disk use.
-        
+
         :param dict values: Dictionary of values to use.
         :returns: Fully resolved name string.
         """
@@ -256,12 +259,15 @@ class EntityExpression(object):
         for field_name in self.get_shotgun_fields():
             if field_name not in values:
                 # required value was not provided!
-                raise TankError("Folder Configuration Error: "
-                                "A Shotgun field '%s' is being requested as part of the expression "
-                                "'%s' when creating folders connected to entities of type %s, "
-                                "however no such field exists in Shotgun. Please review your "
-                                "configuration!" % (field_name, self._field_name_expr, self._entity_type))
-            
+                raise TankError(
+                    "Folder Configuration Error: "
+                    "A Shotgun field '%s' is being requested as part of the expression "
+                    "'%s' when creating folders connected to entities of type %s, "
+                    "however no such field exists in Shotgun. Please review your "
+                    "configuration!"
+                    % (field_name, self._field_name_expr, self._entity_type)
+                )
+
         # ok all fields are there. But some values may be none. Try to resolve our expression against
         # the values, starting with the longest expression first.
         for expr in self._sorted_exprs:
@@ -269,31 +275,37 @@ class EntityExpression(object):
             if val is not None:
                 # name generation worked! - do not try alternative (shorter) expressions
                 break
-        
+
         if val is None:
             # completely failed to generate a name because of missing fields.
-            
+
             # try to make a nice descriptive name if possible
             if "code" in values:
-                nice_name = "%s %s (id %s)" % (self._entity_type, values["code"], values.get("id"))
+                nice_name = "%s %s (id %s)" % (
+                    self._entity_type,
+                    values["code"],
+                    values.get("id"),
+                )
             else:
                 nice_name = "%s id %s" % (self._entity_type, values.get("id"))
-            
-            raise TankError("Folder Configuration Error. Could not create folders for %s! "
-                            "The expression %s refers to one or more values that are blank "
-                            "in Shotgun and a folder can therefore "
-                            "not be created." % (nice_name, self._field_name_expr))
-        
-        return val 
+
+            raise TankError(
+                "Folder Configuration Error. Could not create folders for %s! "
+                "The expression %s refers to one or more values that are blank "
+                "in Shotgun and a folder can therefore "
+                "not be created." % (nice_name, self._field_name_expr)
+            )
+
+        return val
 
     def _generate_name(self, expression, values):
         """
         Generates a name given some fields.
-        
+
         Assumes the name will be used as a folder name and validates
         that the evaluated expression is suitable for disk use.
-        
-        :param values: dictionary of values to use 
+
+        :param values: dictionary of values to use
         :returns: fully resolved name string or None if it cannot be resolved.
         """
         field_defs = self._variations[expression]
@@ -304,7 +316,7 @@ class EntityExpression(object):
 
         # get the Shotgun id from the Shotgun entity dict
         sg_id = values.get("id")
-        
+
         # first make sure that each field is valid
         for field_def in field_defs:
 
@@ -319,19 +331,12 @@ class EntityExpression(object):
 
             # now cast the value to a string
             str_value = sg_entity_to_string(
-                self._tk,
-                self._entity_type,
-                sg_id,
-                full_sg_field_name,
-                raw_val
+                self._tk, self._entity_type, sg_id, full_sg_field_name, raw_val
             )
 
             # see if we need to transform it via regex
             if field_def["regex_obj"]:
-                str_value = self._process_regex(
-                    str_value,
-                    field_def["regex_obj"],
-                )
+                str_value = self._process_regex(str_value, field_def["regex_obj"])
 
             str_data[token] = str_value
 
@@ -340,7 +345,7 @@ class EntityExpression(object):
         #
         # Replace tokens in the string with actual values:
         resolved_expression = expression
-        for token, value in str_data.iteritems():
+        for token, value in str_data.items():
             resolved_expression = resolved_expression.replace("{%s}" % token, value)
 
         # now validate the entire value!
@@ -348,10 +353,11 @@ class EntityExpression(object):
             raise TankError(
                 "The format string '%s' used in the configuration "
                 "does not generate a valid folder name ('%s')! Valid "
-                "values are %s." % (
+                "values are %s."
+                % (
                     expression,
                     resolved_expression,
-                    constants.VALID_SG_ENTITY_NAME_EXPLANATION
+                    constants.VALID_SG_ENTITY_NAME_EXPLANATION,
                 )
             )
         return resolved_expression
@@ -371,7 +377,7 @@ class EntityExpression(object):
 
         # iterate over all tokens and validate
         for folder_subgroup in name.split("/"):
-            if isinstance(folder_subgroup, unicode):
+            if isinstance(folder_subgroup, six.text_type):
                 u_name = folder_subgroup
             else:
                 # try decoding from utf-8:
@@ -395,7 +401,7 @@ class EntityExpression(object):
             return ""
 
         # perform the regex calculation in unicode space
-        if not isinstance(value, unicode):
+        if not isinstance(value, six.text_type):
             input_is_utf8 = True
             value_to_convert = value.decode("utf-8")
         else:
@@ -413,7 +419,7 @@ class EntityExpression(object):
 
         # resolved value is now unicode. Convert it
         # so that it is consistent with input
-        if isinstance(resolved_value, unicode) and input_is_utf8:
+        if isinstance(resolved_value, six.text_type) and input_is_utf8:
             # input was utf-8, regex result is unicode, cast it back
             return resolved_value.encode("utf-8")
         else:

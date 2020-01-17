@@ -25,17 +25,13 @@ class LoginTests(TankTestBase):
     @patch("tank_vendor.shotgun_api3.lib.mockgun.Shotgun.find_one")
     @patch("tank.api.get_authenticated_user")
     def test_get_current_user_uses_session(
-        self,
-        get_authenticated_user_mock,
-        find_one_mock
+        self, get_authenticated_user_mock, find_one_mock
     ):
         """
         When we are session based, the get_current_user method should return user associated to the
         session.
         """
-        find_one_mock.return_value = {
-            "login": "tk-user"
-        }
+        find_one_mock.return_value = {"login": "tk-user"}
         get_authenticated_user_mock.return_value = ShotgunAuthenticator().create_session_user(
             host="host", login="tk-user", session_token="session_token", http_proxy=None
         )

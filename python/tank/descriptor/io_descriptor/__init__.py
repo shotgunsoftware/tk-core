@@ -12,7 +12,7 @@ from .factory import (
     create_io_descriptor,
     descriptor_uri_to_dict,
     descriptor_dict_to_uri,
-    is_descriptor_version_missing
+    is_descriptor_version_missing,
 )
 
 
@@ -38,11 +38,11 @@ def _initialize_descriptor_factory():
     IODescriptorBase.register_descriptor_factory("shotgun", IODescriptorShotgunEntity)
     IODescriptorBase.register_descriptor_factory("git", IODescriptorGitTag)
     IODescriptorBase.register_descriptor_factory("git_branch", IODescriptorGitBranch)
-    IODescriptorBase.register_descriptor_factory("github_release", IODescriptorGithubRelease)
+    IODescriptorBase.register_descriptor_factory(
+        "github_release", IODescriptorGithubRelease
+    )
     IODescriptorBase.register_descriptor_factory("manual", IODescriptorManual)
 
 
 _initialize_descriptor_factory()
 del _initialize_descriptor_factory
-
-

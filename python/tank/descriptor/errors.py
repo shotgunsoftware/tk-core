@@ -20,6 +20,7 @@ class TankDescriptorError(TankError):
     """
     Base class for all descriptor related errors.
     """
+
     pass
 
 
@@ -27,6 +28,7 @@ class TankDescriptorIOError(TankDescriptorError):
     """
     Base class for all descriptor I/O related errors.
     """
+
     pass
 
 
@@ -34,6 +36,7 @@ class TankAppStoreError(TankDescriptorError):
     """
     Errors relating to the Toolkit App Store app store.
     """
+
     pass
 
 
@@ -41,6 +44,7 @@ class TankAppStoreConnectionError(TankAppStoreError):
     """
     Errors indicating an error connecting to the Toolkit App Store.
     """
+
     pass
 
 

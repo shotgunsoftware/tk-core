@@ -18,6 +18,7 @@ class Singleton(object):
     """
 
     __lock = threading.Lock()
+
     def __new__(cls, *args, **kwargs):
         """
         Create the singleton instance if it hasn't been created already. Once instantiated,
@@ -36,11 +37,7 @@ class Singleton(object):
                     return cls._instance
 
                 # Create and init the instance.
-                instance = super(Singleton, cls).__new__(
-                    cls,
-                    *args,
-                    **kwargs
-                )
+                instance = super(Singleton, cls).__new__(cls, *args, **kwargs)
                 instance._init_singleton()
 
                 # remember the instance so that no more are created

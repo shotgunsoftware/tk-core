@@ -1,0 +1,55 @@
+# Copyright (c) 2019 Shotgun Software Inc.
+#
+# CONFIDENTIAL AND PROPRIETARY
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+# Source Code License included in this distribution package. See LICENSE.
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
+# not expressly granted therein are reserved by Shotgun Software Inc.
+
+# Imports the shared Azure CI tools
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      name: shotgunsoftware/tk-ci-tools
+      ref: refs/heads/master
+      endpoint: shotgunsoftware
+
+# We want builds to trigger for 3 reasons:
+# - The master branch sees new commits
+# - Each PR should get rebuilt when commits are added to it.
+# - When we tag something
+trigger:
+  branches:
+    include:
+    - master
+  tags:
+    include:
+    - v*
+pr:
+  branches:
+    include:
+    - "*"
+
+# This pulls in a variable group from Azure. Variables can be encrypted or not.
+variables:
+- group: deploy-secrets
+
+jobs:
+- template: build-pipeline.yml@templates
+  parameters:
+    # After the tests have run, run the integration tests.
+    post_tests_steps:
+      - bash: python tests/integration_tests/run_integration_tests.py
+        displayName: Run integeration tests
+        env:
+          SHOTGUN_TEST_COVERAGE: 1
+          SHOTGUN_HOST: $(shotgun_site)
+          SHOTGUN_SCRIPT_NAME: $(shotgun_script_name)
+          SHOTGUN_SCRIPT_KEY: $(shotgun_script_key)
+          # Sandbox each test executing based on the Azure agent name. Those are
+          # Azure Pipelines 1-10
+          SHOTGUN_TEST_ENTITY_SUFFIX: '$(Agent.Name)'
+        condition: eq(variables['System.PullRequest.IsFork'], 'False')

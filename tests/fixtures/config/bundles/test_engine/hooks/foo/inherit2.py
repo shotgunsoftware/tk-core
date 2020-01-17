@@ -15,7 +15,6 @@ HookBaseClass = sgtk.get_hook_baseclass()
 
 
 class TestHook(HookBaseClass):
-
     def foo2(self, bar):
 
         val = HookBaseClass.foo2(self, bar)

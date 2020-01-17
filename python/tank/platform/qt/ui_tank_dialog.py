@@ -8,6 +8,7 @@
 
 from . import QtCore, QtGui
 
+
 class Ui_TankDialog(object):
     def setupUi(self, TankDialog):
         TankDialog.setObjectName("TankDialog")
@@ -29,12 +30,14 @@ class Ui_TankDialog(object):
         self.top_group = QtGui.QGroupBox(self.page_1)
         self.top_group.setMinimumSize(QtCore.QSize(0, 45))
         self.top_group.setMaximumSize(QtCore.QSize(16777215, 45))
-        self.top_group.setStyleSheet("#top_group {\n"
-"background-color:  #2D2D2D;\n"
-"border: none;\n"
-"border-bottom:1px solid #202020;\n"
-"}\n"
-"")
+        self.top_group.setStyleSheet(
+            "#top_group {\n"
+            "background-color:  #2D2D2D;\n"
+            "border: none;\n"
+            "border-bottom:1px solid #202020;\n"
+            "}\n"
+            ""
+        )
         self.top_group.setTitle("")
         self.top_group.setFlat(False)
         self.top_group.setObjectName("top_group")
@@ -43,7 +46,9 @@ class Ui_TankDialog(object):
         self.horizontalLayout.setContentsMargins(4, 0, 1, 1)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.tank_logo = QtGui.QLabel(self.top_group)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Preferred)
+        sizePolicy = QtGui.QSizePolicy(
+            QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tank_logo.sizePolicy().hasHeightForWidth())
@@ -53,51 +58,59 @@ class Ui_TankDialog(object):
         self.tank_logo.setObjectName("tank_logo")
         self.horizontalLayout.addWidget(self.tank_logo)
         self.label = QtGui.QLabel(self.top_group)
-        self.label.setStyleSheet("/* want this stylesheet to apply to the label but not the tooltip */\n"
-"QLabel{\n"
-"    color: white;\n"
-"    font-size: 20px;\n"
-"    margin-left: 5px;\n"
-"    font-family: \"Open Sans\";\n"
-"    font-style: \"Regular\";\n"
-"}")
+        self.label.setStyleSheet(
+            "/* want this stylesheet to apply to the label but not the tooltip */\n"
+            "QLabel{\n"
+            "    color: white;\n"
+            "    font-size: 20px;\n"
+            "    margin-left: 5px;\n"
+            '    font-family: "Open Sans";\n'
+            '    font-style: "Regular";\n'
+            "}"
+        )
         self.label.setObjectName("label")
         self.horizontalLayout.addWidget(self.label)
         self.lbl_context = QtGui.QLabel(self.top_group)
-        self.lbl_context.setStyleSheet("/* want this stylesheet to apply to the label but not the tooltip */\n"
-"QLabel { \n"
-"    color: rgba(250,250,250,180);\n"
-"    font-size: 11px;\n"
-"    margin-right: 8px;\n"
-"    font-family: \"Open Sans\";\n"
-"    font-style: \"Regular\";\n"
-"} \n"
-"\n"
-"\n"
-"")
-        self.lbl_context.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lbl_context.setStyleSheet(
+            "/* want this stylesheet to apply to the label but not the tooltip */\n"
+            "QLabel { \n"
+            "    color: rgba(250,250,250,180);\n"
+            "    font-size: 11px;\n"
+            "    margin-right: 8px;\n"
+            '    font-family: "Open Sans";\n'
+            '    font-style: "Regular";\n'
+            "} \n"
+            "\n"
+            "\n"
+            ""
+        )
+        self.lbl_context.setAlignment(
+            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
+        )
         self.lbl_context.setObjectName("lbl_context")
         self.horizontalLayout.addWidget(self.lbl_context)
         self.details = QtGui.QToolButton(self.top_group)
         self.details.setMinimumSize(QtCore.QSize(34, 34))
         self.details.setFocusPolicy(QtCore.Qt.ClickFocus)
-        self.details.setStyleSheet("QToolButton{\n"
-"width: 12px;\n"
-"height: 20px;\n"
-"background-image: url(:/Tank.Platform.Qt/arrow.png);\n"
-"border: none;\n"
-"background-color: none;\n"
-"}\n"
-"\n"
-"\n"
-"QToolButton:hover{\n"
-"background-image: url(:/Tank.Platform.Qt/arrow_hover.png);\n"
-"}\n"
-"\n"
-"QToolButton:Pressed {\n"
-"background-image: url(:/Tank.Platform.Qt/arrow_pressed.png);\n"
-"}\n"
-"")
+        self.details.setStyleSheet(
+            "QToolButton{\n"
+            "width: 12px;\n"
+            "height: 20px;\n"
+            "background-image: url(:/Tank.Platform.Qt/arrow.png);\n"
+            "border: none;\n"
+            "background-color: none;\n"
+            "}\n"
+            "\n"
+            "\n"
+            "QToolButton:hover{\n"
+            "background-image: url(:/Tank.Platform.Qt/arrow_hover.png);\n"
+            "}\n"
+            "\n"
+            "QToolButton:Pressed {\n"
+            "background-image: url(:/Tank.Platform.Qt/arrow_pressed.png);\n"
+            "}\n"
+            ""
+        )
         self.details.setText("")
         self.details.setAutoRaise(True)
         self.details.setObjectName("details")
@@ -109,10 +122,12 @@ class Ui_TankDialog(object):
         self.verticalLayout.addLayout(self.target)
         self.stackedWidget.addWidget(self.page_1)
         self.page_2 = QtGui.QWidget()
-        self.page_2.setStyleSheet("QWidget {\n"
-"    font-family: \"Open Sans\";\n"
-"    font-style: \"Regular\";\n"
-"}")
+        self.page_2.setStyleSheet(
+            "QWidget {\n"
+            '    font-family: "Open Sans";\n'
+            '    font-style: "Regular";\n'
+            "}"
+        )
         self.page_2.setObjectName("page_2")
         self.verticalLayout_2 = QtGui.QVBoxLayout(self.page_2)
         self.verticalLayout_2.setContentsMargins(1, 1, 1, 1)
@@ -126,7 +141,9 @@ class Ui_TankDialog(object):
         self.horizontalLayout_2.setSpacing(0)
         self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        spacerItem = QtGui.QSpacerItem(145, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        spacerItem = QtGui.QSpacerItem(
+            145, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum
+        )
         self.horizontalLayout_2.addItem(spacerItem)
         self.label_3 = QtGui.QLabel(self.page_2_group)
         self.label_3.setMinimumSize(QtCore.QSize(40, 0))
@@ -137,26 +154,30 @@ class Ui_TankDialog(object):
         self.gradient = QtGui.QGroupBox(self.page_2_group)
         self.gradient.setMinimumSize(QtCore.QSize(11, 0))
         self.gradient.setMaximumSize(QtCore.QSize(11, 16777215))
-        self.gradient.setStyleSheet("#gradient {\n"
-"background-image: url(:/Tank.Platform.Qt/gradient.png); \n"
-"border: none;\n"
-"}")
+        self.gradient.setStyleSheet(
+            "#gradient {\n"
+            "background-image: url(:/Tank.Platform.Qt/gradient.png); \n"
+            "border: none;\n"
+            "}"
+        )
         self.gradient.setTitle("")
         self.gradient.setObjectName("gradient")
         self.horizontalLayout_2.addWidget(self.gradient)
         self.scrollArea = QtGui.QScrollArea(self.page_2_group)
         self.scrollArea.setMinimumSize(QtCore.QSize(400, 0))
         self.scrollArea.setMaximumSize(QtCore.QSize(400, 16777215))
-        self.scrollArea.setStyleSheet("/*\n"
-"All labels inside this scroll area should be 12px font.\n"
-"This is to avoid the UI looking different in different app like\n"
-"maya and nuke which all use slightly different style sheets.\n"
-" */\n"
-"QLabel{\n"
-"   font-size: 11px;\n"
-"   margin-bottom: 8px\n"
-"}\n"
-"")
+        self.scrollArea.setStyleSheet(
+            "/*\n"
+            "All labels inside this scroll area should be 12px font.\n"
+            "This is to avoid the UI looking different in different app like\n"
+            "maya and nuke which all use slightly different style sheets.\n"
+            " */\n"
+            "QLabel{\n"
+            "   font-size: 11px;\n"
+            "   margin-bottom: 8px\n"
+            "}\n"
+            ""
+        )
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtGui.QWidget()
@@ -170,7 +191,9 @@ class Ui_TankDialog(object):
         self.app_icon.setMinimumSize(QtCore.QSize(64, 64))
         self.app_icon.setMaximumSize(QtCore.QSize(64, 64))
         self.app_icon.setText("")
-        self.app_icon.setPixmap(QtGui.QPixmap(":/Tank.Platform.Qt/default_app_icon_256.png"))
+        self.app_icon.setPixmap(
+            QtGui.QPixmap(":/Tank.Platform.Qt/default_app_icon_256.png")
+        )
         self.app_icon.setScaledContents(True)
         self.app_icon.setAlignment(QtCore.Qt.AlignCenter)
         self.app_icon.setObjectName("app_icon")
@@ -179,9 +202,10 @@ class Ui_TankDialog(object):
         self.verticalLayout_8.setSpacing(1)
         self.verticalLayout_8.setObjectName("verticalLayout_8")
         self.app_name = QtGui.QLabel(self.scrollAreaWidgetContents)
-        self.app_name.setStyleSheet("font-size: 16px;\n"
-"")
-        self.app_name.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.app_name.setStyleSheet("font-size: 16px;\n" "")
+        self.app_name.setAlignment(
+            QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter
+        )
         self.app_name.setObjectName("app_name")
         self.verticalLayout_8.addWidget(self.app_name)
         self.horizontalLayout_4.addLayout(self.verticalLayout_8)
@@ -192,14 +216,20 @@ class Ui_TankDialog(object):
         self.app_description.setObjectName("app_description")
         self.verticalLayout_4.addWidget(self.app_description)
         self.app_tech_details = QtGui.QLabel(self.scrollAreaWidgetContents)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
+        sizePolicy = QtGui.QSizePolicy(
+            QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.app_tech_details.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.app_tech_details.sizePolicy().hasHeightForWidth()
+        )
         self.app_tech_details.setSizePolicy(sizePolicy)
         self.app_tech_details.setMinimumSize(QtCore.QSize(0, 22))
         self.app_tech_details.setMaximumSize(QtCore.QSize(16777215, 22))
-        self.app_tech_details.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.app_tech_details.setAlignment(
+            QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter
+        )
         self.app_tech_details.setWordWrap(True)
         self.app_tech_details.setObjectName("app_tech_details")
         self.verticalLayout_4.addWidget(self.app_tech_details)
@@ -212,12 +242,13 @@ class Ui_TankDialog(object):
         self.btn_support = QtGui.QToolButton(self.scrollAreaWidgetContents)
         self.btn_support.setObjectName("btn_support")
         self.horizontalLayout_9.addWidget(self.btn_support)
-        spacerItem1 = QtGui.QSpacerItem(0, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        spacerItem1 = QtGui.QSpacerItem(
+            0, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum
+        )
         self.horizontalLayout_9.addItem(spacerItem1)
         self.verticalLayout_4.addLayout(self.horizontalLayout_9)
         self.label_5 = QtGui.QLabel(self.scrollAreaWidgetContents)
-        self.label_5.setStyleSheet("font-size: 16px;\n"
-"margin-top: 30px;")
+        self.label_5.setStyleSheet("font-size: 16px;\n" "margin-top: 30px;")
         self.label_5.setObjectName("label_5")
         self.verticalLayout_4.addWidget(self.label_5)
         self.line = QtGui.QFrame(self.scrollAreaWidgetContents)
@@ -239,7 +270,9 @@ class Ui_TankDialog(object):
         self.btn_shotgun = QtGui.QToolButton(self.scrollAreaWidgetContents)
         self.btn_shotgun.setObjectName("btn_shotgun")
         self.horizontalLayout_10.addWidget(self.btn_shotgun)
-        spacerItem2 = QtGui.QSpacerItem(0, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        spacerItem2 = QtGui.QSpacerItem(
+            0, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum
+        )
         self.horizontalLayout_10.addItem(spacerItem2)
         self.verticalLayout_4.addLayout(self.horizontalLayout_10)
         self.app_work_area_info_2 = QtGui.QLabel(self.scrollAreaWidgetContents)
@@ -251,8 +284,7 @@ class Ui_TankDialog(object):
         self.btn_reload.setObjectName("btn_reload")
         self.verticalLayout_4.addWidget(self.btn_reload)
         self.config_header = QtGui.QLabel(self.scrollAreaWidgetContents)
-        self.config_header.setStyleSheet("font-size: 16px;\n"
-"margin-top: 30px;")
+        self.config_header.setStyleSheet("font-size: 16px;\n" "margin-top: 30px;")
         self.config_header.setObjectName("config_header")
         self.verticalLayout_4.addWidget(self.config_header)
         self.config_line = QtGui.QFrame(self.scrollAreaWidgetContents)
@@ -269,7 +301,9 @@ class Ui_TankDialog(object):
         self.config_layout.setSpacing(20)
         self.config_layout.setObjectName("config_layout")
         self.verticalLayout_4.addLayout(self.config_layout)
-        spacerItem3 = QtGui.QSpacerItem(328, 0, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        spacerItem3 = QtGui.QSpacerItem(
+            328, 0, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding
+        )
         self.verticalLayout_4.addItem(spacerItem3)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.horizontalLayout_2.addWidget(self.scrollArea)
@@ -282,24 +316,126 @@ class Ui_TankDialog(object):
         QtCore.QMetaObject.connectSlotsByName(TankDialog)
 
     def retranslateUi(self, TankDialog):
-        TankDialog.setWindowTitle(QtGui.QApplication.translate("TankDialog", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
-        self.label.setText(QtGui.QApplication.translate("TankDialog", "TextLabel", None, QtGui.QApplication.UnicodeUTF8))
-        self.lbl_context.setToolTip(QtGui.QApplication.translate("TankDialog", "foo bar", None, QtGui.QApplication.UnicodeUTF8))
-        self.lbl_context.setText(QtGui.QApplication.translate("TankDialog", "Current Work Area:\n"
-"TextLabel", None, QtGui.QApplication.UnicodeUTF8))
-        self.details.setToolTip(QtGui.QApplication.translate("TankDialog", "Click for App Details", None, QtGui.QApplication.UnicodeUTF8))
-        self.app_name.setText(QtGui.QApplication.translate("TankDialog", "Publish And Snapshot", None, QtGui.QApplication.UnicodeUTF8))
-        self.app_description.setText(QtGui.QApplication.translate("TankDialog", "Tools to see what is out of date in your scene etc etc.", None, QtGui.QApplication.UnicodeUTF8))
-        self.app_tech_details.setText(QtGui.QApplication.translate("TankDialog", "tk-multi-snapshot, v1.2.3", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_documentation.setText(QtGui.QApplication.translate("TankDialog", "Documentation", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_support.setText(QtGui.QApplication.translate("TankDialog", "Help && Support", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_5.setText(QtGui.QApplication.translate("TankDialog", "Your Current Work Area", None, QtGui.QApplication.UnicodeUTF8))
-        self.app_work_area_info.setText(QtGui.QApplication.translate("TankDialog", "TextLabel", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_file_system.setText(QtGui.QApplication.translate("TankDialog", "Jump to File System", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_shotgun.setText(QtGui.QApplication.translate("TankDialog", "Jump to Shotgun", None, QtGui.QApplication.UnicodeUTF8))
-        self.app_work_area_info_2.setText(QtGui.QApplication.translate("TankDialog", "If you are making changes to configuration or code, use the reload button to quickly load your changes in without having to restart:", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_reload.setText(QtGui.QApplication.translate("TankDialog", "Reload Engine and Apps", None, QtGui.QApplication.UnicodeUTF8))
-        self.config_header.setText(QtGui.QApplication.translate("TankDialog", "Configuration", None, QtGui.QApplication.UnicodeUTF8))
-        self.config_label.setText(QtGui.QApplication.translate("TankDialog", "Below is a list of all the configuration settings for this app, as defined in your environment file:", None, QtGui.QApplication.UnicodeUTF8))
+        TankDialog.setWindowTitle(
+            QtGui.QApplication.translate(
+                "TankDialog", "Dialog", None, QtGui.QApplication.UnicodeUTF8
+            )
+        )
+        self.label.setText(
+            QtGui.QApplication.translate(
+                "TankDialog", "TextLabel", None, QtGui.QApplication.UnicodeUTF8
+            )
+        )
+        self.lbl_context.setToolTip(
+            QtGui.QApplication.translate(
+                "TankDialog", "foo bar", None, QtGui.QApplication.UnicodeUTF8
+            )
+        )
+        self.lbl_context.setText(
+            QtGui.QApplication.translate(
+                "TankDialog",
+                "Current Work Area:\n" "TextLabel",
+                None,
+                QtGui.QApplication.UnicodeUTF8,
+            )
+        )
+        self.details.setToolTip(
+            QtGui.QApplication.translate(
+                "TankDialog",
+                "Click for App Details",
+                None,
+                QtGui.QApplication.UnicodeUTF8,
+            )
+        )
+        self.app_name.setText(
+            QtGui.QApplication.translate(
+                "TankDialog",
+                "Publish And Snapshot",
+                None,
+                QtGui.QApplication.UnicodeUTF8,
+            )
+        )
+        self.app_description.setText(
+            QtGui.QApplication.translate(
+                "TankDialog",
+                "Tools to see what is out of date in your scene etc etc.",
+                None,
+                QtGui.QApplication.UnicodeUTF8,
+            )
+        )
+        self.app_tech_details.setText(
+            QtGui.QApplication.translate(
+                "TankDialog",
+                "tk-multi-snapshot, v1.2.3",
+                None,
+                QtGui.QApplication.UnicodeUTF8,
+            )
+        )
+        self.btn_documentation.setText(
+            QtGui.QApplication.translate(
+                "TankDialog", "Documentation", None, QtGui.QApplication.UnicodeUTF8
+            )
+        )
+        self.btn_support.setText(
+            QtGui.QApplication.translate(
+                "TankDialog", "Help && Support", None, QtGui.QApplication.UnicodeUTF8
+            )
+        )
+        self.label_5.setText(
+            QtGui.QApplication.translate(
+                "TankDialog",
+                "Your Current Work Area",
+                None,
+                QtGui.QApplication.UnicodeUTF8,
+            )
+        )
+        self.app_work_area_info.setText(
+            QtGui.QApplication.translate(
+                "TankDialog", "TextLabel", None, QtGui.QApplication.UnicodeUTF8
+            )
+        )
+        self.btn_file_system.setText(
+            QtGui.QApplication.translate(
+                "TankDialog",
+                "Jump to File System",
+                None,
+                QtGui.QApplication.UnicodeUTF8,
+            )
+        )
+        self.btn_shotgun.setText(
+            QtGui.QApplication.translate(
+                "TankDialog", "Jump to Shotgun", None, QtGui.QApplication.UnicodeUTF8
+            )
+        )
+        self.app_work_area_info_2.setText(
+            QtGui.QApplication.translate(
+                "TankDialog",
+                "If you are making changes to configuration or code, use the reload button to quickly load your changes in without having to restart:",
+                None,
+                QtGui.QApplication.UnicodeUTF8,
+            )
+        )
+        self.btn_reload.setText(
+            QtGui.QApplication.translate(
+                "TankDialog",
+                "Reload Engine and Apps",
+                None,
+                QtGui.QApplication.UnicodeUTF8,
+            )
+        )
+        self.config_header.setText(
+            QtGui.QApplication.translate(
+                "TankDialog", "Configuration", None, QtGui.QApplication.UnicodeUTF8
+            )
+        )
+        self.config_label.setText(
+            QtGui.QApplication.translate(
+                "TankDialog",
+                "Below is a list of all the configuration settings for this app, as defined in your environment file:",
+                None,
+                QtGui.QApplication.UnicodeUTF8,
+            )
+        )
+
 
 from . import resources_rc

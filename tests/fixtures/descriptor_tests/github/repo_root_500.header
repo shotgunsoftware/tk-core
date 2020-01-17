@@ -17,4 +17,3 @@ X-XSS-Protection: 1; mode=block
 Referrer-Policy: origin-when-cross-origin, strict-origin-when-cross-origin
 Content-Security-Policy: default-src 'none'
 X-GitHub-Request-Id: CDE4:3C92:E752D9:1D4F03E:5C9522CF
-

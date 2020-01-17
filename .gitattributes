@@ -1,0 +1,19 @@
+# Copyright (c) 2019 Shotgun Software Inc.
+#
+# CONFIDENTIAL AND PROPRIETARY
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+# Source Code License included in this distribution package. See LICENSE.
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
+# not expressly granted therein are reserved by Shotgun Software Inc.
+
+# Handle line endings automatically for files detected as text
+# and leave all files detected as binary untouched.
+* text=auto
+
+# Force the following filetypes to have unix eols, so Windows does not break them
+*.pickle text eol=lf
+# The git executable expects packed-refs to always have LF line endings, even on
+# Windows.
+**/packed-refs text eol=lf

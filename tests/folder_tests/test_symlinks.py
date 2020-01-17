@@ -1,32 +1,32 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import sys
 from tank import folder
+from tank.util import is_windows
 from tank_test.tank_test_base import *
 
-         
+
 class TestSymlinks(TankTestBase):
     """Test Symbolic link support."""
 
     def setUp(self):
-        
+
         super(TestSymlinks, self).setUp()
-        self.setup_fixtures(parameters = {"core": "core.override/symlinks_core"})
-        
+        self.setup_fixtures(parameters={"core": "core.override/symlinks_core"})
+
         self.shot_aaa = {
             "type": "Shot",
             "id": 1,
             "code": "aaa",
-            "project": self.project
+            "project": self.project,
         }
 
         self.asset_bbb = {
@@ -34,12 +34,10 @@ class TestSymlinks(TankTestBase):
             "id": 1,
             "code": "bbb",
             "sg_asset_type": "vehicle",
-            "project": self.project
+            "project": self.project,
         }
 
-        self.add_to_sg_mock_db(
-            [self.shot_aaa, self.asset_bbb]
-        )
+        self.add_to_sg_mock_db([self.shot_aaa, self.asset_bbb])
 
         self.aaa = os.path.join(self.project_root, "aaa")
         self.aaa_work = os.path.join(self.project_root, "aaa", "work")
@@ -62,12 +60,12 @@ class TestSymlinks(TankTestBase):
             self.shot_aaa["type"],
             self.shot_aaa["id"],
             preview=False,
-            engine=None
+            engine=None,
         )
 
         self.assertTrue(os.path.exists(self.aaa))
         self.assertTrue(os.path.exists(self.aaa_work))
-        if sys.platform != "win32":
+        if not is_windows():
             self.assertTrue(os.path.lexists(self.aaa_link))
             self.assertTrue(os.path.islink(self.aaa_link))
             self.assertEqual(os.readlink(self.aaa_link), "../Stuff/project_code/aaa")
@@ -88,15 +86,17 @@ class TestSymlinks(TankTestBase):
             self.asset_bbb["type"],
             self.asset_bbb["id"],
             preview=False,
-            engine=None
+            engine=None,
         )
 
         self.assertTrue(os.path.exists(self.bbb))
         self.assertTrue(os.path.exists(self.bbb_work))
-        if sys.platform != "win32":
+        if not is_windows():
             self.assertTrue(os.path.lexists(self.bbb_link))
             self.assertTrue(os.path.islink(self.bbb_link))
-            self.assertEqual(os.readlink(self.bbb_link), "../Stuff/project_code/vehicle/bbb")
+            self.assertEqual(
+                os.readlink(self.bbb_link), "../Stuff/project_code/vehicle/bbb"
+            )
         else:
             # no support on windows
             self.assertFalse(os.path.exists(self.bbb_link))

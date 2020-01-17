@@ -75,7 +75,7 @@ class CacheLocation(HookBaseClass):
             project_id,
             plugin_id,
             pipeline_configuration_id,
-            LocalFileStorageManager.CACHE
+            LocalFileStorageManager.CACHE,
         )
 
         target_path = os.path.join(cache_root, cache_filename)
@@ -95,7 +95,7 @@ class CacheLocation(HookBaseClass):
             plugin_id,
             pipeline_configuration_id,
             LocalFileStorageManager.CACHE,
-            generation=LocalFileStorageManager.CORE_V17
+            generation=LocalFileStorageManager.CORE_V17,
         )
 
         legacy_target_path = os.path.join(legacy_cache_root, cache_filename)
@@ -110,7 +110,9 @@ class CacheLocation(HookBaseClass):
 
         return target_path
 
-    def get_bundle_data_cache_path(self, project_id, plugin_id, pipeline_configuration_id, bundle):
+    def get_bundle_data_cache_path(
+        self, project_id, plugin_id, pipeline_configuration_id, bundle
+    ):
         """
         Establish a cache folder for an app, engine or framework.
 
@@ -171,7 +173,7 @@ class CacheLocation(HookBaseClass):
             project_id,
             plugin_id,
             pipeline_configuration_id,
-            LocalFileStorageManager.CACHE
+            LocalFileStorageManager.CACHE,
         )
 
         # in the interest of trying to minimize path lengths (to avoid
@@ -202,7 +204,7 @@ class CacheLocation(HookBaseClass):
             plugin_id,
             pipeline_configuration_id,
             LocalFileStorageManager.CACHE,
-            generation=LocalFileStorageManager.CORE_V17
+            generation=LocalFileStorageManager.CORE_V17,
         )
         legacy_target_path = os.path.join(legacy_cache_root, bundle.name)
 

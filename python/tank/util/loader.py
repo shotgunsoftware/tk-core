@@ -23,11 +23,14 @@ from .. import LogManager
 
 log = LogManager.get_logger(__name__)
 
+
 class TankLoadPluginError(TankError):
     """
     Errors related to git communication
     """
+
     pass
+
 
 def load_plugin(plugin_file, valid_base_class, alternate_base_classes=None):
     """
@@ -48,6 +51,7 @@ def load_plugin(plugin_file, valid_base_class, alternate_base_classes=None):
     # construct a uuid and use this as the module name to ensure
     # that each import is unique
     import uuid
+
     module_uid = uuid.uuid4().hex
     module = None
     try:
@@ -62,10 +66,13 @@ def load_plugin(plugin_file, valid_base_class, alternate_base_classes=None):
         # dump out the callstack for this one -- to help people get good messages when there is a plugin error
         (exc_type, exc_value, exc_traceback) = sys.exc_info()
         message = ""
-        message += "Failed to load plugin %s. The following error was reported:\n" % plugin_file
+        message += (
+            "Failed to load plugin %s. The following error was reported:\n"
+            % plugin_file
+        )
         message += "Exception: %s - %s\n" % (exc_type, exc_value)
         message += "Traceback (most recent call last):\n"
-        message += "\n".join( traceback.format_tb(exc_traceback))
+        message += "\n".join(traceback.format_tb(exc_traceback))
         raise TankLoadPluginError(message)
     finally:
         imp.release_lock()
@@ -75,7 +82,10 @@ def load_plugin(plugin_file, valid_base_class, alternate_base_classes=None):
     try:
         # first, find all classes in the module, being careful to only find classes that
         # are actually from this module and not from any other imports!
-        search_predicate = lambda member: inspect.isclass(member) and member.__module__ == module.__name__
+        search_predicate = (
+            lambda member: inspect.isclass(member)
+            and member.__module__ == module.__name__
+        )
         all_classes = [cls for _, cls in inspect.getmembers(module, search_predicate)]
 
         # Now look for classes in the module that are derived from the specified base
@@ -108,16 +118,20 @@ def load_plugin(plugin_file, valid_base_class, alternate_base_classes=None):
         log.exception("Failed to introspect hook structure for '%s'" % plugin_file)
 
         # re-raise as a TankError
-        raise TankError("Introspection error while trying to load and introspect file %s. "
-                        "Error Reported: %s" % (plugin_file, e))
+        raise TankError(
+            "Introspection error while trying to load and introspect file %s. "
+            "Error Reported: %s" % (plugin_file, e)
+        )
 
     if len(found_classes) != 1:
         # didn't find exactly one matching class!
-        msg = ("Error loading the file '%s'. Couldn't find a single class deriving from '%s'. "
-               "You need to have exactly one class defined in the file deriving from that base class. "
-               "If your file looks fine, it is possible that the cached .pyc file that python "
-               "generates is invalid and this is causing the error. In that case, please delete "
-               "the .pyc file and try again." % (plugin_file, valid_base_class.__name__))
+        msg = (
+            "Error loading the file '%s'. Couldn't find a single class deriving from '%s'. "
+            "You need to have exactly one class defined in the file deriving from that base class. "
+            "If your file looks fine, it is possible that the cached .pyc file that python "
+            "generates is invalid and this is causing the error. In that case, please delete "
+            "the .pyc file and try again." % (plugin_file, valid_base_class.__name__)
+        )
 
         raise TankLoadPluginError(msg)
 

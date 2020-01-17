@@ -11,17 +11,19 @@
 import os
 import collections
 import pprint
-import cPickle as pickle
+
 
 from .errors import TankError, TankInitError
 from . import LogManager
 from .util import shotgun
+from .util import pickle
 from .util import filesystem
 from .util import ShotgunPath
 from . import constants
 from . import pipelineconfig_utils
 from .pipelineconfig import PipelineConfiguration
 from .util import LocalFileStorageManager
+from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
 
@@ -89,20 +91,21 @@ def _from_entity(entity_type, entity_id, force_reread_shotgun_cache):
     associated_sg_pipeline_configs = _get_pipeline_configs_for_project(project_id, data)
 
     log.debug(
-        "Associated pipeline configurations are: %s" % pprint.pformat(associated_sg_pipeline_configs)
+        "Associated pipeline configurations are: %s"
+        % pprint.pformat(associated_sg_pipeline_configs)
     )
 
     if len(associated_sg_pipeline_configs) == 0:
         raise TankInitError(
-            "No pipeline configurations associated with %s %s." % (entity_type, entity_id)
+            "No pipeline configurations associated with %s %s."
+            % (entity_type, entity_id)
         )
 
     # perform various validations to make sure the version of the sgtk codebase running
     # is associated with the given configuration correctly, and if successful,
     # create a pipeline configuration
     return _validate_and_create_pipeline_configuration(
-        associated_sg_pipeline_configs,
-        source="%s %s" % (entity_type, entity_id)
+        associated_sg_pipeline_configs, source="%s %s" % (entity_type, entity_id)
     )
 
 
@@ -149,9 +152,10 @@ def _from_path(path, force_reread_shotgun_cache):
     :rtype: :class:`PipelineConfiguration`
     :raises: :class:`TankInitError`
     """
-    if not isinstance(path, basestring):
+    if not isinstance(path, six.string_types):
         raise ValueError(
-            "Cannot create a configuration from path '%s' - path must be a string." % path
+            "Cannot create a configuration from path '%s' - path must be a string."
+            % path
         )
 
     path = os.path.abspath(path)
@@ -167,7 +171,8 @@ def _from_path(path, force_reread_shotgun_cache):
             path = parent_path
         else:
             raise ValueError(
-                "Cannot create a configuration from path '%s' - path does not exist on disk." % path
+                "Cannot create a configuration from path '%s' - path does not exist on disk."
+                % path
             )
 
     # first see if someone is passing the path to an actual pipeline configuration
@@ -179,12 +184,17 @@ def _from_path(path, force_reread_shotgun_cache):
         # cached in the file system
         pc_registered_path = pipelineconfig_utils.get_config_install_location(path)
 
-        log.debug("Resolved the official path registered in Shotgun to be %s." % pc_registered_path)
+        log.debug(
+            "Resolved the official path registered in Shotgun to be %s."
+            % pc_registered_path
+        )
 
         if pc_registered_path is None:
-            raise TankError("Error starting from the configuration located in '%s' - "
-                            "it looks like this pipeline configuration and tank command "
-                            "has not been configured for the current operating system." % path)
+            raise TankError(
+                "Error starting from the configuration located in '%s' - "
+                "it looks like this pipeline configuration and tank command "
+                "has not been configured for the current operating system." % path
+            )
 
         return PipelineConfiguration(pc_registered_path)
 
@@ -200,7 +210,8 @@ def _from_path(path, force_reread_shotgun_cache):
     associated_sg_pipeline_configs = _get_pipeline_configs_for_path(path, sg_data)
 
     log.debug(
-        "Associated pipeline configurations are: %s" % pprint.pformat(associated_sg_pipeline_configs)
+        "Associated pipeline configurations are: %s"
+        % pprint.pformat(associated_sg_pipeline_configs)
     )
 
     if len(associated_sg_pipeline_configs) == 0:
@@ -213,8 +224,7 @@ def _from_path(path, force_reread_shotgun_cache):
     # is associated with the given configuration correctly, and if successful,
     # create a pipeline configuration
     return _validate_and_create_pipeline_configuration(
-        associated_sg_pipeline_configs,
-        source=path
+        associated_sg_pipeline_configs, source=path
     )
 
 
@@ -251,15 +261,17 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
     """
     # extract path data from the pipeline configuration shotgun data
     # this will return lists of dicts with keys ``id``, (local os) ``path`` and ``project_id``
-    (all_pc_data, primary_pc_data) = _get_pipeline_configuration_data(associated_pipeline_configs)
+    (all_pc_data, primary_pc_data) = _get_pipeline_configuration_data(
+        associated_pipeline_configs
+    )
 
     # format string with all configs, for error reporting.
     all_configs_str = ", ".join(
-        ["'%s' (Pipeline config id %s, Project id %s)" % (
-            x["path"],
-            x["id"],
-            x["project_id"]) for x in all_pc_data
-         ]
+        [
+            "'%s' (Pipeline config id %s, Project id %s)"
+            % (x["path"], x["id"], x["project_id"])
+            for x in all_pc_data
+        ]
     )
 
     # Introspect the TANK_CURRENT_PC env var to determine which pipeline configuration
@@ -310,9 +322,8 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
                 "You are loading the Toolkit platform from the pipeline configuration "
                 "located in '%s', with Shotgun id %s. You are trying to initialize Toolkit "
                 "from %s, however that is not associated with the pipeline configuration. "
-                "Instead, it's associated with the following configurations: %s. " % (
-                    config_context_path, pc_id, source, all_configs_str
-                )
+                "Instead, it's associated with the following configurations: %s. "
+                % (config_context_path, pc_id, source, all_configs_str)
             )
 
         else:
@@ -348,10 +359,8 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
                 "configuration! This is required by Toolkit. It needs to be named '%s'. "
                 "Please double check the Pipeline configuration page in "
                 "Shotgun for the project. The following pipeline configurations are "
-                "associated with the path: %s" % (
-                    source,
-                    constants.PRIMARY_PIPELINE_CONFIG_NAME,
-                    all_configs_str)
+                "associated with the path: %s"
+                % (source, constants.PRIMARY_PIPELINE_CONFIG_NAME, all_configs_str)
             )
 
         elif len(primary_pc_data) > 1:
@@ -474,11 +483,7 @@ def _get_pipeline_configuration_data(sg_pipeline_configs):
         # project is None for site config else dict
         project_id = pc["project"]["id"] if pc.get("project") else None
 
-        pc_entry = {
-            "path": curr_os_path,
-            "id": pc["id"],
-            "project_id": project_id
-        }
+        pc_entry = {"path": curr_os_path, "id": pc["id"], "project_id": project_id}
 
         # and append to our return data structures
         pc_data.append(pc_entry)
@@ -489,7 +494,7 @@ def _get_pipeline_configuration_data(sg_pipeline_configs):
 
 
 def _get_pipeline_configs_for_path(path, data):
-    """
+    r"""
     Given a path on disk and a cache data structure, return a list of
     associated pipeline configurations.
 
@@ -562,7 +567,9 @@ def _get_pipeline_configs_for_path(path, data):
             if pc["project"] is None:
                 for project in data["projects"].values():
                     if project["tank_name"]:
-                        _add_to_project_paths(project_paths, project["tank_name"], storage, pc)
+                        _add_to_project_paths(
+                            project_paths, project["tank_name"], storage, pc
+                        )
 
             else:
                 # centralized pipeline configurations are associated with a
@@ -596,7 +603,9 @@ def _get_pipeline_configs_for_path(path, data):
         # direct match: path: /mnt/proj_x == project path: /mnt/proj_x
         # child path: path: /mnt/proj_x/foo/bar starts with /mnt/proj_x/
 
-        if path_lower == proj_path_lower or path_lower.startswith("%s%s" % (proj_path_lower, os.path.sep)):
+        if path_lower == proj_path_lower or path_lower.startswith(
+            "%s%s" % (proj_path_lower, os.path.sep)
+        ):
             # found a match!
             associated_pcs = project_paths[project_path]
             all_matching_pcs.extend(associated_pcs)
@@ -772,9 +781,9 @@ def _get_pipeline_configs(force=False):
     sg = shotgun.get_sg_connection()
 
     # get all local storages for this site
-    local_storages = sg.find("LocalStorage",
-                             [],
-                             ["id", "code", "windows_path", "mac_path", "linux_path"])
+    local_storages = sg.find(
+        "LocalStorage", [], ["id", "code", "windows_path", "mac_path", "linux_path"]
+    )
 
     # get all pipeline configurations (and their associated projects) for this site.
     #
@@ -784,25 +793,22 @@ def _get_pipeline_configs(force=False):
     # Note that we are using the filter_operator "any", not the default "all".
     pipeline_configs = sg.find(
         "PipelineConfiguration",
-        [
-            ["project.Project.archived", "is", False],
-            ["project", "is", None]
-        ],
+        [["project.Project.archived", "is", False], ["project", "is", None]],
         ["id", "code", "windows_path", "linux_path", "mac_path", "project"],
-        filter_operator="any"
+        filter_operator="any",
     )
 
-    projects = sg.find(
-        "Project",
-        [["archived", "is", False]],
-        ["name", "tank_name"]
-    )
+    projects = sg.find("Project", [["archived", "is", False]], ["name", "tank_name"])
 
     # Index the result by project id so look-ups are easier to do later on.
     projects = dict((project["id"], project) for project in projects)
 
     # cache this data
-    data = {"local_storages": local_storages, "pipeline_configurations": pipeline_configs, "projects": projects}
+    data = {
+        "local_storages": local_storages,
+        "pipeline_configurations": pipeline_configs,
+        "projects": projects,
+    }
     _add_to_lookup_cache(CACHE_KEY, data)
 
     return data
@@ -826,7 +832,8 @@ def _load_lookup_cache():
     except Exception as e:
         # failed to load cache from file. Continue silently.
         log.debug(
-            "Failed to load lookup cache %s. Proceeding without cache. Error: %s" % (cache_file, e)
+            "Failed to load lookup cache %s. Proceeding without cache. Error: %s"
+            % (cache_file, e)
         )
 
     return cache_data
@@ -863,9 +870,7 @@ def _add_to_lookup_cache(key, data):
 
     except Exception as e:
         # silently continue in case exceptions are raised
-        log.debug(
-            "Failed to add to lookup cache %s. Error: %s" % (cache_file, e)
-        )
+        log.debug("Failed to add to lookup cache %s. Error: %s" % (cache_file, e))
 
 
 def _get_cache_location():
@@ -878,5 +883,7 @@ def _get_cache_location():
     # optimized version of creating an sg instance and then calling sg.base_url
     # this is to avoid connecting to shotgun if possible.
     sg_base_url = shotgun.get_associated_sg_base_url()
-    root_path = LocalFileStorageManager.get_site_root(sg_base_url, LocalFileStorageManager.CACHE)
+    root_path = LocalFileStorageManager.get_site_root(
+        sg_base_url, LocalFileStorageManager.CACHE
+    )
     return os.path.join(root_path, constants.TOOLKIT_INIT_CACHE_FILE)
