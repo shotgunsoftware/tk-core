@@ -1678,8 +1678,47 @@ class Engine(TankBundle):
         from .qt import tankqdialog
 
         # construct the widget object
-        derived_widget_class = tankqdialog.TankQDialog.wrap_widget_class(widget_class)
-        widget = derived_widget_class(*args, **kwargs)
+        try:
+            derived_widget_class = tankqdialog.TankQDialog.wrap_widget_class(
+                widget_class
+            )
+            widget = derived_widget_class(*args, **kwargs)
+        except Exception as exc:
+            # We don't want exceptions from the instantiation of the widget to bubble
+            # up since we don't know how the Python environment we're running in might
+            # react.
+            self.logger.exception(exc)
+
+            import traceback
+            from sgtk.platform.qt import QtGui, QtCore
+
+            # A very simple widget that ensures that the exception is visible and
+            # selectable should the user need to copy/paste it into a support
+            # ticket.
+            class _exc_widget(QtGui.QWidget):
+                def __init__(self, msg, *args, **kwargs):
+                    super(_exc_widget, self).__init__(*args, **kwargs)
+
+                    self.setObjectName("SGTK_CORE_EXC_WIDGET")
+
+                    self._label = QtGui.QLabel(
+                        "<big>The requested dialog could not be built "
+                        "due to an exception that was raised:</big>"
+                    )
+                    self._label.setTextFormat(QtCore.Qt.RichText)
+                    self._text = QtGui.QTextEdit()
+                    self._text.setReadOnly(True)
+                    self._text.setLineWrapMode(QtGui.QTextEdit.NoWrap)
+                    self._text.setText(msg)
+
+                    self._layout = QtGui.QVBoxLayout(self)
+                    self._layout.addWidget(self._label)
+                    self._layout.addWidget(self._text)
+
+            derived_widget_class = tankqdialog.TankQDialog.wrap_widget_class(
+                _exc_widget
+            )
+            widget = derived_widget_class(traceback.format_exc())
 
         # keep track of some info for debugging object lifetime
         self.__debug_track_qt_widget(widget)
