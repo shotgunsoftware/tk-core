@@ -78,7 +78,7 @@ class ToolkitManager(object):
         # These are serializable parameters from the class.
         self._user_bundle_cache_fallback_paths = []
         self._caching_policy = self.CACHE_SPARSE
-        self._pipeline_configuration_identifier = None # name or id
+        self._pipeline_configuration_identifier = None  # name or id
         self._base_config_descriptor = None
         self._do_shotgun_config_lookup = True
         self._plugin_id = None
@@ -89,10 +89,8 @@ class ToolkitManager(object):
         if constants.PIPELINE_CONFIG_ID_ENV_VAR in os.environ:
             pipeline_config_str = os.environ[constants.PIPELINE_CONFIG_ID_ENV_VAR]
             log.debug(
-                "Detected %s environment variable set to '%s'" % (
-                    constants.PIPELINE_CONFIG_ID_ENV_VAR,
-                    pipeline_config_str
-                )
+                "Detected %s environment variable set to '%s'"
+                % (constants.PIPELINE_CONFIG_ID_ENV_VAR, pipeline_config_str)
             )
             # try to convert it to an integer
             try:
@@ -100,10 +98,8 @@ class ToolkitManager(object):
             except ValueError:
                 log.error(
                     "Environment variable %s value '%s' is not "
-                    "an integer number and will be ignored." % (
-                        constants.PIPELINE_CONFIG_ID_ENV_VAR,
-                        pipeline_config_str
-                    )
+                    "an integer number and will be ignored."
+                    % (constants.PIPELINE_CONFIG_ID_ENV_VAR, pipeline_config_str)
                 )
             else:
                 log.debug("Setting pipeline configuration to %s" % pipeline_config_id)
@@ -119,12 +115,18 @@ class ToolkitManager(object):
         else:
             identifier_type = "name"
 
-        repr  = "<TkManager "
+        repr = "<TkManager "
         repr += " User %s\n" % self._sg_user
-        repr += " Bundle cache fallback paths %s\n" % self._get_bundle_cache_fallback_paths()
+        repr += (
+            " Bundle cache fallback paths %s\n"
+            % self._get_bundle_cache_fallback_paths()
+        )
         repr += " Caching policy %s\n" % self._caching_policy
         repr += " Plugin id %s\n" % self._plugin_id
-        repr += " Config %s %s\n" % (identifier_type, self._pipeline_configuration_identifier)
+        repr += " Config %s %s\n" % (
+            identifier_type,
+            self._pipeline_configuration_identifier,
+        )
         repr += " Base %s >" % self._base_config_descriptor
         return repr
 
@@ -154,7 +156,7 @@ class ToolkitManager(object):
             "base_configuration": self.base_configuration,
             "do_shotgun_config_lookup": self.do_shotgun_config_lookup,
             "plugin_id": self.plugin_id,
-            "allow_config_overrides": self.allow_config_overrides
+            "allow_config_overrides": self.allow_config_overrides,
         }
 
     def restore_settings(self, data):
@@ -204,10 +206,8 @@ class ToolkitManager(object):
         if constants.BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR in os.environ:
             fallback_str = os.environ[constants.BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR]
             log.debug(
-                "Detected %s environment variable set to '%s'" % (
-                    constants.BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR,
-                    fallback_str
-                )
+                "Detected %s environment variable set to '%s'"
+                % (constants.BUNDLE_CACHE_FALLBACK_PATHS_ENV_VAR, fallback_str)
             )
             toolkit_bundle_cache_fallback_paths = fallback_str.split(os.pathsep)
 
@@ -215,8 +215,10 @@ class ToolkitManager(object):
             # OrderedDicts, which would have been perfect for this, so we will...
 
             # First build the complete list of paths with possible duplicates.
-            concatenated_lists = self._user_bundle_cache_fallback_paths +\
-                toolkit_bundle_cache_fallback_paths
+            concatenated_lists = (
+                self._user_bundle_cache_fallback_paths
+                + toolkit_bundle_cache_fallback_paths
+            )
 
             # Then build a set of unique paths.
             unique_items = set(concatenated_lists)
@@ -257,7 +259,9 @@ class ToolkitManager(object):
         """
         return self._allow_config_overrides
 
-    allow_config_overrides = property(_get_allow_config_overrides, _set_allow_config_overrides)
+    allow_config_overrides = property(
+        _get_allow_config_overrides, _set_allow_config_overrides
+    )
 
     def _set_pipeline_configuration(self, identifier):
         self._pipeline_configuration_identifier = identifier
@@ -283,9 +287,13 @@ class ToolkitManager(object):
     def _set_pre_engine_start_callback(self, callback):
         self._pre_engine_start_callback = callback
 
-    pre_engine_start_callback = property(_get_pre_engine_start_callback, _set_pre_engine_start_callback)
+    pre_engine_start_callback = property(
+        _get_pre_engine_start_callback, _set_pre_engine_start_callback
+    )
 
-    pipeline_configuration = property(_get_pipeline_configuration, _set_pipeline_configuration)
+    pipeline_configuration = property(
+        _get_pipeline_configuration, _set_pipeline_configuration
+    )
 
     def _get_do_shotgun_config_lookup(self):
         """
@@ -309,7 +317,9 @@ class ToolkitManager(object):
         # setter for do_shotgun_config_lookup
         self._do_shotgun_config_lookup = status
 
-    do_shotgun_config_lookup = property(_get_do_shotgun_config_lookup, _set_do_shotgun_config_lookup)
+    do_shotgun_config_lookup = property(
+        _get_do_shotgun_config_lookup, _set_do_shotgun_config_lookup
+    )
 
     def _get_plugin_id(self):
         """
@@ -383,8 +393,7 @@ class ToolkitManager(object):
         self._user_bundle_cache_fallback_paths = paths
 
     bundle_cache_fallback_paths = property(
-        _get_user_bundle_cache_fallback_paths,
-        _set_user_bundle_cache_fallback_paths
+        _get_user_bundle_cache_fallback_paths, _set_user_bundle_cache_fallback_paths
     )
 
     def _get_caching_policy(self):
@@ -403,9 +412,11 @@ class ToolkitManager(object):
     def _set_caching_policy(self, caching_policy):
         # Setter for property 'caching_policy'.
         if caching_policy not in (self.CACHE_SPARSE, self.CACHE_FULL):
-            raise TankBootstrapError("Invalid config caching policy %s. "
-                                     "Set to 'ToolkitManager.CACHE_SPARSE' or 'ToolkitManager.CACHE_FULL'." %
-                                     caching_policy)
+            raise TankBootstrapError(
+                "Invalid config caching policy %s. "
+                "Set to 'ToolkitManager.CACHE_SPARSE' or 'ToolkitManager.CACHE_FULL'."
+                % caching_policy
+            )
         self._caching_policy = caching_policy
 
     caching_policy = property(_get_caching_policy, _set_caching_policy)
@@ -427,7 +438,7 @@ class ToolkitManager(object):
                 '''
 
         .. note:: When registering a progress callback, ensure that it is ALWAYS
-            thread safe. There is no guarantee that it will be called from the 
+            thread safe. There is no guarantee that it will be called from the
             main thread.
         """
         return self._progress_cb or self._default_progress_callback
@@ -480,16 +491,20 @@ class ToolkitManager(object):
 
         engine = self._start_engine(tk, engine_name, entity)
 
-        self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched.")
+        self._report_progress(
+            self.progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched."
+        )
 
         return engine
 
-    def bootstrap_engine_async(self,
-                               engine_name,
-                               entity=None,
-                               completed_callback=None,
-                               failed_callback=None,
-                               parent=None):
+    def bootstrap_engine_async(
+        self,
+        engine_name,
+        entity=None,
+        completed_callback=None,
+        failed_callback=None,
+        parent=None,
+    ):
         """
         Asynchronous version of :meth:`bootstrap_engine`.
 
@@ -569,8 +584,10 @@ class ToolkitManager(object):
             from .async_bootstrap import AsyncBootstrapWrapper
         except ImportError:
             AsyncBootstrapWrapper = None
-            log.warning("Cannot bootstrap asynchronously in a background thread;"
-                        " falling back on synchronous startup.")
+            log.warning(
+                "Cannot bootstrap asynchronously in a background thread;"
+                " falling back on synchronous startup."
+            )
 
         if AsyncBootstrapWrapper:
 
@@ -578,12 +595,7 @@ class ToolkitManager(object):
             # followed by launching the engine synchronously in the main application thread.
 
             self._bootstrapper = AsyncBootstrapWrapper(
-                self,
-                engine_name,
-                entity,
-                completed_callback,
-                failed_callback,
-                parent,
+                self, engine_name, entity, completed_callback, failed_callback, parent
             )
             self._bootstrapper.bootstrap()
 
@@ -642,10 +654,14 @@ class ToolkitManager(object):
         try:
             pc = PipelineConfiguration(path)
         except TankError as e:
-            raise TankBootstrapError("Unexpected error while caching configuration: %s" % str(e))
+            raise TankBootstrapError(
+                "Unexpected error while caching configuration: %s" % str(e)
+            )
 
         self._cache_bundles(config, pc, engine_name, self.progress_callback)
-        self._report_progress(self.progress_callback, self._BOOTSTRAP_COMPLETED, "Preparations complete.")
+        self._report_progress(
+            self.progress_callback, self._BOOTSTRAP_COMPLETED, "Preparations complete."
+        )
 
         return path, config.descriptor
 
@@ -658,10 +674,16 @@ class ToolkitManager(object):
         :param engine_name: Name of the engine we're bootstrapping into.
         :param
         """
+
         def report_bundle_progress(message, idx, nb_descriptors):
             # Scale the progress step 0.8 between this value 0.15 and the next one 0.95
             # to compute a value progressing while looping over the indexes.
-            step_size = float(self._END_DOWNLOADING_APPS_RATE - self._START_DOWNLOADING_APPS_RATE) / nb_descriptors
+            step_size = (
+                float(
+                    self._END_DOWNLOADING_APPS_RATE - self._START_DOWNLOADING_APPS_RATE
+                )
+                / nb_descriptors
+            )
             progress_value = self._START_DOWNLOADING_APPS_RATE + (idx * step_size)
 
             self._report_progress(progress_callback, progress_value, message)
@@ -671,7 +693,7 @@ class ToolkitManager(object):
             # If we're going to do a sparse cache, only cache for the engine
             # we're bootstrapping into.
             engine_name if self._caching_policy == self.CACHE_SPARSE else None,
-            report_bundle_progress
+            report_bundle_progress,
         )
 
     def get_pipeline_configurations(self, project):
@@ -746,11 +768,12 @@ class ToolkitManager(object):
             ``name`` field (case insensitive), then the ``project`` field and finally then ``id`` field.
         """
         if isinstance(self.pipeline_configuration, int):
-            raise TankBootstrapError("Can't enumerate pipeline configurations matching a specific id.")
+            raise TankBootstrapError(
+                "Can't enumerate pipeline configurations matching a specific id."
+            )
 
         resolver = ConfigurationResolver(
-            self.plugin_id,
-            project["id"] if project else None
+            self.plugin_id, project["id"] if project else None
         )
 
         # Only return id, type and code fields.
@@ -809,12 +832,8 @@ class ToolkitManager(object):
                 "You are currently logged in to site %s but your launch environment "
                 "is set to start up %s %s on site %s. The Shotgun integration "
                 "currently doesn't support switching between sites and the contents of "
-                "SHOTGUN_ENTITY_TYPE and SHOTGUN_ENTITY_ID will therefore be ignored." % (
-                    self._sg_user.host,
-                    entity_type,
-                    entity_id,
-                    shotgun_site
-                )
+                "SHOTGUN_ENTITY_TYPE and SHOTGUN_ENTITY_ID will therefore be ignored."
+                % (self._sg_user.host, entity_type, entity_id, shotgun_site)
             )
             entity_type = None
             entity_id = None
@@ -853,15 +872,9 @@ class ToolkitManager(object):
         :param dict project: The project entity, or None.
         """
         if project is None:
-            return self._get_configuration(
-                None,
-                self.progress_callback,
-            ).descriptor
+            return self._get_configuration(None, self.progress_callback).descriptor
         else:
-            return self._get_configuration(
-                project,
-                self.progress_callback,
-            ).descriptor
+            return self._get_configuration(project, self.progress_callback).descriptor
 
     def _log_startup_message(self, engine_name, entity):
         """
@@ -876,18 +889,28 @@ class ToolkitManager(object):
 
         if self._do_shotgun_config_lookup:
             log.debug("Will connect to Shotgun to look for overrides.")
-            log.debug("If no overrides found, this config will be used: %s" % self._base_config_descriptor)
+            log.debug(
+                "If no overrides found, this config will be used: %s"
+                % self._base_config_descriptor
+            )
 
             if self._pipeline_configuration_identifier not in [0, None, ""]:
                 log.debug("Potential config overrides will be pulled ")
-                log.debug("from pipeline config '%s'" % self._pipeline_configuration_identifier)
+                log.debug(
+                    "from pipeline config '%s'"
+                    % self._pipeline_configuration_identifier
+                )
             else:
-                log.debug("The system will automatically determine the pipeline configuration")
+                log.debug(
+                    "The system will automatically determine the pipeline configuration"
+                )
                 log.debug("based on the current project id and user.")
 
         else:
             log.debug("Will not connect to shotgun to resolve config overrides.")
-            log.debug("The following config will be used: %s" % self._base_config_descriptor)
+            log.debug(
+                "The following config will be used: %s" % self._base_config_descriptor
+            )
 
         log.debug("")
         log.debug("Target entity for runtime context: %s" % entity)
@@ -905,7 +928,9 @@ class ToolkitManager(object):
 
         :returns: A :class:`sgtk.bootstrap.configuration.Configuration` instance.
         """
-        self._report_progress(progress_callback, self._RESOLVING_PROJECT_RATE, "Resolving project...")
+        self._report_progress(
+            progress_callback, self._RESOLVING_PROJECT_RATE, "Resolving project..."
+        )
         if entity is None:
             project_id = None
 
@@ -919,9 +944,7 @@ class ToolkitManager(object):
         else:
             # resolve from shotgun
             data = self._sg_connection.find_one(
-                entity["type"],
-                [["id", "is", entity["id"]]],
-                ["project"]
+                entity["type"], [["id", "is", entity["id"]]], ["project"]
             )
 
             if not data or not data.get("project"):
@@ -930,19 +953,22 @@ class ToolkitManager(object):
 
         # get an object to represent the business logic for
         # how a configuration location is being determined
-        self._report_progress(progress_callback, self._RESOLVING_CONFIG_RATE, "Resolving configuration...")
+        self._report_progress(
+            progress_callback, self._RESOLVING_CONFIG_RATE, "Resolving configuration..."
+        )
 
         resolver = ConfigurationResolver(
-            self._plugin_id,
-            project_id,
-            self._get_bundle_cache_fallback_paths()
+            self._plugin_id, project_id, self._get_bundle_cache_fallback_paths()
         )
 
         # now request a configuration object from the resolver.
         # this object represents a configuration that may or may not
         # exist on disk. We can use the config object to check if the
         # object needs installation, updating etc.
-        if constants.CONFIG_OVERRIDE_ENV_VAR in os.environ and self._allow_config_overrides:
+        if (
+            constants.CONFIG_OVERRIDE_ENV_VAR in os.environ
+            and self._allow_config_overrides
+        ):
             # an override environment variable has been set. This takes precedence over
             # all other methods and is useful when you do development. For example,
             # if you are developing an app and want to test it with an existing plugin
@@ -951,42 +977,45 @@ class ToolkitManager(object):
             #
             # TK_BOOTSTRAP_CONFIG_OVERRIDE=/path/to/dev_config
             #
-            log.info("Detected a %s environment variable." % constants.CONFIG_OVERRIDE_ENV_VAR)
+            log.info(
+                "Detected a %s environment variable."
+                % constants.CONFIG_OVERRIDE_ENV_VAR
+            )
             config_override_path = os.environ[constants.CONFIG_OVERRIDE_ENV_VAR]
             # resolve env vars and tildes
-            config_override_path = os.path.expanduser(os.path.expandvars(config_override_path))
+            config_override_path = os.path.expanduser(
+                os.path.expandvars(config_override_path)
+            )
             log.info("Config override set to '%s'" % config_override_path)
 
             if not os.path.exists(config_override_path):
                 raise TankBootstrapError(
-                    "Cannot find config '%s' defined by override env var %s." % (
-                        config_override_path,
-                        constants.CONFIG_OVERRIDE_ENV_VAR
-                    )
+                    "Cannot find config '%s' defined by override env var %s."
+                    % (config_override_path, constants.CONFIG_OVERRIDE_ENV_VAR)
                 )
 
             config = resolver.resolve_configuration(
-                {"type": "dev", "path": config_override_path},
-                self._sg_connection,
+                {"type": "dev", "path": config_override_path}, self._sg_connection
             )
 
         elif self._do_shotgun_config_lookup:
             # do the full resolve where we connect to shotgun etc.
             log.debug("Checking for pipeline configuration overrides in Shotgun.")
-            log.debug("In order to turn this off, set do_shotgun_config_lookup to False")
+            log.debug(
+                "In order to turn this off, set do_shotgun_config_lookup to False"
+            )
             config = resolver.resolve_shotgun_configuration(
                 self._pipeline_configuration_identifier,
                 self._base_config_descriptor,
                 self._sg_connection,
-                self._sg_user.login
+                self._sg_user.login,
             )
 
         else:
             # fixed resolve based on the base config alone
             # do the full resolve where we connect to shotgun etc.
             config = resolver.resolve_configuration(
-                self._base_config_descriptor,
-                self._sg_connection
+                self._base_config_descriptor, self._sg_connection
             )
 
         log.debug("Bootstrapping into configuration %r" % config)
@@ -1013,7 +1042,11 @@ class ToolkitManager(object):
         # see what we have locally
         status = config.status()
 
-        self._report_progress(progress_callback, self._UPDATING_CONFIGURATION_RATE, "Updating configuration...")
+        self._report_progress(
+            progress_callback,
+            self._UPDATING_CONFIGURATION_RATE,
+            "Updating configuration...",
+        )
         if status == Configuration.LOCAL_CFG_UP_TO_DATE:
             log.debug("Your locally cached configuration is up to date.")
 
@@ -1026,7 +1059,9 @@ class ToolkitManager(object):
             config.update_configuration()
 
         elif status == Configuration.LOCAL_CFG_INVALID:
-            log.debug("Your locally cached configuration looks invalid and will be replaced.")
+            log.debug(
+                "Your locally cached configuration looks invalid and will be replaced."
+            )
             config.update_configuration()
 
         else:
@@ -1063,17 +1098,16 @@ class ToolkitManager(object):
         config = self._get_updated_configuration(entity, progress_callback)
 
         # we can now boot up this config.
-        self._report_progress(progress_callback, self._STARTING_TOOLKIT_RATE, "Starting up Toolkit...")
+        self._report_progress(
+            progress_callback, self._STARTING_TOOLKIT_RATE, "Starting up Toolkit..."
+        )
         tk, user = config.get_tk_instance(self._sg_user)
 
         # Assign the post core-swap user so the rest of the bootstrap uses the new user object.
         self._sg_user = user
 
         self._cache_bundles(
-            config,
-            tk.pipeline_configuration,
-            engine_name,
-            self.progress_callback
+            config, tk.pipeline_configuration, engine_name, self.progress_callback
         )
 
         return tk
@@ -1102,22 +1136,30 @@ class ToolkitManager(object):
         if progress_callback is None:
             progress_callback = self.progress_callback
 
-        self._report_progress(progress_callback, self._RESOLVING_CONTEXT_RATE, "Resolving context...")
+        self._report_progress(
+            progress_callback, self._RESOLVING_CONTEXT_RATE, "Resolving context..."
+        )
         if entity is None:
             ctx = tk.context_empty()
         else:
             ctx = tk.context_from_entity_dictionary(entity)
 
-        self._report_progress(progress_callback, self._LAUNCHING_ENGINE_RATE, "Launching Engine...")
+        self._report_progress(
+            progress_callback, self._LAUNCHING_ENGINE_RATE, "Launching Engine..."
+        )
         log.debug("Attempting to start engine %s for context %r" % (engine_name, ctx))
 
         if self.pre_engine_start_callback:
-            log.debug("Invoking pre engine start callback '%s'" % self.pre_engine_start_callback)
+            log.debug(
+                "Invoking pre engine start callback '%s'"
+                % self.pre_engine_start_callback
+            )
             self.pre_engine_start_callback(ctx)
             log.debug("Pre engine start callback was invoked.")
 
         # perform absolute import to ensure we get the new swapped core.
         import tank
+
         is_shotgun_engine = engine_name == constants.SHOTGUN_ENGINE_NAME
 
         # If this is the shotgun engine we are starting, then we will attempt a typical
@@ -1141,8 +1183,12 @@ class ToolkitManager(object):
                     "was the following: %r" % exc
                 )
                 try:
-                    engine = self._legacy_start_shotgun_engine(tk, engine_name, entity, ctx)
-                    log.debug("Shotgun engine started using a legacy shotgun_xxx.yml environment.")
+                    engine = self._legacy_start_shotgun_engine(
+                        tk, engine_name, entity, ctx
+                    )
+                    log.debug(
+                        "Shotgun engine started using a legacy shotgun_xxx.yml environment."
+                    )
                 except Exception as exc:
                     log.debug(
                         "Shotgun engine failed to start using the legacy "
@@ -1156,7 +1202,9 @@ class ToolkitManager(object):
 
         log.debug("Launched engine %r" % engine)
 
-        self._report_progress(progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched.")
+        self._report_progress(
+            progress_callback, self._BOOTSTRAP_COMPLETED, "Engine launched."
+        )
 
         return engine
 
@@ -1176,7 +1224,8 @@ class ToolkitManager(object):
         # new cores handles all this inside the tank.platform.start_shotgun_engine
         # business logic.
         log.debug(
-            "Target core version is %s. Starting shotgun engine via legacy pathway." % tk.version
+            "Target core version is %s. Starting shotgun engine via legacy pathway."
+            % tk.version
         )
 
         if entity is None:
@@ -1187,6 +1236,7 @@ class ToolkitManager(object):
         # start engine via legacy pathway
         # note the local import due to core swapping.
         from tank.platform import engine
+
         return engine.start_shotgun_engine(tk, entity["type"], ctx)
 
     def _report_progress(self, progress_callback, progress_value, message):
@@ -1236,7 +1286,11 @@ class ToolkitManager(object):
         :param exception: Python exception raised while bootstrapping.
         """
 
-        phase_name = "TOOLKIT_BOOTSTRAP_PHASE" if phase == self.TOOLKIT_BOOTSTRAP_PHASE else "ENGINE_STARTUP_PHASE"
+        phase_name = (
+            "TOOLKIT_BOOTSTRAP_PHASE"
+            if phase == self.TOOLKIT_BOOTSTRAP_PHASE
+            else "ENGINE_STARTUP_PHASE"
+        )
 
         log.debug("Default failed callback (%s): %s" % (phase_name, exception))
 
@@ -1259,6 +1313,7 @@ class ToolkitManager(object):
         :rtype: str
         """
         import sgtk
+
         sgtk_file = inspect.getfile(sgtk)
         tank_folder = os.path.dirname(sgtk_file)
         python_folder = os.path.dirname(tank_folder)

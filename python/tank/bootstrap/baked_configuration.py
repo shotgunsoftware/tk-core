@@ -16,9 +16,8 @@ from .configuration_writer import ConfigurationWriter
 from .. import LogManager
 from .. import constants
 
-import cPickle as pickle
-
 from ..util import ShotgunPath
+from ..util.pickle import store_env_var_pickled
 from ..errors import TankFileDoesNotExistError
 from .. import pipelineconfig_utils
 
@@ -33,14 +32,14 @@ class BakedConfiguration(Configuration):
     """
 
     def __init__(
-            self,
-            path,
-            sg,
-            project_id,
-            plugin_id,
-            pipeline_config_id,
-            bundle_cache_fallback_paths,
-            descriptor
+        self,
+        path,
+        sg,
+        project_id,
+        plugin_id,
+        pipeline_config_id,
+        bundle_cache_fallback_paths,
+        descriptor,
     ):
         """
         Constructor.
@@ -64,6 +63,7 @@ class BakedConfiguration(Configuration):
         super(BakedConfiguration, self).__init__(path, descriptor)
         self._path = path
         self._sg_connection = sg
+
         self._project_id = project_id
         self._plugin_id = plugin_id
         self._pipeline_config_id = pipeline_config_id
@@ -118,22 +118,25 @@ class BakedConfiguration(Configuration):
         pipeline_config = {
             "project_id": self._project_id,
             "pipeline_config_id": self._pipeline_config_id,
-            "bundle_cache_paths": self._bundle_cache_fallback_paths
+            "bundle_cache_paths": self._bundle_cache_fallback_paths,
         }
 
         log.debug("Setting External config data: %s" % pipeline_config)
-        os.environ[constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA] = pickle.dumps(pipeline_config)
+        store_env_var_pickled(
+            constants.ENV_VAR_EXTERNAL_PIPELINE_CONFIG_DATA, pipeline_config
+        )
 
         path = self._path.current_os
         try:
-            python_core_path = pipelineconfig_utils.get_core_python_path_for_config(path)
+            python_core_path = pipelineconfig_utils.get_core_python_path_for_config(
+                path
+            )
         except TankFileDoesNotExistError:
             # For baked config we allow a globally installed tk-core to be used
             python_core_path = self._get_current_core_python_path()
             log.debug(
-                "Couldn't retrieve a core path from the config, keeping current one: %s" % (
-                    python_core_path
-                )
+                "Couldn't retrieve a core path from the config, keeping current one: %s"
+                % (python_core_path)
             )
 
         self._swap_core_if_needed(python_core_path)
@@ -141,6 +144,7 @@ class BakedConfiguration(Configuration):
         # Perform a local import here to make sure we are getting
         # the newly swapped in core code, if it was swapped
         from .. import api
+
         # Baked config are typically not attached to any Shotgun site, or project
         # so we can simply keep using the current user, which holds Shotgun
         # connection informations.
@@ -166,8 +170,7 @@ class BakedConfiguration(Configuration):
         # but with the difference that this will be bundled with an installation
         # and therefore needs to be completely location agnostic.
         config_writer = ConfigurationWriter(
-            ShotgunPath.from_current_os_path(path),
-            sg_connection
+            ShotgunPath.from_current_os_path(path), sg_connection
         )
 
         config_writer.ensure_project_scaffold()
@@ -182,7 +185,7 @@ class BakedConfiguration(Configuration):
             project_id=None,
             plugin_id=plugin_id,
             bundle_cache_fallback_paths=[],
-            source_descriptor=None
+            source_descriptor=None,
         )
 
         # Same thing here as above for the install_location file. We don't really

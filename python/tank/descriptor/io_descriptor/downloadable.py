@@ -17,6 +17,7 @@ from ..errors import TankDescriptorIOError
 from ...util import filesystem
 
 from ... import LogManager
+
 log = LogManager.get_logger(__name__)
 
 
@@ -56,7 +57,9 @@ class IODescriptorDownloadable(IODescriptorBase):
 
         with self.open_write_location() as temporary_path:
             # attempt to download the descriptor to the temporary path.
-            log.debug("Downloading %s to temporary download path %s." % (self, temporary_path))
+            log.debug(
+                "Downloading %s to temporary download path %s." % (self, temporary_path)
+            )
             self._download_local(temporary_path)
 
     @contextlib.contextmanager
@@ -91,7 +94,9 @@ class IODescriptorDownloadable(IODescriptorBase):
         except Exception as e:
             if not os.path.exists(target_parent):
                 log.error("Failed to create directory %s: %s" % (target_parent, e))
-                raise TankDescriptorIOError("Failed to create directory %s: %s" % (target_parent, e))
+                raise TankDescriptorIOError(
+                    "Failed to create directory %s: %s" % (target_parent, e)
+                )
 
         try:
             yield temporary_path
@@ -101,14 +106,19 @@ class IODescriptorDownloadable(IODescriptorBase):
             filesystem.ensure_folder_exists(metadata_folder)
         except Exception as e:
             # something went wrong during the download, remove the temporary files.
-            log.error("Failed to download into path %s: %s. Attempting to remove it."
-                      % (temporary_path, e))
+            log.error(
+                "Failed to download into path %s: %s. Attempting to remove it."
+                % (temporary_path, e)
+            )
             # note - safe_delete_folder will not raise if something goes wrong, it will just log.
             filesystem.safe_delete_folder(temporary_path)
-            raise TankDescriptorIOError("Failed to download into path %s: %s" % (temporary_path, e))
+            raise TankDescriptorIOError(
+                "Failed to download into path %s: %s" % (temporary_path, e)
+            )
 
-        log.debug("Attempting to move descriptor %s from temporary path %s to target path %s." % (
-            self, temporary_path, target)
+        log.debug(
+            "Attempting to move descriptor %s from temporary path %s to target path %s."
+            % (self, temporary_path, target)
         )
 
         move_succeeded = False
@@ -122,11 +132,14 @@ class IODescriptorDownloadable(IODescriptorBase):
             filesystem.touch_file(
                 os.path.join(
                     self._get_metadata_folder(target),
-                    self._DOWNLOAD_TRANSACTION_COMPLETE_FILE
+                    self._DOWNLOAD_TRANSACTION_COMPLETE_FILE,
                 )
             )
             move_succeeded = True
-            log.debug("Successfully moved the downloaded descriptor to target path: %s." % target)
+            log.debug(
+                "Successfully moved the downloaded descriptor to target path: %s."
+                % target
+            )
 
         except Exception as e:
 
@@ -151,10 +164,8 @@ class IODescriptorDownloadable(IODescriptorBase):
                     # copy first then delete all files in target.
                     # if deletion fails this will log and gracefully continue.
                     log.debug(
-                        "Performing 'copy then delete' style move on %s -> %s" % (
-                            temporary_path,
-                            target
-                        )
+                        "Performing 'copy then delete' style move on %s -> %s"
+                        % (temporary_path, target)
                     )
 
                     # first write out our metadata folder where we store the transaction marker.
@@ -169,7 +180,7 @@ class IODescriptorDownloadable(IODescriptorBase):
                     filesystem.touch_file(
                         os.path.join(
                             self._get_metadata_folder(target),
-                            self._DOWNLOAD_TRANSACTION_COMPLETE_FILE
+                            self._DOWNLOAD_TRANSACTION_COMPLETE_FILE,
                         )
                     )
                     # move_folder leaves all folders in the filesystem
@@ -181,17 +192,22 @@ class IODescriptorDownloadable(IODescriptorBase):
                     # something during the copy went wrong. Attempt to roll back the target
                     # so we aren't left with any corrupt bundle cache items.
                     if os.path.exists(target):
-                        log.debug("Move failed. Attempting to clear out target path '%s'" % target)
+                        log.debug(
+                            "Move failed. Attempting to clear out target path '%s'"
+                            % target
+                        )
                         filesystem.safe_delete_folder(target)
 
                     # ...and raise an error. Include callstack so we get full visibility here.
                     log.exception(
                         "Failed to copy descriptor %s from the temporary path %s "
-                        "to the bundle cache %s. Error: %s" % (self, temporary_path, target, e)
+                        "to the bundle cache %s. Error: %s"
+                        % (self, temporary_path, target, e)
                     )
                     raise TankDescriptorIOError(
                         "Failed to copy descriptor %s from the temporary path %s "
-                        "to the bundle cache %s. Error: %s" % (self, temporary_path, target, e)
+                        "to the bundle cache %s. Error: %s"
+                        % (self, temporary_path, target, e)
                     )
             else:
                 # note - safe_delete_folder will not raise if something goes wrong, it will just log.
@@ -254,7 +270,8 @@ class IODescriptorDownloadable(IODescriptorBase):
         # core. We will have to assume that it has been unzipped correctly.
         if not os.path.isdir(metadata_folder):
             log.debug(
-                "Pre-core-0.18.120 download found at '%s'. Assuming it is complete.", path
+                "Pre-core-0.18.120 download found at '%s'. Assuming it is complete.",
+                path,
             )
             return True
 
@@ -262,7 +279,9 @@ class IODescriptorDownloadable(IODescriptorBase):
 
         # The completed file flag is a file that gets written out after the bundle has been
         # completely unzipped.
-        completed_file_flag = os.path.join(metadata_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
+        completed_file_flag = os.path.join(
+            metadata_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE
+        )
 
         # If the complete file flag is missing, it means the download operation either failed (unlikely)
         # or is currently in progress (possible) so consider it as nonexistent.

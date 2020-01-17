@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -23,64 +23,67 @@ from .. import pipelineconfig_utils
 class AppUpdatesAction(Action):
     """
     Action that updates apps and engines.
-    """    
+    """
+
     def __init__(self):
 
-        Action.__init__(self, 
-                        "updates", 
-                        Action.TK_INSTANCE, 
-                        "Checks if there are any app or engine updates for the current configuration.", 
-                        "Configuration")
-    
-    
+        Action.__init__(
+            self,
+            "updates",
+            Action.TK_INSTANCE,
+            "Checks if there are any app or engine updates for the current configuration.",
+            "Configuration",
+        )
+
         # this method can be executed via the API
         self.supports_api = True
-        
+
         self.parameters = {}
-        
+
         self.parameters["environment_filter"] = {
             "description": "Name of environment to check.",
             "default": "ALL",
-            "type": "str"
+            "type": "str",
         }
-        
+
         self.parameters["engine_filter"] = {
             "description": "Name of engine to check.",
             "default": "ALL",
-            "type": "str"
+            "type": "str",
         }
-        
+
         self.parameters["app_filter"] = {
             "description": "Name of app to check.",
             "default": "ALL",
-            "type": "str"
+            "type": "str",
         }
-        
+
         self.parameters["external"] = {
             "description": "Specify an external config to update.",
             "default": None,
-            "type": "str"
-        }
-        
-        self.parameters["preserve_yaml"] = {
-            "description": ("Enable alternative yaml parser that better preserves "
-                            "yaml structure and comments"),
-            "default": True,
-            "type": "bool"
+            "type": "str",
         }
 
-        
+        self.parameters["preserve_yaml"] = {
+            "description": (
+                "Enable alternative yaml parser that better preserves "
+                "yaml structure and comments"
+            ),
+            "default": True,
+            "type": "bool",
+        }
+
     def run_noninteractive(self, log, parameters):
         """
-        Tank command API accessor. 
+        Tank command API accessor.
         Called when someone runs a tank command through the core API.
-        
+
         :param log: std python logger
         :param parameters: dictionary with tank command parameters
         """
         # validate params and seed default values
-        computed_params = self._validate_parameters(parameters) 
-        
+        computed_params = self._validate_parameters(parameters)
+
         if computed_params["environment_filter"] == "ALL":
             computed_params["environment_filter"] = None
         if computed_params["engine_filter"] == "ALL":
@@ -101,7 +104,7 @@ class AppUpdatesAction(Action):
     def run_interactive(self, log, args):
         """
         Tank command accessor
-        
+
         :param log: std python logger
         :param args: command line args
         """
@@ -110,33 +113,45 @@ class AppUpdatesAction(Action):
 
         if len(args) == 0:
             # update EVERYTHING!
-            
-            log.info("This command will go through your current configuration and check if there "
-                     "are any updates available. If there are updates, you will be asked if you "
-                     "want to perform an upgrade. If settings has been added to the new version "
-                     "that you are installing, you may be prompted to specified values for these.")
+
+            log.info(
+                "This command will go through your current configuration and check if there "
+                "are any updates available. If there are updates, you will be asked if you "
+                "want to perform an upgrade. If settings has been added to the new version "
+                "that you are installing, you may be prompted to specified values for these."
+            )
             log.info("")
-            log.info("Running this command with no parameters will check all environments, engines "
-                     "and app. This may take a long time. You can also run the updater on a subset "
-                     "of your installed apps and engines.")
+            log.info(
+                "Running this command with no parameters will check all environments, engines "
+                "and app. This may take a long time. You can also run the updater on a subset "
+                "of your installed apps and engines."
+            )
             log.info("")
             log.info("")
             log.info("")
             log.info("General syntax:")
             log.info("---------------")
             log.info("")
-            log.info("> tank updates [environment_name] "
-                     "[engine_name] [app_name] [%s] "
-                     "[--external='/path/to/config']" % constants.LEGACY_YAML_PARSER_FLAG)
+            log.info(
+                "> tank updates [environment_name] "
+                "[engine_name] [app_name] [%s] "
+                "[--external='/path/to/config']" % constants.LEGACY_YAML_PARSER_FLAG
+            )
             log.info("")
-            log.info("- The special keyword ALL can be used to denote all items in a category.")
+            log.info(
+                "- The special keyword ALL can be used to denote all items in a category."
+            )
             log.info("")
-            log.info("- If you want to update an external configuration instead of the current project, "
-                     "pass in a path via the --external flag.")
+            log.info(
+                "- If you want to update an external configuration instead of the current project, "
+                "pass in a path via the --external flag."
+            )
             log.info("")
-            log.info("If you add a %s flag, the original, non-structure-preserving "
-                     "yaml parser will be used. This parser was used by default in core v0.17.x "
-                     "and below." % constants.LEGACY_YAML_PARSER_FLAG)
+            log.info(
+                "If you add a %s flag, the original, non-structure-preserving "
+                "yaml parser will be used. This parser was used by default in core v0.17.x "
+                "and below." % constants.LEGACY_YAML_PARSER_FLAG
+            )
             log.info("")
             log.info("")
             log.info("")
@@ -162,30 +177,33 @@ class AppUpdatesAction(Action):
             log.info("> tank updates ALL tk-maya tk-multi-loader")
             log.info("")
             log.info("")
-            
-            if self._interaction_interface.ask_yn_question("Continue with full update?"):
+
+            if self._interaction_interface.ask_yn_question(
+                "Continue with full update?"
+            ):
                 self._check_for_updates(
                     log,
                     self.tk,
                     env_name=None,
                     engine_instance_name=None,
                     app_instance_name=None,
-                    preserve_yaml=preserve_yaml)
-            
+                    preserve_yaml=preserve_yaml,
+                )
+
             return
-        
+
         env_filter = None
         engine_filter = None
-        app_filter = None        
+        app_filter = None
         external_path = None
-        
+
         # look for an --external argument
         for arg in args:
             if arg.startswith("--external="):
                 # remove it from args list
-                args.remove(arg)                                
+                args.remove(arg)
                 # from '--external=/path/to/my config' get '/path/to/my config'
-                external_path = arg[len("--external="):]
+                external_path = arg[len("--external=") :]
                 if external_path == "":
                     log.error("You need to specify a path to a toolkit configuration!")
                     return
@@ -197,7 +215,7 @@ class AppUpdatesAction(Action):
                 env_filter = None
             else:
                 log.info("- Update will only check the %s environment." % env_filter)
-        
+
         if len(args) > 1:
             engine_filter = args[1]
             if engine_filter == "ALL":
@@ -205,7 +223,7 @@ class AppUpdatesAction(Action):
                 engine_filter = None
             else:
                 log.info("- Update will only check the %s engine." % engine_filter)
-        
+
         if len(args) > 2:
             app_filter = args[2]
             if app_filter == "ALL":
@@ -221,21 +239,22 @@ class AppUpdatesAction(Action):
             engine_instance_name=engine_filter,
             app_instance_name=app_filter,
             external=external_path,
-            preserve_yaml=preserve_yaml
+            preserve_yaml=preserve_yaml,
         )
 
     ################################################################################################
     # helper methods for update
 
     def _check_for_updates(
-            self,
-            log,
-            tk,
-            env_name,
-            engine_instance_name,
-            app_instance_name,
-            external=None,
-            preserve_yaml=True):
+        self,
+        log,
+        tk,
+        env_name,
+        engine_instance_name,
+        app_instance_name,
+        external=None,
+        preserve_yaml=True,
+    ):
         """
         Runs the update checker.
 
@@ -280,9 +299,13 @@ class AppUpdatesAction(Action):
             for env_filename in env_filenames:
                 log.info("")
                 log.info("")
-                log.info("======================================================================")
+                log.info(
+                    "======================================================================"
+                )
                 log.info("Environment %s..." % env_name)
-                log.info("======================================================================")
+                log.info(
+                    "======================================================================"
+                )
                 log.info("")
 
                 env_obj = WritableEnvironment(env_filename, pc)
@@ -292,11 +315,7 @@ class AppUpdatesAction(Action):
                 log.info("")
 
                 processed_items += self._process_environment(
-                    tk,
-                    log,
-                    env_obj,
-                    engine_instance_name,
-                    app_instance_name,
+                    tk, log, env_obj, engine_instance_name, app_instance_name
                 )
 
         else:
@@ -310,9 +329,13 @@ class AppUpdatesAction(Action):
             for env_name in env_names_to_process:
                 log.info("")
                 log.info("")
-                log.info("======================================================================")
+                log.info(
+                    "======================================================================"
+                )
                 log.info("Environment %s..." % env_name)
-                log.info("======================================================================")
+                log.info(
+                    "======================================================================"
+                )
 
                 env_obj = pc.get_environment(env_name, writable=True)
                 env_obj.set_yaml_preserve_mode(preserve_yaml)
@@ -321,11 +344,7 @@ class AppUpdatesAction(Action):
                 log.info("")
 
                 processed_items += self._process_environment(
-                    tk,
-                    log,
-                    env_obj,
-                    engine_instance_name,
-                    app_instance_name
+                    tk, log, env_obj, engine_instance_name, app_instance_name
                 )
 
                 if self._terminate_requested:
@@ -337,9 +356,14 @@ class AppUpdatesAction(Action):
         for x in processed_items:
             if x["was_updated"]:
 
-                summary.append("%s was updated from %s to %s" % (x["new_descriptor"],
-                                                                 x["old_descriptor"].version,
-                                                                 x["new_descriptor"].version))
+                summary.append(
+                    "%s was updated from %s to %s"
+                    % (
+                        x["new_descriptor"],
+                        x["old_descriptor"].version,
+                        x["new_descriptor"].version,
+                    )
+                )
                 (_, url) = x["new_descriptor"].changelog
                 if url:
                     summary.append("Change Log: %s" % url)
@@ -369,12 +393,13 @@ class AppUpdatesAction(Action):
         return ret_val
 
     def _process_environment(
-            self,
-            tk,
-            log,
-            environment_obj,
-            engine_instance_name=None,
-            app_instance_name=None):
+        self,
+        tk,
+        log,
+        environment_obj,
+        engine_instance_name=None,
+        app_instance_name=None,
+    ):
         """
         Updates a given environment object
 
@@ -407,12 +432,9 @@ class AppUpdatesAction(Action):
             if self._terminate_requested:
                 break
 
-            items.extend(self._process_item(
-                log,
-                tk,
-                environment_obj,
-                engine_name=engine
-            ))
+            items.extend(
+                self._process_item(log, tk, environment_obj, engine_name=engine)
+            )
             log.info("")
 
             if app_instance_name is None:
@@ -432,13 +454,11 @@ class AppUpdatesAction(Action):
                 if self._terminate_requested:
                     break
 
-                items.extend(self._process_item(
-                    log,
-                    tk,
-                    environment_obj,
-                    engine_name=engine,
-                    app_name=app
-                ))
+                items.extend(
+                    self._process_item(
+                        log, tk, environment_obj, engine_name=engine, app_name=app
+                    )
+                )
                 log.info("")
 
         if len(environment_obj.get_frameworks()) > 0:
@@ -449,20 +469,25 @@ class AppUpdatesAction(Action):
             for framework in environment_obj.get_frameworks():
                 if self._terminate_requested:
                     break
-                items.extend(self._process_item(log, tk, environment_obj, framework_name=framework))
+                items.extend(
+                    self._process_item(
+                        log, tk, environment_obj, framework_name=framework
+                    )
+                )
 
         return items
 
     def _update_item(
-            self,
-            log,
-            tk,
-            env,
-            old_descriptor,
-            new_descriptor,
-            engine_name=None,
-            app_name=None,
-            framework_name=None):
+        self,
+        log,
+        tk,
+        env,
+        old_descriptor,
+        new_descriptor,
+        engine_name=None,
+        app_name=None,
+        framework_name=None,
+    ):
         """
         Performs an upgrade of an engine/app/framework.
         """
@@ -489,19 +514,16 @@ class AppUpdatesAction(Action):
             (_, yml_file) = env.find_location_for_engine(engine_name)
 
         console_utils.ensure_frameworks_installed(
-            log,
-            tk,
-            yml_file,
-            new_descriptor,
-            env,
-            self._interaction_interface
+            log, tk, yml_file, new_descriptor, env, self._interaction_interface
         )
 
         # if we are updating an app, we pass the engine system name to the configuration method
         # so that it can resolve engine based defaults
         parent_engine_system_name = None
         if app_name:
-            parent_engine_system_name = env.get_engine_descriptor(engine_name).system_name
+            parent_engine_system_name = env.get_engine_descriptor(
+                engine_name
+            ).system_name
 
         # now get data for all new settings values in the config
         params = console_utils.get_configuration(
@@ -510,7 +532,7 @@ class AppUpdatesAction(Action):
             new_descriptor,
             old_descriptor,
             self._interaction_interface,
-            parent_engine_system_name
+            parent_engine_system_name,
         )
 
         # awesome. got all the values we need.
@@ -519,21 +541,26 @@ class AppUpdatesAction(Action):
 
         # next step is to add the new configuration values to the environment
         if framework_name:
-            env.update_framework_settings(framework_name, params, new_descriptor.get_dict())
+            env.update_framework_settings(
+                framework_name, params, new_descriptor.get_dict()
+            )
         elif app_name:
-            env.update_app_settings(engine_name, app_name, params, new_descriptor.get_dict())
+            env.update_app_settings(
+                engine_name, app_name, params, new_descriptor.get_dict()
+            )
         else:
             env.update_engine_settings(engine_name, params, new_descriptor.get_dict())
 
     def _process_item(
-            self,
-            log,
-            tk,
-            env,
-            force_upgrade=False,
-            engine_name=None,
-            app_name=None,
-            framework_name=None):
+        self,
+        log,
+        tk,
+        env,
+        force_upgrade=False,
+        engine_name=None,
+        app_name=None,
+        framework_name=None,
+    ):
         """
         Checks if an app/engine/framework is up to date and potentially upgrades it.
 
@@ -550,14 +577,18 @@ class AppUpdatesAction(Action):
             log.info("Framework %s (Environment %s)" % (framework_name, env.name))
 
         elif app_name:
-            log.info("App %s (Engine %s, Environment %s)" % (app_name, engine_name, env.name))
+            log.info(
+                "App %s (Engine %s, Environment %s)" % (app_name, engine_name, env.name)
+            )
 
         else:
             log.info("")
             log.info("-" * 70)
             log.info("Engine %s (Environment %s)" % (engine_name, env.name))
 
-        status = self._check_item_update_status(env, engine_name, app_name, framework_name)
+        status = self._check_item_update_status(
+            env, engine_name, app_name, framework_name
+        )
         item_was_updated = False
         updated_items = []
 
@@ -565,20 +596,18 @@ class AppUpdatesAction(Action):
             new_descriptor = status["latest"]
 
             required_framework_updates = self._get_framework_requirements(
-                log=log,
-                environment=env,
-                descriptor=new_descriptor,
+                log=log, environment=env, descriptor=new_descriptor
             )
 
             # print summary of changes
             console_utils.format_bundle_info(
-                log,
-                new_descriptor,
-                required_framework_updates,
+                log, new_descriptor, required_framework_updates
             )
 
             # ask user
-            if force_upgrade or self._interaction_interface.ask_yna_question("Update to %s?" % new_descriptor):
+            if force_upgrade or self._interaction_interface.ask_yna_question(
+                "Update to %s?" % new_descriptor
+            ):
                 curr_descriptor = status["current"]
                 self._update_item(
                     log,
@@ -588,7 +617,7 @@ class AppUpdatesAction(Action):
                     new_descriptor,
                     engine_name,
                     app_name,
-                    framework_name
+                    framework_name,
                 )
 
                 # If we have frameworks that need to be updated along with
@@ -600,11 +629,7 @@ class AppUpdatesAction(Action):
                 for fw_name in required_framework_updates:
                     updated_items.extend(
                         self._process_item(
-                            log,
-                            tk,
-                            env,
-                            force_upgrade=True,
-                            framework_name=fw_name
+                            log, tk, env, force_upgrade=True, framework_name=fw_name
                         )
                     )
 
@@ -613,13 +638,16 @@ class AppUpdatesAction(Action):
         elif status["out_of_date"] is False and not status["current"].exists_local():
             # app does not exist in the local app download cache area
             if self._interaction_interface.ask_yna_question(
-                    "Current version does not exist locally - download it now?"
+                "Current version does not exist locally - download it now?"
             ):
                 log.info("Downloading %s..." % status["current"])
                 status["current"].download_local()
 
         elif status["out_of_date"] is False:
-            log.info(" \-- You are running version %s which is the most recent release." % status["latest"].version)
+            log.info(
+                r" \-- You are running version %s which is the most recent release."
+                % status["latest"].version
+            )
 
         else:
             # cannot update for some reason
@@ -637,7 +665,9 @@ class AppUpdatesAction(Action):
         updated_items.append(d)
         return updated_items
 
-    def _check_item_update_status(self, environment_obj, engine_name=None, app_name=None, framework_name=None):
+    def _check_item_update_status(
+        self, environment_obj, engine_name=None, app_name=None, framework_name=None
+    ):
         """
         Checks if an engine or app or framework is up to date.
         Will locate the latest version of the item and run a comparison.
@@ -676,7 +706,7 @@ class AppUpdatesAction(Action):
             latest_desc = curr_desc.find_latest_version()
 
         # out of date check
-        out_of_date = (latest_desc.version != curr_desc.version)
+        out_of_date = latest_desc.version != curr_desc.version
 
         # check deprecation
         (is_dep, dep_msg) = latest_desc.deprecation_status
@@ -685,7 +715,10 @@ class AppUpdatesAction(Action):
             # we treat deprecation as an out of date that cannot be upgraded!
             out_of_date = True
             can_update = False
-            status = "This item has been flagged as deprecated with the following status: %s" % dep_msg
+            status = (
+                "This item has been flagged as deprecated with the following status: %s"
+                % dep_msg
+            )
 
         elif not out_of_date:
             can_update = False
@@ -697,16 +730,22 @@ class AppUpdatesAction(Action):
             try:
                 latest_desc.check_version_constraints(
                     pipelineconfig_utils.get_currently_running_api_version(),
-                    parent_engine_desc
+                    parent_engine_desc,
                 )
             except CheckVersionConstraintsError as e:
                 reasons = e.reasons
-                reasons.insert(0, "The latest version (%s) of the item requires an upgrade to one "
-                               "or more of your installed components." % latest_desc.version)
+                reasons.insert(
+                    0,
+                    "The latest version (%s) of the item requires an upgrade to one "
+                    "or more of your installed components." % latest_desc.version,
+                )
                 status = " ".join(reasons)
                 can_update = False
             else:
-                status = "A new version (%s) of the item is available for installation." % latest_desc.version
+                status = (
+                    "A new version (%s) of the item is available for installation."
+                    % latest_desc.version
+                )
                 can_update = True
 
         # prepare return data
@@ -776,7 +815,9 @@ class AppUpdatesAction(Action):
                 )
                 continue
 
-            if not is_version_number(min_version) or not is_version_number(env_fw_version):
+            if not is_version_number(min_version) or not is_version_number(
+                env_fw_version
+            ):
                 log.warning(
                     "Unable to check minimum-version requirements for %s "
                     "due to one or both version numbers being malformed: "

@@ -14,7 +14,7 @@ Folder related exceptions.
 
 
 class EntityLinkTypeMismatch(Exception):
-    """
+    r"""
     Exception raised to indicate that a shotgun
     entity link is incorrectly typed
     and therefore cannot be traversed.

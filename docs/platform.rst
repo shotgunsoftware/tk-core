@@ -115,7 +115,7 @@ handle and then emits a FileOpenEvent::
         Runs before apps are initialized.
         """
         frontend.file_opened.connect(self._handle_file_open)
-    
+
     def _handle_file_open(self, file_path):
         """
         Emits a file open event that apps can listen for.
@@ -959,5 +959,3 @@ If a `standard Qt style sheet <http://doc.qt.io/qt-5/stylesheet.html>`_  ``style
 When developping your app, you can enable interactive styling by setting the ``SHOTGUN_QSS_FILE_WATCHER`` environment variable to ``1``. Toolkit will automatically reload and re-apply the styling when the file is changed.
 
 .. note:: The style sheet file watching can be helpful when developping apps, but shouldn't be used in production.
-
-

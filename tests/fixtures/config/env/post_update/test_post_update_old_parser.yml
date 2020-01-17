@@ -35,6 +35,7 @@ engines:
         test_hook_default: default
         test_hook_engine: '{engine}/foo/bar.py'
         test_hook_env_var: '{$TEST_ENV_VAR}/test_env_var_hook.py'
+        test_hook_framework: '{test_framework_v1.x.x}/test_hook.py'
         test_hook_inheritance_1: '{self}/inheritance1.py'
         test_hook_inheritance_10: '{engine}/inherit.py:{self}/inheritance2.py'
         test_hook_inheritance_11: '{engine}/inherit.py:{config}/inherit2.py'
@@ -53,6 +54,7 @@ engines:
         test_hook_new_style_config_old_style_hook: '{config}/config_test_hook.py'
         test_hook_self: '{self}/test_hook.py'
         test_hook_std: config_test_hook
+        test_hook_unknown_framework: '{test_framework_v2.x.x}/test_hook.py'
         test_icon: foo/bar.png
         test_int: 1
         test_int_evaluator: hook:test_evaluator

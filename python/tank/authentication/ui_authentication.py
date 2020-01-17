@@ -79,7 +79,7 @@ class UiAuthenticationHandler(object):
                 login=login,
                 http_proxy=http_proxy,
                 fixed_host=self._fixed_host,
-                session_metadata=self._session_metadata
+                session_metadata=self._session_metadata,
             )
             return dlg.result()
 

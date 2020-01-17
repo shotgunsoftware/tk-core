@@ -11,12 +11,12 @@
 import mock
 from mock import patch
 import os
-import re
-import urllib2
+from sgtk.util import sgre as re
+from tank_vendor.six.moves import urllib
 
 import sgtk
 from sgtk.descriptor import Descriptor
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase
 
 _TESTED_MODULE = "tank.descriptor.io_descriptor.github_release"
@@ -25,10 +25,11 @@ _TESTED_CLASS = _TESTED_MODULE + ".IODescriptorGithubRelease"
 
 class MockResponse(object):
     """
-    An object that mocks the needed attributes/methods of the object returned by urllib2.urlopen().
+    An object that mocks the needed attributes/methods of the object returned by urllib.urlopen().
 
     It uses json and header files on disk to load the data for the url that should be mocked.
     """
+
     def __init__(self, page_name):
         """
         Initialize the MockResponse object with the data stored in the .json and .header files.
@@ -38,7 +39,9 @@ class MockResponse(object):
             and descriptor_tests/github/{name}.header, respectively.
         """
         self._page_name = page_name
-        fixtures_path = os.path.join(os.environ["TK_TEST_FIXTURES"], "descriptor_tests", "github")
+        fixtures_path = os.path.join(
+            os.environ["TK_TEST_FIXTURES"], "descriptor_tests", "github"
+        )
 
         # get the response data from {pagename}.json file in the fixtures dir
         response_path = os.path.join(fixtures_path, page_name + ".json")
@@ -46,7 +49,7 @@ class MockResponse(object):
             self.resp_data = response_file.read()
 
         # get the headers from {pagename}.header file in the fixtures dir and
-        # build a dictionary matching the expected headers from urllib2
+        # build a dictionary matching the expected headers from urllib
         header_path = os.path.join(fixtures_path, page_name + ".header")
         with open(header_path) as headers_file:
             # parse the status line
@@ -55,7 +58,7 @@ class MockResponse(object):
             status_message = " ".join(status_line[2:])
             # parse the rest of the headers
             headers = dict()
-            # grab key/value pairs out of headers from curl and build a dict like urllib2 does
+            # grab key/value pairs out of headers from curl and build a dict like urllib does
             # explain the regex better
             header_line_regex = r"(?P<key>[a-zA-Z\-]+): (?P<value>.+)"
             for line in headers_file:
@@ -89,10 +92,12 @@ class MockResponse(object):
     def get_exception(self):
         """
         If the page has a non-200 code, generate a HTTPError similar to the one that
-        urllib2.urlopen() would normally throw.
+        urllib.urlopen() would normally throw.
         """
         if self.code != 200:
-            return urllib2.HTTPError(self._page_name, self.code, self.msg, self.headers, self)
+            return urllib.error.HTTPError(
+                self._page_name, self.code, self.msg, self.headers, self
+            )
         return None
 
 
@@ -113,11 +118,13 @@ class GithubIODescriptorTestBase(ShotgunTestBase):
             "type": "github_release",
             "organization": "shotgunsoftware",
             "repository": "tk-core",
-            "version": "v1.2.1"
+            "version": "v1.2.1",
         }
         super(GithubIODescriptorTestBase, self).setUp()
 
-    def _create_desc(self, location=None, resolve_latest=False, desc_type=Descriptor.CONFIG):
+    def _create_desc(
+        self, location=None, resolve_latest=False, desc_type=Descriptor.CONFIG
+    ):
         """
         Helper method around create_descriptor
         """
@@ -128,7 +135,8 @@ class GithubIODescriptorTestBase(ShotgunTestBase):
             desc_type,
             location,
             bundle_cache_root_override=self.bundle_cache,
-            resolve_latest=resolve_latest)
+            resolve_latest=resolve_latest,
+        )
 
 
 class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
@@ -153,7 +161,9 @@ class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
         the version and system name.
         """
         desc = self._create_desc()
-        self.assertEqual(desc.get_system_name(), self.default_location_dict["repository"])
+        self.assertEqual(
+            desc.get_system_name(), self.default_location_dict["repository"]
+        )
         self.assertEqual(desc.get_version(), self.default_location_dict["version"])
 
     def test_get_latest_release(self):
@@ -161,7 +171,7 @@ class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
         Test that the get_latest_version() method correctly finds the latest release,
         and loads the correct url from the Github API.
         """
-        with patch(_TESTED_MODULE + ".urllib2.urlopen") as urlopen_mock:
+        with patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
             # Make sure that the correct URL is requested, and the response is correctly
             # parsed for the latest tag name.
             urlopen_mock.return_value = MockResponse("releases_latest")
@@ -171,7 +181,7 @@ class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
             target_url = "https://api.github.com/repos/{o}/{r}/releases/latest"
             target_url = target_url.format(
                 o=self.default_location_dict["organization"],
-                r=self.default_location_dict["repository"]
+                r=self.default_location_dict["repository"],
             )
             urlopen_mock.assert_called_with(target_url)
             self.assertEqual(desc2.version, "v1.2.3")
@@ -181,11 +191,11 @@ class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
         Test that the get_latest_version() method correctly responds as expected
         to a broken network connection and a 404 or 500 error from the Github API.
         """
-        with patch(_TESTED_MODULE + ".urllib2.urlopen") as urlopen_mock:
+        with patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
             desc = self._create_desc()
 
-            # URLError from urllib2 should raise TankDescriptorError.
-            urlopen_mock.side_effect = urllib2.URLError("Some Exception")
+            # URLError from urllib should raise TankDescriptorError.
+            urlopen_mock.side_effect = urllib.error.URLError("Some Exception")
             with self.assertRaises(sgtk.descriptor.TankDescriptorError):
                 desc.find_latest_version()
 
@@ -209,16 +219,21 @@ class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
         target_url_page_1 = "https://api.github.com/repos/{o}/{r}/releases"
         target_url_page_1 = target_url_page_1.format(
             o=self.default_location_dict["organization"],
-            r=self.default_location_dict["repository"]
+            r=self.default_location_dict["repository"],
         )
         # The second page is retrieved from the URL specified in the headers from the first response
         # this value should match the rel="next" link from releases.header
-        target_url_page_2 = "https://api.github.com/repositories/174021161/releases?page=2"
+        target_url_page_2 = (
+            "https://api.github.com/repositories/174021161/releases?page=2"
+        )
 
         # Test with two pages of results, but the desired item on first page.
         # We should not request the second page.
-        with patch(_TESTED_MODULE + ".urllib2.urlopen") as urlopen_mock:
-            urlopen_mock.side_effect = [MockResponse("releases"), MockResponse("releases_page_2")]
+        with patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
+            urlopen_mock.side_effect = [
+                MockResponse("releases"),
+                MockResponse("releases_page_2"),
+            ]
             desc2 = desc.find_latest_version(constraint_pattern="v1.2.x")
             urlopen_mock.assert_called_with(target_url_page_1)
             self.assertEqual(urlopen_mock.call_count, 1)
@@ -226,8 +241,11 @@ class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
 
         # Now test again, but the desired item will be on the second page, make sure
         # we request it.
-        with patch(_TESTED_MODULE + ".urllib2.urlopen") as urlopen_mock:
-            urlopen_mock.side_effect = [MockResponse("releases"), MockResponse("releases_page_2")]
+        with patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
+            urlopen_mock.side_effect = [
+                MockResponse("releases"),
+                MockResponse("releases_page_2"),
+            ]
             desc2 = desc.find_latest_version(constraint_pattern="v1.1.x")
             calls = [mock.call(target_url_page_1), mock.call(target_url_page_2)]
             urlopen_mock.assert_has_calls(calls)
@@ -246,7 +264,9 @@ class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
             self.default_location_dict["repository"],
             self.default_location_dict["version"],
         )
-        found_bundle_cache_path = desc._io_descriptor._get_bundle_cache_path(self.bundle_cache)
+        found_bundle_cache_path = desc._io_descriptor._get_bundle_cache_path(
+            self.bundle_cache
+        )
         self.assertEqual(found_bundle_cache_path, expected_bundle_cache_path)
 
     def test_download_local(self):
@@ -261,13 +281,17 @@ class TestGithubIODescriptorWithRemoteAccess(GithubIODescriptorTestBase):
             v=self.default_location_dict["version"],
         )
 
-        with patch("tank.util.shotgun.download.download_and_unpack_url") as download_and_unpack_url_mock:
+        with patch(
+            "tank.util.shotgun.download.download_and_unpack_url"
+        ) as download_and_unpack_url_mock:
             # Raise an exception first and ensure it's caught and a TankDescriptorError is raised.
             download_and_unpack_url_mock.side_effect = sgtk.TankError()
             with self.assertRaises(sgtk.descriptor.TankDescriptorError):
                 desc.download_local()
 
-        with patch("tank.util.shotgun.download.download_and_unpack_url") as download_and_unpack_url_mock:
+        with patch(
+            "tank.util.shotgun.download.download_and_unpack_url"
+        ) as download_and_unpack_url_mock:
             # Now reset and let the download "succeed" and ensure the correct calls were made, and
             # the expected arguments were passed.
             desc.download_local()
@@ -302,7 +326,9 @@ class TestGithubIODescriptorWithoutRemoteAccess(GithubIODescriptorTestBase):
         Test that the get_latest_cached_version() method correctly finds the latest release
         on disk.
         """
-        with patch(_TESTED_CLASS + "._get_locally_cached_versions") as cached_versions_mock:
+        with patch(
+            _TESTED_CLASS + "._get_locally_cached_versions"
+        ) as cached_versions_mock:
             desc = self._create_desc()
 
             # Ensure that the latest cached version is returned if present.
@@ -320,7 +346,9 @@ class TestGithubIODescriptorWithoutRemoteAccess(GithubIODescriptorTestBase):
         Test that the get_latest_cached_version() method correctly finds the latest
         acceptable release on disk when a constraint pattern is provided.
         """
-        with patch(_TESTED_CLASS + "._get_locally_cached_versions") as cached_versions_mock:
+        with patch(
+            _TESTED_CLASS + "._get_locally_cached_versions"
+        ) as cached_versions_mock:
             desc = self._create_desc()
 
             # Ensure that the latest cached version that matches the provided constraint pattern
@@ -337,7 +365,7 @@ class TestGithubIODescriptorWithoutRemoteAccess(GithubIODescriptorTestBase):
 
 class TestGithubIODescriptorRemoteAccessCheck(GithubIODescriptorTestBase):
     """
-    Test the remote aspect check functionality of GithubIODescriptor.   
+    Test the remote aspect check functionality of GithubIODescriptor.
     """
 
     def test_has_remote_access(self):
@@ -349,9 +377,9 @@ class TestGithubIODescriptorRemoteAccessCheck(GithubIODescriptorTestBase):
         target_url = "https://api.github.com/repos/{o}/{r}"
         target_url = target_url.format(
             o=self.default_location_dict["organization"],
-            r=self.default_location_dict["repository"]
+            r=self.default_location_dict["repository"],
         )
-        with patch(_TESTED_MODULE + ".urllib2.urlopen") as urlopen_mock:
+        with patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
             # normal good response
             urlopen_mock.return_value = MockResponse("repo_root")
             self.assertEqual(desc.has_remote_access(), True)
@@ -362,18 +390,20 @@ class TestGithubIODescriptorRemoteAccessCheck(GithubIODescriptorTestBase):
             self.assertEqual(desc.has_remote_access(), False)
 
             # No internet connection, no response from GH API, etc
-            urlopen_mock.side_effect = urllib2.URLError("Test exception.")
+            urlopen_mock.side_effect = urllib.error.URLError("Test exception.")
             self.assertEqual(desc.has_remote_access(), False)
 
     def test_github_api_proxied(self):
         """
-        Ensure that urllib2 calls install a proxy when the shotgun config has a proxy_handler.
+        Ensure that urllib calls install a proxy when the shotgun config has a proxy_handler.
         """
         try:
-            proxy_handler = urllib2.ProxyHandler({"http": "127.0.0.1"})
+            proxy_handler = urllib.request.ProxyHandler({"http": "127.0.0.1"})
             self.mockgun.config.proxy_handler = proxy_handler
-            with patch(_TESTED_MODULE + ".urllib2.urlopen") as urlopen_mock:
-                with patch(_TESTED_MODULE + ".urllib2.install_opener") as install_opener_mock:
+            with patch(_TESTED_MODULE + ".urllib.request.urlopen") as urlopen_mock:
+                with patch(
+                    _TESTED_MODULE + ".urllib.request.install_opener"
+                ) as install_opener_mock:
                     # Test that the proxy is installed for has_remote_access.
                     urlopen_mock.return_value = MockResponse("repo_root")
                     desc = self._create_desc()

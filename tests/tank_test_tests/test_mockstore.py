@@ -16,7 +16,7 @@ from __future__ import with_statement
 
 
 from tank_test.tank_test_base import ShotgunTestBase
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.mock_appstore import MockStore, TankMockStoreDescriptor, patch_app_store
 
 from sgtk.descriptor import Descriptor
@@ -52,8 +52,9 @@ class TestMockStore(ShotgunTestBase):
             IODescriptorAppStore(
                 {"name": "tk-test", "type": "app_store", "version": "v1.2.3"},
                 None,
-                Descriptor.ENGINE
-            ), TankMockStoreDescriptor
+                Descriptor.ENGINE,
+            ),
+            TankMockStoreDescriptor,
         )
 
     def test_non_decorated(self):
@@ -80,11 +81,14 @@ class TestMockStore(ShotgunTestBase):
         """
         # Version this is a dependency.
         dependency = mock_store.add_framework("tk-framework-dependency", "v1.0.0")
-        self.assertEqual(dependency.get_major_dependency_descriptor(), {
-            "version": "v1.x.x",
-            "name": "tk-framework-dependency",
-            "type": "app_store"
-        })
+        self.assertEqual(
+            dependency.get_major_dependency_descriptor(),
+            {
+                "version": "v1.x.x",
+                "name": "tk-framework-dependency",
+                "type": "app_store",
+            },
+        )
         # This is V1 of a framework that has no depdendencies.
         mock_store.add_framework("tk-framework-main", "v1.0.0")
         # This is V2 of a framework that now has a depdendency
@@ -97,20 +101,24 @@ class TestMockStore(ShotgunTestBase):
         desc = create_descriptor(
             None,
             Descriptor.FRAMEWORK,
-            {"name": "tk-framework-main", "version": "v2.0.0", "type": "app_store"}
+            {"name": "tk-framework-main", "version": "v2.0.0", "type": "app_store"},
         )
 
         self.assertEqual(
             desc.required_frameworks,
-            [{"type": "app_store", "name": "tk-framework-dependency", "version": "v1.x.x"}]
+            [
+                {
+                    "type": "app_store",
+                    "name": "tk-framework-dependency",
+                    "version": "v1.x.x",
+                }
+            ],
         )
 
         desc = create_descriptor(
             None,
             Descriptor.FRAMEWORK,
-            {"name": "tk-framework-main", "version": "v1.0.0", "type": "app_store"}
+            {"name": "tk-framework-main", "version": "v1.0.0", "type": "app_store"},
         )
 
         self.assertEqual(desc.required_frameworks, [])
-
-

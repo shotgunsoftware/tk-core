@@ -12,7 +12,7 @@ import os
 
 import sgtk
 from mock import patch
-from tank_test.tank_test_base import ShotgunTestBase, setUpModule # noqa
+from tank_test.tank_test_base import ShotgunTestBase, setUpModule  # noqa
 
 
 class TestShotgunIODescriptor(ShotgunTestBase):
@@ -31,46 +31,86 @@ class TestShotgunIODescriptor(ShotgunTestBase):
     def _create_desc(self, location):
         """Helper method"""
         return sgtk.descriptor.create_descriptor(
-            self.mockgun,
-            sgtk.descriptor.Descriptor.APP,
-            location
+            self.mockgun, sgtk.descriptor.Descriptor.APP, location
         )
 
     def test_construction_validation(self):
         """
         Test validation of shotgun descriptor
         """
+
         def _test_raises_error(location):
             self.assertRaises(
-                sgtk.descriptor.TankDescriptorError,
-                self._create_desc,
-                location
+                sgtk.descriptor.TankDescriptorError, self._create_desc, location
             )
 
         # test all required parameters are provided
-        _test_raises_error({"type": "shotgun", "version": 123, "entity_type": "Shot", "field": "sg_field"})
-        _test_raises_error({"type": "shotgun", "version": 123, "field": "sg_field", "id": 123})
-        _test_raises_error({"type": "shotgun", "version": 123, "entity_type": "Shot", "field": "sg_field"})
-        _test_raises_error({"type": "shotgun", "entity_type": "Shot", "field": "sg_field", "id": 123})
+        _test_raises_error(
+            {
+                "type": "shotgun",
+                "version": 123,
+                "entity_type": "Shot",
+                "field": "sg_field",
+            }
+        )
+        _test_raises_error(
+            {"type": "shotgun", "version": 123, "field": "sg_field", "id": 123}
+        )
+        _test_raises_error(
+            {
+                "type": "shotgun",
+                "version": 123,
+                "entity_type": "Shot",
+                "field": "sg_field",
+            }
+        )
+        _test_raises_error(
+            {"type": "shotgun", "entity_type": "Shot", "field": "sg_field", "id": 123}
+        )
 
         # test entity id not nan
-        _test_raises_error({"type": "shotgun", "version": 123, "entity_type": "Shot", "field": "sg_field", "id": "nan"})
+        _test_raises_error(
+            {
+                "type": "shotgun",
+                "version": 123,
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "id": "nan",
+            }
+        )
 
         # test version id not int
         _test_raises_error(
-            {"type": "shotgun", "version": "nan", "entity_type": "Shot", "field": "sg_field", "id": "123"}
+            {
+                "type": "shotgun",
+                "version": "nan",
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "id": "123",
+            }
         )
 
         # cannot specify both id and name
         _test_raises_error(
-            {"type": "shotgun", "version": 123, "entity_type": "Shot", "field": "sg_field", "id": 123, "name": "aaa123"}
+            {
+                "type": "shotgun",
+                "version": 123,
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "id": 123,
+                "name": "aaa123",
+            }
         )
 
         # test project id not int
         _test_raises_error(
             {
-                "type": "shotgun", "version": 123, "entity_type": "Shot",
-                "field": "sg_field", "project_id": "foo", "name": "aaa123"
+                "type": "shotgun",
+                "version": 123,
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "project_id": "foo",
+                "name": "aaa123",
             }
         )
 
@@ -79,13 +119,15 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         Test construction of shotgun descriptor by name
         """
         # test construction by name
-        id_desc = self._create_desc({
-            "type": "shotgun",
-            "version": 123,
-            "entity_type": "Shot",
-            "field": "sg_field",
-            "id": 1234
-        })
+        id_desc = self._create_desc(
+            {
+                "type": "shotgun",
+                "version": 123,
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "id": 1234,
+            }
+        )
         self.assertEqual(id_desc.system_name, "Shot_1234")
         self.assertEqual(id_desc.version, "v123")
         self.assertEqual(id_desc.is_dev(), False)
@@ -96,25 +138,29 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         Test construction of shotgun descriptor by name
         """
         # test construction by id
-        name_desc = self._create_desc({
-            "type": "shotgun",
-            "version": "123",
-            "entity_type": "Shot",
-            "field": "sg_field",
-            "name": "aaa111"
-        })
+        name_desc = self._create_desc(
+            {
+                "type": "shotgun",
+                "version": "123",
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "name": "aaa111",
+            }
+        )
 
         self.assertEqual(name_desc.system_name, "aaa111")
         self.assertEqual(name_desc.version, "v123")
 
-        name_proj_desc = self._create_desc({
-            "type": "shotgun",
-            "version": 123,
-            "entity_type": "Shot",
-            "field": "sg_field",
-            "name": "aaa111",
-            "project_id": 22
-        })
+        name_proj_desc = self._create_desc(
+            {
+                "type": "shotgun",
+                "version": 123,
+                "entity_type": "Shot",
+                "field": "sg_field",
+                "name": "aaa111",
+                "project_id": 22,
+            }
+        )
 
         self.assertEqual(name_proj_desc.system_name, "p22_aaa111")
         self.assertEqual(name_proj_desc.version, "v123")
@@ -124,7 +170,9 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         """
         Test downloading shotgun descriptor based on id
         """
-        expected_path = os.path.join(self.bundle_cache, "sg", "unit_test_mock_sg", "v123")
+        expected_path = os.path.join(
+            self.bundle_cache, "sg", "unit_test_mock_sg", "v123"
+        )
 
         def fake_download_attachment(*args, **kwargs):
             # assert that the expected download target is requested
@@ -141,9 +189,9 @@ class TestShotgunIODescriptor(ShotgunTestBase):
                 "version": 123,
                 "entity_type": "Shot",
                 "field": "sg_field",
-                "id": 1234
+                "id": 1234,
             },
-            bundle_cache_root_override=self.bundle_cache
+            bundle_cache_root_override=self.bundle_cache,
         )
 
         self.assertEqual(desc.get_path(), None)
@@ -175,9 +223,9 @@ class TestShotgunIODescriptor(ShotgunTestBase):
                 "entity_type": "Shot",
                 "field": "sg_field",
                 "name": "bbb111",
-                "project_id": 123
+                "project_id": 123,
             },
-            bundle_cache_root_override=self.bundle_cache
+            bundle_cache_root_override=self.bundle_cache,
         )
 
         self.assertEqual(desc.get_path(), None)
@@ -189,28 +237,33 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         """
         Tests resolving the latest descriptor based on id
         """
+
         def our_find_mock(*args, **kwargs):
-            self.assertEqual(
-                args,
-                ('Shot', [['id', 'is', 456]])
-            )
+            self.assertEqual(args, ("Shot", [["id", "is", 456]]))
             self.assertEqual(
                 kwargs,
-                {'retired_only': False, 'fields': ['sg_field'], 'filter_operator': None, 'order': None}
+                {
+                    "retired_only": False,
+                    "fields": ["sg_field"],
+                    "filter_operator": None,
+                    "order": None,
+                },
             )
 
-            return [{
-                "type": "Shot",
-                "id": 456,
-                "sg_field": {
-                    'name': 'v1.2.3.zip',
-                    'url': 'https://sg-media-usor-01.s3.amazonaws.com/foo/bar',
-                    'content_type': 'application/zip',
-                    'type': 'Attachment',
-                    'id': 139,
-                    'link_type': 'upload'
+            return [
+                {
+                    "type": "Shot",
+                    "id": 456,
+                    "sg_field": {
+                        "name": "v1.2.3.zip",
+                        "url": "https://sg-media-usor-01.s3.amazonaws.com/foo/bar",
+                        "content_type": "application/zip",
+                        "type": "Attachment",
+                        "id": 139,
+                        "link_type": "upload",
+                    },
                 }
-            }]
+            ]
 
         find_mock.side_effect = our_find_mock
 
@@ -224,7 +277,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
                 "field": "sg_field",
                 "id": 456,
             },
-            bundle_cache_root_override=self.bundle_cache
+            bundle_cache_root_override=self.bundle_cache,
         )
 
         self.assertEqual(desc.version, "v0")
@@ -236,28 +289,33 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         """
         Tests resolving the latest descriptor based on name
         """
+
         def our_find_mock(*args, **kwargs):
-            self.assertEqual(
-                args,
-                ('Shot', [['code', 'is', 'Primary']])
-            )
+            self.assertEqual(args, ("Shot", [["code", "is", "Primary"]]))
             self.assertEqual(
                 kwargs,
-                {'retired_only': False, 'fields': ['sg_field'], 'filter_operator': None, 'order': None}
+                {
+                    "retired_only": False,
+                    "fields": ["sg_field"],
+                    "filter_operator": None,
+                    "order": None,
+                },
             )
 
-            return [{
-                "type": "Shot",
-                "id": 456,
-                "sg_field": {
-                    'name': 'v1.2.3.zip',
-                    'url': 'https://sg-media-usor-01.s3.amazonaws.com/foo/bar',
-                    'content_type': 'application/zip',
-                    'type': 'Attachment',
-                    'id': 139,
-                    'link_type': 'upload'
+            return [
+                {
+                    "type": "Shot",
+                    "id": 456,
+                    "sg_field": {
+                        "name": "v1.2.3.zip",
+                        "url": "https://sg-media-usor-01.s3.amazonaws.com/foo/bar",
+                        "content_type": "application/zip",
+                        "type": "Attachment",
+                        "id": 139,
+                        "link_type": "upload",
+                    },
                 }
-            }]
+            ]
 
         find_mock.side_effect = our_find_mock
 
@@ -271,7 +329,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
                 "field": "sg_field",
                 "name": "Primary",
             },
-            bundle_cache_root_override=self.bundle_cache
+            bundle_cache_root_override=self.bundle_cache,
         )
 
         self.assertEqual(desc.version, "v0")
@@ -283,28 +341,42 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         """
         Tests resolving the latest descriptor based on name and project
         """
+
         def our_find_mock(*args, **kwargs):
             self.assertEqual(
                 args,
-                ('Shot', [['code', 'is', 'Primary'], ['project', 'is', {'type': 'Project', 'id': 1334}]])
+                (
+                    "Shot",
+                    [
+                        ["code", "is", "Primary"],
+                        ["project", "is", {"type": "Project", "id": 1334}],
+                    ],
+                ),
             )
             self.assertEqual(
                 kwargs,
-                {'retired_only': False, 'fields': ['sg_field'], 'filter_operator': None, 'order': None}
+                {
+                    "retired_only": False,
+                    "fields": ["sg_field"],
+                    "filter_operator": None,
+                    "order": None,
+                },
             )
 
-            return [{
-                "type": "Shot",
-                "id": 456,
-                "sg_field": {
-                    'name': 'v1.2.3.zip',
-                    'url': 'https://sg-media-usor-01.s3.amazonaws.com/foo/bar',
-                    'content_type': 'application/zip',
-                    'type': 'Attachment',
-                    'id': 139,
-                    'link_type': 'upload'
+            return [
+                {
+                    "type": "Shot",
+                    "id": 456,
+                    "sg_field": {
+                        "name": "v1.2.3.zip",
+                        "url": "https://sg-media-usor-01.s3.amazonaws.com/foo/bar",
+                        "content_type": "application/zip",
+                        "type": "Attachment",
+                        "id": 139,
+                        "link_type": "upload",
+                    },
                 }
-            }]
+            ]
 
         find_mock.side_effect = our_find_mock
 
@@ -319,7 +391,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
                 "name": "Primary",
                 "project_id": 1334,
             },
-            bundle_cache_root_override=self.bundle_cache
+            bundle_cache_root_override=self.bundle_cache,
         )
 
         self.assertEqual(desc.version, "v0")
@@ -331,19 +403,22 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         """
         Tests resolving an attachment which doesn't have an uploaded attachment
         """
+
         def our_find_mock(*args, **kwargs):
-            return [{
-                "type": "Shot",
-                "id": 456,
-                "sg_field": {
-                    'name': 'v1.2.3.zip',
-                    'url': 'https://sg-media-usor-01.s3.amazonaws.com/foo/bar',
-                    'content_type': 'application/zip',
-                    'type': 'Attachment',
-                    'id': 139,
-                    'link_type': 'url'
+            return [
+                {
+                    "type": "Shot",
+                    "id": 456,
+                    "sg_field": {
+                        "name": "v1.2.3.zip",
+                        "url": "https://sg-media-usor-01.s3.amazonaws.com/foo/bar",
+                        "content_type": "application/zip",
+                        "type": "Attachment",
+                        "id": 139,
+                        "link_type": "url",
+                    },
                 }
-            }]
+            ]
 
         find_mock.side_effect = our_find_mock
 
@@ -357,7 +432,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
                 "field": "sg_field",
                 "id": 456,
             },
-            bundle_cache_root_override=self.bundle_cache
+            bundle_cache_root_override=self.bundle_cache,
         )
 
         self.assertEqual(desc.version, "v0")
@@ -368,6 +443,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         """
         Tests behavior when a shotgun record is missing
         """
+
         def our_find_mock(*args, **kwargs):
             # nothing in shotgun
             return []
@@ -384,22 +460,17 @@ class TestShotgunIODescriptor(ShotgunTestBase):
                 "field": "sg_field",
                 "id": 456,
             },
-            bundle_cache_root_override=self.bundle_cache
+            bundle_cache_root_override=self.bundle_cache,
         )
 
         self.assertEqual(desc.version, "v0")
-        self.assertRaises(
-            sgtk.descriptor.TankDescriptorError,
-            desc.find_latest_version
-        )
+        self.assertRaises(sgtk.descriptor.TankDescriptorError, desc.find_latest_version)
 
     def test_get_latest_cached_by_name(self):
         """
         Tests resolving locally cached items by name
         """
-        os.makedirs(
-            os.path.join(self.bundle_cache, "sg", "unit_test_mock_sg", "v99")
-        )
+        os.makedirs(os.path.join(self.bundle_cache, "sg", "unit_test_mock_sg", "v99"))
 
         desc = sgtk.descriptor.create_descriptor(
             self.mockgun,
@@ -410,9 +481,9 @@ class TestShotgunIODescriptor(ShotgunTestBase):
                 "entity_type": "Shot",
                 "field": "sg_field",
                 "name": "aaa111",
-                "project_id": 123
+                "project_id": 123,
             },
-            bundle_cache_root_override=self.bundle_cache
+            bundle_cache_root_override=self.bundle_cache,
         )
 
         self.assertEqual(desc.version, "v99")
@@ -428,9 +499,9 @@ class TestShotgunIODescriptor(ShotgunTestBase):
                 "entity_type": "Shot",
                 "field": "sg_field",
                 "name": "aaa111",
-                "project_id": 123
+                "project_id": 123,
             },
-            bundle_cache_root_override=self.bundle_cache
+            bundle_cache_root_override=self.bundle_cache,
         )
 
         self.assertEqual(desc.version, "v1")
@@ -441,9 +512,7 @@ class TestShotgunIODescriptor(ShotgunTestBase):
         """
         Tests resolving locally cached items by id
         """
-        os.makedirs(
-            os.path.join(self.bundle_cache, "sg", "unit_test_mock_sg", "v98")
-        )
+        os.makedirs(os.path.join(self.bundle_cache, "sg", "unit_test_mock_sg", "v98"))
 
         desc = sgtk.descriptor.create_descriptor(
             self.mockgun,
@@ -453,9 +522,9 @@ class TestShotgunIODescriptor(ShotgunTestBase):
                 "version": 98,
                 "entity_type": "Shot",
                 "field": "sg_field",
-                "id": 567
+                "id": 567,
             },
-            bundle_cache_root_override=self.bundle_cache
+            bundle_cache_root_override=self.bundle_cache,
         )
 
         self.assertEqual(desc.version, "v98")
@@ -470,9 +539,9 @@ class TestShotgunIODescriptor(ShotgunTestBase):
                 "version": 1,
                 "entity_type": "Shot",
                 "field": "sg_field",
-                "id": 567
+                "id": 567,
             },
-            bundle_cache_root_override=self.bundle_cache
+            bundle_cache_root_override=self.bundle_cache,
         )
 
         self.assertEqual(desc.version, "v1")

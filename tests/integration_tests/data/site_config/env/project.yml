@@ -22,7 +22,7 @@ engines:
     apps:
       tk-multi-launchapp:
         use_software_entity: true
-        location: 
+        location:
           type: app_store
           name: tk-multi-launchapp
           version: v0.9.15

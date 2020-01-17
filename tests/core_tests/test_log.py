@@ -13,12 +13,13 @@ import copy
 
 import sgtk
 
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase
 
 
 class TestLogManager(ShotgunTestBase):
     """Tests the LogManager interface."""
+
     def test_global_debug_environment(self):
         """
         Ensures that the debug logging environment variable is set/unset when
@@ -47,7 +48,5 @@ class TestLogManager(ShotgunTestBase):
         Tests the LogManager 'log_file' property
         """
         manager = sgtk.log.LogManager()
-        self.assertTrue(hasattr(manager, 'log_file'))
+        self.assertTrue(hasattr(manager, "log_file"))
         self.assertIsNotNone(manager.log_file)
-
-

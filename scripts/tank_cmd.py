@@ -12,7 +12,6 @@ from __future__ import with_statement
 import sys
 import os
 import cgi
-import re
 import logging
 import string
 import tank
@@ -25,6 +24,8 @@ from tank.commands.core_upgrade import TankCoreUpdater
 from tank.commands.action_base import Action
 from tank.util import shotgun
 from tank.util import shotgun_entity
+from tank.util import is_windows
+from tank.util import sgre as re
 from tank.platform import constants as platform_constants
 from tank.authentication import ShotgunAuthenticator
 from tank.authentication import AuthenticationError
@@ -34,9 +35,11 @@ from tank.authentication import IncompleteCredentials
 from tank.authentication import CoreDefaultsManager
 from tank.commands import constants as command_constants
 from tank_vendor import yaml
+from tank_vendor.shotgun_api3.lib.sgsix import normalize_platform
 from tank.platform import engine
 from tank import pipelineconfig_utils
 from tank import LogManager
+from tank_vendor import six
 
 # the logger used by this file is sgtk.tank_cmd
 logger = LogManager.get_logger("tank_cmd")
@@ -51,36 +54,126 @@ ARG_SCRIPT_NAME = "script-name"
 ARG_SCRIPT_KEY = "script-key"
 ARG_CREDENTIALS_FILE = "credentials-file"
 
-SHOTGUN_ENTITY_TYPES = ['ActionMenuItem', 'ApiUser', 'AppWelcomeUserConnection', 'Asset', 'AssetAssetConnection',
-                        'AssetBlendshapeConnection', 'AssetElementConnection', 'AssetEpisodeConnection',
-                        'AssetLevelConnection', 'AssetLibrary', 'AssetMocapTakeConnection', 'AssetSceneConnection',
-                        'AssetSequenceConnection', 'AssetShootDayConnection', 'AssetShotConnection', 'Attachment',
-                        'BannerUserConnection', 'Blendshape', 'Booking', 'Camera', 'CameraMocapTakeConnection',
-                        'Candidate', 'ClientUser', 'Cut', 'CutItem', 'CutVersionConnection', 'Delivery',
-                        'DeliveryTarget', 'Delivery_sg_assets_Connection', 'Delivery_sg_shots_Connection',
-                        'Delivery_sg_versions_Connection', 'Department', 'Element', 'ElementShotConnection', 'Episode',
-                        'EventLogEntry', 'FilesystemLocation', 'Group', 'GroupUserConnection', 'HumanUser', 'Icon',
-                        'Launch', 'LaunchSceneConnection', 'LaunchShotConnection', 'Level', 'LocalStorage', 'MocapPass',
-                        'MocapSetup', 'MocapTake', 'MocapTakeRange', 'MocapTakeRangeShotConnection', 'Note', 'Page',
-                        'PageHit', 'PageSetting', 'Performer', 'PerformerMocapTakeConnection',
-                        'PerformerRoutineConnection', 'PerformerShootDayConnection', 'PermissionRuleSet', 'Phase',
-                        'PhysicalAsset', 'PhysicalAssetMocapTakeConnection', 'PipelineConfiguration', 'Playlist',
-                        'PlaylistShare', 'PlaylistVersionConnection', 'Project', 'ProjectUserConnection',
-                        'PublishEvent', 'PublishedFile', 'PublishedFileDependency', 'PublishedFileType', 'Reel',
-                        'Release', 'ReleaseTicketConnection', 'Reply', 'Revision', 'RevisionRevisionConnection',
-                        'RevisionTicketConnection', 'Routine', 'RvLicense', 'Scene', 'Sequence', 'ShootDay',
-                        'ShootDaySceneConnection', 'Shot', 'ShotShotConnection', 'Shot_sg_animations_Connection',
-                        'Shot_sg_deliverables_Connection', 'Slate', 'SourceClip', 'Status', 'Step', 'TankAction',
-                        'TankContainer', 'TankDependency', 'TankPublishedFile', 'TankType', 'Task', 'TaskDependency',
-                        'TaskTemplate', 'TemerityNode', 'Ticket', 'TicketTicketConnection',
-                        'Ticket_sg_related_assets_Connection', 'TimeLog', 'Tool', 'Version', 'WatermarkingPreset']
+SHOTGUN_ENTITY_TYPES = [
+    "ActionMenuItem",
+    "ApiUser",
+    "AppWelcomeUserConnection",
+    "Asset",
+    "AssetAssetConnection",
+    "AssetBlendshapeConnection",
+    "AssetElementConnection",
+    "AssetEpisodeConnection",
+    "AssetLevelConnection",
+    "AssetLibrary",
+    "AssetMocapTakeConnection",
+    "AssetSceneConnection",
+    "AssetSequenceConnection",
+    "AssetShootDayConnection",
+    "AssetShotConnection",
+    "Attachment",
+    "BannerUserConnection",
+    "Blendshape",
+    "Booking",
+    "Camera",
+    "CameraMocapTakeConnection",
+    "Candidate",
+    "ClientUser",
+    "Cut",
+    "CutItem",
+    "CutVersionConnection",
+    "Delivery",
+    "DeliveryTarget",
+    "Delivery_sg_assets_Connection",
+    "Delivery_sg_shots_Connection",
+    "Delivery_sg_versions_Connection",
+    "Department",
+    "Element",
+    "ElementShotConnection",
+    "Episode",
+    "EventLogEntry",
+    "FilesystemLocation",
+    "Group",
+    "GroupUserConnection",
+    "HumanUser",
+    "Icon",
+    "Launch",
+    "LaunchSceneConnection",
+    "LaunchShotConnection",
+    "Level",
+    "LocalStorage",
+    "MocapPass",
+    "MocapSetup",
+    "MocapTake",
+    "MocapTakeRange",
+    "MocapTakeRangeShotConnection",
+    "Note",
+    "Page",
+    "PageHit",
+    "PageSetting",
+    "Performer",
+    "PerformerMocapTakeConnection",
+    "PerformerRoutineConnection",
+    "PerformerShootDayConnection",
+    "PermissionRuleSet",
+    "Phase",
+    "PhysicalAsset",
+    "PhysicalAssetMocapTakeConnection",
+    "PipelineConfiguration",
+    "Playlist",
+    "PlaylistShare",
+    "PlaylistVersionConnection",
+    "Project",
+    "ProjectUserConnection",
+    "PublishEvent",
+    "PublishedFile",
+    "PublishedFileDependency",
+    "PublishedFileType",
+    "Reel",
+    "Release",
+    "ReleaseTicketConnection",
+    "Reply",
+    "Revision",
+    "RevisionRevisionConnection",
+    "RevisionTicketConnection",
+    "Routine",
+    "RvLicense",
+    "Scene",
+    "Sequence",
+    "ShootDay",
+    "ShootDaySceneConnection",
+    "Shot",
+    "ShotShotConnection",
+    "Shot_sg_animations_Connection",
+    "Shot_sg_deliverables_Connection",
+    "Slate",
+    "SourceClip",
+    "Status",
+    "Step",
+    "TankAction",
+    "TankContainer",
+    "TankDependency",
+    "TankPublishedFile",
+    "TankType",
+    "Task",
+    "TaskDependency",
+    "TaskTemplate",
+    "TemerityNode",
+    "Ticket",
+    "TicketTicketConnection",
+    "Ticket_sg_related_assets_Connection",
+    "TimeLog",
+    "Tool",
+    "Version",
+    "WatermarkingPreset",
+]
 
-SHOTGUN_ENTITY_TYPES.extend(["CustomEntity%02d"%x for x in range(1, 51)])
-SHOTGUN_ENTITY_TYPES.extend(["CustomNonProjectEntity%02d"%x for x in range(1, 31)])
-SHOTGUN_ENTITY_TYPES.extend(["CustomThreadedEntity%02d"%x for x in range(1, 16)])
+SHOTGUN_ENTITY_TYPES.extend(["CustomEntity%02d" % x for x in range(1, 51)])
+SHOTGUN_ENTITY_TYPES.extend(["CustomNonProjectEntity%02d" % x for x in range(1, 31)])
+SHOTGUN_ENTITY_TYPES.extend(["CustomThreadedEntity%02d" % x for x in range(1, 16)])
 
 ###############################################################################################
 # Helpers and General Stuff
+
 
 class AltCustomFormatter(logging.Formatter):
     """
@@ -92,13 +185,20 @@ class AltCustomFormatter(logging.Formatter):
     Non-html output is formatted to be cut at 80 chars
     in order to make it easily readable.
     """
-    def __init__(self, *args, **kwargs):
+
+    def __init__(self, no_line_wrapping):
         """
         Constructor
         """
         self._html = False
         self._num_errors = 0
-        logging.Formatter.__init__(self, *args, **kwargs)
+        # We can't tell the formatter to do no wrapping, but we can
+        # provide a value big enough that it wouldn't make sense
+        # for something to wrap on this much. The parameter that
+        # allows to trigger this is used only in testing and is
+        # not documented.
+        self._line_length = 200 if no_line_wrapping else 78
+        logging.Formatter.__init__(self)
 
     def enable_html_mode(self):
         """
@@ -121,7 +221,12 @@ class AltCustomFormatter(logging.Formatter):
             # html logging for shotgun.
             # The logging mechanisms in Shotgun tend to filter out any output
             # which does not start with an html tag, so we need to make sure we got that.
-            if record.levelno in (logging.WARNING, logging.ERROR, logging.CRITICAL, logging.DEBUG):
+            if record.levelno in (
+                logging.WARNING,
+                logging.ERROR,
+                logging.CRITICAL,
+                logging.DEBUG,
+            ):
                 # for errors and warnings, we turn all special chars into codes using cgi
                 # before converting, make sure the record is a string, sometimes
                 # people pass in all sorts of crap into the logger
@@ -142,24 +247,33 @@ class AltCustomFormatter(logging.Formatter):
         else:
             # shell based logging. Cut nicely at 80 chars width.
             if record.levelno in (logging.WARNING, logging.ERROR, logging.CRITICAL):
-                record.msg = '%s: %s' % (record.levelname, record.msg)
+                record.msg = "%s: %s" % (record.levelname, record.msg)
 
             if record.levelno == logging.DEBUG:
                 # time stamps in debug logging!
-                record.msg = 'DEBUG [%s %s]: %s' % (datetime.datetime.now().strftime("%H:%M:%S"),
-                                                    record.msecs,
-                                                    record.msg)
+                record.msg = "DEBUG [%s %s]: %s" % (
+                    datetime.datetime.now().strftime("%H:%M:%S"),
+                    record.msecs,
+                    record.msg,
+                )
 
-            if not("Code Traceback" in record.msg or record.levelno < logging.INFO):
+            if not ("Code Traceback" in record.msg or record.levelno < logging.INFO):
                 # do not wrap exceptions and debug
                 # wrap other log levels on an 80 char wide boundary
                 lines = []
 
-                if sys.version_info < (2,6):
+                if sys.version_info < (2, 6):
                     # python 2.5 doesn't support all params
-                    wrapped_lines = textwrap.wrap(record.msg, width=78, break_long_words=False)
+                    wrapped_lines = textwrap.wrap(
+                        record.msg, width=self._line_length, break_long_words=False
+                    )
                 else:
-                    wrapped_lines = textwrap.wrap(record.msg, width=78, break_long_words=False, break_on_hyphens=False)
+                    wrapped_lines = textwrap.wrap(
+                        record.msg,
+                        width=self._line_length,
+                        break_long_words=False,
+                        break_on_hyphens=False,
+                    )
 
                 for x in wrapped_lines:
                     lines.append(x)
@@ -265,8 +379,7 @@ def ensure_authenticated(script_name, script_key):
 
     if script_name and script_key:
         user = shotgun_auth.create_script_user(
-            api_script=script_name,
-            api_key=script_key
+            api_script=script_name, api_key=script_key
         )
     else:
         # request a user, either by prompting the user or by pulling out of
@@ -276,9 +389,9 @@ def ensure_authenticated(script_name, script_key):
     tank.set_authenticated_user(user)
 
 
-
 ###############################################################################################
 # Shotgun Actions Management
+
 
 def _run_shotgun_command(tk, action_name, entity_type, entity_ids):
     """
@@ -303,7 +416,7 @@ def _run_shotgun_command(tk, action_name, entity_type, entity_ids):
     e = engine.start_shotgun_engine(tk, entity_type, ctx)
 
     logger.debug("Launched engine %s" % e)
-    logger.debug("Registered commands: %s" % e.commands.keys())
+    logger.debug("Registered commands: %s" % list(e.commands.keys()))
 
     cmd = e.commands.get(action_name)
     if cmd:
@@ -332,9 +445,11 @@ def _run_shotgun_command(tk, action_name, entity_type, entity_ids):
 
     else:
         # unknown command - this typically is caused by apps failing to initialize.
-        e.log_error("The action could not be executed! This is typically because there "
-                    "is an error in the app configuration which prevents the engine from "
-                    "initializing it.")
+        e.log_error(
+            "The action could not be executed! This is typically because there "
+            "is an error in the app configuration which prevents the engine from "
+            "initializing it."
+        )
 
 
 def _write_shotgun_cache(tk, entity_type, cache_file_name):
@@ -347,7 +462,9 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
                             for
     :param cache_file_name: name of the file used to store the cached data
     """
-    cache_path = os.path.join(tk.pipeline_configuration.get_shotgun_menu_cache_location(), cache_file_name)
+    cache_path = os.path.join(
+        tk.pipeline_configuration.get_shotgun_menu_cache_location(), cache_file_name
+    )
 
     # start the shotgun engine, load the apps
     e = engine.start_shotgun_engine(tk, entity_type, tk.context_empty())
@@ -357,11 +474,19 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
 
     # insert special system commands
     if entity_type.lower() == "project":
-        engine_commands["__core_info"] = { "properties": {"title": "Check for Core Upgrades...",
-                                                          "deny_permissions": ["Artist"] } }
+        engine_commands["__core_info"] = {
+            "properties": {
+                "title": "Check for Core Upgrades...",
+                "deny_permissions": ["Artist"],
+            }
+        }
 
-        engine_commands["__upgrade_check"] = { "properties": {"title": "Check for App Upgrades...",
-                                                              "deny_permissions": ["Artist"] } }
+        engine_commands["__upgrade_check"] = {
+            "properties": {
+                "title": "Check for App Upgrades...",
+                "deny_permissions": ["Artist"],
+            }
+        }
 
     # extract actions into cache file
     res = []
@@ -370,25 +495,26 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
         # some apps provide a special deny_platforms entry
         if "deny_platforms" in cmd_params["properties"]:
             # setting can be Linux, Windows or Mac
-            curr_os = {"linux2": "Linux", "darwin": "Mac", "win32": "Windows"}[sys.platform]
+            curr_os = {"linux2": "Linux", "darwin": "Mac", "win32": "Windows"}[
+                normalize_platform(sys.platform)
+            ]
             if curr_os in cmd_params["properties"]["deny_platforms"]:
                 # deny this platform! :)
                 continue
 
         title = cmd_params["properties"].get("title", cmd_name)
         supports_multiple_sel = cmd_params["properties"].get(
-            "supports_multiple_selection", False)
+            "supports_multiple_selection", False
+        )
         deny = ",".join(cmd_params["properties"].get("deny_permissions", []))
         icon = cmd_params["properties"].get("icon", "")
         description = cmd_params["properties"].get("description", "")
 
-        entry = [ cmd_name, title, deny, str(supports_multiple_sel),
-                  icon, description ]
+        entry = [cmd_name, title, deny, str(supports_multiple_sel), icon, description]
 
         # sanitize the fields to make sure that they do not break the cache
         # format
-        sanitized = [ token.replace("\n", " ").replace("$", "_")
-                      for token in entry ]
+        sanitized = [token.replace("\n", " ").replace("$", "_") for token in entry]
 
         res.append("$".join(sanitized))
 
@@ -406,18 +532,18 @@ def _write_shotgun_cache(tk, entity_type, cache_file_name):
         # otherwise with wt mode, \n on windows will be turned into \n\r
         # which is not interpreted correctly by the jacascript code.
         f = open(cache_path, "wb")
-        f.write(data)
+        f.write(six.ensure_binary(data))
         f.close()
 
         # make sure cache file has proper permissions
         if cache_file_created:
             old_umask = os.umask(0)
             try:
-                os.chmod(cache_path, 0666)
+                os.chmod(cache_path, 0o666)
             finally:
                 os.umask(old_umask)
 
-    except Exception, e:
+    except Exception as e:
         raise TankError("Could not write to cache file %s: %s" % (cache_path, e))
 
 
@@ -434,8 +560,8 @@ def shotgun_cache_actions(pipeline_config_root, args):
         # this will be detected by the shotgun and shell engines
         # and used.
         tk.log = logger
-    except TankError, e:
-        raise TankError("Could not instantiate an Sgtk API Object! Details: %s" % e )
+    except TankError as e:
+        raise TankError("Could not instantiate an Sgtk API Object! Details: %s" % e)
 
     # params: entity_type, cache_file_name
     if len(args) != 2:
@@ -447,9 +573,9 @@ def shotgun_cache_actions(pipeline_config_root, args):
     num_log_messages_before = formatter.get_num_errors()
     try:
         _write_shotgun_cache(tk, entity_type, cache_file_name)
-    except TankError, e:
+    except TankError as e:
         logger.error("Error writing shotgun cache file: %s" % e)
-    except Exception, e:
+    except Exception:
         logger.exception("A general error occurred.")
     num_log_messages_after = formatter.get_num_errors()
 
@@ -457,25 +583,31 @@ def shotgun_cache_actions(pipeline_config_root, args):
     # weird and unexpected has happened...
     if (num_log_messages_after - num_log_messages_before) > 0:
         logger.info("")
-        logger.warning("Generating the cache file for this environment may have resulted in some "
-                    "actions being omitted because of configuration errors. You may need to "
-                    "clear the cache by running the following command:")
+        logger.warning(
+            "Generating the cache file for this environment may have resulted in some "
+            "actions being omitted because of configuration errors. You may need to "
+            "clear the cache by running the following command:"
+        )
 
         code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
 
         logger.info("")
-        if sys.platform == "win32":
+        if is_windows():
             tank_cmd = os.path.join(pipeline_config_root, "tank.bat")
         else:
             tank_cmd = os.path.join(pipeline_config_root, "tank")
-        logger.info("<code style='%s'>%s clear_shotgun_menu_cache</code>" % (code_css_block, tank_cmd))
+        logger.info(
+            "<code style='%s'>%s clear_shotgun_menu_cache</code>"
+            % (code_css_block, tank_cmd)
+        )
         logger.info("")
-        
+
         # return with an error code to indicate a failure to the caller
         return 1
-    
+
     # return success error code
     return 0
+
 
 def shotgun_run_action_auth(install_root, pipeline_config_root, is_localized, args):
     """
@@ -508,8 +640,10 @@ def shotgun_run_action_auth(install_root, pipeline_config_root, is_localized, ar
     rot13_password = args[4]
 
     # un-swizzle the password
-    rot13 = string.maketrans("NOPQRSTUVWXYZnopqrstuvwxyzABCDEFGHIJKLMabcdefghijklm",
-                             "ABCDEFGHIJKLMabcdefghijklmNOPQRSTUVWXYZnopqrstuvwxyz")
+    rot13 = string.maketrans(
+        "NOPQRSTUVWXYZnopqrstuvwxyzABCDEFGHIJKLMabcdefghijklm",
+        "ABCDEFGHIJKLMabcdefghijklmNOPQRSTUVWXYZnopqrstuvwxyz",
+    )
     password = string.translate(rot13_password, rot13)
 
     # now, first try to authenticate
@@ -558,12 +692,15 @@ def shotgun_run_action_auth(install_root, pipeline_config_root, is_localized, ar
         tank.set_authenticated_user(user)
 
     # and fire off the action
-    return _shotgun_run_action(install_root,
-                               pipeline_config_root,
-                               is_localized,
-                               action_name,
-                               entity_type,
-                               entity_ids)
+    return _shotgun_run_action(
+        install_root,
+        pipeline_config_root,
+        is_localized,
+        action_name,
+        entity_type,
+        entity_ids,
+    )
+
 
 def shotgun_run_action(install_root, pipeline_config_root, is_localized, args):
     """
@@ -590,7 +727,9 @@ def shotgun_run_action(install_root, pipeline_config_root, is_localized, args):
 
     # params: action_name, entity_type, entity_ids
     if len(args) != 3:
-        raise TankError("Invalid arguments! Pass action_name, entity_type, comma_separated_entity_ids")
+        raise TankError(
+            "Invalid arguments! Pass action_name, entity_type, comma_separated_entity_ids"
+        )
 
     # all modern versions of Shotgun will be running the shotgun_run_action_auth method.
     # this method is to serve users who are running an updated version of core with
@@ -610,14 +749,24 @@ def shotgun_run_action(install_root, pipeline_config_root, is_localized, args):
     entity_ids_str = args[2].split(",")
     entity_ids = [int(x) for x in entity_ids_str]
 
-    return _shotgun_run_action(install_root,
-                               pipeline_config_root,
-                               is_localized,
-                               action_name,
-                               entity_type,
-                               entity_ids)
+    return _shotgun_run_action(
+        install_root,
+        pipeline_config_root,
+        is_localized,
+        action_name,
+        entity_type,
+        entity_ids,
+    )
 
-def _shotgun_run_action(install_root, pipeline_config_root, is_localized, action_name, entity_type, entity_ids):
+
+def _shotgun_run_action(
+    install_root,
+    pipeline_config_root,
+    is_localized,
+    action_name,
+    entity_type,
+    entity_ids,
+):
     """
     Executes a Shotgun action.
 
@@ -634,8 +783,8 @@ def _shotgun_run_action(install_root, pipeline_config_root, is_localized, action
         # this will be detected by the shotgun and shell engines
         # and used.
         tk.log = logger
-    except TankError, e:
-        raise TankError("Could not instantiate an Sgtk API Object! Details: %s" % e )
+    except TankError as e:
+        raise TankError("Could not instantiate an Sgtk API Object! Details: %s" % e)
 
     if action_name == "__clone_pc":
         # special data passed in entity_type: USER_ID:NAME:LINUX_PATH:MAC_PATH:WINDOWS_PATH
@@ -647,15 +796,17 @@ def _shotgun_run_action(install_root, pipeline_config_root, is_localized, action
         # past the 4th chunk in the command is part of the windows path...
         new_path_windows = ":".join(entity_type.split(":")[4:])
         pc_entity_id = entity_ids[0]
-        clone_pipeline_configuration_html(logger,
-                                          tk,
-                                          pc_entity_id,
-                                          user_id,
-                                          new_name,
-                                          new_path_linux,
-                                          new_path_mac,
-                                          new_path_windows,
-                                          is_localized)
+        clone_pipeline_configuration_html(
+            logger,
+            tk,
+            pc_entity_id,
+            user_id,
+            new_name,
+            new_path_linux,
+            new_path_mac,
+            new_path_windows,
+            is_localized,
+        )
 
     elif action_name == "__core_info":
 
@@ -666,38 +817,52 @@ def _shotgun_run_action(install_root, pipeline_config_root, is_localized, action
 
         cv = installer.get_current_version_number()
         lv = installer.get_update_version_number()
-        logger.info("You are currently running version %s of the Shotgun Pipeline Toolkit." % cv)
+        logger.info(
+            "You are currently running version %s of the Shotgun Pipeline Toolkit." % cv
+        )
 
         if not is_localized:
             logger.info("")
-            logger.info("Your core API is located in <code>%s</code> and is shared with other "
-                     "projects." % install_root)
+            logger.info(
+                "Your core API is located in <code>%s</code> and is shared with other "
+                "projects." % install_root
+            )
 
         logger.info("")
 
         status = installer.get_update_status()
 
         if status == TankCoreUpdater.UP_TO_DATE:
-            logger.info("<b>You are up to date! There is no need to update the Toolkit Core API at this time!</b>")
+            logger.info(
+                "<b>You are up to date! There is no need to update the Toolkit Core API at this time!</b>"
+            )
 
         elif status == TankCoreUpdater.UPDATE_BLOCKED_BY_SG:
             req_sg = installer.get_required_sg_version_for_update()
-            logger.warning("<b>A new version (%s) of the core API is available however "
-                        "it requires a more recent version (%s) of Shotgun!</b>" % (lv, req_sg))
+            logger.warning(
+                "<b>A new version (%s) of the core API is available however "
+                "it requires a more recent version (%s) of Shotgun!</b>" % (lv, req_sg)
+            )
 
         elif status == TankCoreUpdater.UPDATE_POSSIBLE:
 
             (summary, url) = installer.get_release_notes()
 
-            logger.info("<b>A new version of the Toolkit API (%s) is available!</b>" % lv)
+            logger.info(
+                "<b>A new version of the Toolkit API (%s) is available!</b>" % lv
+            )
             logger.info("")
-            logger.info("<b>Change Summary:</b> %s <a href='%s' target=_new>"
-                     "Click for detailed Release Notes</a>" % (summary, url))
+            logger.info(
+                "<b>Change Summary:</b> %s <a href='%s' target=_new>"
+                "Click for detailed Release Notes</a>" % (summary, url)
+            )
             logger.info("")
-            logger.info("In order to upgrade, execute the following command in a shell:")
+            logger.info(
+                "In order to upgrade, execute the following command in a shell:"
+            )
             logger.info("")
 
-            if sys.platform == "win32":
+            if is_windows():
                 tank_cmd = os.path.join(install_root, "tank.bat")
             else:
                 tank_cmd = os.path.join(install_root, "tank")
@@ -709,19 +874,20 @@ def _shotgun_run_action(install_root, pipeline_config_root, is_localized, action
         else:
             raise TankError("Unknown Upgrade state!")
 
-
     elif action_name == "__upgrade_check":
 
         # special built in command that simply tells the user to run the tank command
 
         code_css_block = "display: block; padding: 0.5em 1em; border: 1px solid #bebab0; background: #faf8f0;"
 
-        logger.info("In order to check if your installed apps and engines are up to date, "
-                 "you can run the following command in a console:")
+        logger.info(
+            "In order to check if your installed apps and engines are up to date, "
+            "you can run the following command in a console:"
+        )
 
         logger.info("")
 
-        if sys.platform == "win32":
+        if is_windows():
             tank_cmd = os.path.join(pipeline_config_root, "tank.bat")
         else:
             tank_cmd = os.path.join(pipeline_config_root, "tank")
@@ -736,6 +902,7 @@ def _shotgun_run_action(install_root, pipeline_config_root, is_localized, action
 
 ###############################################################################################
 # Shell Actions Management
+
 
 def _resolve_shotgun_pattern(entity_type, name_pattern):
     """
@@ -752,21 +919,26 @@ def _resolve_shotgun_pattern(entity_type, name_pattern):
 
     sg = shotgun.get_sg_connection()
 
-    logger.debug("Shotgun: find(%s, %s contains %s)" % (entity_type, name_field, name_pattern) )
+    logger.debug(
+        "Shotgun: find(%s, %s contains %s)" % (entity_type, name_field, name_pattern)
+    )
     data = sg.find(entity_type, [[name_field, "contains", name_pattern]], [name_field])
     logger.debug("Got data: %r" % data)
 
     if len(data) == 0:
-        raise TankError("No Shotgun %s matching the pattern '%s'!" % (entity_type, name_pattern))
+        raise TankError(
+            "No Shotgun %s matching the pattern '%s'!" % (entity_type, name_pattern)
+        )
 
     elif len(data) > 1:
         names = ["'%s'" % x[name_field] for x in data]
-        raise TankError("More than one %s matching pattern '%s'. Matching items are %s. "
-                        "Please be more specific." % (entity_type, name_pattern, ", ".join(names)))
+        raise TankError(
+            "More than one %s matching pattern '%s'. Matching items are %s. "
+            "Please be more specific." % (entity_type, name_pattern, ", ".join(names))
+        )
 
     # got a single item
     return (data[0]["id"], data[0][name_field])
-
 
 
 def _list_commands(tk, ctx):
@@ -790,7 +962,12 @@ def _list_commands(tk, ctx):
     # engine is initialized.
 
     by_category.setdefault("Login", []).append(
-        Action("logout", "unused", "Log out of the current user (no need for a context).", "Login")
+        Action(
+            "logout",
+            "unused",
+            "Log out of the current user (no need for a context).",
+            "Login",
+        )
     )
 
     num_engine_commands = 0
@@ -809,8 +986,6 @@ def _list_commands(tk, ctx):
             if cmd.mode == Action.ENGINE:
                 num_engine_commands += 1
 
-
-
     if num_engine_commands == 0:
         # not a fully populated setup - so display some interactive help!
         logger.info("")
@@ -821,9 +996,11 @@ def _list_commands(tk, ctx):
 
         if tk is None:
             # we have nothing.
-            logger.info("You have launched the Tank command without a Project. This means that you "
-                     "are only getting a small number of global system commands in the list of "
-                     "commands. Try pointing the tank command to a project location, for example: ")
+            logger.info(
+                "You have launched the Tank command without a Project. This means that you "
+                "are only getting a small number of global system commands in the list of "
+                "commands. Try pointing the tank command to a project location, for example: "
+            )
             logger.info("")
             logger.info("> tank Project XYZ")
             logger.info("> tank Shot ABC123")
@@ -833,11 +1010,14 @@ def _list_commands(tk, ctx):
 
         elif ctx is None:
             # we have a project but no context.
-            logger.info("You have launched the Tank command but not pointed it at a specific "
-                     "work area. You are running tank from the configuration found in "
-                     "'%s' but no specific asset or shot was selected so only a generic list "
-                     "of commands will be displayed. Try pointing the tank command to a more "
-                     "specific location, for example: " % tk.pipeline_configuration.get_path())
+            logger.info(
+                "You have launched the Tank command but not pointed it at a specific "
+                "work area. You are running tank from the configuration found in "
+                "'%s' but no specific asset or shot was selected so only a generic list "
+                "of commands will be displayed. Try pointing the tank command to a more "
+                "specific location, for example: "
+                % tk.pipeline_configuration.get_path()
+            )
             logger.info("")
             logger.info("> tank Shot ABC123")
             logger.info("> tank Asset ALL")
@@ -854,30 +1034,34 @@ def _list_commands(tk, ctx):
             env = tank.platform.engine.get_environment_from_context(tk, ctx)
             if env is None:
                 # no environment for context
-                logger.info("Your current context ('%s') does not have a matching Sgtk Environment. "
-                         "An environment is a part of the configuration and is used to define what "
-                         "tools are available in a certain part of the pipeline. For example, you "
-                         "may have a Shot and and Asset environment, defining the different tools "
-                         "needed for asset work and shot work. Try navigating to a more specific "
-                         "part of your project setup, or contact support if you have further "
-                         "questions." % ctx)
-
+                logger.info(
+                    "Your current context ('%s') does not have a matching Sgtk Environment. "
+                    "An environment is a part of the configuration and is used to define what "
+                    "tools are available in a certain part of the pipeline. For example, you "
+                    "may have a Shot and and Asset environment, defining the different tools "
+                    "needed for asset work and shot work. Try navigating to a more specific "
+                    "part of your project setup, or contact support if you have further "
+                    "questions." % ctx
+                )
 
             elif command_constants.SHELL_ENGINE not in env.get_engines():
                 # no shell engine installed
-                logger.info("Looks like the environment configuration '%s', which is associated "
-                         "with the current context (%s), does not have a shell engine "
-                         "installed. The shell engine is necessary if you want to run apps using "
-                         "the tank command. You can install it by running the install_engine "
-                         "command." % (env.disk_location, ctx))
+                logger.info(
+                    "Looks like the environment configuration '%s', which is associated "
+                    "with the current context (%s), does not have a shell engine "
+                    "installed. The shell engine is necessary if you want to run apps using "
+                    "the tank command. You can install it by running the install_engine "
+                    "command." % (env.disk_location, ctx)
+                )
 
             else:
                 # number engine commands is zero
-                logger.info("Looks like you don't have any apps installed that can run in the shell "
-                         "engine! Try installing apps using the install_app command or start a new "
-                         "project based on the latest Sgtk default starter configuration if you want "
-                         "to get a working example of how the shell engine can be configured.")
-
+                logger.info(
+                    "Looks like you don't have any apps installed that can run in the shell "
+                    "engine! Try installing apps using the install_app command or start a new "
+                    "project based on the latest Sgtk default starter configuration if you want "
+                    "to get a working example of how the shell engine can be configured."
+                )
 
     logger.info("")
     logger.info("")
@@ -907,26 +1091,34 @@ def _resolve_shotgun_entity(entity_type, entity_search_token, constrain_by_proje
 
         if constrain_by_project_id:
             # append project constraint
-            shotgun_filters.append(["project", "is" , {"type": "Project", "id": constrain_by_project_id}])
+            shotgun_filters.append(
+                ["project", "is", {"type": "Project", "id": constrain_by_project_id}]
+            )
 
         logger.debug("Shotgun: find(%s, %s)" % (entity_type, shotgun_filters))
-        entities = sg.find(entity_type,
-                           shotgun_filters,
-                           [name_field, "description", "entity", "link", "project"])
+        entities = sg.find(
+            entity_type,
+            shotgun_filters,
+            [name_field, "description", "entity", "link", "project"],
+        )
         logger.debug("Got data: %r" % entities)
-    except Exception, e:
+    except Exception as e:
         raise TankError("An error occurred when searching in Shotgun: %s" % e)
 
     selected_entity = None
 
     if len(entities) == 0:
         logger.info("")
-        logger.info("Could not find a %s with a name containing '%s' in Shotgun!" % (entity_type, entity_search_token))
-        raise TankError("Try searching for something else. "
-                        "Alternatively, specify ALL in order to see all %ss." % entity_type)
+        logger.info(
+            "Could not find a %s with a name containing '%s' in Shotgun!"
+            % (entity_type, entity_search_token)
+        )
+        raise TankError(
+            "Try searching for something else. "
+            "Alternatively, specify ALL in order to see all %ss." % entity_type
+        )
 
-
-    elif [ x[name_field] for x in entities ].count(entity_search_token) == 1:
+    elif [x[name_field] for x in entities].count(entity_search_token) == 1:
         # multiple matches but one matches the search term exactly!!
         # find which one:
         for x in entities:
@@ -949,16 +1141,15 @@ def _resolve_shotgun_entity(entity_type, entity_search_token, constrain_by_proje
         # [862] Shot P01 (The ghosts of Pere Lachaise)
         #       Camera starts with a wide view of Paris then cranes down to see...
 
-
         logger.info("")
-        logger.info("More than one item matching your input:" )
+        logger.info("More than one item matching your input:")
         logger.info("")
         for x in entities:
 
             chunks = []
 
             chunks.append(" [@%d]" % x["id"])
-            id_chunk_len = len(chunks[0]) # used for description formatter
+            id_chunk_len = len(chunks[0])  # used for description formatter
 
             chunks.append(" %s %s" % (entity_type, x[name_field]))
 
@@ -966,15 +1157,17 @@ def _resolve_shotgun_entity(entity_type, entity_search_token, constrain_by_proje
                 chunks.append(" (%s)" % x.get("project").get("name"))
 
             if x.get("entity"):
-                chunks.append( " (%s %s)" % (x.get("entity").get("type"),
-                                             x.get("entity").get("name")))
+                chunks.append(
+                    " (%s %s)"
+                    % (x.get("entity").get("type"), x.get("entity").get("name"))
+                )
 
             if x.get("link"):
-                chunks.append( " (%s %s)" % (x.get("link").get("type"),
-                                             x.get("link").get("name")))
+                chunks.append(
+                    " (%s %s)" % (x.get("link").get("type"), x.get("link").get("name"))
+                )
 
             logger.info("".join(chunks))
-
 
             # display description and chop it off so that is never longer than a single line
             desc = x.get("description")
@@ -984,10 +1177,10 @@ def _resolve_shotgun_entity(entity_type, entity_search_token, constrain_by_proje
             # add spaces to push the desc to align with [id]
             desc = (" " * id_chunk_len) + " " + desc
 
-            chars_available = 70 # description max len is 70
+            chars_available = 70  # description max len is 70
 
             # clever regex to chop on word boundaries
-            chopped_desc = re.match(r'(.{,%d})(\W|$)' % chars_available, desc).group(1)
+            chopped_desc = re.match(r"(.{,%d})(\W|$)" % chars_available, desc).group(1)
             if len(chopped_desc) < len(desc):
                 chopped_desc += "..."
 
@@ -995,43 +1188,51 @@ def _resolve_shotgun_entity(entity_type, entity_search_token, constrain_by_proje
 
             logger.info("")
 
-
         if entity_search_token != "ALL":
             # don't display this helpful hint if they have used the special ALL keyword
-            logger.info("More than one item matched your search phrase '%s'! "
-                     "Please enter a more specific search phrase in order to narrow it down "
-                     "to a single match. If there are several items with the same name, "
-                     "you can use the @id field displayed to specify a particular "
-                     "object (e.g. '%s @123')." % (entity_search_token, entity_type))
+            logger.info(
+                "More than one item matched your search phrase '%s'! "
+                "Please enter a more specific search phrase in order to narrow it down "
+                "to a single match. If there are several items with the same name, "
+                "you can use the @id field displayed to specify a particular "
+                "object (e.g. '%s @123')." % (entity_search_token, entity_type)
+            )
 
         if constrain_by_project_id is None:
             # not using any project filters
             logger.info("")
-            logger.info("If you want to search on items from a particular project, you can either "
-                     "run the tank command from that particular project or prefix your search "
-                     "string with a project name. For example, if you want to only see matches "
-                     "from a project named VFX, search for '%s VFX:%s'" % (entity_type, entity_search_token))
+            logger.info(
+                "If you want to search on items from a particular project, you can either "
+                "run the tank command from that particular project or prefix your search "
+                "string with a project name. For example, if you want to only see matches "
+                "from a project named VFX, search for '%s VFX:%s'"
+                % (entity_type, entity_search_token)
+            )
 
         logger.info("")
         raise TankError("Please try again with a more specific search!")
-
-
 
     # make sure there is a project associated with this entity!
     # selected_entity now has an entity populated in it.
     if entity_type != "Project":
         if selected_entity.get("project") is None:
-            raise TankError("Found %s %s however this item is not associated with "
-                            "a Project!" % (entity_type, selected_entity[name_field]))
+            raise TankError(
+                "Found %s %s however this item is not associated with "
+                "a Project!" % (entity_type, selected_entity[name_field])
+            )
 
-        logger.info("- Found %s %s (Project '%s')" % (entity_type,
-                                                 selected_entity[name_field],
-                                                 selected_entity["project"]["name"]))
+        logger.info(
+            "- Found %s %s (Project '%s')"
+            % (
+                entity_type,
+                selected_entity[name_field],
+                selected_entity["project"]["name"],
+            )
+        )
 
     else:
         # project case
         logger.info("- Found %s %s" % (entity_type, selected_entity[name_field]))
-
 
     return selected_entity["id"]
 
@@ -1078,13 +1279,13 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
         # context str is a path
         if pipeline_config_root is not None:
             # we are running a project specific tank command
-            tk =  tank.tank_from_path(pipeline_config_root)
+            tk = tank.tank_from_path(pipeline_config_root)
 
         else:
             # we are running a studio wide command
             try:
                 tk = tank.tank_from_path(ctx_path)
-            except TankError, e:
+            except TankError as e:
                 # this path was not valid. That's ok - we just wont have a tank instance
                 # when we run our commands later. This may be if we for example have
                 # just run tank setup_project from any random folder
@@ -1126,17 +1327,19 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
         if pipeline_config_root is not None and entity_type == "Project":
             # this is a per project tank command which is specifying the Project to run
             # the project is already implied by the location of the tank command
-            raise TankError("You are executing a project specific tank command so there is "
-                            "no need to specify a Project parameter! Try running just the "
-                            "tank command with no parameters to see what options are available "
-                            "on the project level. Alternatively, you can pass a Shotgun entity "
-                            "(e.g. 'Shot abc123') or a path on disk to specify a particular "
-                            "environment to see the available commands.")
+            raise TankError(
+                "You are executing a project specific tank command so there is "
+                "no need to specify a Project parameter! Try running just the "
+                "tank command with no parameters to see what options are available "
+                "on the project level. Alternatively, you can pass a Shotgun entity "
+                "(e.g. 'Shot abc123') or a path on disk to specify a particular "
+                "environment to see the available commands."
+            )
 
         # now see if we are running a studio or a per project tank command
         if pipeline_config_root is not None:
             # running a per project command
-            tk =  tank.tank_from_path(pipeline_config_root)
+            tk = tank.tank_from_path(pipeline_config_root)
             project_id = tk.pipeline_configuration.get_project_id()
             studio_command_mode = False
 
@@ -1174,16 +1377,20 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
             # we have an expression on the form tank EntityType project_name:name_expression
             # this is not valid for non-studio commands because these are already project scoped
             if not studio_command_mode:
-                raise TankError("Invalid syntax! When you are running the tank command from "
-                                "a project, you are already implicitly scoping your search by "
-                                "that project. Please omit the project prefix from your syntax. "
-                                "For more information, run tank --help")
+                raise TankError(
+                    "Invalid syntax! When you are running the tank command from "
+                    "a project, you are already implicitly scoping your search by "
+                    "that project. Please omit the project prefix from your syntax. "
+                    "For more information, run tank --help"
+                )
 
             elif entity_type == "Project":
                 # ok so we have a studio level command
                 # but you cannot scope a project by another project
-                raise TankError("Cannot scope a project with another project! For more information, "
-                                "run tank --help")
+                raise TankError(
+                    "Cannot scope a project with another project! For more information, "
+                    "run tank --help"
+                )
 
             else:
                 # studio level command and non-project entity.
@@ -1192,9 +1399,10 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
                 entity_search_token = ":".join(entity_search_token.split(":")[1:])
 
                 # now try to resolve this project
-                (project_id, project_name) = _resolve_shotgun_pattern("Project", proj_token)
+                (project_id, project_name) = _resolve_shotgun_pattern(
+                    "Project", proj_token
+                )
                 logger.info("- Searching in project '%s' only" % project_name)
-
 
         # now project prefix token has been removed from the path
         # we now have the following cases to consider
@@ -1216,7 +1424,7 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
             if project_id:
                 # when running a per project tank command, make sure we
                 # filter out all other items in other projects.
-                filters.append( ["project", "is", {"type": "Project", "id": project_id} ])
+                filters.append(["project", "is", {"type": "Project", "id": project_id}])
 
             logger.debug("Shotgun: find(%s, %s)" % (entity_type, filters))
             data = sg.find(entity_type, filters, ["id", name_field])
@@ -1224,8 +1432,16 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
 
             if len(data) == 0:
                 # no exact match. Assume the string is an id
-                logger.info("- Did not find a %s named '%s', will look for a %s with id %s "
-                         "instead." % (entity_type, entity_search_token, entity_type, entity_search_token))
+                logger.info(
+                    "- Did not find a %s named '%s', will look for a %s with id %s "
+                    "instead."
+                    % (
+                        entity_type,
+                        entity_search_token,
+                        entity_type,
+                        entity_search_token,
+                    )
+                )
                 entity_id = int(entity_search_token)
 
                 # now we have our entity id, make sure we don't search for this as an expression
@@ -1245,7 +1461,9 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
             # use normal string based parse methods
             # we are now left with the following cases to resolve
             # tank Entitytype name_expression
-            entity_id = _resolve_shotgun_entity(entity_type, entity_search_token, project_id)
+            entity_id = _resolve_shotgun_entity(
+                entity_type, entity_search_token, project_id
+            )
 
         # now initialize toolkit and set up the context.
         try:
@@ -1260,21 +1478,23 @@ def run_engine_cmd(pipeline_config_root, context_items, command, using_cwd, args
                     "%s If you want to unregister folders associated with this "
                     "entity, you can do so by calling the unregister_folders "
                     "command on the associated path instead: "
-                    "\"tank unregister_folders /path/to/folder\"" % exc.message
+                    '"tank unregister_folders /path/to/folder"' % exc.message
                 )
             raise
 
         ctx = tk.context_from_entity(entity_type, entity_id)
 
-
     logger.debug("Sgtk API and Context resolve complete.")
     logger.debug("Sgtk API: %s" % tk)
     logger.debug("Context: %s" % ctx)
 
-    logger.info("- Running as user '%s'" % tank.get_authenticated_user() )
+    logger.info("- Running as user '%s'" % tank.get_authenticated_user())
 
     if tk is not None:
-        logger.info("- Using configuration '%s' and Core %s" % (tk.pipeline_configuration.get_name(), tk.version))
+        logger.info(
+            "- Using configuration '%s' and Core %s"
+            % (tk.pipeline_configuration.get_name(), tk.version)
+        )
         # attach our logger to the tank instance
         # this will be detected by the shotgun and shell engines and used.
         tk.log = logger
@@ -1310,9 +1530,7 @@ def _extract_args(cmd_line, args):
                 found_args.append(cmd_line_token)
 
     # Strip all these arguments from the command line.
-    new_cmd_line = [
-        argument for argument in cmd_line if argument not in found_args
-    ]
+    new_cmd_line = [argument for argument in cmd_line if argument not in found_args]
 
     arguments = []
 
@@ -1321,7 +1539,7 @@ def _extract_args(cmd_line, args):
         pos = arg.find("=")
         # Take everything after the -- up to but not including the =
         arg_name = arg[2:pos]
-        arg_value = arg[pos + 1:]
+        arg_value = arg[pos + 1 :]
         arguments.append((arg_name, arg_value))
 
     return arguments, new_cmd_line
@@ -1337,7 +1555,7 @@ def _validate_only_once(args, arg):
     :raises IncompleteCredentials: If an argument has been specified more than once,
                                 this exception is raised.
     """
-    occurences = filter(lambda a: a[0] == arg, args)
+    occurences = [a for a in args if a[0] == arg]
     if len(occurences) > 1:
         raise IncompleteCredentials("argument '%s' specified more than once." % arg)
 
@@ -1356,7 +1574,9 @@ def _validate_args_cardinality(args, arg1, arg2):
     # Too few parameters, find out which one is missing, let the user know
     # which is missing.
     if len(args) < 2:
-        raise IncompleteCredentials("missing argument '%s'" % (arg1 if args[0][0] == arg2 else arg2))
+        raise IncompleteCredentials(
+            "missing argument '%s'" % (arg1 if args[0][0] == arg2 else arg2)
+        )
 
     # Make sure each arguments are not specified more than once.
     _validate_only_once(args, arg1)
@@ -1388,7 +1608,7 @@ def _read_credentials_from_file(auth_path):
         file_data = yaml.load(auth_file)
 
     args = [
-        (k, v) for k, v in file_data.iteritems() if k in [ARG_SCRIPT_NAME, ARG_SCRIPT_KEY]
+        (k, v) for k, v in file_data.items() if k in [ARG_SCRIPT_NAME, ARG_SCRIPT_KEY]
     ]
 
     return args
@@ -1405,12 +1625,16 @@ def _extract_credentials(cmd_line):
     """
 
     # Extract the credential pairs.
-    script_user_credentials, cmd_line = _extract_args(cmd_line, [ARG_SCRIPT_NAME, ARG_SCRIPT_KEY])
+    script_user_credentials, cmd_line = _extract_args(
+        cmd_line, [ARG_SCRIPT_NAME, ARG_SCRIPT_KEY]
+    )
     file_credentials_path, cmd_line = _extract_args(cmd_line, [ARG_CREDENTIALS_FILE])
 
     # make sure we're not mixing both set of arguments
     if file_credentials_path and script_user_credentials:
-            raise IncompleteCredentials("can't mix command line credentials and file credentials.")
+        raise IncompleteCredentials(
+            "can't mix command line credentials and file credentials."
+        )
 
     # If we have credentials in a file
     if file_credentials_path:
@@ -1422,7 +1646,9 @@ def _extract_credentials(cmd_line):
         )
 
     if script_user_credentials:
-        _validate_args_cardinality(script_user_credentials, ARG_SCRIPT_NAME, ARG_SCRIPT_KEY)
+        _validate_args_cardinality(
+            script_user_credentials, ARG_SCRIPT_NAME, ARG_SCRIPT_KEY
+        )
         return cmd_line, dict(script_user_credentials)
 
     # If no elements were specified, that's ok.
@@ -1440,7 +1666,7 @@ if __name__ == "__main__":
     )
 
     # set up the custom html formatter
-    formatter = AltCustomFormatter()
+    formatter = AltCustomFormatter(no_line_wrapping="--no-line-wrapping" in sys.argv)
     log_handler.setFormatter(formatter)
 
     # the first argument is always the path to the code root
@@ -1453,6 +1679,9 @@ if __name__ == "__main__":
 
     # pass the rest of the args into our checker
     cmd_line = sys.argv[2:]
+
+    # We can now remove the --no-line-warping argument.
+    cmd_line = [arg for arg in cmd_line if arg != "--no-line-wrapping"]
 
     # check if there is a --debug flag anywhere in the args list.
     # in that case turn on debug logging and remove the flag
@@ -1481,7 +1710,9 @@ if __name__ == "__main__":
         # meaning that the core is contained inside the project itself. In that case,
         # the install root is the same as the pipeline config root.
         if is_localized:
-            logger.debug("Core API resides inside a (localized) pipeline configuration.")
+            logger.debug(
+                "Core API resides inside a (localized) pipeline configuration."
+            )
             pipeline_config_root = install_root
         else:
             pipeline_config_root = None
@@ -1512,12 +1743,13 @@ if __name__ == "__main__":
 
             # first make sure there is a current user
             ensure_authenticated(
-                credentials.get("script-name"),
-                credentials.get("script-key")
+                credentials.get("script-name"), credentials.get("script-key")
             )
 
             # now run the command
-            exit_code = run_engine_cmd(pipeline_config_root, [os.getcwd()], None, True, [])
+            exit_code = run_engine_cmd(
+                pipeline_config_root, [os.getcwd()], None, True, []
+            )
 
         elif cmd_line[0] == "logout":
             core_dm = CoreDefaultsManager()
@@ -1533,18 +1765,16 @@ if __name__ == "__main__":
         elif cmd_line[0] == "shotgun_run_action":
             # note - this pathway is not authenticated from shotgun
             # this is there for backwards compatibility
-            exit_code = shotgun_run_action(install_root,
-                                           pipeline_config_root,
-                                           is_localized,
-                                           cmd_line[1:])
+            exit_code = shotgun_run_action(
+                install_root, pipeline_config_root, is_localized, cmd_line[1:]
+            )
 
         # special case when we are called from shotgun
         elif cmd_line[0] == "shotgun_run_action_auth":
             # note: this pathway retrieves authentication via shotgun
-            exit_code = shotgun_run_action_auth(install_root,
-                                                pipeline_config_root,
-                                                is_localized,
-                                                cmd_line[1:])
+            exit_code = shotgun_run_action_auth(
+                install_root, pipeline_config_root, is_localized, cmd_line[1:]
+            )
 
         # special case when we are called from shotgun
         elif cmd_line[0] == "shotgun_cache_actions":
@@ -1573,12 +1803,12 @@ if __name__ == "__main__":
                 # tank command
                 if ("/" in cmd_line[0]) or ("\\" in cmd_line[0]):
                     # tank /foo/bar
-                    ctx_list = [ cmd_line[0] ]
+                    ctx_list = [cmd_line[0]]
                     cmd_name = None
                 else:
                     # tank command_name
                     cmd_name = cmd_line[0]
-                    ctx_list = [ os.getcwd() ] # path
+                    ctx_list = [os.getcwd()]  # path
                     using_cwd = True
 
             elif len(cmd_line) == 2:
@@ -1587,17 +1817,17 @@ if __name__ == "__main__":
                 # tank command_name param1
                 if ("/" in cmd_line[0]) or ("\\" in cmd_line[0]):
                     # tank /foo/bar command_name
-                    ctx_list = [ cmd_line[0] ]
+                    ctx_list = [cmd_line[0]]
                     cmd_name = cmd_line[1]
                 elif cmd_line[0] in SHOTGUN_ENTITY_TYPES:
                     # tank Shot 123
                     cmd_name = None
-                    ctx_list = [ cmd_line[0], cmd_line[1] ]
+                    ctx_list = [cmd_line[0], cmd_line[1]]
                 else:
                     # tank command_name param1
                     cmd_name = cmd_line[0]
-                    cmd_args = [ cmd_line[1] ]
-                    ctx_list = [ os.getcwd() ] # path
+                    cmd_args = [cmd_line[1]]
+                    ctx_list = [os.getcwd()]  # path
 
             elif len(cmd_line) > 2:
                 # tank Shot 123 command_name param1 param2 param3 ...
@@ -1606,34 +1836,38 @@ if __name__ == "__main__":
 
                 if ("/" in cmd_line[0]) or ("\\" in cmd_line[0]):
                     # tank /foo/bar command_name param1
-                    ctx_list = [ cmd_line[0] ]
+                    ctx_list = [cmd_line[0]]
                     cmd_name = cmd_line[1]
                     cmd_args = cmd_line[2:]
                 elif cmd_line[0] in SHOTGUN_ENTITY_TYPES:
                     # tank Shot 123 command_name
                     cmd_name = cmd_line[2]
-                    ctx_list = [ cmd_line[0], cmd_line[1] ]
+                    ctx_list = [cmd_line[0], cmd_line[1]]
                     cmd_args = cmd_line[3:]
                 else:
                     # tank command_name param1 param2
                     cmd_name = cmd_line[0]
                     cmd_args = cmd_line[1:]
-                    ctx_list = [ os.getcwd() ] # path
+                    ctx_list = [os.getcwd()]  # path
 
             # first make sure there is a current user
             ensure_authenticated(
-                credentials.get("script-name"),
-                credentials.get("script-key")
+                credentials.get("script-name"), credentials.get("script-key")
             )
 
             # now run the command
-            exit_code = run_engine_cmd(pipeline_config_root, ctx_list, cmd_name, using_cwd, cmd_args)
+            exit_code = run_engine_cmd(
+                pipeline_config_root, ctx_list, cmd_name, using_cwd, cmd_args
+            )
 
     except AuthenticationCancelled:
         logger.info("")
         if LogManager().global_debug:
             # full stack trace
-            logger.exception("An AuthenticationCancelled error was raised: %s" % "Authentication was cancelled.")
+            logger.exception(
+                "An AuthenticationCancelled error was raised: %s"
+                % "Authentication was cancelled."
+            )
         else:
             # one line report
             logger.error("Authentication was cancelled.")
@@ -1641,7 +1875,7 @@ if __name__ == "__main__":
         # Error messages and such have already been handled by the method that threw this exception.
         exit_code = 8
 
-    except IncompleteCredentials, e:
+    except IncompleteCredentials as e:
         logger.info("")
         if LogManager().global_debug:
             # full stack trace
@@ -1651,7 +1885,7 @@ if __name__ == "__main__":
             logger.error(str(e))
         exit_code = 9
 
-    except ShotgunAuthenticationError, e:
+    except ShotgunAuthenticationError as e:
         logger.info("")
         if LogManager().global_debug:
             # full stack trace
@@ -1662,7 +1896,7 @@ if __name__ == "__main__":
         logger.info("")
         exit_code = 10
 
-    except TankError, e:
+    except TankError as e:
         logger.info("")
         if LogManager().global_debug:
             # full stack trace
@@ -1673,12 +1907,12 @@ if __name__ == "__main__":
         logger.info("")
         exit_code = 5
 
-    except KeyboardInterrupt, e:
+    except KeyboardInterrupt:
         logger.info("")
         logger.info("Exiting.")
         exit_code = 6
 
-    except Exception, e:
+    except Exception as e:
         # call stack
         logger.info("")
         logger.exception("A general error was reported: %s" % e)
@@ -1689,4 +1923,3 @@ if __name__ == "__main__":
 
     logger.debug("Exiting with exit code %s" % exit_code)
     sys.exit(exit_code)
-
