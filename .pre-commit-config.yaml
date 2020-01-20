@@ -32,10 +32,12 @@ repos:
     - id: check-merge-conflict
     # Adds an empty line if missing at the end of a file.
     - id: end-of-file-fixer
+      exclude: "scripts\/tank_cmd.bat|setup\/root_binaries\/tank.bat"
     # Makes sure requirements.txt is properly formatted
     - id: requirements-txt-fixer
     # Removes trailing whitespaces.
     - id: trailing-whitespace
+      exclude: "scripts\/tank_cmd.bat|setup\/root_binaries\/tank.bat"
   # Leave black at the bottom so all touchups are done before it is run.
   - repo: https://github.com/ambv/black
     rev: 19.10b0
