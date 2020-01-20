@@ -84,7 +84,7 @@ class ShotgunAuthenticatorTests(ShotgunTestBase):
         # Passing invalid session_metadata will result in a regular ShotgunUser
         session_user = ShotgunAuthenticator(
             CustomDefaultManager()
-        )._create_session_user(
+        ).create_session_user(
             "login",
             password="password",
             host="https://host.shotgunstudio.com",
@@ -102,7 +102,7 @@ class ShotgunAuthenticatorTests(ShotgunTestBase):
         # Passing valid session_metadata will result in a ShotgunWebUser
         session_user = ShotgunAuthenticator(
             CustomDefaultManager()
-        )._create_session_user(
+        ).create_session_user(
             "login",
             password="password",
             host="https://host.shotgunstudio.com",
@@ -119,7 +119,7 @@ class ShotgunAuthenticatorTests(ShotgunTestBase):
         # Passing valid session_metadata will result in a ShotgunSamlUser
         session_user = ShotgunAuthenticator(
             CustomDefaultManager()
-        )._create_session_user(
+        ).create_session_user(
             "login",
             password="password",
             host="https://host.shotgunstudio.com",
