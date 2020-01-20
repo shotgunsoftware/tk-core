@@ -1,13 +1,13 @@
 @echo off
 
 rem  Copyright (c) 2013 Shotgun Software Inc.
-rem
+rem  
 rem  CONFIDENTIAL AND PROPRIETARY
-rem
-rem  This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+rem  
+rem  This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
 rem  Source Code License included in this distribution package. See LICENSE.
-rem  By accessing, using, copying or modifying this work you indicate your
-rem  agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
+rem  By accessing, using, copying or modifying this work you indicate your 
+rem  agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
 rem  not expressly granted therein are reserved by Shotgun Software Inc.
 
 setlocal EnableExtensions
@@ -24,8 +24,8 @@ IF "%1"=="shotgun_get_actions" GOTO CHECK_CACHE
 rem -- set up an env var to track the current pipeline configuration
 rem -- this is to help the tank core API figure out for example tank.tank_from_path()
 rem -- when using multiple work dev areas.
-rem -- since we are recursing upwards, only set it if it is not already set.
-rem -- we only set this when it is a pipeline location. Check this by looking for
+rem -- since we are recursing upwards, only set it if it is not already set. 
+rem -- we only set this when it is a pipeline location. Check this by looking for 
 rem -- the roots.yml file
 set ROOTS_FILE=%SELF_PATH%\config\core\roots.yml
 
@@ -34,7 +34,7 @@ IF "%TANK_CURRENT_PC%" == "" IF EXIST "%ROOTS_FILE%" set TANK_CURRENT_PC=%SELF_P
 
 rem -- check if there is a local core
 set LOCAL_SCRIPT=%SELF_PATH%\install\core\scripts\tank_cmd.bat
-IF NOT EXIST "%LOCAL_SCRIPT%" GOTO NO_LOCAL_INSTALL
+IF NOT EXIST "%LOCAL_SCRIPT%" GOTO NO_LOCAL_INSTALL 
 
 rem -- this is a local install! Run the wrapper script
 call "%LOCAL_SCRIPT%" "%SELF_PATH%" %*
@@ -109,3 +109,6 @@ exit /b 1
 :NO_PARENT_LOCATION
 echo Cannot find parent location %PARENT_LOCATION% defined in file %PARENT_CONFIG_FILE%!
 exit /b 1
+
+
+
