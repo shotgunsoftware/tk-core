@@ -32,6 +32,30 @@ __version__ = "HEAD"
 import os
 import sys
 
+import inspect
+
+
+# Older versions of Shotgun Desktop left copies of tank_vendor in sys.modules,
+# which means we might not be importing our copy but someone else's,
+# so strip it out!
+our_tank_vendor = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)), "tank_vendor"
+)
+for name, module in list(sys.modules.items()):
+    # sys.modules can be assigned anything, even None or a number
+    # so avoid those.
+    # Also, we're only interested into tank_vendor.
+    if isinstance(name, str) is False or name.startswith("tank_vendor") is False:
+        continue
+
+    # Yup, None modules are a thing for some reason, so we have do deal with those...
+    if module is None:
+        sys.modules.pop(name)
+    else:
+        if inspect.getsourcefile(module).startswith(our_tank_vendor) is False:
+            sys.modules.pop(name)
+
+
 if "TANK_CURRENT_PC" not in os.environ:
     # find the pipeline configuration root, probe for a key file
     # (templates.yml) and use this test to determine if this code is
