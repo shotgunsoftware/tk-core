@@ -82,9 +82,7 @@ class ShotgunAuthenticatorTests(ShotgunTestBase):
         self.assertEqual(connection.config.session_token, "session_token")
 
         # Passing invalid session_metadata will result in a regular ShotgunUser
-        session_user = ShotgunAuthenticator(
-            CustomDefaultManager()
-        ).create_session_user(
+        session_user = ShotgunAuthenticator(CustomDefaultManager()).create_session_user(
             "login",
             password="password",
             host="https://host.shotgunstudio.com",
@@ -100,9 +98,7 @@ class ShotgunAuthenticatorTests(ShotgunTestBase):
         self.assertEqual(connection.config.session_token, "session_token")
 
         # Passing valid session_metadata will result in a ShotgunWebUser
-        session_user = ShotgunAuthenticator(
-            CustomDefaultManager()
-        ).create_session_user(
+        session_user = ShotgunAuthenticator(CustomDefaultManager()).create_session_user(
             "login",
             password="password",
             host="https://host.shotgunstudio.com",
@@ -117,9 +113,7 @@ class ShotgunAuthenticatorTests(ShotgunTestBase):
         self.assertEqual(connection.config.session_token, "session_token")
 
         # Passing valid session_metadata will result in a ShotgunSamlUser
-        session_user = ShotgunAuthenticator(
-            CustomDefaultManager()
-        ).create_session_user(
+        session_user = ShotgunAuthenticator(CustomDefaultManager()).create_session_user(
             "login",
             password="password",
             host="https://host.shotgunstudio.com",

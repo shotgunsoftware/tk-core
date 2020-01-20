@@ -142,6 +142,7 @@ class SessionRenewal(object):
             try:
                 if user.get_session_metadata() is not None:
                     from .user import ShotgunSamlUser
+
                     if isinstance(user, ShotgunSamlUser):
                         logger.debug("Attempting to renew our SSO session.")
                     else:
