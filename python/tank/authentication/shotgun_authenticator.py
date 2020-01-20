@@ -158,7 +158,7 @@ class ShotgunAuthenticator(object):
         :param password: Shotgun password
         :param host: Shotgun host to log in to. If None, the default host will be used.
         :param http_proxy: Shotgun proxy to use. If None, the default http proxy will be used.
-        :param session_metadata: Information needed when SSO is used. This is an obscure blob of data.
+        :param session_metadata: When using Web/SSO, b64encoded browser cookies.
 
         :returns: A :class:`ShotgunUser` instance.
         """
@@ -188,7 +188,7 @@ class ShotgunAuthenticator(object):
         return user.ShotgunUser(impl)
 
     def create_session_user(
-        self, login, session_token=None, password=None, host=None, http_proxy=None
+        self, login, session_token=None, password=None, host=None, http_proxy=None, session_metadata=None
     ):
         """
         Create a :class:`ShotgunUser` given a set of human user credentials.
@@ -200,12 +200,13 @@ class ShotgunAuthenticator(object):
         :param password: Shotgun password
         :param host: Shotgun host to log in to. If None, the default host will be used.
         :param http_proxy: Shotgun proxy to use. If None, the default http proxy will be used.
+        :param session_metadata: When using Web/SSO, b64encoded browser cookies.
 
         :returns: A :class:`ShotgunUser` instance.
         """
         # Leverage the private implementation.
         return self._create_session_user(
-            login, session_token, password, host, http_proxy
+            login, session_token, password, host, http_proxy, session_metadata
         )
 
     def create_script_user(self, api_script, api_key, host=None, http_proxy=None):
