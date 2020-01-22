@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor_bundle &mdash; tk-core v0.18.172 documentation</title>
+  <title>tank.descriptor.descriptor_bundle &mdash; tk-core v0.19.1 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.172 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.19.1 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.172.<br>
+    <b>tk-core</b> v0.19.1.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -224,7 +224,9 @@
 
         <span class="n">manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_manifest</span><span class="p">()</span>
 
-        <span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;min_sg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_shotgun_version&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">constants</span><span class="o">.</span><span class="n">LOWEST_SHOTGUN_VERSION</span>
+        <span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;min_sg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_shotgun_version&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">constants</span><span class="o">.</span><span class="n">LOWEST_SHOTGUN_VERSION</span>
+        <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_core_version&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;min_core&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;requires_core_version&quot;</span><span class="p">)</span>
@@ -251,7 +253,9 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">version_tuple</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">server_info</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span><span class="s2">&quot;Could not extract version number for site: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span>
+                <span class="s2">&quot;Could not extract version number for site: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e</span>
+            <span class="p">)</span>
 
         <span class="k">return</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">version_tuple</span><span class="p">])</span>
 
@@ -272,17 +276,18 @@
         <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
             <span class="n">minimum_version</span> <span class="o">=</span> <span class="n">constraints</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">current_version</span><span class="p">:</span>
-                <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Requires at least </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> but no version was specified.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">item_name</span><span class="p">,</span> <span class="n">minimum_version</span><span class="p">))</span>
+                <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="s2">&quot;Requires at least </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> but no version was specified.&quot;</span>
+                    <span class="o">%</span> <span class="p">(</span><span class="n">item_name</span><span class="p">,</span> <span class="n">minimum_version</span><span class="p">)</span>
+                <span class="p">)</span>
             <span class="k">elif</span> <span class="n">is_version_older</span><span class="p">(</span><span class="n">current_version</span><span class="p">,</span> <span class="n">minimum_version</span><span class="p">):</span>
-                <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Requires at least </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> but currently installed version is </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                    <span class="n">item_name</span><span class="p">,</span> <span class="n">minimum_version</span><span class="p">,</span> <span class="n">current_version</span>
-                <span class="p">))</span>
+                <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="s2">&quot;Requires at least </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> but currently installed version is </span><span class="si">%s</span><span class="s2">.&quot;</span>
+                    <span class="o">%</span> <span class="p">(</span><span class="n">item_name</span><span class="p">,</span> <span class="n">minimum_version</span><span class="p">,</span> <span class="n">current_version</span><span class="p">)</span>
+                <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">check_version_constraints</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">core_version</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-        <span class="n">engine_descriptor</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-        <span class="n">desktop_version</span><span class="o">=</span><span class="bp">None</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">core_version</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">desktop_version</span><span class="o">=</span><span class="bp">None</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks if there are constraints blocking an upgrade or install.</span>
@@ -303,35 +308,50 @@
             <span class="s2">&quot;min_sg&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_sg_version</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sg_connection</span><span class="p">),</span> <span class="s2">&quot;Shotgun&quot;</span><span class="p">,</span> <span class="n">reasons</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_test_version_constraint</span><span class="p">(</span>
-            <span class="s2">&quot;min_core&quot;</span><span class="p">,</span> <span class="n">core_version</span> <span class="ow">or</span> <span class="n">pipelineconfig_utils</span><span class="o">.</span><span class="n">get_currently_running_api_version</span><span class="p">(),</span> <span class="s2">&quot;Core API&quot;</span><span class="p">,</span> <span class="n">reasons</span>
+            <span class="s2">&quot;min_core&quot;</span><span class="p">,</span>
+            <span class="n">core_version</span> <span class="ow">or</span> <span class="n">pipelineconfig_utils</span><span class="o">.</span><span class="n">get_currently_running_api_version</span><span class="p">(),</span>
+            <span class="s2">&quot;Core API&quot;</span><span class="p">,</span>
+            <span class="n">reasons</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="n">constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">version_constraints</span>
 
         <span class="k">if</span> <span class="s2">&quot;min_engine&quot;</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">engine_descriptor</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Requires a minimal engine version but no engine was specified.&quot;</span><span class="p">)</span>
+                <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="s2">&quot;Requires a minimal engine version but no engine was specified.&quot;</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">curr_engine_version</span> <span class="o">=</span> <span class="n">engine_descriptor</span><span class="o">.</span><span class="n">version</span>
 
                 <span class="n">minimum_engine_version</span> <span class="o">=</span> <span class="n">constraints</span><span class="p">[</span><span class="s2">&quot;min_engine&quot;</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">is_version_older</span><span class="p">(</span><span class="n">curr_engine_version</span><span class="p">,</span> <span class="n">minimum_engine_version</span><span class="p">):</span>
-                    <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Requires at least Engine </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> but currently &quot;</span>
-                                   <span class="s2">&quot;installed version is </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">engine_descriptor</span><span class="o">.</span><span class="n">display_name</span><span class="p">,</span>
-                                                                 <span class="n">minimum_engine_version</span><span class="p">,</span>
-                                                                 <span class="n">curr_engine_version</span><span class="p">))</span>
+                    <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="s2">&quot;Requires at least Engine </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> but currently &quot;</span>
+                        <span class="s2">&quot;installed version is </span><span class="si">%s</span><span class="s2">.&quot;</span>
+                        <span class="o">%</span> <span class="p">(</span>
+                            <span class="n">engine_descriptor</span><span class="o">.</span><span class="n">display_name</span><span class="p">,</span>
+                            <span class="n">minimum_engine_version</span><span class="p">,</span>
+                            <span class="n">curr_engine_version</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
 
         <span class="c1"># for multi engine apps, validate the supported_engines list</span>
-        <span class="n">supported_engines</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supported_engines</span>
+        <span class="n">supported_engines</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supported_engines</span>
         <span class="k">if</span> <span class="n">supported_engines</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">engine_descriptor</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Bundle is compatible with a subset of engines but no engine was specified.&quot;</span><span class="p">)</span>
+                <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="s2">&quot;Bundle is compatible with a subset of engines but no engine was specified.&quot;</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># this is a multi engine app!</span>
                 <span class="n">engine_name</span> <span class="o">=</span> <span class="n">engine_descriptor</span><span class="o">.</span><span class="n">system_name</span>
                 <span class="k">if</span> <span class="n">engine_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">supported_engines</span><span class="p">:</span>
-                    <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Not compatible with engine </span><span class="si">%s</span><span class="s2">. &quot;</span>
-                                   <span class="s2">&quot;Supported engines are </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">supported_engines</span><span class="p">)))</span>
+                    <span class="n">reasons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="s2">&quot;Not compatible with engine </span><span class="si">%s</span><span class="s2">. &quot;</span>
+                        <span class="s2">&quot;Supported engines are </span><span class="si">%s</span><span class="s2">.&quot;</span>
+                        <span class="o">%</span> <span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">supported_engines</span><span class="p">))</span>
+                    <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_test_version_constraint</span><span class="p">(</span>
             <span class="s2">&quot;min_desktop&quot;</span><span class="p">,</span> <span class="n">desktop_version</span><span class="p">,</span> <span class="s2">&quot;Shotgun Desktop&quot;</span><span class="p">,</span> <span class="n">reasons</span>
@@ -442,7 +462,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">supported_engines</span>
 
     <span class="k">def</span> <span class="nf">get_required_frameworks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_frameworks</span> <span class="c1"># noqa</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_frameworks</span>  <span class="c1"># noqa</span>
 
     <span class="c1">###############################################################################################</span>
     <span class="c1"># helper methods</span>
@@ -492,7 +512,8 @@
                     <span class="n">sg_field_name</span> <span class="o">=</span> <span class="n">field</span><span class="p">[</span><span class="s2">&quot;system_name&quot;</span><span class="p">]</span>
 
                     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                        <span class="s2">&quot;Field </span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2"> (type </span><span class="si">%s</span><span class="s2">) is required.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sg_entity_type</span><span class="p">,</span> <span class="n">sg_field_name</span><span class="p">,</span> <span class="n">sg_data_type</span><span class="p">)</span>
+                        <span class="s2">&quot;Field </span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2"> (type </span><span class="si">%s</span><span class="s2">) is required.&quot;</span>
+                        <span class="o">%</span> <span class="p">(</span><span class="n">sg_entity_type</span><span class="p">,</span> <span class="n">sg_field_name</span><span class="p">,</span> <span class="n">sg_data_type</span><span class="p">)</span>
                     <span class="p">)</span>
 
                     <span class="c1"># now check that the field exists</span>
@@ -508,7 +529,8 @@
                             <span class="c1"># can therefore not be created.</span>
                             <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span>
                                 <span class="s2">&quot;Cannot create field &#39;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&#39; as required by app manifest. &quot;</span>
-                                <span class="s2">&quot;Only fields starting with sg_ can be created&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sg_entity_type</span><span class="p">,</span> <span class="n">sg_field_name</span><span class="p">)</span>
+                                <span class="s2">&quot;Only fields starting with sg_ can be created&quot;</span>
+                                <span class="o">%</span> <span class="p">(</span><span class="n">sg_entity_type</span><span class="p">,</span> <span class="n">sg_field_name</span><span class="p">)</span>
                             <span class="p">)</span>
 
                         <span class="c1"># sg_my_awesome_field -&gt; My Awesome Field</span>
@@ -516,18 +538,21 @@
                             <span class="n">word</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">sg_field_name</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
                         <span class="p">)</span>
 
-                        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Computed the field display name to be &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">ui_field_name</span><span class="p">)</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                            <span class="s2">&quot;Computed the field display name to be &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">ui_field_name</span>
+                        <span class="p">)</span>
 
                         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Creating field...&quot;</span><span class="p">)</span>
                         <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">schema_field_create</span><span class="p">(</span>
-                            <span class="n">sg_entity_type</span><span class="p">,</span>
-                            <span class="n">sg_data_type</span><span class="p">,</span>
-                            <span class="n">ui_field_name</span>
+                            <span class="n">sg_entity_type</span><span class="p">,</span> <span class="n">sg_data_type</span><span class="p">,</span> <span class="n">ui_field_name</span>
                         <span class="p">)</span>
                         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;...field creation complete.&quot;</span><span class="p">)</span>
 
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Field </span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2"> already exists in Shotgun.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sg_entity_type</span><span class="p">,</span> <span class="n">sg_field_name</span><span class="p">))</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                            <span class="s2">&quot;Field </span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2"> already exists in Shotgun.&quot;</span>
+                            <span class="o">%</span> <span class="p">(</span><span class="n">sg_entity_type</span><span class="p">,</span> <span class="n">sg_field_name</span><span class="p">)</span>
+                        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">run_post_install</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -538,7 +563,7 @@
 <span class="sd">        Errors reported in the post install hook will be reported to the error</span>
 <span class="sd">        log but execution will continue.</span>
 
-<span class="sd">        .. warning:: We longer recommend using post install hooks. Should you</span>
+<span class="sd">        .. warning:: We no longer recommend using post install hooks. Should you</span>
 <span class="sd">                     need to use one, take great care when designing it so that</span>
 <span class="sd">                     it can execute correctly for all users, regardless of</span>
 <span class="sd">                     their shotgun and system permissions.</span>
@@ -567,7 +592,9 @@
 <span class="sd">    Descriptor that describes a Toolkit Engine</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        .. note:: Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">                  creating new descriptor objects.</span>
@@ -587,7 +614,9 @@
 <span class="sd">    Descriptor that describes a Toolkit App</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        .. note:: Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">                  creating new descriptor objects.</span>
@@ -607,7 +636,9 @@
 <span class="sd">    Descriptor that describes a Toolkit Framework</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        .. note:: Use the factory method :meth:`create_descriptor` when</span>
 <span class="sd">                  creating new descriptor objects.</span>
@@ -647,7 +678,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Autodesk.
+        &copy; Copyright 2020, Autodesk.
 
     </p>
   </div> 
@@ -668,7 +699,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.172',
+            VERSION:'v0.19.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

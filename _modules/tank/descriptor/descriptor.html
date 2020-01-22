@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.descriptor &mdash; tk-core v0.18.172 documentation</title>
+  <title>tank.descriptor.descriptor &mdash; tk-core v0.19.1 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.172 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.19.1 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.172.<br>
+    <b>tk-core</b> v0.19.1.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -198,14 +198,15 @@
 
 
 <div class="viewcode-block" id="create_descriptor"><a class="viewcode-back" href="../../../descriptor.html#sgtk.descriptor.create_descriptor">[docs]</a><span class="k">def</span> <span class="nf">create_descriptor</span><span class="p">(</span>
-        <span class="n">sg_connection</span><span class="p">,</span>
-        <span class="n">descriptor_type</span><span class="p">,</span>
-        <span class="n">dict_or_uri</span><span class="p">,</span>
-        <span class="n">bundle_cache_root_override</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-        <span class="n">fallback_roots</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-        <span class="n">resolve_latest</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-        <span class="n">constraint_pattern</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-        <span class="n">local_fallback_when_disconnected</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="n">sg_connection</span><span class="p">,</span>
+    <span class="n">descriptor_type</span><span class="p">,</span>
+    <span class="n">dict_or_uri</span><span class="p">,</span>
+    <span class="n">bundle_cache_root_override</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="n">fallback_roots</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="n">resolve_latest</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+    <span class="n">constraint_pattern</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="n">local_fallback_when_disconnected</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Factory method. Use this when creating descriptor objects.</span>
 
@@ -263,7 +264,9 @@
         <span class="n">filesystem</span><span class="o">.</span><span class="n">ensure_folder_exists</span><span class="p">(</span><span class="n">bundle_cache_root_override</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># expand environment variables</span>
-        <span class="n">bundle_cache_root_override</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">bundle_cache_root_override</span><span class="p">))</span>
+        <span class="n">bundle_cache_root_override</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">bundle_cache_root_override</span><span class="p">)</span>
+        <span class="p">)</span>
 
     <span class="n">fallback_roots</span> <span class="o">=</span> <span class="n">fallback_roots</span> <span class="ow">or</span> <span class="p">[]</span>
 
@@ -279,7 +282,7 @@
         <span class="n">fallback_roots</span><span class="p">,</span>
         <span class="n">resolve_latest</span><span class="p">,</span>
         <span class="n">constraint_pattern</span><span class="p">,</span>
-        <span class="n">local_fallback_when_disconnected</span>
+        <span class="n">local_fallback_when_disconnected</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="c1"># now create a high level descriptor and bind that with the low level descriptor</span>
@@ -288,7 +291,7 @@
         <span class="n">descriptor_type</span><span class="p">,</span>
         <span class="n">io_descriptor</span><span class="p">,</span>
         <span class="n">bundle_cache_root_override</span><span class="p">,</span>
-        <span class="n">fallback_roots</span>
+        <span class="n">fallback_roots</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
@@ -300,7 +303,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
         <span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">get_global_root</span><span class="p">(</span><span class="n">LocalFileStorageManager</span><span class="o">.</span><span class="n">CACHE</span><span class="p">),</span>
-        <span class="s2">&quot;bundle_cache&quot;</span>
+        <span class="s2">&quot;bundle_cache&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 
 
@@ -337,7 +340,14 @@
         <span class="bp">cls</span><span class="o">.</span><span class="n">_factory</span><span class="p">[</span><span class="n">descriptor_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">subclass</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">sg_connection</span><span class="p">,</span> <span class="n">descriptor_type</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">sg_connection</span><span class="p">,</span>
+        <span class="n">descriptor_type</span><span class="p">,</span>
+        <span class="n">io_descriptor</span><span class="p">,</span>
+        <span class="n">bundle_cache_root_override</span><span class="p">,</span>
+        <span class="n">fallback_roots</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Factory method used by :meth:`create_descriptor`. This is an internal</span>
 <span class="sd">        method that should not be called by external code.</span>
@@ -354,9 +364,13 @@
 <span class="sd">        :raises: TankDescriptorError</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">descriptor_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_factory</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span><span class="s2">&quot;Unsupported descriptor type </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">descriptor_type</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span>
+                <span class="s2">&quot;Unsupported descriptor type </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">descriptor_type</span>
+            <span class="p">)</span>
         <span class="n">class_obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_factory</span><span class="p">[</span><span class="n">descriptor_type</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">class_obj</span><span class="p">(</span><span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">class_obj</span><span class="p">(</span>
+            <span class="n">sg_connection</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">,</span> <span class="n">bundle_cache_root_override</span><span class="p">,</span> <span class="n">fallback_roots</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">io_descriptor</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -503,11 +517,11 @@
             <span class="k">return</span> <span class="n">app_icon</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># return default</span>
-            <span class="n">default_icon</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span>
-                <span class="s2">&quot;resources&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;default_bundle_256px.png&quot;</span>
-            <span class="p">))</span>
+            <span class="n">default_icon</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;resources&quot;</span><span class="p">,</span> <span class="s2">&quot;default_bundle_256px.png&quot;</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
             <span class="k">return</span> <span class="n">default_icon</span>
 
     <span class="nd">@property</span>
@@ -624,7 +638,9 @@
         <span class="c1"># make a copy of the descriptor</span>
         <span class="n">latest</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="c1"># find latest I/O descriptor</span>
-        <span class="n">latest</span><span class="o">.</span><span class="n">_io_descriptor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_latest_version</span><span class="p">(</span><span class="n">constraint_pattern</span><span class="p">)</span>
+        <span class="n">latest</span><span class="o">.</span><span class="n">_io_descriptor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_io_descriptor</span><span class="o">.</span><span class="n">get_latest_version</span><span class="p">(</span>
+            <span class="n">constraint_pattern</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">latest</span>
 
     <span class="k">def</span> <span class="nf">find_latest_cached_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constraint_pattern</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -711,7 +727,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Autodesk.
+        &copy; Copyright 2020, Autodesk.
 
     </p>
   </div> 
@@ -732,7 +748,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.172',
+            VERSION:'v0.19.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Initialization and startup &mdash; tk-core v0.18.172 documentation</title>
+  <title>Initialization and startup &mdash; tk-core v0.19.1 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.172 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.19.1 documentation" href="index.html"/>
         <link rel="next" title="Core" href="core.html"/>
         <link rel="prev" title="Overview" href="overview.html"/> 
 
@@ -170,7 +170,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.172.<br>
+    <b>tk-core</b> v0.19.1.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -606,6 +606,7 @@ a bundle, always create a new version number.</p>
 <span class="sd">    This hook allows to download certain bundles from Shotgun instead of</span>
 <span class="sd">    official source for the bundle.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">can_cache_bundle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns true if the descriptor has been cached in Shotgun.</span>
@@ -616,8 +617,8 @@ a bundle, always create a new version number.</p>
 <span class="sd">        :returns: ``True`` if the bundle is cached in Shotgun, ``False`` otherwise.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span>
-            <span class="n">descriptor</span><span class="o">.</span><span class="n">get_dict</span><span class="p">()[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;app_store&quot;</span><span class="p">,</span> <span class="s2">&quot;git&quot;</span><span class="p">]</span> <span class="ow">and</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_get_bundle_attachment</span><span class="p">(</span><span class="n">descriptor</span><span class="p">)</span>
+            <span class="n">descriptor</span><span class="o">.</span><span class="n">get_dict</span><span class="p">()[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;app_store&quot;</span><span class="p">,</span> <span class="s2">&quot;git&quot;</span><span class="p">]</span>
+            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_bundle_attachment</span><span class="p">(</span><span class="n">descriptor</span><span class="p">)</span>
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_bundle_attachment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">):</span>
@@ -646,7 +647,8 @@ a bundle, always create a new version number.</p>
         <span class="c1"># locally every single bundle for a given config.</span>
         <span class="n">entity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
             <span class="s2">&quot;CustomNonProjectEntity01&quot;</span><span class="p">,</span>
-            <span class="p">[[</span><span class="s2">&quot;sg_descriptor&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get_uri</span><span class="p">()]],</span> <span class="p">[</span><span class="s2">&quot;sg_content&quot;</span><span class="p">]</span>
+            <span class="p">[[</span><span class="s2">&quot;sg_descriptor&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get_uri</span><span class="p">()]],</span>
+            <span class="p">[</span><span class="s2">&quot;sg_content&quot;</span><span class="p">],</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">entity</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;sg_content&quot;</span><span class="p">]</span>
@@ -669,8 +671,11 @@ a bundle, always create a new version number.</p>
         <span class="n">download_and_unpack_attachment</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shotgun</span><span class="p">,</span> <span class="n">attachment</span><span class="p">,</span> <span class="n">destination</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s2">&quot;Bundle </span><span class="si">%s</span><span class="s2"> was downloaded from </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span>
-            <span class="n">descriptor</span><span class="o">.</span><span class="n">get_uri</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">base_url</span>
+            <span class="n">descriptor</span><span class="o">.</span><span class="n">get_uri</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span>
         <span class="p">)</span>
+
+
 </pre></div>
 </div>
 <p>Once you are done, you can zip your configuration and its custom bootstrap and upload it to a
@@ -1211,7 +1216,7 @@ all the config dependencies.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">When registering a progress callback, ensure that it is ALWAYS
-thread safe. There is no guarantee that it will be called from the 
+thread safe. There is no guarantee that it will be called from the
 main thread.</p>
 </div>
 </dd></dl>
@@ -2257,7 +2262,7 @@ launching DCC.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Autodesk.
+        &copy; Copyright 2020, Autodesk.
 
     </p>
   </div> 
@@ -2278,7 +2283,7 @@ launching DCC.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.172',
+            VERSION:'v0.19.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

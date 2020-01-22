@@ -1,0 +1,378 @@
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tank.util.pickle &mdash; tk-core v0.19.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="tk-core v0.19.1 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+    <a href='http://developer.shotgunsoftware.com'>
+    
+        <img style='width: 191px;
+                height: 60px; 
+                margin: 2px;
+                border-radius: 0px; 
+                padding: 0px;' 
+            src='../../../_static/logo@2x.png'/>
+    
+    </a>
+    
+
+          
+            <a href="../../../index.html" class="icon icon-home"> tk-core
+          
+
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+    
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../initializing.html">Initialization and startup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core.html">Core</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../platform.html">Apps, Engines and Frameworks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../descriptor.html">Descriptors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authentication.html">Authentication</a></li>
+</ul>
+
+            
+          
+
+    <a href='genindex.html'>Alphabetic Index</a>
+
+    <div style='margin-top: 50px;
+                margin-left: 10px;
+                margin-right: 10px;
+                padding: 10px; 
+                color: #b3b3b3; 
+                font-size: 70%;
+                border-radius: 3px;
+                background-color: #444;
+                line-height: 18px;
+                '>    
+    <style>
+        a.custom_post_menu { display: inline; 
+                             padding: 0px; 
+                             text-decoration: underline; }
+    </style>
+
+    <b>tk-core</b> v0.19.1.<br>
+    
+        This documentation is part of the Shotgun Pipeline Toolkit.
+    
+    For more information, please visit
+    <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
+    The code associated with this documentation can be found 
+    <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
+
+    </div>
+
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">tk-core</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>tank.util.pickle</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for tank.util.pickle</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2019 Shotgun Software Inc.</span>
+<span class="c1">#</span>
+<span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
+<span class="c1">#</span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
+<span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
+<span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">.unicode</span> <span class="kn">import</span> <span class="n">ensure_contains_str</span>
+
+<span class="kn">from</span> <span class="nn">tank_vendor.six.moves</span> <span class="kn">import</span> <span class="n">cPickle</span>
+<span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">six</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="c1"># kwargs for pickle.load* and pickle.dump* calls.</span>
+<span class="n">LOAD_KWARGS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;encoding&quot;</span><span class="p">:</span> <span class="s2">&quot;bytes&quot;</span><span class="p">}</span> <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY3</span> <span class="k">else</span> <span class="p">{}</span>
+<span class="c1"># Protocol 0 ensures ASCII encoding, which is required when writing</span>
+<span class="c1"># a pickle to an environment variable.</span>
+<span class="n">DUMP_KWARGS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;protocol&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+
+
+<div class="viewcode-block" id="dumps"><a class="viewcode-back" href="../../../utils.html#sgtk.util.pickle.dumps">[docs]</a><span class="k">def</span> <span class="nf">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the pickled representation of ``data`` as a ``str``.</span>
+
+<span class="sd">    This methods wraps the functionality from the :func:`pickle.dumps` method so</span>
+<span class="sd">    pickles can be shared between Python 2 and Python 3.</span>
+
+<span class="sd">    As opposed to the Python 3 implementation, it will return a ``str`` object</span>
+<span class="sd">    and not ``bytes`` object.</span>
+
+<span class="sd">    :param data: The object to pickle and store.</span>
+<span class="sd">    :returns: A pickled str of the input object.</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Force pickle protocol 0, since this is a non-binary pickle protocol.</span>
+    <span class="c1"># See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL</span>
+    <span class="c1"># Decode the result to a str before returning.</span>
+    <span class="k">return</span> <span class="n">six</span><span class="o">.</span><span class="n">ensure_str</span><span class="p">(</span><span class="n">cPickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">DUMP_KWARGS</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="dump"><a class="viewcode-back" href="../../../utils.html#sgtk.util.pickle.dump">[docs]</a><span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fh</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write the pickled representation of ``data`` to a file object.</span>
+
+<span class="sd">    This methods wraps the functionality from the :func:`pickle.dump` method so</span>
+<span class="sd">    pickles can be shared between Python 2 and Python 3.</span>
+
+<span class="sd">    :param data: The object to pickle and store.</span>
+<span class="sd">    :param fh: A file object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fh</span><span class="p">,</span> <span class="o">**</span><span class="n">DUMP_KWARGS</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="loads"><a class="viewcode-back" href="../../../utils.html#sgtk.util.pickle.loads">[docs]</a><span class="k">def</span> <span class="nf">loads</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read the pickled representation of an object from a string</span>
+<span class="sd">    and return the reconstituted object hierarchy specified therein.</span>
+
+<span class="sd">    This method wraps the functionality from the :func:`pickle.loads` method so</span>
+<span class="sd">    unicode strings are always returned as utf8-encoded ``str`` instead of ``unicode``</span>
+<span class="sd">    objects in Python 2.</span>
+
+<span class="sd">    :param object data: A pickled representation of an object.</span>
+<span class="sd">    :returns: The unpickled object.</span>
+<span class="sd">    :rtype: object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ensure_contains_str</span><span class="p">(</span><span class="n">cPickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">ensure_binary</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="o">**</span><span class="n">LOAD_KWARGS</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="load"><a class="viewcode-back" href="../../../utils.html#sgtk.util.pickle.load">[docs]</a><span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">fh</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read the pickled representation of an object from the open file object</span>
+<span class="sd">    and return the reconstituted object hierarchy specified therein.</span>
+
+<span class="sd">    This method wraps the functionality from the :func:`pickle.load` method so</span>
+<span class="sd">    unicode strings are always returned as utf8-encoded ``str`` instead of ``unicode``</span>
+<span class="sd">    objects in Python 2.</span>
+
+<span class="sd">    :param fh: A file object</span>
+<span class="sd">    :returns: The unpickled object.</span>
+<span class="sd">    :rtype: object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ensure_contains_str</span><span class="p">(</span><span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="o">**</span><span class="n">LOAD_KWARGS</span><span class="p">))</span></div>
+
+
+<span class="k">def</span> <span class="nf">store_env_var_pickled</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Stores the provided data under the environment variable specified.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        This method is part of Toolkit&#39;s internal API.</span>
+
+<span class="sd">    In Python 3 pickle.dumps() returns a binary object that can&#39;t be decoded to</span>
+<span class="sd">    a string for storage in an environment variable.  To work around this, we</span>
+<span class="sd">    encode the pickled data to base64, compress the result, and store that.</span>
+
+<span class="sd">    :param key: The name of the environment variable to store the data in.</span>
+<span class="sd">    :param data: The object to pickle and store.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Force pickle protocol 0, since this is a non-binary pickle protocol.</span>
+    <span class="c1"># See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL</span>
+    <span class="n">pickled_data</span> <span class="o">=</span> <span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">encoded_data</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">ensure_str</span><span class="p">(</span><span class="n">pickled_data</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">encoded_data</span>
+
+
+<span class="k">def</span> <span class="nf">retrieve_env_var_pickled</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves and unpacks the pickled data stored in the environment variable</span>
+<span class="sd">    specified.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        This method is part of Toolkit&#39;s internal API.</span>
+
+<span class="sd">    In Python 3 pickle.dumps() returns a binary object that can&#39;t be decoded to</span>
+<span class="sd">    a string for storage in an environment variable.  To work around this, we</span>
+<span class="sd">    encode the pickled data to base64, compress the result, and store that.</span>
+
+<span class="sd">    :param key: The name of the environment variable to retrieve data from.</span>
+<span class="sd">    :returns: The original object that was stored.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">envvar_contents</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">ensure_binary</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">loads</span><span class="p">(</span><span class="n">envvar_contents</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Autodesk.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'v0.19.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+  
+ 
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-2114792-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+</body>
+</html>

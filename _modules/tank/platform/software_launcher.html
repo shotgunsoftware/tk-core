@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.software_launcher &mdash; tk-core v0.18.172 documentation</title>
+  <title>tank.platform.software_launcher &mdash; tk-core v0.19.1 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.172 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.19.1 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.172.<br>
+    <b>tk-core</b> v0.19.1.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -192,13 +192,12 @@
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">glob</span>
 <span class="kn">import</span> <span class="nn">pprint</span>
-<span class="kn">import</span> <span class="nn">re</span>
 
 <span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
 <span class="kn">from</span> <span class="nn">..log</span> <span class="kn">import</span> <span class="n">LogManager</span>
 <span class="kn">from</span> <span class="nn">..util.loader</span> <span class="kn">import</span> <span class="n">load_plugin</span>
 <span class="kn">from</span> <span class="nn">..util.version</span> <span class="kn">import</span> <span class="n">is_version_older</span>
-<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">ShotgunPath</span>
+<span class="kn">from</span> <span class="nn">..util</span> <span class="kn">import</span> <span class="n">ShotgunPath</span><span class="p">,</span> <span class="n">is_windows</span><span class="p">,</span> <span class="n">sgre</span> <span class="k">as</span> <span class="n">re</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">validation</span>
@@ -262,15 +261,13 @@
     <span class="c1"># Make sure it exists locally</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">engine_descriptor</span><span class="o">.</span><span class="n">exists_local</span><span class="p">():</span>
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-            <span class="s2">&quot;Cannot create </span><span class="si">%s</span><span class="s2"> software launcher! </span><span class="si">%s</span><span class="s2"> does not exist on disk.&quot;</span> <span class="o">%</span>
-            <span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="p">)</span>
+            <span class="s2">&quot;Cannot create </span><span class="si">%s</span><span class="s2"> software launcher! </span><span class="si">%s</span><span class="s2"> does not exist on disk.&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">engine_descriptor</span><span class="p">)</span>
         <span class="p">)</span>
 
     <span class="c1"># Get path to engine startup code and load it.</span>
     <span class="n">engine_path</span> <span class="o">=</span> <span class="n">engine_descriptor</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span>
-    <span class="n">plugin_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-        <span class="n">engine_path</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">ENGINE_SOFTWARE_LAUNCHER_FILE</span>
-    <span class="p">)</span>
+    <span class="n">plugin_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">engine_path</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">ENGINE_SOFTWARE_LAUNCHER_FILE</span><span class="p">)</span>
 
     <span class="c1"># Since we don&#39;t know what version of the engine is currently</span>
     <span class="c1"># installed, the plugin file may not exist.</span>
@@ -296,6 +293,7 @@
 <span class="sd">    should only be constructed through the :meth:`create_engine_launcher`</span>
 <span class="sd">    factory method.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">versions</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">products</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param tk: :class:`~sgtk.Sgtk` Toolkit instance</span>
@@ -425,8 +423,7 @@
 <span class="sd">        :class:`logging.Logger` for this launcher. Use this whenever you want to emit or process log messages.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span>
-            <span class="s2">&quot;env.</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">.startup&quot;</span> <span class="o">%</span>
-            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__environment</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__engine_name</span><span class="p">)</span>
+            <span class="s2">&quot;env.</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">.startup&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__environment</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__engine_name</span><span class="p">)</span>
         <span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -504,7 +501,7 @@
 
 <span class="sd">        :returns: The substituted string, when &quot;&lt;name&gt;&quot; will yield &quot;&lt;value&gt;&quot;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">tokens</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">tokens</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">template</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;{</span><span class="si">%s</span><span class="s2">}&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">template</span>
 
@@ -548,16 +545,21 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Sanitize glob pattern.</span>
-        <span class="n">fixed_match_template</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">from_current_os_path</span><span class="p">(</span><span class="n">match_template</span><span class="p">)</span><span class="o">.</span><span class="n">current_os</span>
+        <span class="n">fixed_match_template</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">from_current_os_path</span><span class="p">(</span>
+            <span class="n">match_template</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">current_os</span>
         <span class="k">if</span> <span class="n">fixed_match_template</span> <span class="o">!=</span> <span class="n">match_template</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Template was sanitized from &#39;</span><span class="si">%s</span><span class="s2">&#39; to &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">match_template</span><span class="p">,</span> <span class="n">fixed_match_template</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Template was sanitized from &#39;</span><span class="si">%s</span><span class="s2">&#39; to &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="n">match_template</span><span class="p">,</span> <span class="n">fixed_match_template</span><span class="p">)</span>
+            <span class="p">)</span>
             <span class="n">match_template</span> <span class="o">=</span> <span class="n">fixed_match_template</span>
 
         <span class="c1"># First start by globbing files.</span>
-        <span class="n">glob_pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format</span><span class="p">(</span><span class="n">match_template</span><span class="p">,</span> <span class="nb">dict</span><span class="p">((</span><span class="n">key</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">template_key_expressions</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="s2">&quot;Globbing for executable matching: </span><span class="si">%s</span><span class="s2"> ...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">glob_pattern</span><span class="p">,)</span>
+        <span class="n">glob_pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format</span><span class="p">(</span>
+            <span class="n">match_template</span><span class="p">,</span> <span class="nb">dict</span><span class="p">((</span><span class="n">key</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">template_key_expressions</span><span class="p">)</span>
         <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Globbing for executable matching: </span><span class="si">%s</span><span class="s2"> ...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">glob_pattern</span><span class="p">,))</span>
         <span class="n">matching_paths</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">glob_pattern</span><span class="p">)</span>
 
         <span class="c1"># If nothing was found, we can leave right away.</span>
@@ -566,15 +568,12 @@
             <span class="k">return</span> <span class="p">[]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="s2">&quot;Found </span><span class="si">%s</span><span class="s2"> matches: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                <span class="nb">len</span><span class="p">(</span><span class="n">matching_paths</span><span class="p">),</span>
-                <span class="n">matching_paths</span>
-            <span class="p">)</span>
+            <span class="s2">&quot;Found </span><span class="si">%s</span><span class="s2"> matches: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">matching_paths</span><span class="p">),</span> <span class="n">matching_paths</span><span class="p">)</span>
         <span class="p">)</span>
 
         <span class="c1"># Now prepare the template to be turned into a regular expression. First, double up the</span>
         <span class="c1"># backward slashes to escape them properly in the regular expression on Windows.</span>
-        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">is_windows</span><span class="p">():</span>
             <span class="n">regex_pattern</span> <span class="o">=</span> <span class="n">match_template</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\\\\</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">regex_pattern</span> <span class="o">=</span> <span class="n">match_template</span>
@@ -582,16 +581,16 @@
         <span class="n">regex_pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format</span><span class="p">(</span>
             <span class="n">regex_pattern</span><span class="p">,</span>
             <span class="c1"># Put () around the provided expressions so that they become capture groups.</span>
-            <span class="nb">dict</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="s2">&quot;(?P&lt;</span><span class="si">%s</span><span class="s2">&gt;</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">template_key_expressions</span><span class="o">.</span><span class="n">iteritems</span><span class="p">())</span>
+            <span class="nb">dict</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="s2">&quot;(?P&lt;</span><span class="si">%s</span><span class="s2">&gt;</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">template_key_expressions</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">),</span>
         <span class="p">)</span>
 
         <span class="c1"># accumulate the software version objects to return. this will include</span>
         <span class="c1"># include the head/tail anchors in the regex</span>
         <span class="n">regex_pattern</span> <span class="o">=</span> <span class="s2">&quot;^</span><span class="si">%s</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">regex_pattern</span><span class="p">,)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="s2">&quot;Now matching components with regex: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">regex_pattern</span><span class="p">,)</span>
-        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Now matching components with regex: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">regex_pattern</span><span class="p">,))</span>
 
         <span class="c1"># compile the regex</span>
         <span class="n">executable_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">regex_pattern</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
@@ -741,12 +740,13 @@
             <span class="k">return</span> <span class="p">(</span>
                 <span class="bp">False</span><span class="p">,</span>
                 <span class="s2">&quot;Executable &#39;</span><span class="si">%s</span><span class="s2">&#39; didn&#39;t meet the version requirements&quot;</span>
-                <span class="s2">&quot;(</span><span class="si">%s</span><span class="s2"> not in </span><span class="si">%s</span><span class="s2"> or is older than </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="s2">&quot;(</span><span class="si">%s</span><span class="s2"> not in </span><span class="si">%s</span><span class="s2"> or is older than </span><span class="si">%s</span><span class="s2">)&quot;</span>
+                <span class="o">%</span> <span class="p">(</span>
                     <span class="n">sw_version</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
                     <span class="n">sw_version</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">versions</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">minimum_supported_version</span>
-                <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">minimum_supported_version</span><span class="p">,</span>
+                <span class="p">),</span>
             <span class="p">)</span>
 
         <span class="c1"># check products list</span>
@@ -754,11 +754,7 @@
             <span class="k">return</span> <span class="p">(</span>
                 <span class="bp">False</span><span class="p">,</span>
                 <span class="s2">&quot;Executable &#39;</span><span class="si">%s</span><span class="s2">&#39; didn&#39;t meet the product requirements&quot;</span>
-                <span class="s2">&quot;(</span><span class="si">%s</span><span class="s2"> not in </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                    <span class="n">sw_version</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-                    <span class="n">sw_version</span><span class="o">.</span><span class="n">product</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">products</span>
-                <span class="p">)</span>
+                <span class="s2">&quot;(</span><span class="si">%s</span><span class="s2"> not in </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sw_version</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">sw_version</span><span class="o">.</span><span class="n">product</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="p">),</span>
             <span class="p">)</span>
 
         <span class="c1"># passed all checks. must be supported!</span>
@@ -824,6 +820,7 @@
 <span class="sd">    Container class that stores properties of a DCC that</span>
 <span class="sd">    are useful for Toolkit Engine Startup functionality.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">product</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">icon</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param str version: Explicit version of the DCC represented</span>
@@ -852,7 +849,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">args</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -928,6 +925,7 @@
 <span class="sd">    A LaunchInformation instance is generally obtained from an engine&#39;s</span>
 <span class="sd">    subclass implementation of :meth:`SoftwareLauncher.prepare_launch``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">environ</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param str path: Resolved path to DCC</span>
@@ -980,7 +978,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Autodesk.
+        &copy; Copyright 2020, Autodesk.
 
     </p>
   </div> 
@@ -1001,7 +999,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.172',
+            VERSION:'v0.19.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

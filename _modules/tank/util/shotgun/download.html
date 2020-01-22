@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun.download &mdash; tk-core v0.18.172 documentation</title>
+  <title>tank.util.shotgun.download &mdash; tk-core v0.19.1 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.172 documentation" href="../../../../index.html"/>
+    <link rel="top" title="tk-core v0.19.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="Module code" href="../../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.172.<br>
+    <b>tk-core</b> v0.19.1.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -174,13 +174,13 @@
             
   <h1>Source code for tank.util.shotgun.download</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2017 Shotgun Software Inc.</span>
-<span class="c1"># </span>
+<span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
-<span class="c1"># </span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1">#</span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
-<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
-<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
@@ -191,8 +191,7 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
-<span class="kn">import</span> <span class="nn">urllib2</span>
-<span class="kn">import</span> <span class="nn">urlparse</span>
+<span class="kn">from</span> <span class="nn">tank_vendor.six.moves</span> <span class="kn">import</span> <span class="n">urllib</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">import</span> <span class="nn">zipfile</span>
@@ -250,38 +249,42 @@
         <span class="c1"># in the form: https://sg-media-staging-usor-01.s3.amazonaws.com/9d93f...</span>
         <span class="c1"># %3D&amp;response-content-disposition=filename%3D%22jackpot_icon.png%22.</span>
         <span class="c1"># Grab proxy server settings from the shotgun API</span>
-        <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">build_opener</span><span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">proxy_handler</span><span class="p">)</span>
+        <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">build_opener</span><span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">proxy_handler</span><span class="p">)</span>
 
-        <span class="n">urllib2</span><span class="o">.</span><span class="n">install_opener</span><span class="p">(</span><span class="n">opener</span><span class="p">)</span>
-    
-    <span class="c1"># inherit the timeout value from the sg API    </span>
+        <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">install_opener</span><span class="p">(</span><span class="n">opener</span><span class="p">)</span>
+
+    <span class="c1"># inherit the timeout value from the sg API</span>
     <span class="n">timeout</span> <span class="o">=</span> <span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">timeout_secs</span>
-    
+
     <span class="c1"># download the given url</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">request</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">timeout</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">6</span><span class="p">):</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">timeout</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
             <span class="c1"># timeout parameter only available in python 2.6+</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># use system default</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">use_url_extension</span><span class="p">:</span>
             <span class="c1"># Make sure the disk location has the same extension as the url path.</span>
             <span class="c1"># Would be nice to see this functionality moved to back into Shotgun</span>
             <span class="c1"># API and removed from here.</span>
-            <span class="n">url_ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">urlparse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">geturl</span><span class="p">())</span><span class="o">.</span><span class="n">path</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">url_ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">geturl</span><span class="p">())</span><span class="o">.</span><span class="n">path</span><span class="p">)[</span>
+                <span class="o">-</span><span class="mi">1</span>
+            <span class="p">]</span>
             <span class="k">if</span> <span class="n">url_ext</span><span class="p">:</span>
                 <span class="n">location</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">url_ext</span><span class="p">)</span>
-            
+
         <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
         <span class="k">finally</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Could not download contents of url &#39;</span><span class="si">%s</span><span class="s2">&#39;. Error reported: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
+            <span class="s2">&quot;Could not download contents of url &#39;</span><span class="si">%s</span><span class="s2">&#39;. Error reported: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+        <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">location</span></div>
 
@@ -298,23 +301,40 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Importing this module locally to reduce clutter and facilitate clean up when/if this</span>
     <span class="c1"># functionality gets ported back into the Shotgun API.</span>
-    <span class="kn">import</span> <span class="nn">cookielib</span>
+    <span class="kn">from</span> <span class="nn">tank_vendor.six.moves</span> <span class="kn">import</span> <span class="n">http_cookiejar</span>
 
     <span class="n">sid</span> <span class="o">=</span> <span class="n">sg</span><span class="o">.</span><span class="n">get_session_token</span><span class="p">()</span>
-    <span class="n">cj</span> <span class="o">=</span> <span class="n">cookielib</span><span class="o">.</span><span class="n">LWPCookieJar</span><span class="p">()</span>
-    <span class="n">c</span> <span class="o">=</span> <span class="n">cookielib</span><span class="o">.</span><span class="n">Cookie</span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;_session_id&#39;</span><span class="p">,</span> <span class="n">sid</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span>
-        <span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">server</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span>
-        <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">cj</span> <span class="o">=</span> <span class="n">http_cookiejar</span><span class="o">.</span><span class="n">LWPCookieJar</span><span class="p">()</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">http_cookiejar</span><span class="o">.</span><span class="n">Cookie</span><span class="p">(</span>
+        <span class="s2">&quot;0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;_session_id&quot;</span><span class="p">,</span>
+        <span class="n">sid</span><span class="p">,</span>
+        <span class="bp">None</span><span class="p">,</span>
+        <span class="bp">False</span><span class="p">,</span>
+        <span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">server</span><span class="p">,</span>
+        <span class="bp">False</span><span class="p">,</span>
+        <span class="bp">False</span><span class="p">,</span>
+        <span class="s2">&quot;/&quot;</span><span class="p">,</span>
+        <span class="bp">True</span><span class="p">,</span>
+        <span class="bp">False</span><span class="p">,</span>
+        <span class="bp">None</span><span class="p">,</span>
+        <span class="bp">True</span><span class="p">,</span>
+        <span class="bp">None</span><span class="p">,</span>
+        <span class="bp">None</span><span class="p">,</span>
+        <span class="p">{},</span>
+    <span class="p">)</span>
     <span class="n">cj</span><span class="o">.</span><span class="n">set_cookie</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
-    <span class="n">cookie_handler</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">HTTPCookieProcessor</span><span class="p">(</span><span class="n">cj</span><span class="p">)</span>
+    <span class="n">cookie_handler</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">HTTPCookieProcessor</span><span class="p">(</span><span class="n">cj</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">proxy_handler</span><span class="p">:</span>
-        <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">build_opener</span><span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">proxy_handler</span><span class="p">,</span> <span class="n">cookie_handler</span><span class="p">)</span>
+        <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">build_opener</span><span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">proxy_handler</span><span class="p">,</span> <span class="n">cookie_handler</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">build_opener</span><span class="p">(</span><span class="n">cookie_handler</span><span class="p">)</span>
-    <span class="n">urllib2</span><span class="o">.</span><span class="n">install_opener</span><span class="p">(</span><span class="n">opener</span><span class="p">)</span>
+        <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">build_opener</span><span class="p">(</span><span class="n">cookie_handler</span><span class="p">)</span>
+    <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">install_opener</span><span class="p">(</span><span class="n">opener</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="download_and_unpack_attachment"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.download_and_unpack_attachment">[docs]</a><span class="k">def</span> <span class="nf">download_and_unpack_attachment</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">attachment_id</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="download_and_unpack_attachment"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.download_and_unpack_attachment">[docs]</a><span class="k">def</span> <span class="nf">download_and_unpack_attachment</span><span class="p">(</span>
+    <span class="n">sg</span><span class="p">,</span> <span class="n">attachment_id</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="o">=</span><span class="bp">False</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Downloads the given attachment from Shotgun, assumes it is a zip file</span>
 <span class="sd">    and attempts to unpack it into the given location.</span>
@@ -331,11 +351,7 @@
 <span class="sd">    :raises: ShotgunAttachmentDownloadError on failure</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_download_and_unpack</span><span class="p">(</span>
-        <span class="n">sg</span><span class="p">,</span>
-        <span class="n">target</span><span class="p">,</span>
-        <span class="n">retries</span><span class="p">,</span>
-        <span class="n">auto_detect_bundle</span><span class="p">,</span>
-        <span class="n">attachment_id</span><span class="o">=</span><span class="n">attachment_id</span>
+        <span class="n">sg</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="p">,</span> <span class="n">attachment_id</span><span class="o">=</span><span class="n">attachment_id</span>
     <span class="p">)</span></div>
 
 
@@ -355,17 +371,13 @@
 <span class="sd">        the bundle in a subfolder, this should be correctly unfolded.</span>
 <span class="sd">    :raises: ShotgunAttachmentDownloadError on failure</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">_download_and_unpack</span><span class="p">(</span>
-        <span class="n">sg</span><span class="p">,</span>
-        <span class="n">target</span><span class="p">,</span>
-        <span class="n">retries</span><span class="p">,</span>
-        <span class="n">auto_detect_bundle</span><span class="p">,</span>
-        <span class="n">url</span><span class="o">=</span><span class="n">url</span>
-    <span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_download_and_unpack</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span></div>
 
 
 <span class="nd">@LogManager.log_timing</span>
-<span class="k">def</span> <span class="nf">_download_and_unpack</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="p">,</span> <span class="n">attachment_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_download_and_unpack</span><span class="p">(</span>
+    <span class="n">sg</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="p">,</span> <span class="n">attachment_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="bp">None</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Downloads the given attachment from Shotgun if an attachment ID is provided,</span>
 <span class="sd">    otherwise downloads the content from the provided url.  Assumes the downloaded</span>
@@ -406,7 +418,9 @@
                 <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Downloading content of url </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="n">url</span><span class="p">)</span>
                 <span class="n">download_url</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">zip_tmp</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;A value is required for one of kwargs `url` or `attachment_id`&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;A value is required for one of kwargs `url` or `attachment_id`&quot;</span>
+                <span class="p">)</span>
 
             <span class="n">file_size</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">zip_tmp</span><span class="p">)</span>
 
@@ -430,11 +444,13 @@
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">attachment_id</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="s2">&quot;Attempt </span><span class="si">%s</span><span class="s2">: Attachment download of id </span><span class="si">%s</span><span class="s2"> from </span><span class="si">%s</span><span class="s2"> failed: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">attempt</span><span class="p">,</span> <span class="n">attachment_id</span><span class="p">,</span> <span class="n">sg</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+                    <span class="s2">&quot;Attempt </span><span class="si">%s</span><span class="s2">: Attachment download of id </span><span class="si">%s</span><span class="s2"> from </span><span class="si">%s</span><span class="s2"> failed: </span><span class="si">%s</span><span class="s2">&quot;</span>
+                    <span class="o">%</span> <span class="p">(</span><span class="n">attempt</span><span class="p">,</span> <span class="n">attachment_id</span><span class="p">,</span> <span class="n">sg</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
                 <span class="p">)</span>
             <span class="k">elif</span> <span class="n">url</span><span class="p">:</span>
                 <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="s2">&quot;Attempt </span><span class="si">%s</span><span class="s2">: Download of content of url </span><span class="si">%s</span><span class="s2"> failed: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">attempt</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+                    <span class="s2">&quot;Attempt </span><span class="si">%s</span><span class="s2">: Download of content of url </span><span class="si">%s</span><span class="s2"> failed: </span><span class="si">%s</span><span class="s2">&quot;</span>
+                    <span class="o">%</span> <span class="p">(</span><span class="n">attempt</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span>
@@ -450,18 +466,22 @@
     <span class="k">if</span> <span class="n">invalid_zip_file</span><span class="p">:</span>
         <span class="c1"># the attachment in shotgun could not be unpacked</span>
         <span class="k">if</span> <span class="n">attachment_id</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ShotgunAttachmentDownloadError</span><span class="p">(</span><span class="s2">&quot;Shotgun attachment with id </span><span class="si">%s</span><span class="s2"> is not a zip file!&quot;</span> <span class="o">%</span> <span class="n">attachment_id</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">ShotgunAttachmentDownloadError</span><span class="p">(</span>
+                <span class="s2">&quot;Shotgun attachment with id </span><span class="si">%s</span><span class="s2"> is not a zip file!&quot;</span> <span class="o">%</span> <span class="n">attachment_id</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">ShotgunAttachmentDownloadError</span><span class="p">(</span><span class="s2">&quot;Content of url </span><span class="si">%s</span><span class="s2"> is not a zip file!&quot;</span> <span class="o">%</span> <span class="n">url</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">ShotgunAttachmentDownloadError</span><span class="p">(</span>
+                <span class="s2">&quot;Content of url </span><span class="si">%s</span><span class="s2"> is not a zip file!&quot;</span> <span class="o">%</span> <span class="n">url</span>
+            <span class="p">)</span>
     <span class="k">elif</span> <span class="ow">not</span> <span class="n">done</span><span class="p">:</span>
         <span class="c1"># we couldn&#39;t download for some reason</span>
         <span class="k">raise</span> <span class="n">ShotgunAttachmentDownloadError</span><span class="p">(</span>
-            <span class="s2">&quot;Failed to download from &#39;</span><span class="si">%s</span><span class="s2">&#39; after </span><span class="si">%s</span><span class="s2"> retries. See error log for details.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span> <span class="n">retries</span><span class="p">)</span>
+            <span class="s2">&quot;Failed to download from &#39;</span><span class="si">%s</span><span class="s2">&#39; after </span><span class="si">%s</span><span class="s2"> retries. See error log for details.&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">sg</span><span class="o">.</span><span class="n">base_url</span><span class="p">,</span> <span class="n">retries</span><span class="p">)</span>
         <span class="p">)</span>
 
     <span class="k">else</span><span class="p">:</span>
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Attachment download and unpack complete.&quot;</span><span class="p">)</span>
-
 </pre></div>
 
            </div>
@@ -473,7 +493,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Autodesk.
+        &copy; Copyright 2020, Autodesk.
 
     </p>
   </div> 
@@ -494,7 +514,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'v0.18.172',
+            VERSION:'v0.19.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

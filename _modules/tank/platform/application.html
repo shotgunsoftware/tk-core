@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.application &mdash; tk-core v0.18.172 documentation</title>
+  <title>tank.platform.application &mdash; tk-core v0.19.1 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.172 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.19.1 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.172.<br>
+    <b>tk-core</b> v0.19.1.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -174,13 +174,13 @@
             
   <h1>Source code for tank.platform.application</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2013 Shotgun Software Inc.</span>
-<span class="c1"># </span>
+<span class="c1">#</span>
 <span class="c1"># CONFIDENTIAL AND PROPRIETARY</span>
-<span class="c1"># </span>
-<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit </span>
+<span class="c1">#</span>
+<span class="c1"># This work is provided &quot;AS IS&quot; and subject to the Shotgun Pipeline Toolkit</span>
 <span class="c1"># Source Code License included in this distribution package. See LICENSE.</span>
-<span class="c1"># By accessing, using, copying or modifying this work you indicate your </span>
-<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights </span>
+<span class="c1"># By accessing, using, copying or modifying this work you indicate your</span>
+<span class="c1"># agreement to the Shotgun Pipeline Toolkit Source Code License. All rights</span>
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
@@ -197,16 +197,17 @@
 <span class="kn">from</span> <span class="nn">.bundle</span> <span class="kn">import</span> <span class="n">TankBundle</span>
 <span class="kn">from</span> <span class="nn">..util.metrics</span> <span class="kn">import</span> <span class="n">EventMetric</span>
 
+
 <div class="viewcode-block" id="Application"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application">[docs]</a><span class="k">class</span> <span class="nc">Application</span><span class="p">(</span><span class="n">TankBundle</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for all Applications (Apps) running in Toolkit.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">instance_name</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Application instances are constructed by the toolkit launch process</span>
 <span class="sd">        and various factory methods such as :meth:`start_engine`.</span>
-<span class="sd">        </span>
+
 <span class="sd">        :param engine: The engine instance to connect this app to</span>
 <span class="sd">        :param app_name: The short name of this app (e.g. tk-nukepublish)</span>
 <span class="sd">        :param settings: a settings dictionary for this app</span>
@@ -219,7 +220,9 @@
         <span class="n">logger</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__engine</span><span class="o">.</span><span class="n">get_child_logger</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__instance_name</span><span class="p">)</span>
 
         <span class="c1"># init base class</span>
-        <span class="n">TankBundle</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="o">.</span><span class="n">tank</span><span class="p">,</span> <span class="n">engine</span><span class="o">.</span><span class="n">context</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
+        <span class="n">TankBundle</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="o">.</span><span class="n">tank</span><span class="p">,</span> <span class="n">engine</span><span class="o">.</span><span class="n">context</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">logger</span>
+        <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;App init: Instantiating </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="p">)</span>
 
@@ -234,7 +237,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">log_debug</span><span class="p">(</span><span class="s2">&quot;Appending to PYTHONPATH: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">python_path</span><span class="p">)</span>
                 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">python_path</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>        
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;&lt;Sgtk App 0x</span><span class="si">%08x</span><span class="s2">: </span><span class="si">%s</span><span class="s2">, engine: </span><span class="si">%s</span><span class="s2">&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_destroy_frameworks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -249,7 +252,7 @@
 
     <span class="c1">##########################################################################################</span>
     <span class="c1"># properties</span>
-        
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">shotgun</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -264,16 +267,15 @@
         <span class="c1"># in the shotgun data centre and makes it easy to track which app and engine versions</span>
         <span class="c1"># are being used by clients</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tank</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">tk_user_agent_handler</span><span class="o">.</span><span class="n">set_current_app</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                                                                    <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
-                                                                    <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                                                                    <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tank</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">tk_user_agent_handler</span><span class="o">.</span><span class="n">set_current_app</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">version</span>
+            <span class="p">)</span>
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
             <span class="c1"># looks like this sg instance for some reason does not have a</span>
             <span class="c1"># tk user agent handler associated.</span>
             <span class="k">pass</span>
-        
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tank</span><span class="o">.</span><span class="n">shotgun</span>        
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tank</span><span class="o">.</span><span class="n">shotgun</span>
 
     <span class="k">def</span> <span class="nf">_get_instance_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -288,7 +290,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__instance_name</span> <span class="o">=</span> <span class="n">instance_name</span>
 
     <span class="n">instance_name</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_instance_name</span><span class="p">,</span> <span class="n">_set_instance_name</span><span class="p">)</span>
-        
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">engine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -317,15 +319,14 @@
 <span class="sd">        :returns: Dictionary with info per above.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">properties</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">get_metrics_properties</span><span class="p">()</span>
-        <span class="n">properties</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-            <span class="n">EventMetric</span><span class="o">.</span><span class="n">KEY_APP</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-            <span class="n">EventMetric</span><span class="o">.</span><span class="n">KEY_APP_VERSION</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span>
-        <span class="p">})</span>
+        <span class="n">properties</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="p">{</span><span class="n">EventMetric</span><span class="o">.</span><span class="n">KEY_APP</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">EventMetric</span><span class="o">.</span><span class="n">KEY_APP_VERSION</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">}</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">properties</span></div>
 
     <span class="c1">##########################################################################################</span>
     <span class="c1"># init, destroy, and context changing</span>
-        
+
 <div class="viewcode-block" id="Application.init_app"><a class="viewcode-back" href="../../../platform.html#sgtk.platform.Application.init_app">[docs]</a>    <span class="k">def</span> <span class="nf">init_app</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Implemented by deriving classes in order to initialize the app</span>
@@ -466,22 +467,21 @@
 
 <span class="k">def</span> <span class="nf">get_application</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">app_folder</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">instance_name</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Internal helper method. </span>
+<span class="sd">    Internal helper method.</span>
 <span class="sd">    (Removed from the engine base class to make it easier to run unit tests).</span>
 <span class="sd">    Returns an application object given an engine and app settings.</span>
-<span class="sd">    </span>
+
 <span class="sd">    :param engine: the engine this app should run in</span>
 <span class="sd">    :param app_folder: the folder on disk where the app is located</span>
 <span class="sd">    :param descriptor: descriptor for the app</span>
 <span class="sd">    :param settings: a settings dict to pass to the app</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">plugin_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">app_folder</span><span class="p">,</span> <span class="n">constants</span><span class="o">.</span><span class="n">APP_FILE</span><span class="p">)</span>
-        
+
     <span class="c1"># Instantiate the app</span>
     <span class="n">class_obj</span> <span class="o">=</span> <span class="n">load_plugin</span><span class="p">(</span><span class="n">plugin_file</span><span class="p">,</span> <span class="n">Application</span><span class="p">)</span>
     <span class="n">obj</span> <span class="o">=</span> <span class="n">class_obj</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">instance_name</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">obj</span>
-
 </pre></div>
 
            </div>
@@ -493,7 +493,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Autodesk.
+        &copy; Copyright 2020, Autodesk.
 
     </p>
   </div> 
@@ -514,7 +514,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.172',
+            VERSION:'v0.19.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Authentication &mdash; tk-core v0.18.172 documentation</title>
+  <title>Authentication &mdash; tk-core v0.19.1 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.172 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.19.1 documentation" href="index.html"/>
         <link rel="prev" title="Descriptors" href="descriptor.html"/> 
 
   
@@ -130,7 +130,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.172.<br>
+    <b>tk-core</b> v0.19.1.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -776,15 +776,21 @@ derived instance.</p>
 
 <dl class="function">
 <dt id="sgtk.authentication.serialize_user">
-<code class="descclassname">sgtk.authentication.</code><code class="descname">serialize_user</code><span class="sig-paren">(</span><em>user</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/user.html#serialize_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.serialize_user" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">sgtk.authentication.</code><code class="descname">serialize_user</code><span class="sig-paren">(</span><em>user</em>, <em>use_json=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/user.html#serialize_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.serialize_user" title="Permalink to this definition">¶</a></dt>
 <dd><p>Serializes a user. Meant to be consumed by deserialize.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>user</strong> &#8211; User object that needs to be serialized.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>user</strong> &#8211; User object that needs to be serialized.</li>
+<li><strong>use_json</strong> &#8211; If <code class="docutils literal"><span class="pre">True</span></code>, a <code class="docutils literal"><span class="pre">json</span></code> representation will be generated.
+A pickled representation will be generated otherwise.</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The payload representing the user.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The payload representing the user.</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -872,7 +878,7 @@ The default value is for backward compatibility.</li>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Autodesk.
+        &copy; Copyright 2020, Autodesk.
 
     </p>
   </div> 
@@ -893,7 +899,7 @@ The default value is for backward compatibility.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.172',
+            VERSION:'v0.19.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

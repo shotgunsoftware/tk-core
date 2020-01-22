@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.18.172 documentation</title>
+  <title>Utilities &mdash; tk-core v0.19.1 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.172 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.19.1 documentation" href="index.html"/>
         <link rel="next" title="Descriptors" href="descriptor.html"/>
         <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
 
@@ -117,10 +117,12 @@
 <li class="toctree-l2"><a class="reference internal" href="#file-system-utilities">File System Utilities</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk-util-filesystem">sgtk.util.filesystem</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#sgtk-util-json">sgtk.util.json</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sgtk-util-pickle">sgtk.util.pickle</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#shotgunpath">ShotgunPath</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#localfilestoragemanager">LocalFileStorageManager</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#os-detection">OS detection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#shotgun-related">Shotgun Related</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#file-download-related">File Download Related</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#miscellaneous">Miscellaneous</a></li>
@@ -152,7 +154,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.172.<br>
+    <b>tk-core</b> v0.19.1.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1036,7 +1038,7 @@ be skipped over.</p>
 items.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Problems deleting any items will be reported as warnings in the log 
+<p class="last">Problems deleting any items will be reported as warnings in the log
 output but otherwise ignored and skipped; meaning the function will continue
 deleting as much as it can.</p>
 </div>
@@ -1195,6 +1197,95 @@ document) to a Python object.</p>
 <p>This method is a simple thin wrapper around <a class="reference external" href="https://docs.python.org/2/library/json.html#json.loads" title="(in Python v2.7)"><code class="xref py py-func docutils literal"><span class="pre">json.loads()</span></code></a> that
 ensures unserialized strings are utf-8 encoded <a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">str</span></code></a> objects.</p>
 <p>See the documentation for <a class="reference external" href="https://docs.python.org/2/library/json.html#json.loads" title="(in Python v2.7)"><code class="xref py py-func docutils literal"><span class="pre">json.loads()</span></code></a> to learn more about this method.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="sgtk-util-pickle">
+<h3>sgtk.util.pickle<a class="headerlink" href="#sgtk-util-pickle" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="sgtk.util.pickle.dump">
+<code class="descclassname">sgtk.util.pickle.</code><code class="descname">dump</code><span class="sig-paren">(</span><em>data</em>, <em>fh</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/pickle.html#dump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.pickle.dump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the pickled representation of <code class="docutils literal"><span class="pre">data</span></code> to a file object.</p>
+<p>This methods wraps the functionality from the <a class="reference external" href="https://docs.python.org/2/library/pickle.html#pickle.dump" title="(in Python v2.7)"><code class="xref py py-func docutils literal"><span class="pre">pickle.dump()</span></code></a> method so
+pickles can be shared between Python 2 and Python 3.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data</strong> &#8211; The object to pickle and store.</li>
+<li><strong>fh</strong> &#8211; A file object</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.pickle.dumps">
+<code class="descclassname">sgtk.util.pickle.</code><code class="descname">dumps</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/pickle.html#dumps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.pickle.dumps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the pickled representation of <code class="docutils literal"><span class="pre">data</span></code> as a <code class="docutils literal"><span class="pre">str</span></code>.</p>
+<p>This methods wraps the functionality from the <a class="reference external" href="https://docs.python.org/2/library/pickle.html#pickle.dumps" title="(in Python v2.7)"><code class="xref py py-func docutils literal"><span class="pre">pickle.dumps()</span></code></a> method so
+pickles can be shared between Python 2 and Python 3.</p>
+<p>As opposed to the Python 3 implementation, it will return a <code class="docutils literal"><span class="pre">str</span></code> object
+and not <code class="docutils literal"><span class="pre">bytes</span></code> object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> &#8211; The object to pickle and store.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A pickled str of the input object.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.pickle.load">
+<code class="descclassname">sgtk.util.pickle.</code><code class="descname">load</code><span class="sig-paren">(</span><em>fh</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/pickle.html#load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.pickle.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the pickled representation of an object from the open file object
+and return the reconstituted object hierarchy specified therein.</p>
+<p>This method wraps the functionality from the <a class="reference external" href="https://docs.python.org/2/library/pickle.html#pickle.load" title="(in Python v2.7)"><code class="xref py py-func docutils literal"><span class="pre">pickle.load()</span></code></a> method so
+unicode strings are always returned as utf8-encoded <code class="docutils literal"><span class="pre">str</span></code> instead of <code class="docutils literal"><span class="pre">unicode</span></code>
+objects in Python 2.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fh</strong> &#8211; A file object</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The unpickled object.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)">object</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.pickle.loads">
+<code class="descclassname">sgtk.util.pickle.</code><code class="descname">loads</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/pickle.html#loads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.pickle.loads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the pickled representation of an object from a string
+and return the reconstituted object hierarchy specified therein.</p>
+<p>This method wraps the functionality from the <a class="reference external" href="https://docs.python.org/2/library/pickle.html#pickle.loads" title="(in Python v2.7)"><code class="xref py py-func docutils literal"><span class="pre">pickle.loads()</span></code></a> method so
+unicode strings are always returned as utf8-encoded <code class="docutils literal"><span class="pre">str</span></code> instead of <code class="docutils literal"><span class="pre">unicode</span></code>
+objects in Python 2.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) &#8211; A pickled representation of an object.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The unpickled object.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)">object</a></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -1692,6 +1783,67 @@ which is the current generation of paths.</li>
 </dd></dl>
 
 </div>
+</div>
+<div class="section" id="os-detection">
+<h2>OS detection<a class="headerlink" href="#os-detection" title="Permalink to this headline">¶</a></h2>
+<p>Below are a collection of convenience methods to detect which operating system is in use:</p>
+<dl class="function">
+<dt id="sgtk.util.is_linux">
+<code class="descclassname">sgtk.util.</code><code class="descname">is_linux</code><span class="sig-paren">(</span><em>platform=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/platforms.html#is_linux"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.is_linux" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if the current platform is Linux.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>platform</strong> &#8211; sys.platform style string, e.g &#8216;linux2&#8217;, &#8216;win32&#8217; or
+&#8216;darwin&#8217;.  If not provided, sys.platform will be used.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the current platform is Linux, otherwise False.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)">bool</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.is_windows">
+<code class="descclassname">sgtk.util.</code><code class="descname">is_windows</code><span class="sig-paren">(</span><em>platform=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/platforms.html#is_windows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.is_windows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if the current platform is Windows.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>platform</strong> &#8211; sys.platform style string, e.g &#8216;linux2&#8217;, &#8216;win32&#8217; or
+&#8216;darwin&#8217;.  If not provided, sys.platform will be used.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the current platform is Windows, otherwise False.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)">bool</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.is_macos">
+<code class="descclassname">sgtk.util.</code><code class="descname">is_macos</code><span class="sig-paren">(</span><em>platform=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/platforms.html#is_macos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.is_macos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if the current platform is MacOS.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>platform</strong> &#8211; sys.platform style string, e.g &#8216;linux2&#8217;, &#8216;win32&#8217; or
+&#8216;darwin&#8217;.  If not provided, sys.platform will be used.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the current platform is MacOS, otherwise False.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)">bool</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 <div class="section" id="shotgun-related">
 <h2>Shotgun Related<a class="headerlink" href="#shotgun-related" title="Permalink to this headline">¶</a></h2>
@@ -2331,7 +2483,7 @@ example unsupported url schemes.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Autodesk.
+        &copy; Copyright 2020, Autodesk.
 
     </p>
   </div> 
@@ -2352,7 +2504,7 @@ example unsupported url schemes.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.172',
+            VERSION:'v0.19.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.json &mdash; tk-core v0.18.172 documentation</title>
+  <title>tank.util.json &mdash; tk-core v0.19.1 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.172 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.19.1 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.172.<br>
+    <b>tk-core</b> v0.19.1.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -192,36 +192,19 @@
 
 <span class="kn">import</span> <span class="nn">json</span>
 
-
-<span class="k">def</span> <span class="nf">_convert_unicode_keys_to_string</span><span class="p">(</span><span class="n">input_value</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Converts any :class:`unicode` instances in the input value into a utf-8</span>
-<span class="sd">    encoded :class`str` instance.</span>
-
-<span class="sd">    :param input_value: Value to convert. Can be a scalar, list or dictionary.</span>
-
-<span class="sd">    :returns: A value with utf-8 encoded :class:`str` instances.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_value</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">input_value</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">_convert_unicode_keys_to_string</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">input_value</span><span class="p">]</span>
-
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
-            <span class="p">(</span><span class="n">_convert_unicode_keys_to_string</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">_convert_unicode_keys_to_string</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">input_value</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span>
-        <span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">input_value</span>
+<span class="kn">from</span> <span class="nn">.unicode</span> <span class="kn">import</span> <span class="n">ensure_contains_str</span>
 
 
 <span class="c1"># This is the Python 2.6 signature. 2.7 has an extra object_hook_pairs argument.</span>
 <div class="viewcode-block" id="load"><a class="viewcode-back" href="../../../utils.html#sgtk.util.json.load">[docs]</a><span class="k">def</span> <span class="nf">load</span><span class="p">(</span>
-    <span class="n">fp</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">object_hook</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parse_float</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-    <span class="n">parse_int</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parse_constant</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span>
+    <span class="n">fp</span><span class="p">,</span>
+    <span class="n">encoding</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="bp">cls</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="n">object_hook</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="n">parse_float</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="n">parse_int</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="n">parse_constant</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kw</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Deserialize ``fp`` (a ``.read()``-supporting file-like object containing</span>
@@ -232,18 +215,34 @@
 
 <span class="sd">    See the documentation for :func:`json.load` to learn more about this method.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Specify kwargs explicitly to avoid problems caused by the signature change</span>
+    <span class="c1"># between Python 2 and 3.</span>
+    <span class="c1"># See https://docs.python.org/3/library/json.html#json.load and</span>
+    <span class="c1"># https://docs.python.org/2/library/json.html#json.load for both signatures.</span>
     <span class="n">loaded_value</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
-        <span class="n">fp</span><span class="p">,</span> <span class="n">encoding</span><span class="p">,</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">object_hook</span><span class="p">,</span> <span class="n">parse_float</span><span class="p">,</span>
-        <span class="n">parse_int</span><span class="p">,</span> <span class="n">parse_constant</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span>
+        <span class="n">fp</span><span class="p">,</span>
+        <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span>
+        <span class="bp">cls</span><span class="o">=</span><span class="bp">cls</span><span class="p">,</span>
+        <span class="n">object_hook</span><span class="o">=</span><span class="n">object_hook</span><span class="p">,</span>
+        <span class="n">parse_float</span><span class="o">=</span><span class="n">parse_float</span><span class="p">,</span>
+        <span class="n">parse_int</span><span class="o">=</span><span class="n">parse_int</span><span class="p">,</span>
+        <span class="n">parse_constant</span><span class="o">=</span><span class="n">parse_constant</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kw</span>
     <span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">_convert_unicode_keys_to_string</span><span class="p">(</span><span class="n">loaded_value</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">ensure_contains_str</span><span class="p">(</span><span class="n">loaded_value</span><span class="p">)</span></div>
 
 
 <span class="c1"># This is the Python 2.6 signature. 2.7 has an extra object_hook_pairs argument.</span>
 <div class="viewcode-block" id="loads"><a class="viewcode-back" href="../../../utils.html#sgtk.util.json.loads">[docs]</a><span class="k">def</span> <span class="nf">loads</span><span class="p">(</span>
-    <span class="n">s</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">object_hook</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parse_float</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-    <span class="n">parse_int</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">parse_constant</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span>
+    <span class="n">s</span><span class="p">,</span>
+    <span class="n">encoding</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="bp">cls</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="n">object_hook</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="n">parse_float</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="n">parse_int</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="n">parse_constant</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kw</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Deserialize ``s`` (a ``str`` or ``unicode`` instance containing a JSON</span>
@@ -254,12 +253,22 @@
 
 <span class="sd">    See the documentation for :func:`json.loads` to learn more about this method.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Specify kwargs explicitly to avoid problems caused by the signature change</span>
+    <span class="c1"># between Python 2 and 3.</span>
+    <span class="c1"># See https://docs.python.org/3/library/json.html#json.loads and</span>
+    <span class="c1"># https://docs.python.org/2/library/json.html#json.loads for both signatures.</span>
     <span class="n">loaded_value</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span>
-        <span class="n">s</span><span class="p">,</span> <span class="n">encoding</span><span class="p">,</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">object_hook</span><span class="p">,</span> <span class="n">parse_float</span><span class="p">,</span>
-        <span class="n">parse_int</span><span class="p">,</span> <span class="n">parse_constant</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span>
+        <span class="n">s</span><span class="p">,</span>
+        <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span>
+        <span class="bp">cls</span><span class="o">=</span><span class="bp">cls</span><span class="p">,</span>
+        <span class="n">object_hook</span><span class="o">=</span><span class="n">object_hook</span><span class="p">,</span>
+        <span class="n">parse_float</span><span class="o">=</span><span class="n">parse_float</span><span class="p">,</span>
+        <span class="n">parse_int</span><span class="o">=</span><span class="n">parse_int</span><span class="p">,</span>
+        <span class="n">parse_constant</span><span class="o">=</span><span class="n">parse_constant</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kw</span>
     <span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">_convert_unicode_keys_to_string</span><span class="p">(</span><span class="n">loaded_value</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">ensure_contains_str</span><span class="p">(</span><span class="n">loaded_value</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -271,7 +280,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Autodesk.
+        &copy; Copyright 2020, Autodesk.
 
     </p>
   </div> 
@@ -292,7 +301,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.172',
+            VERSION:'v0.19.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

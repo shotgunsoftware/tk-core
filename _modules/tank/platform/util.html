@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.util &mdash; tk-core v0.18.172 documentation</title>
+  <title>tank.platform.util &mdash; tk-core v0.19.1 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.172 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.19.1 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.172.<br>
+    <b>tk-core</b> v0.19.1.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -372,7 +372,10 @@
     <span class="n">current_bundle</span> <span class="o">=</span> <span class="n">_get_current_bundle</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">framework</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">current_bundle</span><span class="o">.</span><span class="n">frameworks</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;import_framework: </span><span class="si">%s</span><span class="s2"> does not have a framework </span><span class="si">%s</span><span class="s2"> associated!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_bundle</span><span class="p">,</span> <span class="n">framework</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+            <span class="s2">&quot;import_framework: </span><span class="si">%s</span><span class="s2"> does not have a framework </span><span class="si">%s</span><span class="s2"> associated!&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">current_bundle</span><span class="p">,</span> <span class="n">framework</span><span class="p">)</span>
+        <span class="p">)</span>
 
     <span class="n">fw</span> <span class="o">=</span> <span class="n">current_bundle</span><span class="o">.</span><span class="n">frameworks</span><span class="p">[</span><span class="n">framework</span><span class="p">]</span>
 
@@ -406,7 +409,10 @@
     <span class="n">current_bundle</span> <span class="o">=</span> <span class="n">_get_current_bundle</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">framework</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">current_bundle</span><span class="o">.</span><span class="n">frameworks</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;import_framework: </span><span class="si">%s</span><span class="s2"> does not have a framework </span><span class="si">%s</span><span class="s2"> associated!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">current_bundle</span><span class="p">,</span> <span class="n">framework</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+            <span class="s2">&quot;import_framework: </span><span class="si">%s</span><span class="s2"> does not have a framework </span><span class="si">%s</span><span class="s2"> associated!&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="n">current_bundle</span><span class="p">,</span> <span class="n">framework</span><span class="p">)</span>
+        <span class="p">)</span>
 
     <span class="n">fw</span> <span class="o">=</span> <span class="n">current_bundle</span><span class="o">.</span><span class="n">frameworks</span><span class="p">[</span><span class="n">framework</span><span class="p">]</span>
 
@@ -453,7 +459,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Autodesk.
+        &copy; Copyright 2020, Autodesk.
 
     </p>
   </div> 
@@ -474,7 +480,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.172',
+            VERSION:'v0.19.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

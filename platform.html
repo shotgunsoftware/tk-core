@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.18.172 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.19.1 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.172 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.19.1 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Core" href="core.html"/> 
 
@@ -173,7 +173,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.172.<br>
+    <b>tk-core</b> v0.19.1.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -349,7 +349,7 @@ environment determined for the context by pick environment hook.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of dictionaries containing the engine name, 
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of dictionaries containing the engine name,
 application name and settings for any matching
 applications that are found and that have valid
 settings</p>
@@ -543,7 +543,7 @@ behavior.</p>
 <dl class="method">
 <dt id="sgtk.platform.Engine._create_dialog">
 <code class="descname">_create_dialog</code><span class="sig-paren">(</span><em>title</em>, <em>bundle</em>, <em>widget</em>, <em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._create_dialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine._create_dialog" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a TankQDialog with the specified widget embedded. This also connects to the 
+<dd><p>Create a TankQDialog with the specified widget embedded. This also connects to the
 dialogs dialog_closed event so that it can clean up when the dialog is closed.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -567,7 +567,7 @@ dialogs dialog_closed event so that it can clean up when the dialog is closed.</
 <dl class="method">
 <dt id="sgtk.platform.Engine._create_dialog_with_widget">
 <code class="descname">_create_dialog_with_widget</code><span class="sig-paren">(</span><em>title</em>, <em>bundle</em>, <em>widget_class</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._create_dialog_with_widget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine._create_dialog_with_widget" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convenience method to create an sgtk TankQDialog with a widget instantiated from 
+<dd><p>Convenience method to create an sgtk TankQDialog with a widget instantiated from
 widget_class embedded in the main section.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -592,8 +592,8 @@ widget_class embedded in the main section.</p>
 <dl class="method">
 <dt id="sgtk.platform.Engine._create_widget">
 <code class="descname">_create_widget</code><span class="sig-paren">(</span><em>widget_class</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._create_widget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine._create_widget" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create an instance of the specified widget_class.  This wraps the widget_class so that 
-the TankQDialog it is embedded in can connect to it more easily in order to handle the 
+<dd><p>Create an instance of the specified widget_class.  This wraps the widget_class so that
+the TankQDialog it is embedded in can connect to it more easily in order to handle the
 close event.</p>
 <p>When overriding in a derived engine, be sure to call the base implementations of
 <a class="reference internal" href="#sgtk.platform.Engine._create_widget" title="sgtk.platform.Engine._create_widget"><code class="xref py py-meth docutils literal"><span class="pre">_create_widget()</span></code></a> and <a class="reference internal" href="#sgtk.platform.Engine._create_dialog" title="sgtk.platform.Engine._create_dialog"><code class="xref py py-meth docutils literal"><span class="pre">_create_dialog()</span></code></a> to ensure that all
@@ -733,7 +733,7 @@ criteria:</p>
 <dt id="sgtk.platform.Engine._get_dialog_parent">
 <code class="descname">_get_dialog_parent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine._get_dialog_parent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine._get_dialog_parent" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the QWidget parent for all dialogs created through <a class="reference internal" href="#sgtk.platform.Engine.show_dialog" title="sgtk.platform.Engine.show_dialog"><code class="xref py py-meth docutils literal"><span class="pre">show_dialog()</span></code></a> <a class="reference internal" href="#sgtk.platform.Engine.show_modal" title="sgtk.platform.Engine.show_modal"><code class="xref py py-meth docutils literal"><span class="pre">show_modal()</span></code></a>.</p>
-<p>Can be overriden in derived classes to return the QWidget to be used as the parent 
+<p>Can be overriden in derived classes to return the QWidget to be used as the parent
 for all TankQDialog&#8217;s.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -751,10 +751,10 @@ for all TankQDialog&#8217;s.</p>
 <dd><p>Initializes a standard toolkit look and feel using a combination of
 QPalette and stylesheets.</p>
 <p>If your engine is running inside an environment which already has
-a dark style defined, do not call this method. The Toolkit apps are 
+a dark style defined, do not call this method. The Toolkit apps are
 designed to work well with most dark themes.</p>
 <p>However, if you are for example creating your own QApplication instance
-you can execute this method to put the session into Toolkit&#8217;s 
+you can execute this method to put the session into Toolkit&#8217;s
 standard dark mode.</p>
 <p>This will initialize the plastique style (for Qt4) or the fusion style
 (for Qt5), and set it up with a standard dark palette and supporting
@@ -942,7 +942,7 @@ with keys &#8216;callback&#8217; and &#8216;properties&#8217;</td>
 <dt id="sgtk.platform.Engine.has_ui">
 <code class="descname">has_ui</code><a class="headerlink" href="#sgtk.platform.Engine.has_ui" title="Permalink to this definition">¶</a></dt>
 <dd><p>Indicates that the host application that the engine is connected to has a UI enabled.
-This always returns False for some engines (such as the shell engine) and may vary 
+This always returns False for some engines (such as the shell engine) and may vary
 for some engines, depending if the host application for example is in batch mode or
 UI mode.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1020,10 +1020,10 @@ to be forwarded to SG.</td>
 <dt id="sgtk.platform.Engine.host_info">
 <code class="descname">host_info</code><a class="headerlink" href="#sgtk.platform.Engine.host_info" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns information about the application hosting this engine.</p>
-<p>This should be re-implemented in deriving classes to handle the logic 
+<p>This should be re-implemented in deriving classes to handle the logic
 specific to the application the engine is designed for.</p>
 <p>A dictionary with at least a &#8220;name&#8221; and a &#8220;version&#8221; key should be returned
-by derived implementations, with respectively the host application name 
+by derived implementations, with respectively the host application name
 and its release string as values, e.g. <code class="docutils literal"><span class="pre">{</span> <span class="pre">&quot;name&quot;:</span> <span class="pre">&quot;Maya&quot;,</span> <span class="pre">&quot;version&quot;:</span> <span class="pre">&quot;2017.3&quot;}</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1254,12 +1254,12 @@ register_command is called from the <a class="reference internal" href="#sgtk.pl
 <dd><p>Similar to <a class="reference internal" href="#sgtk.platform.Engine.register_command" title="sgtk.platform.Engine.register_command"><code class="xref py py-meth docutils literal"><span class="pre">register_command()</span></code></a>, but instead of registering a menu item in the form of a
 command, this method registers a UI panel. A register_panel call should
 be used in conjunction with a register_command call.</p>
-<p>Panels need to be registered if they should persist between DCC sessions (e.g. 
+<p>Panels need to be registered if they should persist between DCC sessions (e.g.
 for example &#8216;saved layouts&#8217;).</p>
 <p>Just like with the <a class="reference internal" href="#sgtk.platform.Engine.register_command" title="sgtk.platform.Engine.register_command"><code class="xref py py-meth docutils literal"><span class="pre">register_command()</span></code></a> method, panel registration should be executed
 from within the init phase of the app. Once a panel has been registered, it is possible
 for the engine to correctly restore panel UIs at startup and profile switches.</p>
-<p>Not all engines support this feature, but in for example Nuke, a panel can be added to 
+<p>Not all engines support this feature, but in for example Nuke, a panel can be added to
 a saved layout. Apps wanting to be able to take advantage of the persistence given by
 these saved layouts will need to call register_panel as part of their init_app phase.</p>
 <p>In order to show or focus on a panel, use the <a class="reference internal" href="#sgtk.platform.Engine.show_panel" title="sgtk.platform.Engine.show_panel"><code class="xref py py-meth docutils literal"><span class="pre">show_panel()</span></code></a> method instead.</p>
@@ -1269,13 +1269,13 @@ these saved layouts will need to call register_panel as part of their init_app p
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>callback</strong> &#8211; Callback to a factory method that creates the panel and returns a panel widget.</li>
-<li><strong>panel_name</strong> &#8211; A string to distinguish this panel from other panels created by 
+<li><strong>panel_name</strong> &#8211; A string to distinguish this panel from other panels created by
 the app. This will be used as part of the unique id for the panel.</li>
 <li><strong>properties</strong> &#8211; Properties dictionary. Reserved for future use.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A unique identifier that can be used to consistently identify the 
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A unique identifier that can be used to consistently identify the
 panel across sessions. This identifier should be used to identify the panel
 in all subsequent calls, e.g. for example <a class="reference internal" href="#sgtk.platform.Engine.show_panel" title="sgtk.platform.Engine.show_panel"><code class="xref py py-meth docutils literal"><span class="pre">show_panel()</span></code></a>.</p>
 </td>
@@ -1484,14 +1484,14 @@ instead sublcass <a class="reference internal" href="#sgtk.platform.Engine._emit
 <dt id="sgtk.platform.Engine.get_debug_tracked_qt_widgets">
 <code class="descname">get_debug_tracked_qt_widgets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.get_debug_tracked_qt_widgets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.get_debug_tracked_qt_widgets" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a dictionary of debug info about created Qt dialogs and widgets.</p>
-<p>The keys of the dictionary are the string representation of a widget and the 
+<p>The keys of the dictionary are the string representation of a widget and the
 corresponding value is a reference to that widget.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sgtk.platform.Engine.show_dialog">
 <code class="descname">show_dialog</code><span class="sig-paren">(</span><em>title</em>, <em>bundle</em>, <em>widget_class</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.show_dialog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.show_dialog" title="Permalink to this definition">¶</a></dt>
-<dd><p>Shows a non-modal dialog window in a way suitable for this engine. 
+<dd><p>Shows a non-modal dialog window in a way suitable for this engine.
 The engine will attempt to parent the dialog nicely to the host application.
 The dialog will be created with a standard Toolkit window title bar where
 the title will be displayed.</p>
@@ -1556,7 +1556,7 @@ to override any of these methods (e.g. the tk-nuke engine).</p>
 <dt id="sgtk.platform.Engine.show_modal">
 <code class="descname">show_modal</code><span class="sig-paren">(</span><em>title</em>, <em>bundle</em>, <em>widget_class</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.show_modal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.show_modal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shows a modal dialog window in a way suitable for this engine. The engine will attempt to
-integrate it as seamlessly as possible into the host application. This call is blocking 
+integrate it as seamlessly as possible into the host application. This call is blocking
 until the user closes the dialog.
 The dialog will be created with a standard Toolkit window title bar where
 the title will be displayed.</p>
@@ -1600,10 +1600,10 @@ displaying:</p>
 <dt id="sgtk.platform.Engine.show_panel">
 <code class="descname">show_panel</code><span class="sig-paren">(</span><em>panel_id</em>, <em>title</em>, <em>bundle</em>, <em>widget_class</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/engine.html#Engine.show_panel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.Engine.show_panel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shows a panel in a way suitable for this engine. Engines should attempt to
-integrate panel support as seamlessly as possible into the host application. 
+integrate panel support as seamlessly as possible into the host application.
 Some engines have extensive panel support and workflows, others have none at all.</p>
-<p>If the engine does not specifically implement panel support, the window will 
-be shown as a modeless dialog instead and the call is equivalent to 
+<p>If the engine does not specifically implement panel support, the window will
+be shown as a modeless dialog instead and the call is equivalent to
 calling <a class="reference internal" href="#sgtk.platform.Engine.show_dialog" title="sgtk.platform.Engine.show_dialog"><code class="xref py py-meth docutils literal"><span class="pre">show_dialog()</span></code></a>.</p>
 <p>The dialog will be created with a standard Toolkit window title bar where
 the title will be displayed.</p>
@@ -1825,9 +1825,9 @@ method_name parameter set to &#8220;execute&#8221;.</p>
 all new hooks, we recommend using <a class="reference internal" href="#sgtk.platform.Engine.execute_hook_method" title="sgtk.platform.Engine.execute_hook_method"><code class="xref py py-meth docutils literal"><span class="pre">execute_hook_method()</span></code></a>
 instead.</p>
 </div>
-<p>You simply pass the name of the hook setting that you want to execute and 
+<p>You simply pass the name of the hook setting that you want to execute and
 the accompanying arguments, and toolkit will find the correct hook file based
-on the currently configured setting and then execute the execute() method for 
+on the currently configured setting and then execute the execute() method for
 that hook.</p>
 <p>An optional <code class="docutils literal"><span class="pre">base_class</span></code> can be provided to override the default <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a>
 base class. This is useful for bundles that want to define and document a strict
@@ -1860,7 +1860,7 @@ hook. This will override the default hook base class, <code class="docutils lite
 <dd><p>Execute an arbitrary hook located in the hooks folder for this project.
 The hook_name is the name of the python file in which the hook resides,
 without the file extension.</p>
-<p>In most use cases, the execute_hook method is the preferred way to 
+<p>In most use cases, the execute_hook method is the preferred way to
 access a hook from an app.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -1889,11 +1889,11 @@ user defined pre-publish validation hooks.</p>
 <code class="descname">execute_hook_expression</code><span class="sig-paren">(</span><em>hook_expression</em>, <em>method_name</em>, <em>base_class=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Engine.execute_hook_expression" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute an arbitrary hook via an expression. While the methods execute_hook
 and execute_hook_method allows you to execute a particular hook setting as
-specified in the app configuration manifest, this methods allows you to 
-execute a hook directly by passing a hook expression, for example 
+specified in the app configuration manifest, this methods allows you to
+execute a hook directly by passing a hook expression, for example
 <code class="docutils literal"><span class="pre">{config}/path/to/my_hook.py</span></code></p>
 <p>This is useful if you are doing rapid app development and don&#8217;t necessarily
-want to expose a hook as a configuration setting just yet. It is also useful 
+want to expose a hook as a configuration setting just yet. It is also useful
 if you have app settings that are nested deep inside of lists or dictionaries.
 In that case, you cannot use execute_hook, but instead will have to retrieve
 the value specifically and then run it.</p>
@@ -1926,11 +1926,11 @@ hook. This will override the default hook base class, <code class="docutils lite
 <dl class="method">
 <dt id="sgtk.platform.Engine.execute_hook_method">
 <code class="descname">execute_hook_method</code><span class="sig-paren">(</span><em>key</em>, <em>method_name</em>, <em>base_class=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Engine.execute_hook_method" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute a specific method in a hook that is part of the 
+<dd><p>Execute a specific method in a hook that is part of the
 environment configuration for the current bundle.</p>
-<p>You simply pass the name of the hook setting that you want to execute, the 
-name of the method you want to execute and the accompanying arguments. 
-Toolkit will find the correct hook file based on the currently configured 
+<p>You simply pass the name of the hook setting that you want to execute, the
+name of the method you want to execute and the accompanying arguments.
+Toolkit will find the correct hook file based on the currently configured
 setting and then execute the specified method.</p>
 <p>Hooks form a flexible way to extend and make toolkit apps or engines configurable.
 A hook acts like a setting in that it needs to be configured as part of the app&#8217;s
@@ -2033,7 +2033,7 @@ hook. This will override the default hook base class, <code class="docutils lite
 <dt id="sgtk.platform.Engine.get_template">
 <code class="descname">get_template</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Engine.get_template" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a template object for a particular template setting in the Framework configuration.
-This method will look at the app configuration, determine which template is being referred to 
+This method will look at the app configuration, determine which template is being referred to
 in the setting, go into the main platform Template API and fetch that particular template object.</p>
 <p>This is a convenience method. Shorthand for <code class="docutils literal"><span class="pre">self.sgtk.templates[</span> <span class="pre">self.get_setting(key)</span> <span class="pre">]</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -2051,13 +2051,13 @@ in the setting, go into the main platform Template API and fetch that particular
 <dl class="method">
 <dt id="sgtk.platform.Engine.get_template_by_name">
 <code class="descname">get_template_by_name</code><span class="sig-paren">(</span><em>template_name</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Engine.get_template_by_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Note: This is for advanced use cases - Most of the time you should probably use 
+<dd><p>Note: This is for advanced use cases - Most of the time you should probably use
 <a class="reference internal" href="#sgtk.platform.Engine.get_template" title="sgtk.platform.Engine.get_template"><code class="xref py py-meth docutils literal"><span class="pre">get_template()</span></code></a>. Find a particular template, the way it is named in the master
 config file <code class="docutils literal"><span class="pre">templates.yml</span></code>. This method will access the master templates file
-directly and pull out a specifically named template without using the app config. 
-Note that using this method may result in code which is less portable across 
-studios, since it makes assumptions about how templates are named and defined in 
-the master config. Generally speaking, it is often better to access templates using 
+directly and pull out a specifically named template without using the app config.
+Note that using this method may result in code which is less portable across
+studios, since it makes assumptions about how templates are named and defined in
+the master config. Generally speaking, it is often better to access templates using
 the app configuration and the get_template() method.</p>
 <p>This is a convenience method. Shorthand for <code class="docutils literal"><span class="pre">self.sgtk.templates[template_name]</span></code>.</p>
 <p>:param template_name
@@ -2186,17 +2186,17 @@ sessions and can be shared across a site:</p>
 <code class="descname">style_constants</code><a class="headerlink" href="#sgtk.platform.Engine.style_constants" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a dictionary of style constants. These can be used to build
 UIs using standard colors and other style components. All keys returned
-in this dictionary can also be used inside a style.qss that lives 
-at the root level of the app, engine or framework. Use a 
+in this dictionary can also be used inside a style.qss that lives
+at the root level of the app, engine or framework. Use a
 <code class="docutils literal"><span class="pre">{{DOUBLE_BACKET}}</span></code> syntax in the stylesheet file, for example:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">QWidget</span>
-<span class="p">{</span> 
+<span class="p">{</span>
     <span class="n">color</span><span class="p">:</span> <span class="p">{{</span><span class="n">SG_FOREGROUND_COLOR</span><span class="p">}};</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>This property returns the values for all constants, for example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span> 
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s2">&quot;SG_HIGHLIGHT_COLOR&quot;</span><span class="p">:</span> <span class="s2">&quot;#18A7E3&quot;</span><span class="p">,</span>
   <span class="s2">&quot;SG_ALERT_COLOR&quot;</span><span class="p">:</span> <span class="s2">&quot;#FC6246&quot;</span><span class="p">,</span>
   <span class="s2">&quot;SG_FOREGROUND_COLOR&quot;</span><span class="p">:</span> <span class="s2">&quot;#C8C8C8&quot;</span>
@@ -2757,9 +2757,9 @@ method_name parameter set to &#8220;execute&#8221;.</p>
 all new hooks, we recommend using <a class="reference internal" href="#sgtk.platform.Application.execute_hook_method" title="sgtk.platform.Application.execute_hook_method"><code class="xref py py-meth docutils literal"><span class="pre">execute_hook_method()</span></code></a>
 instead.</p>
 </div>
-<p>You simply pass the name of the hook setting that you want to execute and 
+<p>You simply pass the name of the hook setting that you want to execute and
 the accompanying arguments, and toolkit will find the correct hook file based
-on the currently configured setting and then execute the execute() method for 
+on the currently configured setting and then execute the execute() method for
 that hook.</p>
 <p>An optional <code class="docutils literal"><span class="pre">base_class</span></code> can be provided to override the default <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a>
 base class. This is useful for bundles that want to define and document a strict
@@ -2792,7 +2792,7 @@ hook. This will override the default hook base class, <code class="docutils lite
 <dd><p>Execute an arbitrary hook located in the hooks folder for this project.
 The hook_name is the name of the python file in which the hook resides,
 without the file extension.</p>
-<p>In most use cases, the execute_hook method is the preferred way to 
+<p>In most use cases, the execute_hook method is the preferred way to
 access a hook from an app.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -2821,11 +2821,11 @@ user defined pre-publish validation hooks.</p>
 <code class="descname">execute_hook_expression</code><span class="sig-paren">(</span><em>hook_expression</em>, <em>method_name</em>, <em>base_class=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Application.execute_hook_expression" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute an arbitrary hook via an expression. While the methods execute_hook
 and execute_hook_method allows you to execute a particular hook setting as
-specified in the app configuration manifest, this methods allows you to 
-execute a hook directly by passing a hook expression, for example 
+specified in the app configuration manifest, this methods allows you to
+execute a hook directly by passing a hook expression, for example
 <code class="docutils literal"><span class="pre">{config}/path/to/my_hook.py</span></code></p>
 <p>This is useful if you are doing rapid app development and don&#8217;t necessarily
-want to expose a hook as a configuration setting just yet. It is also useful 
+want to expose a hook as a configuration setting just yet. It is also useful
 if you have app settings that are nested deep inside of lists or dictionaries.
 In that case, you cannot use execute_hook, but instead will have to retrieve
 the value specifically and then run it.</p>
@@ -2858,11 +2858,11 @@ hook. This will override the default hook base class, <code class="docutils lite
 <dl class="method">
 <dt id="sgtk.platform.Application.execute_hook_method">
 <code class="descname">execute_hook_method</code><span class="sig-paren">(</span><em>key</em>, <em>method_name</em>, <em>base_class=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Application.execute_hook_method" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute a specific method in a hook that is part of the 
+<dd><p>Execute a specific method in a hook that is part of the
 environment configuration for the current bundle.</p>
-<p>You simply pass the name of the hook setting that you want to execute, the 
-name of the method you want to execute and the accompanying arguments. 
-Toolkit will find the correct hook file based on the currently configured 
+<p>You simply pass the name of the hook setting that you want to execute, the
+name of the method you want to execute and the accompanying arguments.
+Toolkit will find the correct hook file based on the currently configured
 setting and then execute the specified method.</p>
 <p>Hooks form a flexible way to extend and make toolkit apps or engines configurable.
 A hook acts like a setting in that it needs to be configured as part of the app&#8217;s
@@ -2965,7 +2965,7 @@ hook. This will override the default hook base class, <code class="docutils lite
 <dt id="sgtk.platform.Application.get_template">
 <code class="descname">get_template</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Application.get_template" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a template object for a particular template setting in the Framework configuration.
-This method will look at the app configuration, determine which template is being referred to 
+This method will look at the app configuration, determine which template is being referred to
 in the setting, go into the main platform Template API and fetch that particular template object.</p>
 <p>This is a convenience method. Shorthand for <code class="docutils literal"><span class="pre">self.sgtk.templates[</span> <span class="pre">self.get_setting(key)</span> <span class="pre">]</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -2983,13 +2983,13 @@ in the setting, go into the main platform Template API and fetch that particular
 <dl class="method">
 <dt id="sgtk.platform.Application.get_template_by_name">
 <code class="descname">get_template_by_name</code><span class="sig-paren">(</span><em>template_name</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Application.get_template_by_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Note: This is for advanced use cases - Most of the time you should probably use 
+<dd><p>Note: This is for advanced use cases - Most of the time you should probably use
 <a class="reference internal" href="#sgtk.platform.Application.get_template" title="sgtk.platform.Application.get_template"><code class="xref py py-meth docutils literal"><span class="pre">get_template()</span></code></a>. Find a particular template, the way it is named in the master
 config file <code class="docutils literal"><span class="pre">templates.yml</span></code>. This method will access the master templates file
-directly and pull out a specifically named template without using the app config. 
-Note that using this method may result in code which is less portable across 
-studios, since it makes assumptions about how templates are named and defined in 
-the master config. Generally speaking, it is often better to access templates using 
+directly and pull out a specifically named template without using the app config.
+Note that using this method may result in code which is less portable across
+studios, since it makes assumptions about how templates are named and defined in
+the master config. Generally speaking, it is often better to access templates using
 the app configuration and the get_template() method.</p>
 <p>This is a convenience method. Shorthand for <code class="docutils literal"><span class="pre">self.sgtk.templates[template_name]</span></code>.</p>
 <p>:param template_name
@@ -3118,17 +3118,17 @@ sessions and can be shared across a site:</p>
 <code class="descname">style_constants</code><a class="headerlink" href="#sgtk.platform.Application.style_constants" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a dictionary of style constants. These can be used to build
 UIs using standard colors and other style components. All keys returned
-in this dictionary can also be used inside a style.qss that lives 
-at the root level of the app, engine or framework. Use a 
+in this dictionary can also be used inside a style.qss that lives
+at the root level of the app, engine or framework. Use a
 <code class="docutils literal"><span class="pre">{{DOUBLE_BACKET}}</span></code> syntax in the stylesheet file, for example:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">QWidget</span>
-<span class="p">{</span> 
+<span class="p">{</span>
     <span class="n">color</span><span class="p">:</span> <span class="p">{{</span><span class="n">SG_FOREGROUND_COLOR</span><span class="p">}};</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>This property returns the values for all constants, for example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span> 
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s2">&quot;SG_HIGHLIGHT_COLOR&quot;</span><span class="p">:</span> <span class="s2">&quot;#18A7E3&quot;</span><span class="p">,</span>
   <span class="s2">&quot;SG_ALERT_COLOR&quot;</span><span class="p">:</span> <span class="s2">&quot;#FC6246&quot;</span><span class="p">,</span>
   <span class="s2">&quot;SG_FOREGROUND_COLOR&quot;</span><span class="p">:</span> <span class="s2">&quot;#C8C8C8&quot;</span>
@@ -3638,9 +3638,9 @@ method_name parameter set to &#8220;execute&#8221;.</p>
 all new hooks, we recommend using <a class="reference internal" href="#sgtk.platform.Framework.execute_hook_method" title="sgtk.platform.Framework.execute_hook_method"><code class="xref py py-meth docutils literal"><span class="pre">execute_hook_method()</span></code></a>
 instead.</p>
 </div>
-<p>You simply pass the name of the hook setting that you want to execute and 
+<p>You simply pass the name of the hook setting that you want to execute and
 the accompanying arguments, and toolkit will find the correct hook file based
-on the currently configured setting and then execute the execute() method for 
+on the currently configured setting and then execute the execute() method for
 that hook.</p>
 <p>An optional <code class="docutils literal"><span class="pre">base_class</span></code> can be provided to override the default <a class="reference internal" href="core.html#sgtk.Hook" title="sgtk.Hook"><code class="xref py py-class docutils literal"><span class="pre">Hook</span></code></a>
 base class. This is useful for bundles that want to define and document a strict
@@ -3673,7 +3673,7 @@ hook. This will override the default hook base class, <code class="docutils lite
 <dd><p>Execute an arbitrary hook located in the hooks folder for this project.
 The hook_name is the name of the python file in which the hook resides,
 without the file extension.</p>
-<p>In most use cases, the execute_hook method is the preferred way to 
+<p>In most use cases, the execute_hook method is the preferred way to
 access a hook from an app.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -3702,11 +3702,11 @@ user defined pre-publish validation hooks.</p>
 <code class="descname">execute_hook_expression</code><span class="sig-paren">(</span><em>hook_expression</em>, <em>method_name</em>, <em>base_class=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Framework.execute_hook_expression" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute an arbitrary hook via an expression. While the methods execute_hook
 and execute_hook_method allows you to execute a particular hook setting as
-specified in the app configuration manifest, this methods allows you to 
-execute a hook directly by passing a hook expression, for example 
+specified in the app configuration manifest, this methods allows you to
+execute a hook directly by passing a hook expression, for example
 <code class="docutils literal"><span class="pre">{config}/path/to/my_hook.py</span></code></p>
 <p>This is useful if you are doing rapid app development and don&#8217;t necessarily
-want to expose a hook as a configuration setting just yet. It is also useful 
+want to expose a hook as a configuration setting just yet. It is also useful
 if you have app settings that are nested deep inside of lists or dictionaries.
 In that case, you cannot use execute_hook, but instead will have to retrieve
 the value specifically and then run it.</p>
@@ -3739,11 +3739,11 @@ hook. This will override the default hook base class, <code class="docutils lite
 <dl class="method">
 <dt id="sgtk.platform.Framework.execute_hook_method">
 <code class="descname">execute_hook_method</code><span class="sig-paren">(</span><em>key</em>, <em>method_name</em>, <em>base_class=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Framework.execute_hook_method" title="Permalink to this definition">¶</a></dt>
-<dd><p>Execute a specific method in a hook that is part of the 
+<dd><p>Execute a specific method in a hook that is part of the
 environment configuration for the current bundle.</p>
-<p>You simply pass the name of the hook setting that you want to execute, the 
-name of the method you want to execute and the accompanying arguments. 
-Toolkit will find the correct hook file based on the currently configured 
+<p>You simply pass the name of the hook setting that you want to execute, the
+name of the method you want to execute and the accompanying arguments.
+Toolkit will find the correct hook file based on the currently configured
 setting and then execute the specified method.</p>
 <p>Hooks form a flexible way to extend and make toolkit apps or engines configurable.
 A hook acts like a setting in that it needs to be configured as part of the app&#8217;s
@@ -3846,7 +3846,7 @@ hook. This will override the default hook base class, <code class="docutils lite
 <dt id="sgtk.platform.Framework.get_template">
 <code class="descname">get_template</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Framework.get_template" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a template object for a particular template setting in the Framework configuration.
-This method will look at the app configuration, determine which template is being referred to 
+This method will look at the app configuration, determine which template is being referred to
 in the setting, go into the main platform Template API and fetch that particular template object.</p>
 <p>This is a convenience method. Shorthand for <code class="docutils literal"><span class="pre">self.sgtk.templates[</span> <span class="pre">self.get_setting(key)</span> <span class="pre">]</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -3864,13 +3864,13 @@ in the setting, go into the main platform Template API and fetch that particular
 <dl class="method">
 <dt id="sgtk.platform.Framework.get_template_by_name">
 <code class="descname">get_template_by_name</code><span class="sig-paren">(</span><em>template_name</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.platform.Framework.get_template_by_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Note: This is for advanced use cases - Most of the time you should probably use 
+<dd><p>Note: This is for advanced use cases - Most of the time you should probably use
 <a class="reference internal" href="#sgtk.platform.Framework.get_template" title="sgtk.platform.Framework.get_template"><code class="xref py py-meth docutils literal"><span class="pre">get_template()</span></code></a>. Find a particular template, the way it is named in the master
 config file <code class="docutils literal"><span class="pre">templates.yml</span></code>. This method will access the master templates file
-directly and pull out a specifically named template without using the app config. 
-Note that using this method may result in code which is less portable across 
-studios, since it makes assumptions about how templates are named and defined in 
-the master config. Generally speaking, it is often better to access templates using 
+directly and pull out a specifically named template without using the app config.
+Note that using this method may result in code which is less portable across
+studios, since it makes assumptions about how templates are named and defined in
+the master config. Generally speaking, it is often better to access templates using
 the app configuration and the get_template() method.</p>
 <p>This is a convenience method. Shorthand for <code class="docutils literal"><span class="pre">self.sgtk.templates[template_name]</span></code>.</p>
 <p>:param template_name
@@ -3999,17 +3999,17 @@ sessions and can be shared across a site:</p>
 <code class="descname">style_constants</code><a class="headerlink" href="#sgtk.platform.Framework.style_constants" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a dictionary of style constants. These can be used to build
 UIs using standard colors and other style components. All keys returned
-in this dictionary can also be used inside a style.qss that lives 
-at the root level of the app, engine or framework. Use a 
+in this dictionary can also be used inside a style.qss that lives
+at the root level of the app, engine or framework. Use a
 <code class="docutils literal"><span class="pre">{{DOUBLE_BACKET}}</span></code> syntax in the stylesheet file, for example:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">QWidget</span>
-<span class="p">{</span> 
+<span class="p">{</span>
     <span class="n">color</span><span class="p">:</span> <span class="p">{{</span><span class="n">SG_FOREGROUND_COLOR</span><span class="p">}};</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>This property returns the values for all constants, for example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span> 
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s2">&quot;SG_HIGHLIGHT_COLOR&quot;</span><span class="p">:</span> <span class="s2">&quot;#18A7E3&quot;</span><span class="p">,</span>
   <span class="s2">&quot;SG_ALERT_COLOR&quot;</span><span class="p">:</span> <span class="s2">&quot;#FC6246&quot;</span><span class="p">,</span>
   <span class="s2">&quot;SG_FOREGROUND_COLOR&quot;</span><span class="p">:</span> <span class="s2">&quot;#C8C8C8&quot;</span>
@@ -4815,7 +4815,7 @@ especially when the contained widget is quite small. To hide the title bar, just
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Autodesk.
+        &copy; Copyright 2020, Autodesk.
 
     </p>
   </div> 
@@ -4836,7 +4836,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.18.172',
+            VERSION:'v0.19.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

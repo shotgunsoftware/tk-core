@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.hook &mdash; tk-core v0.18.172 documentation</title>
+  <title>tank.hook &mdash; tk-core v0.19.1 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.172 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.19.1 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.172.<br>
+    <b>tk-core</b> v0.19.1.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -187,7 +187,6 @@
 <span class="sd">Defines the base class for all Tank Hooks.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
@@ -444,6 +443,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># avoid cyclic refs</span>
         <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">resolve_publish_path</span>
+
         <span class="k">return</span> <span class="n">resolve_publish_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sgtk</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">get_publish_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sg_publish_data_list</span><span class="p">):</span>
@@ -468,6 +468,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># avoid cyclic refs</span>
         <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">resolve_publish_path</span>
+
         <span class="n">paths</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">sg_publish_data</span> <span class="ow">in</span> <span class="n">sg_publish_data_list</span><span class="p">:</span>
             <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">resolve_publish_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sgtk</span><span class="p">,</span> <span class="n">sg_publish_data</span><span class="p">))</span>
@@ -618,13 +619,18 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># avoid circular refs</span>
         <span class="kn">from</span> <span class="nn">.platform</span> <span class="kn">import</span> <span class="n">framework</span>
+
         <span class="k">try</span><span class="p">:</span>
             <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parent</span><span class="o">.</span><span class="n">engine</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Cannot load framework </span><span class="si">%s</span><span class="s2"> for </span><span class="si">%r</span><span class="s2"> - it does not have a &quot;</span>
-                            <span class="s2">&quot;valid engine property!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">framework_instance_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parent</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
+                <span class="s2">&quot;Cannot load framework </span><span class="si">%s</span><span class="s2"> for </span><span class="si">%r</span><span class="s2"> - it does not have a &quot;</span>
+                <span class="s2">&quot;valid engine property!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">framework_instance_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parent</span><span class="p">)</span>
+            <span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">framework</span><span class="o">.</span><span class="n">load_framework</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">engine</span><span class="o">.</span><span class="n">get_env</span><span class="p">(),</span> <span class="n">framework_instance_name</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">framework</span><span class="o">.</span><span class="n">load_framework</span><span class="p">(</span>
+            <span class="n">engine</span><span class="p">,</span> <span class="n">engine</span><span class="o">.</span><span class="n">get_env</span><span class="p">(),</span> <span class="n">framework_instance_name</span>
+        <span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -632,12 +638,14 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">None</span></div>
 
+
 <span class="k">class</span> <span class="nc">_HooksCache</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A thread-safe cache of loaded hooks.  This uses the hook file path</span>
 <span class="sd">    and base class as the key to cache all hooks loaded by Toolkit in</span>
 <span class="sd">    the current session.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Construction</span>
@@ -653,6 +661,7 @@
 <span class="sd">        :param func:    The function to wrap</span>
 <span class="sd">        :returns:       The return value from func</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">def</span> <span class="nf">inner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Decorator inner function - executes the function within a lock.</span>
@@ -664,6 +673,7 @@
                 <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="k">finally</span><span class="p">:</span>
                 <span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+
         <span class="k">return</span> <span class="n">inner</span>
 
     <span class="nd">@thread_exclusive</span>
@@ -709,14 +719,17 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">)</span>
 
+
 <span class="n">_hooks_cache</span> <span class="o">=</span> <span class="n">_HooksCache</span><span class="p">()</span>
 <span class="n">_current_hook_baseclass</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">local</span><span class="p">()</span>
+
 
 <span class="k">def</span> <span class="nf">clear_hooks_cache</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Clears the cache where tank keeps hook classes</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_hooks_cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
 
 <span class="k">def</span> <span class="nf">execute_hook</span><span class="p">(</span><span class="n">hook_path</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -847,7 +860,8 @@
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">hook_path</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">TankFileDoesNotExistError</span><span class="p">(</span>
-                <span class="s2">&quot;Cannot execute hook &#39;</span><span class="si">%s</span><span class="s2">&#39; - this file does not exist on disk!&quot;</span> <span class="o">%</span> <span class="n">hook_path</span>
+                <span class="s2">&quot;Cannot execute hook &#39;</span><span class="si">%s</span><span class="s2">&#39; - this file does not exist on disk!&quot;</span>
+                <span class="o">%</span> <span class="n">hook_path</span>
             <span class="p">)</span>
 
         <span class="c1"># look to see if we&#39;ve already loaded this hook into the cache</span>
@@ -868,15 +882,19 @@
             <span class="n">loaded_hook_class</span> <span class="o">=</span> <span class="n">load_plugin</span><span class="p">(</span>
                 <span class="n">hook_path</span><span class="p">,</span>
                 <span class="n">valid_base_class</span><span class="o">=</span><span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
-                <span class="n">alternate_base_classes</span><span class="o">=</span><span class="n">alternate_base_classes</span>
+                <span class="n">alternate_base_classes</span><span class="o">=</span><span class="n">alternate_base_classes</span><span class="p">,</span>
             <span class="p">)</span>
 
             <span class="c1"># add it to the cache...</span>
-            <span class="n">_hooks_cache</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">hook_path</span><span class="p">,</span> <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">loaded_hook_class</span><span class="p">)</span>
+            <span class="n">_hooks_cache</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="n">hook_path</span><span class="p">,</span> <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">loaded_hook_class</span>
+            <span class="p">)</span>
 
             <span class="c1"># ...and find it again - this is to avoid different threads ending up using</span>
             <span class="c1"># different instances of the loaded class.</span>
-            <span class="n">found_hook_class</span> <span class="o">=</span> <span class="n">_hooks_cache</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">hook_path</span><span class="p">,</span> <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">found_hook_class</span> <span class="o">=</span> <span class="n">_hooks_cache</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+                <span class="n">hook_path</span><span class="p">,</span> <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span>
+            <span class="p">)</span>
 
         <span class="c1"># keep track of the current base class:</span>
         <span class="n">_current_hook_baseclass</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">found_hook_class</span>
@@ -903,7 +921,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Autodesk.
+        &copy; Copyright 2020, Autodesk.
 
     </p>
   </div> 
@@ -924,7 +942,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.18.172',
+            VERSION:'v0.19.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

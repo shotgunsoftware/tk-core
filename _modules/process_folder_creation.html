@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>process_folder_creation &mdash; tk-core v0.18.172 documentation</title>
+  <title>process_folder_creation &mdash; tk-core v0.19.1 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.172 documentation" href="../index.html"/>
+    <link rel="top" title="tk-core v0.19.1 documentation" href="../index.html"/>
         <link rel="up" title="Module code" href="index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.172.<br>
+    <b>tk-core</b> v0.19.1.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -192,10 +192,11 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">six</span>
+<span class="kn">from</span> <span class="nn">tank.util</span> <span class="kn">import</span> <span class="n">is_windows</span>
 
 
 <div class="viewcode-block" id="ProcessFolderCreation"><a class="viewcode-back" href="../core.html#process_folder_creation.ProcessFolderCreation">[docs]</a><span class="k">class</span> <span class="nc">ProcessFolderCreation</span><span class="p">(</span><span class="n">Hook</span><span class="p">):</span>
-
 <div class="viewcode-block" id="ProcessFolderCreation.execute"><a class="viewcode-back" href="../core.html#process_folder_creation.ProcessFolderCreation.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">items</span><span class="p">,</span> <span class="n">preview_mode</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a list of files and folders.</span>
@@ -293,7 +294,7 @@
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
                         <span class="k">if</span> <span class="ow">not</span> <span class="n">preview_mode</span><span class="p">:</span>
                             <span class="c1"># create the folder using open permissions</span>
-                            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="mo">0777</span><span class="p">)</span>
+                            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="mi">0</span><span class="n">o777</span><span class="p">)</span>
                         <span class="n">locations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
                 <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;remote_entity_folder&quot;</span><span class="p">:</span>
@@ -324,7 +325,7 @@
 
                 <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;symlink&quot;</span><span class="p">:</span>
                     <span class="c1"># symbolic link</span>
-                    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">is_windows</span><span class="p">():</span>
                         <span class="c1"># no windows support</span>
                         <span class="k">continue</span>
                     <span class="n">path</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">)</span>
@@ -345,7 +346,7 @@
                             <span class="c1"># do a standard file copy</span>
                             <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="n">target_path</span><span class="p">)</span>
                             <span class="c1"># set permissions to open</span>
-                            <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">target_path</span><span class="p">,</span> <span class="mo">0666</span><span class="p">)</span>
+                            <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">target_path</span><span class="p">,</span> <span class="mi">0</span><span class="n">o666</span><span class="p">)</span>
                         <span class="n">locations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">target_path</span><span class="p">)</span>
 
                 <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;create_file&quot;</span><span class="p">:</span>
@@ -354,15 +355,15 @@
                     <span class="n">parent_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
                     <span class="n">content</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;content&quot;</span><span class="p">)</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">parent_folder</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">preview_mode</span><span class="p">:</span>
-                        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">parent_folder</span><span class="p">,</span> <span class="mo">0777</span><span class="p">)</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">parent_folder</span><span class="p">,</span> <span class="mi">0</span><span class="n">o777</span><span class="p">)</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
                         <span class="k">if</span> <span class="ow">not</span> <span class="n">preview_mode</span><span class="p">:</span>
                             <span class="c1"># create the file</span>
                             <span class="n">fp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
-                            <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+                            <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">ensure_binary</span><span class="p">(</span><span class="n">content</span><span class="p">))</span>
                             <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
                             <span class="c1"># and set permissions to open</span>
-                            <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="mo">0666</span><span class="p">)</span>
+                            <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="mi">0</span><span class="n">o666</span><span class="p">)</span>
                         <span class="n">locations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">finally</span><span class="p">:</span>
             <span class="c1"># reset umask</span>
@@ -380,7 +381,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Autodesk.
+        &copy; Copyright 2020, Autodesk.
 
     </p>
   </div> 
@@ -401,7 +402,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.18.172',
+            VERSION:'v0.19.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

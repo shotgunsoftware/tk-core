@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.descriptor.io_descriptor.factory &mdash; tk-core v0.18.172 documentation</title>
+  <title>tank.descriptor.io_descriptor.factory &mdash; tk-core v0.19.1 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.172 documentation" href="../../../../index.html"/>
+    <link rel="top" title="tk-core v0.19.1 documentation" href="../../../../index.html"/>
         <link rel="up" title="Module code" href="../../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.172.<br>
+    <b>tk-core</b> v0.19.1.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -189,18 +189,21 @@
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">IODescriptorBase</span>
 
 <span class="kn">from</span> <span class="nn">...</span> <span class="kn">import</span> <span class="n">LogManager</span>
+<span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">six</span>
+
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">create_io_descriptor</span><span class="p">(</span>
-        <span class="n">sg</span><span class="p">,</span>
-        <span class="n">descriptor_type</span><span class="p">,</span>
-        <span class="n">dict_or_uri</span><span class="p">,</span>
-        <span class="n">bundle_cache_root</span><span class="p">,</span>
-        <span class="n">fallback_roots</span><span class="p">,</span>
-        <span class="n">resolve_latest</span><span class="p">,</span>
-        <span class="n">constraint_pattern</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-        <span class="n">local_fallback_when_disconnected</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="n">sg</span><span class="p">,</span>
+    <span class="n">descriptor_type</span><span class="p">,</span>
+    <span class="n">dict_or_uri</span><span class="p">,</span>
+    <span class="n">bundle_cache_root</span><span class="p">,</span>
+    <span class="n">fallback_roots</span><span class="p">,</span>
+    <span class="n">resolve_latest</span><span class="p">,</span>
+    <span class="n">constraint_pattern</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+    <span class="n">local_fallback_when_disconnected</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Factory method. Use this method to construct all DescriptorIO instances.</span>
 
@@ -245,7 +248,7 @@
 <span class="sd">    :raises: :class:`TankDescriptorError`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># resolve into both dict and uri form</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
         <span class="n">descriptor_dict</span> <span class="o">=</span> <span class="n">IODescriptorBase</span><span class="o">.</span><span class="n">dict_from_uri</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># make a copy to make sure the original object is never altered</span>
@@ -257,6 +260,13 @@
         <span class="c1"># if someone is requesting a latest descriptor and not providing a version token</span>
         <span class="c1"># make sure to add an artificial one so that we can resolve it.</span>
         <span class="n">descriptor_dict</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;latest&quot;</span>
+
+    <span class="c1"># Ensure that the descrptor version is a str.  For some descriptors a</span>
+    <span class="c1"># verson is not expected, so if the key doesn&#39;t exist we&#39;ll do nothing.</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">descriptor_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;version&quot;</span><span class="p">),</span> <span class="n">six</span><span class="o">.</span><span class="n">binary_type</span><span class="p">):</span>
+        <span class="c1"># On Python 2 this will have no effect, but on Python 3, we will decode</span>
+        <span class="c1"># bytes to a str.</span>
+        <span class="n">descriptor_dict</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">ensure_str</span><span class="p">(</span><span class="n">descriptor_dict</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">])</span>
 
     <span class="c1"># instantiate the Descriptor</span>
     <span class="n">descriptor</span> <span class="o">=</span> <span class="n">IODescriptorBase</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">descriptor_type</span><span class="p">,</span> <span class="n">descriptor_dict</span><span class="p">,</span> <span class="n">sg</span><span class="p">)</span>
@@ -270,7 +280,9 @@
         <span class="c1"># available in the local cache.</span>
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Trying to resolve latest version...&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">has_remote_access</span><span class="p">():</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Remote connection is available - attempting to get latest version from remote...&quot;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Remote connection is available - attempting to get latest version from remote...&quot;</span>
+            <span class="p">)</span>
             <span class="n">descriptor</span> <span class="o">=</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get_latest_version</span><span class="p">(</span><span class="n">constraint_pattern</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Resolved latest to be </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">descriptor</span><span class="p">)</span>
 
@@ -281,19 +293,27 @@
                     <span class="s2">&quot;Remote connection is not available - will try to get &quot;</span>
                     <span class="s2">&quot;the latest locally cached version of </span><span class="si">%s</span><span class="s2">...&quot;</span> <span class="o">%</span> <span class="n">descriptor</span>
                 <span class="p">)</span>
-                <span class="n">latest_cached_descriptor</span> <span class="o">=</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get_latest_cached_version</span><span class="p">(</span><span class="n">constraint_pattern</span><span class="p">)</span>
+                <span class="n">latest_cached_descriptor</span> <span class="o">=</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get_latest_cached_version</span><span class="p">(</span>
+                    <span class="n">constraint_pattern</span>
+                <span class="p">)</span>
                 <span class="k">if</span> <span class="n">latest_cached_descriptor</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                    <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No locally cached versions of </span><span class="si">%r</span><span class="s2"> available.&quot;</span> <span class="o">%</span> <span class="n">descriptor</span><span class="p">)</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="s2">&quot;No locally cached versions of </span><span class="si">%r</span><span class="s2"> available.&quot;</span> <span class="o">%</span> <span class="n">descriptor</span>
+                    <span class="p">)</span>
                     <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span>
                         <span class="s2">&quot;Could not get latest version of </span><span class="si">%s</span><span class="s2">. &quot;</span>
                         <span class="s2">&quot;For more details, see the log.&quot;</span> <span class="o">%</span> <span class="n">descriptor</span>
                     <span class="p">)</span>
-                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Latest locally cached descriptor is </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">latest_cached_descriptor</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s2">&quot;Latest locally cached descriptor is </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">latest_cached_descriptor</span>
+                <span class="p">)</span>
                 <span class="n">descriptor</span> <span class="o">=</span> <span class="n">latest_cached_descriptor</span>
 
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># do not attempt to get the latest locally cached version</span>
-                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Remote connection not available to determine latest version.&quot;</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;Remote connection not available to determine latest version.&quot;</span>
+                <span class="p">)</span>
                 <span class="k">raise</span> <span class="n">TankDescriptorError</span><span class="p">(</span>
                     <span class="s2">&quot;Could not get latest version of </span><span class="si">%s</span><span class="s2">. &quot;</span>
                     <span class="s2">&quot;For more details, see the log.&quot;</span> <span class="o">%</span> <span class="n">descriptor</span>
@@ -340,7 +360,7 @@
 <span class="sd">    :return: Boolean to indicate if a required version token is missing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># resolve into both dict and uri form</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
         <span class="n">descriptor_dict</span> <span class="o">=</span> <span class="n">descriptor_uri_to_dict</span><span class="p">(</span><span class="n">dict_or_uri</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># make a copy to make sure the original object is never altered</span>
@@ -349,7 +369,10 @@
     <span class="c1"># We only do this for descriptor types that supports a version number concept</span>
     <span class="n">descriptors_using_version</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;app_store&quot;</span><span class="p">,</span> <span class="s2">&quot;shotgun&quot;</span><span class="p">,</span> <span class="s2">&quot;manual&quot;</span><span class="p">,</span> <span class="s2">&quot;git&quot;</span><span class="p">,</span> <span class="s2">&quot;git_branch&quot;</span><span class="p">]</span>
 
-    <span class="k">if</span> <span class="s2">&quot;version&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">descriptor_dict</span> <span class="ow">and</span> <span class="n">descriptor_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">descriptors_using_version</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="s2">&quot;version&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">descriptor_dict</span>
+        <span class="ow">and</span> <span class="n">descriptor_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">descriptors_using_version</span>
+    <span class="p">):</span>
         <span class="k">return</span> <span class="bp">True</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">False</span></div>
@@ -384,7 +407,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Autodesk.
+        &copy; Copyright 2020, Autodesk.
 
     </p>
   </div> 
@@ -405,7 +428,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'v0.18.172',
+            VERSION:'v0.19.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.local_file_storage &mdash; tk-core v0.18.172 documentation</title>
+  <title>tank.util.local_file_storage &mdash; tk-core v0.19.1 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.18.172 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.19.1 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.18.172.<br>
+    <b>tk-core</b> v0.19.1.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -184,11 +184,12 @@
 <span class="c1"># not expressly granted therein are reserved by Shotgun Software Inc.</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">urlparse</span>
+<span class="kn">from</span> <span class="nn">tank_vendor.six.moves</span> <span class="kn">import</span> <span class="n">urllib</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">filesystem</span>
+<span class="kn">from</span> <span class="nn">.platforms</span> <span class="kn">import</span> <span class="n">is_linux</span><span class="p">,</span> <span class="n">is_macos</span><span class="p">,</span> <span class="n">is_windows</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">LogManager</span>
 <span class="kn">from</span> <span class="nn">..errors</span> <span class="kn">import</span> <span class="n">TankError</span>
+<span class="kn">from</span> <span class="nn">tank_vendor.shotgun_api3.lib</span> <span class="kn">import</span> <span class="n">sgsix</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -228,6 +229,7 @@
 <span class="sd">                           to be retained between sessions.</span>
 <span class="sd">    :constant PREFERENCES: Indicates a path that suitable for storing settings files and preferences.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="c1"># generation of path structures</span>
     <span class="p">(</span><span class="n">CORE_V17</span><span class="p">,</span> <span class="n">CORE_V18</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 
@@ -289,7 +291,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported path type!&quot;</span><span class="p">)</span>
             <span class="c1"># current generation of paths</span>
-            <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">is_macos</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">path_type</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">CACHE</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/Library/Caches/Shotgun&quot;</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">PERSISTENT</span><span class="p">:</span>
@@ -301,7 +303,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported path type!&quot;</span><span class="p">)</span>
 
-            <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">is_windows</span><span class="p">():</span>
                 <span class="n">app_data</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;APPDATA&quot;</span><span class="p">,</span> <span class="s2">&quot;APPDATA_NOT_SET&quot;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">path_type</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">CACHE</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">app_data</span><span class="p">,</span> <span class="s2">&quot;Shotgun&quot;</span><span class="p">)</span>
@@ -314,7 +316,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported path type!&quot;</span><span class="p">)</span>
 
-            <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;linux&quot;</span><span class="p">):</span>
+            <span class="k">elif</span> <span class="n">is_linux</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">path_type</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">CACHE</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/.shotgun&quot;</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">PERSISTENT</span><span class="p">:</span>
@@ -327,12 +329,12 @@
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported path type!&quot;</span><span class="p">)</span>
 
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown platform: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown platform: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sgsix</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">generation</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">CORE_V17</span><span class="p">:</span>
 
             <span class="c1"># previous generation of paths</span>
-            <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;darwin&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_macos</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">path_type</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">CACHE</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/Library/Caches/Shotgun&quot;</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">PERSISTENT</span><span class="p">:</span>
@@ -342,17 +344,23 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported path type!&quot;</span><span class="p">)</span>
 
-            <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s2">&quot;win32&quot;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">is_windows</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">path_type</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">CACHE</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;APPDATA&quot;</span><span class="p">,</span> <span class="s2">&quot;APPDATA_NOT_SET&quot;</span><span class="p">),</span> <span class="s2">&quot;Shotgun&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;APPDATA&quot;</span><span class="p">,</span> <span class="s2">&quot;APPDATA_NOT_SET&quot;</span><span class="p">),</span> <span class="s2">&quot;Shotgun&quot;</span>
+                    <span class="p">)</span>
                 <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">PERSISTENT</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;APPDATA&quot;</span><span class="p">,</span> <span class="s2">&quot;APPDATA_NOT_SET&quot;</span><span class="p">),</span> <span class="s2">&quot;Shotgun&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;APPDATA&quot;</span><span class="p">,</span> <span class="s2">&quot;APPDATA_NOT_SET&quot;</span><span class="p">),</span> <span class="s2">&quot;Shotgun&quot;</span>
+                    <span class="p">)</span>
                 <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">LOGGING</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;APPDATA&quot;</span><span class="p">,</span> <span class="s2">&quot;APPDATA_NOT_SET&quot;</span><span class="p">),</span> <span class="s2">&quot;Shotgun&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;APPDATA&quot;</span><span class="p">,</span> <span class="s2">&quot;APPDATA_NOT_SET&quot;</span><span class="p">),</span> <span class="s2">&quot;Shotgun&quot;</span>
+                    <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported path type!&quot;</span><span class="p">)</span>
 
-            <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;linux&quot;</span><span class="p">):</span>
+            <span class="k">elif</span> <span class="n">is_linux</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">path_type</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">CACHE</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/.shotgun&quot;</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">path_type</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">PERSISTENT</span><span class="p">:</span>
@@ -363,7 +371,7 @@
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported path type!&quot;</span><span class="p">)</span>
 
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown platform: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span></div>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown platform: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sgsix</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span></div>
 
     <span class="nd">@classmethod</span>
 <div class="viewcode-block" id="LocalFileStorageManager.get_site_root"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager.get_site_root">[docs]</a>    <span class="k">def</span> <span class="nf">get_site_root</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">hostname</span><span class="p">,</span> <span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="o">=</span><span class="n">CORE_V18</span><span class="p">):</span>
@@ -392,7 +400,7 @@
             <span class="p">)</span>
 
         <span class="c1"># get site only; https://www.FOO.com:8080 -&gt; www.foo.com</span>
-        <span class="n">base_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">hostname</span><span class="p">)</span><span class="o">.</span><span class="n">netloc</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">base_url</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">hostname</span><span class="p">)</span><span class="o">.</span><span class="n">netloc</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">generation</span> <span class="o">&gt;</span> <span class="bp">cls</span><span class="o">.</span><span class="n">CORE_V17</span><span class="p">:</span>
             <span class="c1"># for 0.18, in order to apply further shortcuts to avoid hitting</span>
@@ -404,20 +412,18 @@
             <span class="c1">#</span>
             <span class="n">base_url</span> <span class="o">=</span> <span class="n">base_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.shotgunstudio.com&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">get_global_root</span><span class="p">(</span><span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="p">),</span>
-            <span class="n">base_url</span>
-        <span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">get_global_root</span><span class="p">(</span><span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="p">),</span> <span class="n">base_url</span><span class="p">)</span></div>
 
     <span class="nd">@classmethod</span>
 <div class="viewcode-block" id="LocalFileStorageManager.get_configuration_root"><a class="viewcode-back" href="../../../utils.html#sgtk.util.LocalFileStorageManager.get_configuration_root">[docs]</a>    <span class="k">def</span> <span class="nf">get_configuration_root</span><span class="p">(</span>
-            <span class="bp">cls</span><span class="p">,</span>
-            <span class="n">hostname</span><span class="p">,</span>
-            <span class="n">project_id</span><span class="p">,</span>
-            <span class="n">plugin_id</span><span class="p">,</span>
-            <span class="n">pipeline_config_id</span><span class="p">,</span>
-            <span class="n">path_type</span><span class="p">,</span>
-            <span class="n">generation</span><span class="o">=</span><span class="n">CORE_V18</span><span class="p">):</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">hostname</span><span class="p">,</span>
+        <span class="n">project_id</span><span class="p">,</span>
+        <span class="n">plugin_id</span><span class="p">,</span>
+        <span class="n">pipeline_config_id</span><span class="p">,</span>
+        <span class="n">path_type</span><span class="p">,</span>
+        <span class="n">generation</span><span class="o">=</span><span class="n">CORE_V18</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the storage root for any data that is project and config specific.</span>
 
@@ -471,7 +477,7 @@
             <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
                 <span class="bp">cls</span><span class="o">.</span><span class="n">get_site_root</span><span class="p">(</span><span class="n">hostname</span><span class="p">,</span> <span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="p">),</span>
                 <span class="s2">&quot;project_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">project_id</span><span class="p">,</span>
-                <span class="s2">&quot;config_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pipeline_config_id</span>
+                <span class="s2">&quot;config_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pipeline_config_id</span><span class="p">,</span>
             <span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
@@ -489,7 +495,10 @@
                 <span class="c1"># no pc id but instead an plugin id string</span>
                 <span class="n">pc_suffix</span> <span class="o">=</span> <span class="s2">&quot;.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filesystem</span><span class="o">.</span><span class="n">create_valid_filename</span><span class="p">(</span><span class="n">plugin_id</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">plugin_id</span> <span class="ow">and</span> <span class="n">pipeline_config_id</span><span class="p">:</span>
-                <span class="n">pc_suffix</span> <span class="o">=</span> <span class="s2">&quot;c</span><span class="si">%d</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pipeline_config_id</span><span class="p">,</span> <span class="n">filesystem</span><span class="o">.</span><span class="n">create_valid_filename</span><span class="p">(</span><span class="n">plugin_id</span><span class="p">))</span>
+                <span class="n">pc_suffix</span> <span class="o">=</span> <span class="s2">&quot;c</span><span class="si">%d</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">pipeline_config_id</span><span class="p">,</span>
+                    <span class="n">filesystem</span><span class="o">.</span><span class="n">create_valid_filename</span><span class="p">(</span><span class="n">plugin_id</span><span class="p">),</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># No pipeline config id nor plugin id which is possible for caching</span>
                 <span class="c1"># at the site level.</span>
@@ -503,7 +512,7 @@
 
             <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
                 <span class="bp">cls</span><span class="o">.</span><span class="n">get_site_root</span><span class="p">(</span><span class="n">hostname</span><span class="p">,</span> <span class="n">path_type</span><span class="p">,</span> <span class="n">generation</span><span class="p">),</span>
-                <span class="n">project_config_folder</span>
+                <span class="n">project_config_folder</span><span class="p">,</span>
             <span class="p">)</span></div></div>
 </pre></div>
 
@@ -516,7 +525,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Autodesk.
+        &copy; Copyright 2020, Autodesk.
 
     </p>
   </div> 
@@ -537,7 +546,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.18.172',
+            VERSION:'v0.19.1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
