@@ -76,4 +76,7 @@ class TestLogManager(ShotgunTestBase):
             manager.base_file_handler.flush()
 
         # Make sure it isn't
+        import pdb
+
+        pdb.set_trace()
         assert handle_error_mock.call_count == 0
