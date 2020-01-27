@@ -230,6 +230,7 @@ import weakref
 import uuid
 from functools import wraps
 from . import constants
+from tank_vendor import six
 
 
 class LogManager(object):
@@ -787,18 +788,17 @@ class LogManager(object):
 
         # create a rotating log file with a max size of 5 megs -
         # this should make all log files easily attachable to support tickets.
-
-        # Python 2.5s implementation is way different that 2.6 and 2.7 and as such we can't
-        # as easily support it for safe rotation.
-        if sys.version_info[:2] > (2, 5):
-            handler_factory = self._SafeRotatingFileHandler
-        else:
-            handler_factory = RotatingFileHandler
-
-        self._std_file_handler = handler_factory(
+        self._std_file_handler = self._SafeRotatingFileHandler(
             log_file,
-            maxBytes=1024 * 1024 * 5,  # 5 MiB
-            backupCount=1,  # Need at least one backup in order to rotate
+            # 5 MiB
+            maxBytes=1024 * 1024 * 5,
+            # Need at least one backup in order to rotate
+            backupCount=1,
+            # Python 3 is pickier about the encoding type of a file.
+            # Python 2 treats str as bytes, so it writes them
+            # directly to disk. Putting utf8 encoding actually
+            # causes problems.
+            encoding="utf8" if six.PY3 else None,
         )
 
         # set the level based on global debug flag
