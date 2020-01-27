@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2017 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
@@ -50,3 +51,12 @@ class TestLogManager(ShotgunTestBase):
         manager = sgtk.log.LogManager()
         self.assertTrue(hasattr(manager, "log_file"))
         self.assertIsNotNone(manager.log_file)
+
+    def test_writing_unicode_to_log(self):
+        manager = sgtk.log.LogManager()
+        unicode_str = "司狼 神威"
+        manager.root_logger.warning(unicode_str)
+        manager.base_file_handler.flush()
+        with open(manager.base_file_handler.baseFilename, "rt") as f:
+            # Read the whole file, the text should have been written as is.
+            assert unicode_str in f.read()
