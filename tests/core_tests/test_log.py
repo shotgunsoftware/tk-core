@@ -60,11 +60,6 @@ class TestLogManager(ShotgunTestBase):
         """
         manager = sgtk.log.LogManager()
         unicode_str = "司狼 神威"
-        # install handler for exceptions
-        previous_hook = sys.excepthook
-
-        def hook(exc_type, exc_value, exc_traceback):
-            self._handle_exception(previous_hook, exc_type, exc_value, exc_traceback)
 
         # When a logger's emit method fails, the handleError method is called.
         with patch.object(
@@ -75,8 +70,4 @@ class TestLogManager(ShotgunTestBase):
             # Flush the data to disk to make sure the data is emitted.
             manager.base_file_handler.flush()
 
-        # Make sure it isn't
-        import pdb
-
-        pdb.set_trace()
         assert handle_error_mock.call_count == 0
