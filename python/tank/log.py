@@ -799,7 +799,7 @@ class LogManager(object):
             log_file,
             maxBytes=1024 * 1024 * 5,  # 5 MiB
             backupCount=1,  # Need at least one backup in order to rotate
-            # encoding="utf-8",
+            encoding="utf-8",
         )
 
         # set the level based on global debug flag

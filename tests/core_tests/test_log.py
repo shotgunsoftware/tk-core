@@ -11,8 +11,12 @@
 
 import os
 import copy
+import sys
 
 import sgtk
+from tank_vendor import six
+from unittest2 import skipIf
+from mock import patch
 
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase
@@ -55,8 +59,20 @@ class TestLogManager(ShotgunTestBase):
     def test_writing_unicode_to_log(self):
         manager = sgtk.log.LogManager()
         unicode_str = "司狼 神威"
-        manager.root_logger.warning(unicode_str)
-        manager.base_file_handler.flush()
-        with open(manager.base_file_handler.baseFilename, "rt") as f:
-            # Read the whole file, the text should have been written as is.
-            assert unicode_str in f.read()
+        # install handler for exceptions
+        previous_hook = sys.excepthook
+
+        def hook(exc_type, exc_value, exc_traceback):
+            self._handle_exception(previous_hook, exc_type, exc_value, exc_traceback)
+
+        # When a logger's emit method fails, the handleError method is called.
+        with patch.object(
+            manager.base_file_handler, "handleError"
+        ) as handle_error_mock:
+            # This used to not log.
+            manager.root_logger.warning(unicode_str)
+            # Flush the data to disk to make sure the data is emitted.
+            manager.base_file_handler.flush()
+
+        # Make sure it isn't
+        assert handle_error_mock.call_count == 0
