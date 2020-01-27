@@ -14,8 +14,6 @@ import copy
 import sys
 
 import sgtk
-from tank_vendor import six
-from unittest2 import skipIf
 from mock import patch
 
 from tank_test.tank_test_base import setUpModule  # noqa
