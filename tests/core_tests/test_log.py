@@ -57,6 +57,9 @@ class TestLogManager(ShotgunTestBase):
         self.assertIsNotNone(manager.log_file)
 
     def test_writing_unicode_to_log(self):
+        """
+        Ensure we can write unicode to a log file on all platforms.
+        """
         manager = sgtk.log.LogManager()
         unicode_str = "司狼 神威"
         # install handler for exceptions
