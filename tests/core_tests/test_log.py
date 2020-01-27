@@ -11,7 +11,6 @@
 
 import os
 import copy
-import sys
 
 import sgtk
 from mock import patch
