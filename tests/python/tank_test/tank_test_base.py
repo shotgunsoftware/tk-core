@@ -583,6 +583,8 @@ class TankTestBase(unittest.TestCase):
 
         # back up the authenticated user in case a unit test doesn't clean up correctly.
         self._authenticated_user = sgtk.get_authenticated_user()
+        sgtk.util.login.g_shotgun_current_user_cache = "unknown"
+        sgtk.util.login.g_shotgun_user_cache = "unknown"
 
     def _mock_return_value(self, to_mock, return_value):
         """
