@@ -39,33 +39,39 @@ def __fix_tank_vendor():
     # Older versions of Shotgun Desktop left copies of tank_vendor in sys.modules,
     # which means we might not be importing our copy but someone else's,
     # so strip it out!
-    our_tank_vendor = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), "tank_vendor"
+    if "tank_vendor" not in sys.modules:
+        return
+
+    # Figure out where our tank_vendor is.
+    our_tank_vendor = os.path.normpath(
+        os.path.join(os.path.dirname(os.path.dirname(__file__)), "tank_vendor")
     )
+
+    tank_vendor = sys.modules["tank_vendor"]
+
+    # If the tank_vendor that is loaded is ours, we're good!
+    if os.path.normpath(inspect.getsourcefile(tank_vendor)) == our_tank_vendor:
+        return
 
     __prefix = "_tank_vendor_swap_%s" % uuid.uuid4().hex
 
+    # We've loaded another tank_vendor, so let's strip out every single
+    # module that starts with tank_vendor
     for name, module in list(sys.modules.items()):
         # sys.modules can be assigned anything, even None or a number
         # so avoid those.
-        # Also, we're only interested into tank_vendor.
         if isinstance(name, str) is False or name.startswith("tank_vendor") is False:
             continue
 
-        # Yup, None modules are a thing for some reason, so we have do deal with those...
-        if (
-            module is None
-            or inspect.getsourcefile(module).startswith(our_tank_vendor) is False
-        ):
-            # Move tank_vendor out of the way instead of simply removing it from sys.modules.
-            # If the modules are still in use, removing them from sys.modules seems to do
-            # some cleanup of the modules themselves, which we do not want. For example,
-            # if a Shotgun connection is still used from the old tank_vendor after the swap
-            # happened, then the global methods from shotgun.py like _translate_filters
-            # will turn to None. It's all a bit mysterious to be honest, but considering we're
-            # also following the same pattern in bootstrap/import_handler.py, it seems
-            # like this is the safe way to fix this.
-            sys.modules[__prefix + name] = sys.modules.pop(name)
+        # Move tank_vendor out of the way instead of simply removing it from sys.modules.
+        # If the modules are still in use, removing them from sys.modules seems to do
+        # some cleanup of the modules themselves, which we do not want. For example,
+        # if a Shotgun connection is still used from the old tank_vendor after the swap
+        # happened, then the global methods from shotgun.py like _translate_filters
+        # will turn to None. It's all a bit mysterious to be honest, but considering we're
+        # also following the same pattern in bootstrap/import_handler.py, it seems
+        # like this is the safe way to fix this.
+        sys.modules[__prefix + name] = sys.modules.pop(name)
 
 
 __fix_tank_vendor()
