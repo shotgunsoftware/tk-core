@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.log &mdash; tk-core v0.19.1 documentation</title>
+  <title>tank.log &mdash; tk-core v0.19.3 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.19.1 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.19.3 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.1.<br>
+    <b>tk-core</b> v0.19.3.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -405,6 +405,7 @@
 <span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">tank_vendor</span> <span class="kn">import</span> <span class="n">six</span>
 
 
 <div class="viewcode-block" id="LogManager"><a class="viewcode-back" href="../../utils.html#sgtk.log.LogManager">[docs]</a><span class="k">class</span> <span class="nc">LogManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -962,18 +963,17 @@
 
         <span class="c1"># create a rotating log file with a max size of 5 megs -</span>
         <span class="c1"># this should make all log files easily attachable to support tickets.</span>
-
-        <span class="c1"># Python 2.5s implementation is way different that 2.6 and 2.7 and as such we can&#39;t</span>
-        <span class="c1"># as easily support it for safe rotation.</span>
-        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span>
-            <span class="n">handler_factory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_SafeRotatingFileHandler</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">handler_factory</span> <span class="o">=</span> <span class="n">RotatingFileHandler</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span> <span class="o">=</span> <span class="n">handler_factory</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_std_file_handler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_SafeRotatingFileHandler</span><span class="p">(</span>
             <span class="n">log_file</span><span class="p">,</span>
-            <span class="n">maxBytes</span><span class="o">=</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">5</span><span class="p">,</span>  <span class="c1"># 5 MiB</span>
-            <span class="n">backupCount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># Need at least one backup in order to rotate</span>
+            <span class="c1"># 5 MiB</span>
+            <span class="n">maxBytes</span><span class="o">=</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">5</span><span class="p">,</span>
+            <span class="c1"># Need at least one backup in order to rotate</span>
+            <span class="n">backupCount</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="c1"># Python 3 is pickier about the encoding type of a file.</span>
+            <span class="c1"># Python 2 treats str as bytes, so it writes them</span>
+            <span class="c1"># directly to disk. Putting utf8 encoding actually</span>
+            <span class="c1"># causes problems.</span>
+            <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf8&quot;</span> <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY3</span> <span class="k">else</span> <span class="bp">None</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># set the level based on global debug flag</span>
@@ -1061,7 +1061,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.19.1',
+            VERSION:'v0.19.3',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
