@@ -128,7 +128,7 @@ class ShotgunAuthenticator(object):
             self._defaults_manager.get_http_proxy(),
             self._defaults_manager.is_host_fixed(),
         )
-        return self._create_session_user(
+        return self.create_session_user(
             login=login,
             session_token=session_token,
             host=host,
@@ -136,7 +136,7 @@ class ShotgunAuthenticator(object):
             session_metadata=session_metadata,
         )
 
-    def _create_session_user(
+    def create_session_user(
         self,
         login,
         session_token=None,
@@ -150,15 +150,12 @@ class ShotgunAuthenticator(object):
         Either a password or session token must be supplied. If a password is supplied,
         a session token will be generated for security reasons.
 
-        This is an internal version of the method, which makes reference to the
-        session_metadata. This is an implementation details which we want to hide from the public interface.
-
         :param login: Shotgun user login
         :param session_token: Shotgun session token
         :param password: Shotgun password
         :param host: Shotgun host to log in to. If None, the default host will be used.
         :param http_proxy: Shotgun proxy to use. If None, the default http proxy will be used.
-        :param session_metadata: Information needed when SSO is used. This is an obscure blob of data.
+        :param session_metadata: When using Web/SSO, b64encoded browser cookies.
 
         :returns: A :class:`ShotgunUser` instance.
         """
@@ -186,27 +183,6 @@ class ShotgunAuthenticator(object):
         ):
             return user.ShotgunWebUser(impl)
         return user.ShotgunUser(impl)
-
-    def create_session_user(
-        self, login, session_token=None, password=None, host=None, http_proxy=None
-    ):
-        """
-        Create a :class:`ShotgunUser` given a set of human user credentials.
-        Either a password or session token must be supplied. If a password is supplied,
-        a session token will be generated for security reasons.
-
-        :param login: Shotgun user login
-        :param session_token: Shotgun session token
-        :param password: Shotgun password
-        :param host: Shotgun host to log in to. If None, the default host will be used.
-        :param http_proxy: Shotgun proxy to use. If None, the default http proxy will be used.
-
-        :returns: A :class:`ShotgunUser` instance.
-        """
-        # Leverage the private implementation.
-        return self._create_session_user(
-            login, session_token, password, host, http_proxy
-        )
 
     def create_script_user(self, api_script, api_key, host=None, http_proxy=None):
         """
@@ -278,7 +254,7 @@ class ShotgunAuthenticator(object):
             or "password" in credentials
             or "session_token" in credentials
         ):
-            return self._create_session_user(
+            return self.create_session_user(
                 login=credentials.get("login"),
                 password=credentials.get("password"),
                 session_token=credentials.get("session_token"),
