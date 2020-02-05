@@ -33,8 +33,16 @@ from tank_vendor import shotgun_api3
 
 json = shotgun_api3.shotgun.json
 
-import distro
-
+# From Python 3.8 and later, platform.linux_distribution has been removed,
+# so we need something else. Fortunately, the functionality was preserved
+# as the distro package on pypi.org. Given that the functionality is
+# equivalent between the two, we'll use distro for every version of Python 3.
+# As for Python 2, we need to keep using platform as distro is Python 2.7+
+# compliant only.
+if six.PY2:
+    import platform as distro
+else:
+    from tank_vendor import distro
 
 ###############################################################################
 

@@ -23,6 +23,7 @@ from tank_test.tank_test_base import (
     ShotgunTestBase,
     skip_if_pyside_missing,
     interactive,
+    suppress_generated_code_qt_warnings,
 )
 from mock import patch
 from tank.authentication import (
