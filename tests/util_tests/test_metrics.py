@@ -1269,7 +1269,7 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_mac_ver.called)
 
     @patch("platform.system", return_value="Linux")
-    @patch("platform.linux_distribution", return_value=("debian", "7.7", ""))
+    @patch("distro.linux_distribution", return_value=("debian", "7.7", ""))
     def test_as_linux(self, mocked_system, mocked_linux_distribution):
         """
         Tests as a Linux Debian system
@@ -1282,7 +1282,7 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_linux_distribution.called)
 
     @patch("platform.system", return_value="BSD")
-    @patch("platform.linux_distribution", side_effect=Exception)
+    @patch("distro.linux_distribution", side_effect=Exception)
     def test_as_unsupported_system(self, mocked_linux_distribution, mocked_system):
         """
         Tests a fake unsupported system
@@ -1296,7 +1296,7 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertFalse(mocked_linux_distribution.called)
 
     @patch("platform.system", return_value="Linux")
-    @patch("platform.linux_distribution", side_effect=Exception)
+    @patch("distro.linux_distribution", side_effect=Exception)
     def test_as_linux_without_distribution(
         self, mocked_linux_distribution, mocked_system
     ):
