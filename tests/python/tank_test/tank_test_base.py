@@ -153,6 +153,13 @@ def skip_if_pyside_missing(func):
 
 
 def suppress_generated_code_qt_warnings(func):
+    """
+    Suppress the warnings emitted by the pyside-uic generated code in Python 3.
+
+    This function should be used to decorate a test that emits those warnings.
+    """
+
+    @wraps(func)
     def wrapper(*args, **kwargs):
         import warnings
 
