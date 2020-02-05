@@ -87,15 +87,16 @@ class TestDialogCreation(TestEngineBase):
     Tests how engines construct and show dialogs.
     """
 
-    @skip_if_pyside_missing
     def setUp(self):
         """
         We need a QApplication to run these tests.
         """
         super(TestDialogCreation, self).setUp()
 
-        if sgtk.platform.qt.QtGui.QApplication.instance() is None:
-            sgtk.platform.qt.QtGui.QApplication([])
+        from tank.authentication.ui.qt_abstraction import QtGui
+
+        if QtGui.QApplication.instance() is None:
+            QtGui.QApplication([])
 
         sgtk.platform.start_engine("test_engine", self.tk, self.context)
 
@@ -105,7 +106,9 @@ class TestDialogCreation(TestEngineBase):
         Ensures that the _create_widget method is exception safe.
         """
 
-        class _test_widget(sgtk.platform.qt.QtGui.QWidget):
+        from tank.authentication.ui.qt_abstraction import QtGui
+
+        class _test_widget(QtGui.QWidget):
             def __init__(self, *args, **kwargs):
                 raise Exception("Testing...")
 
@@ -213,9 +216,9 @@ class TestExecuteInMainThread(TestEngineBase):
         # QApplication.instance() method, since qApp can contain a non-None
         # value even if no QApplication has been constructed on PySide2.
         if not QtGui.QApplication.instance():
-            self._app = sgtk.platform.qt.QtGui.QApplication(sys.argv)
+            self._app = QtGui.QApplication(sys.argv)
         else:
-            self._app = sgtk.platform.qt.QtGui.QApplication.instance()
+            self._app = QtGui.QApplication.instance()
 
         tank.platform.start_engine("test_engine", self.tk, self.context)
 
@@ -659,7 +662,7 @@ class TestShowDialog(TestEngineBase):
         self.engine = sgtk.platform.start_engine("test_engine", self.tk, self.context)
         # Create an application instance so we can take control of the execution
         # of the dialog.
-        from sgtk.platform.qt import QtGui
+        from tank.authentication.ui.qt_abstraction import QtGui
 
         if QtGui.QApplication.instance() is None:
             self._app = QtGui.QApplication(sys.argv)
