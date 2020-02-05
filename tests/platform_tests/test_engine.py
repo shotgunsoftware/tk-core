@@ -20,7 +20,11 @@ import threading
 import random
 import time
 
-from tank_test.tank_test_base import TankTestBase, skip_if_pyside_missing
+from tank_test.tank_test_base import (
+    TankTestBase,
+    skip_if_pyside_missing,
+    suppress_generated_code_qt_warnings,
+)
 from tank_test.tank_test_base import setUpModule  # noqa
 
 import contextlib
@@ -668,6 +672,7 @@ class TestShowDialog(TestEngineBase):
         self.engine.destroy()
         super(TestShowDialog, self).tearDown()
 
+    @suppress_generated_code_qt_warnings
     def test_gui_app_and_close(self):
         # Show the dialog
         self.engine.commands["test_app"]["callback"]()

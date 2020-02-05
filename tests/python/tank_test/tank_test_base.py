@@ -152,6 +152,18 @@ def skip_if_pyside_missing(func):
     return unittest.skipIf(_is_pyside_missing(), "PySide is missing")(func)
 
 
+def suppress_generated_code_qt_warnings(func):
+    def wrapper(*args, **kwargs):
+        import warnings
+
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", module=r"tank\.authentication\.ui\.*")
+            warnings.filterwarnings("ignore", module=r"tank\.platform\.qt\.ui\.*")
+            return func(*args, **kwargs)
+
+    return wrapper
+
+
 @contextlib.contextmanager
 def temp_env_var(**kwargs):
     r"""

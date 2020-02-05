@@ -22,7 +22,6 @@ from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import (
     ShotgunTestBase,
     skip_if_pyside_missing,
-    skip_if_on_travis_ci,
     interactive,
 )
 from mock import patch
@@ -39,6 +38,7 @@ import tank
 
 
 @skip_if_pyside_missing
+@suppress_generated_code_qt_warnings
 class InteractiveTests(ShotgunTestBase):
     """
     Tests ui and console based authentication.
@@ -97,7 +97,6 @@ class InteractiveTests(ShotgunTestBase):
             self._prepare_window(ld)
             yield ld
 
-    @skip_if_on_travis_ci("Offscreen XServer doesn't do focus changes.")
     def test_focus(self):
         """
         Make sure that the site and user fields are disabled when doing session renewal
@@ -379,7 +378,6 @@ class InteractiveTests(ShotgunTestBase):
         with self.assertRaises(ConsoleLoginNotSupportedError):
             handler._get_user_credentials(None, None, None)
 
-    @skip_if_on_travis_ci("Offscreen XServer doesn't do focus changes.")
     def test_ui_auth_with_whitespace(self):
         """
         Makes sure that the ui strips out whitespaces.
