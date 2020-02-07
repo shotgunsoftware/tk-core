@@ -62,6 +62,9 @@ class Context(object):
     currently operating user.
     """
 
+    # TODO is there a cleaner way to accomplish this?
+    __hash__ = object.__hash__
+
     def __init__(
         self,
         tk,
