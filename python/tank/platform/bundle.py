@@ -341,7 +341,7 @@ class TankBundle(object):
     @property
     def logger(self):
         """
-        Standard python logger for this engine, app or framework.
+        Standard python :class:`~logging.Logger` for this engine, app or framework.
 
         Use this whenever you want to emit or process
         log messages. If you are developing an app,
