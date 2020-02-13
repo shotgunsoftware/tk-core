@@ -16,6 +16,7 @@ Management of the current context, e.g. the current shotgun entity/step/task.
 import os
 import copy
 import json
+import hashlib
 
 from tank_vendor import yaml
 from . import authentication
@@ -61,9 +62,6 @@ class Context(object):
     belongs to the project. The exception to this is the user, which simply reflects the
     currently operating user.
     """
-
-    # TODO is there a cleaner way to accomplish this?
-    __hash__ = object.__hash__
 
     def __init__(
         self,
@@ -234,6 +232,9 @@ class Context(object):
         if is_equal is NotImplemented:
             return NotImplemented
         return not is_equal
+
+    def __hash__(self):
+        return hash(json.dumps(self.to_dict(), sort_keys=True))
 
     def __deepcopy__(self, memo):
         """
