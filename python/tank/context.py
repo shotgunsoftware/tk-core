@@ -16,7 +16,6 @@ Management of the current context, e.g. the current shotgun entity/step/task.
 import os
 import copy
 import json
-import hashlib
 
 from tank_vendor import yaml
 from . import authentication
@@ -234,6 +233,14 @@ class Context(object):
         return not is_equal
 
     def __hash__(self):
+        """
+        Generates a unique hash for the Context.
+
+        :returns: int hash for this Context.
+        """
+        # Use sort_keys to ensure dict order does not affect hash.
+        # This hash is only guaranteed to be stable within a Python session,
+        # however this is expected behavior for __hash__.
         return hash(json.dumps(self.to_dict(), sort_keys=True))
 
     def __deepcopy__(self, memo):
