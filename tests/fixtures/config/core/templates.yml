@@ -1,24 +1,24 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 #
 # This file is one of the central points in the Tank configuration and a counterpart to
 # the folder configuration structure.
 #
-# the folder structure underneath the project folder is used to create folders on disk - 
-# templates.yml (this file) refers to those folders. Therefore, the two files need to be 
+# the folder structure underneath the project folder is used to create folders on disk -
+# templates.yml (this file) refers to those folders. Therefore, the two files need to be
 # in sync. This file contains an overview of all locations that are used in Tank.
 #
 #
-# Whenever an app or an engine refers to a location on disk, it is using a entry defined in 
-# this file. For more information, see the Tank Documentation. 
+# Whenever an app or an engine refers to a location on disk, it is using a entry defined in
+# this file. For more information, see the Tank Documentation.
 
 keys:
     Sequence:
@@ -50,7 +50,7 @@ keys:
         format_spec: "04"
     eye:
         type: str
-        choices: 
+        choices:
             - Left
             - Right
     sg_asset_type:
@@ -66,7 +66,7 @@ keys:
 
 paths:
     # ------------------------------------------------------------------------------------
-    # Shot pipeline 
+    # Shot pipeline
 
     # define the location of a work area
     shot_work_area: sequences/{Sequence}/{Shot}/{Step}/work
@@ -126,7 +126,7 @@ paths:
 
 
     # ------------------------------------------------------------------------------------
-    # Asset pipeline 
+    # Asset pipeline
 
     # define the location of a work area
     asset_work_area: assets/{sg_asset_type}/{Asset}/{Step}/work
@@ -180,16 +180,14 @@ paths:
 
 strings:
 
-    # when a publish record is created in shotgun, populate the name with the following 
+    # when a publish record is created in shotgun, populate the name with the following
     houdini_shot_publish_name: "Houdini Scene {name}, v{version}"
 
-    # when a publish record is created in shotgun, populate the name with the following 
+    # when a publish record is created in shotgun, populate the name with the following
     maya_publish_name: "Maya Scene {name}, v{version}"
 
-    # when a publish record is created in shotgun, populate the name with the following 
+    # when a publish record is created in shotgun, populate the name with the following
     nuke_publish_name: "Nuke Script {name_alpha}, v{version}"
 
-    # when a publish record is created in shotgun, populate the name with the following 
+    # when a publish record is created in shotgun, populate the name with the following
     houdini_asset_publish_name: "Houdini Scene {name_alpha}, v{version}"
-
-

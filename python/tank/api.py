@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -26,8 +26,11 @@ from . import pipelineconfig
 from . import pipelineconfig_utils
 from . import pipelineconfig_factory
 from . import LogManager
+from tank_vendor import six
+from tank_vendor.six.moves import zip
 
 log = LogManager.get_logger(__name__)
+
 
 class Sgtk(object):
     """
@@ -56,9 +59,9 @@ class Sgtk(object):
             self.__pipeline_config = project_path
         else:
             self.__pipeline_config = pipelineconfig_factory.from_path(project_path)
-            
+
         try:
-            self.templates = read_templates(self.__pipeline_config)
+            self.__templates = read_templates(self.__pipeline_config)
         except TankError as e:
             raise TankError("Could not read templates configuration: %s" % e)
 
@@ -69,10 +72,17 @@ class Sgtk(object):
         self.__cache = {}
 
     def __repr__(self):
-        return "<Sgtk Core %s@0x%08x Config %s>" % (self.version, id(self), self.__pipeline_config.get_path())
+        return "<Sgtk Core %s@0x%08x Config %s>" % (
+            self.version,
+            id(self),
+            self.__pipeline_config.get_path(),
+        )
 
     def __str__(self):
-        return "Sgtk Core %s, config %s" % (self.version, self.__pipeline_config.get_path())
+        return "Sgtk Core %s, config %s" % (
+            self.version,
+            self.__pipeline_config.get_path(),
+        )
 
     ################################################################################################
     # internal API
@@ -92,12 +102,14 @@ class Sgtk(object):
 
         Internal Use Only - We provide no guarantees that this method
         will be backwards compatible.
-        
+
         :param hook_name: Name of hook to execute.
         :param kwargs:  Additional named parameters will be passed to the hook.
         :returns:         Return value of the hook.
         """
-        return self.pipeline_configuration.execute_core_hook_internal(hook_name, parent=self, **kwargs)
+        return self.pipeline_configuration.execute_core_hook_internal(
+            hook_name, parent=self, **kwargs
+        )
 
     # compatibility alias - previously the name of this *internal method* was named execute_hook.
     # in order to try to avoid breaking client code that uses these *internal methods*, let's
@@ -106,22 +118,19 @@ class Sgtk(object):
 
     def execute_core_hook_method(self, hook_name, method_name, **kwargs):
         """
-        Executes a specific method on a core level hook, 
+        Executes a specific method on a core level hook,
         passing it any keyword arguments supplied.
 
         Internal Use Only - We provide no guarantees that this method
         will be backwards compatible.
-        
+
         :param hook_name:   Name of hook to execute.
         :param method_name: Name of method to execute.
         :param **kwargs:    Additional named parameters will be passed to the hook.
         :returns:           Return value of the hook.
         """
         return self.pipeline_configuration.execute_core_hook_method_internal(
-            hook_name,
-            method_name,
-            parent=self,
-            **kwargs
+            hook_name, method_name, parent=self, **kwargs
         )
 
     def log_metric(self, action, log_once=False):
@@ -233,11 +242,11 @@ class Sgtk(object):
 
         This Shotgun API is threadlocal, meaning that each thread will get
         a separate instance of the Shotgun API. This is in order to prevent
-        concurrency issues and add a layer of basic protection around the 
+        concurrency issues and add a layer of basic protection around the
         Shotgun API, which isn't threadsafe.
         """
         sg = shotgun.get_sg_connection()
-        
+
         # pass on information to the user agent manager which core version is returning
         # this sg handle. This information will be passed to the web server logs
         # in the shotgun data centre and makes it easy to track which core versions
@@ -265,7 +274,9 @@ class Sgtk(object):
         or None if no documentation is associated.
         """
         # read this from info.yml
-        info_yml_path = os.path.abspath(os.path.join( os.path.dirname(__file__), "..", "..", "info.yml"))
+        info_yml_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "..", "info.yml")
+        )
         try:
             data = yaml_cache.g_yaml_cache.get(info_yml_path, deepcopy_data=False)
             data = str(data.get("documentation_url"))
@@ -295,7 +306,7 @@ class Sgtk(object):
         sg_data = self.shotgun.find_one(
             "PipelineConfiguration",
             [["id", "is", self.configuration_id]],
-            ["windows_path", "mac_path", "linux_path"]
+            ["windows_path", "mac_path", "linux_path"],
         )
         if sg_data["windows_path"] or sg_data["mac_path"] or sg_data["linux_path"]:
             return self.CENTRALIZED
@@ -325,6 +336,28 @@ class Sgtk(object):
         """
         return self.__pipeline_config.get_shotgun_id()
 
+    @property
+    def templates(self):
+        """
+        A dictionary, where the keys are the template names, and the values
+        are :class:`~sgtk.Template` instances representing the tokenized paths, as defined in
+        the configuration's ``templates.yml``.
+
+        :return: :class:`dict`
+        """
+        # defined as a getter setter so that we could document it properly
+        return self.__templates
+
+    @templates.setter
+    def templates(self, value):
+        """
+        Allows setting the templates property.
+        You shouldn't set the templates property from out side of the api module.
+        However this was implemented when changing the instance variable to a property so as
+        to not change the interface.
+        """
+        self.__templates = value
+
     ##########################################################################################
     # public methods
 
@@ -344,17 +377,17 @@ class Sgtk(object):
         :raises: :class:`TankError`
         """
         try:
-            self.templates = read_templates(self.__pipeline_config)
+            self.__templates = read_templates(self.__pipeline_config)
         except TankError as e:
             raise TankError("Templates could not be reloaded: %s" % e)
 
     def list_commands(self):
         """
         Lists the system commands registered with the system.
-        
-        This method will return all system commands which 
+
+        This method will return all system commands which
         are available in the context of a project configuration will be returned.
-        This includes for example commands for configuration management, 
+        This includes for example commands for configuration management,
         anything app or engine related and validation and overview functionality.
         In addition to these commands, the global commands such as project setup
         and core API check commands will also be returned.
@@ -365,29 +398,31 @@ class Sgtk(object):
         """
         # avoid cyclic dependencies
         from . import commands
+
         return commands.list_commands(self)
 
     def get_command(self, command_name):
         """
         Returns an instance of a command object that can be used to execute a command.
-        
-        Once you have retrieved the command instance, you can perform introspection to 
+
+        Once you have retrieved the command instance, you can perform introspection to
         check for example the required parameters for the command, name, description etc.
         Lastly, you can execute the command by running the execute() method.
-        
+
         In order to get a list of the available commands, use the list_commands() method.
 
         For more information, see :meth:`sgtk.get_command`
 
         :param command_name: Name of command to execute. Get a list of all available commands
                              using the :meth:`list_commands` method.
-        
+
         :returns: :class:`~sgtk.SgtkSystemCommand` object instance
         """
         # avoid cyclic dependencies
         from . import commands
+
         return commands.get_command(command_name, self)
-        
+
     def templates_from_path(self, path):
         """
         Finds templates that matches the given path::
@@ -406,7 +441,7 @@ class Sgtk(object):
             if template.validate(path):
                 matched_templates.append(template)
         return matched_templates
-            
+
     def template_from_path(self, path):
         """
         Finds a template that matches the given path::
@@ -421,7 +456,7 @@ class Sgtk(object):
         :returns: :class:`TemplatePath` or None if no match could be found.
         """
         matched_templates = self.templates_from_path(path)
-        
+
         if len(matched_templates) == 0:
             return None
         elif len(matched_templates) == 1:
@@ -433,13 +468,18 @@ class Sgtk(object):
             for template in matched_templates:
                 matched_fields.append(template.get_fields(path))
 
-            msg = "%d templates are matching the path '%s'.\n" % (len(matched_templates), path)
+            msg = "%d templates are matching the path '%s'.\n" % (
+                len(matched_templates),
+                path,
+            )
             msg += "The overlapping templates are:\n"
             for fields, template in zip(matched_fields, matched_templates):
                 msg += "%s\n%s\n" % (template, fields)
             raise TankMultipleMatchingTemplatesError(msg)
 
-    def paths_from_template(self, template, fields, skip_keys=None, skip_missing_optional_keys=False):
+    def paths_from_template(
+        self, template, fields, skip_keys=None, skip_missing_optional_keys=False
+    ):
         """
         Finds paths that match a template using field values passed.
 
@@ -483,30 +523,32 @@ class Sgtk(object):
         :type  fields: Dictionary
         :param skip_keys: Keys whose values should be ignored from the fields parameter.
         :type  skip_keys: List of key names
-        :param skip_missing_optional_keys: Specify if optional keys should be skipped if they 
+        :param skip_missing_optional_keys: Specify if optional keys should be skipped if they
                                         aren't found in the fields collection
         :returns: Matching file paths
         :rtype: List of strings.
         """
         skip_keys = skip_keys or []
-        if isinstance(skip_keys, basestring):
+        if isinstance(skip_keys, six.string_types):
             skip_keys = [skip_keys]
-        
+
         # construct local fields dictionary that doesn't include any skip keys:
-        local_fields = dict((field, value) for field, value in fields.iteritems() if field not in skip_keys)
-        
+        local_fields = dict(
+            (field, fields[field]) for field in fields if field not in skip_keys
+        )
+
         # we always want to automatically skip 'required' keys that weren't
         # specified so add wildcards for them to the local fields
         for key in template.missing_keys(local_fields):
             if key not in skip_keys:
                 skip_keys.append(key)
             local_fields[key] = "*"
-            
+
         # iterate for each set of keys in the template:
         found_files = set()
         globs_searched = set()
         for keys in template._keys:
-            # create fields and skip keys with those that 
+            # create fields and skip keys with those that
             # are relevant for this key set:
             current_local_fields = local_fields.copy()
             current_skip_keys = []
@@ -514,9 +556,11 @@ class Sgtk(object):
                 if key in keys:
                     current_skip_keys.append(key)
                     current_local_fields[key] = "*"
-            
+
             # find remaining missing keys - these will all be optional keys:
-            missing_optional_keys = template._missing_keys(current_local_fields, keys, False)
+            missing_optional_keys = template._missing_keys(
+                current_local_fields, keys, False
+            )
             if missing_optional_keys:
                 if skip_missing_optional_keys:
                     # Add wildcard for each optional key missing from the input fields
@@ -527,20 +571,27 @@ class Sgtk(object):
                     # if there are missing fields then we won't be able to
                     # form a valid path from them so skip this key set
                     continue
-            
+
             # Apply the fields to build the glob string to search with:
-            glob_str = template._apply_fields(current_local_fields, ignore_types=current_skip_keys)
+            glob_str = template._apply_fields(
+                current_local_fields, ignore_types=current_skip_keys
+            )
             if glob_str in globs_searched:
                 # it's possible that multiple key sets return the same search
                 # string depending on the fields and skip-keys passed in
                 continue
             globs_searched.add(glob_str)
-            
-            # Find all files which are valid for this key set
-            found_files.update([found_file for found_file in glob.iglob(glob_str) if template.validate(found_file)])
-                    
-        return list(found_files) 
 
+            # Find all files which are valid for this key set
+            found_files.update(
+                [
+                    found_file
+                    for found_file in glob.iglob(glob_str)
+                    if template.validate(found_file)
+                ]
+            )
+
+        return list(found_files)
 
     def abstract_paths_from_template(self, template, fields):
         """
@@ -629,7 +680,9 @@ class Sgtk(object):
         # now carry out a regular search based on the template
         found_files = self.paths_from_template(search_template, fields)
 
-        st_abstract_key_names = [k.name for k in search_template.keys.values() if k.is_abstract]
+        st_abstract_key_names = [
+            k.name for k in search_template.keys.values() if k.is_abstract
+        ]
 
         # now collapse down the search matches for any abstract fields,
         # and add the leaf level if necessary
@@ -663,7 +716,6 @@ class Sgtk(object):
             abstract_paths.add(abstract_path)
 
         return list(abstract_paths)
-
 
     def paths_from_entity(self, entity_type, entity_id):
         """
@@ -710,7 +762,7 @@ class Sgtk(object):
         :returns: :class:`Context`
         """
         return context.create_empty(self)
-        
+
     def context_from_path(self, path, previous_context=None):
         """
         Factory method that constructs a context object from a path on disk.
@@ -804,12 +856,12 @@ class Sgtk(object):
     def synchronize_filesystem_structure(self, full_sync=False):
         """
         Ensures that the filesystem structure on this machine is in sync
-        with Shotgun. This synchronization is implicitly carried out as part of the 
+        with Shotgun. This synchronization is implicitly carried out as part of the
         normal folder creation process, however sometimes it is useful to
         be able to call it on its own.
-        
+
         .. note:: That this method is equivalent to the **synchronize_folders** tank command.
-        
+
         :param full_sync: If set to true, a complete sync will be carried out.
                           By default, the sync is incremental.
         :returns: List of folders that were synchronized.
@@ -843,11 +895,9 @@ class Sgtk(object):
                        folder creation pass should be executed for a particular engine.
         :returns: The number of folders processed
         """
-        folders = folder.process_filesystem_structure(self,
-                                                      entity_type,
-                                                      entity_id,
-                                                      False,
-                                                      engine)
+        folders = folder.process_filesystem_structure(
+            self, entity_type, entity_id, False, engine
+        )
         return len(folders)
 
     def preview_filesystem_structure(self, entity_type, entity_id, engine=None):
@@ -861,16 +911,15 @@ class Sgtk(object):
         :type engine: String.
         :returns: List of paths that would be created
         """
-        folders = folder.process_filesystem_structure(self,
-                                                      entity_type,
-                                                      entity_id,
-                                                      True,
-                                                      engine)
+        folders = folder.process_filesystem_structure(
+            self, entity_type, entity_id, True, engine
+        )
         return folders
 
 
 ##########################################################################################
 # module methods
+
 
 def sgtk_from_path(path):
     """
@@ -918,6 +967,7 @@ def sgtk_from_path(path):
     :returns: :class:`Sgtk` instance
     """
     return Tank(path)
+
 
 def sgtk_from_entity(entity_type, entity_id):
     """
@@ -969,8 +1019,10 @@ def get_authenticated_user():
     global _authenticated_user
     return _authenticated_user
 
+
 ##########################################################################################
 # Legacy handling
+
 
 def tank_from_path(path):
     """
@@ -978,11 +1030,13 @@ def tank_from_path(path):
     """
     return sgtk_from_path(path)
 
+
 def tank_from_entity(entity_type, entity_id):
     """
     Legacy alias for :meth:`sgtk_from_entity`.
     """
     return sgtk_from_entity(entity_type, entity_id)
+
 
 class Tank(Sgtk):
     """

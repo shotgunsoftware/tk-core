@@ -1,11 +1,11 @@
 # Copyright (c) 2017 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -16,7 +16,7 @@ from __future__ import with_statement
 
 import os
 import threading
-import urlparse
+from tank_vendor.six.moves import urllib
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
@@ -32,7 +32,7 @@ log = LogManager.get_logger(__name__)
 
 
 def __get_api_core_config_location():
-    """
+    r"""
 
     Walk from the location of this file on disk to the config area.
     this operation is guaranteed to work on any valid tank installation
@@ -49,6 +49,7 @@ def __get_api_core_config_location():
     """
     # local import to avoid cyclic references
     from ...pipelineconfig_utils import get_path_to_current_core
+
     core_api_root = get_path_to_current_core()
     core_cfg = os.path.join(core_api_root, "config", "core")
 
@@ -59,54 +60,57 @@ def __get_api_core_config_location():
 
     return core_cfg
 
+
 def __get_sg_config():
     """
     Returns the site sg config yml file for this install
-    
+
     :returns: full path to to shotgun.yml config file
     """
     core_cfg = __get_api_core_config_location()
     path = os.path.join(core_cfg, "shotgun.yml")
     return path
 
+
 def get_project_name_studio_hook_location():
     """
     Returns the studio level hook that is used to compute the default project name
-    
+
     :returns: The path to the studio level project naming hook.
     """
-    
+
     # NOTE! This code is located here because it needs to be able to run without a project.
     # the natural place would probably have been to put this inside the pipeline configuration
     # class, however this object assumes a project that exists.
     #
-    # @todo longterm we should probably establish a place in the code where we define 
-    # an API or set of functions which can be executed outside the remit of a 
+    # @todo longterm we should probably establish a place in the code where we define
+    # an API or set of functions which can be executed outside the remit of a
     # pipeline configuration/Toolkit project.
-    
+
     core_cfg = __get_api_core_config_location()
     path = os.path.join(core_cfg, constants.STUDIO_HOOK_PROJECT_NAME)
     return path
 
+
 def __get_sg_config_data(shotgun_cfg_path, user="default"):
     """
     Returns the shotgun configuration yml parameters given a config file.
-    
+
     The shotgun.yml may look like:
 
         host: str
         api_script: str
         api_key: str
         http_proxy: str
-    
+
         or may now look like:
-    
+
         <User>:
             host: str
             api_script: str
             api_key: str
             http_proxy: str
-    
+
         <User>:
             host: str
             api_script: str
@@ -114,18 +118,22 @@ def __get_sg_config_data(shotgun_cfg_path, user="default"):
             http_proxy: str
 
     The optional user param refers to the <User> in the shotgun.yml.
-    If a user is not found the old style is attempted.    
-    
+    If a user is not found the old style is attempted.
+
     :param shotgun_cfg_path: path to config file
-    :param user: Optional user to pass when a multi-user config is being read 
+    :param user: Optional user to pass when a multi-user config is being read
 
     :returns: dictionary with key host and optional keys api_script, api_key and http_proxy
     """
     # load the config file
     try:
-        file_data = yaml_cache.g_yaml_cache.get(shotgun_cfg_path, deepcopy_data=False) or {}
+        file_data = (
+            yaml_cache.g_yaml_cache.get(shotgun_cfg_path, deepcopy_data=False) or {}
+        )
     except Exception as error:
-        raise TankError("Cannot load config file '%s'. Error: %s" % (shotgun_cfg_path, error))
+        raise TankError(
+            "Cannot load config file '%s'. Error: %s" % (shotgun_cfg_path, error)
+        )
 
     return _parse_config_data(file_data, user, shotgun_cfg_path)
 
@@ -148,7 +156,9 @@ def __get_sg_config_data_with_script_user(shotgun_cfg_path, user="default"):
     if config_data.get("api_script") and config_data.get("api_key"):
         return config_data
     else:
-        raise TankError("Missing required script user in config '%s'" % shotgun_cfg_path)
+        raise TankError(
+            "Missing required script user in config '%s'" % shotgun_cfg_path
+        )
 
 
 def _parse_config_data(file_data, user, shotgun_cfg_path):
@@ -172,19 +182,24 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
         config_data = file_data
 
     # now check if there is a studio level override hook which want to refine these settings
-    sg_hook_path = os.path.join(__get_api_core_config_location(), constants.STUDIO_HOOK_SG_CONNECTION_SETTINGS)
+    sg_hook_path = os.path.join(
+        __get_api_core_config_location(), constants.STUDIO_HOOK_SG_CONNECTION_SETTINGS
+    )
 
     if os.path.exists(sg_hook_path):
         # custom hook is available!
-        config_data = hook.execute_hook(sg_hook_path,
-                                        parent=None,
-                                        config_data=config_data,
-                                        user=user,
-                                        cfg_path=shotgun_cfg_path)
+        config_data = hook.execute_hook(
+            sg_hook_path,
+            parent=None,
+            config_data=config_data,
+            user=user,
+            cfg_path=shotgun_cfg_path,
+        )
 
     def _raise_missing_key(key):
         raise TankError(
-            "Missing required field '%s' in config '%s' for script user authentication." % (key, shotgun_cfg_path)
+            "Missing required field '%s' in config '%s' for script user authentication."
+            % (key, shotgun_cfg_path)
         )
 
     if not config_data.get("host"):
@@ -203,7 +218,10 @@ def _parse_config_data(file_data, user, shotgun_cfg_path):
             config_data[key] = os.path.expandvars(config_data[key])
 
     # If the appstore proxy is set, but the value is falsy.
-    if "app_store_http_proxy" in config_data and not config_data["app_store_http_proxy"]:
+    if (
+        "app_store_http_proxy" in config_data
+        and not config_data["app_store_http_proxy"]
+    ):
         # Make sure it is None.
         config_data["app_store_http_proxy"] = None
 
@@ -234,19 +252,22 @@ def __sanitize_url(server_url):
     # network location
 
     # Then break up the url into chunks
-    tokens_parsed = urlparse.urlparse(server_url)
+    tokens_parsed = urllib.parse.urlparse(server_url)
 
     # Then extract the good parts from the url
-    clean_url_tokens = urlparse.ParseResult(
+    clean_url_tokens = urllib.parse.ParseResult(
         # We want https when there is no specified scheme.
         scheme=tokens_parsed.scheme or "https",
         # If only a host has been provided, path will be set.
         # If a scheme was set, then use the netloc
         netloc=tokens_parsed.netloc or tokens_parsed.path,
-        path="", params="", query="", fragment=""
+        path="",
+        params="",
+        query="",
+        fragment="",
     )
 
-    return urlparse.urlunparse(clean_url_tokens)
+    return urllib.parse.urlunparse(clean_url_tokens)
 
 
 def sanitize_url(server_url):
@@ -297,6 +318,7 @@ def get_associated_sg_base_url():
     """
     # Avoids cyclic imports.
     from ... import api
+
     sg_user = api.get_authenticated_user()
 
     if sg_user:
@@ -330,9 +352,11 @@ def get_deferred_sg_connection():
 
     :return: Proxied SG API handle
     """
+
     class DeferredInitShotgunProxy(object):
         def __init__(self):
             self._sg = None
+
         def __getattr__(self, key):
             if self._sg is None:
                 self._sg = get_sg_connection()
@@ -386,6 +410,7 @@ def create_sg_connection(user="default"):
 
     # Avoids cyclic imports.
     from ... import api
+
     sg_user = api.get_authenticated_user()
 
     # If there is no user, that's probably because we're running in an old script that doesn't use
@@ -410,11 +435,15 @@ def create_sg_connection(user="default"):
                 "lookup in turn failed. No credentials can be determined and no connection "
                 "to Shotgun can be made. Details: %s" % e
             )
-            raise TankError("Cannot connect to Shotgun - this tk session does not have "
-                            "an associated user and attempts to determine a valid shotgun "
-                            "via legacy configuration files failed. Details: %s" % e)
+            raise TankError(
+                "Cannot connect to Shotgun - this tk session does not have "
+                "an associated user and attempts to determine a valid shotgun "
+                "via legacy configuration files failed. Details: %s" % e
+            )
 
-        log.debug("Creating shotgun connection based on details in %s" % config_file_path)
+        log.debug(
+            "Creating shotgun connection based on details in %s" % config_file_path
+        )
         config_data = __get_sg_config_data_with_script_user(config_file_path, user)
 
         # Credentials were passed in, so let's run the legacy authentication
@@ -424,7 +453,7 @@ def create_sg_connection(user="default"):
             script_name=config_data["api_script"],
             api_key=config_data["api_key"],
             http_proxy=config_data.get("http_proxy"),
-            connect=False
+            connect=False,
         )
 
     else:
@@ -439,28 +468,24 @@ def create_sg_connection(user="default"):
     return api_handle
 
 
-
-
-
-
 #################################################################################################
 # wrappers around the shotgun API's http header API methods
 
-    
+
 class ToolkitUserAgentHandler(object):
     """
     Convenience wrapper to handle the user agent management
     """
-    
+
     def __init__(self, sg):
         self._sg = sg
-        
+
         self._app = None
         self._framework = None
         self._engine = None
-        
+
         self._core_version = None
-        
+
     def __clear_bundles(self):
         """
         Resets the currently active bundle.
@@ -469,48 +494,47 @@ class ToolkitUserAgentHandler(object):
         self._framework = None
         self._engine = None
 
-        
     def set_current_app(self, name, version, engine_name, engine_version):
         """
-        Update the user agent headers for the currently active app 
+        Update the user agent headers for the currently active app
         """
         # first clear out the other bundle settings - there can only
         # be one active bundle at a time
         self.__clear_bundles()
 
-        # populate the currently running bundle data        
+        # populate the currently running bundle data
         self._app = (name, version)
         self._engine = (engine_name, engine_version)
-        
+
         # push to shotgun
         self.__update()
-        
+
     def set_current_framework(self, name, version, engine_name, engine_version):
         """
-        Update the user agent headers for the currently active framework 
+        Update the user agent headers for the currently active framework
         """
         # first clear out the other bundle settings - there can only
         # be one active bundle at a time
         self.__clear_bundles()
 
-        # populate the currently running bundle data        
+        # populate the currently running bundle data
         self._framework = (name, version)
         self._engine = (engine_name, engine_version)
-        
+
         # push to shotgun
         self.__update()
 
     def set_current_engine(self, name, version):
         """
-        Update the user agent headers for the currently active engine 
+        Update the user agent headers for the currently active engine
         """
         # first clear out the other bundle settings - there can only
         # be one active bundle at a time
         self.__clear_bundles()
 
-        # populate the currently running bundle data        
+        # populate the currently running bundle data
         self._engine = (name, version)
-        
+
         # push to shotgun
         self.__update()
 
@@ -520,34 +544,36 @@ class ToolkitUserAgentHandler(object):
         """
         self._core_version = core_version
         self.__update()
-        
+
     def __update(self):
         """
         Perform changes to the Shotgun API
         """
-        # note that because of shortcomings in the API, 
+        # note that because of shortcomings in the API,
         # we have to reference the member variable directly.
         #
         # sg._user_agents is a list of strings. By default,
-        # its value is [ "shotgun-json (1.2.3)" ] 
-        
+        # its value is [ "shotgun-json (1.2.3)" ]
+
         # First, remove any old Toolkit settings
         new_agents = []
         for x in self._sg._user_agents:
-            if x.startswith("tk-core") or \
-               x.startswith("tk-app") or \
-               x.startswith("tk-engine") or \
-               x.startswith("tk-fw"):
+            if (
+                x.startswith("tk-core")
+                or x.startswith("tk-app")
+                or x.startswith("tk-engine")
+                or x.startswith("tk-fw")
+            ):
                 continue
             new_agents.append(x)
-         
+
         # Add new Toolkit settings
         if self._core_version:
             new_agents.append("tk-core (%s)" % self._core_version)
 
         if self._engine:
             new_agents.append("tk-engine (%s %s)" % self._engine)
-        
+
         if self._app:
             new_agents.append("tk-app (%s %s)" % self._app)
 

@@ -14,9 +14,7 @@ Integration with Shotgun Toolkit API.
 # pylint: disable=line-too-long
 # pylint: disable=protected-access
 
-from .sso_saml2 import (  # noqa
-    SsoSaml2,
-)
+from .sso_saml2 import SsoSaml2  # noqa
 
 
 class SsoSaml2Toolkit(SsoSaml2):
@@ -34,5 +32,5 @@ class SsoSaml2Toolkit(SsoSaml2):
             self._core._session.host,
             self._core._session.user_id,
             self._core._session.session_id,
-            self._core._session.cookies
+            self._core._session.cookies,
         )

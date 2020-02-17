@@ -197,7 +197,10 @@ def get_framework(framework):
     current_bundle = _get_current_bundle()
 
     if framework not in current_bundle.frameworks:
-        raise Exception("import_framework: %s does not have a framework %s associated!" % (current_bundle, framework))
+        raise Exception(
+            "import_framework: %s does not have a framework %s associated!"
+            % (current_bundle, framework)
+        )
 
     fw = current_bundle.frameworks[framework]
 
@@ -231,7 +234,10 @@ def import_framework(framework, module):
     current_bundle = _get_current_bundle()
 
     if framework not in current_bundle.frameworks:
-        raise Exception("import_framework: %s does not have a framework %s associated!" % (current_bundle, framework))
+        raise Exception(
+            "import_framework: %s does not have a framework %s associated!"
+            % (current_bundle, framework)
+        )
 
     fw = current_bundle.frameworks[framework]
 

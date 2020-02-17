@@ -1,0 +1,19 @@
+# Copyright (c) 2019 Shotgun Software Inc.
+#
+# CONFIDENTIAL AND PROPRIETARY
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+# Source Code License included in this distribution package. See LICENSE.
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
+# not expressly granted therein are reserved by Shotgun Software Inc.
+
+# Metadata defining the behavior and requirements for this configuration
+
+# More verbose description of this item
+display_name: "Toolkit Test Configuration"
+description: "Configuration used in Unit Tests"
+
+# Required minimum versions for this item to run
+requires_shotgun_version: "v7.0.0"
+requires_core_version: "v0.18.158"

@@ -23,6 +23,7 @@ class Bootstrap(get_hook_baseclass()):
     This hook allows to download certain bundles from Shotgun instead of
     official source for the bundle.
     """
+
     def can_cache_bundle(self, descriptor):
         """
         Returns true if the descriptor has been cached in Shotgun.
@@ -33,8 +34,8 @@ class Bootstrap(get_hook_baseclass()):
         :returns: ``True`` if the bundle is cached in Shotgun, ``False`` otherwise.
         """
         return bool(
-            descriptor.get_dict()["type"] in ["app_store", "git"] and
-            self._get_bundle_attachment(descriptor)
+            descriptor.get_dict()["type"] in ["app_store", "git"]
+            and self._get_bundle_attachment(descriptor)
         )
 
     def _get_bundle_attachment(self, descriptor):
@@ -63,7 +64,8 @@ class Bootstrap(get_hook_baseclass()):
         # locally every single bundle for a given config.
         entity = self.shotgun.find_one(
             "CustomNonProjectEntity01",
-            [["sg_descriptor", "is", descriptor.get_uri()]], ["sg_content"]
+            [["sg_descriptor", "is", descriptor.get_uri()]],
+            ["sg_content"],
         )
         if entity:
             return entity["sg_content"]
@@ -86,6 +88,9 @@ class Bootstrap(get_hook_baseclass()):
         download_and_unpack_attachment(self.shotgun, attachment, destination)
         self.logger.info(
             "Bundle %s was downloaded from %s.",
-            descriptor.get_uri(), self.shotgun.base_url
+            descriptor.get_uri(),
+            self.shotgun.base_url,
         )
+
+
 # Everything after this line will not be part of the documentation. #documentationEnd

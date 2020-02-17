@@ -18,7 +18,6 @@ a primed bundle cache.
 
 # system imports
 from __future__ import with_statement
-import re
 import os
 import sys
 import shutil
@@ -31,7 +30,7 @@ sys.path.append(python_folder)
 
 # sgtk imports
 from tank import LogManager
-from tank.util import filesystem
+from tank.util import filesystem, sgre as re
 from tank.errors import TankError
 from tank.descriptor import Descriptor, descriptor_uri_to_dict, descriptor_dict_to_uri
 from tank.descriptor import create_descriptor, is_descriptor_version_missing
@@ -40,8 +39,13 @@ from tank.bootstrap import constants as bootstrap_constants
 from tank_vendor import yaml
 
 from utils import (
-    cache_apps, authenticate, add_authentication_options, OptionParserLineBreakingEpilog, cleanup_bundle_cache,
-    wipe_folder, automated_setup_documentation
+    cache_apps,
+    authenticate,
+    add_authentication_options,
+    OptionParserLineBreakingEpilog,
+    cleanup_bundle_cache,
+    wipe_folder,
+    automated_setup_documentation,
 )
 
 # set up logging
@@ -89,7 +93,7 @@ def _bake_configuration(sg_connection, manifest_data):
         sg_connection,
         Descriptor.CONFIG,
         base_config_uri_dict,
-        resolve_latest=using_latest_config
+        resolve_latest=using_latest_config,
     )
     cfg_descriptor.ensure_local()
     local_path = cfg_descriptor.get_path()
@@ -99,13 +103,20 @@ def _bake_configuration(sg_connection, manifest_data):
         "type": bootstrap_constants.BAKED_DESCRIPTOR_TYPE,
         "path": local_path,
         "name": cfg_descriptor.system_name,
-        "version": cfg_descriptor.version
+        "version": cfg_descriptor.version,
     }
     manifest_data["base_configuration"] = baked_descriptor
     return baked_descriptor
 
 
-def _process_configuration(sg_connection, source_path, target_path, bundle_cache_root, manifest_data, use_system_core):
+def _process_configuration(
+    sg_connection,
+    source_path,
+    target_path,
+    bundle_cache_root,
+    manifest_data,
+    use_system_core,
+):
     """
     Given data in the plugin manifest, download resolve and
     cache the configuration.
@@ -145,7 +156,9 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
     if base_config_uri_dict["type"] == bootstrap_constants.BAKED_DESCRIPTOR_TYPE:
         logger.info("Baked descriptor detected.")
 
-        baked_path = os.path.expanduser(os.path.expandvars(base_config_uri_dict["path"]))
+        baked_path = os.path.expanduser(
+            os.path.expandvars(base_config_uri_dict["path"])
+        )
 
         # if it's a relative path, expand it
         if not os.path.isabs(baked_path):
@@ -161,7 +174,9 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
             # path is absolute
             full_baked_path = os.path.abspath(baked_path)
 
-        logger.info("Will bake an immutable config into the plugin from '%s'" % full_baked_path)
+        logger.info(
+            "Will bake an immutable config into the plugin from '%s'" % full_baked_path
+        )
 
         # A baked config descriptor does not require a name nor a version, so
         # if these keys are not available, use the current date time for the
@@ -170,28 +185,22 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
         # When baking a plugin with the --bake option, which is the recommended
         # workflow, these values are automatically set.
         baked_name = base_config_uri_dict.get("name") or "tk-config-plugin"
-        baked_version = (
-            base_config_uri_dict.get("version") or
-            datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        )
+        baked_version = base_config_uri_dict.get(
+            "version"
+        ) or datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         install_path = os.path.join(
             bundle_cache_root,
             bootstrap_constants.BAKED_DESCRIPTOR_FOLDER_NAME,
             baked_name,
-            baked_version
+            baked_version,
         )
 
         cfg_descriptor = create_descriptor(
-            sg_connection,
-            Descriptor.CONFIG,
-            {"type": "path", "path": full_baked_path}
+            sg_connection, Descriptor.CONFIG, {"type": "path", "path": full_baked_path}
         )
 
         BakedConfiguration.bake_config_scaffold(
-            install_path,
-            sg_connection,
-            manifest_data["plugin_id"],
-            cfg_descriptor
+            install_path, sg_connection, manifest_data["plugin_id"], cfg_descriptor
         )
 
         # now lastly,
@@ -199,7 +208,7 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
             {
                 "type": bootstrap_constants.BAKED_DESCRIPTOR_TYPE,
                 "name": baked_name,
-                "version": baked_version
+                "version": baked_version,
             }
         )
         if use_system_core:
@@ -210,7 +219,9 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
             wipe_folder(os.path.join(install_path, "install"))
             # And make sure we don't have any reference to a tk-core in the config,
             # otherwise it would be picked up when bootstrapping.
-            filesystem.safe_delete_file(os.path.join(install_path, "config", "core", "core_api.yml"))
+            filesystem.safe_delete_file(
+                os.path.join(install_path, "config", "core", "core_api.yml")
+            )
         else:
             # Workaround for tk-core bootstrap needing a shotgun.yml file: when swapping
             # tk-core, this file is checked to see if a script user was specified and
@@ -220,7 +231,9 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
             # It is not clear if this workaround is needed for non baked configs as
             # their workflow is different, so for now we just keep it for bake configs
             # only.
-            shotgun_yaml_path = os.path.join(install_path, "config", "core", "shotgun.yml")
+            shotgun_yaml_path = os.path.join(
+                install_path, "config", "core", "shotgun.yml"
+            )
             if not os.path.exists(shotgun_yaml_path):
                 logger.info("Patching %s" % shotgun_yaml_path)
                 with open(shotgun_yaml_path, "w") as pf:
@@ -246,7 +259,7 @@ def _process_configuration(sg_connection, source_path, target_path, bundle_cache
             sg_connection,
             Descriptor.CONFIG,
             base_config_uri_dict,
-            resolve_latest=using_latest_config
+            resolve_latest=using_latest_config,
         )
     logger.info("Resolved config %r" % cfg_descriptor)
     logger.info("Runtime config descriptor uri will be %s" % base_config_uri_str)
@@ -271,7 +284,7 @@ def _validate_manifest(source_path):
     try:
         with open(manifest_path, "rt") as fh:
             manifest_data = yaml.load(fh)
-    except Exception, e:
+    except Exception as e:
         raise TankError("Cannot parse info.yml manifest: %s" % e)
 
     logger.debug("Validating manifest...")
@@ -279,18 +292,23 @@ def _validate_manifest(source_path):
     # legacy check - if we find entry_point, convert it across
     # to be plugin_id
     if "entry_point" in manifest_data:
-        logger.warning("Found legacy entry_point syntax. Please upgrade to use plugin_id instead.")
+        logger.warning(
+            "Found legacy entry_point syntax. Please upgrade to use plugin_id instead."
+        )
         manifest_data["plugin_id"] = manifest_data["entry_point"]
 
     for parameter in REQUIRED_MANIFEST_PARAMETERS:
         if parameter not in manifest_data:
             raise TankError(
-                "Required plugin manifest parameter '%s' missing in '%s'" % (parameter, manifest_path)
+                "Required plugin manifest parameter '%s' missing in '%s'"
+                % (parameter, manifest_path)
             )
 
     # plugin_id needs to be alpha numeric + period
-    if re.search("^[a-zA-Z0-9_\.]+$", manifest_data["plugin_id"]) is None:
-        raise TankError("Plugin id can only contain alphanumerics, period and underscore characters.")
+    if re.search(r"^[a-zA-Z0-9_\.]+$", manifest_data["plugin_id"]) is None:
+        raise TankError(
+            "Plugin id can only contain alphanumerics, period and underscore characters."
+        )
 
     return manifest_data
 
@@ -306,7 +324,7 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
     """
     # suffix our generated python module with plugin id for uniqueness
     # replace all non-alphanumeric chars with underscores.
-    module_name = "sgtk_plugin_%s" % re.sub("\W", "_", manifest_data["plugin_id"])
+    module_name = "sgtk_plugin_%s" % re.sub(r"\W", "_", manifest_data["plugin_id"])
     full_module_path = os.path.join(plugin_root, "python", module_name)
     filesystem.ensure_folder_exists(full_module_path)
 
@@ -316,7 +334,7 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
             fh.write("# this file was auto generated.\n")
             fh.write("from . import manifest\n")
             fh.write("# end of file.\n")
-    except Exception, e:
+    except Exception as e:
         raise TankError("Cannot write __init__.py file: %s" % e)
 
     # now bake out the manifest into code
@@ -328,26 +346,29 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
 
             fh.write("# this file was auto generated.\n\n\n")
 
-            fh.write("base_configuration=\"%s\"\n" % config_uri)
+            fh.write('base_configuration="%s"\n' % config_uri)
 
-            for (parameter, value) in manifest_data.iteritems():
+            for (parameter, value) in manifest_data.items():
 
                 if parameter == "base_configuration":
                     continue
 
                 if isinstance(value, str):
-                    fh.write("%s=\"%s\"\n" % (parameter, value.replace("\"", "'")))
+                    fh.write('%s="%s"\n' % (parameter, value.replace('"', "'")))
                 elif isinstance(value, int):
                     fh.write("%s=%d\n" % (parameter, value))
                 elif isinstance(value, bool):
                     fh.write("%s=%s\n" % (parameter, value))
                 else:
                     raise ValueError(
-                        "Invalid manifest value %s: %s - data type not supported!" % (parameter, value)
+                        "Invalid manifest value %s: %s - data type not supported!"
+                        % (parameter, value)
                     )
 
             fh.write("\n\n# system generated parameters\n")
-            fh.write("BUILD_DATE=\"%s\"\n" % datetime.datetime.now().strftime("%Y%m%d_%H%M%S"))
+            fh.write(
+                'BUILD_DATE="%s"\n' % datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            )
             fh.write("BUILD_GENERATION=%d\n" % BUILD_GENERATION)
 
             # Write out helper function 'get_sgtk_pythonpath()'.
@@ -358,12 +379,12 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
                 # this method, but let's keep things consistent.
                 fh.write("\n\n")
                 fh.write("def get_sgtk_pythonpath(plugin_root):\n")
-                fh.write("    \"\"\" \n")
+                fh.write('    """ \n')
                 fh.write("    Auto generated helper method which returns the \n")
                 fh.write("    path to the core bundled with the plugin.\n")
                 fh.write("    \n")
                 fh.write("    For more information, see the documentation.\n")
-                fh.write("    \"\"\" \n")
+                fh.write('    """ \n')
                 fh.write("    import os\n")
                 fh.write("    import sgtk\n")
                 fh.write("    return os.path.dirname(os.path.dirname(sgtk.__file__))\n")
@@ -372,29 +393,39 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
             elif core_descriptor.get_path().startswith(plugin_root):
                 # The core descriptor is cached inside our plugin, build a relative
                 # path from the plugin root.
-                core_path_parts = os.path.normpath(core_descriptor.get_path()).split(os.path.sep)
-                core_path_relative_parts = core_path_parts[core_path_parts.index(BUNDLE_CACHE_ROOT_FOLDER_NAME):]
+                core_path_parts = os.path.normpath(core_descriptor.get_path()).split(
+                    os.path.sep
+                )
+                core_path_relative_parts = core_path_parts[
+                    core_path_parts.index(BUNDLE_CACHE_ROOT_FOLDER_NAME) :
+                ]
                 core_path_relative_parts.append("python")
 
                 fh.write("\n\n")
                 fh.write("def get_sgtk_pythonpath(plugin_root):\n")
-                fh.write("    \"\"\" \n")
+                fh.write('    """ \n')
                 fh.write("    Auto generated helper method which returns the \n")
                 fh.write("    path to the core bundled with the plugin.\n")
                 fh.write("    \n")
                 fh.write("    For more information, see the documentation.\n")
-                fh.write("    \"\"\" \n")
+                fh.write('    """ \n')
                 fh.write("    import os\n")
-                fh.write("    return os.path.join(plugin_root, %s)\n" %
-                         ", ".join('"%s"' % dir for dir in core_path_relative_parts))
+                fh.write(
+                    "    return os.path.join(plugin_root, %s)\n"
+                    % ", ".join('"%s"' % dir for dir in core_path_relative_parts)
+                )
                 fh.write("\n\n")
 
             else:
                 # the core descriptor is outside of bundle cache!
-                logger.warning("Your core %r has its payload outside the plugin bundle cache. "
-                               "This plugin cannot be distributed to others." % core_descriptor)
+                logger.warning(
+                    "Your core %r has its payload outside the plugin bundle cache. "
+                    "This plugin cannot be distributed to others." % core_descriptor
+                )
 
-                core_path_parts = os.path.normpath(core_descriptor.get_path()).split(os.path.sep)
+                core_path_parts = os.path.normpath(core_descriptor.get_path()).split(
+                    os.path.sep
+                )
                 core_path_parts.append("python")
 
                 # because we are using an external core, the plugin_root parameter
@@ -402,10 +433,14 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
                 # get_sgtk_pythonpath()
                 fh.write("\n\n")
                 fh.write("def get_sgtk_pythonpath(plugin_root):\n")
-                fh.write("    # NOTE - this was built with a core that is not part of the plugin. \n")
+                fh.write(
+                    "    # NOTE - this was built with a core that is not part of the plugin. \n"
+                )
                 fh.write("    # The plugin_root parameter is therefore ignored.\n")
                 fh.write("    # This is normally only done during development and \n")
-                fh.write("    # typically means that the plugin cannot run on other machines \n")
+                fh.write(
+                    "    # typically means that the plugin cannot run on other machines \n"
+                )
                 fh.write("    # than the one where it was built. \n")
                 fh.write("    # \n")
                 fh.write("    # For more information, see the documentation.\n")
@@ -419,12 +454,12 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
 
             fh.write("\n\n")
             fh.write("def initialize_manager(manager, plugin_root):\n")
-            fh.write("    \"\"\" \n")
+            fh.write('    """ \n')
             fh.write("    Auto generated helper method which initializes\n")
             fh.write("    a toolkit manager with common plugin parameters.\n")
             fh.write("    \n")
             fh.write("    For more information, see the documentation.\n")
-            fh.write("    \"\"\" \n")
+            fh.write('    """ \n')
             fh.write("    import os\n")
 
             # set base configuration
@@ -435,10 +470,15 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
 
             # set shotgun config lookup flag if defined
             if "do_shotgun_config_lookup" in manifest_data:
-                fh.write("    manager.do_shotgun_config_lookup = %s\n" % manifest_data["do_shotgun_config_lookup"])
+                fh.write(
+                    "    manager.do_shotgun_config_lookup = %s\n"
+                    % manifest_data["do_shotgun_config_lookup"]
+                )
 
             # set bundle cache fallback path
-            fh.write("    bundle_cache_path = os.path.join(plugin_root, 'bundle_cache')\n")
+            fh.write(
+                "    bundle_cache_path = os.path.join(plugin_root, 'bundle_cache')\n"
+            )
             fh.write("    manager.bundle_cache_fallback_paths = [bundle_cache_path]\n")
 
             fh.write("    return manager\n")
@@ -446,12 +486,19 @@ def _bake_manifest(manifest_data, config_uri, core_descriptor, plugin_root):
             fh.write("\n\n")
             fh.write("# end of file.\n")
 
-    except Exception, e:
+    except Exception as e:
         logger.exception(e)
         raise TankError("Cannot write manifest file: %s" % e)
 
 
-def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=None, do_bake=False, use_system_core=False):
+def build_plugin(
+    sg_connection,
+    source_path,
+    target_path,
+    bootstrap_core_uri=None,
+    do_bake=False,
+    use_system_core=False,
+):
     """
     Perform a build of a plugin.
 
@@ -470,7 +517,9 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
                                  of the one specified in the configuration.
     """
     logger.info("Your toolkit plugin in '%s' will be processed." % source_path)
-    logger.info("The build will %s into '%s'" % (["generated", "baked"][do_bake], target_path))
+    logger.info(
+        "The build will %s into '%s'" % (["generated", "baked"][do_bake], target_path)
+    )
 
     # check for existence
     if not os.path.exists(source_path):
@@ -480,16 +529,13 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     manifest_data = _validate_manifest(source_path)
 
     if do_bake:
-        baked_descriptor = _bake_configuration(
-            sg_connection,
-            manifest_data,
-        )
+        baked_descriptor = _bake_configuration(sg_connection, manifest_data)
         # When baking we control the output path by adding a folder based on the
         # configuration descriptor and version.
-        target_path = os.path.join(target_path, "%s-%s" % (
-            baked_descriptor["name"],
-            baked_descriptor["version"]
-        ))
+        target_path = os.path.join(
+            target_path,
+            "%s-%s" % (baked_descriptor["name"], baked_descriptor["version"]),
+        )
 
     # check that target path doesn't exist
     if os.path.exists(target_path):
@@ -520,7 +566,7 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
         target_path,
         bundle_cache_root,
         manifest_data,
-        use_system_core
+        use_system_core,
     )
 
     # cache config in bundle cache
@@ -544,22 +590,26 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
                 Descriptor.CORE,
                 bootstrap_core_uri,
                 resolve_latest=is_descriptor_version_missing(bootstrap_core_uri),
-                bundle_cache_root_override=bundle_cache_root
+                bundle_cache_root_override=bundle_cache_root,
             )
             # cache it
             bootstrap_core_desc.ensure_local()
 
         elif not cfg_descriptor.associated_core_descriptor:
             # by default, use latest core for bootstrap
-            logger.info("Caching latest official core to use when bootstrapping plugin.")
-            logger.info("(To use a specific config instead, specify a --bootstrap-core-uri flag.)")
+            logger.info(
+                "Caching latest official core to use when bootstrapping plugin."
+            )
+            logger.info(
+                "(To use a specific config instead, specify a --bootstrap-core-uri flag.)"
+            )
 
             bootstrap_core_desc = create_descriptor(
                 sg_connection,
                 Descriptor.CORE,
                 {"type": "app_store", "name": "tk-core"},
                 resolve_latest=True,
-                bundle_cache_root_override=bundle_cache_root
+                bundle_cache_root_override=bundle_cache_root,
             )
 
             # cache it
@@ -572,12 +622,15 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     if not use_system_core and cfg_descriptor.associated_core_descriptor:
         logger.info("Config is specifying a custom core in config/core/core_api.yml.")
         logger.info("This will be used when the config is executing.")
-        logger.info("Ensuring this core (%s) is cached..." % cfg_descriptor.associated_core_descriptor)
+        logger.info(
+            "Ensuring this core (%s) is cached..."
+            % cfg_descriptor.associated_core_descriptor
+        )
         associated_core_desc = create_descriptor(
             sg_connection,
             Descriptor.CORE,
             cfg_descriptor.associated_core_descriptor,
-            bundle_cache_root_override=bundle_cache_root
+            bundle_cache_root_override=bundle_cache_root,
         )
         associated_core_desc.ensure_local()
         if bootstrap_core_desc is None:
@@ -587,25 +640,26 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
                 # install path as an optimisation to avoid core swapping when the
                 # config is bootstrapped.
                 logger.info(
-                    "Bootstrapping will use installed %s required by the config" %
-                    associated_core_desc
+                    "Bootstrapping will use installed %s required by the config"
+                    % associated_core_desc
                 )
                 # If the core was installed we directly use it.
                 bootstrap_core_desc = create_descriptor(
                     sg_connection,
-                    Descriptor.CORE, {
+                    Descriptor.CORE,
+                    {
                         "type": "path",
                         "name": "tk-core",
                         "path": os.path.join(install_path, "install", "core"),
                         "version": associated_core_desc.version,
                     },
                     resolve_latest=False,
-                    bundle_cache_root_override=bundle_cache_root
+                    bundle_cache_root_override=bundle_cache_root,
                 )
             else:
                 logger.info(
-                    "Bootstrapping will use core %s required by the config" %
-                    associated_core_desc
+                    "Bootstrapping will use core %s required by the config"
+                    % associated_core_desc
                 )
                 bootstrap_core_desc = associated_core_desc
 
@@ -613,12 +667,7 @@ def build_plugin(sg_connection, source_path, target_path, bootstrap_core_uri=Non
     logger.info("Creating configuration manifest...")
 
     # bake out the manifest into python files.
-    _bake_manifest(
-        manifest_data,
-        config_uri_str,
-        bootstrap_core_desc,
-        target_path
-    )
+    _bake_manifest(manifest_data, config_uri_str, bootstrap_core_desc, target_path)
 
     cleanup_bundle_cache(bundle_cache_root)
 
@@ -680,15 +729,15 @@ For information about the various descriptors that can be used, see
 http://developer.shotgunsoftware.com/tk-core/descriptor
 
 
-""".format(automated_setup_documentation=automated_setup_documentation)
-    parser = OptionParserLineBreakingEpilog(usage=usage, description=desc, epilog=epilog)
+""".format(
+        automated_setup_documentation=automated_setup_documentation
+    )
+    parser = OptionParserLineBreakingEpilog(
+        usage=usage, description=desc, epilog=epilog
+    )
 
     parser.add_option(
-        "-d",
-        "--debug",
-        default=False,
-        action="store_true",
-        help="Enable debug logging"
+        "-d", "--debug", default=False, action="store_true", help="Enable debug logging"
     )
 
     parser.add_option(
@@ -696,22 +745,24 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         "--bootstrap-core-uri",
         default=None,
         action="store",
-        help=("Specify which version of core to be used by the bootstrap process. "
-              "If not specified, defaults to the most recently released core.")
+        help=(
+            "Specify which version of core to be used by the bootstrap process. "
+            "If not specified, defaults to the most recently released core."
+        ),
     )
 
     parser.add_option(
         "--bake",
         default=False,
         action="store_true",
-        help="Bake the plugin with an immutable configuration."
+        help="Bake the plugin with an immutable configuration.",
     )
 
     parser.add_option(
         "--system-core",
         default=False,
         action="store_true",
-        help="Use tk-core installed on the system rather than a private copy in the config."
+        help="Use tk-core installed on the system rather than a private copy in the config.",
     )
 
     add_authentication_options(parser)
@@ -761,7 +812,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     # make sure we are properly connected
     try:
         sg_connection.find_one("HumanUser", [])
-    except Exception, e:
+    except Exception as e:
         logger.error("Could not communicate with Shotgun: %s" % e)
         return 3
 
@@ -772,7 +823,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         target_path,
         bootstrap_core_uri,
         options.bake,
-        options.system_core
+        options.system_core,
     )
 
     # all good!
@@ -790,7 +841,7 @@ if __name__ == "__main__":
     exit_code = 1
     try:
         exit_code = main()
-    except Exception, e:
+    except Exception as e:
         logger.exception("An exception was raised: %s" % e)
 
     sys.exit(exit_code)

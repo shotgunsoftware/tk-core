@@ -245,11 +245,15 @@ class ShotgunSamlUser(ShotgunWebUser):
                     if self._claims_renewal_cancelled:
                         return
                     self._timer = threading.Timer(
-                        delta, self._do_automatic_claims_renewal, [preemtive_renewal_threshold]
+                        delta,
+                        self._do_automatic_claims_renewal,
+                        [preemtive_renewal_threshold],
                     )
                     self._timer.start()
             else:
-                logger.warning("No further attempts to auto-renew in the background will be attempted.")
+                logger.warning(
+                    "No further attempts to auto-renew in the background will be attempted."
+                )
         except AuthenticationCancelled:
             logger.debug("Automatic SSO claim renewal was cancelled while processing.")
             raise
@@ -271,7 +275,9 @@ class ShotgunSamlUser(ShotgunWebUser):
 
                 self._do_automatic_claims_renewal(preemtive_renewal_threshold)
             else:
-                logger.debug("Attempting to start claims renewal when it was already active.")
+                logger.debug(
+                    "Attempting to start claims renewal when it was already active."
+                )
 
     def stop_claims_renewal(self):
         """
@@ -284,7 +290,9 @@ class ShotgunSamlUser(ShotgunWebUser):
             if self._timer:
                 self._timer.cancel()
             else:
-                logger.debug("Attempting to stop claims renewal when it was not active.")
+                logger.debug(
+                    "Attempting to stop claims renewal when it was not active."
+                )
 
     def is_claims_renewal_active(self):
         """
@@ -298,15 +306,17 @@ class ShotgunSamlUser(ShotgunWebUser):
             return False
 
 
-def serialize_user(user):
+def serialize_user(user, use_json=False):
     """
     Serializes a user. Meant to be consumed by deserialize.
 
     :param user: User object that needs to be serialized.
+    :param use_json: If ``True``, a ``json`` representation will be generated.
+        A pickled representation will be generated otherwise.
 
     :returns: The payload representing the user.
     """
-    return user_impl.serialize_user(user.impl)
+    return user_impl.serialize_user(user.impl, use_json=use_json)
 
 
 def deserialize_user(payload):
@@ -321,11 +331,16 @@ def deserialize_user(payload):
     impl = user_impl.deserialize_user(payload)
 
     # We use the presence of session_metadata as an indicator that we are using SSO.
-    if isinstance(impl, user_impl.SessionUser) and impl.get_session_metadata() is not None:
+    if (
+        isinstance(impl, user_impl.SessionUser)
+        and impl.get_session_metadata() is not None
+    ):
         # if sso_saml2.get_saml_claims_expiration(impl.get_session_metadata()):
         if sso_saml2.has_sso_info_in_cookies(impl.get_session_metadata()):
             return ShotgunSamlUser(impl)
-        if sso_saml2.has_unified_login_flow_info_in_cookies(impl.get_session_metadata()):
+        if sso_saml2.has_unified_login_flow_info_in_cookies(
+            impl.get_session_metadata()
+        ):
             return ShotgunWebUser(impl)
     # If there are no cookies or invalid/unknown cookies, we return a ShotgunUser.
     return ShotgunUser(impl)

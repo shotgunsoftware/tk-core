@@ -230,6 +230,7 @@ import weakref
 import uuid
 from functools import wraps
 from . import constants
+from tank_vendor import six
 
 
 class LogManager(object):
@@ -257,7 +258,9 @@ class LogManager(object):
         appending to the current log file.
         """
 
-        def __init__(self, filename, mode="a", maxBytes=0, backupCount=0, encoding=None):
+        def __init__(
+            self, filename, mode="a", maxBytes=0, backupCount=0, encoding=None
+        ):
             """
             :param str filename: Name of of the log file.
             :param str mode: Mode to open the file, should be  "w" or "a". Defaults to "a"
@@ -266,7 +269,9 @@ class LogManager(object):
             :param encoding: Encoding to use when writing to the file. Defaults to None.
                 File will be opened by default.
             """
-            RotatingFileHandler.__init__(self, filename, mode, maxBytes, backupCount, encoding)
+            RotatingFileHandler.__init__(
+                self, filename, mode, maxBytes, backupCount, encoding
+            )
             self._disable_rollover = False
 
         def doRollover(self):
@@ -303,7 +308,9 @@ class LogManager(object):
                 # It failed, so we'll simply append from now on.
                 log.debug(
                     "Cannot rotate log file '%s'. Logging will continue to this file, "
-                    "exceeding the specified maximum size", self.baseFilename, exc_info=True
+                    "exceeding the specified maximum size",
+                    self.baseFilename,
+                    exc_info=True,
                 )
                 self._handle_rename_failure("a", disable_rollover=True)
                 return
@@ -316,7 +323,9 @@ class LogManager(object):
                 # For some reason we couldn't move the backup in its place.
                 log.debug(
                     "Unexpected issue while rotating log file '%s'. Logging will continue to this file, "
-                    "exceeding the specified maximum size", self.baseFilename, exc_info=True
+                    "exceeding the specified maximum size",
+                    self.baseFilename,
+                    exc_info=True,
                 )
                 # The main log file doesn't exist anymore, so create a new file.
                 # Don't disable the rollover, this has nothing to do with rollover
@@ -342,7 +351,9 @@ class LogManager(object):
                 # so disable rollover and reopen the main log file in append mode.
                 log.debug(
                     "Cannot rotate log file '%s'. Logging will continue to this file, "
-                    "exceeding the specified maximum size", self.baseFilename, exc_info=True
+                    "exceeding the specified maximum size",
+                    self.baseFilename,
+                    exc_info=True,
                 )
                 self._handle_rename_failure("a", disable_rollover=True)
 
@@ -373,7 +384,9 @@ class LogManager(object):
             :returns: True if rollover should happen, False otherwise.
             :rtype: bool
             """
-            return not self._disable_rollover and RotatingFileHandler.shouldRollover(self, record)
+            return not self._disable_rollover and RotatingFileHandler.shouldRollover(
+                self, record
+            )
 
     def __new__(cls, *args, **kwargs):
         #
@@ -382,11 +395,7 @@ class LogManager(object):
         # create the instance if it hasn't been created already
         if not cls.__instance:
             # remember the instance so that no more are created
-            instance = super(LogManager, cls).__new__(
-                cls,
-                *args,
-                **kwargs
-            )
+            instance = super(LogManager, cls).__new__(cls, *args, **kwargs)
 
             # a global and standard rotating log file handler
             # for writing generic toolkit logs to disk
@@ -405,7 +414,8 @@ class LogManager(object):
             # in the log manager
             if constants.DEBUG_LOGGING_ENV_VAR in os.environ:
                 log.debug(
-                    "%s environment variable detected. Enabling debug logging." % constants.DEBUG_LOGGING_ENV_VAR
+                    "%s environment variable detected. Enabling debug logging."
+                    % constants.DEBUG_LOGGING_ENV_VAR
                 )
                 instance._global_debug = True
             else:
@@ -496,6 +506,7 @@ class LogManager(object):
             [DEBUG sgtk.stopwatch.module] my_shotgun_publish_method: 0.633s
 
         """
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             time_before = time.time()
@@ -507,13 +518,10 @@ class LogManager(object):
                 timing_logger = logging.getLogger(
                     "%s.%s" % (constants.PROFILING_LOG_CHANNEL, func.__module__)
                 )
-                timing_logger.debug(
-                    "%s: %fs" % (func.__name__, time_spent)
-                )
+                timing_logger.debug("%s: %fs" % (func.__name__, time_spent))
             return response
+
         return wrapper
-
-
 
     def _set_global_debug(self, state):
         """
@@ -531,7 +539,7 @@ class LogManager(object):
                     "Removing %s from the environment for this session. This "
                     "ensures that subprocesses spawned from this process will "
                     "inherit the global debug logging setting from this process.",
-                    constants.DEBUG_LOGGING_ENV_VAR
+                    constants.DEBUG_LOGGING_ENV_VAR,
                 )
                 del os.environ[constants.DEBUG_LOGGING_ENV_VAR]
 
@@ -573,7 +581,7 @@ class LogManager(object):
                 "Setting %s in the environment for this session. This "
                 "ensures that subprocesses spawned from this process will "
                 "inherit the global debug logging setting from this process.",
-                constants.DEBUG_LOGGING_ENV_VAR
+                constants.DEBUG_LOGGING_ENV_VAR,
             )
             os.environ[constants.DEBUG_LOGGING_ENV_VAR] = "1"
 
@@ -603,6 +611,7 @@ class LogManager(object):
         """
         # avoid cyclic references
         from .util import LocalFileStorageManager
+
         return LocalFileStorageManager.get_global_root(LocalFileStorageManager.LOGGING)
 
     @property
@@ -668,9 +677,7 @@ class LogManager(object):
             handler = logging.StreamHandler()
 
             # example: [DEBUG tank.log] message message
-            formatter = logging.Formatter(
-                "[%(levelname)s %(name)s] %(message)s"
-            )
+            formatter = logging.Formatter("[%(levelname)s %(name)s] %(message)s")
 
             handler.setFormatter(formatter)
 
@@ -702,7 +709,8 @@ class LogManager(object):
 
         # there is a log handler, so terminate it
         log.debug(
-            "Tearing down existing log handler '%s' (%s)" % (base_log_file, self._std_file_handler)
+            "Tearing down existing log handler '%s' (%s)"
+            % (base_log_file, self._std_file_handler)
         )
         self._root_logger.removeHandler(self._std_file_handler)
         self._std_file_handler = None
@@ -741,8 +749,7 @@ class LogManager(object):
 
         return self.initialize_base_file_handler_from_path(
             os.path.join(
-                self.log_folder,
-                "%s.log" % filesystem.create_valid_filename(log_name)
+                self.log_folder, "%s.log" % filesystem.create_valid_filename(log_name)
             )
         )
 
@@ -764,7 +771,11 @@ class LogManager(object):
         log_folder, log_file_name = os.path.split(log_file)
         log_name, _ = os.path.splitext(log_file_name)
 
-        log.debug("Switching file based std logger from '%s' to '%s'.", previous_log_file, log_file)
+        log.debug(
+            "Switching file based std logger from '%s' to '%s'.",
+            previous_log_file,
+            log_file,
+        )
 
         # store new log name
         self._std_file_handler_log_file = log_file
@@ -777,18 +788,17 @@ class LogManager(object):
 
         # create a rotating log file with a max size of 5 megs -
         # this should make all log files easily attachable to support tickets.
-
-        # Python 2.5s implementation is way different that 2.6 and 2.7 and as such we can't
-        # as easily support it for safe rotation.
-        if sys.version_info[:2] > (2, 5):
-            handler_factory = self._SafeRotatingFileHandler
-        else:
-            handler_factory = RotatingFileHandler
-
-        self._std_file_handler = handler_factory(
+        self._std_file_handler = self._SafeRotatingFileHandler(
             log_file,
-            maxBytes=1024 * 1024 * 5,  # 5 MiB
-            backupCount=1          # Need at least one backup in order to rotate
+            # 5 MiB
+            maxBytes=1024 * 1024 * 5,
+            # Need at least one backup in order to rotate
+            backupCount=1,
+            # Python 3 is pickier about the encoding type of a file.
+            # Python 2 treats str as bytes, so it writes them
+            # directly to disk. Putting utf8 encoding actually
+            # causes problems.
+            encoding="utf8" if six.PY3 else None,
         )
 
         # set the level based on global debug flag
@@ -811,6 +821,7 @@ class LogManager(object):
 
         # return previous log name
         return previous_log_file
+
 
 # the logger for logging messages from this file :)
 log = LogManager.get_logger(__name__)
@@ -839,5 +850,7 @@ sgtk_root_logger.setLevel(logging.DEBUG)
 class NullHandler(logging.Handler):
     def emit(self, record):
         pass
+
+
 # and add it to the logger
 sgtk_root_logger.addHandler(NullHandler())

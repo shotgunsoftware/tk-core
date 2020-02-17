@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import urlparse
+from tank_vendor.six.moves import urllib
 
 from .downloadable import IODescriptorDownloadable
 from ...util import filesystem, shotgun
@@ -75,7 +75,9 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
-        super(IODescriptorShotgunEntity, self).__init__(descriptor_dict, sg_connection, bundle_type)
+        super(IODescriptorShotgunEntity, self).__init__(
+            descriptor_dict, sg_connection, bundle_type
+        )
 
         # ensure project id is an int if specified
         self._project_link = None
@@ -87,18 +89,21 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
             self._validate_descriptor(
                 descriptor_dict,
                 required=["type", "entity_type", "id", "version", "field"],
-                optional=[]
+                optional=[],
             )
 
             # convert to int
             try:
                 self._entity_id = int(descriptor_dict["id"])
             except ValueError:
-                raise TankDescriptorError("Invalid id in descriptor %s" % descriptor_dict)
+                raise TankDescriptorError(
+                    "Invalid id in descriptor %s" % descriptor_dict
+                )
 
             if "name" in descriptor_dict:
                 raise TankDescriptorError(
-                    "Shotgun descriptor cannot contain both name and id tokens: %s" % descriptor_dict
+                    "Shotgun descriptor cannot contain both name and id tokens: %s"
+                    % descriptor_dict
                 )
 
         else:
@@ -106,7 +111,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
             self._validate_descriptor(
                 descriptor_dict,
                 required=["type", "entity_type", "name", "version", "field"],
-                optional=["project_id"]
+                optional=["project_id"],
             )
 
             self._name = descriptor_dict.get("name")
@@ -116,7 +121,9 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
                 try:
                     project_id_int = int(descriptor_dict["project_id"])
                 except ValueError:
-                    raise TankDescriptorError("Invalid project id in descriptor %s" % descriptor_dict)
+                    raise TankDescriptorError(
+                        "Invalid project id in descriptor %s" % descriptor_dict
+                    )
 
                 self._project_link = {"type": "Project", "id": project_id_int}
                 self._project_id = project_id_int
@@ -128,9 +135,15 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
 
         # ensure version is an int if specified
         try:
-            self._version = int(descriptor_dict["version"]) if "version" in descriptor_dict else None
+            self._version = (
+                int(descriptor_dict["version"])
+                if "version" in descriptor_dict
+                else None
+            )
         except ValueError:
-            raise TankDescriptorError("Invalid version in descriptor %s" % descriptor_dict)
+            raise TankDescriptorError(
+                "Invalid version in descriptor %s" % descriptor_dict
+            )
 
     def _get_bundle_cache_path(self, bundle_cache_root):
         """
@@ -149,16 +162,15 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
 
         # Firstly, because the bundle cache can be global, make sure we include the sg site name.
         # first, get site only; https://www.FOO.com:8080 -> www.foo.com
-        base_url = urlparse.urlparse(self._sg_connection.base_url).netloc.split(":")[0].lower()
+        base_url = (
+            urllib.parse.urlparse(self._sg_connection.base_url)
+            .netloc.split(":")[0]
+            .lower()
+        )
         # make it as short as possible for hosted sites
         base_url = base_url.replace(".shotgunstudio.com", "")
 
-        return os.path.join(
-            bundle_cache_root,
-            "sg",
-            base_url,
-            self.get_version()
-        )
+        return os.path.join(bundle_cache_root, "sg", base_url, self.get_version())
 
     def get_system_name(self):
         """
@@ -200,11 +212,12 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
                 self._sg_connection,
                 self._version,
                 destination_path,
-                auto_detect_bundle=True
+                auto_detect_bundle=True,
             )
         except ShotgunAttachmentDownloadError as e:
             raise TankDescriptorError(
-                "Failed to download %s from %s. Error: %s" % (self, self._sg_connection.base_url, e)
+                "Failed to download %s from %s. Error: %s"
+                % (self, self._sg_connection.base_url, e)
             )
 
     def get_latest_version(self, constraint_pattern=None):
@@ -265,7 +278,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
                 "entity_type": self._entity_type,
                 "field": self._field,
                 "name": self._name,
-                "version": attachment_id
+                "version": attachment_id,
             }
 
             if self._project_link:
@@ -277,11 +290,13 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
                 "entity_type": self._entity_type,
                 "field": self._field,
                 "id": self._entity_id,
-                "version": attachment_id
+                "version": attachment_id,
             }
 
         # and return a descriptor instance
-        desc = IODescriptorShotgunEntity(descriptor_dict, self._sg_connection, self._bundle_type)
+        desc = IODescriptorShotgunEntity(
+            descriptor_dict, self._sg_connection, self._bundle_type
+        )
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
 
         log.debug("Latest version resolved to %s" % desc)
@@ -326,7 +341,9 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         # check if we can connect to Shotgun
         can_connect = True
         try:
-            log.debug("%r: Probing if a connection to Shotgun can be established..." % self)
+            log.debug(
+                "%r: Probing if a connection to Shotgun can be established..." % self
+            )
             self._sg_connection.connect()
             log.debug("...connection established!")
         except Exception as e:

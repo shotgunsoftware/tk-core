@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2017 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
@@ -12,13 +13,15 @@ import os
 import copy
 
 import sgtk
+from mock import patch
 
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase
 
 
 class TestLogManager(ShotgunTestBase):
     """Tests the LogManager interface."""
+
     def test_global_debug_environment(self):
         """
         Ensures that the debug logging environment variable is set/unset when
@@ -47,7 +50,23 @@ class TestLogManager(ShotgunTestBase):
         Tests the LogManager 'log_file' property
         """
         manager = sgtk.log.LogManager()
-        self.assertTrue(hasattr(manager, 'log_file'))
+        self.assertTrue(hasattr(manager, "log_file"))
         self.assertIsNotNone(manager.log_file)
 
+    def test_writing_unicode_to_log(self):
+        """
+        Ensure we can write unicode to a log file on all platforms.
+        """
+        manager = sgtk.log.LogManager()
+        unicode_str = "司狼 神威"
 
+        # When a logger's emit method fails, the handleError method is called.
+        with patch.object(
+            manager.base_file_handler, "handleError"
+        ) as handle_error_mock:
+            # This used to not log.
+            manager.root_logger.warning(unicode_str)
+            # Flush the data to disk to make sure the data is emitted.
+            manager.base_file_handler.flush()
+
+        assert handle_error_mock.call_count == 0

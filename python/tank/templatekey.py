@@ -1,23 +1,25 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
 Classes for fields on TemplatePaths and TemplateStrings
 """
 
-import re
 import sys
 import datetime
 from . import constants
 from .errors import TankError
-import collections
+from .util import sgre as re
+from tank_vendor import six
+from tank_vendor.six.moves import zip
+
 
 class TemplateKey(object):
     """
@@ -51,15 +53,17 @@ class TemplateKey(object):
         <Sgtk TimestampKey render_time>
     """
 
-    def __init__(self,
-                 name,
-                 default=None,
-                 choices=None,
-                 shotgun_entity_type=None,
-                 shotgun_field_name=None,
-                 exclusions=None,
-                 abstract=False, 
-                 length=None):
+    def __init__(
+        self,
+        name,
+        default=None,
+        choices=None,
+        shotgun_entity_type=None,
+        shotgun_field_name=None,
+        exclusions=None,
+        abstract=False,
+        length=None,
+    ):
         """
         :param str name: Name by which the key will be referred.
         :param default: Default value for this key. If the default is a callable, it will be invoked
@@ -81,7 +85,7 @@ class TemplateKey(object):
             self._choices = choices
         elif isinstance(choices, list) or isinstance(choices, set):
             # old style choices - labels and choices are the same:
-            self._choices = dict(zip(choices, choices))
+            self._choices = dict(list(zip(choices, choices)))
         else:
             self._choices = {}
 
@@ -94,19 +98,26 @@ class TemplateKey(object):
 
         # check that the key name doesn't contain invalid characters
         if not re.match(r"^%s$" % constants.TEMPLATE_KEY_NAME_REGEX, name):
-            raise TankError("%s: Name contains invalid characters. "
-                            "Valid characters are %s." % (self, constants.VALID_TEMPLATE_KEY_NAME_DESC))
+            raise TankError(
+                "%s: Name contains invalid characters. "
+                "Valid characters are %s."
+                % (self, constants.VALID_TEMPLATE_KEY_NAME_DESC)
+            )
 
         # Validation
         if self.shotgun_field_name and not self.shotgun_entity_type:
-            raise TankError("%s: Shotgun field requires a shotgun entity be set." % self)
+            raise TankError(
+                "%s: Shotgun field requires a shotgun entity be set." % self
+            )
 
         if self.is_abstract and self.default is None:
-            raise TankError("%s: Fields marked as abstract needs to have a default value!" % self)
+            raise TankError(
+                "%s: Fields marked as abstract needs to have a default value!" % self
+            )
 
         if not ((self.default is None) or self.validate(self.default)):
             raise TankError(self._last_error)
-        
+
         if not all(self.validate(choice) for choice in self.choices):
             raise TankError(self._last_error)
 
@@ -117,7 +128,7 @@ class TemplateKey(object):
 
         :returns: The default value.
         """
-        if isinstance(self._default, collections.Callable):
+        if isinstance(self._default, six.moves.collections_abc.Callable):
             return self._default()
         else:
             return self._default
@@ -183,15 +194,15 @@ class TemplateKey(object):
         """
         List of choices available, e.g. ``['ma', 'mb']``
         """
-        return self._choices.keys()
-    
+        return list(self._choices.keys())
+
     @property
     def labelled_choices(self):
         """
         Dictionary of labelled choices, e.g. ``{'ma': 'Maya Ascii', 'mb': 'Maya Binary'}``
         """
         return self._choices
-    
+
     def str_from_value(self, value=None, ignore_type=False):
         """
         Returns a string version of a value as appropriate for the key's setting.
@@ -204,11 +215,13 @@ class TemplateKey(object):
         """
         if value is None:
             if self.default is None:
-                raise TankError("No value provided and no default available for %s" % self)
+                raise TankError(
+                    "No value provided and no default available for %s" % self
+                )
             else:
                 value = self.default
         elif ignore_type:
-            return value if isinstance(value, basestring) else str(value)
+            return value if isinstance(value, six.string_types) else str(value)
 
         if self.validate(value):
             return self._as_string(value)
@@ -250,24 +263,33 @@ class TemplateKey(object):
         :param value: Value to test
         :returns: Bool
         """
-        
-        str_value = value if isinstance(value, basestring) else str(value)
+
+        str_value = value if isinstance(value, six.string_types) else str(value)
 
         # We are not case sensitive
         if str_value.lower() in [str(x).lower() for x in self.exclusions]:
-            self._last_error = "%s Illegal value: %s is forbidden for this key." % (self, value)
+            self._last_error = "%s Illegal value: %s is forbidden for this key." % (
+                self,
+                value,
+            )
             return False
 
         if value is not None and self.choices:
             if str_value.lower() not in [str(x).lower() for x in self.choices]:
-                self._last_error = "%s Illegal value: '%s' not in choices: %s" % (self, value, str(self.choices))
+                self._last_error = "%s Illegal value: '%s' not in choices: %s" % (
+                    self,
+                    value,
+                    str(self.choices),
+                )
                 return False
-        
+
         if self.length is not None and len(str_value) != self.length:
-            self._last_error = ("%s Illegal value: '%s' does not have a length of "
-                                "%d characters." % (self, value, self.length))
+            self._last_error = (
+                "%s Illegal value: '%s' does not have a length of "
+                "%d characters." % (self, value, self.length)
+            )
             return False
-                        
+
         return True
 
     def _as_string(self, value):
@@ -284,18 +306,21 @@ class StringKey(TemplateKey):
     """
     :class:`TemplateKey` representing a string value.
     """
-    def __init__(self,
-                 name,
-                 default=None,
-                 choices=None,
-                 filter_by=None,
-                 shotgun_entity_type=None,
-                 shotgun_field_name=None, 
-                 exclusions=None,
-                 abstract=False, 
-                 length=None,
-                 subset=None,
-                 subset_format=None):
+
+    def __init__(
+        self,
+        name,
+        default=None,
+        choices=None,
+        filter_by=None,
+        shotgun_entity_type=None,
+        shotgun_field_name=None,
+        exclusions=None,
+        abstract=False,
+        length=None,
+        subset=None,
+        subset_format=None,
+    ):
         """
         :param str name: Name by which the key will be referred.
         :param str default: Default value for the key.
@@ -317,17 +342,17 @@ class StringKey(TemplateKey):
         #
         # Note that we cannot use a traditional [^a-zA-Z0-9] regex since we want
         # to support unicode and not just ascii. \W covers "Non-word characters",
-        # which is basically the international equivalent of 7-bit ascii 
-        #        
+        # which is basically the international equivalent of 7-bit ascii
+        #
         self._filter_regex_u = None
         self._custom_regex_u = None
 
         if self._filter_by == "alphanumeric":
-            self._filter_regex_u = re.compile(u"[\W_]", re.UNICODE)
-        
+            self._filter_regex_u = re.compile(r"[\W_]", re.UNICODE)
+
         elif self._filter_by == "alpha":
-            self._filter_regex_u = re.compile(u"[\W_0-9]", re.UNICODE)
-        
+            self._filter_regex_u = re.compile(r"[\W_0-9]", re.UNICODE)
+
         elif self._filter_by is not None:
             # filter_by is a regex
             self._custom_regex_u = re.compile(self._filter_by, re.UNICODE)
@@ -343,23 +368,29 @@ class StringKey(TemplateKey):
             try:
                 self._subset_regex = re.compile(subset, re.UNICODE)
             except Exception as e:
-                raise TankError("Template key %s: Invalid subset regex '%s': %s" % (name, subset, e))
+                raise TankError(
+                    "Template key %s: Invalid subset regex '%s': %s" % (name, subset, e)
+                )
 
         else:
             self._subset_regex = None
 
-        super(StringKey, self).__init__(name,
-                                        default=default,
-                                        choices=choices,
-                                        shotgun_entity_type=shotgun_entity_type,
-                                        shotgun_field_name=shotgun_field_name,
-                                        exclusions=exclusions,
-                                        abstract=abstract,
-                                        length=length)
+        super(StringKey, self).__init__(
+            name,
+            default=default,
+            choices=choices,
+            shotgun_entity_type=shotgun_entity_type,
+            shotgun_field_name=shotgun_field_name,
+            exclusions=exclusions,
+            abstract=abstract,
+            length=length,
+        )
 
         if self._subset_format and not self._subset_str:
-            raise TankError("%s: Cannot specify subset_format parameter without a subset parameter." % self)
-
+            raise TankError(
+                "%s: Cannot specify subset_format parameter without a subset parameter."
+                % self
+            )
 
     @property
     def filter_by(self):
@@ -472,13 +503,13 @@ class StringKey(TemplateKey):
         :param value: value of any type to convert. Value is never None.
         :returns: string representation for this object.
         """
-        str_value = value if isinstance(value, basestring) else str(value)
+        str_value = value if isinstance(value, six.string_types) else str(value)
 
         if self._subset_regex:
             # process substring computation.
             # we want to do this in unicode.
 
-            if not isinstance(str_value, unicode):
+            if isinstance(str_value, six.binary_type):
                 # convert to unicode
                 input_is_utf8 = True
                 value_to_convert = str_value.decode("utf-8")
@@ -497,7 +528,9 @@ class StringKey(TemplateKey):
             elif self._subset_format:
                 # we have an explicit format string we want to apply to the
                 # match. Do the formatting as unicode.
-                resolved_value = self._subset_format.decode("utf-8").format(*match.groups())
+                resolved_value = six.ensure_text(self._subset_format).format(
+                    *match.groups()
+                )
 
             else:
                 # we have a match object. concatenate the groups
@@ -505,7 +538,7 @@ class StringKey(TemplateKey):
 
             # resolved value is now unicode. Convert it
             # so that it is consistent with input
-            if isinstance(resolved_value, unicode) and input_is_utf8:
+            if isinstance(resolved_value, six.text_type) and input_is_utf8:
                 # input was utf-8, regex resut is unicode, cast it back
                 str_value = resolved_value.encode("utf-8")
             else:
@@ -523,7 +556,7 @@ class StringKey(TemplateKey):
         :returns: True if valid, false if not.
         """
         u_value = value
-        if not isinstance(u_value, unicode):
+        if not isinstance(u_value, six.text_type):
             # handle non-ascii characters correctly by
             # decoding to unicode assuming utf-8 encoding
             u_value = value.decode("utf-8")
@@ -533,41 +566,44 @@ class StringKey(TemplateKey):
             # so here we are checking that there are occurances of
             # that pattern in the string
             if self._filter_regex_u.search(u_value):
-                self._last_error = "%s Illegal value '%s' does not fit filter_by '%s'" % (self, value, self.filter_by)
+                self._last_error = (
+                    "%s Illegal value '%s' does not fit filter_by '%s'"
+                    % (self, value, self.filter_by)
+                )
                 return False
 
         elif self._custom_regex_u:
             # check for any user specified regexes
             if self._custom_regex_u.match(u_value) is None:
-                self._last_error = "%s Illegal value '%s' does not fit filter_by '%s'" % (self, value, self.filter_by)
+                self._last_error = (
+                    "%s Illegal value '%s' does not fit filter_by '%s'"
+                    % (self, value, self.filter_by)
+                )
                 return False
 
         # check subset regex
         if self._subset_regex and validate_transforms:
             regex_match = self._subset_regex.match(u_value)
             if regex_match is None:
-                self._last_error = "%s Illegal value '%s' does not fit " \
-                                   "subset expression '%s'" % (self, value, self.subset)
+                self._last_error = (
+                    "%s Illegal value '%s' does not fit "
+                    "subset expression '%s'" % (self, value, self.subset)
+                )
                 return False
 
             # validate that the formatting can be applied to the input value
             if self._subset_format:
                 try:
                     # perform the formatting in unicode space to cover all cases
-                    self._subset_format.decode("utf-8").format(*regex_match.groups())
+                    six.ensure_text(self._subset_format).format(*regex_match.groups())
                 except Exception as e:
-                    self._last_error = "%s Illegal value '%s' does not fit subset '%s' with format '%s': %s" % (
-                        self,
-                        value,
-                        self.subset,
-                        self.subset_format,
-                        e
+                    self._last_error = (
+                        "%s Illegal value '%s' does not fit subset '%s' with format '%s': %s"
+                        % (self, value, self.subset, self.subset_format, e)
                     )
                     return False
 
-
         return super(StringKey, self).validate(value)
-
 
 
 class TimestampKey(TemplateKey):
@@ -575,12 +611,7 @@ class TimestampKey(TemplateKey):
     :class:`TemplateKey` representing a time or date string formatted with strftime.
     """
 
-    def __init__(
-        self,
-        name,
-        default=None,
-        format_spec="%Y-%m-%d-%H-%M-%S"
-    ):
+    def __init__(self, name, default=None, format_spec="%Y-%m-%d-%H-%M-%S"):
         """
         :param str name: Name by which the key will be referred.
         :param default: Default value for this field. Acceptable values are:
@@ -602,12 +633,14 @@ class TimestampKey(TemplateKey):
         # default value, so format_spec needs to be set first. But if I am testing format_spec
         # before calling the base class, then repr will crash since self.name won't have been set
         # yet.
-        if isinstance(format_spec, basestring) is False:
-            raise TankError("format_spec for <Sgtk TimestampKey %s> is not of type string: %s" %
-                            (name, format_spec.__class__.__name__))
+        if isinstance(format_spec, six.string_types) is False:
+            raise TankError(
+                "format_spec for <Sgtk TimestampKey %s> is not of type string: %s"
+                % (name, format_spec.__class__.__name__)
+            )
         self._format_spec = format_spec
 
-        if isinstance(default, basestring):
+        if isinstance(default, six.string_types):
             # if the user passes in now or utc, we'll generate the current time as the default time.
             if default.lower() == "now":
                 default = self.__get_current_time
@@ -623,13 +656,12 @@ class TimestampKey(TemplateKey):
                 default = datetime.datetime.strptime(default, self.format_spec)
             # Base class will validate other values using the format specifier.
         elif default is not None:
-            raise TankError("default for <Sgtk TimestampKey %s> is not of type string or None: %s" %
-                            (name, default.__class__.__name__))
+            raise TankError(
+                "default for <Sgtk TimestampKey %s> is not of type string or None: %s"
+                % (name, default.__class__.__name__)
+            )
 
-        super(TimestampKey, self).__init__(
-            name,
-            default=default
-        )
+        super(TimestampKey, self).__init__(name, default=default)
 
     @property
     def format_spec(self):
@@ -671,7 +703,7 @@ class TimestampKey(TemplateKey):
 
         :returns: Bool
         """
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             # If we have a string we have to actually try to convert the string to see it if matches
             # the expected format.
             try:
@@ -684,7 +716,10 @@ class TimestampKey(TemplateKey):
         elif isinstance(value, datetime.datetime):
             return True
         else:
-            self._last_error = "Invalid type: expecting string or datetime.datetime, not %s" % value.__class__.__name__
+            self._last_error = (
+                "Invalid type: expecting string or datetime.datetime, not %s"
+                % value.__class__.__name__
+            )
             return False
 
     def _as_string(self, value):
@@ -713,25 +748,28 @@ class IntegerKey(TemplateKey):
     """
     :class:`TemplateKey` representing an integer value.
     """
+
     # Matches one non-zero digit follow by any number of digits.
-    _NON_ZERO_POSITIVE_INTEGER_EXP = "[1-9]\d*"
+    _NON_ZERO_POSITIVE_INTEGER_EXP = r"[1-9]\d*"
     # For the next two regular expressions, the ^ and $ are important to prevent partial matches.
     # Matches an optional 0 followed by a non zero positive integer.
     _FORMAT_SPEC_RE = re.compile("^(0?)(%s)$" % _NON_ZERO_POSITIVE_INTEGER_EXP)
     # Matches a non zero positive integer.
     _NON_ZERO_POSITIVE_INTEGER_RE = re.compile("^%s$" % _NON_ZERO_POSITIVE_INTEGER_EXP)
 
-    def __init__(self,
-                 name,
-                 default=None,
-                 choices=None,
-                 format_spec=None,
-                 shotgun_entity_type=None,
-                 shotgun_field_name=None,
-                 exclusions=None,
-                 abstract=False,
-                 length=None,
-                 strict_matching=None):
+    def __init__(
+        self,
+        name,
+        default=None,
+        choices=None,
+        format_spec=None,
+        shotgun_entity_type=None,
+        shotgun_field_name=None,
+        exclusions=None,
+        abstract=False,
+        length=None,
+        strict_matching=None,
+    ):
         """
         :param str name: Name by which the key will be referred.
         :param int default: Default value for this key.
@@ -756,14 +794,16 @@ class IntegerKey(TemplateKey):
         self._init_format_spec(name, format_spec)
         # Validate and set up strict matching defailts
         self._init_strict_matching(name, strict_matching)
-        super(IntegerKey, self).__init__(name,
-                                         default=default,
-                                         choices=choices,
-                                         shotgun_entity_type=shotgun_entity_type,
-                                         shotgun_field_name=shotgun_field_name,
-                                         exclusions=exclusions,
-                                         abstract=abstract,
-                                         length=length)
+        super(IntegerKey, self).__init__(
+            name,
+            default=default,
+            choices=choices,
+            shotgun_entity_type=shotgun_entity_type,
+            shotgun_field_name=shotgun_field_name,
+            exclusions=exclusions,
+            abstract=abstract,
+            length=length,
+        )
 
     @property
     def format_spec(self):
@@ -796,7 +836,7 @@ class IntegerKey(TemplateKey):
         if format_spec is None:
             return
 
-        if not isinstance(format_spec, basestring):
+        if not isinstance(format_spec, six.string_types):
             msg = "format_spec for IntegerKey %s is not of type string: %s"
             raise TankError(msg % (name, format_spec))
 
@@ -805,8 +845,10 @@ class IntegerKey(TemplateKey):
 
         matches = self._FORMAT_SPEC_RE.match(format_spec)
         if not matches:
-            raise TankError("format_spec for <Sgtk IntegerKey %s> has to either be a number (e.g. '3') or "
-                            "a 0 followed by a number (e.g. '03'), not '%s'" % (name, format_spec))
+            raise TankError(
+                "format_spec for <Sgtk IntegerKey %s> has to either be a number (e.g. '3') or "
+                "a 0 followed by a number (e.g. '03'), not '%s'" % (name, format_spec)
+            )
 
         groups = matches.groups()
         # groups[0] is either '' or '0', in which case the padding is ' '
@@ -825,7 +867,7 @@ class IntegerKey(TemplateKey):
         :raises TankError: Raised when the parameter is not a boolean.
         """
         # make sure that strict_matching is not set or that it is a boolean
-        if not(strict_matching is None or isinstance(strict_matching, bool)):
+        if not (strict_matching is None or isinstance(strict_matching, bool)):
             msg = "strict_matching for <Sgtk IntegerKey %s> is not of type boolean: %s"
             raise TankError(msg % (name, str(strict_matching)))
 
@@ -845,10 +887,13 @@ class IntegerKey(TemplateKey):
             # self._minimum_width first. It first matches up to n-1 padding characters. It then
             # matches either a single 0, or an actual multiple digit number that doesn't start with
             # 0.
-            self._strict_validation_re = re.compile("^%s{0,%d}((%s)|0)$" % (
-                "0" if self._zero_padded else ' ',
-                self._minimum_width - 1,
-                self._NON_ZERO_POSITIVE_INTEGER_EXP)
+            self._strict_validation_re = re.compile(
+                "^%s{0,%d}((%s)|0)$"
+                % (
+                    "0" if self._zero_padded else " ",
+                    self._minimum_width - 1,
+                    self._NON_ZERO_POSITIVE_INTEGER_EXP,
+                )
             )
         else:
             self._strict_validation_re = None
@@ -857,14 +902,17 @@ class IntegerKey(TemplateKey):
 
     def validate(self, value):
         if value is not None:
-            if isinstance(value, basestring):
+            if isinstance(value, six.string_types):
                 # We have a string, make sure it loosely or strictly matches the format.
                 if self.strict_matching and not self._strictly_matches(value):
                     return False
                 elif not self.strict_matching and not self._loosely_matches(value):
                     return False
             elif not isinstance(value, int):
-                self._last_error = "%s Illegal value '%s', expected an Integer" % (self, value)
+                self._last_error = "%s Illegal value '%s', expected an Integer" % (
+                    self,
+                    value,
+                )
                 return False
             return super(IntegerKey, self).validate(value)
         return True
@@ -890,7 +938,10 @@ class IntegerKey(TemplateKey):
             value = value.lstrip()
         # Is digit is how we tested for a number before strict_matching was introduced, so don't change that behaviour
         if not value.isdigit():
-            self._last_error = "%s Illegal value '%s', expected an Integer" % (self, value)
+            self._last_error = "%s Illegal value '%s', expected an Integer" % (
+                self,
+                value,
+            )
             return False
         return True
 
@@ -904,7 +955,11 @@ class IntegerKey(TemplateKey):
 
         :returns: True if the value strictly matches the format spec, False otherwise.
         """
-        error_msg = "%s Illegal value '%s', does not match format spec '%s'" % (self, value, self.format_spec)
+        error_msg = "%s Illegal value '%s', does not match format spec '%s'" % (
+            self,
+            value,
+            self.format_spec,
+        )
         # If there are more characters than the minimum size, we should have a non zero positive number
         if len(value) > self._minimum_width:
             if not self._NON_ZERO_POSITIVE_INTEGER_RE.match(value):
@@ -990,22 +1045,24 @@ class SequenceKey(IntegerKey):
         '/mnt/proj/shot_2/publish/render.$F4.exr'
 
     """
-    
+
     # special keywork used when format is specified directly in value
     FRAMESPEC_FORMAT_INDICATOR = "FORMAT:"
     # valid format strings that can be used with this Key type
     VALID_FORMAT_STRINGS = ["%d", "#", "@", "$F", "<UDIM>", "$UDIM"]
     # flame sequence pattern regex ('[1234-5434]')
-    FLAME_PATTERN_REGEX = "^\[[0-9]+-[0-9]+\]$"
-    
-    def __init__(self,
-                 name,
-                 default=None,
-                 choices=None,
-                 format_spec='01',
-                 shotgun_entity_type=None,
-                 shotgun_field_name=None,
-                 exclusions=None):
+    FLAME_PATTERN_REGEX = r"^\[[0-9]+-[0-9]+\]$"
+
+    def __init__(
+        self,
+        name,
+        default=None,
+        choices=None,
+        format_spec="01",
+        shotgun_entity_type=None,
+        shotgun_field_name=None,
+        exclusions=None,
+    ):
         """
         :param str name: Name by which the key will be referred.
         :param str default: Default value for this key.
@@ -1019,49 +1076,61 @@ class SequenceKey(IntegerKey):
         """
         # determine the actual frame specs given the padding (format_spec)
         # and the allowed formats
-        self._frame_specs = [self._resolve_frame_spec(x, format_spec) for x in self.VALID_FORMAT_STRINGS ]
+        self._frame_specs = [
+            self._resolve_frame_spec(x, format_spec) for x in self.VALID_FORMAT_STRINGS
+        ]
 
         # all sequences are abstract by default and have a default value of %0Xd
         abstract = True
         if default is None:
             # default value is %d form
             default = self._resolve_frame_spec("%d", format_spec)
-        
-        super(SequenceKey, self).__init__(name,
-                                          default=default,
-                                          choices=choices,
-                                          strict_matching=False,
-                                          format_spec=format_spec,
-                                          shotgun_entity_type=shotgun_entity_type,
-                                          shotgun_field_name=shotgun_field_name,
-                                          exclusions=exclusions,
-                                          abstract=abstract)
 
+        super(SequenceKey, self).__init__(
+            name,
+            default=default,
+            choices=choices,
+            strict_matching=False,
+            format_spec=format_spec,
+            shotgun_entity_type=shotgun_entity_type,
+            shotgun_field_name=shotgun_field_name,
+            exclusions=exclusions,
+            abstract=abstract,
+        )
 
     def validate(self, value):
 
         # use a std error message
-        full_format_strings = ["%s %s" % (self.FRAMESPEC_FORMAT_INDICATOR, x) for x in self.VALID_FORMAT_STRINGS]
-        error_msg = "%s Illegal value '%s', expected an Integer, a frame spec or format spec.\n" % (self, value)
+        full_format_strings = [
+            "%s %s" % (self.FRAMESPEC_FORMAT_INDICATOR, x)
+            for x in self.VALID_FORMAT_STRINGS
+        ]
+        error_msg = (
+            "%s Illegal value '%s', expected an Integer, a frame spec or format spec.\n"
+            % (self, value)
+        )
         error_msg += "Valid frame specs: %s\n" % str(self._frame_specs)
         error_msg += "Valid format strings: %s\n" % full_format_strings
-        
 
-        if isinstance(value, basestring) and value.startswith(self.FRAMESPEC_FORMAT_INDICATOR):
+        if isinstance(value, six.string_types) and value.startswith(
+            self.FRAMESPEC_FORMAT_INDICATOR
+        ):
             # FORMAT: YXZ string - check that XYZ is in VALID_FORMAT_STRINGS
-            pattern = self._extract_format_string(value)        
+            pattern = self._extract_format_string(value)
             if pattern in self.VALID_FORMAT_STRINGS:
                 return True
             else:
                 self._last_error = error_msg
                 return False
-                
-        elif isinstance(value, basestring) and re.match(self.FLAME_PATTERN_REGEX, value):
+
+        elif isinstance(value, six.string_types) and re.match(
+            self.FLAME_PATTERN_REGEX, value
+        ):
             # value is matching the flame-style sequence pattern
             # [1234-5678]
             return True
-                
-        elif not(isinstance(value, int) or value.isdigit()):
+
+        elif not (isinstance(value, int) or value.isdigit()):
             # not a digit - so it must be a frame spec! (like %05d)
             # make sure that it has the right length and formatting.
             if value in self._frame_specs:
@@ -1069,37 +1138,41 @@ class SequenceKey(IntegerKey):
             else:
                 self._last_error = error_msg
                 return False
-                
+
         else:
             return super(SequenceKey, self).validate(value)
 
     def _as_string(self, value):
-        
-        if isinstance(value, basestring) and value.startswith(self.FRAMESPEC_FORMAT_INDICATOR):
+
+        if isinstance(value, six.string_types) and value.startswith(
+            self.FRAMESPEC_FORMAT_INDICATOR
+        ):
             # this is a FORMAT: XYZ - convert it to the proper resolved frame spec
             pattern = self._extract_format_string(value)
             return self._resolve_frame_spec(pattern, self.format_spec)
 
-        if isinstance(value, basestring) and re.match(self.FLAME_PATTERN_REGEX, value):
+        if isinstance(value, six.string_types) and re.match(
+            self.FLAME_PATTERN_REGEX, value
+        ):
             # this is a flame style sequence token [1234-56773]
             return value
 
         if value in self._frame_specs:
             # a frame spec like #### @@@@@ or %08d
             return value
-        
+
         # resolve it via the integerKey base class
         return super(SequenceKey, self)._as_string(value)
 
     def _as_value(self, str_value):
-        
+
         if str_value in self._frame_specs:
             return str_value
-        
+
         if re.match(self.FLAME_PATTERN_REGEX, str_value):
             # this is a flame style sequence token [1234-56773]
             return str_value
-    
+
         # resolve it via the integerKey base class
         return super(SequenceKey, self)._as_value(str_value)
 
@@ -1107,39 +1180,40 @@ class SequenceKey(IntegerKey):
         """
         Returns XYZ given the string "FORMAT:    XYZ"
         """
-        if isinstance(value, basestring) and value.startswith(self.FRAMESPEC_FORMAT_INDICATOR):
+        if isinstance(value, six.string_types) and value.startswith(
+            self.FRAMESPEC_FORMAT_INDICATOR
+        ):
             pattern = value.replace(self.FRAMESPEC_FORMAT_INDICATOR, "").strip()
         else:
             # passthrough
             pattern = value
         return pattern
-    
+
     def _resolve_frame_spec(self, format_string, format_spec):
         """
         Turns a format_string %d and a format_spec "03" into a sequence identifier (%03d)
         """
-        
+
         error_msg = "Illegal format pattern for framespec: '%s'. " % format_string
         error_msg += "Legal patterns are: %s" % ", ".join(self.VALID_FORMAT_STRINGS)
-    
-        
+
         if format_string not in self.VALID_FORMAT_STRINGS:
             raise TankError(error_msg)
-        
+
         if format_spec.startswith("0") and format_spec != "01":
             use_zero_padding = True
-        else: 
+        else:
             use_zero_padding = False
-        
+
         places = int(format_spec) if format_spec.isdigit() else 1
-        
+
         if use_zero_padding:
             if format_string == "%d":
                 frame_spec = "%%0%dd" % places
             elif format_string == "#":
-                frame_spec = "#"*places
+                frame_spec = "#" * places
             elif format_string == "@":
-                frame_spec = "@"*places
+                frame_spec = "@" * places
             elif format_string == "$F":
                 frame_spec = "$F%d" % places
             elif format_string in ("<UDIM>", "$UDIM"):
@@ -1162,7 +1236,7 @@ class SequenceKey(IntegerKey):
                 frame_spec = format_string
             else:
                 raise TankError(error_msg)
-                
+
         return frame_spec
 
 
@@ -1172,7 +1246,7 @@ def make_keys(data):
 
     :param data: Key data.
     :type data: Dictionary of the form: {<key name>: {'type': <key type>, <option>: <option value}
-     
+
     :returns: Dictionary of the form: {<key name>: <TemplateKey object>}
     """
     keys = {}
@@ -1180,7 +1254,7 @@ def make_keys(data):
         "str": StringKey,
         "int": IntegerKey,
         "sequence": SequenceKey,
-        "timestamp": TimestampKey
+        "timestamp": TimestampKey,
     }
     for initial_key_name, key_data in data.items():
         # We need to remove data before passing in as arguments, so copy it.
@@ -1189,7 +1263,10 @@ def make_keys(data):
         class_name = prepped_data.pop("type")
         KeyClass = names_classes.get(class_name)
         if not KeyClass:
-            raise TankError("Invalid type: '%s'. Valid types are: %s" % (class_name, names_classes.keys()))
+            raise TankError(
+                "Invalid type: '%s'. Valid types are: %s"
+                % (class_name, list(names_classes.keys()))
+            )
 
         if "alias" in prepped_data:
             # The alias becomes the key's name and is used internally by Templates as the key's name

@@ -14,10 +14,12 @@ Utilities related errors.
 
 from ..errors import TankError
 
+
 class ShotgunAttachmentDownloadError(TankError):
     """
     Raised when a Shotgun attachment could not be downloaded
     """
+
 
 class UnresolvableCoreConfigurationError(TankError):
     """
@@ -33,8 +35,8 @@ class UnresolvableCoreConfigurationError(TankError):
             "Cannot resolve the core configuration from the location of the Sgtk Code! "
             "This can happen if you try to move or symlink the Sgtk API. The "
             "Sgtk API is currently picked up from %s which is an "
-            "invalid location." % full_path_to_file
-         )
+            "invalid location." % full_path_to_file,
+        )
 
 
 class EnvironmentVariableFileLookupError(TankError):
@@ -50,22 +52,21 @@ class EnvironmentVariableFileLookupError(TankError):
         """
         TankError.__init__(
             self,
-            "The environment variable '%s' refers to a configuration file on disk at '%s' that doesn't exist." % (
-                var_name,
-                path
-            )
+            "The environment variable '%s' refers to a configuration file on disk at '%s' that doesn't exist."
+            % (var_name, path),
         )
 
 
 class ShotgunPublishError(TankError):
     """
     Raised when Toolkit is not able to register a published file in Shotgun.
-    
+
     The original message for the reported error is available in the 'error_message' property.
 
     If a published file entity was created before the error happened, it will be
     available in the 'entity' property.
     """
+
     def __init__(self, error_message, entity=None):
         """
         :param str error_message: An error message, typically coming from a caught exception.
@@ -78,13 +79,14 @@ class ShotgunPublishError(TankError):
             # Mention the created entity in the message by appending something like:
             # , although TankPublishedFile dummy_path.txt (id: 2) was created.
             extra_message = ", although %s %s (id: %d) was created." % (
-                self.entity["type"], self.entity["code"], self.entity["id"]
+                self.entity["type"],
+                self.entity["code"],
+                self.entity["id"],
             )
         TankError.__init__(
             self,
-            "Unable to complete publishing because of the following error: %s%s" % (
-                self.error_message, extra_message
-            )
+            "Unable to complete publishing because of the following error: %s%s"
+            % (self.error_message, extra_message),
         )
 
 
@@ -92,6 +94,7 @@ class PublishResolveError(TankError):
     """
     Base class for all errors relating to resolution of paths from publishes.
     """
+
     pass
 
 
@@ -102,6 +105,7 @@ class PublishPathNotDefinedError(PublishResolveError):
     may or may not have publish paths defined on other
     platforms.
     """
+
     pass
 
 
@@ -111,6 +115,5 @@ class PublishPathNotSupported(PublishResolveError):
     definition that cannot be resolved into a local path. This includes for
     example unsupported url schemes.
     """
+
     pass
-
-
