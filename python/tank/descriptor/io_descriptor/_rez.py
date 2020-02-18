@@ -9,12 +9,18 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
+import sys
+import subprocess
 
 from .base import IODescriptorBase
 from ..errors import TankDescriptorError
 from ... import LogManager
 
 log = LogManager.get_logger(__name__)
+
+
+class IODescriptorRezException(Exception):
+    """IODescriptorRez Exception"""
 
 
 class IODescriptorRez(IODescriptorBase):
@@ -56,18 +62,46 @@ class IODescriptorRez(IODescriptorBase):
             optional=["name", "packages", "version"]
         )
 
-        self._package = descriptor_dict["package"]
+        self._version = descriptor_dict.get("version")
+        package = descriptor_dict["package"]
+        if '-' in package:
+            # package looks as "foo-0.1.0"
+            package_data = package.split('-')
+            if len(package_data) != 2:
+                raise IODescriptorRezException(
+                    'Package name "{}" is invalid.'.format(package))
+
+            self._package = package_data[0]
+            if not self._version:
+                self._version = package_data[1]
+            else:
+                raise IODescriptorRezException(
+                    'Version has been defined twice in "package" field '
+                    'and "version" field for:\n{}'
+                    ''.format(self._descriptor_dict))
+        else:
+            # package looks as "foo"
+            self._package = package
+
+        if self._version:
+            if 'v' in self._version.lower():
+                raise IODescriptorRezException(
+                    'Version is "{}" invalid. It should not has "v".'.format(
+                        self._version))
+            package_with_version = '{}-{}'.format(self._package, self._version)
+        else:
+            package_with_version = self._package
+
         self._packages = descriptor_dict.get("packages")
+        # Append package with version to required packages list.
         if not self._packages:
-            self._packages = [self._package]
+            self._packages = [package_with_version]
+        else:
+            if package_with_version not in self._packages:
+                self._packages.append(package_with_version)
 
         # lastly, resolve environment variables and ~
         self._path = self._get_resolved_path()
-
-        # if there is a version defined in the descriptor dict
-        # (this is handy when doing framework development, but totally
-        #  non-required for finding the code)
-        self._version = descriptor_dict.get("version") or "Undefined"
 
         # if there is a name defined in the descriptor dict then lets use
         # this, otherwise we'll fall back to the folder name:
@@ -78,12 +112,57 @@ class IODescriptorRez(IODescriptorBase):
             self._name, _ = os.path.splitext(bn)
 
     def _get_resolved_path(self):
+        # Add rez python module to sys.path
+        self._append_sys_path_with_rez_loc()
 
         from rez.resolved_context import ResolvedContext
 
         context = ResolvedContext(self._packages)
         resolved_package = context.get_resolved_package(self._package)
+        if not resolved_package:
+            from pprint import pformat
+            raise ImportError('Failed to resolve rez package for:\n{}'.format(
+                pformat(self._descriptor_dict)))
         return os.path.normpath(resolved_package.root)
+
+    def _get_rez_location(self):
+        """
+        Checks to see if a Rez package is available in the current environment.
+        If it is available, add it to the system path, exposing the Rez
+        Python API
+        :returns: A path to the Rez package.
+        """
+        rez_path = self._get_resolved_rez_variables('REZ_REZ_ROOT')
+        return rez_path
+
+    def _append_sys_path_with_rez_loc(self):
+        # Using format instead of os.path.join, else would got sys.path issue
+        rez_python_lib = '{}/{}/{}'.format(self._get_rez_location(), 'lib',
+                                           'site-packages')
+        log.debug('Appending {} to sys.path.'.format(rez_python_lib))
+        sys.path.append(rez_python_lib)
+
+    def _get_resolved_rez_variables(self, variable, strict=True):
+        system = sys.platform
+        if system == "win32":
+            rez_cmd = 'rez-env rez -- echo %{}%'.format(variable)
+        else:
+            rez_cmd = 'rez-env rez -- printenv {}'.format(variable)
+        process = subprocess.Popen(rez_cmd, stdout=subprocess.PIPE, shell=True)
+        rez_path, err = process.communicate()
+        if err or not rez_path:
+            if strict:
+                raise ImportError(
+                    "Failed to find Rez as a package in the current "
+                    "environment! Try 'rez-bind rez'!")
+            else:
+                print >> sys.stderr, (
+                    "WARNING: Failed to find a Rez package in the current "
+                    "environment. Unable to request Rez packages.")
+            rez_path = ""
+        else:
+            rez_path = '{}'.format(rez_path.strip().replace('\\', '/'))
+        return rez_path
 
     def _get_bundle_cache_path(self, bundle_cache_root):
         """
