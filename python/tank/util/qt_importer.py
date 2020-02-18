@@ -15,6 +15,7 @@ Qt version abstraction layer.
 import os
 
 from ..log import LogManager
+
 logger = LogManager.get_logger(__name__)
 
 
@@ -41,8 +42,13 @@ class QtImporter(object):
 
         :param interface_version_request: Indicates which version of the Qt API is requested.
         """
-        self._binding_name, self._binding_version, self._binding, self._modules, self._qt_version_tuple =\
-            self._import_modules(interface_version_requested)
+        (
+            self._binding_name,
+            self._binding_version,
+            self._binding,
+            self._modules,
+            self._qt_version_tuple,
+        ) = self._import_modules(interface_version_requested)
 
     @property
     def QtCore(self):
@@ -148,6 +154,7 @@ class QtImporter(object):
         QtWebKit = self._import_module_by_name("PySide", "QtWebKit")
 
         import PySide
+
         # Some old versions of PySide don't include version information
         # so add something here so that we can use PySide.__version__
         # later without having to check!
@@ -160,12 +167,18 @@ class QtImporter(object):
             PySide.__version__ = "<unknown>"
 
         # PySide stick a \n at the end of the __name__ for some reason. Strip it!
-        return PySide.__name__.strip(), PySide.__version__, PySide, {
-            "QtCore": QtCore,
-            "QtGui": QtGui,
-            "QtNetwork": QtNetwork,
-            "QtWebKit": QtWebKit,
-        }, self._to_version_tuple(QtCore.qVersion())
+        return (
+            PySide.__name__.strip(),
+            PySide.__version__,
+            PySide,
+            {
+                "QtCore": QtCore,
+                "QtGui": QtGui,
+                "QtNetwork": QtNetwork,
+                "QtWebKit": QtWebKit,
+            },
+            self._to_version_tuple(QtCore.qVersion()),
+        )
 
     def _import_pyside2(self):
         """
@@ -181,10 +194,28 @@ class QtImporter(object):
 
         # List of all Qt 5 modules.
         sub_modules = [
-            "QtGui", "QtHelp", "QtNetwork", "QtPrintSupport", "QtQml", "QtQuick", "QtQuickWidgets",
-            "QtScript", "QtSvg", "QtTest", "QtUiTools", "QtWebChannel",
-            "QtWebKit", "QtWebKitWidgets", "QtWidgets", "QtWebSockets", "QtXml", "QtXmlPatterns",
-            "QtScriptSql", "QtScriptTools", "QtOpenGL", "QtMultimedia"
+            "QtGui",
+            "QtHelp",
+            "QtNetwork",
+            "QtPrintSupport",
+            "QtQml",
+            "QtQuick",
+            "QtQuickWidgets",
+            "QtScript",
+            "QtSvg",
+            "QtTest",
+            "QtUiTools",
+            "QtWebChannel",
+            "QtWebKit",
+            "QtWebKitWidgets",
+            "QtWidgets",
+            "QtWebSockets",
+            "QtXml",
+            "QtXmlPatterns",
+            "QtScriptSql",
+            "QtScriptTools",
+            "QtOpenGL",
+            "QtMultimedia",
         ]
 
         # We have the potential for a deadlock in Maya 2018 on Windows if this
@@ -193,9 +224,7 @@ class QtImporter(object):
         if "SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT" not in os.environ:
             sub_modules.append("QtWebEngineWidgets")
 
-        modules_dict = {
-            "QtCore": QtCore
-        }
+        modules_dict = {"QtCore": QtCore}
 
         # Depending on the build of PySide 2 being used, more or less modules are supported. Instead
         # of assuming a base set of functionality, simply try every module one at a time.
@@ -218,7 +247,14 @@ class QtImporter(object):
                 pass
 
         import PySide2
-        return PySide2.__name__, PySide2.__version__, PySide2, modules_dict, self._to_version_tuple(QtCore.qVersion())
+
+        return (
+            PySide2.__name__,
+            PySide2.__version__,
+            PySide2,
+            modules_dict,
+            self._to_version_tuple(QtCore.qVersion()),
+        )
 
     def _import_pyside2_as_pyside(self):
         """
@@ -234,12 +270,18 @@ class QtImporter(object):
         QtNetwork = self._import_module_by_name("PySide2", "QtNetwork")
         QtWebKit = self._import_module_by_name("PySide2.QtWebKitWidgets", "QtWebKit")
 
-        return "PySide2", PySide2.__version__, PySide2, {
-            "QtCore": QtCore,
-            "QtGui": QtGui,
-            "QtNetwork": QtNetwork,
-            "QtWebKit": QtWebKit,
-        }, self._to_version_tuple(QtCore.qVersion())
+        return (
+            "PySide2",
+            PySide2.__version__,
+            PySide2,
+            {
+                "QtCore": QtCore,
+                "QtGui": QtGui,
+                "QtNetwork": QtNetwork,
+                "QtWebKit": QtWebKit,
+            },
+            self._to_version_tuple(QtCore.qVersion()),
+        )
 
     def _import_pyqt4(self):
         """
@@ -262,14 +304,21 @@ class QtImporter(object):
         # away from modifying the modules themselves, so keep this is for now and
         # we'll be able to deprecate it at some point in the future.
         import PyQt4
+
         PyQt4.__version__ = Qt.PYQT_VERSION_STR
 
-        return "PyQt4", PyQt4.__version__, PyQt4, {
-            "QtCore": QtCore,
-            "QtGui": QtGui,
-            "QtNetwork": QtNetwork,
-            "QtWebKit": QtWebKit,
-        }, self._to_version_tuple(QtCore.QT_VERSION_STR)
+        return (
+            "PyQt4",
+            PyQt4.__version__,
+            PyQt4,
+            {
+                "QtCore": QtCore,
+                "QtGui": QtGui,
+                "QtNetwork": QtNetwork,
+                "QtWebKit": QtWebKit,
+            },
+            self._to_version_tuple(QtCore.QT_VERSION_STR),
+        )
 
     def _to_version_tuple(self, version_str):
         """
@@ -294,7 +343,7 @@ class QtImporter(object):
         """
         logger.debug(
             "Requesting %s-like interface",
-            "Qt4" if interface_version_requested == self.QT4 else "Qt5"
+            "Qt4" if interface_version_requested == self.QT4 else "Qt5",
         )
         # First try PySide 2.
         if interface_version_requested == self.QT4:

@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import sys
@@ -19,6 +19,8 @@ from ..util import filesystem
 from ..api import sgtk_from_path
 
 from tank_vendor import yaml
+from tank_vendor.shotgun_api3.lib import sgsix
+
 
 @filesystem.with_cleared_umask
 def run_project_setup(log, sg, setup_params):
@@ -47,30 +49,38 @@ def run_project_setup(log, sg, setup_params):
     # get all existing pipeline configurations
     setup_params.report_progress_from_installer("Checking Pipeline Configurations...")
 
-    pcs = sg.find(constants.PIPELINE_CONFIGURATION_ENTITY,
-                  [["project", "is", sg_project_link]],
-                  ["code", "linux_path", "windows_path", "mac_path"])
+    pcs = sg.find(
+        constants.PIPELINE_CONFIGURATION_ENTITY,
+        [["project", "is", sg_project_link]],
+        ["code", "linux_path", "windows_path", "mac_path"],
+    )
 
     if len(pcs) > 0:
         if setup_params.get_force_setup():
             # if we have the force flag enabled, remove any pipeline configurations
             for x in pcs:
-                log.warning("Force mode: Deleting old pipeline configuration %s..." % x["code"])
+                log.warning(
+                    "Force mode: Deleting old pipeline configuration %s..." % x["code"]
+                )
                 sg.delete(constants.PIPELINE_CONFIGURATION_ENTITY, x["id"])
 
         elif not setup_params.get_auto_path_mode():
             # this is a normal setup, e.g. not with the force flag on
             # nor an auto-path where each machine effectively manages its own config
             # for this case, we don't allow the process to proceed if a config exists
-            raise TankError("Cannot set up this project! Pipeline configuration entries already exist in Shotgun.")
+            raise TankError(
+                "Cannot set up this project! Pipeline configuration entries already exist in Shotgun."
+            )
 
         else:
             # auto path mode
             # make sure that all PCs have empty paths set, either None values or ""
             for x in pcs:
                 if x["linux_path"] or x["windows_path"] or x["mac_path"]:
-                    raise TankError("Cannot set up this project! Non-auto-path style pipeline "
-                                    "configuration entries already exist in Shotgun.")
+                    raise TankError(
+                        "Cannot set up this project! Non-auto-path style pipeline "
+                        "configuration entries already exist in Shotgun."
+                    )
 
     if setup_params.get_distribution_mode() == setup_params.CENTRALIZED_CONFIG:
         _run_centralized_project_setup(log, sg, setup_params)
@@ -112,7 +122,7 @@ def _run_distributed_project_setup(log, sg, setup_params):
     data = {
         "project": sg_project_link,
         "plugin_ids": constants.DEFAULT_PLUGIN_ID,
-        "code": constants.PRIMARY_PIPELINE_CONFIG_NAME
+        "code": constants.PRIMARY_PIPELINE_CONFIG_NAME,
     }
 
     # create pipeline configuration record
@@ -135,28 +145,46 @@ def _run_centralized_project_setup(log, sg, setup_params):
     :param setup_params: Parameters object which holds gathered project settings
     """
     # get the location of the configuration
-    config_location_curr_os = setup_params.get_configuration_location(sys.platform)
+    config_location_curr_os = setup_params.get_configuration_location(sgsix.platform)
     config_location_mac = setup_params.get_configuration_location("darwin")
     config_location_linux = setup_params.get_configuration_location("linux2")
     config_location_win = setup_params.get_configuration_location("win32")
 
     # first do disk structure setup, this is most likely to fail.
     setup_params.report_progress_from_installer("Creating main folder structure...")
-    log.info("Installing configuration into '%s'..." % config_location_curr_os )
+    log.info("Installing configuration into '%s'..." % config_location_curr_os)
     if not os.path.exists(config_location_curr_os):
         # note that we have already validated that creation is possible
         os.makedirs(config_location_curr_os, 0o775)
 
     # create pipeline config base folder structure
-    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "cache"), 0o777)
-    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "config"), 0o775)
-    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install"), 0o775)
-    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install", "core"), 0o777)
-    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install", "core", "python"), 0o777)
-    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install", "core.backup"), 0o777, True)
-    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install", "engines"), 0o777, True)
-    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install", "apps"), 0o777, True)
-    filesystem.ensure_folder_exists(os.path.join(config_location_curr_os, "install", "frameworks"), 0o777, True)
+    filesystem.ensure_folder_exists(
+        os.path.join(config_location_curr_os, "cache"), 0o777
+    )
+    filesystem.ensure_folder_exists(
+        os.path.join(config_location_curr_os, "config"), 0o775
+    )
+    filesystem.ensure_folder_exists(
+        os.path.join(config_location_curr_os, "install"), 0o775
+    )
+    filesystem.ensure_folder_exists(
+        os.path.join(config_location_curr_os, "install", "core"), 0o777
+    )
+    filesystem.ensure_folder_exists(
+        os.path.join(config_location_curr_os, "install", "core", "python"), 0o777
+    )
+    filesystem.ensure_folder_exists(
+        os.path.join(config_location_curr_os, "install", "core.backup"), 0o777, True
+    )
+    filesystem.ensure_folder_exists(
+        os.path.join(config_location_curr_os, "install", "engines"), 0o777, True
+    )
+    filesystem.ensure_folder_exists(
+        os.path.join(config_location_curr_os, "install", "apps"), 0o777, True
+    )
+    filesystem.ensure_folder_exists(
+        os.path.join(config_location_curr_os, "install", "frameworks"), 0o777, True
+    )
 
     # copy the configuration into place
     setup_params.report_progress_from_installer("Setting up template configuration...")
@@ -165,7 +193,9 @@ def _run_centralized_project_setup(log, sg, setup_params):
     # copy the tank binaries to the top of the config
     setup_params.report_progress_from_installer("Copying binaries and API proxies...")
     log.debug("Copying Toolkit binaries...")
-    core_api_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+    core_api_root = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "..")
+    )
     root_binaries_folder = os.path.join(core_api_root, "setup", "root_binaries")
     for file_name in os.listdir(root_binaries_folder):
         src_file = os.path.join(root_binaries_folder, file_name)
@@ -177,34 +207,41 @@ def _run_centralized_project_setup(log, sg, setup_params):
     log.debug("Copying python stubs...")
     tank_proxy = os.path.join(core_api_root, "setup", "tank_api_proxy")
     filesystem.copy_folder(
-        tank_proxy,
-        os.path.join(config_location_curr_os, "install", "core", "python")
+        tank_proxy, os.path.join(config_location_curr_os, "install", "core", "python")
     )
 
     # specify the parent files in install/core/core_PLATFORM.cfg
     log.debug("Creating core redirection config files...")
     setup_params.report_progress_from_installer("Writing configuration files...")
 
-    core_path = os.path.join(config_location_curr_os, "install", "core", "core_Darwin.cfg")
+    core_path = os.path.join(
+        config_location_curr_os, "install", "core", "core_Darwin.cfg"
+    )
     core_location = setup_params.get_associated_core_path("darwin")
     fh = open(core_path, "wt")
     fh.write(core_location if core_location else "undefined")
     fh.close()
 
-    core_path = os.path.join(config_location_curr_os, "install", "core", "core_Linux.cfg")
+    core_path = os.path.join(
+        config_location_curr_os, "install", "core", "core_Linux.cfg"
+    )
     core_location = setup_params.get_associated_core_path("linux2")
     fh = open(core_path, "wt")
     fh.write(core_location if core_location else "undefined")
     fh.close()
 
-    core_path = os.path.join(config_location_curr_os, "install", "core", "core_Windows.cfg")
+    core_path = os.path.join(
+        config_location_curr_os, "install", "core", "core_Windows.cfg"
+    )
     core_location = setup_params.get_associated_core_path("win32")
     fh = open(core_path, "wt")
     fh.write(core_location if core_location else "undefined")
     fh.close()
 
     # write the install_location file for our new setup
-    sg_code_location = os.path.join(config_location_curr_os, "config", "core", "install_location.yml")
+    sg_code_location = os.path.join(
+        config_location_curr_os, "config", "core", "install_location.yml"
+    )
 
     # if we are basing our setup on an existing project setup, make sure we can write to the file.
     if os.path.exists(sg_code_location):
@@ -231,7 +268,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
         roots_data[storage_name] = {
             "windows_path": setup_params.get_storage_path(storage_name, "win32"),
             "linux_path": setup_params.get_storage_path(storage_name, "linux2"),
-            "mac_path": setup_params.get_storage_path(storage_name, "darwin")
+            "mac_path": setup_params.get_storage_path(storage_name, "darwin"),
         }
 
         # if this is the default storage, ensure it is explicitly marked in the
@@ -284,24 +321,33 @@ def _run_centralized_project_setup(log, sg, setup_params):
                 # there is already a name. Check that it matches the name in the project params
                 # if not, then use the existing name and issue a warning!
                 if data["tank_name"] != project_name:
-                    log.warning("You have supplied the project disk name '%s' as part of the project setup "
-                                "parameters, however the name '%s' has already been registered in Shotgun for "
-                                "this project. This name will be used instead of the suggested disk "
-                                "name." % (project_name, data["tank_name"]) )
+                    log.warning(
+                        "You have supplied the project disk name '%s' as part of the project setup "
+                        "parameters, however the name '%s' has already been registered in Shotgun for "
+                        "this project. This name will be used instead of the suggested disk "
+                        "name." % (project_name, data["tank_name"])
+                    )
                     project_name = data["tank_name"]
 
         log.info("Creating Pipeline Configuration in Shotgun...")
         # this is an auto-path project, meaning that shotgun doesn't store the location
         # to the pipeline configuration. Because an auto-path location is often set up
         # on multiple machines, check first if the entry exists and in that case skip creation
-        data = sg.find_one(constants.PIPELINE_CONFIGURATION_ENTITY,
-                           [["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME],
-                            ["project", "is", sg_project_link]],
-                           ["id"])
+        data = sg.find_one(
+            constants.PIPELINE_CONFIGURATION_ENTITY,
+            [
+                ["code", "is", constants.PRIMARY_PIPELINE_CONFIG_NAME],
+                ["project", "is", sg_project_link],
+            ],
+            ["id"],
+        )
 
         if data is None:
             log.info("Creating Pipeline Configuration in Shotgun...")
-            data = {"project": sg_project_link, "code": constants.PRIMARY_PIPELINE_CONFIG_NAME}
+            data = {
+                "project": sg_project_link,
+                "code": constants.PRIMARY_PIPELINE_CONFIG_NAME,
+            }
             pc_entity = sg.create(constants.PIPELINE_CONFIGURATION_ENTITY, data)
             pipeline_config_id = pc_entity["id"]
             log.debug("Created data: %s" % pc_entity)
@@ -317,11 +363,13 @@ def _run_centralized_project_setup(log, sg, setup_params):
             sg.update("Project", project_id, {"tank_name": project_name})
 
         log.info("Creating Pipeline Configuration in Shotgun...")
-        data = {"project": sg_project_link,
-                "linux_path": config_location_linux,
-                "windows_path": config_location_win,
-                "mac_path": config_location_mac,
-                "code": constants.PRIMARY_PIPELINE_CONFIG_NAME}
+        data = {
+            "project": sg_project_link,
+            "linux_path": config_location_linux,
+            "windows_path": config_location_win,
+            "mac_path": config_location_mac,
+            "code": constants.PRIMARY_PIPELINE_CONFIG_NAME,
+        }
 
         # create pipeline configuration record
         pc_entity = sg.create(constants.PIPELINE_CONFIGURATION_ENTITY, data)
@@ -330,10 +378,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
 
     # write the record to disk
     pipe_config_sg_id_path = os.path.join(
-        config_location_curr_os,
-        "config",
-        "core",
-        constants.PIPELINECONFIG_FILE
+        config_location_curr_os, "config", "core", constants.PIPELINECONFIG_FILE
     )
     log.debug("Writing to pc cache file %s" % pipe_config_sg_id_path)
 
@@ -369,9 +414,10 @@ def _run_centralized_project_setup(log, sg, setup_params):
         yaml.safe_dump(data, fh)
         fh.close()
     except Exception as exp:
-        raise TankError("Could not write to pipeline configuration cache file %s. "
-                        "Error reported: %s" % (pipe_config_sg_id_path, exp))
-
+        raise TankError(
+            "Could not write to pipeline configuration cache file %s. "
+            "Error reported: %s" % (pipe_config_sg_id_path, exp)
+        )
 
     ##########################################################################################
     # install apps
@@ -394,13 +440,13 @@ def _run_centralized_project_setup(log, sg, setup_params):
         env_obj = pc.get_environment(env_name)
 
         for engine in env_obj.get_engines():
-            descriptors.append( env_obj.get_engine_descriptor(engine) )
+            descriptors.append(env_obj.get_engine_descriptor(engine))
 
             for app in env_obj.get_apps(engine):
-                descriptors.append( env_obj.get_app_descriptor(engine, app) )
+                descriptors.append(env_obj.get_app_descriptor(engine, app))
 
         for framework in env_obj.get_frameworks():
-            descriptors.append( env_obj.get_framework_descriptor(framework) )
+            descriptors.append(env_obj.get_framework_descriptor(framework))
 
     # pass 2 - download all apps
     num_descriptors = len(descriptors)
@@ -408,11 +454,13 @@ def _run_centralized_project_setup(log, sg, setup_params):
 
         # note that we push percentages here to the progress bar callback
         # going from 0 to 100
-        progress = (int)((float)(idx)/(float)(num_descriptors)*100)
+        progress = (int)((float)(idx) / (float)(num_descriptors) * 100)
         setup_params.report_progress_from_installer("Downloading apps...", progress)
 
         if not descriptor.exists_local():
-            log.info("Downloading %s to the local Toolkit install location..." % descriptor)
+            log.info(
+                "Downloading %s to the local Toolkit install location..." % descriptor
+            )
             descriptor.download_local()
 
         else:
@@ -425,31 +473,37 @@ def _run_centralized_project_setup(log, sg, setup_params):
         # run post install hook
         descriptor.run_post_install(tk)
 
-
     ##########################################################################################
     # post processing of the install
 
     # run after project create script if it exists
     setup_params.report_progress_from_installer("Running post-setup scripts...")
-    after_script_path = os.path.join(config_location_curr_os, "config", "after_project_create.py")
+    after_script_path = os.path.join(
+        config_location_curr_os, "config", "after_project_create.py"
+    )
     if os.path.exists(after_script_path):
         log.info("Found a post-install script %s" % after_script_path)
         log.info("Executing post-install commands...")
         sys.path.insert(0, os.path.dirname(after_script_path))
         try:
             import after_project_create
+
             after_project_create.create(sg=sg, project_id=project_id, log=log)
         except Exception as e:
-            if ("API read() invalid/missing string entity" in e.__str__()
-                and "\"type\"=>\"TankType\"" in e.__str__()):
+            if (
+                "API read() invalid/missing string entity" in e.__str__()
+                and '"type"=>"TankType"' in e.__str__()
+            ):
                 # Handle a specific case where an old version of the
                 # after_project_create script set up TankType entities which
                 # are now disabled following the migration to the
                 # new PublishedFileType entity
                 log.info("")
-                log.warning("The post install script failed to complete.  This is most likely because it "
-                            "is from an old configuration that is attempting to create 'TankType' entities "
-                            "which are now disabled in Shotgun.")
+                log.warning(
+                    "The post install script failed to complete.  This is most likely because it "
+                    "is from an old configuration that is attempting to create 'TankType' entities "
+                    "which are now disabled in Shotgun."
+                )
             else:
                 log.info("")
                 log.error("The post install script failed to complete: %s" % e)
@@ -458,23 +512,28 @@ def _run_centralized_project_setup(log, sg, setup_params):
         finally:
             sys.path.pop(0)
 
+
 def _get_published_file_entity_type(log, sg):
     """
     Find the published file entity type to use for this project.
     Communicates with Shotgun, introspects the sg schema.
-    
+
     :returns: 'PublishedFile' if the PublishedFile entity type has
               been enabled, otherwise returns 'TankPublishedFile'
     """
-    log.debug("Retrieving schema from Shotgun to determine entity type " 
-              "to use for published files")
-    
+    log.debug(
+        "Retrieving schema from Shotgun to determine entity type "
+        "to use for published files"
+    )
+
     pf_entity_type = "TankPublishedFile"
     try:
         sg_schema = sg.schema_read()
-        if ("PublishedFile" in sg_schema
+        if (
+            "PublishedFile" in sg_schema
             and "PublishedFileType" in sg_schema
-            and "PublishedFileDependency" in sg_schema):
+            and "PublishedFileDependency" in sg_schema
+        ):
             pf_entity_type = "PublishedFile"
     except Exception as e:
         raise TankError("Could not retrieve the Shotgun schema: %s" % e)
@@ -482,4 +541,3 @@ def _get_published_file_entity_type(log, sg):
     log.debug(" > Using %s entity type for published files" % pf_entity_type)
 
     return pf_entity_type
-

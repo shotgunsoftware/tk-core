@@ -91,9 +91,12 @@ pushd $DEST_REPO
 git rev-parse HEAD > $DEST/commit_id
 popd
 
+cp $DEST/lib/six.py $DEST/../six.py
+
 # Put files in the staging area.
 echo "adding new files to git..."
 git add -A $DEST
+git add -A $DEST/../six.py
 
 # Cleanup!
 echo "cleaning up..."

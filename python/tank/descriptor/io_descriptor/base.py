@@ -9,19 +9,16 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import re
-import cgi
-import urllib
-import urlparse
 import contextlib
 
 from .. import constants
 from ... import LogManager
-from ...util import filesystem
+from ...util import filesystem, sgre as re
 from ...util.version import is_version_newer
 from ..errors import TankDescriptorError, TankMissingManifestError
 
 from tank_vendor import yaml
+from tank_vendor.six.moves import map, urllib
 
 log = LogManager.get_logger(__name__)
 
@@ -70,7 +67,9 @@ class IODescriptorBase(object):
         """
         descriptor_type = descriptor_dict.get("type")
         if descriptor_type not in cls._factory:
-            raise TankDescriptorError("Unknown descriptor type for '%s'" % descriptor_dict)
+            raise TankDescriptorError(
+                "Unknown descriptor type for '%s'" % descriptor_dict
+            )
         class_obj = cls._factory[descriptor_type]
         return class_obj(descriptor_dict, sg_connection, bundle_type)
 
@@ -149,14 +148,17 @@ class IODescriptorBase(object):
 
         if not required_set.issubset(desc_keys_set):
             missing_keys = required_set.difference(desc_keys_set)
-            raise TankDescriptorError("%s are missing required keys %s" % (descriptor_dict, missing_keys))
+            raise TankDescriptorError(
+                "%s are missing required keys %s" % (descriptor_dict, missing_keys)
+            )
 
         all_keys = required_set.union(optional_set)
 
         if desc_keys_set.difference(all_keys):
             log.warning(
                 "Found unsupported parameters %s in %s. "
-                "These will be ignored." % (desc_keys_set.difference(all_keys), descriptor_dict)
+                "These will be ignored."
+                % (desc_keys_set.difference(all_keys), descriptor_dict)
             )
 
     @classmethod
@@ -166,7 +168,7 @@ class IODescriptorBase(object):
         install_cache_root,
         bundle_type,
         bundle_name,
-        bundle_version
+        bundle_version,
     ):
         """Return the path to the legacy bundle install dir for the supplied info.
 
@@ -213,11 +215,7 @@ class IODescriptorBase(object):
         # build and return the path.
         # example: <root>/apps/app_store/tk-multi-shotgunpanel/v1.2.5
         return os.path.join(
-            install_cache_root,
-            legacy_dir,
-            descriptor_name,
-            bundle_name,
-            bundle_version,
+            install_cache_root, legacy_dir, descriptor_name, bundle_name, bundle_version
         )
 
     def _find_latest_tag_by_pattern(self, version_numbers, pattern):
@@ -261,7 +259,7 @@ class IODescriptorBase(object):
         versions = {}
         for version_num in version_numbers:
             try:
-                version_split = map(int, version_num[1:].split("."))
+                version_split = list(map(int, version_num[1:].split(".")))
             except Exception:
                 # this git tag is not on the expected form vX.Y.Z where X Y and Z are ints. skip.
                 continue
@@ -301,10 +299,10 @@ class IODescriptorBase(object):
 
         # split our pattern, beware each part is a string (even integers)
         version_split = re.findall("([0-9]+|x)", pattern)
-        if 'x' in version_split:
+        if "x" in version_split:
             # check that we don't have an incorrect pattern using x
             # then a digit, eg. v4.x.2
-            if re.match("^v[0-9\.]+[x\.]+[0-9\.]+$", pattern):
+            if re.match(r"^v[0-9\.]+[x\.]+[0-9\.]+$", pattern):
                 raise TankDescriptorError(
                     "Incorrect version pattern '%s'. "
                     "There should be no digit after a 'x'." % pattern
@@ -314,9 +312,9 @@ class IODescriptorBase(object):
         version_to_use = None
         # process each digit in the pattern
         for version_digit in version_split:
-            if version_digit == 'x':
+            if version_digit == "x":
                 # replace the 'x' by the latest at this level
-                version_digit = max(current.keys(), key=int)
+                version_digit = max(list(current.keys()), key=int)
             version_digit = int(version_digit)
             if version_digit not in current:
                 # no matches
@@ -359,10 +357,12 @@ class IODescriptorBase(object):
                 for version_folder in os.listdir(parent_folder):
                     version_full_path = os.path.join(parent_folder, version_folder)
                     # check that it's a folder and not a system folder
-                    if os.path.isdir(version_full_path) and \
-                            not version_folder.startswith("_") and \
-                            not version_folder.startswith(".") and \
-                            self._exists_local(version_full_path):
+                    if (
+                        os.path.isdir(version_full_path)
+                        and not version_folder.startswith("_")
+                        and not version_folder.startswith(".")
+                        and self._exists_local(version_full_path)
+                    ):
                         # looks like a valid descriptor. Make sure
                         # it is valid and fully downloaded
                         all_versions[version_folder] = version_full_path
@@ -410,7 +410,7 @@ class IODescriptorBase(object):
         filesystem.copy_folder(
             self.get_path(),
             target_path,
-            skip_list=(skip_list or []) + filesystem.SKIP_LIST_DEFAULT
+            skip_list=(skip_list or []) + filesystem.SKIP_LIST_DEFAULT,
         )
 
     def get_manifest(self, file_location):
@@ -444,7 +444,9 @@ class IODescriptorBase(object):
             if not os.path.exists(file_path):
                 # at this point we have downloaded the bundle, but it may have
                 # an invalid internal structure.
-                raise TankMissingManifestError("Toolkit metadata file '%s' missing." % file_path)
+                raise TankMissingManifestError(
+                    "Toolkit metadata file '%s' missing." % file_path
+                )
 
             try:
                 file_data = open(file_path)
@@ -453,7 +455,9 @@ class IODescriptorBase(object):
                 finally:
                     file_data.close()
             except Exception as exp:
-                raise TankDescriptorError("Cannot load metadata file '%s'. Error: %s" % (file_path, exp))
+                raise TankDescriptorError(
+                    "Cannot load metadata file '%s'. Error: %s" % (file_path, exp)
+                )
 
             # cache it
             self.__manifest_data = metadata
@@ -478,7 +482,7 @@ class IODescriptorBase(object):
                  in the item_keys parameter matched up by items in the
                  uri string.
         """
-        parsed_uri = urlparse.urlparse(uri)
+        parsed_uri = urllib.parse.urlparse(uri)
 
         # example:
         #
@@ -521,21 +525,24 @@ class IODescriptorBase(object):
 
         split_path = path.split(constants.DESCRIPTOR_URI_SEPARATOR)
         # e.g. 'descriptor:app_store' -> ('descriptor', 'app_store')
-        if len(split_path) != 2 or split_path[0] != constants.DESCRIPTOR_URI_PATH_PREFIX:
-            raise TankDescriptorError("Invalid uri '%s' - must begin with sgtk:descriptor" % uri)
+        if (
+            len(split_path) != 2
+            or split_path[0] != constants.DESCRIPTOR_URI_PATH_PREFIX
+        ):
+            raise TankDescriptorError(
+                "Invalid uri '%s' - must begin with sgtk:descriptor" % uri
+            )
 
         descriptor_dict = {}
 
         descriptor_dict["type"] = split_path[1]
 
         # now pop remaining keys into a dict and key by item_keys
-        # note: using deprecated cfg method for 2.5 compatibility
-        # example:
-        # >>> cgi.parse_qs("path=foo&version=v1.2.3")
-        # {'path': ['foo'], 'version': ['v1.2.3']}
-        for (param, value) in cgi.parse_qs(query).iteritems():
+        for (param, value) in urllib.parse.parse_qs(query).items():
             if len(value) > 1:
-                raise TankDescriptorError("Invalid uri '%s' - duplicate parameters" % uri)
+                raise TankDescriptorError(
+                    "Invalid uri '%s' - duplicate parameters" % uri
+                )
             descriptor_dict[param] = value[0]
 
         return descriptor_dict
@@ -564,7 +571,7 @@ class IODescriptorBase(object):
         uri_chunks = [
             constants.DESCRIPTOR_URI_PATH_SCHEME,
             constants.DESCRIPTOR_URI_PATH_PREFIX,
-            descriptor_dict["type"]
+            descriptor_dict["type"],
         ]
         uri = constants.DESCRIPTOR_URI_SEPARATOR.join(uri_chunks)
 
@@ -577,7 +584,7 @@ class IODescriptorBase(object):
                 continue
 
             # note: for readability of windows and git paths, do not convert '/@:\'
-            quoted_value = urllib.quote(str(descriptor_dict[param]), safe="@/:\\")
+            quoted_value = urllib.parse.quote(str(descriptor_dict[param]), safe="@/:\\")
             qs_chunks.append("%s=%s" % (param, quoted_value))
 
         qs = "&".join(qs_chunks)
@@ -720,7 +727,9 @@ class IODescriptorBase(object):
         info_yml_path = os.path.join(new_cache_path, constants.BUNDLE_METADATA_FILE)
         if os.path.exists(info_yml_path):
             # we already have a cache
-            log.debug("Bundle cache already exists in '%s'. Nothing to do." % new_cache_path)
+            log.debug(
+                "Bundle cache already exists in '%s'. Nothing to do." % new_cache_path
+            )
             return False
 
         # make sure we have something to copy
@@ -728,7 +737,10 @@ class IODescriptorBase(object):
 
         # check that we aren't trying to copy onto ourself
         if new_cache_path == self.get_path():
-            log.debug("Clone cache for %r: No need to copy, source and target are same." % self)
+            log.debug(
+                "Clone cache for %r: No need to copy, source and target are same."
+                % self
+            )
             return False
 
         # Cache the source cache path because we're about to create the destination folder,
@@ -770,8 +782,8 @@ class IODescriptorBase(object):
         :returns: Path to where the package should be extracted to.
         """
         raise TankDescriptorError(
-            "open_write_location is not supported on the '%s' descriptor type." %
-            self.get_dict()["type"]
+            "open_write_location is not supported on the '%s' descriptor type."
+            % self.get_dict()["type"]
         )
 
     def get_system_name(self):

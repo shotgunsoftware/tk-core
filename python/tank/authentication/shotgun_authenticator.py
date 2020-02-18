@@ -10,10 +10,7 @@
 
 """Shotgun Authenticator."""
 
-from .sso_saml2 import (
-    has_sso_info_in_cookies,
-    has_unified_login_flow_info_in_cookies,
-)
+from .sso_saml2 import has_sso_info_in_cookies, has_unified_login_flow_info_in_cookies
 from . import interactive_authentication
 from . import user
 from . import user_impl
@@ -101,7 +98,7 @@ class ShotgunAuthenticator(object):
             user = self.create_session_user(
                 host=self._defaults_manager.get_host(),
                 login=self._defaults_manager.get_login(),
-                http_proxy=self._defaults_manager.get_http_proxy()
+                http_proxy=self._defaults_manager.get_http_proxy(),
             )
             session_cache.delete_session_data(user.host, user.login)
             return user
@@ -120,33 +117,45 @@ class ShotgunAuthenticator(object):
 
         :returns: The SessionUser based on the login information provided.
         """
-        host, login, session_token, session_metadata = interactive_authentication.authenticate(
+        (
+            host,
+            login,
+            session_token,
+            session_metadata,
+        ) = interactive_authentication.authenticate(
             self._defaults_manager.get_host(),
             self._defaults_manager.get_login(),
             self._defaults_manager.get_http_proxy(),
-            self._defaults_manager.is_host_fixed()
+            self._defaults_manager.is_host_fixed(),
         )
-        return self._create_session_user(
-            login=login, session_token=session_token,
-            host=host, http_proxy=self._defaults_manager.get_http_proxy(),
-            session_metadata=session_metadata
+        return self.create_session_user(
+            login=login,
+            session_token=session_token,
+            host=host,
+            http_proxy=self._defaults_manager.get_http_proxy(),
+            session_metadata=session_metadata,
         )
 
-    def _create_session_user(self, login, session_token=None, password=None, host=None, http_proxy=None, session_metadata=None):
+    def create_session_user(
+        self,
+        login,
+        session_token=None,
+        password=None,
+        host=None,
+        http_proxy=None,
+        session_metadata=None,
+    ):
         """
         Create a :class:`ShotgunUser` given a set of human user credentials.
         Either a password or session token must be supplied. If a password is supplied,
         a session token will be generated for security reasons.
-
-        This is an internal version of the method, which makes reference to the
-        session_metadata. This is an implementation details which we want to hide from the public interface.
 
         :param login: Shotgun user login
         :param session_token: Shotgun session token
         :param password: Shotgun password
         :param host: Shotgun host to log in to. If None, the default host will be used.
         :param http_proxy: Shotgun proxy to use. If None, the default http proxy will be used.
-        :param session_metadata: Information needed when SSO is used. This is an obscure blob of data.
+        :param session_metadata: When using Web/SSO, b64encoded browser cookies.
 
         :returns: A :class:`ShotgunUser` instance.
         """
@@ -155,33 +164,25 @@ class ShotgunAuthenticator(object):
         http_proxy = http_proxy or self._defaults_manager.get_http_proxy()
 
         # Create a session user
-        impl = user_impl.SessionUser(host, login, session_token, http_proxy, password=password, session_metadata=session_metadata)
+        impl = user_impl.SessionUser(
+            host,
+            login,
+            session_token,
+            http_proxy,
+            password=password,
+            session_metadata=session_metadata,
+        )
 
         # We check for SSO first, because it is possible that we use both the
         # Unified Login Flow and SSO. We specifically want to discriminate a
         # SSO sesssion from others due to the need to renew the claims.
         if session_metadata and has_sso_info_in_cookies(session_metadata):
             return user.ShotgunSamlUser(impl)
-        if session_metadata and has_unified_login_flow_info_in_cookies(session_metadata):
+        if session_metadata and has_unified_login_flow_info_in_cookies(
+            session_metadata
+        ):
             return user.ShotgunWebUser(impl)
         return user.ShotgunUser(impl)
-
-    def create_session_user(self, login, session_token=None, password=None, host=None, http_proxy=None):
-        """
-        Create a :class:`ShotgunUser` given a set of human user credentials.
-        Either a password or session token must be supplied. If a password is supplied,
-        a session token will be generated for security reasons.
-
-        :param login: Shotgun user login
-        :param session_token: Shotgun session token
-        :param password: Shotgun password
-        :param host: Shotgun host to log in to. If None, the default host will be used.
-        :param http_proxy: Shotgun proxy to use. If None, the default http proxy will be used.
-
-        :returns: A :class:`ShotgunUser` instance.
-        """
-        # Leverage the private implementation.
-        return self._create_session_user(login, session_token, password, host, http_proxy)
 
     def create_script_user(self, api_script, api_key, host=None, http_proxy=None):
         """
@@ -243,19 +244,23 @@ class ShotgunAuthenticator(object):
                 api_script=credentials.get("api_script"),
                 api_key=credentials.get("api_key"),
                 host=credentials.get("host"),
-                http_proxy=credentials.get("http_proxy")
+                http_proxy=credentials.get("http_proxy"),
             )
         # If this looks like a session user, delegate to create_session_user.
         # If some of the arguments are missing, don't worry, create_session_user
         # will take care of it.
-        elif "login" in credentials or "password" in credentials or "session_token" in credentials:
-            return self._create_session_user(
+        elif (
+            "login" in credentials
+            or "password" in credentials
+            or "session_token" in credentials
+        ):
+            return self.create_session_user(
                 login=credentials.get("login"),
                 password=credentials.get("password"),
                 session_token=credentials.get("session_token"),
                 host=credentials.get("host"),
                 http_proxy=credentials.get("http_proxy"),
-                session_metadata=credentials.get("session_metadata")
+                session_metadata=credentials.get("session_metadata"),
             )
         # We don't know what this is, abort!
         else:

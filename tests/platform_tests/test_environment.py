@@ -12,11 +12,12 @@ import os
 import sys
 
 from tank.errors import TankError
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import TankTestBase
 from tank_vendor import yaml
 
 import copy
+
 
 class TestEnvironment(TankTestBase):
     """
@@ -54,7 +55,10 @@ class TestEnvironment(TankTestBase):
     def test_basic_properties(self):
         self.assertEqual(self.env.name, "test")
         # disabled engine should be skipped
-        self.assertEqual(self.env.get_engines(), ["test_included_engine", "incomplete_engine", "test_engine"])
+        self.assertEqual(
+            self.env.get_engines(),
+            ["test_included_engine", "incomplete_engine", "test_engine"],
+        )
         # disabled app should be skipped
         self.assertEqual(self.env.get_apps("test_engine"), ["test_app"])
 
@@ -69,36 +73,49 @@ class TestEnvironment(TankTestBase):
 
     def test_app_settings(self):
 
-        self.assertRaises(TankError, self.env.get_app_settings, "test_engine", "bad_app")
+        self.assertRaises(
+            TankError, self.env.get_app_settings, "test_engine", "bad_app"
+        )
         self.assertRaises(TankError, self.env.get_app_settings, "bad_engine", "bad_app")
-        self.assertRaises(TankError, self.env.get_app_settings, "bad_engine", "test_app")
+        self.assertRaises(
+            TankError, self.env.get_app_settings, "bad_engine", "test_app"
+        )
 
-        app_env = copy.deepcopy(self.raw_env_data["engines"]["test_engine"]["apps"]["test_app"])
+        app_env = copy.deepcopy(
+            self.raw_env_data["engines"]["test_engine"]["apps"]["test_app"]
+        )
         app_env.pop("location")
         self.assertEqual(self.env.get_app_settings("test_engine", "test_app"), app_env)
 
     def test_engine_meta(self):
 
         self.assertRaises(TankError, self.env.get_engine_descriptor, "bad_engine")
-        self.assertEqual(self.env.get_engine_descriptor("test_engine").configuration_schema,
-                         self.raw_engine_metadata["configuration"])
+        self.assertEqual(
+            self.env.get_engine_descriptor("test_engine").configuration_schema,
+            self.raw_engine_metadata["configuration"],
+        )
 
     def test_app_meta(self):
 
-        self.assertRaises(TankError, self.env.get_app_descriptor, "test_engine", "bad_engine")
-        self.assertEqual(self.env.get_app_descriptor("test_engine", "test_app").configuration_schema,
-                         self.raw_app_metadata["configuration"])
+        self.assertRaises(
+            TankError, self.env.get_app_descriptor, "test_engine", "bad_engine"
+        )
+        self.assertEqual(
+            self.env.get_app_descriptor("test_engine", "test_app").configuration_schema,
+            self.raw_app_metadata["configuration"],
+        )
 
 
 class TestDumpEnvironment(TankTestBase):
-
     def setUp(self):
         super(TestDumpEnvironment, self).setUp()
         # This test will write to the configuration folder, so copy it.
         self.setup_fixtures(parameters={"installed_config": True})
 
         # create env object
-        self.env = self.tk.pipeline_configuration.get_environment("test_dump", writable=True)
+        self.env = self.tk.pipeline_configuration.get_environment(
+            "test_dump", writable=True
+        )
 
     def test_dump(self):
 
@@ -201,7 +218,9 @@ class TestUpdateEnvironment(TankTestBase):
         self.test_engine = "test_engine"
 
         # create env object
-        self.env = self.tk.pipeline_configuration.get_environment(self.test_env, writable=True)
+        self.env = self.tk.pipeline_configuration.get_environment(
+            self.test_env, writable=True
+        )
 
     def test_add_engine(self):
 
@@ -234,8 +253,12 @@ class TestUpdateEnvironment(TankTestBase):
 
     def test_add_app(self):
 
-        self.assertRaises(TankError, self.env.create_app_settings, "test_engine", "test_app")
-        self.assertRaises(TankError, self.env.create_app_settings, "unknown_engine", "test_app")
+        self.assertRaises(
+            TankError, self.env.create_app_settings, "test_engine", "test_app"
+        )
+        self.assertRaises(
+            TankError, self.env.create_app_settings, "unknown_engine", "test_app"
+        )
 
         # get raw environment before
         env_file = os.path.join(self.project_config, "env", "test.yml")
@@ -265,22 +288,20 @@ class TestUpdateEnvironment(TankTestBase):
         # with the path to the engine_location.yml file, which is being
         # included into test.yml.
         tokens, yml_file = self.env._find_location_for_engine(
-            "test_included_engine",
-            absolute_location=True,
+            "test_included_engine", absolute_location=True
         )
         self.assertEqual(os.path.basename(yml_file), "engine_location.yml")
 
         # In the default case, we end up with test.yml, which is where
         # the test_included_engine instance is defined.
-        tokens, yml_file = self.env.find_location_for_engine(
-            "test_included_engine"
-        )
+        tokens, yml_file = self.env.find_location_for_engine("test_included_engine")
         self.assertEqual(os.path.basename(yml_file), "test.yml")
-
 
     def test_update_engine_settings(self):
 
-        self.assertRaises(TankError, self.env.update_engine_settings, "bad_engine", {}, {})
+        self.assertRaises(
+            TankError, self.env.update_engine_settings, "bad_engine", {}, {}
+        )
 
         # get raw environment before
         env_file = os.path.join(self.project_config, "env", "test.yml")
@@ -289,9 +310,9 @@ class TestUpdateEnvironment(TankTestBase):
         fh.close()
         prev_settings = self.env.get_engine_settings("test_engine")
 
-        self.env.update_engine_settings("test_engine",
-                                        {"foo": u"bar"},
-                                        {"type": "dev", "path": "foo"})
+        self.env.update_engine_settings(
+            "test_engine", {"foo": u"bar"}, {"type": "dev", "path": "foo"}
+        )
 
         # get raw environment after
         env_file = os.path.join(self.project_config, "env", "test.yml")
@@ -302,7 +323,10 @@ class TestUpdateEnvironment(TankTestBase):
         # ensure that disk was updated
         self.assertNotEqual(env_after, env_before)
         env_before["engines"]["test_engine"]["foo"] = "bar"
-        env_before["engines"]["test_engine"]["location"] = {"type":"dev", "path":"foo"}
+        env_before["engines"]["test_engine"]["location"] = {
+            "type": "dev",
+            "path": "foo",
+        }
         self.assertEqual(env_after, env_before)
 
         # #31315 - make sure the u"bar" unicode was converted to str
@@ -310,27 +334,26 @@ class TestUpdateEnvironment(TankTestBase):
 
         # ensure memory was updated
         new_settings = self.env.get_engine_settings("test_engine")
-        prev_settings.update({"foo":"bar"})
+        prev_settings.update({"foo": "bar"})
         self.assertEqual(new_settings, prev_settings)
 
         desc_after = self.env.get_engine_descriptor("test_engine")
-        self.assertEqual(desc_after.get_dict(), {"type":"dev", "path":"foo"})
-
-
+        self.assertEqual(desc_after.get_dict(), {"type": "dev", "path": "foo"})
 
     def test_update_app_settings(self):
 
-        self.assertRaises(TankError, self.env.update_app_settings, "bad_engine", "bad_app", {}, {})
+        self.assertRaises(
+            TankError, self.env.update_app_settings, "bad_engine", "bad_app", {}, {}
+        )
 
-        new_location = {"type":"dev", "path":"foo1"}
+        new_location = {"type": "dev", "path": "foo1"}
         new_settings = {
-                        "foo":"bar",
-                        "test_simple_dictionary":{"foo":"bar"},
-                        "test_complex_dictionary":{"test_list": {"foo":"bar"}},
-                        "test_complex_list":{"foo":"bar"},
-                        "test_very_complex_list":{"test_list":{"foo":"bar"}},
-                        }
-
+            "foo": "bar",
+            "test_simple_dictionary": {"foo": "bar"},
+            "test_complex_dictionary": {"test_list": {"foo": "bar"}},
+            "test_complex_list": {"foo": "bar"},
+            "test_very_complex_list": {"test_list": {"foo": "bar"}},
+        }
 
         # get raw environment before
         env_file = os.path.join(self.project_config, "env", "test.yml")
@@ -340,7 +363,9 @@ class TestUpdateEnvironment(TankTestBase):
         settings_before = self.env.get_app_settings("test_engine", "test_app")
 
         # update settings:
-        self.env.update_app_settings("test_engine", "test_app", new_settings, new_location)
+        self.env.update_app_settings(
+            "test_engine", "test_app", new_settings, new_location
+        )
 
         # get raw environment after
         env_file = os.path.join(self.project_config, "env", "test.yml")
@@ -384,7 +409,6 @@ class TestUpdateEnvironment(TankTestBase):
         self.assertEqual(desc_after.get_dict(), new_location)
 
 
-
 class TestUpdateEnvironmentRuamelYaml(TestUpdateEnvironment):
     """
     Runs the standard environment Update tests with the
@@ -396,14 +420,10 @@ class TestUpdateEnvironmentRuamelYaml(TestUpdateEnvironment):
         self.env.set_yaml_preserve_mode(True)
 
 
-
-
-
 class TestRuamelParser(TankTestBase):
     """
     Tests writing yaml files using the ruamel parser
     """
-
 
     def setUp(self):
         super(TestRuamelParser, self).setUp()
@@ -424,9 +444,19 @@ class TestRuamelParser(TankTestBase):
         # get raw environment after
         # ruamel parser only used in py2.6+
         if sys.version_info < (2, 6):
-            env_file = os.path.join(self.project_config, "env", "post_update", "test_post_update_old_parser.yml")
+            env_file = os.path.join(
+                self.project_config,
+                "env",
+                "post_update",
+                "test_post_update_old_parser.yml",
+            )
         else:
-            env_file = os.path.join(self.project_config, "env", "post_update", "test_post_update_new_parser.yml")
+            env_file = os.path.join(
+                self.project_config,
+                "env",
+                "post_update",
+                "test_post_update_new_parser.yml",
+            )
 
         with open(env_file) as fh:
             expected_env = fh.readlines()
@@ -435,8 +465,9 @@ class TestRuamelParser(TankTestBase):
         # python, replace the FLOAT_VALUE keyword in the expected fixture
         # with whatever the current version of python is expecting
         expected_env = [l.replace("FLOAT_VALUE", repr(1.1)) for l in expected_env]
-        self.assertEqual(updated_env, expected_env)
-
+        # additionally, convert the lines to sets so that the test does not
+        # depend on the order of a dictionary.
+        self.assertEqual(set(updated_env), set(expected_env))
 
 
 class TestPyYamlParser(TankTestBase):
@@ -458,15 +489,15 @@ class TestPyYamlParser(TankTestBase):
 
         # get environment content before
         env_file = os.path.join(self.project_config, "env", "test.yml")
-        fh = open(env_file)
-        updated_env = fh.readlines()
-        fh.close()
+        with open(env_file) as fh:
+            updated_env = fh.readlines()
 
         # get raw environment after
-        env_file = os.path.join(self.project_config, "env", "post_update", "test_post_update_old_parser.yml")
-        fh = open(env_file)
-        expected_env = fh.readlines()
-        fh.close()
+        env_file = os.path.join(
+            self.project_config, "env", "post_update", "test_post_update_old_parser.yml"
+        )
+        with open(env_file) as fh:
+            expected_env = fh.readlines()
 
         # because floats are rendered differently on different versions of
         # python, replace the FLOAT_VALUE keyword in the expected fixture

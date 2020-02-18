@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import sys
+from .platforms import is_linux, is_macos, is_windows
 
 
 class ShotgunPath(object):
@@ -82,16 +83,15 @@ class ShotgunPath(object):
 
         :returns: Path with the OS name substituted in.
         """
-        if platform == "win32":
+        if is_windows(platform):
             os_name = "Windows"
-        elif platform == "darwin":
+        elif is_macos(platform):
             os_name = "Darwin"
-        elif platform.startswith("linux"):
+        elif is_linux(platform):
             os_name = "Linux"
         else:
             raise ValueError(
-                "Cannot resolve file name - unsupported "
-                "os platform '%s'" % platform
+                "Cannot resolve file name - unsupported " "os platform '%s'" % platform
             )
         return template % os_name
 
@@ -119,11 +119,11 @@ class ShotgunPath(object):
                          'win32' or 'darwin'.
         :returns: Shotgun storage path as string.
         """
-        if platform == "win32":
+        if is_windows(platform):
             return "windows_path"
-        elif platform == "darwin":
+        elif is_macos(platform):
             return "mac_path"
-        elif platform.startswith("linux"):
+        elif is_linux(platform):
             return "linux_path"
         else:
             raise ValueError(
@@ -174,11 +174,11 @@ class ShotgunPath(object):
         linux_path = None
         macosx_path = None
 
-        if sys.platform == "win32":
+        if is_windows():
             windows_path = path
-        elif sys.platform.startswith("linux"):
+        elif is_linux():
             linux_path = path
-        elif sys.platform == "darwin":
+        elif is_macos():
             macosx_path = path
         else:
             raise ValueError("Unsupported platform '%s'." % sys.platform)
@@ -223,11 +223,21 @@ class ShotgunPath(object):
         # If we're different than an empty path, we're not zero!
         return True if self.windows or self.linux or self.macosx else False
 
+    def __bool__(self):
+        """
+        Checks if one or more of the OSes have a path specified.
+
+        :returns: True if one or more of the OSes has a path specified. False if all are None.
+        """
+        # In python 3 __bool__ replaces __nonzero__.  For compatiblity we will define
+        # both, and return the result of __nonzero__ here.
+        return self.__nonzero__()
+
     def __repr__(self):
         return "<Path win:'%s', linux:'%s', macosx:'%s'>" % (
             self._windows_path,
             self._linux_path,
-            self._macosx_path
+            self._macosx_path,
         )
 
     def __eq__(self, other):
@@ -240,7 +250,11 @@ class ShotgunPath(object):
         if not isinstance(other, ShotgunPath):
             return NotImplemented
 
-        return self.macosx == other.macosx and self.windows == other.windows and self.linux == other.linux
+        return (
+            self.macosx == other.macosx
+            and self.windows == other.windows
+            and self.linux == other.linux
+        )
 
     def __hash__(self):
         """
@@ -261,7 +275,7 @@ class ShotgunPath(object):
         return not is_equal
 
     def _sanitize_path(self, path, separator):
-        """
+        r"""
         Multi-platform sanitize and clean up of paths.
 
         The following modifications will be carried out:
@@ -370,11 +384,11 @@ class ShotgunPath(object):
         """
         The path on the current os
         """
-        if sys.platform == "win32":
+        if is_windows():
             return self.windows
-        elif sys.platform.startswith("linux"):
+        elif is_linux():
             return self.linux
-        elif sys.platform == "darwin":
+        elif is_macos():
             return self.macosx
         else:
             raise ValueError("Unsupported platform '%s'." % sys.platform)
@@ -385,11 +399,11 @@ class ShotgunPath(object):
         """
         # Please note that we're using the property setters to set the path, so they
         # will be sanitized by the setter.
-        if sys.platform == "win32":
+        if is_windows():
             self.windows = value
-        elif sys.platform.startswith("linux"):
+        elif is_linux():
             self.linux = value
-        elif sys.platform == "darwin":
+        elif is_macos():
             self.macosx = value
         else:
             raise ValueError("Unsupported platform '%s'." % sys.platform)
@@ -489,8 +503,20 @@ class ShotgunPath(object):
         # get rid of any slashes at the end
         # so value is "/foo/bar", "c:" or "\\hello"
         # then append separator and new folder
-        linux_path = "%s/%s" % (self._linux_path.rstrip("/\\"), folder) if self._linux_path else None
-        macosx_path = "%s/%s" % (self._macosx_path.rstrip("/\\"), folder) if self._macosx_path else None
-        win_path = "%s\\%s" % (self._windows_path.rstrip("/\\"), folder) if self._windows_path else None
+        linux_path = (
+            "%s/%s" % (self._linux_path.rstrip("/\\"), folder)
+            if self._linux_path
+            else None
+        )
+        macosx_path = (
+            "%s/%s" % (self._macosx_path.rstrip("/\\"), folder)
+            if self._macosx_path
+            else None
+        )
+        win_path = (
+            "%s\\%s" % (self._windows_path.rstrip("/\\"), folder)
+            if self._windows_path
+            else None
+        )
 
         return ShotgunPath(win_path, linux_path, macosx_path)

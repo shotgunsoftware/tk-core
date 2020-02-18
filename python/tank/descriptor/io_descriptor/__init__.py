@@ -12,7 +12,7 @@ from .factory import (
     create_io_descriptor,
     descriptor_uri_to_dict,
     descriptor_dict_to_uri,
-    is_descriptor_version_missing
+    is_descriptor_version_missing,
 )
 
 
@@ -31,6 +31,7 @@ def _initialize_descriptor_factory():
     from .git_branch import IODescriptorGitBranch
     from .github_release import IODescriptorGithubRelease
     from .manual import IODescriptorManual
+    from ._rez import IODescriptorRez
 
     IODescriptorBase.register_descriptor_factory("app_store", IODescriptorAppStore)
     IODescriptorBase.register_descriptor_factory("dev", IODescriptorDev)
@@ -38,11 +39,12 @@ def _initialize_descriptor_factory():
     IODescriptorBase.register_descriptor_factory("shotgun", IODescriptorShotgunEntity)
     IODescriptorBase.register_descriptor_factory("git", IODescriptorGitTag)
     IODescriptorBase.register_descriptor_factory("git_branch", IODescriptorGitBranch)
-    IODescriptorBase.register_descriptor_factory("github_release", IODescriptorGithubRelease)
+    IODescriptorBase.register_descriptor_factory(
+        "github_release", IODescriptorGithubRelease
+    )
     IODescriptorBase.register_descriptor_factory("manual", IODescriptorManual)
+    IODescriptorBase.register_descriptor_factory("rez", IODescriptorRez)
 
 
 _initialize_descriptor_factory()
 del _initialize_descriptor_factory
-
-

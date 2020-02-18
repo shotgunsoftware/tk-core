@@ -1,8 +1,9 @@
-[![VFX Platform](https://img.shields.io/badge/vfxplatform-2018-yellow.svg)](http://www.vfxplatform.com/)
+[![VFX Platform](https://img.shields.io/badge/vfxplatform-2020-yellow.svg)](http://www.vfxplatform.com/)
+[![Python 2.6 2.7 3.7](https://img.shields.io/badge/python-2.6%20%7C%202.7%20%7C%203.7-blue.svg)](https://www.python.org/)
 [![Reference Documentation](http://img.shields.io/badge/doc-reference-blue.svg)](http://developer.shotgunsoftware.com/tk-core)
-[![Build Status Linux](https://secure.travis-ci.org/shotgunsoftware/tk-core.svg?branch=master)](http://travis-ci.org/shotgunsoftware/tk-core)
-[![Build status Windows](https://ci.appveyor.com/api/projects/status/wa0nkvpawf6020fi/branch/master?svg=true)](https://ci.appveyor.com/project/jfboismenu/tk-core/branch/master)
-[![Coverage Status](https://coveralls.io/repos/github/shotgunsoftware/tk-core/badge.svg?branch=master)](https://coveralls.io/github/shotgunsoftware/tk-core?branch=master)
+[![Build Status](https://dev.azure.com/shotgun-ecosystem/Toolkit/_apis/build/status/shotgunsoftware.tk-core?branchName=master)](https://dev.azure.com/shotgun-ecosystem/Toolkit/_build/latest?definitionId=38&branchName=master)
+[![codecov](https://codecov.io/gh/shotgunsoftware/tk-core/branch/master/graph/badge.svg)](https://codecov.io/gh/shotgunsoftware/tk-core)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Linting](https://img.shields.io/badge/PEP8%20by-Hound%20CI-a873d1.svg)](https://houndci.com)
 
 # Shotgun Pipeline Toolkit Core API
@@ -13,7 +14,7 @@ This repository represents the Shotgun Pipeline Toolkit Core API.
 
 Installing the Shotgun Pipeline Toolkit is normally done via our
 Shotgun App Store. For detailed instructions on how to get started
-with Toolkit, head over to our support site: 
+with Toolkit, head over to our support site:
 https://support.shotgunsoftware.com/entries/95442748
 
 ## Reference Documentation and Release Notes

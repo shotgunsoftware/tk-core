@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright (c) 2018 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
@@ -31,11 +32,13 @@ def main():
     # Set up the environment variables so the test can be run simply by running
     # the test script.
     environ = copy.deepcopy(os.environ)
-    environ["PYTHONPATH"] = os.path.pathsep.join([
-        os.path.join(current_folder, "..", "python"),
-        os.path.join(current_folder, "..", "python", "third_party"),
-        os.path.join(current_folder, "..", "..", "python"),
-    ])
+    environ["PYTHONPATH"] = os.path.pathsep.join(
+        [
+            os.path.join(current_folder, "..", "python"),
+            os.path.join(current_folder, "..", "python", "third_party"),
+            os.path.join(current_folder, "..", "..", "python"),
+        ]
+    )
     environ["SHOTGUN_SCRIPT_NAME"] = os.environ.get("SHOTGUN_SCRIPT_NAME")
     environ["SHOTGUN_SCRIPT_KEY"] = os.environ.get("SHOTGUN_SCRIPT_KEY")
     environ["SHOTGUN_HOST"] = os.environ.get("SHOTGUN_HOST")
@@ -44,7 +47,7 @@ def main():
 
     before = time.time()
     try:
-        filenames = glob.iglob(os.path.join(current_folder, "*.py"))
+        filenames = sys.argv[1:] or glob.iglob(os.path.join(current_folder, "*.py"))
         for filename in filenames:
 
             # Skip the launcher. :)
@@ -55,18 +58,17 @@ def main():
             print("Running %s" % os.path.basename(filename))
             print("=" * 79)
 
-            if "--with-coverage" in sys.argv:
-                args = [
-                    "coverage",
-                    "run",
-                    "-a",
-                    filename
-                ]
-            else:
+            if "SHOTGUN_TEST_COVERAGE" in os.environ:
                 args = [
                     sys.executable,
-                    filename
+                    "-m",
+                    "coverage",
+                    "run",
+                    "--parallel-mode",
+                    filename,
                 ]
+            else:
+                args = [sys.executable, filename]
 
             subprocess.check_call(args, env=environ)
 

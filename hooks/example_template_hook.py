@@ -31,7 +31,6 @@ from tank import Hook
 
 
 class ExampleTemplateHook(Hook):
-
     def execute(self, setting, bundle_obj, extra_params, **kwargs):
         """
         Example pass-through implementation. One option is expected in ``extra_params``

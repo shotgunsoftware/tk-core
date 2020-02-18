@@ -1,11 +1,11 @@
 # Copyright (c) 2015 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -20,11 +20,8 @@ import copy
 import threading
 
 from tank_vendor import yaml
-from ..errors import (
-    TankError,
-    TankUnreadableFileError,
-    TankFileDoesNotExistError,
-)
+from ..errors import TankError, TankUnreadableFileError, TankFileDoesNotExistError
+
 
 class CacheItem(object):
     """
@@ -57,7 +54,6 @@ class CacheItem(object):
                 )
         else:
             self._stat = stat
-            
 
     def _get_data(self):
         """The item's data."""
@@ -105,7 +101,9 @@ class CacheItem(object):
     def __eq__(self, other):
         if not isinstance(other, CacheItem):
             raise TypeError("Given item must be of type CacheItem.")
-        return (other.stat.st_mtime == self.stat.st_mtime and not self.size_differs(other))
+        return other.stat.st_mtime == self.stat.st_mtime and not self.size_differs(
+            other
+        )
 
     def __getitem__(self, key):
         # Backwards compatibility just in case something outside
@@ -121,6 +119,7 @@ class CacheItem(object):
 
     def __str__(self):
         return str(self.path)
+
 
 class YamlCache(object):
     """
@@ -162,7 +161,7 @@ class YamlCache(object):
         Retrieve the yaml data for the specified path.  If it's not already
         in the cache of the cached version is out of date then this will load
         the Yaml file from disk.
-        
+
         :param path:            The path of the yaml file to load.
         :param deepcopy_data:   Return deepcopy of data. Default is True.
         :returns:               The raw yaml data loaded from the file.
@@ -175,7 +174,7 @@ class YamlCache(object):
         # the existing cached data.
         item = self._add(CacheItem(path))
 
-        # If asked to, return a deep copy of the cached data to ensure that 
+        # If asked to, return a deep copy of the cached data to ensure that
         # the cached data is not updated accidentally!
         if deepcopy_data:
             return copy.deepcopy(item.data)
@@ -186,7 +185,7 @@ class YamlCache(object):
         """
         Returns a list of all CacheItems stored in the cache.
         """
-        return self._cache.values()
+        return list(self._cache.values())
 
     def merge_cache_items(self, cache_items):
         """
@@ -197,7 +196,7 @@ class YamlCache(object):
         """
         for item in cache_items:
             self._add(item)
-            
+
     def _add(self, item):
         """
         Adds the given item to the cache in a thread-safe way. If the given item
@@ -208,7 +207,7 @@ class YamlCache(object):
         the caller. If the given item is added to the cache and it has not already
         been populated with the yaml data from disk, that data will be read prior
         to the item being added to the cache.
-        
+
         :param item:    The CacheItem to add to the cache.
         :returns:       The cached CacheItem.
         """
@@ -262,9 +261,12 @@ class YamlCache(object):
         except IOError:
             raise TankFileDoesNotExistError("File does not exist: %s" % path)
         except Exception as e:
-            raise TankError("Could not open file '%s'. Error reported: '%s'" % (path, e))
+            raise TankError(
+                "Could not open file '%s'. Error reported: '%s'" % (path, e)
+            )
         # Populate the item's data before adding it to the cache.
         item.data = raw_data
+
 
 # The global instance of the YamlCache.
 g_yaml_cache = YamlCache()

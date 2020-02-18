@@ -17,13 +17,12 @@ import os
 import sys
 import glob
 import pprint
-import re
 
 from ..errors import TankError
 from ..log import LogManager
 from ..util.loader import load_plugin
 from ..util.version import is_version_older
-from ..util import ShotgunPath
+from ..util import ShotgunPath, is_windows, sgre as re
 
 from . import constants
 from . import validation
@@ -87,15 +86,13 @@ def create_engine_launcher(tk, context, engine_name, versions=None, products=Non
     # Make sure it exists locally
     if not engine_descriptor.exists_local():
         raise TankError(
-            "Cannot create %s software launcher! %s does not exist on disk." %
-            (engine_name, engine_descriptor)
+            "Cannot create %s software launcher! %s does not exist on disk."
+            % (engine_name, engine_descriptor)
         )
 
     # Get path to engine startup code and load it.
     engine_path = engine_descriptor.get_path()
-    plugin_file = os.path.join(
-        engine_path, constants.ENGINE_SOFTWARE_LAUNCHER_FILE
-    )
+    plugin_file = os.path.join(engine_path, constants.ENGINE_SOFTWARE_LAUNCHER_FILE)
 
     # Since we don't know what version of the engine is currently
     # installed, the plugin file may not exist.
@@ -121,6 +118,7 @@ class SoftwareLauncher(object):
     should only be constructed through the :meth:`create_engine_launcher`
     factory method.
     """
+
     def __init__(self, tk, context, engine_name, env, versions=None, products=None):
         """
         :param tk: :class:`~sgtk.Sgtk` Toolkit instance
@@ -250,8 +248,7 @@ class SoftwareLauncher(object):
         :class:`logging.Logger` for this launcher. Use this whenever you want to emit or process log messages.
         """
         return LogManager.get_logger(
-            "env.%s.%s.startup" %
-            (self.__environment.name, self.__engine_name)
+            "env.%s.%s.startup" % (self.__environment.name, self.__engine_name)
         )
 
     @property
@@ -329,7 +326,7 @@ class SoftwareLauncher(object):
 
         :returns: The substituted string, when "<name>" will yield "<value>".
         """
-        for key, value in tokens.iteritems():
+        for key, value in tokens.items():
             template = template.replace("{%s}" % key, value)
         return template
 
@@ -373,16 +370,21 @@ class SoftwareLauncher(object):
         """
 
         # Sanitize glob pattern.
-        fixed_match_template = ShotgunPath.from_current_os_path(match_template).current_os
+        fixed_match_template = ShotgunPath.from_current_os_path(
+            match_template
+        ).current_os
         if fixed_match_template != match_template:
-            self.logger.debug("Template was sanitized from '%s' to '%s'" % (match_template, fixed_match_template))
+            self.logger.debug(
+                "Template was sanitized from '%s' to '%s'"
+                % (match_template, fixed_match_template)
+            )
             match_template = fixed_match_template
 
         # First start by globbing files.
-        glob_pattern = self._format(match_template, dict((key, "*") for key in template_key_expressions))
-        self.logger.debug(
-            "Globbing for executable matching: %s ..." % (glob_pattern,)
+        glob_pattern = self._format(
+            match_template, dict((key, "*") for key in template_key_expressions)
         )
+        self.logger.debug("Globbing for executable matching: %s ..." % (glob_pattern,))
         matching_paths = glob.glob(glob_pattern)
 
         # If nothing was found, we can leave right away.
@@ -391,15 +393,12 @@ class SoftwareLauncher(object):
             return []
 
         self.logger.debug(
-            "Found %s matches: %s" % (
-                len(matching_paths),
-                matching_paths
-            )
+            "Found %s matches: %s" % (len(matching_paths), matching_paths)
         )
 
         # Now prepare the template to be turned into a regular expression. First, double up the
         # backward slashes to escape them properly in the regular expression on Windows.
-        if sys.platform == "win32":
+        if is_windows():
             regex_pattern = match_template.replace("\\", "\\\\")
         else:
             regex_pattern = match_template
@@ -407,16 +406,16 @@ class SoftwareLauncher(object):
         regex_pattern = self._format(
             regex_pattern,
             # Put () around the provided expressions so that they become capture groups.
-            dict((k, "(?P<%s>%s)" % (k, v)) for k, v in template_key_expressions.iteritems())
+            dict(
+                (k, "(?P<%s>%s)" % (k, v)) for k, v in template_key_expressions.items()
+            ),
         )
 
         # accumulate the software version objects to return. this will include
         # include the head/tail anchors in the regex
         regex_pattern = "^%s$" % (regex_pattern,)
 
-        self.logger.debug(
-            "Now matching components with regex: %s" % (regex_pattern,)
-        )
+        self.logger.debug("Now matching components with regex: %s" % (regex_pattern,))
 
         # compile the regex
         executable_regex = re.compile(regex_pattern, re.IGNORECASE)
@@ -566,12 +565,13 @@ class SoftwareLauncher(object):
             return (
                 False,
                 "Executable '%s' didn't meet the version requirements"
-                "(%s not in %s or is older than %s)" % (
+                "(%s not in %s or is older than %s)"
+                % (
                     sw_version.path,
                     sw_version.version,
                     self.versions,
-                    self.minimum_supported_version
-                )
+                    self.minimum_supported_version,
+                ),
             )
 
         # check products list
@@ -579,11 +579,7 @@ class SoftwareLauncher(object):
             return (
                 False,
                 "Executable '%s' didn't meet the product requirements"
-                "(%s not in %s)" % (
-                    sw_version.path,
-                    sw_version.product,
-                    self.products
-                )
+                "(%s not in %s)" % (sw_version.path, sw_version.product, self.products),
             )
 
         # passed all checks. must be supported!
@@ -649,6 +645,7 @@ class SoftwareVersion(object):
     Container class that stores properties of a DCC that
     are useful for Toolkit Engine Startup functionality.
     """
+
     def __init__(self, version, product, path, icon=None, args=None):
         """
         :param str version: Explicit version of the DCC represented
@@ -677,7 +674,7 @@ class SoftwareVersion(object):
             self.product,
             self.version,
             self.path,
-            self.args
+            self.args,
         )
 
     @property
@@ -753,6 +750,7 @@ class LaunchInformation(object):
     A LaunchInformation instance is generally obtained from an engine's
     subclass implementation of :meth:`SoftwareLauncher.prepare_launch``
     """
+
     def __init__(self, path=None, args=None, environ=None):
         """
         :param str path: Resolved path to DCC

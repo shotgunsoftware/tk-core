@@ -24,6 +24,7 @@ from sgtk_integration_test import SgtkIntegrationTest
 import sgtk
 
 
+@unittest2.skipIf(sys.version_info[0] > 2, "shell engine is not Python 3 compatible.")
 class OfflineWorkflow(SgtkIntegrationTest):
 
     OFFLINE_WORKFLOW_TEST = "offline_workflow_test"
@@ -37,6 +38,17 @@ class OfflineWorkflow(SgtkIntegrationTest):
         # Points to where the config will be cached to.
         cls.config_dir = os.path.join(cls.temp_dir, "config")
 
+        # Ensure the project exists.
+        cls.project = cls.create_or_update_project(
+            cls.OFFLINE_WORKFLOW_TEST, {"tank_name": cls.OFFLINE_WORKFLOW_TEST}
+        )
+
+        # Ensure the pipeline configuration exists.
+        cls.pc = cls.create_or_update_pipeline_configuration(
+            "Primary",
+            {"code": "Primary", "project": cls.project, "plugin_ids": "basic.*"},
+        )
+
     def test_01_copy_config_to_test_folder(self):
         """
         Takes the configuration from integration_tests/data/offline_workflow
@@ -47,12 +59,8 @@ class OfflineWorkflow(SgtkIntegrationTest):
             sgtk.descriptor.Descriptor.CONFIG,
             {
                 "type": "path",
-                "path": os.path.join(
-                    os.path.dirname(__file__),
-                    "data",
-                    "simple_config"
-                )
-            }
+                "path": os.path.join(os.path.dirname(__file__), "data", "site_config"),
+            },
         )
         os.makedirs(self.config_dir)
         desc.copy(self.config_dir)
@@ -61,13 +69,10 @@ class OfflineWorkflow(SgtkIntegrationTest):
         """
         Generates the zipped configuration file containing the configuration and bundles.
         """
-        repo_root = os.path.join(
-            os.path.dirname(__file__),
-            "..", ".."
-        )
+        repo_root = os.path.join(os.path.dirname(__file__), "..", "..")
         # Run with coverage only if it is being used.
         try:
-            import coverage # noqa
+            import coverage  # noqa
         except ImportError:
             runner = ["python"]
         else:
@@ -75,10 +80,11 @@ class OfflineWorkflow(SgtkIntegrationTest):
 
         try:
             sgtk.util.process.subprocess_check_output(
-                runner + [
+                runner
+                + [
                     os.path.join(repo_root, "developer", "populate_bundle_cache.py"),
                     "sgtk:descriptor:path?path={0}".format(self.config_dir),
-                    self.config_dir
+                    self.config_dir,
                 ]
             )
         except sgtk.util.process.SubprocessCalledProcessError as e:
@@ -86,8 +92,7 @@ class OfflineWorkflow(SgtkIntegrationTest):
             raise
 
         sgtk.util.zip.zip_file(
-            self.config_dir,
-            "{temp_dir}/config.zip".format(temp_dir=self.temp_dir),
+            self.config_dir, "{temp_dir}/config.zip".format(temp_dir=self.temp_dir)
         )
 
     def test_03_upload_to_pipeline_configuration(self):
@@ -96,34 +101,13 @@ class OfflineWorkflow(SgtkIntegrationTest):
         includes uploading the pipeline configuration to Shotgun.
         """
 
-        # Ensure the project exists.
-        projects = self.sg.find("Project", [["name", "is", self.OFFLINE_WORKFLOW_TEST]])
-        self.assertLessEqual(len(projects), 1)
-        if not projects:
-            project = self.sg.create(
-                "Project",
-                {"name": self.OFFLINE_WORKFLOW_TEST, "tank_name": self.OFFLINE_WORKFLOW_TEST}
-            )
-        else:
-            project = projects[0]
-
-        # Ensure the pipeline configuration exists.
-        pcs = self.sg.find("PipelineConfiguration", [["code", "is", "Primary"], ["project", "is", project]])
-        self.assertLessEqual(len(pcs), 1)
-        if not pcs:
-            pc = self.sg.create(
-                "PipelineConfiguration",
-                {"code": "Primary", "project": project, "plugin_ids": "basic.*"}
-            )
-        else:
-            pc = pcs[0]
-
         # Upload the zip file to Shotgun.
         self.sg.upload(
-            "PipelineConfiguration", pc["id"],
+            "PipelineConfiguration",
+            self.pc["id"],
             "{temp_dir}/config.zip".format(temp_dir=self.temp_dir),
-            "sg_uploaded_config",
-            "Uploaded by tk-core integration tests."
+            "uploaded_config",
+            "Uploaded by tk-core integration tests.",
         )
 
     def test_04_bootstrap(self):
@@ -133,29 +117,21 @@ class OfflineWorkflow(SgtkIntegrationTest):
         """
 
         # Change the Toolkit sandbox so we don't reuse the previous cache.
-        os.environ["SHOTGUN_HOME"] = os.path.join(
-            self.temp_dir, "new_shotgun_home"
-        )
+        os.environ["SHOTGUN_HOME"] = os.path.join(self.temp_dir, "new_shotgun_home")
         self.assertFalse(os.path.exists(os.environ["SHOTGUN_HOME"]))
-
-        # Find the project and pipeline configuration in Shotgun.
-        project = self.sg.find_one("Project", [["name", "is", self.OFFLINE_WORKFLOW_TEST]])
-        pc = self.sg.find_one("PipelineConfiguration", [["code", "is", "Primary"], ["project", "is", project]])
 
         # Bootstrap into the tk-shell engine.
         manager = sgtk.bootstrap.ToolkitManager(self.user)
-        manager.pipeline_configuration = pc["id"]
-        engine = manager.bootstrap_engine("tk-shell", project)
+        manager.pipeline_configuration = self.pc["id"]
+        engine = manager.bootstrap_engine("tk-shell", self.project)
         engine.destroy_engine()
 
         # Make sure we only have a sg descriptor cache.
         self.assertEqual(
             sorted(
-                os.listdir(
-                    os.path.join(os.environ["SHOTGUN_HOME"], "bundle_cache")
-                )
+                os.listdir(os.path.join(os.environ["SHOTGUN_HOME"], "bundle_cache"))
             ),
-            ["sg", "tmp"]
+            ["sg", "tmp"],
         )
 
 

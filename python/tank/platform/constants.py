@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -33,7 +33,7 @@ TANK_SCHEMA_VALID_TYPES = [
     "shotgun_entity_type",
     "shotgun_permission_group",
     "shotgun_filter",
-    "config_path"
+    "config_path",
 ]
 
 # Types from the list above that expect "str" values.
@@ -44,7 +44,7 @@ TANK_SCHEMA_STRING_TYPES = [
     "hook",
     "shotgun_entity_type",
     "shotgun_permission_group",
-    "config_path"
+    "config_path",
 ]
 
 # a folder to look for an automatically add to the pythonpath
@@ -117,11 +117,13 @@ APP_FILE = "app.py"
 # an optional stylesheet that can be defined by bundles
 BUNDLE_STYLESHEET_FILE = "style.qss"
 
-# define our standard stylesheet constants 
-SG_STYLESHEET_CONSTANTS = { "SG_HIGHLIGHT_COLOR": "#18A7E3",
-                            "SG_ALERT_COLOR": "#FC6246",
-                            "SG_FOREGROUND_COLOR": "#C8C8C8",
-                            "SG_LINK_COLOR": "#C8C8C8"}
+# define our standard stylesheet constants
+SG_STYLESHEET_CONSTANTS = {
+    "SG_HIGHLIGHT_COLOR": "#18A7E3",
+    "SG_ALERT_COLOR": "#FC6246",
+    "SG_FOREGROUND_COLOR": "#C8C8C8",
+    "SG_LINK_COLOR": "#C8C8C8",
+}
 
 # the file to look for that defines and bootstraps a framework
 FRAMEWORK_FILE = "framework.py"
@@ -151,4 +153,3 @@ MULTI_INCLUDE_SECTION = "includes"
 
 # hook that is executed whenever a cache location should be determined
 CACHE_LOCATION_HOOK_NAME = "cache_location"
-

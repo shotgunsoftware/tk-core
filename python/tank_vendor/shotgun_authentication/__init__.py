@@ -20,5 +20,9 @@ from tank.authentication import DefaultsManager, ShotgunAuthenticator
 from tank.authentication import ShotgunAuthenticationError, AuthenticationError, IncompleteCredentials, AuthenticationCancelled
 from tank.authentication import ShotgunUser, deserialize_user, serialize_user
 
-
-
+def get_logger():
+    # This is present for backwards compatibility with older tk-core's.
+    # Lazy import to avoid poluting the module's namespace.
+    import tank.authentication
+    from tank.log import LogManager
+    return LogManager.get_logger(tank.authentication.__name__)

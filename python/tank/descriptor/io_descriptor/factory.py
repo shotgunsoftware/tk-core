@@ -14,18 +14,21 @@ from ..errors import TankDescriptorError
 from .base import IODescriptorBase
 
 from ... import LogManager
+from tank_vendor import six
+
 log = LogManager.get_logger(__name__)
 
 
 def create_io_descriptor(
-        sg,
-        descriptor_type,
-        dict_or_uri,
-        bundle_cache_root,
-        fallback_roots,
-        resolve_latest,
-        constraint_pattern=None,
-        local_fallback_when_disconnected=True):
+    sg,
+    descriptor_type,
+    dict_or_uri,
+    bundle_cache_root,
+    fallback_roots,
+    resolve_latest,
+    constraint_pattern=None,
+    local_fallback_when_disconnected=True,
+):
     """
     Factory method. Use this method to construct all DescriptorIO instances.
 
@@ -70,7 +73,7 @@ def create_io_descriptor(
     :raises: :class:`TankDescriptorError`
     """
     # resolve into both dict and uri form
-    if isinstance(dict_or_uri, basestring):
+    if isinstance(dict_or_uri, six.string_types):
         descriptor_dict = IODescriptorBase.dict_from_uri(dict_or_uri)
     else:
         # make a copy to make sure the original object is never altered
@@ -82,6 +85,13 @@ def create_io_descriptor(
         # if someone is requesting a latest descriptor and not providing a version token
         # make sure to add an artificial one so that we can resolve it.
         descriptor_dict["version"] = "latest"
+
+    # Ensure that the descrptor version is a str.  For some descriptors a
+    # verson is not expected, so if the key doesn't exist we'll do nothing.
+    if isinstance(descriptor_dict.get("version"), six.binary_type):
+        # On Python 2 this will have no effect, but on Python 3, we will decode
+        # bytes to a str.
+        descriptor_dict["version"] = six.ensure_str(descriptor_dict["version"])
 
     # instantiate the Descriptor
     descriptor = IODescriptorBase.create(descriptor_type, descriptor_dict, sg)
@@ -95,7 +105,9 @@ def create_io_descriptor(
         # available in the local cache.
         log.debug("Trying to resolve latest version...")
         if descriptor.has_remote_access():
-            log.debug("Remote connection is available - attempting to get latest version from remote...")
+            log.debug(
+                "Remote connection is available - attempting to get latest version from remote..."
+            )
             descriptor = descriptor.get_latest_version(constraint_pattern)
             log.debug("Resolved latest to be %r" % descriptor)
 
@@ -106,19 +118,27 @@ def create_io_descriptor(
                     "Remote connection is not available - will try to get "
                     "the latest locally cached version of %s..." % descriptor
                 )
-                latest_cached_descriptor = descriptor.get_latest_cached_version(constraint_pattern)
+                latest_cached_descriptor = descriptor.get_latest_cached_version(
+                    constraint_pattern
+                )
                 if latest_cached_descriptor is None:
-                    log.warning("No locally cached versions of %r available." % descriptor)
+                    log.warning(
+                        "No locally cached versions of %r available." % descriptor
+                    )
                     raise TankDescriptorError(
                         "Could not get latest version of %s. "
                         "For more details, see the log." % descriptor
                     )
-                log.debug("Latest locally cached descriptor is %r" % latest_cached_descriptor)
+                log.debug(
+                    "Latest locally cached descriptor is %r" % latest_cached_descriptor
+                )
                 descriptor = latest_cached_descriptor
 
             else:
                 # do not attempt to get the latest locally cached version
-                log.warning("Remote connection not available to determine latest version.")
+                log.warning(
+                    "Remote connection not available to determine latest version."
+                )
                 raise TankDescriptorError(
                     "Could not get latest version of %s. "
                     "For more details, see the log." % descriptor
@@ -165,7 +185,7 @@ def is_descriptor_version_missing(dict_or_uri):
     :return: Boolean to indicate if a required version token is missing
     """
     # resolve into both dict and uri form
-    if isinstance(dict_or_uri, basestring):
+    if isinstance(dict_or_uri, six.string_types):
         descriptor_dict = descriptor_uri_to_dict(dict_or_uri)
     else:
         # make a copy to make sure the original object is never altered
@@ -174,7 +194,10 @@ def is_descriptor_version_missing(dict_or_uri):
     # We only do this for descriptor types that supports a version number concept
     descriptors_using_version = ["app_store", "shotgun", "manual", "git", "git_branch"]
 
-    if "version" not in descriptor_dict and descriptor_dict.get("type") in descriptors_using_version:
+    if (
+        "version" not in descriptor_dict
+        and descriptor_dict.get("type") in descriptors_using_version
+    ):
         return True
     else:
         return False

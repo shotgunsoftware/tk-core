@@ -18,7 +18,6 @@ from tank import Hook
 
 
 class BeforeRegisterPublish(Hook):
-
     def execute(self, shotgun_data, context, **kwargs):
         """
         Executed just before a new publish entity is created in Shotgun.
