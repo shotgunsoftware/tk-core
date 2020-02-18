@@ -2,7 +2,7 @@
 
 name = 'tk_core'
 
-version = "0.19.3"
+version = "0.19.4"
 
 requires = []
 
