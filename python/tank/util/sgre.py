@@ -51,9 +51,14 @@ if six.PY2:
 # to maintain the previous behavior.
 else:
     import re as _re
+    import typing as _typing
 
     def _re_wrap(fn, flags_arg_position):
         def wrapper(*args, **kwargs):
+            if args and isinstance(args[0], _typing.Pattern):
+                # If we've been passed a compiled pattern, we can't apply flags,
+                # so we should just wrap the callable untouched.
+                return fn(*args, **kwargs)
             if len(args) > flags_arg_position:
                 # If flags is provided positionally, and the UNICODE flag
                 # is not present, add the ASCII flag
