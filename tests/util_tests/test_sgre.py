@@ -9,9 +9,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from unittest2 import TestCase, skipIf
-import sgtk
-from tank_vendor import six
+from unittest2 import TestCase
 import re
 from tank.util import sgre
 
