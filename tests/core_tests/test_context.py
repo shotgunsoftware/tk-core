@@ -118,6 +118,8 @@ class TestEq(TestContext):
         context_2 = context.Context(self.tk, **kws2)
         self.assertTrue(context_1 == context_2)
         self.assertFalse(context_1 != context_2)
+        # Assert that hashing function treats these as equal
+        self.assertTrue(hash(context_1) == hash(context_2))
 
     def test_not_equal(self):
         context_1 = context.Context(self.tk, **self.kws)
@@ -126,6 +128,8 @@ class TestEq(TestContext):
         context_2 = context.Context(self.tk, **kws2)
         self.assertFalse(context_1 == context_2)
         self.assertTrue(context_1 != context_2)
+        # Assert that hashing function treats these as unequal
+        self.assertFalse(hash(context_1) == hash(context_2))
 
     def test_not_equal_with_none(self):
         context_1 = context.Context(self.tk, **self.kws)
@@ -134,6 +138,8 @@ class TestEq(TestContext):
         context_2 = context.Context(self.tk, **kws2)
         self.assertFalse(context_1 == context_2)
         self.assertTrue(context_1 != context_2)
+        # Assert that hashing function treats these as unequal
+        self.assertFalse(hash(context_1) == hash(context_2))
 
     def test_additional_entities_equal(self):
         kws1 = copy.deepcopy(self.kws)
@@ -155,6 +161,8 @@ class TestEq(TestContext):
         context_2 = context.Context(self.tk, **kws2)
         self.assertTrue(context_1 == context_2)
         self.assertFalse(context_1 != context_2)
+        # Assert that hashing function treats these as unequal
+        self.assertFalse(hash(context_1) == hash(context_2))
 
     def test_additional_entities_not_equal(self):
         kws1 = copy.deepcopy(self.kws)
@@ -171,12 +179,16 @@ class TestEq(TestContext):
         context_2 = context.Context(self.tk, **kws2)
         self.assertFalse(context_1 == context_2)
         self.assertTrue(context_1 != context_2)
+        # Assert that hashing function treats these as unequal
+        self.assertFalse(hash(context_1) == hash(context_2))
 
     def test_not_context(self):
         context_1 = context.Context(self.tk, **self.kws)
         not_context = object()
         self.assertFalse(context_1 == not_context)
         self.assertTrue(context_1 != not_context)
+        # Assert that hashing function treats these as unequal
+        self.assertFalse(hash(context_1) == hash(not_context))
 
     @patch("tank.util.login.get_current_user")
     def test_lazy_load_user(self, get_current_user):
