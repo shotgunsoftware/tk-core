@@ -21,7 +21,7 @@ class TestSgre(TestCase):
         unicode characters do not match `\w` in Python 2 or 3.
         """
         char = u"漢字"
-        expr = r'\w+'
+        expr = r"\w+"
 
         # test all wrapped methods
         self.assertFalse(bool(sgre.compile(expr).match(char)))
@@ -38,7 +38,7 @@ class TestSgre(TestCase):
         in Python 2 or 3.
         """
         char = u"a漢字"
-        expr = r'a\w+'
+        expr = r"a\w+"
 
         # test all wrapped methods
         self.assertFalse(bool(sgre.compile(expr, re.I).match(char)))
@@ -55,7 +55,7 @@ class TestSgre(TestCase):
         match `\w` in Python 2 or 3.
         """
         char = u"a漢字"
-        expr = r'a\w+'
+        expr = r"a\w+"
 
         # test all wrapped methods
         self.assertFalse(bool(sgre.compile(expr, flags=re.I).match(char)))
@@ -70,7 +70,7 @@ class TestSgre(TestCase):
         Ensure that the unicode flag overrides the flag insertion behavior.
         """
         char = u"a漢字"
-        expr = r'a\w+'
+        expr = r"a\w+"
 
         # test all wrapped methods
         self.assertTrue(bool(sgre.compile(expr, flags=re.U).match(char)))
@@ -85,5 +85,5 @@ class TestSgre(TestCase):
         Ensure that no flag injection is performed when using a compiled
         expression, as this raises an exception.
         """
-        compiled_expression = sgre.compile('a')
-        self.assertTrue(bool(compiled_expression.match('a')))
+        compiled_expression = sgre.compile("a")
+        self.assertTrue(bool(compiled_expression.match("a")))
