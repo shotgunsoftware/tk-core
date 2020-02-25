@@ -93,6 +93,7 @@ class TestDialogCreation(TestEngineBase):
         """
         super(TestDialogCreation, self).setUp()
 
+        # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
         from tank.authentication.ui.qt_abstraction import QtGui
 
         if QtGui.QApplication.instance() is None:
@@ -105,7 +106,7 @@ class TestDialogCreation(TestEngineBase):
         """
         Ensures that the _create_widget method is exception safe.
         """
-
+        # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
         from tank.authentication.ui.qt_abstraction import QtGui
 
         class _test_widget(QtGui.QWidget):
@@ -208,8 +209,7 @@ class TestExecuteInMainThread(TestEngineBase):
         """
         super(TestExecuteInMainThread, self).setUp()
 
-        # Init QApplication before engine starts or the engine's invokers can be
-        # deleted internally by Qt before they are used on PySide2.
+        # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
         from tank.authentication.ui.qt_abstraction import QtGui
 
         # See if a QApplication instance exists, and if not create one.  Use the
@@ -660,10 +660,12 @@ class TestShowDialog(TestEngineBase):
         self.setup_fixtures()
 
         self.engine = sgtk.platform.start_engine("test_engine", self.tk, self.context)
-        # Create an application instance so we can take control of the execution
-        # of the dialog.
+
+        # Engine is not started yet, so can't rely on sgtk.platform.qt for imports.
         from tank.authentication.ui.qt_abstraction import QtGui
 
+        # Create an application instance so we can take control of the execution
+        # of the dialog.
         if QtGui.QApplication.instance() is None:
             self._app = QtGui.QApplication(sys.argv)
         else:

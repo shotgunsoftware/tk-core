@@ -163,6 +163,10 @@ def suppress_generated_code_qt_warnings(func):
     def wrapper(*args, **kwargs):
         import warnings
 
+        # Supressed warnings like this one in auto-generated code. We can't fix those
+        # right now as we're stuck generating code for PySide-1 targeted code.
+        # /Users/boismej/gitlocal/tk-core/python/tank/authentication/ui/login_dialog.py:137: DeprecationWarning: an integer is required (got type PySide2.QtCore.Qt.Alignment).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+        #    self.message.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", module=r"tank\.authentication\.ui\.*")
             warnings.filterwarnings("ignore", module=r"tank\.platform\.qt\.ui\.*")
