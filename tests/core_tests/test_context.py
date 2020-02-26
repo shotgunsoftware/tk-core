@@ -116,30 +116,27 @@ class TestEq(TestContext):
         # other differing fields in the dictionary should be ignored
         kws2["entity"]["foo"] = "bar"
         context_2 = context.Context(self.tk, **kws2)
-        self.assertTrue(context_1 == context_2)
-        self.assertFalse(context_1 != context_2)
+        self.assertEqual(context_1, context_2)
         # Assert that hashing function treats these as equal
-        self.assertTrue(hash(context_1) == hash(context_2))
+        self.assertEqual(hash(context_1), hash(context_2))
 
     def test_not_equal(self):
         context_1 = context.Context(self.tk, **self.kws)
         kws2 = copy.deepcopy(self.kws)
         kws2["task"] = {"id": 45, "type": "Task"}
         context_2 = context.Context(self.tk, **kws2)
-        self.assertFalse(context_1 == context_2)
-        self.assertTrue(context_1 != context_2)
+        self.assertNotEqual(context_1, context_2)
         # Assert that hashing function treats these as unequal
-        self.assertFalse(hash(context_1) == hash(context_2))
+        self.assertNotEqual(hash(context_1), hash(context_2))
 
     def test_not_equal_with_none(self):
         context_1 = context.Context(self.tk, **self.kws)
         kws2 = copy.deepcopy(self.kws)
         kws2["entity"] = None
         context_2 = context.Context(self.tk, **kws2)
-        self.assertFalse(context_1 == context_2)
-        self.assertTrue(context_1 != context_2)
+        self.assertNotEqual(context_1, context_2)
         # Assert that hashing function treats these as unequal
-        self.assertFalse(hash(context_1) == hash(context_2))
+        self.assertNotEqual(hash(context_1), hash(context_2))
 
     def test_additional_entities_equal(self):
         kws1 = copy.deepcopy(self.kws)
@@ -159,10 +156,9 @@ class TestEq(TestContext):
             {"type": "Sequence", "id": 456, "bar": "foo"},
         ]
         context_2 = context.Context(self.tk, **kws2)
-        self.assertTrue(context_1 == context_2)
-        self.assertFalse(context_1 != context_2)
+        self.assertEqual(context_1, context_2)
         # Assert that hashing function treats these as unequal
-        self.assertFalse(hash(context_1) == hash(context_2))
+        self.assertNotEqual(hash(context_1), hash(context_2))
 
     def test_additional_entities_not_equal(self):
         kws1 = copy.deepcopy(self.kws)
@@ -177,18 +173,16 @@ class TestEq(TestContext):
             {"type": "Sequence", "id": 456},
         ]
         context_2 = context.Context(self.tk, **kws2)
-        self.assertFalse(context_1 == context_2)
-        self.assertTrue(context_1 != context_2)
+        self.assertNotEqual(context_1, context_2)
         # Assert that hashing function treats these as unequal
-        self.assertFalse(hash(context_1) == hash(context_2))
+        self.assertNotEqual(hash(context_1), hash(context_2))
 
     def test_not_context(self):
         context_1 = context.Context(self.tk, **self.kws)
         not_context = object()
-        self.assertFalse(context_1 == not_context)
-        self.assertTrue(context_1 != not_context)
+        self.assertNotEqual(context_1, not_context)
         # Assert that hashing function treats these as unequal
-        self.assertFalse(hash(context_1) == hash(not_context))
+        self.assertNotEqual(hash(context_1), hash(not_context))
 
     @patch("tank.util.login.get_current_user")
     def test_lazy_load_user(self, get_current_user):
@@ -207,8 +201,7 @@ class TestEq(TestContext):
         # the other context should pick up the context
         # automatically by the equals operator
         context_2 = context.Context(self.tk, **kws2)
-        self.assertTrue(context_1 == context_2)
-        self.assertFalse(context_1 != context_2)
+        self.assertEqual(context_1, context_2)
 
 
 class TestUser(TestContext):
@@ -564,7 +557,7 @@ class TestFromEntity(TestContext):
 
         # Check that the shotgun method find_one was used
         num_finds_after = self.tk.shotgun.finds
-        self.assertTrue((num_finds_after - num_finds_before) == 1)
+        self.assertEqual((num_finds_after - num_finds_before), 1)
 
     @patch("tank.util.login.get_current_user")
     def test_data_missing_non_task(self, get_current_user):
