@@ -158,6 +158,7 @@ class TestEq(TestContext):
         context_2 = context.Context(self.tk, **kws2)
         self.assertEqual(context_1, context_2)
         # Assert that hashing function treats these as unequal
+        # even though we consider the contexts the same.
         self.assertNotEqual(hash(context_1), hash(context_2))
 
     def test_additional_entities_not_equal(self):
