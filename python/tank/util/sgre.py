@@ -60,15 +60,16 @@ else:
                 # so we should just wrap the callable untouched.
                 return fn(*args, **kwargs)
             if len(args) > flags_arg_position:
-                # If flags is provided positionally, and the UNICODE flag
+                # If flags are provided positionally, and the UNICODE flag
                 # is not present, add the ASCII flag
                 if not args[flags_arg_position] & _re.UNICODE:
                     args = list(args)
                     args[flags_arg_position] |= _re.ASCII
-            elif "flags" in kwargs and not kwargs["flags"] & _re.UNICODE:
-                # If flags is provided as a kwarg, and the UNICODE flag
-                # is not present, add the ASCII flag
-                kwargs["flags"] |= _re.ASCII
+            elif "flags" in kwargs:
+                if not kwargs["flags"] & _re.UNICODE:
+                    # If flags are provided as a kwarg, and the UNICODE flag
+                    # is not present, add the ASCII flag
+                    kwargs["flags"] |= _re.ASCII
             else:
                 # If no flags were specified, add a flags kwarg with the ASCII
                 # flag.
