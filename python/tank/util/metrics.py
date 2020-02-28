@@ -21,19 +21,20 @@ are not part of the public Sgtk API.
 
 from collections import deque
 from threading import Event, Thread, Lock
-import re
 import platform
-import urllib2
+from tank_vendor.six.moves import urllib
 from copy import deepcopy
 
-from . import constants
+from . import constants, sgre as re
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
+
 json = shotgun_api3.shotgun.json
 
 
 ###############################################################################
+
 
 class PlatformInfo(object):
     """
@@ -169,6 +170,7 @@ class PlatformInfo(object):
 ###############################################################################
 # Metrics Queue, Dispatcher, and worker thread classes
 
+
 class MetricsQueueSingleton(object):
     """A FIFO queue for logging metrics.
 
@@ -198,7 +200,8 @@ class MetricsQueueSingleton(object):
 
             # remember the instance so that no more are created
             metrics_queue = super(MetricsQueueSingleton, cls).__new__(
-                cls, *args, **kwargs)
+                cls, *args, **kwargs
+            )
 
             metrics_queue._lock = Lock()
 
@@ -308,14 +311,16 @@ class MetricsDispatcher(object):
 
         if self._dispatching:
             self._engine.log_debug(
-                "Metrics dispatching already started. Doing nothing.")
+                "Metrics dispatching already started. Doing nothing."
+            )
             return
 
         # Now check that we have a valid authenticated user, which is
         # required for metrics dispatch. This is to ensure certain legacy
-        # and edge case scenarios work, for example the 
+        # and edge case scenarios work, for example the
         # shotgun_cache_actions tank command which runs un-authenticated.
         from ..api import get_authenticated_user
+
         if not get_authenticated_user():
             return
 
@@ -365,7 +370,7 @@ class MetricsDispatchWorkerThread(Thread):
 
     DISPATCH_SHORT_INTERVAL = 0.1
     """
-    Delay in seconds between the posting of consecutive batches within a 
+    Delay in seconds between the posting of consecutive batches within a
     dispatcher cycle.
     """
 
@@ -402,9 +407,9 @@ class MetricsDispatchWorkerThread(Thread):
         # connect to shotgun and probe for server version
         sg_connection = self._engine.shotgun
         self._endpoint_available = (
-            hasattr(sg_connection, "server_caps") and
-            sg_connection.server_caps.version and
-            sg_connection.server_caps.version >= (7, 4, 0)
+            hasattr(sg_connection, "server_caps")
+            and sg_connection.server_caps.version
+            and sg_connection.server_caps.version >= (7, 4, 0)
         )
 
         # Run until halted
@@ -453,18 +458,17 @@ class MetricsDispatchWorkerThread(Thread):
             self._engine.tank.execute_core_hook_method(
                 constants.TANK_LOG_METRICS_HOOK_NAME,
                 "log_metrics",
-                metrics=[m.data for m in metrics]
+                metrics=[m.data for m in metrics],
             )
         except Exception as e:
             # Catch errors to not kill our thread, log them for debug purpose.
-            self._engine.log_debug("%s hook failed with %s" % (
-                constants.TANK_LOG_METRICS_HOOK_NAME,
-                e,
-            ))
+            self._engine.log_debug(
+                "%s hook failed with %s" % (constants.TANK_LOG_METRICS_HOOK_NAME, e)
+            )
 
     def _dispatch_to_endpoint(self, metrics):
         """
-        Dispatch the supplied metric to the sg api registration endpoint. 
+        Dispatch the supplied metric to the sg api registration endpoint.
 
         :param metrics: A list of :class:`EventMetric` instances.
         """
@@ -479,7 +483,9 @@ class MetricsDispatchWorkerThread(Thread):
             if metric.is_supported_event:
                 # If this is a supported event, we just need to tack on the
                 # version of the core api being used.
-                data["event_properties"][EventMetric.KEY_CORE_VERSION] = self._engine.sgtk.version
+                data["event_properties"][
+                    EventMetric.KEY_CORE_VERSION
+                ] = self._engine.sgtk.version
             else:
                 # Still log the event but change its name so it's easy to
                 # spot all unofficial events which are logged.
@@ -492,11 +498,17 @@ class MetricsDispatchWorkerThread(Thread):
                     "Event Name": data["event_name"],
                     "Event Data": properties,
                     EventMetric.KEY_APP: properties.get(EventMetric.KEY_APP),
-                    EventMetric.KEY_APP_VERSION: properties.get(EventMetric.KEY_APP_VERSION),
+                    EventMetric.KEY_APP_VERSION: properties.get(
+                        EventMetric.KEY_APP_VERSION
+                    ),
                     EventMetric.KEY_ENGINE: properties.get(EventMetric.KEY_ENGINE),
-                    EventMetric.KEY_ENGINE_VERSION: properties.get(EventMetric.KEY_ENGINE_VERSION),
+                    EventMetric.KEY_ENGINE_VERSION: properties.get(
+                        EventMetric.KEY_ENGINE_VERSION
+                    ),
                     EventMetric.KEY_HOST_APP: properties.get(EventMetric.KEY_HOST_APP),
-                    EventMetric.KEY_HOST_APP_VERSION: properties.get(EventMetric.KEY_HOST_APP_VERSION),
+                    EventMetric.KEY_HOST_APP_VERSION: properties.get(
+                        EventMetric.KEY_HOST_APP_VERSION
+                    ),
                     EventMetric.KEY_CORE_VERSION: self._engine.sgtk.version,
                 }
                 data["event_properties"] = new_properties
@@ -515,32 +527,31 @@ class MetricsDispatchWorkerThread(Thread):
         # handle proxy setup by pulling the proxy details from the main
         # shotgun connection
         if sg_connection.config.proxy_handler:
-            opener = urllib2.build_opener(sg_connection.config.proxy_handler)
-            urllib2.install_opener(opener)
+            opener = urllib.request.build_opener(sg_connection.config.proxy_handler)
+            urllib.request.install_opener(opener)
 
         # build the full endpoint url with the shotgun site url
         url = "%s/%s" % (sg_connection.base_url, self.API_ENDPOINT)
 
         # construct the payload with the auth args and metrics data
         payload = {
-            "auth_args": {
-                "session_token": sg_connection.get_session_token()
-            },
-            "metrics": filtered_metrics_data
+            "auth_args": {"session_token": sg_connection.get_session_token()},
+            "metrics": filtered_metrics_data,
         }
         payload_json = json.dumps(payload)
 
         header = {"Content-Type": "application/json"}
         try:
-            request = urllib2.Request(url, payload_json, header)
-            urllib2.urlopen(request)
-        except urllib2.HTTPError as e:
+            request = urllib.request.Request(url, payload_json, header)
+            urllib.request.urlopen(request)
+        except urllib.error.HTTPError:
             # fire and forget, so if there's an error, ignore it.
             pass
 
 
 ###############################################################################
 # ToolkitMetric classes and subclasses
+
 
 class EventMetric(object):
     """
@@ -593,17 +604,12 @@ class EventMetric(object):
         EVENT_NAME_FORMAT % (GROUP_APP, "Logged In"),
         EVENT_NAME_FORMAT % (GROUP_APP, "Logged Out"),
         EVENT_NAME_FORMAT % (GROUP_APP, "Viewed Login Page"),
-
         EVENT_NAME_FORMAT % (GROUP_MEDIA, "Created Note"),
         EVENT_NAME_FORMAT % (GROUP_MEDIA, "Created Reply"),
-
         EVENT_NAME_FORMAT % (GROUP_NAVIGATION, "Viewed Projects"),
         EVENT_NAME_FORMAT % (GROUP_NAVIGATION, "Viewed Panel"),
-
         EVENT_NAME_FORMAT % (GROUP_PROJECTS, "Viewed Project Commands"),
-
         EVENT_NAME_FORMAT % (GROUP_TASKS, "Created Task"),
-
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launched Action"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launched Command"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Launched Software"),
@@ -611,7 +617,8 @@ class EventMetric(object):
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Published"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "New Workfile"),
         EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Opened Workfile"),
-        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Saved Workfile")
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Saved Workfile"),
+        EVENT_NAME_FORMAT % (GROUP_TOOLKIT, "Executed websockets command"),
     ]
 
     # Event property keys
@@ -634,14 +641,14 @@ class EventMetric(object):
         :param str group: A group or category this metric event falls into.
                           Any value can be used to implement your own taxonomy.
                           The "Toolkit" group name is reserved for internal use.
-        :param str name: A short descriptive event name or performed action, 
+        :param str name: A short descriptive event name or performed action,
                          e.g. 'Launched Command', 'Opened Workfile', etc..
-        :param dict properties: An optional dictionary of extra properties to be 
+        :param dict properties: An optional dictionary of extra properties to be
                                 attached to the metric event.
         """
         self._group = str(group)
         self._name = str(name)
-        self._properties = properties or {} # Ensure we always have a valid dict.
+        self._properties = properties or {}  # Ensure we always have a valid dict.
 
     def __repr__(self):
         """Official str representation of the user activity metric."""
@@ -659,7 +666,7 @@ class EventMetric(object):
         return {
             "event_group": self._group,
             "event_name": self._name,
-            "event_properties": deepcopy(self._properties)
+            "event_properties": deepcopy(self._properties),
         }
 
     @property
@@ -711,6 +718,7 @@ class EventMetric(object):
             try:
                 # import here to prevent circular dependency
                 from sgtk.platform.util import current_bundle
+
                 bundle = current_bundle()
             except:
                 pass
@@ -720,6 +728,7 @@ class EventMetric(object):
             try:
                 # import here to prevent circular dependency
                 from ..platform.engine import current_engine
+
                 bundle = current_engine()
             except:
                 # Bailing out trying to guess bundle
@@ -733,10 +742,7 @@ class EventMetric(object):
         # Now add basic platform information to the metric properties
         properties.update(PlatformInfo.get_platform_info())
 
-        MetricsQueueSingleton().log(
-            cls(group, name, properties),
-            log_once=log_once
-        )
+        MetricsQueueSingleton().log(cls(group, name, properties), log_once=log_once)
 
 
 ###############################################################################
@@ -744,15 +750,17 @@ class EventMetric(object):
 # metrics logging convenience functions (All deprecated)
 #
 
+
 def log_metric(metric, log_once=False):
-    """ 
+    """
     This method is deprecated and shouldn't be used anymore.
     Please use the `EventMetric.log` method.
     """
     pass
 
+
 def log_user_activity_metric(module, action, log_once=False):
-    """ 
+    """
     This method is deprecated and shouldn't be used anymore.
     Please use the `EventMetric.log` method.
     """
@@ -760,7 +768,7 @@ def log_user_activity_metric(module, action, log_once=False):
 
 
 def log_user_attribute_metric(attr_name, attr_value, log_once=False):
-    """ 
+    """
     This method is deprecated and shouldn't be used anymore.
     Please use the `EventMetric.log` method.
     """

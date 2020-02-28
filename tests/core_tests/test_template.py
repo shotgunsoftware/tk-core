@@ -10,36 +10,46 @@
 
 import copy
 import os
-import sys
 import time
 
 import unittest2
 import tank
 from tank import TankError
-from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule # noqa
+from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule  # noqa
 from tank.template import Template, TemplatePath, TemplateString
 from tank.template import make_template_paths, make_template_strings
-from tank.templatekey import (TemplateKey, StringKey, IntegerKey, SequenceKey, TimestampKey)
+from tank.templatekey import (
+    TemplateKey,
+    StringKey,
+    IntegerKey,
+    SequenceKey,
+    TimestampKey,
+)
+
+from tank_vendor.shotgun_api3.lib import sgsix
 
 
 class TestTemplate(unittest2.TestCase):
     """Base class for tests of Template.
     Do no add tests to this class directly."""
+
     def setUp(self):
         super(TestTemplate, self).setUp()
 
         # Make various types of keys(fields)
-        self.keys = {"Sequence": StringKey("Sequence"),
-                     "Shot": StringKey("Shot", default="s1", choices=["s1","s2","shot_1"]),
-                     "Step": StringKey("Step"),
-                     "branch": StringKey("branch", filter_by="alphanumeric"),
-                     "name": StringKey("name"),
-                     "version": IntegerKey("version", format_spec="03"),
-                     "snapshot": IntegerKey("snapshot", format_spec="03"),
-                     "ext": StringKey("ext"),
-                     "seq_num": SequenceKey("seq_num"),
-                     "frame": SequenceKey("frame", format_spec="04"),
-                     "day_month_year": TimestampKey("day_month_year", format_spec="%d_%m_%Y")}
+        self.keys = {
+            "Sequence": StringKey("Sequence"),
+            "Shot": StringKey("Shot", default="s1", choices=["s1", "s2", "shot_1"]),
+            "Step": StringKey("Step"),
+            "branch": StringKey("branch", filter_by="alphanumeric"),
+            "name": StringKey("name"),
+            "version": IntegerKey("version", format_spec="03"),
+            "snapshot": IntegerKey("snapshot", format_spec="03"),
+            "ext": StringKey("ext"),
+            "seq_num": SequenceKey("seq_num"),
+            "frame": SequenceKey("frame", format_spec="04"),
+            "day_month_year": TimestampKey("day_month_year", format_spec="%d_%m_%Y"),
+        }
         # Make a template
         self.definition = "shots/{Sequence}/{Shot}/{Step}/work/{Shot}.{branch}.v{version}.{snapshot}.{day_month_year}.ma"
         self.template = Template(self.definition, self.keys)
@@ -66,7 +76,7 @@ class TestInit(TestTemplate):
         """
         alt_key = StringKey("Shot")
         self.keys["Alt_Shot"] = alt_key
-        definition =  "something/{Alt_Shot}/{Shot}"
+        definition = "something/{Alt_Shot}/{Shot}"
         self.assertRaises(TankError, Template, definition, self.keys)
 
     def test_key_alias(self):
@@ -96,17 +106,16 @@ class TestInit(TestTemplate):
 
 
 class TestRepr(TestTemplate):
-
     def test_template(self):
         template_name = "template_name"
-        template = Template(self.definition, self.keys, name=template_name) 
+        template = Template(self.definition, self.keys, name=template_name)
         expected = "<Sgtk Template %s: %s>" % (template_name, self.definition)
         self.assertEqual(expected, template.__repr__())
 
     def test_optional(self):
         template_name = "tempalte_name"
         definition = "something/{Shot}[/{Step}]"
-        template = Template(definition, self.keys, name=template_name) 
+        template = Template(definition, self.keys, name=template_name)
         expected = "<Sgtk Template %s: %s>" % (template_name, definition)
         self.assertEqual(expected, template.__repr__())
 
@@ -132,7 +141,15 @@ class TestKeys(TestTemplate):
         self.assertIsNone(key)
 
     def test_mixed_keys(self):
-        expected = ["Sequence", "Shot", "Step", "branch", "version", "snapshot", "day_month_year"]
+        expected = [
+            "Sequence",
+            "Shot",
+            "Step",
+            "branch",
+            "version",
+            "snapshot",
+            "day_month_year",
+        ]
         # no predictable order
         self.assertEqual(set(self.template.keys), set(expected))
 
@@ -144,50 +161,74 @@ class TestKeys(TestTemplate):
 
 
 class TestMissingKeys(TestTemplate):
-
     def test_no_keys_missing(self):
-        fields = {"Sequence": "seq_1",
-                   "Shot": "shot_1",
-                   "Step": "Anm",
-                   "branch":"mmm",
-                   "version": 3,
-                   "snapshot": 2,
-                   "day_month_year": time.gmtime()}
+        fields = {
+            "Sequence": "seq_1",
+            "Shot": "shot_1",
+            "Step": "Anm",
+            "branch": "mmm",
+            "version": 3,
+            "snapshot": 2,
+            "day_month_year": time.gmtime(),
+        }
         expected = []
         result = self.template.missing_keys(fields)
         self.assertEqual(set(result), set(expected))
 
     def test_all_keys_missing(self):
         fields = {"Sandwhich": "Mmmmmm"}
-        expected = ["Sequence", "Shot", "Step", "branch", "version", "snapshot", "day_month_year"]
+        expected = [
+            "Sequence",
+            "Shot",
+            "Step",
+            "branch",
+            "version",
+            "snapshot",
+            "day_month_year",
+        ]
         result = self.template.missing_keys(fields)
         # no predictable order
         self.assertEqual(set(result), set(expected))
 
     def test_empty_fields(self):
         fields = {}
-        expected = ["Sequence", "Shot", "Step", "branch", "version", "snapshot", "day_month_year"]
+        expected = [
+            "Sequence",
+            "Shot",
+            "Step",
+            "branch",
+            "version",
+            "snapshot",
+            "day_month_year",
+        ]
         result = self.template.missing_keys(fields)
         # no predictable order
         self.assertEqual(set(result), set(expected))
 
     def test_some_keys_missing(self):
         fields = {"Sandwhich": "Mmmmmm", "Shot": "shot_22"}
-        expected = ["Sequence", "Step", "branch", "version", "snapshot", "day_month_year"]
+        expected = [
+            "Sequence",
+            "Step",
+            "branch",
+            "version",
+            "snapshot",
+            "day_month_year",
+        ]
         result = self.template.missing_keys(fields)
         # no predictable order
         self.assertEqual(set(result), set(expected))
 
     def test_default_disabled(self):
         template = Template("{Shot}/{Step}", self.keys)
-        fields = {"Step":"Anm"}
+        fields = {"Step": "Anm"}
         expected = ["Shot"]
         result = template.missing_keys(fields)
         self.assertEqual(expected, result)
 
     def test_default_enabled(self):
         template = Template("{Shot}/{Step}", self.keys)
-        fields = {"Step":"Anm"}
+        fields = {"Step": "Anm"}
         expected = []
         result = template.missing_keys(fields, skip_defaults=True)
         self.assertEqual(expected, result)
@@ -197,12 +238,10 @@ class TestMissingKeys(TestTemplate):
         self.keys["initial_name"] = key
         definition = "something/{Shot}/{initial_name}"
         template = Template(definition, self.keys)
-        fields = {"aliased_name": "some value",
-                  "Shot": "shot value"}
+        fields = {"aliased_name": "some value", "Shot": "shot value"}
         result = template.missing_keys(fields)
         self.assertEqual([], result)
-        fields = {"initial_name": "some_value",
-                  "Shot": "shot value"}
+        fields = {"initial_name": "some_value", "Shot": "shot value"}
         result = template.missing_keys(fields)
         self.assertEqual(["aliased_name"], result)
 
@@ -212,9 +251,7 @@ class TestMissingKeys(TestTemplate):
         """
         definition = "shots/[{Sequence}]/{Shot}/{Step}/work/{Shot}.{branch}[.v{version}][.{snapshot}].ma"
         template = Template(definition, self.keys)
-        fields = {"Shot": "shot value",
-                  "Step": "step value",
-                  "branch": "branch value"}
+        fields = {"Shot": "shot value", "Step": "step value", "branch": "branch value"}
 
         # all optional fields skipped
         result = template.missing_keys(fields)
@@ -226,21 +263,23 @@ class TestMissingKeys(TestTemplate):
         self.assertEqual([], result)
 
         # required field missing
-        del(fields["Shot"])
+        del fields["Shot"]
         result = template.missing_keys(fields)
         self.assertEqual(["Shot"], result)
-        
+
     def test_value_none(self):
         """
         Test that if key value is None, the field is treated as missing.
         """
-        fields = {"Sequence": "seq_1",
-                   "Shot": None,
-                   "Step": "Anm",
-                   "branch":"mmm",
-                   "version": 3,
-                   "snapshot": 2,
-                   "day_month_year": time.gmtime()}
+        fields = {
+            "Sequence": "seq_1",
+            "Shot": None,
+            "Step": "Anm",
+            "branch": "mmm",
+            "version": 3,
+            "snapshot": 2,
+            "day_month_year": time.gmtime(),
+        }
         result = self.template.missing_keys(fields)
         self.assertEqual(["Shot"], result)
 
@@ -248,7 +287,7 @@ class TestMissingKeys(TestTemplate):
 class TestSplitPath(unittest2.TestCase):
     def test_mixed_sep(self):
         "tests that split works with mixed seperators"
-        input_path = "hoken/poken\moken//doken"
+        input_path = r"hoken/poken\moken//doken"
         expected = ["hoken", "poken", "moken", "doken"]
         result = tank.template.split_path(input_path)
         self.assertEqual(expected, result)
@@ -262,44 +301,56 @@ class TestMakeTemplatePaths(ShotgunTestBase):
             "unit_tests": {
                 "win32": os.path.join(self.tank_temp, "project_code"),
                 "linux2": os.path.join(self.tank_temp, "project_code"),
-                "darwin": os.path.join(self.tank_temp, "project_code")
+                "darwin": os.path.join(self.tank_temp, "project_code"),
             }
         }
 
     def test_simple(self):
         data = {"template_name": "something/{Shot}"}
-        result = make_template_paths(data, self.keys, self.multi_os_data_roots, default_root="unit_tests")
+        result = make_template_paths(
+            data, self.keys, self.multi_os_data_roots, default_root="unit_tests"
+        )
         template_path = result.get("template_name")
         self.assertIsInstance(template_path, TemplatePath)
         self.assertEqual(self.keys.get("Shot"), template_path.keys.get("Shot"))
 
     def test_complex(self):
         data = {"template_name": {"definition": "something/{Shot}"}}
-        result = make_template_paths(data, self.keys, self.multi_os_data_roots, default_root="unit_tests")
+        result = make_template_paths(
+            data, self.keys, self.multi_os_data_roots, default_root="unit_tests"
+        )
         template_path = result.get("template_name")
         self.assertIsInstance(template_path, TemplatePath)
         self.assertEqual(self.keys.get("Shot"), template_path.keys.get("Shot"))
 
     def test_duplicate_definitions_simple(self):
-        data = {"template_name": "something/{Shot}",
-                "another_template": "something/{Shot}"}
-        self.assertRaises(TankError, make_template_paths, data, self.keys, self.multi_os_data_roots)
+        data = {
+            "template_name": "something/{Shot}",
+            "another_template": "something/{Shot}",
+        }
+        self.assertRaises(
+            TankError, make_template_paths, data, self.keys, self.multi_os_data_roots
+        )
 
     def test_duplicate_definitions_complex(self):
-        data = {"template_name": {"definition": "something/{Shot}"},
-                "another_template": {"definition": "something/{Shot}"}}
-        self.assertRaises(TankError, make_template_paths, data, self.keys, self.multi_os_data_roots)
+        data = {
+            "template_name": {"definition": "something/{Shot}"},
+            "another_template": {"definition": "something/{Shot}"},
+        }
+        self.assertRaises(
+            TankError, make_template_paths, data, self.keys, self.multi_os_data_roots
+        )
 
     def test_dup_def_diff_roots(self):
-        
+
         # add another root
         modified_roots = copy.copy(self.multi_os_data_roots)
-        
+
         modified_roots["alternate_1"] = {}
         modified_roots["alternate_1"]["win32"] = "z:\\some\\fake\\path"
         modified_roots["alternate_1"]["linux2"] = "/some/fake/path"
         modified_roots["alternate_1"]["darwin"] = "/some/fake/path"
-                
+
         # Test with root names specified for all templates
         data = {
             "template_name": {
@@ -308,41 +359,49 @@ class TestMakeTemplatePaths(ShotgunTestBase):
             },
             "another_template": {
                 "definition": "something/{Shot}",
-                "root_name": "alternate_1"
-            }
+                "root_name": "alternate_1",
+            },
         }
 
-        result = make_template_paths(data, self.keys, modified_roots, default_root=self.primary_root_name)
+        result = make_template_paths(
+            data, self.keys, modified_roots, default_root=self.primary_root_name
+        )
         prim_template = result.get("template_name")
         alt_templatte = result.get("another_template")
         self.assertEqual(self.project_root, prim_template.root_path)
-        self.assertEqual(modified_roots["alternate_1"][sys.platform], alt_templatte.root_path)
+        self.assertEqual(
+            modified_roots["alternate_1"][sgsix.platform], alt_templatte.root_path
+        )
 
         # Now test with the primary root name not specified, tk-core will assume
         # a "primary" root name, so make sure we have one.
         if self.primary_root_name != "primary":
             modified_roots["primary"] = modified_roots.pop(self.primary_root_name)
         data = {
-            "template_name": {
-                "definition": "something/{Shot}",
-            },
+            "template_name": {"definition": "something/{Shot}"},
             "another_template": {
                 "definition": "something/{Shot}",
-                "root_name": "alternate_1"
-            }
+                "root_name": "alternate_1",
+            },
         }
-        result = make_template_paths(data, self.keys, modified_roots, default_root="primary")
+        result = make_template_paths(
+            data, self.keys, modified_roots, default_root="primary"
+        )
         prim_template = result.get("template_name")
         alt_templatte = result.get("another_template")
         self.assertEqual(self.project_root, prim_template.root_path)
-        self.assertEqual(modified_roots["alternate_1"][sys.platform], alt_templatte.root_path)
+        self.assertEqual(
+            modified_roots["alternate_1"][sgsix.platform], alt_templatte.root_path
+        )
 
 
 class TestMakeTemplateStrings(ShotgunTestBase):
     def setUp(self):
         super(TestMakeTemplateStrings, self).setUp()
         self.keys = {"Shot": StringKey("Shot")}
-        self.template_path = TemplatePath("something/{Shot}", self.keys, self.project_root)
+        self.template_path = TemplatePath(
+            "something/{Shot}", self.keys, self.project_root
+        )
         self.template_paths = {"template_path": self.template_path}
 
     def test_simple(self):
@@ -360,25 +419,37 @@ class TestMakeTemplateStrings(ShotgunTestBase):
         self.assertEqual("template_name", template_string.name)
 
     def test_duplicate_definitions(self):
-        data = {"template_one": "something.{Shot}",
-                "template_two": "something.{Shot}"}
-        self.assertRaises(TankError, make_template_strings, data, self.keys, self.template_paths)
+        data = {"template_one": "something.{Shot}", "template_two": "something.{Shot}"}
+        self.assertRaises(
+            TankError, make_template_strings, data, self.keys, self.template_paths
+        )
 
     def test_validate_with_set(self):
-        data = {"template_name": {"definition": "something.{Shot}",
-                                  "validate_with": "template_path"}}
+        data = {
+            "template_name": {
+                "definition": "something.{Shot}",
+                "validate_with": "template_path",
+            }
+        }
         result = make_template_strings(data, self.keys, self.template_paths)
         template_string = result.get("template_name")
         self.assertEqual(self.template_path, template_string.validate_with)
 
     def test_validate_template_missing(self):
-        data = {"template_name": {"definition": "something.{Shot}",
-                                  "validate_with": "non-exitant-template"}}
-        self.assertRaises(TankError, make_template_strings, data, self.keys, self.template_paths)
+        data = {
+            "template_name": {
+                "definition": "something.{Shot}",
+                "validate_with": "non-exitant-template",
+            }
+        }
+        self.assertRaises(
+            TankError, make_template_strings, data, self.keys, self.template_paths
+        )
 
 
 class TestReadTemplates(TankTestBase):
     """Test reading templates file."""
+
     def setUp(self):
         super(TestReadTemplates, self).setUp()
         self.setup_fixtures()
@@ -396,8 +467,7 @@ class TestReadTemplates(TankTestBase):
         # Order of the choices is not guaranteed, so enforce it.
         self.assertEqual(["ma", "mb"], sorted(key.choices))
         self.assertEqual(
-            {"ma": "Maya Ascii (.ma)", "mb": "Maya Binary (.mb)"},
-            key.labelled_choices
+            {"ma": "Maya Ascii (.ma)", "mb": "Maya Binary (.mb)"}, key.labelled_choices
         )
 
     def test_exclusions(self):

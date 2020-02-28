@@ -13,9 +13,7 @@ Integration with Shotgun RV.
 
 import json
 
-from .sso_saml2 import (  # noqa
-    SsoSaml2,
-)
+from .sso_saml2 import SsoSaml2  # noqa
 
 
 class SsoSaml2Rv(SsoSaml2):
@@ -25,7 +23,7 @@ class SsoSaml2Rv(SsoSaml2):
 
     def __init__(self, window_title=None, qt_modules=None):
         """
-        Create a Web login dialog, using a Web-browser like environment.
+        Create a SSO login dialog, using a Web-browser like environment.
 
         :param window_title: Title to use for the window.
         :param qt_modules:   a dictionnary of required Qt modules.
@@ -41,7 +39,7 @@ class SsoSaml2Rv(SsoSaml2):
 
         :param event: RV event. Not used.
         """
-        self._logger.debug("Cancel Web login attempt")
+        self._logger.debug("Cancel SSO login attempt")
 
         # We only need to cancel if there is login attempt currently being made.
         if self.is_handling_event():
@@ -64,10 +62,12 @@ class SsoSaml2Rv(SsoSaml2):
         contents = json.loads(event.contents())
 
         if self._session is None:
-            self.start_new_session({
-                "host": contents["params"]["site_url"],
-                "cookies": contents["params"]["cookies"]
-            })
+            self.start_new_session(
+                {
+                    "host": contents["params"]["site_url"],
+                    "cookies": contents["params"]["cookies"],
+                }
+            )
         self.start_sso_renewal()
 
     def on_sso_disable_renewal(self, event):

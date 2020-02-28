@@ -11,9 +11,12 @@
 Integration with Shotgun API.
 """
 
-from .core import (  # noqa
-    SsoSaml2Core,
-)
+# pylint: disable=line-too-long
+# pylint: disable=protected-access
+# pylint: disable=too-many-arguments
+# pylint: disable=unused-import
+
+from .core import SsoSaml2Core  # noqa
 
 from .utils import (  # noqa
     is_sso_enabled_on_site,
@@ -26,20 +29,6 @@ class SsoSaml2(object):
     """
     This class provides a minimal interface to support SSO authentication.
     """
-
-    # Supported Shotgun login flows
-    Unified_flow = "Unified"
-    Saml_flow = "Saml"
-
-    # login paths
-    renew_paths = {
-        Unified_flow: "/auth/renew",
-        Saml_flow: "/saml/saml_renew",
-    }
-    landing_paths = {
-        Unified_flow: "/auth/landing",
-        Saml_flow: "/saml/saml_renew_landing",
-    }
 
     def __init__(self, window_title=None, qt_modules=None):
         """
@@ -56,7 +45,9 @@ class SsoSaml2(object):
 
         self._core = SsoSaml2Core(window_title=window_title, qt_modules=qt_modules)
 
-    def login_attempt(self, host, cookies=None, product=None, http_proxy=None, use_watchdog=False):
+    def login_attempt(
+        self, host, cookies=None, product=None, http_proxy=None, use_watchdog=False
+    ):
         """
         Called to attempt a login process.
 
@@ -77,23 +68,18 @@ class SsoSaml2(object):
         """
         product = product or "undefined"
 
-        renew_path = self.renew_paths[self.Saml_flow]
-        landing_path = self.landing_paths[self.Saml_flow]
-
-        if is_unified_login_flow_enabled_on_site(host, http_proxy):
-            renew_path = self.renew_paths[self.Unified_flow]
-            landing_path = self.landing_paths[self.Unified_flow]
-
-        success = self._core.on_sso_login_attempt({
-            "host": host,
-            "http_proxy": http_proxy,
-            "cookies": cookies,
-            "product": product,
-            "renew_path": renew_path,
-            "landing_path": landing_path,
-        }, use_watchdog)
+        success = self._core.on_sso_login_attempt(
+            {
+                "host": host,
+                "http_proxy": http_proxy,
+                "cookies": cookies,
+                "product": product,
+            },
+            use_watchdog,
+        )
         return success == 1
 
+    # pylint: disable=invalid-name
     def is_automatic_claims_renewal_active(self):
         """
         Trigger automatic renewal process of the SSO claims.

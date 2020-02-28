@@ -11,11 +11,23 @@
 Module to support Web login via a web browser and automated session renewal.
 """
 
+# pylint: disable=line-too-long
+# pylint: disable=no-self-use
+# pylint: disable=too-many-instance-attributes
+
 import base64
-from Cookie import SimpleCookie
 import logging
 import os
+import sys
 import time
+
+try:
+    # For Python 2/3 compatibility without a dependency on six, we'll just try
+    # to import SimpleCookie as in Python 2...
+    from http.cookies import SimpleCookie
+except ImportError:
+    # and fall back to its Python 3 location if not found.
+    from Cookie import SimpleCookie
 
 from .authentication_session_data import AuthenticationSessionData
 from .errors import (
@@ -36,12 +48,24 @@ from .utils import (
     get_user_name,
 )
 
+try:
+    from .username_password_dialog import UsernamePasswordDialog
+except ImportError:
+    # Silently ignore the import error, as we are likely not in a Qt
+    # environment.
+    UsernamePasswordDialog = None
+
+
 # Error messages for events.
 HTTP_CANT_CONNECT_TO_SHOTGUN = "Cannot Connect To Shotgun site."
 HTTP_AUTHENTICATE_REQUIRED = "Valid credentials are required."
 HTTP_AUTHENTICATE_SSO_NOT_UPPORTED = "SSO not supported or enabled on that site."
-HTTP_CANT_AUTHENTICATE_SSO_TIMEOUT = "Time out attempting to authenticate to SSO service."
-HTTP_CANT_AUTHENTICATE_SSO_NO_ACCESS = "You have not been granted access to the Shotgun site."
+HTTP_CANT_AUTHENTICATE_SSO_TIMEOUT = (
+    "Time out attempting to authenticate to SSO service."
+)
+HTTP_CANT_AUTHENTICATE_SSO_NO_ACCESS = (
+    "You have not been granted access to the Shotgun site."
+)
 
 # Timer related values.
 # @TODO: parametrize these and add environment variable overload.
@@ -49,9 +73,52 @@ WATCHDOG_TIMEOUT_MS = 5000
 PREEMPTIVE_RENEWAL_THRESHOLD = 0.9
 SHOTGUN_SSO_RENEWAL_INTERVAL = 5000
 
+# Some IdP (Identity Providers) will use JavaScript code which makes use of ES6.
+# Our Qt4 environment is unfortunately missing some definitions which we need to
+# inject prior to running the IdP code.
+# The reference for this code is:
+#     https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind#Polyfill
+FUNCTION_PROTOTYPE_BIND_POLYFILL = """
+    // Yes, it does work with `new funcA.bind(thisArg, args)`
+    if (!Function.prototype.bind) (function(){
+      var ArrayPrototypeSlice = Array.prototype.slice;
+      Function.prototype.bind = function(otherThis) {
+        if (typeof this !== 'function') {
+          // closest thing possible to the ECMAScript 5
+          // internal IsCallable function
+          throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
+        }
+
+        var baseArgs= ArrayPrototypeSlice .call(arguments, 1),
+            baseArgsLength = baseArgs.length,
+            fToBind = this,
+            fNOP    = function() {},
+            fBound  = function() {
+              baseArgs.length = baseArgsLength; // reset to default base arguments
+              baseArgs.push.apply(baseArgs, arguments);
+              return fToBind.apply(
+                     fNOP.prototype.isPrototypeOf(this) ? this : otherThis, baseArgs
+              );
+            };
+
+        if (this.prototype) {
+          // Function.prototype doesn't have a prototype property
+          fNOP.prototype = this.prototype;
+        }
+        fBound.prototype = new fNOP();
+
+        return fBound;
+      };
+    })();
+"""
+
 
 class SsoSaml2Core(object):
     """Performs Shotgun Web login and pre-emptive renewal for SSO sessions."""
+
+    # login paths, used by the Unified Login Flow.
+    renew_path = "/auth/renew"
+    landing_path = "/auth/landing"
 
     def __init__(self, window_title="Web Login", qt_modules=None):
         """
@@ -66,12 +133,13 @@ class SsoSaml2Core(object):
         qt_modules = qt_modules or {}
 
         self._logger = get_logger()
-        self._logger.debug("Constructing SSO dialog: %s" % window_title)
+        self._logger.debug("Constructing SSO dialog: %s", window_title)
 
-        QtCore = self._QtCore = qt_modules.get('QtCore')  # noqa
-        QtGui = self._QtGui = qt_modules.get('QtGui')  # noqa
-        QtNetwork = self._QtNetwork = qt_modules.get('QtNetwork')  # noqa
-        QtWebKit = self._QtWebKit = qt_modules.get('QtWebKit')  # noqa
+        # pylint: disable=invalid-name
+        QtCore = self._QtCore = qt_modules.get("QtCore")  # noqa
+        QtGui = self._QtGui = qt_modules.get("QtGui")  # noqa
+        QtNetwork = self._QtNetwork = qt_modules.get("QtNetwork")  # noqa
+        QtWebKit = self._QtWebKit = qt_modules.get("QtWebKit")  # noqa
 
         if QtCore is None:
             raise SsoSaml2MissingQtCore("The QtCore module is unavailable")
@@ -100,7 +168,20 @@ class SsoSaml2Core(object):
              - Any other links which may be presented by SSO Providers
             """
 
-            def acceptNavigationRequest(self, frame, request, n_type): # noqa
+            def __init__(self, parent=None):
+                """
+                Class Constructor.
+                """
+                get_logger().debug("TKWebPage.__init__")
+                super(TKWebPage, self).__init__(parent)
+
+            def __del__(self):
+                """
+                Class Destructor.
+                """
+                get_logger().debug("TKWebPage.__del__")
+
+            def acceptNavigationRequest(self, frame, request, n_type):  # noqa
                 """
                 Overloaded method, to properly control the behavioir of clicking on
                 links.
@@ -111,14 +192,24 @@ class SsoSaml2Core(object):
                 :param n_type:  NavigationType (LinkClicked, FormSubmitted, etc.)
                 :returns:       A boolean indicating if we accept or refuse the request.
                 """
-                get_logger().debug('NavigationRequest, destination and reason: %s (%s)', request.url().toString(), n_type)
+                get_logger().debug(
+                    "NavigationRequest, destination and reason: %s (%s)",
+                    request.url().toString(),
+                    n_type,
+                )
                 # A null frame means : open a new window/tab. so we just farm out
                 # the request to the external browser.
-                if frame is None and n_type == QtWebKit.QWebPage.NavigationType.NavigationTypeLinkClicked:
+                if (
+                    frame is None
+                    and n_type
+                    == QtWebKit.QWebPage.NavigationType.NavigationTypeLinkClicked
+                ):
                     QtGui.QDesktopServices.openUrl(request.url())
                     return False
                 # Otherwise we accept the default behaviour.
-                return QtWebKit.QWebPage.acceptNavigationRequest(self, frame, request, n_type)
+                return QtWebKit.QWebPage.acceptNavigationRequest(
+                    self, frame, request, n_type
+                )
 
         self._event_data = None
         self._sessions_stack = []
@@ -129,9 +220,17 @@ class SsoSaml2Core(object):
         self._dialog.finished.connect(self.on_dialog_closed)
 
         self._view = QtWebKit.QWebView(self._dialog)
-        self._view.setPage(TKWebPage())
-        self._view.page().networkAccessManager().authenticationRequired.connect(self.on_authentication_required)
+        self._view.setPage(TKWebPage(self._dialog))
+        self._view.page().networkAccessManager().authenticationRequired.connect(
+            self.on_authentication_required
+        )
         self._view.loadFinished.connect(self.on_load_finished)
+
+        # We want to inject custom JavaScript code before any code is
+        # executed in the loaded web pages. This is to polyfill any
+        # missing functionality.
+        frame = self._view.page().currentFrame()
+        frame.javaScriptWindowObjectCleared.connect(self._polyfill)
 
         # Purposely disable the 'Reload' contextual menu, as it should not be
         # used for SSO. Reloading the page confuses the server.
@@ -163,7 +262,9 @@ class SsoSaml2Core(object):
         #
         # Worst case scenario : should Shotgun modify how the warning is displayed
         # it would show up in the page.
-        css_style = base64.b64encode("div.browser_not_approved { display: none !important; }")
+        css_style = base64.b64encode(
+            "div.browser_not_approved { display: none !important; }"
+        )
         url = QtCore.QUrl("data:text/css;charset=utf-8;base64," + css_style)
         self._view.settings().setUserStyleSheetUrl(url)
 
@@ -199,15 +300,22 @@ class SsoSaml2Core(object):
         self._sso_renew_watchdog_timer = QtCore.QTimer(self._dialog)
         self._sso_renew_watchdog_timer.setInterval(self._sso_renew_watchdog_timeout_ms)
         self._sso_renew_watchdog_timer.setSingleShot(True)
-        self._sso_renew_watchdog_timer.timeout.connect(self.on_renew_sso_session_timeout)
+        self._sso_renew_watchdog_timer.timeout.connect(
+            self.on_renew_sso_session_timeout
+        )
 
         # We need a way to trace the current status of our login process.
         self._login_status = 0
 
         # For debugging purposes
         # @TODO: Find a better way than to use the log level
-        if self._logger.level == logging.DEBUG or "SHOTGUN_SSO_DEVELOPER_ENABLED" in os.environ:
-            self._logger.debug("Using developer mode. Disabling strict SSL mode, enabling developer tools and local storage.")
+        if (
+            self._logger.level == logging.DEBUG
+            or "SHOTGUN_SSO_DEVELOPER_ENABLED" in os.environ
+        ):
+            self._logger.debug(
+                "Using developer mode. Disabling strict SSL mode, enabling developer tools and local storage."
+            )
             # Disable SSL validation, useful when using a VM or a test site.
             config = QtNetwork.QSslConfiguration.defaultConfiguration()
             config.setPeerVerifyMode(QtNetwork.QSslSocket.VerifyNone)
@@ -215,12 +323,10 @@ class SsoSaml2Core(object):
 
             # Adds the Developer Tools option when right-clicking
             QtWebKit.QWebSettings.globalSettings().setAttribute(
-                QtWebKit.QWebSettings.WebAttribute.DeveloperExtrasEnabled,
-                True
+                QtWebKit.QWebSettings.WebAttribute.DeveloperExtrasEnabled, True
             )
             QtWebKit.QWebSettings.globalSettings().setAttribute(
-                QtWebKit.QWebSettings.WebAttribute.LocalStorageEnabled,
-                True
+                QtWebKit.QWebSettings.WebAttribute.LocalStorageEnabled, True
             )
 
     def __del__(self):
@@ -238,7 +344,7 @@ class SsoSaml2Core(object):
 
         :returns: The current session.
         """
-        return self._sessions_stack[-1] if len(self._sessions_stack) > 0 else None
+        return self._sessions_stack[-1] if self._sessions_stack else None
 
     def start_new_session(self, session_data):
         """
@@ -256,7 +362,7 @@ class SsoSaml2Core(object):
         Destroy the current session, and resume the previous one, if any.
         """
         self._logger.debug("Ending current session")
-        if len(self._sessions_stack) > 0:
+        if self._sessions_stack:
             self._sessions_stack.pop()
         self.update_browser_from_session()
 
@@ -307,18 +413,29 @@ class SsoSaml2Core(object):
         session or when opening a connection to a new server.
         """
         self._logger.debug("Updating browser cookies from session")
+        # pylint: disable=invalid-name
         QtNetwork = self._QtNetwork  # noqa
 
         qt_cookies = []
         if self._session is not None:
             parsed = _sanitize_http_proxy(self._session.http_proxy)
             if parsed.netloc:
-                self._logger.debug("Using HTTP proxy: %s://%s" % (parsed.scheme, parsed.netloc))
-                proxy = QtNetwork.QNetworkProxy(QtNetwork.QNetworkProxy.HttpProxy, parsed.hostname, parsed.port, parsed.username, parsed.password)
+                self._logger.debug(
+                    "Using HTTP proxy: %s://%s", parsed.scheme, parsed.netloc
+                )
+                proxy = QtNetwork.QNetworkProxy(
+                    QtNetwork.QNetworkProxy.HttpProxy,
+                    parsed.hostname,
+                    parsed.port,
+                    parsed.username,
+                    parsed.password,
+                )
                 QtNetwork.QNetworkProxy.setApplicationProxy(proxy)
 
             cookies = _decode_cookies(self._session.cookies)
-            qt_cookies = QtNetwork.QNetworkCookie.parseCookies(cookies.output(header=""))
+            qt_cookies = QtNetwork.QNetworkCookie.parseCookies(
+                cookies.output(header="")
+            )
 
         self._view.page().networkAccessManager().cookieJar().setAllCookies(qt_cookies)
 
@@ -361,13 +478,17 @@ class SsoSaml2Core(object):
         # for QTimer intervals, so we use 1ms.
         interval = 1
         if self._session.session_expiration > time.time():
-            interval = (self._session.session_expiration - time.time()) * self._sso_preemptive_renewal_threshold * 1000
+            interval = (
+                (self._session.session_expiration - time.time())
+                * self._sso_preemptive_renewal_threshold
+                * 1000
+            )
 
             # For debugging purposes
             # @TODO: Find a better way than to use this EV
             if "SHOTGUN_SSO_DEVELOPER_ENABLED" in os.environ:
                 interval = SHOTGUN_SSO_RENEWAL_INTERVAL
-        self._logger.debug("Setting session renewal interval to: %s seconds" % interval)
+        self._logger.debug("Setting session renewal interval to: %s seconds", interval)
 
         self._sso_countdown_timer.setInterval(interval)
         self._sso_countdown_timer.start()
@@ -394,7 +515,10 @@ class SsoSaml2Core(object):
 
             self.start_new_session(event_data)
         else:
-            self._logger.error("Calling handle_event while event %s is currently being handled" % self._event_data["event"])
+            self._logger.error(
+                "Calling handle_event while event %s is currently being handled",
+                self._event_data["event"],
+            )
 
     def resolve_event(self, end_session=False):
         """
@@ -416,7 +540,7 @@ class SsoSaml2Core(object):
         :returns: The error string of the last failed operation.
         """
         res = None
-        if self._session and len(self._session.error) > 0:
+        if self._session and self._session.error:
             res = self._session.error
         return res
 
@@ -449,7 +573,9 @@ class SsoSaml2Core(object):
 
         # We do not update the page cookies, assuming that they have already
         # have been cleared/updated before.
-        self._view.page().mainFrame().load(self._session.host + self._event_data["renew_path"])
+        self._view.page().mainFrame().load(
+            self._session.host + self.renew_path + "?product=%s" % self._session.product
+        )
 
     def on_renew_sso_session_timeout(self):
         """
@@ -466,7 +592,21 @@ class SsoSaml2Core(object):
     #
     ############################################################################
 
-    def on_load_finished(self, succeeded):
+    def _polyfill(self):
+        """
+        Called by Qt when the Web Page has changed and before it is loaded.
+
+        The purpose of this function is to inject JavaScript code in a page
+        before any of its code is run. This gives us a way to modify the code's
+        environment and define functions which would be required by that code.
+        """
+        frame = self._view.page().currentFrame()
+        frame.evaluateJavaScript(FUNCTION_PROTOTYPE_BIND_POLYFILL)
+        self._logger.debug(
+            "Injected polyfill JavaScript code for Function.prototype.bind"
+        )
+
+    def on_load_finished(self, _succeeded):
         """
         Called by Qt when the Web Page has finished loading.
 
@@ -483,12 +623,13 @@ class SsoSaml2Core(object):
         """
         url = self._view.page().mainFrame().url().toString().encode("utf-8")
         if (
-                # This callback may be triggered outside the actual auth process
-                # like when we clear the page to use the "about:blank".
-                # or after there has been a prior error. So we ensure that we
-                # update our session and accept only when we really have to.
-                self._session is not None and self._event_data is not None and
-                url.startswith(self._session.host + self._event_data["landing_path"])
+            # This callback may be triggered outside the actual auth process
+            # like when we clear the page to use the "about:blank".
+            # or after there has been a prior error. So we ensure that we
+            # update our session and accept only when we really have to.
+            self._session is not None
+            and self._event_data is not None
+            and url.startswith(self._session.host + self.landing_path)
         ):
             self.update_session_from_browser()
             if self._session_renewal_active:
@@ -496,7 +637,7 @@ class SsoSaml2Core(object):
 
             self._dialog.accept()
 
-    def on_authentication_required(self, reply, authenticator):
+    def on_authentication_required(self, _reply, authenticator):
         """
         Called when authentication is required to get to a web page.
 
@@ -506,9 +647,29 @@ class SsoSaml2Core(object):
         :param reply: Qt reply object. Not used.
         :param authenticator: Qt authenticator object.
         """
-        # Setting the user to an empty string tells the QAuthenticator to
-        # negociate the authentication with the user's credentials.
-        authenticator.setUser('')
+        # We take for granted that if we are on Windows, proper NTLM negociation
+        # is possible between the machine and the IdP. For other platforms, we
+        # pop an authentication dialog.
+        if sys.platform != "win32" and UsernamePasswordDialog is not None:
+            message = (
+                "<p>Your company has configured Single Sign-On (SSO) for the Shotgun site %s"
+                "<p>Please authenticate with your computer login and password to log into Shotgun."
+                "<p>"
+            )
+            auth_dialog = UsernamePasswordDialog(message=message % self._session.host)
+            if auth_dialog.exec_():
+                authenticator.setUser(auth_dialog.username)
+                authenticator.setPassword(auth_dialog.password)
+            else:
+                self._logger.debug("User prompted for username/password but canceled")
+        else:
+            if UsernamePasswordDialog is None:
+                self._logger.debug(
+                    "Unable to prompt user for username/password, due to missing username_password_dialog module"
+                )
+            # Setting the user to an empty string tells the QAuthenticator to
+            # negotiate the authentication with the user's credentials.
+            authenticator.setUser("")
 
     ############################################################################
     #
@@ -526,6 +687,7 @@ class SsoSaml2Core(object):
         :returns: 1 if successful, 0 otherwise.
         """
         self._logger.debug("Web login attempt")
+        # pylint: disable=invalid-name
         QtCore = self._QtCore  # noqa
 
         if event_data is not None:
@@ -546,19 +708,18 @@ class SsoSaml2Core(object):
             self._login_status = self._login_status or status
             return self._login_status
 
-        else:
-            self._view.show()
-            self._view.raise_()
+        self._view.show()
+        self._view.raise_()
 
-            # We append the product code to the GET request.
-            self._view.page().mainFrame().load(
-                self._session.host + self._event_data["renew_path"] + "?product=%s" % self._session.product
-            )
+        # We append the product code to the GET request.
+        self._view.page().mainFrame().load(
+            self._session.host + self.renew_path + "?product=%s" % self._session.product
+        )
 
-            self._dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-            status = self._dialog.exec_()
-            self._login_status = self._login_status or status
-            return self._login_status
+        self._dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        status = self._dialog.exec_()
+        self._login_status = self._login_status or status
+        return self._login_status
 
     def on_dialog_closed(self, result):
         """
@@ -570,6 +731,7 @@ class SsoSaml2Core(object):
                        QtGui.QDialog.Accepted or QtGui.QDialog.Rejected
         """
         self._logger.debug("SSO dialog closed")
+        # pylint: disable=invalid-name
         QtGui = self._QtGui  # noqa
 
         if self.is_handling_event():
@@ -579,7 +741,9 @@ class SsoSaml2Core(object):
                 self._session.cookies = ""
                 # Let's have another go, without any cookies this time !
                 # This will force the GUI to be shown to the user.
-                self._logger.debug("Unable to login/renew claims automaticall, presenting GUI to user")
+                self._logger.debug(
+                    "Unable to login/renew claims automaticall, presenting GUI to user"
+                )
                 status = self.on_sso_login_attempt()
                 self._login_status = self._login_status or status
             else:
@@ -588,7 +752,9 @@ class SsoSaml2Core(object):
             # Should we get a rejected dialog, then we have had a timeout.
             if result == QtGui.QDialog.Rejected:
                 # @FIXME: Figure out exactly what to do when we have a timeout.
-                self._logger.warn("Our QDialog got canceled outside of an event handling")
+                self._logger.warn(
+                    "Our QDialog got canceled outside of an event handling"
+                )
 
         # Clear the web page
         self._view.page().mainFrame().load("about:blank")

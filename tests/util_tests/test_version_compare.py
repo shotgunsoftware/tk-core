@@ -8,12 +8,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import ShotgunTestBase
 
 
 class TestVersionCompare(ShotgunTestBase):
-
     def setUp(self):
         super(TestVersionCompare, self).setUp()
 

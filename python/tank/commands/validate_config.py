@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 from __future__ import print_function
@@ -19,24 +19,31 @@ from ..platform import validation, bundle
 class ValidateConfigAction(Action):
     """
     Action that looks at the config and validates all parameters
-    """    
+    """
+
     def __init__(self):
-        Action.__init__(self, 
-                        "validate", 
-                        Action.TK_INSTANCE, 
-                        ("Validates your current Configuration to check that all "
-                        "environments have been correctly configured."), 
-                        "Configuration")
+        Action.__init__(
+            self,
+            "validate",
+            Action.TK_INSTANCE,
+            (
+                "Validates your current Configuration to check that all "
+                "environments have been correctly configured."
+            ),
+            "Configuration",
+        )
 
         self.parameters = {}
 
         self.parameters["envs"] = {
-            "description": ("A list of environment names to process. If not "
-                            "specified, process all environments."),
+            "description": (
+                "A list of environment names to process. If not "
+                "specified, process all environments."
+            ),
             "type": "list",
             "default": [],
         }
-        
+
         # this method can be executed via the API
         self.supports_api = True
 
@@ -47,20 +54,20 @@ class ValidateConfigAction(Action):
 
     def run_noninteractive(self, log, parameters):
         """
-        Tank command API accessor. 
+        Tank command API accessor.
         Called when someone runs a tank command through the core API.
-        
+
         :param log: std python logger
         :param parameters: dictionary with tank command parameters
         """
 
         # validate params and seed default values
         return self._run(log, self._validate_parameters(parameters))
-    
+
     def run_interactive(self, log, args):
         """
         Tank command accessor
-        
+
         :param log: std python logger
         :param args: command line args
         """
@@ -74,19 +81,19 @@ class ValidateConfigAction(Action):
     def _run(self, log, parameters):
         """
         Actual execution payload
-        """ 
-        
+        """
+
         log.info("")
         log.info("")
         log.info("Welcome to the Shotgun Pipeline Toolkit Configuration validator!")
         log.info("")
-    
+
         log.info("Found the following environments:")
         for x in parameters["envs"]:
             log.info("    %s" % x)
         log.info("")
         log.info("")
-    
+
         # validate environments
         for env_name in parameters["envs"]:
             if self._terminate_requested:
@@ -99,41 +106,45 @@ class ValidateConfigAction(Action):
             env = self.tk.pipeline_configuration.get_environment(env_name)
             log.info("Environment path: %s" % (env.disk_location))
             self._process_environment(log, self.tk, env)
-    
+
         log.info("")
         log.info("")
         log.info("")
-            
+
         # check templates that are orphaned
         unused_templates = set(self.tk.templates.keys()) - self._templates
-    
+
         log.info("")
-        log.info("------------------------------------------------------------------------")
-        log.info("The following templates are not being used directly in any environments:")
+        log.info(
+            "------------------------------------------------------------------------"
+        )
+        log.info(
+            "The following templates are not being used directly in any environments:"
+        )
         log.info("(they may be used inside complex data structures)")
         for ut in unused_templates:
             log.info(ut)
-    
+
         log.info("")
         log.info("")
         log.info("")
-        
+
         # check hooks that are unused
         all_hooks = []
         # get rid of files not ending with .py and strip extension
         for hook in os.listdir(self.tk.pipeline_configuration.get_hooks_location()):
             if hook.endswith(".py"):
-                all_hooks.append( hook[:-3] )
-        
+                all_hooks.append(hook[:-3])
+
         unused_hooks = set(all_hooks) - self._hooks
-    
+
         log.info("")
         log.info("--------------------------------------------------------------------")
         log.info("The following hooks are not being used directly in any environments:")
         log.info("(they may be used inside complex data structures)")
         for uh in unused_hooks:
             log.info(uh)
-        
+
         log.info("")
         log.info("")
         log.info("")
@@ -147,8 +158,7 @@ class ValidateConfigAction(Action):
         """
 
         # do the base class default validation
-        parameters = super(ValidateConfigAction, self)._validate_parameters(
-            parameters)
+        parameters = super(ValidateConfigAction, self)._validate_parameters(parameters)
 
         # get a list of valid env names
         valid_env_names = self.tk.pipeline_configuration.get_environments()
@@ -233,7 +243,8 @@ class ValidateConfigAction(Action):
         latest_desc = descriptor.find_latest_version()
         if descriptor.version != latest_desc.version:
             log.info(
-                "WARNING: Latest version is %s. You are running %s." % (latest_desc.version, descriptor.version)
+                "WARNING: Latest version is %s. You are running %s."
+                % (latest_desc.version, descriptor.version)
             )
 
         manifest = descriptor.configuration_schema
@@ -272,12 +283,10 @@ class ValidateConfigAction(Action):
                 else:
                     log.info("  Parameter %s - OK [using non-default value]" % s)
                     log.info("    |---> Current: %s" % value)
-                    log.info("    \---> Default: %s" % default)
+                    log.info(r"    \---> Default: %s" % default)
 
                 # remember templates
                 if manifest[s].get("type") == "template":
                     self._templates.add(value)
                 if manifest[s].get("type") == "hook":
                     self._hooks.add(value)
-
-

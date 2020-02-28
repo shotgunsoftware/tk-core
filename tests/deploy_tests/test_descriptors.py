@@ -14,15 +14,14 @@ import sgtk
 from tank_test.tank_test_base import *
 from tank.errors import TankError
 
-class TestLegacyDescriptorSupport(TankTestBase):
 
+class TestLegacyDescriptorSupport(TankTestBase):
     def setUp(self, parameters=None):
 
         super(TestLegacyDescriptorSupport, self).setUp()
 
         self.install_root = os.path.join(
-            self.tk.pipeline_configuration.get_install_location(),
-            "install"
+            self.tk.pipeline_configuration.get_install_location(), "install"
         )
 
     def _create_info_yaml(self, path):
@@ -46,13 +45,8 @@ class TestLegacyDescriptorSupport(TankTestBase):
         from sgtk.deploy import descriptor
 
         d = descriptor.get_from_location_and_paths(
-            descriptor.AppDescriptor.APP,
-            "dummy_value",
-            self.install_root,
-            location,
+            descriptor.AppDescriptor.APP, "dummy_value", self.install_root, location
         )
 
         self.assertEqual(d.get_path(), path)
         self.assertEqual(d.__class__, sgtk.descriptor.AppDescriptor)
-
-

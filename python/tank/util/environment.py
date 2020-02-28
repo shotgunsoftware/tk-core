@@ -1,18 +1,19 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
 Helper methods that do environment management
 """
 
-import os, sys
+import os
+from .platforms import is_windows
 
 
 def append_path_to_env_var(env_var_name, path):
@@ -21,7 +22,7 @@ def append_path_to_env_var(env_var_name, path):
     Creates the env var if it doesn't exist already.
     will concatenate paths using : on linux and ; on windows
     """
-    
+
     return _add_path_to_env_var(env_var_name, path, prepend=False)
 
 
@@ -31,7 +32,7 @@ def prepend_path_to_env_var(env_var_name, path):
     Creates the env var if it doesn't exist already.
     will concatenate paths using : on linux and ; on windows
     """
-    
+
     return _add_path_to_env_var(env_var_name, path, prepend=True)
 
 
@@ -41,12 +42,12 @@ def _add_path_to_env_var(env_var_name, path, prepend=False):
     Creates the env var if it doesn't exist already.
     will concatenate paths using : on linux and ; on windows
     """
-    
-    if sys.platform == "win32":
+
+    if is_windows():
         env_var_sep = ";"
     else:
-        env_var_sep = ":"        
-    
+        env_var_sep = ":"
+
     paths = os.environ.get(env_var_name, "").split(env_var_sep)
     # clean up empty entries
     paths = [x for x in paths if x != ""]

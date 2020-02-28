@@ -16,5 +16,6 @@ class OptionParserLineBreakingEpilog(optparse.OptionParser):
     Subclassed version of the option parser that doesn't
     swallow white space in the epilog
     """
+
     def format_epilog(self, formatter):
         return self.epilog

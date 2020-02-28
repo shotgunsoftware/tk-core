@@ -11,16 +11,28 @@
 SSO/SAML2 Core utility functions.
 """
 
+# pylint: disable=line-too-long
+
+import sys
 import base64
+import binascii
 import logging
 import urllib
-import urlparse
-from Cookie import SimpleCookie
+
+# For Python 2/3 compatibility without a dependency on six, we'll just try
+# to import as in Python 2, and fall back to Python 3 locations if the imports
+# fail.
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
+try:
+    from http.cookies import SimpleCookie
+except ImportError:
+    from Cookie import SimpleCookie
 
 
-from .errors import (
-    SsoSaml2MultiSessionNotSupportedError,
-)
+from .errors import SsoSaml2MultiSessionNotSupportedError
 
 
 def get_logger():
@@ -57,9 +69,15 @@ def _decode_cookies(encoded_cookies):
     if encoded_cookies:
         try:
             decoded_cookies = base64.b64decode(encoded_cookies)
+            if not isinstance(decoded_cookies, str):
+                # If decoded_cookies is not a string, it's likely we're on
+                # Python3, and decoded_cookies is binary.  Try to decode it.
+                decoded_cookies = decoded_cookies.decode()
             cookies.load(decoded_cookies)
-        except TypeError as e:
-            get_logger().error("Unable to decode the cookies: %s" % e.message)
+        except (TypeError, binascii.Error) as e:
+            # In Python 2 this raises a TypeError, while in 3 it will raise a
+            # binascii.Error.  Catch either and handle them the same.
+            get_logger().error("Unable to decode the cookies: %s", str(e))
     return cookies
 
 
@@ -71,7 +89,16 @@ def _encode_cookies(cookies):
 
     :returns: An encoded string representing the cookie jar.
     """
-    encoded_cookies = base64.b64encode(cookies.output())
+    PY3 = sys.version_info[0] == 3
+    output = cookies.output()
+    if PY3 and isinstance(output, str):
+        # On Python 3, encode str to binary before passing it to b64encode.
+        output = output.encode()
+    encoded_cookies = base64.b64encode(output)
+    if PY3:
+        # On Python 3, b64encode returns a bytes object that we'll want to
+        # decode to a string for compatibility between Python 2 and 3.
+        encoded_cookies = encoded_cookies.decode()
     return encoded_cookies
 
 
@@ -99,7 +126,9 @@ def _get_shotgun_user_id(cookies):
                 # that we are using cookies from a multi-session environment. We
                 # have no way to identify the proper user id in the lot.
                 message = "The cookies for this user seem to come from two different shotgun sites: '%s' and '%s'"
-                raise SsoSaml2MultiSessionNotSupportedError(message % (user_domain, cookies[cookie]['domain']))
+                raise SsoSaml2MultiSessionNotSupportedError(
+                    message % (user_domain, cookies[cookie]["domain"])
+                )
             user_id = cookie[12:]
             user_domain = cookies[cookie]["domain"]
     return user_id
@@ -154,7 +183,9 @@ def _sanitize_http_proxy(http_proxy):
     http_proxy = http_proxy or ""
     http_proxy = http_proxy.lower().strip()
 
-    if http_proxy and not (http_proxy.startswith("http://") or http_proxy.startswith("https://")):
+    if http_proxy and not (
+        http_proxy.startswith("http://") or http_proxy.startswith("https://")
+    ):
         get_logger().debug("Assuming the proxy to be HTTP")
         alt_http_proxy = "http://%s" % http_proxy
         parsed_url = urlparse.urlparse(alt_http_proxy)
@@ -175,10 +206,9 @@ def get_saml_claims_expiration(encoded_cookies):
     """
     # Shotgun appends the unique numerical ID of the user to the cookie name:
     # ex: shotgun_sso_session_expiration_u78
-    saml_claims_expiration = (
-        _get_cookie(encoded_cookies, "shotgun_current_user_sso_claims_expiration") or
-        _get_cookie_from_prefix(encoded_cookies, "shotgun_sso_session_expiration_u")
-    )
+    saml_claims_expiration = _get_cookie(
+        encoded_cookies, "shotgun_current_user_sso_claims_expiration"
+    ) or _get_cookie_from_prefix(encoded_cookies, "shotgun_sso_session_expiration_u")
     if saml_claims_expiration is not None:
         saml_claims_expiration = int(saml_claims_expiration)
     return saml_claims_expiration
@@ -193,7 +223,9 @@ def get_session_expiration(encoded_cookies):
     :returns: An int with the time in seconds since January 1st 1970 UTC, or None if the cookie
               'shotgun_current_session_expiration' is not defined.
     """
-    session_expiration = _get_cookie(encoded_cookies, "shotgun_current_session_expiration")
+    session_expiration = _get_cookie(
+        encoded_cookies, "shotgun_current_session_expiration"
+    )
     if session_expiration is not None:
         session_expiration = int(session_expiration)
     return session_expiration
@@ -209,10 +241,9 @@ def get_user_name(encoded_cookies):
     """
     # Shotgun appends the unique numerical ID of the user to the cookie name:
     # ex: shotgun_sso_session_userid_u78
-    user_name = (
-        _get_cookie(encoded_cookies, "shotgun_current_user_login") or
-        _get_cookie_from_prefix(encoded_cookies, "shotgun_sso_session_userid_u")
-    )
+    user_name = _get_cookie(
+        encoded_cookies, "shotgun_current_user_login"
+    ) or _get_cookie_from_prefix(encoded_cookies, "shotgun_sso_session_userid_u")
     if user_name is not None:
         user_name = urllib.unquote(user_name)
     return user_name

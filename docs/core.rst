@@ -401,5 +401,3 @@ The following exceptions are raised by the Toolkit Core API classes:
     :show-inheritance:
     :inherited-members:
     :members:
-
-
