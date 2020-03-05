@@ -184,8 +184,6 @@ paths:
     path_with_optional_abstract: media/{name}[.{frame}].{media_ext}
 
 
-
-
 strings:
 
     # when a publish record is created in shotgun, populate the name with the following

@@ -79,7 +79,6 @@ class Template(object):
         :param name: (Optional) name for this template.
         :type name: String
         """
-
         self.name = name
         # version for __repr__
         self._repr_def = self._fix_key_names(definition, keys)
