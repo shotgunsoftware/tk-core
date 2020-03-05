@@ -218,7 +218,7 @@ class TestPathsFromTemplate(TankTestBase):
         self.create_file(file_without_opt)
         self.assertEqual(
             set(self.tk.paths_from_template(template, {"name": "scene"})),
-            set([file_without_opt, file_with_opt])
+            set([file_without_opt, file_with_opt]),
         )
 
 

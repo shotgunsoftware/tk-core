@@ -259,7 +259,9 @@ class Template(object):
         """
         return self._apply_fields(fields, platform=platform)
 
-    def _apply_fields(self, fields, ignore_types=None, platform=None, use_defaults=True):
+    def _apply_fields(
+        self, fields, ignore_types=None, platform=None, use_defaults=True
+    ):
         """
         Creates path using fields.
 
@@ -282,7 +284,9 @@ class Template(object):
         # index of matching keys will be used to find cleaned_definition
         index = -1
         for index, cur_keys in enumerate(self._keys):
-            missing_keys = self._missing_keys(fields, cur_keys, skip_defaults=use_defaults)
+            missing_keys = self._missing_keys(
+                fields, cur_keys, skip_defaults=use_defaults
+            )
             if not missing_keys:
                 keys = cur_keys
                 break
@@ -563,7 +567,9 @@ class TemplatePath(Template):
             )
         return None
 
-    def _apply_fields(self, fields, ignore_types=None, platform=None, use_defaults=True):
+    def _apply_fields(
+        self, fields, ignore_types=None, platform=None, use_defaults=True
+    ):
         """
         Creates path using fields.
 

@@ -479,7 +479,7 @@ class TestApplyFields(TestTemplatePath):
         keys = {
             "name": StringKey("name"),
             "frame": SequenceKey("frame", default="%d"),
-            "ext": StringKey("ext")
+            "ext": StringKey("ext"),
         }
         template = TemplatePath("{name}[.{frame}].{ext}", keys, self.project_root)
         fields = {
@@ -488,7 +488,7 @@ class TestApplyFields(TestTemplatePath):
         }
         self.assertEqual(
             template._apply_fields(fields, use_defaults=False),
-            os.path.join(self.project_root, "scene.mov")
+            os.path.join(self.project_root, "scene.mov"),
         )
 
     def test_using_defaults(self):
@@ -498,7 +498,7 @@ class TestApplyFields(TestTemplatePath):
         keys = {
             "name": StringKey("name"),
             "frame": SequenceKey("frame", default="%d"),
-            "ext": StringKey("ext")
+            "ext": StringKey("ext"),
         }
         template = TemplatePath("{name}[.{frame}].{ext}", keys, self.project_root)
         fields = {
@@ -507,7 +507,7 @@ class TestApplyFields(TestTemplatePath):
         }
         self.assertEqual(
             template._apply_fields(fields),
-            os.path.join(self.project_root, "scene.%d.exr")
+            os.path.join(self.project_root, "scene.%d.exr"),
         )
 
     def test_good_alphanumeric(self):

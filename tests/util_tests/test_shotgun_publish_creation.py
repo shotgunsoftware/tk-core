@@ -35,6 +35,13 @@ class TestShotgunPublishCreation(TankTestBase):
 
     def test_translate_abstract_fields_optional_key_in_path(self):
         template = self.tk.templates["path_with_optional_abstract"]
-        file_path_no_optional = os.path.join(template.root_path, "media", "scene.0001.exr")
+        file_path_no_optional = os.path.join(
+            template.root_path, "media", "scene.0001.exr"
+        )
         data = _translate_abstract_fields(self.tk, file_path_no_optional)
-        self.assertEqual(data, os.path.join(template.root_path, file_path_no_optional.replace("0001", "%04d")))
+        self.assertEqual(
+            data,
+            os.path.join(
+                template.root_path, file_path_no_optional.replace("0001", "%04d")
+            ),
+        )

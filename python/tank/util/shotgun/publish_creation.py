@@ -662,7 +662,9 @@ def _translate_abstract_fields(tk, path):
                 cur_fields = template.get_fields(path)
                 for abstract_key_name in abstract_key_names:
                     if abstract_key_name in cur_fields:
-                        cur_fields[abstract_key_name] = template.keys[abstract_key_name]._get_default()
+                        cur_fields[abstract_key_name] = template.keys[
+                            abstract_key_name
+                        ]._get_default()
                 path = template._apply_fields(cur_fields, use_defaults=False)
         else:
             log.debug(
