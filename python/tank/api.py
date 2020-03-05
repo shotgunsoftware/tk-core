@@ -574,7 +574,7 @@ class Sgtk(object):
 
             # Apply the fields to build the glob string to search with:
             glob_str = template._apply_fields(
-                current_local_fields, ignore_types=current_skip_keys
+                current_local_fields, ignore_types=current_skip_keys, use_defaults=False
             )
             if glob_str in globs_searched:
                 # it's possible that multiple key sets return the same search

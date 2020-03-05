@@ -210,6 +210,17 @@ class TestPathsFromTemplate(TankTestBase):
         self.assertIn(good_file_path, result)
         self.assertNotIn(bad_file_path, result)
 
+    def test_filenames_without_optional_keys(self):
+        template = self.tk.templates["path_with_optional_abstract"]
+        file_with_opt = os.path.join(self.project_root, "media", "scene.0001.exr")
+        file_without_opt = os.path.join(self.project_root, "media", "scene.mov")
+        self.create_file(file_with_opt)
+        self.create_file(file_without_opt)
+        self.assertEqual(
+            set(self.tk.paths_from_template(template, {"name": "scene"})),
+            set([file_without_opt, file_with_opt])
+        )
+
 
 class TestAbstractPathsFromTemplate(TankTestBase):
     """Tests Tank.abstract_paths_from_template method."""

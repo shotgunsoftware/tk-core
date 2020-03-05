@@ -79,6 +79,7 @@ class Template(object):
         :param name: (Optional) name for this template.
         :type name: String
         """
+
         self.name = name
         # version for __repr__
         self._repr_def = self._fix_key_names(definition, keys)
@@ -259,7 +260,7 @@ class Template(object):
         """
         return self._apply_fields(fields, platform=platform)
 
-    def _apply_fields(self, fields, ignore_types=None, platform=None):
+    def _apply_fields(self, fields, ignore_types=None, platform=None, use_defaults=True):
         """
         Creates path using fields.
 
@@ -282,7 +283,7 @@ class Template(object):
         # index of matching keys will be used to find cleaned_definition
         index = -1
         for index, cur_keys in enumerate(self._keys):
-            missing_keys = self._missing_keys(fields, cur_keys, skip_defaults=True)
+            missing_keys = self._missing_keys(fields, cur_keys, skip_defaults=use_defaults)
             if not missing_keys:
                 keys = cur_keys
                 break
@@ -563,7 +564,7 @@ class TemplatePath(Template):
             )
         return None
 
-    def _apply_fields(self, fields, ignore_types=None, platform=None):
+    def _apply_fields(self, fields, ignore_types=None, platform=None, use_defaults=True):
         """
         Creates path using fields.
 
@@ -580,7 +581,7 @@ class TemplatePath(Template):
         :returns: Full path, matching the template with the given fields inserted.
         """
         relative_path = super(TemplatePath, self)._apply_fields(
-            fields, ignore_types, platform
+            fields, ignore_types, platform, use_defaults=use_defaults
         )
 
         if platform is None:

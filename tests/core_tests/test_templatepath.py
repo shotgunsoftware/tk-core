@@ -471,6 +471,45 @@ class TestApplyFields(TestTemplatePath):
                 {"alpha_num": invalid_value},
             )
 
+    def test_not_using_defaults(self):
+        """
+        Tests that when use_defaults is set to False, only values for provided keys are applied,
+        whether the missing keys have defaults or not
+        """
+        keys = {
+            "name": StringKey("name"),
+            "frame": SequenceKey("frame", default="%d"),
+            "ext": StringKey("ext")
+        }
+        template = TemplatePath("{name}[.{frame}].{ext}", keys, self.project_root)
+        fields = {
+            "name": "scene",
+            "ext": "mov",
+        }
+        self.assertEqual(
+            template._apply_fields(fields, use_defaults=False),
+            os.path.join(self.project_root, "scene.mov")
+        )
+
+    def test_using_defaults(self):
+        """
+        Tests that default values are used for optional keys when a value is not provided
+        """
+        keys = {
+            "name": StringKey("name"),
+            "frame": SequenceKey("frame", default="%d"),
+            "ext": StringKey("ext")
+        }
+        template = TemplatePath("{name}[.{frame}].{ext}", keys, self.project_root)
+        fields = {
+            "name": "scene",
+            "ext": "exr",
+        }
+        self.assertEqual(
+            template._apply_fields(fields),
+            os.path.join(self.project_root, "scene.%d.exr")
+        )
+
     def test_good_alphanumeric(self):
         """
         Tests applying valid values for alphanumeric key.
