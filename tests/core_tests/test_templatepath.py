@@ -473,7 +473,7 @@ class TestApplyFields(TestTemplatePath):
 
     def test_not_using_defaults(self):
         """
-        Tests that when use_defaults is set to False, only values for provided keys are applied,
+        Tests that when skip_defaults is set to True, only values for provided keys are applied,
         whether the missing keys have defaults or not
         """
         keys = {
@@ -487,7 +487,7 @@ class TestApplyFields(TestTemplatePath):
             "ext": "mov",
         }
         self.assertEqual(
-            template._apply_fields(fields, use_defaults=False),
+            template._apply_fields(fields, skip_defaults=True),
             os.path.join(self.project_root, "scene.mov"),
         )
 
