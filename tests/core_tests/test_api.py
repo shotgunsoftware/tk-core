@@ -211,6 +211,10 @@ class TestPathsFromTemplate(TankTestBase):
         self.assertNotIn(bad_file_path, result)
 
     def test_filenames_without_optional_keys(self):
+        """
+        Test that when using a template that has optional keys with default values,
+        paths that do and do not include the optional portion are both found
+        """
         template = self.tk.templates["path_with_optional_abstract"]
         file_with_opt = os.path.join(self.project_root, "media", "scene.0001.exr")
         file_without_opt = os.path.join(self.project_root, "media", "scene.mov")
