@@ -10,7 +10,8 @@
 
 import os
 
-from tank_test.tank_test_base import TankTestBase, setUpModule
+from tank_test.tank_test_base import TankTestBase
+from tank_test.tank_test_base import setUpModule # noqa
 from tank.util.shotgun.publish_creation import _translate_abstract_fields
 
 
@@ -27,13 +28,22 @@ class TestShotgunPublishCreation(TankTestBase):
         super(TestShotgunPublishCreation, self).setUp()
         self.setup_fixtures()
 
-    def test_translate_abstract_fields_optional_key_not_in(self):
+    def test_translate_abstract_fields_optional_key_not_in_path(self):
+        """
+        Test when a template has an optional key with a default value but the specific
+        file path does not include that key, no default values are added when translating
+        abstract fields
+        """
         template = self.tk.templates["path_with_optional_abstract"]
         file_path_no_optional = os.path.join(template.root_path, "media", "scene.mov")
         data = _translate_abstract_fields(self.tk, file_path_no_optional)
         self.assertEqual(data, os.path.join(template.root_path, file_path_no_optional))
 
     def test_translate_abstract_fields_optional_key_in_path(self):
+        """
+        Test when a template has an optional key with a default value and the specific
+        file path does include that key, the default value is returned as expected
+        """
         template = self.tk.templates["path_with_optional_abstract"]
         file_path_no_optional = os.path.join(
             template.root_path, "media", "scene.0001.exr"

@@ -260,7 +260,7 @@ class Template(object):
         return self._apply_fields(fields, platform=platform)
 
     def _apply_fields(
-        self, fields, ignore_types=None, platform=None, use_defaults=True
+        self, fields, ignore_types=None, platform=None, skip_defaults=False
     ):
         """
         Creates path using fields.
@@ -274,6 +274,11 @@ class Template(object):
                          current operating system. If you pass in a sys.platform-style string
                          (e.g. 'win32', 'linux2' or 'darwin'), paths will be generated to
                          match that platform.
+        :param skip_defaults: Optional. If set to True, if a key has a default value and no
+                              corresponding value in the fields argument, its default value
+                              will be used. If set to False, keys that are not specified in
+                              the fields argument are skipped whether they have a default
+                              value or not. Defaults to False
 
         :returns: Full path, matching the template with the given fields inserted.
         """
@@ -284,8 +289,13 @@ class Template(object):
         # index of matching keys will be used to find cleaned_definition
         index = -1
         for index, cur_keys in enumerate(self._keys):
+            # We are iterating through all possible key combinations from the longest to shortest
+            # and using the first one that doesn't have any missing keys. skip_defaults=False on
+            # _apply_fields means we don't want to use a key that is not specified in the fields
+            # parameter. So we want the missing_keys function to flag even the default keys that are
+            # missing. Therefore we need to negate the skip_defaults parameter for the _missing_keys argument
             missing_keys = self._missing_keys(
-                fields, cur_keys, skip_defaults=use_defaults
+                fields, cur_keys, skip_defaults=not skip_defaults
             )
             if not missing_keys:
                 keys = cur_keys
@@ -568,7 +578,7 @@ class TemplatePath(Template):
         return None
 
     def _apply_fields(
-        self, fields, ignore_types=None, platform=None, use_defaults=True
+        self, fields, ignore_types=None, platform=None, skip_defaults=False
     ):
         """
         Creates path using fields.
@@ -582,11 +592,16 @@ class TemplatePath(Template):
                          current operating system. If you pass in a sys.platform-style string
                          (e.g. 'win32', 'linux2' or 'darwin'), paths will be generated to
                          match that platform.
+        :param skip_defaults: Optional. If set to True, if a key has a default value and no
+                              corresponding value in the fields argument, its default value
+                              will be used. If set to False, keys that are not specified in
+                              the fields argument are skipped whether they have a default
+                              value or not. Defaults to False
 
         :returns: Full path, matching the template with the given fields inserted.
         """
         relative_path = super(TemplatePath, self)._apply_fields(
-            fields, ignore_types, platform, use_defaults=use_defaults
+            fields, ignore_types, platform, skip_defaults=skip_defaults
         )
 
         if platform is None:

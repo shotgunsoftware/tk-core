@@ -180,7 +180,7 @@ paths:
     houdini_asset_publish: assets/{sg_asset_type}/{Asset}/{Step}/publish/{name_alpha}.v{version}.hip
 
     #--------------------------------------------------------------------------------------
-    # Used for testing optional keys
+    # Used for testing optional abstract keys
     path_with_optional_abstract: media/{name}[.{frame}].{media_ext}
 
 
