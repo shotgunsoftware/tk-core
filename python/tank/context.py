@@ -232,6 +232,17 @@ class Context(object):
             return NotImplemented
         return not is_equal
 
+    def __hash__(self):
+        """
+        Generates a unique hash for the Context.
+
+        :returns: int hash for this Context.
+        """
+        # Use sort_keys to ensure dict order does not affect hash.
+        # This hash is only guaranteed to be stable within a Python session,
+        # however this is expected behavior for __hash__.
+        return hash(json.dumps(self.to_dict(), sort_keys=True))
+
     def __deepcopy__(self, memo):
         """
         Allow Context objects to be deepcopied - Note that the tk
