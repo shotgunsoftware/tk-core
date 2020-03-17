@@ -572,9 +572,13 @@ class Sgtk(object):
                     # form a valid path from them so skip this key set
                     continue
 
-            # Apply the fields to build the glob string to search with:
+            # Apply the fields to build the glob string to search with. We are iterating
+            # through all the possible key combinations that do and do not include the
+            # optional keys so we need _apply_fields to skip defaults otherwise if an
+            # optional key has a default value, we will never find files that don't include
+            # the optional key in their file name
             glob_str = template._apply_fields(
-                current_local_fields, ignore_types=current_skip_keys
+                current_local_fields, ignore_types=current_skip_keys, skip_defaults=True
             )
             if glob_str in globs_searched:
                 # it's possible that multiple key sets return the same search

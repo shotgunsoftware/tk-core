@@ -27,7 +27,7 @@ repos:
     # Ensures a file name will resolve on all platform
     - id: check-case-conflict
     # Checks files with the execute bit set have shebangs
-    - id: check-executables-have-shebangs
+    #- id: check-executables-have-shebangs
     # Ensure there's no incomplete merges
     - id: check-merge-conflict
     # Adds an empty line if missing at the end of a file.

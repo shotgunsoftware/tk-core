@@ -62,6 +62,8 @@ keys:
         type: str
         choices: {'ma':'Maya Ascii (.ma)', 'mb':'Maya Binary (.mb)'}
         default: ma
+    media_ext:
+        type: str
 
 
 paths:
@@ -176,6 +178,10 @@ paths:
 
     # The location of published hip files
     houdini_asset_publish: assets/{sg_asset_type}/{Asset}/{Step}/publish/{name_alpha}.v{version}.hip
+
+    #--------------------------------------------------------------------------------------
+    # Used for testing optional abstract keys
+    path_with_optional_abstract: media/{name}[.{frame}].{media_ext}
 
 
 strings:
