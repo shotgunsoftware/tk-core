@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.template &mdash; tk-core v0.19.3 documentation</title>
+  <title>tank.template &mdash; tk-core v0.19.4 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.19.3 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.19.4 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.3.<br>
+    <b>tk-core</b> v0.19.4.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -434,7 +434,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="n">platform</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_apply_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_apply_fields</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="bp">False</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates path using fields.</span>
 
@@ -447,6 +449,11 @@
 <span class="sd">                         current operating system. If you pass in a sys.platform-style string</span>
 <span class="sd">                         (e.g. &#39;win32&#39;, &#39;linux2&#39; or &#39;darwin&#39;), paths will be generated to</span>
 <span class="sd">                         match that platform.</span>
+<span class="sd">        :param skip_defaults: Optional. If set to True, if a key has a default value and no</span>
+<span class="sd">                              corresponding value in the fields argument, its default value</span>
+<span class="sd">                              will be used. If set to False, keys that are not specified in</span>
+<span class="sd">                              the fields argument are skipped whether they have a default</span>
+<span class="sd">                              value or not. Defaults to False</span>
 
 <span class="sd">        :returns: Full path, matching the template with the given fields inserted.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -457,7 +464,14 @@
         <span class="c1"># index of matching keys will be used to find cleaned_definition</span>
         <span class="n">index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">cur_keys</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="p">):</span>
-            <span class="n">missing_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_missing_keys</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">cur_keys</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="c1"># We are iterating through all possible key combinations from the longest to shortest</span>
+            <span class="c1"># and using the first one that doesn&#39;t have any missing keys. skip_defaults=False on</span>
+            <span class="c1"># _apply_fields means we don&#39;t want to use a key that is not specified in the fields</span>
+            <span class="c1"># parameter. So we want the missing_keys function to flag even the default keys that are</span>
+            <span class="c1"># missing. Therefore we need to negate the skip_defaults parameter for the _missing_keys argument</span>
+            <span class="n">missing_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_missing_keys</span><span class="p">(</span>
+                <span class="n">fields</span><span class="p">,</span> <span class="n">cur_keys</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="ow">not</span> <span class="n">skip_defaults</span>
+            <span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">missing_keys</span><span class="p">:</span>
                 <span class="n">keys</span> <span class="o">=</span> <span class="n">cur_keys</span>
                 <span class="k">break</span>
@@ -738,7 +752,9 @@
             <span class="p">)</span>
         <span class="k">return</span> <span class="bp">None</span>
 
-    <span class="k">def</span> <span class="nf">_apply_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_apply_fields</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="bp">False</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates path using fields.</span>
 
@@ -751,11 +767,16 @@
 <span class="sd">                         current operating system. If you pass in a sys.platform-style string</span>
 <span class="sd">                         (e.g. &#39;win32&#39;, &#39;linux2&#39; or &#39;darwin&#39;), paths will be generated to</span>
 <span class="sd">                         match that platform.</span>
+<span class="sd">        :param skip_defaults: Optional. If set to True, if a key has a default value and no</span>
+<span class="sd">                              corresponding value in the fields argument, its default value</span>
+<span class="sd">                              will be used. If set to False, keys that are not specified in</span>
+<span class="sd">                              the fields argument are skipped whether they have a default</span>
+<span class="sd">                              value or not. Defaults to False</span>
 
 <span class="sd">        :returns: Full path, matching the template with the given fields inserted.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">relative_path</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">TemplatePath</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_apply_fields</span><span class="p">(</span>
-            <span class="n">fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="p">,</span> <span class="n">platform</span>
+            <span class="n">fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="p">,</span> <span class="n">platform</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="n">skip_defaults</span>
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">platform</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -1129,7 +1150,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.19.3',
+            VERSION:'v0.19.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

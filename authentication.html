@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Authentication &mdash; tk-core v0.19.3 documentation</title>
+  <title>Authentication &mdash; tk-core v0.19.4 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.19.3 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.19.4 documentation" href="index.html"/>
         <link rel="prev" title="Descriptors" href="descriptor.html"/> 
 
   
@@ -130,7 +130,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.3.<br>
+    <b>tk-core</b> v0.19.4.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -353,7 +353,7 @@ an AuthenticationCancelled is thrown.</td>
 
 <dl class="method">
 <dt id="sgtk.authentication.ShotgunAuthenticator.create_session_user">
-<code class="descname">create_session_user</code><span class="sig-paren">(</span><em>login</em>, <em>session_token=None</em>, <em>password=None</em>, <em>host=None</em>, <em>http_proxy=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/shotgun_authenticator.html#ShotgunAuthenticator.create_session_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticator.create_session_user" title="Permalink to this definition">¶</a></dt>
+<code class="descname">create_session_user</code><span class="sig-paren">(</span><em>login</em>, <em>session_token=None</em>, <em>password=None</em>, <em>host=None</em>, <em>http_proxy=None</em>, <em>session_metadata=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/shotgun_authenticator.html#ShotgunAuthenticator.create_session_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticator.create_session_user" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> given a set of human user credentials.
 Either a password or session token must be supplied. If a password is supplied,
 a session token will be generated for security reasons.</p>
@@ -367,6 +367,7 @@ a session token will be generated for security reasons.</p>
 <li><strong>password</strong> &#8211; Shotgun password</li>
 <li><strong>host</strong> &#8211; Shotgun host to log in to. If None, the default host will be used.</li>
 <li><strong>http_proxy</strong> &#8211; Shotgun proxy to use. If None, the default http proxy will be used.</li>
+<li><strong>session_metadata</strong> &#8211; When using Web/SSO, b64encoded browser cookies.</li>
 </ul>
 </td>
 </tr>
@@ -899,7 +900,7 @@ The default value is for backward compatibility.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.19.3',
+            VERSION:'v0.19.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

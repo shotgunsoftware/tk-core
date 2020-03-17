@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.api &mdash; tk-core v0.19.3 documentation</title>
+  <title>tank.api &mdash; tk-core v0.19.4 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.19.3 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.19.4 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.3.<br>
+    <b>tk-core</b> v0.19.4.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -747,9 +747,13 @@
                     <span class="c1"># form a valid path from them so skip this key set</span>
                     <span class="k">continue</span>
 
-            <span class="c1"># Apply the fields to build the glob string to search with:</span>
+            <span class="c1"># Apply the fields to build the glob string to search with. We are iterating</span>
+            <span class="c1"># through all the possible key combinations that do and do not include the</span>
+            <span class="c1"># optional keys so we need _apply_fields to skip defaults otherwise if an</span>
+            <span class="c1"># optional key has a default value, we will never find files that don&#39;t include</span>
+            <span class="c1"># the optional key in their file name</span>
             <span class="n">glob_str</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">_apply_fields</span><span class="p">(</span>
-                <span class="n">current_local_fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="o">=</span><span class="n">current_skip_keys</span>
+                <span class="n">current_local_fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="o">=</span><span class="n">current_skip_keys</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="bp">True</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">glob_str</span> <span class="ow">in</span> <span class="n">globs_searched</span><span class="p">:</span>
                 <span class="c1"># it&#39;s possible that multiple key sets return the same search</span>
@@ -1249,7 +1253,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.19.3',
+            VERSION:'v0.19.4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
