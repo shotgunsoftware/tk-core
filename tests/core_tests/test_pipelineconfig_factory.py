@@ -9,16 +9,17 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import sys
 from tank_vendor import yaml
 import sgtk
 import tank
 from tank.api import Tank
+from tank.util import is_windows
 from tank.errors import TankInitError
 from sgtk.util import ShotgunPath
-from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule # noqa
+from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule  # noqa
 from mock import patch
-import cPickle as pickle
+import tank_vendor.six.moves.cPickle as pickle
+from tank_vendor.shotgun_api3.lib import sgsix
 
 
 class TestTankFromPath(TankTestBase):
@@ -82,10 +83,11 @@ class TestArchivedProjects(TankTestBase):
         """
         self.assertRaisesRegex(
             TankInitError,
-            "No pipeline configurations associated with Project %s" % self.project["id"],
+            "No pipeline configurations associated with Project %s"
+            % self.project["id"],
             sgtk.sgtk_from_entity,
             "Project",
-            self.project["id"]
+            self.project["id"],
         )
 
         # now unarchive it
@@ -94,7 +96,9 @@ class TestArchivedProjects(TankTestBase):
         result = tank.tank_from_entity("Project", self.project["id"])
         self.assertIsInstance(result, Tank)
         self.assertEqual(result.project_path, self.project_root)
-        self.assertEqual(result.pipeline_configuration.get_shotgun_id(), self.sg_pc_entity["id"])
+        self.assertEqual(
+            result.pipeline_configuration.get_shotgun_id(), self.sg_pc_entity["id"]
+        )
 
 
 class TestTankFromEntity(TankTestBase):
@@ -113,7 +117,7 @@ class TestTankFromEntity(TankTestBase):
             "type": "Shot",
             "code": "shot_name",
             "id": 2,
-            "project": self.project
+            "project": self.project,
         }
 
         self.other_project = {
@@ -126,21 +130,14 @@ class TestTankFromEntity(TankTestBase):
             "type": "Shot",
             "code": "a shot with no pipeline config",
             "id": 12345,
-            "project": self.other_project
+            "project": self.other_project,
         }
 
-        self.non_proj_entity = {
-            "type": "HumanUser",
-            "login": "foo.bar",
-            "id": 999,
-        }
+        self.non_proj_entity = {"type": "HumanUser", "login": "foo.bar", "id": 999}
 
-        self.add_to_sg_mock_db([
-            self.shot,
-            self.other_project,
-            self.other_shot,
-            self.non_proj_entity
-        ])
+        self.add_to_sg_mock_db(
+            [self.shot, self.other_project, self.other_shot, self.non_proj_entity]
+        )
 
     def test_bad_project(self):
         """
@@ -151,7 +148,7 @@ class TestTankFromEntity(TankTestBase):
             "No pipeline configurations associated with Project 1791284",
             sgtk.sgtk_from_entity,
             "Project",
-            1791284
+            1791284,
         )
 
     def test_bad_entity(self):
@@ -163,7 +160,7 @@ class TestTankFromEntity(TankTestBase):
             ".* is not associated with a project",
             sgtk.sgtk_from_entity,
             self.non_proj_entity["type"],
-            self.non_proj_entity["id"]
+            self.non_proj_entity["id"],
         )
 
     def test_from_project(self):
@@ -173,7 +170,9 @@ class TestTankFromEntity(TankTestBase):
         result = tank.tank_from_entity("Project", self.project["id"])
         self.assertIsInstance(result, Tank)
         self.assertEqual(result.project_path, self.project_root)
-        self.assertEqual(result.pipeline_configuration.get_shotgun_id(), self.sg_pc_entity["id"])
+        self.assertEqual(
+            result.pipeline_configuration.get_shotgun_id(), self.sg_pc_entity["id"]
+        )
 
     def test_from_shot(self):
         """
@@ -182,7 +181,9 @@ class TestTankFromEntity(TankTestBase):
         result = tank.tank_from_entity("Shot", self.shot["id"])
         self.assertIsInstance(result, Tank)
         self.assertEqual(result.project_path, self.project_root)
-        self.assertEqual(result.pipeline_configuration.get_shotgun_id(), self.sg_pc_entity["id"])
+        self.assertEqual(
+            result.pipeline_configuration.get_shotgun_id(), self.sg_pc_entity["id"]
+        )
 
     def test_from_project_with_no_pipeline_config(self):
         """
@@ -190,10 +191,11 @@ class TestTankFromEntity(TankTestBase):
         """
         self.assertRaisesRegex(
             TankInitError,
-            "No pipeline configurations associated with Project %s" % self.other_project["id"],
+            "No pipeline configurations associated with Project %s"
+            % self.other_project["id"],
             sgtk.sgtk_from_entity,
             "Project",
-            self.other_project["id"]
+            self.other_project["id"],
         )
 
     def test_from_shot_with_no_pipeline_config(self):
@@ -202,10 +204,11 @@ class TestTankFromEntity(TankTestBase):
         """
         self.assertRaisesRegex(
             TankInitError,
-            "No pipeline configurations associated with Shot %s" % self.other_shot["id"],
+            "No pipeline configurations associated with Shot %s"
+            % self.other_shot["id"],
             sgtk.sgtk_from_entity,
             "Shot",
-            self.other_shot["id"]
+            self.other_shot["id"],
         )
 
 
@@ -233,24 +236,27 @@ class TestTankFromPathDuplicatePcPaths(TankTestBase):
         """
         Test primary dupes
         """
-        self.assertRaisesRegex(TankInitError,
-                                ".* is associated with more than one centralized Primary pipeline configuration",
-                                sgtk.sgtk_from_path,
-                                self.project_root)
+        self.assertRaisesRegex(
+            TankInitError,
+            ".* is associated with more than one centralized Primary pipeline configuration",
+            sgtk.sgtk_from_path,
+            self.project_root,
+        )
 
     def test_primary_duplicates_from_entity(self):
         """
         Test primary dupes
         """
-        self.assertRaisesRegex(TankInitError,
-                                ".* is associated with more than one centralized Primary pipeline configuration",
-                                sgtk.sgtk_from_entity,
-                                "Project",
-                                self.project["id"])
+        self.assertRaisesRegex(
+            TankInitError,
+            ".* is associated with more than one centralized Primary pipeline configuration",
+            sgtk.sgtk_from_entity,
+            "Project",
+            self.project["id"],
+        )
 
 
 class TestSharedCoreWithSiteWideConfigs(TankTestBase):
-
     def test_multiple_primaries(self):
         """
         Ensures that a site-level primary is not considered for a shared-core for a project.
@@ -261,8 +267,8 @@ class TestSharedCoreWithSiteWideConfigs(TankTestBase):
                 "code": "Primary",
                 "mac_path": "/a/b/c",
                 "windows_path": "C:\\b\\a",
-                "linux_path": "/a/b/c"
-            }
+                "linux_path": "/a/b/c",
+            },
         )
 
         sgtk.sgtk_from_path(self.project_root)
@@ -275,11 +281,10 @@ class TestSharedCoreWithSiteWideConfigs(TankTestBase):
         self.mockgun.update(
             "PipelineConfiguration",
             self.pipeline_configuration.get_shotgun_id(),
-            {"code": "Secondary"}
+            {"code": "Secondary"},
         )
         with self.assertRaisesRegex(
-            TankInitError,
-            "does not have a Primary pipeline configuration!"
+            TankInitError, "does not have a Primary pipeline configuration!"
         ):
             sgtk.sgtk_from_path(self.project_root)
 
@@ -290,13 +295,13 @@ class TestSharedCoreWithSiteWideConfigs(TankTestBase):
         self.mockgun.update(
             "PipelineConfiguration",
             self.pipeline_configuration.get_shotgun_id(),
-            {"windows_path": None, "linux_path": None, "mac_path": None}
+            {"windows_path": None, "linux_path": None, "mac_path": None},
         )
         # We do not support site-wide pipeline configurations from shared cores.
         with self.assertRaisesRegex(
             TankInitError,
             "cannot be instantiated because it is a distributed config. "
-            "To launch this kind of configuration, use the Bootstrap API instead."
+            "To launch this kind of configuration, use the Bootstrap API instead.",
         ):
             sgtk.sgtk_from_path(self.project_root)
 
@@ -318,7 +323,8 @@ class TestPipelineConfigurationEnumeration(ShotgunTestBase):
             "Project", {"name": "WithTankName", "tank_name": "with_tank_name"}
         )
         self.project_with_another_tank_name = self.mockgun.create(
-            "Project", {"name": "WithAnotherTankName", "tank_name": "with_another_tank_name"}
+            "Project",
+            {"name": "WithAnotherTankName", "tank_name": "with_another_tank_name"},
         )
 
         # Create four different kinds of pipeline configurations, 2 site wide ones and 2 project specific ones.
@@ -329,24 +335,27 @@ class TestPipelineConfigurationEnumeration(ShotgunTestBase):
                 "windows_path": os.path.join(self.tank_temp, "site_wide_path"),
                 "linux_path": os.path.join(self.tank_temp, "site_wide_path"),
                 "mac_path": os.path.join(self.tank_temp, "site_wide_path"),
-                "project": None
-            }
+                "project": None,
+            },
         )
 
         self.site_wide_desc = self.mockgun.create(
             "PipelineConfiguration",
             {
                 "code": "SiteWideDescriptor",
-                "descriptor": "sgtk:descriptor:path?path=" + os.path.join(self.tank_temp, "site_wide_descriptor"),
+                "descriptor": "sgtk:descriptor:path?path="
+                + os.path.join(self.tank_temp, "site_wide_descriptor"),
                 "plugin_ids": "basic.*",
                 "project": None,
                 "windows_path": None,
                 "linux_path": None,
-                "mac_path": None
-            }
+                "mac_path": None,
+            },
         )
         # Remove some values from the resulting dict, this will make validation easier in the tests.
-        self.site_wide_desc = self._remove_items(self.site_wide_desc, ["plugin_ids", "descriptor"])
+        self.site_wide_desc = self._remove_items(
+            self.site_wide_desc, ["plugin_ids", "descriptor"]
+        )
 
         self.proj_spec_path = self.mockgun.create(
             "PipelineConfiguration",
@@ -355,26 +364,27 @@ class TestPipelineConfigurationEnumeration(ShotgunTestBase):
                 "windows_path": os.path.join(self.tank_temp, "site_wide_path"),
                 "linux_path": os.path.join(self.tank_temp, "site_wide_path"),
                 "mac_path": os.path.join(self.tank_temp, "site_wide_path"),
-                "project": self.project_with_tank_name
-            }
+                "project": self.project_with_tank_name,
+            },
         )
 
         self.proj_spec_desc = self.mockgun.create(
             "PipelineConfiguration",
             {
                 "code": "ProjectSpecificDescriptor",
-                "descriptor": "sgtk:descriptor:path?path=" + os.path.join(
-                    self.tank_temp, "project_specific_descriptor"
-                ),
+                "descriptor": "sgtk:descriptor:path?path="
+                + os.path.join(self.tank_temp, "project_specific_descriptor"),
                 "plugin_ids": "basic.*",
                 "project": self.project_with_tank_name,
                 "windows_path": None,
                 "linux_path": None,
-                "mac_path": None
-            }
+                "mac_path": None,
+            },
         )
         # Remove some values from the resulting dict, this will make validation easier in the tests.
-        self.proj_spec_desc = self._remove_items(self.proj_spec_desc, ["plugin_ids", "descriptor"])
+        self.proj_spec_desc = self._remove_items(
+            self.proj_spec_desc, ["plugin_ids", "descriptor"]
+        )
 
         # Retrieve all the pipeline configuration info.
         self._sg_data = sgtk.pipelineconfig_factory._get_pipeline_configs(True)
@@ -387,7 +397,13 @@ class TestPipelineConfigurationEnumeration(ShotgunTestBase):
         """
         self.assertEqual(
             self._sg_data["projects"],
-            dict((proj["id"], proj) for proj in [self.project_with_tank_name, self.project_with_another_tank_name])
+            dict(
+                (proj["id"], proj)
+                for proj in [
+                    self.project_with_tank_name,
+                    self.project_with_another_tank_name,
+                ]
+            ),
         )
         self.assertEqual(
             self._sg_data["pipeline_configurations"],
@@ -395,11 +411,16 @@ class TestPipelineConfigurationEnumeration(ShotgunTestBase):
                 self.site_wide_path,
                 self.site_wide_desc,
                 self.proj_spec_path,
-                self.proj_spec_desc
-            ]
+                self.proj_spec_desc,
+            ],
         )
         self.assertEqual(
-            self._sg_data["local_storages"], [self._remove_items(self.primary_storage, "__retired")]
+            self._sg_data["local_storages"],
+            [
+                self._remove_items(
+                    self.primary_storage, ["__retired", "created_at", "updated_at"]
+                )
+            ],
         )
 
     def test_get_pipeline_configs_from_path(self):
@@ -407,10 +428,14 @@ class TestPipelineConfigurationEnumeration(ShotgunTestBase):
         Makes sure _get_pipeline_configs_from_path can match a path to the right list of possible pipelines.
         """
         # The path is the same for all platforms.
-        project_root = os.path.join(self.primary_storage["windows_path"], "with_tank_name")
+        project_root = os.path.join(
+            self.primary_storage["windows_path"], "with_tank_name"
+        )
 
         # Get the pipelines matching the WithTankName project.
-        pcs = sgtk.pipelineconfig_factory._get_pipeline_configs_for_path(project_root, self._sg_data)
+        pcs = sgtk.pipelineconfig_factory._get_pipeline_configs_for_path(
+            project_root, self._sg_data
+        )
 
         # Side wide pipeline and project specific pipelines should all match.
         self.assertEqual(
@@ -419,24 +444,22 @@ class TestPipelineConfigurationEnumeration(ShotgunTestBase):
                 self.site_wide_path,
                 self.site_wide_desc,
                 self.proj_spec_path,
-                self.proj_spec_desc
-            ]
+                self.proj_spec_desc,
+            ],
         )
 
         # The path is the same for all platforms.
-        project_root = os.path.join(self.primary_storage["windows_path"], "with_another_tank_name")
+        project_root = os.path.join(
+            self.primary_storage["windows_path"], "with_another_tank_name"
+        )
 
         # Get the pipelines matching the WithTankName project.
-        pcs = sgtk.pipelineconfig_factory._get_pipeline_configs_for_path(project_root, self._sg_data)
+        pcs = sgtk.pipelineconfig_factory._get_pipeline_configs_for_path(
+            project_root, self._sg_data
+        )
 
         # Only site-wide should match. project specific should not since they are for another project.
-        self.assertEqual(
-            pcs,
-            [
-                self.site_wide_path,
-                self.site_wide_desc
-            ]
-        )
+        self.assertEqual(pcs, [self.site_wide_path, self.site_wide_desc])
 
     def test_get_pipeline_configs_for_project(self):
         """
@@ -452,21 +475,15 @@ class TestPipelineConfigurationEnumeration(ShotgunTestBase):
                 self.site_wide_path,
                 self.site_wide_desc,
                 self.proj_spec_path,
-                self.proj_spec_desc
-            ]
+                self.proj_spec_desc,
+            ],
         )
 
         pcs = sgtk.pipelineconfig_factory._get_pipeline_configs_for_project(
             self.project_with_another_tank_name["id"], self._sg_data
         )
 
-        self.assertEqual(
-            pcs,
-            [
-                self.site_wide_path,
-                self.site_wide_desc
-            ]
-        )
+        self.assertEqual(pcs, [self.site_wide_path, self.site_wide_desc])
 
     def _remove_items(self, dictionary, keys_to_remove):
         """
@@ -477,18 +494,17 @@ class TestPipelineConfigurationEnumeration(ShotgunTestBase):
 
         :returns: A new dictionary without the keys specified.
         """
-        return dict(
-            (k, v) for k, v in dictionary.iteritems() if k not in keys_to_remove
-        )
+        return dict((k, v) for k, v in dictionary.items() if k not in keys_to_remove)
 
 
 class TestLookupCache(ShotgunTestBase):
-
     def test_cache_lookup_for_pipeline_configs(self):
         """
         The cache's schema has changed, ensure it stays backwards compatible.
         """
-        with patch("tank.util.shotgun.get_sg_connection", return_value=self.mockgun) as mock:
+        with patch(
+            "tank.util.shotgun.get_sg_connection", return_value=self.mockgun
+        ) as mock:
             # Force read from Shotgun, a connection must be made to Shotgun.
             mock.reset_mock()
             sgtk.pipelineconfig_factory._get_pipeline_configs(True)
@@ -520,6 +536,7 @@ class TestTankFromWithSiteConfig(TankTestBase):
     """
     Tests tank.tank_from_* with site configurations.
     """
+
     def setUp(self):
         super(TestTankFromWithSiteConfig, self).setUp()
         # Turn the config into a site configuration.
@@ -530,16 +547,12 @@ class TestTankFromWithSiteConfig(TankTestBase):
                 "windows_path": None,
                 "linux_path": None,
                 "mac_path": None,
-                "project": None
-            }
+                "project": None,
+            },
         )
 
         self.mockgun.create(
-            "PipelineConfiguration",
-            {
-                "code": "NoPath",
-                "project": self.project
-            }
+            "PipelineConfiguration", {"code": "NoPath", "project": self.project}
         )
 
     def test_from_path(self):
@@ -550,12 +563,14 @@ class TestTankFromWithSiteConfig(TankTestBase):
         try:
             result = tank.tank_from_path(self.project_root)
             self.assertEqual(result.project_path, self.project_root)
-            self.assertEqual(result.pipeline_configuration.get_path(), self.pipeline_config_root)
+            self.assertEqual(
+                result.pipeline_configuration.get_path(), self.pipeline_config_root
+            )
 
             self._invalidate_pipeline_configuration_yml()
             with self.assertRaisesRegex(
                 TankInitError,
-                "however that is not associated with the pipeline configuration"
+                "however that is not associated with the pipeline configuration",
             ):
                 tank.tank_from_path(self.project_root)
         finally:
@@ -569,12 +584,14 @@ class TestTankFromWithSiteConfig(TankTestBase):
         try:
             result = tank.tank_from_entity("Project", self.project["id"])
             self.assertEqual(result.project_path, self.project_root)
-            self.assertEqual(result.pipeline_configuration.get_path(), self.pipeline_config_root)
+            self.assertEqual(
+                result.pipeline_configuration.get_path(), self.pipeline_config_root
+            )
 
             self._invalidate_pipeline_configuration_yml()
             with self.assertRaisesRegex(
                 TankInitError,
-                "however that is not associated with the pipeline configuration"
+                "however that is not associated with the pipeline configuration",
             ):
                 tank.tank_from_entity("Project", self.project["id"])
         finally:
@@ -585,14 +602,17 @@ class TestTankFromWithSiteConfig(TankTestBase):
         Updates pipeline_configuration.yml to point to a pipeline configuration id
         that doesn't match.
         """
-        pc_yml = os.path.join(self.pipeline_config_root, "config", "core", "pipeline_configuration.yml")
+        pc_yml = os.path.join(
+            self.pipeline_config_root, "config", "core", "pipeline_configuration.yml"
+        )
         pc_yml_data = (
             "{ project_name: %s, use_shotgun_path_cache: true, pc_id: %d, "
-            "project_id: %d, pc_name: %s}\n\n" % (
+            "project_id: %d, pc_name: %s}\n\n"
+            % (
                 self.project["tank_name"],
                 9595,
                 self.project["id"],
-                self.sg_pc_entity["code"]
+                self.sg_pc_entity["code"],
             )
         )
         self.create_file(pc_yml, pc_yml_data)
@@ -608,16 +628,14 @@ class TestTankFromEntityWithMixedSlashes(TankTestBase):
         Check that a sgtk init works for this path
         """
         # only run this test on windows
-        if sys.platform == "win32":
+        if is_windows():
 
-            self.sg_pc_entity["windows_path"] = self.pipeline_config_root.replace("\\", "/")
+            self.sg_pc_entity["windows_path"] = self.pipeline_config_root.replace(
+                "\\", "/"
+            )
             self.add_to_sg_mock_db(self.sg_pc_entity)
             self.add_to_sg_mock_db(self.project)
-            self.add_to_sg_mock_db({
-                "type": "Shot",
-                "id": 1,
-                "project": self.project
-            })
+            self.add_to_sg_mock_db({"type": "Shot", "id": 1, "project": self.project})
 
             os.environ["TANK_CURRENT_PC"] = self.pipeline_config_root
             try:
@@ -654,17 +672,18 @@ class TestTankFromPathWindowsNoSlash(TankTestBase):
         for os_name in ["windows_path", "linux_path", "mac_path"]:
             # TODO make os specific roots
             roots["primary"][os_name] = self.sg_pc_entity[os_name]
-        roots_path = os.path.join(self.pipeline_config_root,
-                                  "config",
-                                  "core",
-                                  "roots.yml")
+        roots_path = os.path.join(
+            self.pipeline_config_root, "config", "core", "roots.yml"
+        )
         roots_file = open(roots_path, "w")
         roots_file.write(yaml.dump(roots))
         roots_file.close()
 
         # need a new pipeline config object that is
         # using the new roots def file we just created
-        self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
+        self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(
+            self.pipeline_config_root
+        )
         # push this new pipeline config into the tk api
         self.tk._Tank__pipeline_config = self.pipeline_configuration
         # force reload templates
@@ -675,17 +694,20 @@ class TestTankFromPathWindowsNoSlash(TankTestBase):
         Check that a sgtk init works for this path
         """
         # only run this test on windows
-        if sys.platform == "win32":
+        if is_windows():
 
             # probe a path inside of project
-            test_path = "%s\\%s\\toolkit_test_path" % (self.STORAGE_ROOT, self.PROJECT_NAME)
+            test_path = "%s\\%s\\toolkit_test_path" % (
+                self.STORAGE_ROOT,
+                self.PROJECT_NAME,
+            )
             if not os.path.exists(test_path):
                 os.makedirs(test_path)
             self.assertIsInstance(sgtk.sgtk_from_path(test_path), Tank)
 
 
 class TestTankFromPathOverlapStorage(TankTestBase):
-    """
+    r"""
     Tests edge case with overlapping storages
 
     For example, imagine the following setup:
@@ -729,7 +751,7 @@ class TestTankFromPathOverlapStorage(TankTestBase):
             "project": self.project_2,
             "windows_path": "F:\\temp\\bar_pc",
             "mac_path": "/tmp/bar_pc",
-            "linux_path": "/tmp/bar_pc"
+            "linux_path": "/tmp/bar_pc",
         }
 
         self.add_to_sg_mock_db(self.project_2)
@@ -756,14 +778,18 @@ class TestTankFromPathOverlapStorage(TankTestBase):
             roots["primary"][os_name] = os.path.dirname(self.project_root)
             roots["alternate_1"][os_name] = self.alt_storage_1[os_name]
             roots["alternate_2"][os_name] = self.alt_storage_2[os_name]
-        roots_path = os.path.join(self.pipeline_config_root, "config", "core", "roots.yml")
+        roots_path = os.path.join(
+            self.pipeline_config_root, "config", "core", "roots.yml"
+        )
         roots_file = open(roots_path, "w")
         roots_file.write(yaml.dump(roots))
         roots_file.close()
 
         # need a new pipeline config object that is using the new
         # roots def file we just created
-        self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(self.pipeline_config_root)
+        self.pipeline_configuration = sgtk.pipelineconfig_factory.from_path(
+            self.pipeline_config_root
+        )
         # push this new pipeline config into the tk api
         self.tk._Tank__pipeline_config = self.pipeline_configuration
         # force reload templates
@@ -790,16 +816,18 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         probe_path["darwin"] = "/tmp/foo/bar/test.ma"
         probe_path["linux2"] = "/tmp/foo/bar/test.ma"
 
-        test_path = probe_path[sys.platform]
+        test_path = probe_path[sgsix.platform]
         test_path_dir = os.path.dirname(test_path)
 
         if not os.path.exists(test_path_dir):
             os.makedirs(test_path_dir)
 
-        self.assertRaisesRegex(TankInitError,
-                                ".* is associated with more than one centralized Primary pipeline configuration",
-                                sgtk.sgtk_from_path,
-                                test_path)
+        self.assertRaisesRegex(
+            TankInitError,
+            ".* is associated with more than one centralized Primary pipeline configuration",
+            sgtk.sgtk_from_path,
+            test_path,
+        )
 
     def test_project_path_lookup_local_mode(self):
         """
@@ -818,7 +846,7 @@ class TestTankFromPathOverlapStorage(TankTestBase):
         probe_path["darwin"] = "/tmp/foo/bar/test.ma"
         probe_path["linux2"] = "/tmp/foo/bar/test.ma"
 
-        test_path = probe_path[sys.platform]
+        test_path = probe_path[sgsix.platform]
         test_path_dir = os.path.dirname(test_path)
 
         if not os.path.exists(test_path_dir):
@@ -849,7 +877,7 @@ class TestTankFromPathPCWithProjectWithoutTankName(TankTestBase):
             "name": "Project without tank_name set",
             "id": 77777,
             "archived": False,
-            "tank_name": None
+            "tank_name": None,
         }
 
         # define an additional pipeline config linked to the other project

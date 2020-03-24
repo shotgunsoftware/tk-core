@@ -22,7 +22,7 @@ border-width: 2px;
 }
 
 /* Style for the header text */
-#title { 
+#title {
 color: #30A7E3;
 margin-top: 15px;
 margin-bottom: 0px;
@@ -32,7 +32,7 @@ font-weight: bold;
 }
 
 /* Style for the details text */
-#details { 
+#details {
 margin-top: 1px;
 margin-left: 3px;
 margin-bottom: 0px;

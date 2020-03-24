@@ -48,17 +48,12 @@ def bootstrap_plugin():
             "sgtk_plugin_test_plugin", [plugin_python_path]
         )
     except ImportError:
-        logger.error(
-            "Unable to find 'sgtk_plugin_test_plugin', was the plugin baked?"
-        )
+        logger.error("Unable to find 'sgtk_plugin_test_plugin', was the plugin baked?")
         raise
 
     try:
         sgtk_plugin_test_plugin = imp.load_module(
-            "sgtk_plugin_test_plugin",
-            mfile,
-            pathname,
-            description
+            "sgtk_plugin_test_plugin", mfile, pathname, description
         )
     finally:
         if mfile:
@@ -87,4 +82,3 @@ def bootstrap_plugin():
 
 if __name__ == "__main__":
     bootstrap_plugin()
-

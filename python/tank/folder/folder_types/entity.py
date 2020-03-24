@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -47,7 +47,9 @@ class Entity(Folder):
             raise TankError("Missing name token in yml metadata file %s" % full_path)
 
         if entity_type is None:
-            raise TankError("Missing entity_type token in yml metadata file %s" % full_path)
+            raise TankError(
+                "Missing entity_type token in yml metadata file %s" % full_path
+            )
 
         if filters is None:
             raise TankError("Missing filters token in yml metadata file %s" % full_path)
@@ -62,24 +64,24 @@ class Entity(Folder):
             entity_type,
             sg_name_expression,
             entity_filter,
-            create_with_parent
+            create_with_parent,
         )
 
     def __init__(self, tk, parent, full_path, metadata, entity_type, field_name_expression, filters,
                  create_with_parent):
         """
         Constructor.
-        
+
         The filter syntax for deciding which folders to create
         is a dictionary, often looking something like this:
-        
+
              {
                  "logical_operator": "and",
                  "conditions": [ { "path": "project", "relation": "is", "values": [ FilterExpressionToken(<Project>) ] } ]
              }
-        
-        This is basically a shotgun API filter dictionary, but with interleaved tokens 
-        (e.g. the FilterExpressionToken object). Tank will resolve any Token fields prior to 
+
+        This is basically a shotgun API filter dictionary, but with interleaved tokens
+        (e.g. the FilterExpressionToken object). Tank will resolve any Token fields prior to
         passing the filter to Shotgun for evaluation.
         """
 
@@ -89,9 +91,7 @@ class Entity(Folder):
         self._tk = tk
         self._entity_type = entity_type
         self._entity_expression = shotgun_entity.EntityExpression(
-            self._tk,
-            self._entity_type,
-            field_name_expression
+            self._tk, self._entity_type, field_name_expression
         )
         self._filters = filters
         self._create_with_parent = create_with_parent
@@ -104,7 +104,7 @@ class Entity(Folder):
 
     def _should_item_be_processed(self, engine_str, is_primary):
         """
-        Checks if this node should be processed, given its deferred status.        
+        Checks if this node should be processed, given its deferred status.
         """
         # check our special condition - is this node set to be auto-created with its parent node?
         # note that primary nodes are always created with their parent nodes!
@@ -146,13 +146,19 @@ class Entity(Folder):
             name_field = shotgun_entity.get_sg_entity_name_field(self._entity_type)
             name_value = entity[name_field]
             # construct a full entity link dict w name, id, type
-            full_entity_dict = {"type": self._entity_type, "id": entity["id"], "name": name_value}
+            full_entity_dict = {
+                "type": self._entity_type,
+                "id": entity["id"],
+                "name": name_value,
+            }
 
             # register secondary entity links
             self._register_secondary_entities(io_receiver, my_path, entity)
 
             # call out to callback
-            io_receiver.make_entity_folder(my_path, full_entity_dict, self._config_metadata)
+            io_receiver.make_entity_folder(
+                my_path, full_entity_dict, self._config_metadata
+            )
 
             # copy files across
             self._copy_files_to_folder(io_receiver, my_path)
@@ -160,7 +166,11 @@ class Entity(Folder):
             # create a new entity dict including our own data and pass it down to children
             my_sg_data = copy.deepcopy(sg_data)
             my_sg_data_key = FilterExpressionToken.sg_data_key_for_folder_obj(self)
-            my_sg_data[my_sg_data_key] = {"type": self._entity_type, "id": entity["id"], "computed_name": folder_name}
+            my_sg_data[my_sg_data_key] = {
+                "type": self._entity_type,
+                "id": entity["id"],
+                "computed_name": folder_name,
+            }
 
             # process symlinks
             self._process_symlinks(io_receiver, my_path, my_sg_data)
@@ -171,12 +181,14 @@ class Entity(Folder):
 
     def _register_secondary_entities(self, io_receiver, path, entity):
         """
-        Looks in the entity dict for any linked entities and register these 
+        Looks in the entity dict for any linked entities and register these
         """
         # get all the link fields from the name expression
         for lf in self._entity_expression.get_shotgun_link_fields():
             entity_link = entity[lf]
-            io_receiver.register_secondary_entity(path, entity_link, self._config_metadata)
+            io_receiver.register_secondary_entity(
+                path, entity_link, self._config_metadata
+            )
 
     def __get_entities(self, sg_data):
         """
@@ -231,30 +243,30 @@ class Entity(Folder):
         Extracts the shotgun data necessary to create this object and all its parents.
         The shotgun_data input needs to contain a dictionary with a "seed". For example:
         { "Shot": {"type": "Shot", "id": 1234 } }
-        
-        
+
+
         This method will then first extend this structure to ensure that fields needed for
         folder creation are available:
         { "Shot": {"type": "Shot", "id": 1234, "code": "foo", "sg_status": "ip" } }
-        
+
         Now, if you have structure with Project > Sequence > Shot, the Shot level needs
-        to define a configuration entry roughly on the form 
+        to define a configuration entry roughly on the form
         filters: [ { "path": "sg_sequence", "relation": "is", "values": [ "$sequence" ] } ]
-        
+
         So in addition to getting the fields required for naming the current entry, we also
         get all the fields that are represented by $tokens. These will form the 'seed' for
         when we recurse to the parent level and do the same thing there.
-        
-        
+
+
         The return data is on the form:
         {
             'Project':   {'id': 4, 'name': 'Demo Project', 'type': 'Project'},
             'Sequence':  {'code': 'Sequence1', 'id': 2, 'name': 'Sequence1', 'type': 'Sequence'},
             'Shot':      {'code': 'shot_010', 'id': 2, 'type': 'Shot'}
-        }        
-        
+        }
+
         NOTE! Because we are using a dictionary where we key by type, it would not be possible
-        to have a pathway where the same entity type exists multiple times. For example an 
+        to have a pathway where the same entity type exists multiple times. For example an
         asset / sub asset relationship.
         """
 
@@ -266,8 +278,8 @@ class Entity(Folder):
         # for shot, which contains [sg_sequence is $sequence], e.g. the shot entry links explicitly
         # to the sequence entry. Because of this link, by the time we move upwards in the hierarchy
         # and reach sequence, we will already have an entry for sequence in the dictionary.
-        # 
-        # however, if we have a free-floating item in the hierarchy, this will not be 'seeded' 
+        #
+        # however, if we have a free-floating item in the hierarchy, this will not be 'seeded'
         # by its children as we move upwards - for example a step.
         my_sg_data_key = FilterExpressionToken.sg_data_key_for_folder_obj(self)
         if my_sg_data_key in tokens:
@@ -281,19 +293,22 @@ class Entity(Folder):
                 vals = condition["values"]
 
                 # note the $FROM$ condition below - this is a bit of a hack to make sure we exclude
-                # the special $FROM$ step based culling filter that is commonly used. Because steps are 
-                # sort of free floating and not associated with an entity, removing them from the 
+                # the special $FROM$ step based culling filter that is commonly used. Because steps are
+                # sort of free floating and not associated with an entity, removing them from the
                 # resolve should be fine in most cases.
 
                 # so - if at the shot level, we have defined the following filter:
                 # filters: [ { "path": "sg_sequence", "relation": "is", "values": [ "$sequence" ] } ]
-                # the $sequence will be represented by a Token object and we need to get a value for 
+                # the $sequence will be represented by a Token object and we need to get a value for
                 # this token. We fetch the id for this token and then, as we recurse upwards, and process
                 # the parent folder level (the sequence), this id will be the "seed" when we populate that
-                # level. 
+                # level.
 
-                if vals[0] and isinstance(vals[0], FilterExpressionToken) and not condition["path"].startswith(
-                        '$FROM$'):
+                if (
+                    vals[0]
+                    and isinstance(vals[0], FilterExpressionToken)
+                    and not condition["path"].startswith("$FROM$")
+                ):
                     expr_token = vals[0]
                     # we should get this field (eg. 'sg_sequence')
                     fields_to_retrieve.append(condition["path"])
@@ -301,12 +316,12 @@ class Entity(Folder):
                     # note that for List fields, the key is EntityType.field
                     link_map[condition["path"]] = expr_token
 
-                elif not condition["path"].startswith('$FROM$'):
+                elif not condition["path"].startswith("$FROM$"):
                     # this is a normal filter (we exclude the $FROM$ stuff since it is weird
-                    # and specific to steps.) So for example 'name must begin with X' - we want 
+                    # and specific to steps.) So for example 'name must begin with X' - we want
                     # to include these in the query where we are looking for the object, to
-                    # ensure that assets with names starting with X are not created for an 
-                    # asset folder node which explicitly excludes these via its filters. 
+                    # ensure that assets with names starting with X are not created for an
+                    # asset folder node which explicitly excludes these via its filters.
                     additional_filters.append(condition)
 
             # add some extra fields apart from the stuff in the config
@@ -314,12 +329,14 @@ class Entity(Folder):
             fields_to_retrieve.append(field_name)
 
             # TODO: AND the id query with this folder's query to make sure this path is
-            # valid for the current entity. Throw error if not so driver code knows to 
+            # valid for the current entity. Throw error if not so driver code knows to
             # stop processing. This would be needed in a setup where (for example) Asset
             # appears in several locations in the filesystem and that the filters are responsible
             # for determining which location to use for a particular asset.
             my_id = tokens[my_sg_data_key]["id"]
-            additional_filters.append({"path": "id", "relation": "is", "values": [my_id]})
+            additional_filters.append(
+                {"path": "id", "relation": "is", "values": [my_id]}
+            )
 
             # append additional filter cruft
             filter_dict = {"logical_operator": "and", "conditions": additional_filters}
@@ -329,7 +346,7 @@ class Entity(Folder):
 
             # there are now two reasons why find_one did not return:
             # - the specified entity id does not exist or has been deleted
-            # - there are filters which has filtered it out. For example imagine that you 
+            # - there are filters which has filtered it out. For example imagine that you
             #   have one folder structure for all assets starting with A and a second structure
             #   for the rest. This would be a filter condition (code does not start with A, and
             #   code starts with A respectively). In these cases, the object does exist but has been
@@ -339,8 +356,10 @@ class Entity(Folder):
 
                 # check if it is a missing id or just a filtered out thing
                 if sg.find_one(self._entity_type, [["id", "is", my_id]]) is None:
-                    raise TankError("Could not find Shotgun %s with id %s as required by "
-                                    "the folder creation setup." % (self._entity_type, my_id))
+                    raise TankError(
+                        "Could not find Shotgun %s with id %s as required by "
+                        "the folder creation setup." % (self._entity_type, my_id)
+                    )
                 else:
                     raise EntityLinkTypeMismatch()
 
@@ -357,16 +376,18 @@ class Entity(Folder):
             #
             for field in link_map:
 
-                # do some juggling to make sure we don't double process the 
+                # do some juggling to make sure we don't double process the
                 # name fields.
                 value = rec[field]
                 link_obj = link_map[field]
 
                 if value is None:
                     # field was none! - cannot handle that!
-                    raise TankError("The %s %s has a required field %s that \ndoes not have a value "
-                                    "set in Shotgun. \nDouble check the values and try "
-                                    "again!\n" % (self._entity_type, name, field))
+                    raise TankError(
+                        "The %s %s has a required field %s that \ndoes not have a value "
+                        "set in Shotgun. \nDouble check the values and try "
+                        "again!\n" % (self._entity_type, name, field)
+                    )
 
                 if isinstance(value, dict):
                     # If the value is a dict, assume it comes from a entity link.

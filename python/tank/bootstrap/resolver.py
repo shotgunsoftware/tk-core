@@ -19,8 +19,10 @@ import fnmatch
 import pprint
 
 from ..descriptor import (
-    Descriptor, create_descriptor, 
-    descriptor_uri_to_dict, is_descriptor_version_missing
+    Descriptor,
+    create_descriptor,
+    descriptor_uri_to_dict,
+    is_descriptor_version_missing,
 )
 from .errors import TankBootstrapError, TankBootstrapInvalidPipelineConfigurationError
 from .baked_configuration import BakedConfiguration
@@ -60,12 +62,7 @@ class ConfigurationResolver(object):
         "project.Project.tank_name",  # added by Squeeze,
     ]
 
-    def __init__(
-        self,
-        plugin_id,
-        project_id=None,
-        bundle_cache_fallback_paths=None
-    ):
+    def __init__(self, plugin_id, project_id=None, bundle_cache_fallback_paths=None):
         """
         Constructor
 
@@ -74,7 +71,9 @@ class ConfigurationResolver(object):
         :param bundle_cache_fallback_paths: Optional list of additional paths where apps are cached.
         """
         self._project_id = project_id
-        self._proj_entity_dict = {"type": "Project", "id": self._project_id} if self._project_id else None
+        self._proj_entity_dict = (
+            {"type": "Project", "id": self._project_id} if self._project_id else None
+        )
         self._plugin_id = plugin_id
         self._bundle_cache_fallback_paths = bundle_cache_fallback_paths or []
 
@@ -92,7 +91,9 @@ class ConfigurationResolver(object):
         :param sg_connection: Shotgun API instance
         :return: :class:`Configuration` instance
         """
-        log.debug("%s resolving configuration for descriptor %s" % (self, config_descriptor))
+        log.debug(
+            "%s resolving configuration for descriptor %s" % (self, config_descriptor)
+        )
 
         if config_descriptor is None:
             raise TankBootstrapError(
@@ -115,12 +116,14 @@ class ConfigurationResolver(object):
                     root_path,
                     constants.BAKED_DESCRIPTOR_FOLDER_NAME,
                     config_descriptor["name"],
-                    config_descriptor["version"]
+                    config_descriptor["version"],
                 )
                 if os.path.exists(baked_config_path):
                     log.debug("Located baked config in %s" % baked_config_path)
                     # only handle current os platform
-                    baked_config_root = ShotgunPath.from_current_os_path(baked_config_path)
+                    baked_config_root = ShotgunPath.from_current_os_path(
+                        baked_config_path
+                    )
                     break
 
             if baked_config_root is None:
@@ -131,7 +134,7 @@ class ConfigurationResolver(object):
                 Descriptor.CONFIG,
                 dict(path=baked_config_path, type="path"),
                 fallback_roots=self._bundle_cache_fallback_paths,
-                resolve_latest=False
+                resolve_latest=False,
             )
 
             # create an object to represent our configuration install
@@ -143,7 +146,7 @@ class ConfigurationResolver(object):
                 self._plugin_id,
                 None,
                 self._bundle_cache_fallback_paths,
-                cfg_descriptor
+                cfg_descriptor,
             )
         else:
             # now probe for a version token in the given descriptor.
@@ -153,13 +156,17 @@ class ConfigurationResolver(object):
             # if a version token is omitted, we request that the latest version
             # should be resolved.
             if is_descriptor_version_missing(config_descriptor):
-                log.debug("Base configuration descriptor does not have a "
-                          "version token defined. Will attempt to determine "
-                          "the latest version available.")
+                log.debug(
+                    "Base configuration descriptor does not have a "
+                    "version token defined. Will attempt to determine "
+                    "the latest version available."
+                )
                 resolve_latest = True
             else:
-                log.debug("Base configuration has a version token defined. "
-                          "Will use this fixed version for the bootstrap.")
+                log.debug(
+                    "Base configuration has a version token defined. "
+                    "Will use this fixed version for the bootstrap."
+                )
                 resolve_latest = False
 
             cfg_descriptor = create_descriptor(
@@ -167,14 +174,16 @@ class ConfigurationResolver(object):
                 Descriptor.CONFIG,
                 config_descriptor,
                 fallback_roots=self._bundle_cache_fallback_paths,
-                resolve_latest=resolve_latest
+                resolve_latest=resolve_latest,
             )
 
             return self._create_configuration_from_descriptor(
                 cfg_descriptor, sg_connection, pc_id=None
             )
 
-    def _create_configuration_from_descriptor(self, cfg_descriptor, sg_connection, pc_id):
+    def _create_configuration_from_descriptor(
+        self, cfg_descriptor, sg_connection, pc_id
+    ):
         """
         Creates a Configuration instance based on its associated descriptor object.
 
@@ -190,8 +199,8 @@ class ConfigurationResolver(object):
         if isinstance(cfg_descriptor, InstalledConfigDescriptor):
             if not cfg_descriptor.exists_local():
                 raise TankBootstrapError(
-                    "Installed pipeline configuration '%s' does not exist on disk!" %
-                    cfg_descriptor.get_uri()
+                    "Installed pipeline configuration '%s' does not exist on disk!"
+                    % cfg_descriptor.get_uri()
                 )
 
             config_path = ShotgunPath.from_current_os_path(cfg_descriptor.get_path())
@@ -206,7 +215,7 @@ class ConfigurationResolver(object):
                 self._project_id,
                 self._plugin_id,
                 pc_id,
-                LocalFileStorageManager.CACHE
+                LocalFileStorageManager.CACHE,
             )
 
             # resolve the config location both based on plugin id and current engine.
@@ -231,10 +240,12 @@ class ConfigurationResolver(object):
                 self._project_id,
                 self._plugin_id,
                 pc_id,
-                self._bundle_cache_fallback_paths
+                self._bundle_cache_fallback_paths,
             )
 
-    def _get_pipeline_configurations_for_project(self, pipeline_config_name, current_login, sg_connection):
+    def _get_pipeline_configurations_for_project(
+        self, pipeline_config_name, current_login, sg_connection
+    ):
         """
         Retrieves pipeline configurations from Shotgun that are compatible with the given project.
 
@@ -263,9 +274,13 @@ class ConfigurationResolver(object):
             ownership_filter = {
                 "filter_operator": "any",
                 "filters": [
-                    ["users.HumanUser.login", "is", current_login],         # ... that are owned by the user OR
-                    ["users", "is", None]                                   # ... that are shared.
-                ]
+                    [
+                        "users.HumanUser.login",
+                        "is",
+                        current_login,
+                    ],  # ... that are owned by the user OR
+                    ["users", "is", None],  # ... that are shared.
+                ],
             }
         elif pipeline_config_name == constants.PRIMARY_PIPELINE_CONFIG_NAME:
             # Only retrieve primary.
@@ -277,15 +292,23 @@ class ConfigurationResolver(object):
             ownership_filter = {
                 "filter_operator": "all",
                 "filters": [
-                    ["code", "is", pipeline_config_name], # .. we only want pipeines with a given name AND
+                    [
+                        "code",
+                        "is",
+                        pipeline_config_name,
+                    ],  # .. we only want pipeines with a given name AND
                     {
                         "filter_operator": "any",
                         "filters": [
-                            ["users.HumanUser.login", "is", current_login], # ... who are assigned to the user OR
-                            ["users", "is", None]                           # ... that are shared.
-                        ]
-                    }
-                ]
+                            [
+                                "users.HumanUser.login",
+                                "is",
+                                current_login,
+                            ],  # ... who are assigned to the user OR
+                            ["users", "is", None],  # ... that are shared.
+                        ],
+                    },
+                ],
             }
 
         filters = [
@@ -294,9 +317,9 @@ class ConfigurationResolver(object):
                 "filters": [
                     ["project", "is", self._proj_entity_dict],
                     ["project", "is", None],
-                ]
+                ],
             },
-            ownership_filter
+            ownership_filter,
         ]
 
         log.debug("Retrieving the pipeline configuration list:")
@@ -306,11 +329,12 @@ class ConfigurationResolver(object):
             "PipelineConfiguration",
             filters,
             self._PIPELINE_CONFIG_FIELDS,
-            order=[{"field_name": "id", "direction": "asc"}]
+            order=[{"field_name": "id", "direction": "asc"}],
         )
 
         log.debug(
-            "The following pipeline configurations were found: %s" % pprint.pformat(pipeline_configs)
+            "The following pipeline configurations were found: %s"
+            % pprint.pformat(pipeline_configs)
         )
 
         # loop over all pipeline configs
@@ -320,16 +344,17 @@ class ConfigurationResolver(object):
             # - Be a match against the resolver's associated plugin id
             # - Be a centralized config associated with the resolver's associated project
 
-            if self._matches_current_plugin_id(pipeline_config) or \
-                    self._is_centralized_pc_for_current_project(pipeline_config):
+            if self._matches_current_plugin_id(
+                pipeline_config
+            ) or self._is_centralized_pc_for_current_project(pipeline_config):
 
                 # extract the location information and place in special 'config_descriptor'
                 # field. Note that this may be None if for example the pipeline configuration
                 # is defined for another operating system.
                 try:
-                    pipeline_config["config_descriptor"] = self._create_config_descriptor(
-                        sg_connection, pipeline_config
-                    )
+                    pipeline_config[
+                        "config_descriptor"
+                    ] = self._create_config_descriptor(sg_connection, pipeline_config)
                     yield pipeline_config
 
                 except TankBootstrapInvalidPipelineConfigurationError as e:
@@ -371,22 +396,26 @@ class ConfigurationResolver(object):
 
         # centralized configs are defined by having their plugin_ids field set to None
         # centralized configs only support the path fields
-        plugin_ids = shotgun_pc_data.get("plugin_ids") or shotgun_pc_data.get("sg_plugin_ids")
+        plugin_ids = shotgun_pc_data.get("plugin_ids") or shotgun_pc_data.get(
+            "sg_plugin_ids"
+        )
         is_centralized_config = plugin_ids is None
 
         cfg_descriptor = None
 
         if path:
-
             if sg_descriptor_uri or sg_uploaded_config:
                 log.debug(
                     "Multiple configuration fields defined for pipeline configuration %s. "
-                    "Using path based field.", shotgun_pc_data["id"]
+                    "Using path based field.",
+                    shotgun_pc_data["id"],
                 )
 
             # Make sure that the config has a path for the current OS.
             if path.current_os is None:
-                log.debug("Config isn't setup for %s: %s", sys.platform, shotgun_pc_data)
+                log.debug(
+                    "Config isn't setup for %s: %s", sys.platform, shotgun_pc_data
+                )
                 cfg_descriptor = None
             else:
                 # Create an installed descriptor
@@ -486,13 +515,15 @@ class ConfigurationResolver(object):
             if sg_uploaded_config:
                 log.debug(
                     "Multiple configuration fields defined for pipeline configuration %s. "
-                    "Using descriptor based field.", shotgun_pc_data["id"]
+                    "Using descriptor based field.",
+                    shotgun_pc_data["id"],
                 )
 
             if shotgun_pc_data.get("sg_descriptor"):
                 log.debug(
                     "Both sg_descriptor and descriptor fields are set on pipeline configuration "
-                    "%s. Using descriptor field.", shotgun_pc_data["id"]
+                    "%s. Using descriptor field.",
+                    shotgun_pc_data["id"],
                 )
 
             cfg_descriptor = create_descriptor(
@@ -500,15 +531,18 @@ class ConfigurationResolver(object):
                 Descriptor.CONFIG,
                 sg_descriptor_uri,
                 fallback_roots=self._bundle_cache_fallback_paths,
-                resolve_latest=is_descriptor_version_missing(sg_descriptor_uri)
+                resolve_latest=is_descriptor_version_missing(sg_descriptor_uri),
             )
 
         elif sg_uploaded_config and not is_centralized_config:
 
-            if shotgun_pc_data.get("uploaded_config") and shotgun_pc_data.get("sg_uploaded_config"):
+            if shotgun_pc_data.get("uploaded_config") and shotgun_pc_data.get(
+                "sg_uploaded_config"
+            ):
                 log.debug(
                     "Both sg_uploaded_config and uploaded_config fields are set on pipeline configuration "
-                    "%s. Using uploaded_config field.", shotgun_pc_data["id"]
+                    "%s. Using uploaded_config field.",
+                    shotgun_pc_data["id"],
                 )
 
             if sg_uploaded_config == shotgun_pc_data.get("uploaded_config"):
@@ -520,7 +554,8 @@ class ConfigurationResolver(object):
             if shotgun_pc_data[uploaded_config_field_name].get("link_type") != "upload":
                 raise TankBootstrapInvalidPipelineConfigurationError(
                     "Cannot resolve uploaded config for pipeline configuration %s: "
-                    "Only uploaded attachments are currently supported" % shotgun_pc_data["id"]
+                    "Only uploaded attachments are currently supported"
+                    % shotgun_pc_data["id"]
                 )
 
             #
@@ -533,8 +568,10 @@ class ConfigurationResolver(object):
                 type="shotgun",
                 entity_type="PipelineConfiguration",
                 id=shotgun_pc_data["id"],
-                version=sg_uploaded_config["id"],  # Attachment id changes for each upload, so
-                                                   # this is a good way to detect changes in the zip file.
+                version=sg_uploaded_config[
+                    "id"
+                ],  # Attachment id changes for each upload, so
+                # this is a good way to detect changes in the zip file.
                 field=uploaded_config_field_name,
             )
 
@@ -553,29 +590,39 @@ class ConfigurationResolver(object):
                 # there is an uploaded config or descriptor specified but
                 # plugin_ids has not been set. This is a common thing
                 # to forget so it's important to provide a clear error message
-                msg = ("Pipeline Configuration %s does not have a "
-                       "plugin_ids pattern specified." % shotgun_pc_data["id"])
+                msg = (
+                    "Pipeline Configuration %s does not have a "
+                    "plugin_ids pattern specified." % shotgun_pc_data["id"]
+                )
 
             elif is_centralized_config:
                 # plugin_ids is None and no descriptor/uploaded config field set.
                 # assume this is a centralized config
-                msg = ("Centralized Pipeline Configuration %s does not have "
-                       "a mac/windows/linux_path field specified." % shotgun_pc_data["id"])
+                msg = (
+                    "Centralized Pipeline Configuration %s does not have "
+                    "a mac/windows/linux_path field specified." % shotgun_pc_data["id"]
+                )
 
             else:
                 # plugin ids is set but nothing else.
-                msg = ("Pipeline Configuration %s does not have "
-                       "a descriptor uri or uploaded config specified." % shotgun_pc_data["id"])
+                msg = (
+                    "Pipeline Configuration %s does not have "
+                    "a descriptor uri or uploaded config specified."
+                    % shotgun_pc_data["id"]
+                )
 
             raise TankBootstrapInvalidPipelineConfigurationError(msg)
 
         if cfg_descriptor is None:
-            log.debug("Unable to resolve descriptor for config: \n%s", pprint.pformat(shotgun_pc_data))
+            log.debug(
+                "Unable to resolve descriptor for config: \n%s",
+                pprint.pformat(shotgun_pc_data),
+            )
         else:
             log.debug(
                 "Config descriptor resolved. \nConfig: %s \nDescriptor: %r",
                 pprint.pformat(shotgun_pc_data),
-                cfg_descriptor
+                cfg_descriptor,
             )
 
         return cfg_descriptor
@@ -605,13 +652,10 @@ class ConfigurationResolver(object):
 
         configs = sorted(configs, key=make_pc_key)
 
-        first, remainder = configs[0: 1], configs[1:]
+        first, remainder = configs[0:1], configs[1:]
 
         if remainder:
-            log.warning(
-                "Too many %s level pipeline configurations found.",
-                level_name
-            )
+            log.warning("Too many %s level pipeline configurations found.", level_name)
             log.warning(
                 "Non-plugin id based pipeline configuration always take precedence over plugin id based"
                 "pipeline configurations. Lower id pipeline configurations always take precedence over"
@@ -621,8 +665,9 @@ class ConfigurationResolver(object):
             for pc in remainder:
                 log.warning(
                     "    - Name: %s, Id: %s, Plugin Ids: %s",
-                    pc["code"], pc["id"],
-                    pc.get("sg_plugin_ids") or pc.get("plugin_ids") or "None"
+                    pc["code"],
+                    pc["id"],
+                    pc.get("sg_plugin_ids") or pc.get("plugin_ids") or "None",
                 )
 
         # Return the first item if available, None otherwise.
@@ -674,7 +719,9 @@ class ConfigurationResolver(object):
                     log.debug("Found per-user fallback match: %s" % pc)
 
         # Step 2: Ensure each primary category only has one item.
-        project_primary = self._pick_primary_pipeline_config(primary_project_configs, "project")
+        project_primary = self._pick_primary_pipeline_config(
+            primary_project_configs, "project"
+        )
         site_primary = self._pick_primary_pipeline_config(primary_site_configs, "site")
 
         # Step 3: Ensure project primary override the site primary.
@@ -684,13 +731,15 @@ class ConfigurationResolver(object):
                 "'Primary' pipeline configuration '%d' for site.",
                 project_primary["id"],
                 self._project_id,
-                site_primary["id"]
+                site_primary["id"],
             )
         primary = project_primary or site_primary
 
         return primary, user_project_configs, user_site_configs
 
-    def find_matching_pipeline_configurations(self, pipeline_config_name, current_login, sg_connection):
+    def find_matching_pipeline_configurations(
+        self, pipeline_config_name, current_login, sg_connection
+    ):
         """
         Retrieves the pipeline configurations that can be used with this project.
 
@@ -707,16 +756,20 @@ class ConfigurationResolver(object):
             (case insensitive), then the ``project`` field and finally then ``id`` field.
         """
         pcs = self._get_pipeline_configurations_for_project(
-            pipeline_config_name,
-            current_login,
-            sg_connection,
+            pipeline_config_name, current_login, sg_connection
         )
 
         # Filter out pipeline configurations that are not usable.
-        primary, user_sandboxes_project, user_sandboxes_site = self._filter_pipeline_configurations(pcs)
+        (
+            primary,
+            user_sandboxes_project,
+            user_sandboxes_site,
+        ) = self._filter_pipeline_configurations(pcs)
 
         return self._sort_pipeline_configurations(
-            ([primary] if primary else []) + user_sandboxes_project + user_sandboxes_site
+            ([primary] if primary else [])
+            + user_sandboxes_project
+            + user_sandboxes_site
         )
 
     def _sort_pipeline_configurations(self, pcs):
@@ -728,6 +781,7 @@ class ConfigurationResolver(object):
         :returns: List of sorted pipeline configuration dictionaries.
         :rtype: list
         """
+
         def pc_key_func(pc):
             """
             Generates a key for a pipeline configuration. The key will ensure that a Primary
@@ -740,7 +794,12 @@ class ConfigurationResolver(object):
             else:
                 primary_index = 1
 
-            return (primary_index, pc["code"].lower(), pc["project"], pc["id"])
+            # Dictionary comparison is not supported in Python 3.  We will
+            # replicate the previous behavior by sorting on project ID, and putting
+            # configurations with no project first.
+            project = -1 if pc["project"] is None else pc["project"].get("id", 0)
+
+            return (primary_index, pc["code"].lower(), project, pc["id"])
 
         return sorted(pcs, key=pc_key_func)
 
@@ -769,7 +828,7 @@ class ConfigurationResolver(object):
         pipeline_config_identifier,
         fallback_config_descriptor,
         sg_connection,
-        current_login
+        current_login,
     ):
         """
         Return a configuration object by requesting a pipeline configuration
@@ -788,7 +847,8 @@ class ConfigurationResolver(object):
         :return: :class:`Configuration` instance
         """
         log.debug(
-            "%s resolving configuration from Shotgun Pipeline Configuration %s" % (self, pipeline_config_identifier)
+            "%s resolving configuration from Shotgun Pipeline Configuration %s"
+            % (self, pipeline_config_identifier)
         )
 
         pipeline_config = None
@@ -803,7 +863,11 @@ class ConfigurationResolver(object):
             )
 
             # Filter out pipeline configurations that are not usable.
-            (primary, user_project_configs, user_site_configs) = self._filter_pipeline_configurations(pcs)
+            (
+                primary,
+                user_project_configs,
+                user_site_configs,
+            ) = self._filter_pipeline_configurations(pcs)
 
             # Now select in order of priority. Note that the earliest pipeline encountered for sandboxes
             # is the one that will be selected.
@@ -828,30 +892,29 @@ class ConfigurationResolver(object):
                 # we may not have any pipeline configuration matches at all:
                 pipeline_config = None
         else:
-            log.debug("Will use pipeline configuration id '%s'" % pipeline_config_identifier)
+            log.debug(
+                "Will use pipeline configuration id '%s'" % pipeline_config_identifier
+            )
 
             log.debug("Requesting pipeline configuration data from Shotgun...")
 
             # Fetch the one and only config that matches this id.
             pipeline_config = sg_connection.find_one(
                 "PipelineConfiguration",
-                [
-                    ["id", "is", pipeline_config_identifier],
-                ],
-                self._PIPELINE_CONFIG_FIELDS
+                [["id", "is", pipeline_config_identifier]],
+                self._PIPELINE_CONFIG_FIELDS,
             )
 
             # If it doesn't exist, we're in trouble.
             if pipeline_config is None:
                 raise TankBootstrapError(
-                    "Pipeline configuration with id '%d' doesn't exist for project id '%d' in Shotgun." %
-                    (pipeline_config_identifier, self._proj_entity_dict["id"])
+                    "Pipeline configuration with id '%d' doesn't exist for project id '%d' in Shotgun."
+                    % (pipeline_config_identifier, self._proj_entity_dict["id"])
                 )
 
             pipeline_config["config_descriptor"] = self._create_config_descriptor(
                 sg_connection, pipeline_config
             )
-
 
         # now resolve the descriptor to use based on the pipeline config record
         # default to the fallback descriptor
@@ -867,7 +930,8 @@ class ConfigurationResolver(object):
             # Something was found in Shotgun, which means we've also potentially resolved its
             # descriptor!
             log.debug(
-                "The following pipeline configuration will be used: %s" % pprint.pformat(pipeline_config)
+                "The following pipeline configuration will be used: %s"
+                % pprint.pformat(pipeline_config)
             )
 
             pc_id = pipeline_config["id"]
@@ -876,21 +940,24 @@ class ConfigurationResolver(object):
             # can't do anything about that.
             if pipeline_config["config_descriptor"] is None:
                 log.debug(
-                    "No source set for %s on the Pipeline Configuration \"%s\" (id %d).",
+                    'No source set for %s on the Pipeline Configuration "%s" (id %d).',
                     sys.platform,
                     pipeline_config["code"],
-                    pipeline_config["id"]
+                    pipeline_config["id"],
                 )
                 raise TankBootstrapError(
                     "The Shotgun pipeline configuration with id %s has no source location specified for "
-                    "your operating system." %
-                    pipeline_config["id"]
+                    "your operating system." % pipeline_config["id"]
                 )
             config_descriptor = pipeline_config["config_descriptor"]
 
-            log.debug("The descriptor representing the config is %r" % config_descriptor)
+            log.debug(
+                "The descriptor representing the config is %r" % config_descriptor
+            )
 
-            return self._create_configuration_from_descriptor(config_descriptor, sg_connection, pc_id)
+            return self._create_configuration_from_descriptor(
+                config_descriptor, sg_connection, pc_id
+            )
 
     def _is_centralized_pc_for_current_project(self, shotgun_pc_data):
         """
@@ -927,7 +994,9 @@ class ConfigurationResolver(object):
         """
 
         # resolve plugins ids in so we first look at the new field and then at the legacy one.
-        plugin_ids = shotgun_pc_data.get("plugin_ids") or shotgun_pc_data.get("sg_plugin_ids")
+        plugin_ids = shotgun_pc_data.get("plugin_ids") or shotgun_pc_data.get(
+            "sg_plugin_ids"
+        )
 
         if plugin_ids is None or self._plugin_id is None:
             return False
@@ -938,7 +1007,10 @@ class ConfigurationResolver(object):
         # glob match each item
         for pattern in patterns:
             if fnmatch.fnmatch(self._plugin_id, pattern):
-                log.debug("Our plugin id '%s' matches pattern '%s'" % (self._plugin_id, plugin_ids))
+                log.debug(
+                    "Our plugin id '%s' matches pattern '%s'"
+                    % (self._plugin_id, plugin_ids)
+                )
                 return True
 
         return False

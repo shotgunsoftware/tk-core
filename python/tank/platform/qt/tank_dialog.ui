@@ -123,13 +123,13 @@ QLabel{
             </property>
             <property name="styleSheet">
              <string notr="true">/* want this stylesheet to apply to the label but not the tooltip */
-QLabel { 
+QLabel {
     color: rgba(250,250,250,180);
     font-size: 11px;
     margin-right: 8px;
     font-family: &quot;Open Sans&quot;;
     font-style: &quot;Regular&quot;;
-} 
+}
 
 
 </string>
@@ -279,7 +279,7 @@ background-image: url(:/Tank.Platform.Qt/arrow_pressed.png);
             </property>
             <property name="styleSheet">
              <string notr="true">#gradient {
-background-image: url(:/Tank.Platform.Qt/gradient.png); 
+background-image: url(:/Tank.Platform.Qt/gradient.png);
 border: none;
 }</string>
             </property>

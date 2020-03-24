@@ -14,11 +14,8 @@ import imp
 Bootstrap = imp.load_source(
     "bootstrap_unit_test",
     os.path.join(
-        os.environ["TK_CORE_REPO_ROOT"],
-        "docs",
-        "examples",
-        "bootstrap_hook.py"
-    )
+        os.environ["TK_CORE_REPO_ROOT"], "docs", "examples", "bootstrap_hook.py"
+    ),
 ).Bootstrap
 
 

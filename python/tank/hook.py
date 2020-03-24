@@ -12,7 +12,6 @@
 Defines the base class for all Tank Hooks.
 """
 import os
-import re
 import sys
 import logging
 import inspect
@@ -269,6 +268,7 @@ class Hook(object):
         """
         # avoid cyclic refs
         from .util import resolve_publish_path
+
         return resolve_publish_path(self.sgtk, sg_publish_data)
 
     def get_publish_paths(self, sg_publish_data_list):
@@ -293,6 +293,7 @@ class Hook(object):
         """
         # avoid cyclic refs
         from .util import resolve_publish_path
+
         paths = []
         for sg_publish_data in sg_publish_data_list:
             paths.append(resolve_publish_path(self.sgtk, sg_publish_data))
@@ -443,13 +444,18 @@ class Hook(object):
         """
         # avoid circular refs
         from .platform import framework
+
         try:
             engine = self.__parent.engine
         except:
-            raise TankError("Cannot load framework %s for %r - it does not have a "
-                            "valid engine property!" % (framework_instance_name, self.__parent))
+            raise TankError(
+                "Cannot load framework %s for %r - it does not have a "
+                "valid engine property!" % (framework_instance_name, self.__parent)
+            )
 
-        return framework.load_framework(engine, engine.get_env(), framework_instance_name)
+        return framework.load_framework(
+            engine, engine.get_env(), framework_instance_name
+        )
 
     def execute(self):
         """
@@ -457,12 +463,14 @@ class Hook(object):
         """
         return None
 
+
 class _HooksCache(object):
     """
     A thread-safe cache of loaded hooks.  This uses the hook file path
     and base class as the key to cache all hooks loaded by Toolkit in
     the current session.
     """
+
     def __init__(self):
         """
         Construction
@@ -478,6 +486,7 @@ class _HooksCache(object):
         :param func:    The function to wrap
         :returns:       The return value from func
         """
+
         def inner(self, *args, **kwargs):
             """
             Decorator inner function - executes the function within a lock.
@@ -489,6 +498,7 @@ class _HooksCache(object):
                 return func(self, *args, **kwargs)
             finally:
                 lock.release()
+
         return inner
 
     @thread_exclusive
@@ -534,14 +544,17 @@ class _HooksCache(object):
         """
         return len(self._cache)
 
+
 _hooks_cache = _HooksCache()
 _current_hook_baseclass = threading.local()
+
 
 def clear_hooks_cache():
     """
     Clears the cache where tank keeps hook classes
     """
     _hooks_cache.clear()
+
 
 def execute_hook(hook_path, parent, **kwargs):
     """
@@ -672,7 +685,8 @@ def create_hook_instance(hook_paths, parent, base_class=None):
 
         if not os.path.exists(hook_path):
             raise TankFileDoesNotExistError(
-                "Cannot execute hook '%s' - this file does not exist on disk!" % hook_path
+                "Cannot execute hook '%s' - this file does not exist on disk!"
+                % hook_path
             )
 
         # look to see if we've already loaded this hook into the cache
@@ -693,15 +707,19 @@ def create_hook_instance(hook_paths, parent, base_class=None):
             loaded_hook_class = load_plugin(
                 hook_path,
                 valid_base_class=_current_hook_baseclass.value,
-                alternate_base_classes=alternate_base_classes
+                alternate_base_classes=alternate_base_classes,
             )
 
             # add it to the cache...
-            _hooks_cache.add(hook_path, _current_hook_baseclass.value, loaded_hook_class)
+            _hooks_cache.add(
+                hook_path, _current_hook_baseclass.value, loaded_hook_class
+            )
 
             # ...and find it again - this is to avoid different threads ending up using
             # different instances of the loaded class.
-            found_hook_class = _hooks_cache.find(hook_path, _current_hook_baseclass.value)
+            found_hook_class = _hooks_cache.find(
+                hook_path, _current_hook_baseclass.value
+            )
 
         # keep track of the current base class:
         _current_hook_baseclass.value = found_hook_class

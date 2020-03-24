@@ -22,4 +22,3 @@ base_configuration:
 # The Plugin Id helps uniquely identify this plugin and can be
 # used to override and customize it.
 plugin_id: "test.plugin"
-

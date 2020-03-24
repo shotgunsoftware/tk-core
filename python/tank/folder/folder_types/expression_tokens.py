@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -18,6 +18,7 @@ dynamic tokens such as $something.
 import os
 
 from ...errors import TankError
+from tank_vendor import six
 
 
 class SymlinkToken(object):
@@ -59,26 +60,30 @@ class SymlinkToken(object):
             # - listfield tokens contain the value
             # - sg entity values contain the value in a compute_name key
             name_value = None
-            for (field_name, field_value) in sg_data.iteritems():
+            for (field_name, field_value) in sg_data.items():
 
                 if token == field_name:
                     if isinstance(field_value, dict):
                         # entity data is contained in a computed_name key (see above)
                         name_value = field_value.get("computed_name")
                         break
-                    elif isinstance(field_value, basestring):
+                    elif isinstance(field_value, six.string_types):
                         # listfields contain their values as a string
                         name_value = field_value
                         break
                     else:
                         raise ValueError(
                             "Cannot compute symlink target for %s: The reference token '%s' is of "
-                            "type %s and cannot be resolved." % (folder_obj, self._name, type(field_value))
+                            "type %s and cannot be resolved."
+                            % (folder_obj, self._name, type(field_value))
                         )
 
             if name_value is None:
-                raise TankError("Cannot compute symlink target for %s: The reference token '%s' cannot be resolved. "
-                                "Available tokens are %s." % (folder_obj, self._name, sg_data.keys()))
+                raise TankError(
+                    "Cannot compute symlink target for %s: The reference token '%s' cannot be resolved. "
+                    "Available tokens are %s."
+                    % (folder_obj, self._name, list(sg_data.keys()))
+                )
 
             return name_value
 
@@ -101,7 +106,9 @@ class CurrentStepExpressionToken(object):
         self._sg_task_step_link_field = sg_task_step_link_field
 
     def __repr__(self):
-        return "<CurrentStepId token. Task link field: %s>" % self._sg_task_step_link_field
+        return (
+            "<CurrentStepId token. Task link field: %s>" % self._sg_task_step_link_field
+        )
 
     def resolve_shotgun_data(self, shotgun_data):
         """
@@ -194,17 +201,26 @@ class FilterExpressionToken(object):
 
         elif isinstance(folder_obj, ListField):
             # append a token to the filter of the form Asset.sg_asset_type
-            sg_data_key = "%s.%s" % (folder_obj.get_entity_type(), folder_obj.get_field_name())
+            sg_data_key = "%s.%s" % (
+                folder_obj.get_entity_type(),
+                folder_obj.get_field_name(),
+            )
 
         elif isinstance(folder_obj, Static):
             # Static folders cannot be used with folder $expressions. This error
             # is typically caused by a missing .yml file
-            raise TankError("Static folder objects (%s) cannot be used in dynamic folder "
-                            "expressions using the \"$\" syntax. Perhaps you are missing "
-                            "the %s.yml file in your schema?" % (folder_obj, os.path.basename(folder_obj._full_path)))
+            raise TankError(
+                "Static folder objects (%s) cannot be used in dynamic folder "
+                'expressions using the "$" syntax. Perhaps you are missing '
+                "the %s.yml file in your schema?"
+                % (folder_obj, os.path.basename(folder_obj._full_path))
+            )
 
         else:
-            raise TankError("The folder object %s cannot be used in folder $expressions" % folder_obj)
+            raise TankError(
+                "The folder object %s cannot be used in folder $expressions"
+                % folder_obj
+            )
 
         return sg_data_key
 
@@ -220,8 +236,10 @@ class FilterExpressionToken(object):
         referenced_node = self._resolve_ref_r(parent)
 
         if referenced_node is None:
-            raise TankError("The configuration expression $%s could not be found in %s or in "
-                            "any of its parents." % (self._expression, parent))
+            raise TankError(
+                "The configuration expression $%s could not be found in %s or in "
+                "any of its parents." % (self._expression, parent)
+            )
 
         self._sg_data_key = self.sg_data_key_for_folder_obj(referenced_node)
 
@@ -247,7 +265,7 @@ class FilterExpressionToken(object):
 
         parent = folder_obj.get_parent()
         if parent is None:
-            return parent # end recursion!
+            return parent  # end recursion!
 
         # try parent
         return self._resolve_ref_r(parent)
@@ -264,8 +282,10 @@ class FilterExpressionToken(object):
         for this expression.
         """
         if self._sg_data_key not in shotgun_data:
-            raise TankError("Cannot resolve data key %s from "
-                            "shotgun data bundle %s" % (self._sg_data_key, shotgun_data))
+            raise TankError(
+                "Cannot resolve data key %s from "
+                "shotgun data bundle %s" % (self._sg_data_key, shotgun_data)
+            )
 
         value = shotgun_data[self._sg_data_key]
         return value
@@ -278,4 +298,3 @@ class FilterExpressionToken(object):
         part of this dictionary is associated with a particular $reference token.
         """
         return self._sg_data_key
-
