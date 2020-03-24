@@ -34,9 +34,13 @@ from tank.descriptor.errors import TankDescriptorError
 from tank.bootstrap import constants as bootstrap_constants
 
 from utils import (
-    cache_apps, authenticate, add_authentication_options,
-    OptionParserLineBreakingEpilog, cleanup_bundle_cache,
-    wipe_folder, automated_setup_documentation
+    cache_apps,
+    authenticate,
+    add_authentication_options,
+    OptionParserLineBreakingEpilog,
+    cleanup_bundle_cache,
+    wipe_folder,
+    automated_setup_documentation,
 )
 
 # Set up logging
@@ -89,14 +93,16 @@ def _process_configuration(sg_connection, config_uri_str):
         sg_connection,
         Descriptor.CONFIG,
         config_uri_dict,
-        resolve_latest=using_latest_config
+        resolve_latest=using_latest_config,
     )
     cfg_descriptor.ensure_local()
     logger.info("Resolved config %r" % cfg_descriptor)
     return cfg_descriptor
 
 
-def bake_config(sg_connection, config_uri, target_path, do_zip=False, sparse_caching=False):
+def bake_config(
+    sg_connection, config_uri, target_path, do_zip=False, sparse_caching=False
+):
     """
     Bake a Toolkit Pipeline configuration.
 
@@ -117,16 +123,14 @@ def bake_config(sg_connection, config_uri, target_path, do_zip=False, sparse_cac
     config_descriptor = _process_configuration(sg_connection, config_uri)
     # Control the output path by adding a folder based on the
     # configuration descriptor and version.
-    target_path = os.path.join(target_path, "%s-%s" % (
-        config_descriptor.system_name,
-        config_descriptor.version,
-    ))
+    target_path = os.path.join(
+        target_path,
+        "%s-%s" % (config_descriptor.system_name, config_descriptor.version,),
+    )
 
     # Check that target path doesn't exist
     if os.path.exists(target_path):
-        logger.info(
-            "The folder '%s' already exists on disk. Removing it" % target_path
-        )
+        logger.info("The folder '%s' already exists on disk. Removing it" % target_path)
         wipe_folder(target_path)
 
     # Create target path
@@ -146,8 +150,15 @@ def bake_config(sg_connection, config_uri, target_path, do_zip=False, sparse_cac
     # app_store descriptors to keep our bundle cache small and lets Toolkit
     # download the bundles from the app store at runtime.
     if sparse_caching:
-        logger.info("Performing sparse caching. Will not cache standard app_store bundles.")
-        cache_apps(sg_connection, config_descriptor, bundle_cache_root, _should_skip_caching_sparse)
+        logger.info(
+            "Performing sparse caching. Will not cache standard app_store bundles."
+        )
+        cache_apps(
+            sg_connection,
+            config_descriptor,
+            bundle_cache_root,
+            _should_skip_caching_sparse,
+        )
     else:
         cache_apps(sg_connection, config_descriptor, bundle_cache_root)
 
@@ -158,20 +169,18 @@ def bake_config(sg_connection, config_uri, target_path, do_zip=False, sparse_cac
         logger.info("This will be used when the config is executing.")
         # If sparse_caching is True, check if we need to cache tk-core or not
         if not sparse_caching or not _should_skip_caching_sparse(core_descriptor):
-            logger.info(
-                "Ensuring this core (%s) is cached..." % core_descriptor
-            )
+            logger.info("Ensuring this core (%s) is cached..." % core_descriptor)
             associated_core_desc = create_descriptor(
                 sg_connection,
                 Descriptor.CORE,
                 core_descriptor,
-                bundle_cache_root_override=bundle_cache_root
+                bundle_cache_root_override=bundle_cache_root,
             )
             associated_core_desc.ensure_local()
         else:
             logger.info(
-                "No need to cache this core (%s), it will be cached at runtime." %
-                config_descriptor.associated_core_descriptor
+                "No need to cache this core (%s), it will be cached at runtime."
+                % config_descriptor.associated_core_descriptor
             )
 
     # Remove unwanted files, e.g. git history.
@@ -180,18 +189,16 @@ def bake_config(sg_connection, config_uri, target_path, do_zip=False, sparse_cac
     logger.info("")
     logger.info("Bake complete")
     logger.info("")
-    logger.info("- Your configuration %r is ready in '%s'" % (config_descriptor, target_path))
+    logger.info(
+        "- Your configuration %r is ready in '%s'" % (config_descriptor, target_path)
+    )
     logger.info("- All dependencies have been baked out into the bundle_cache folder")
     logger.info("")
     logger.info("")
     logger.info("")
     if do_zip:
         logger.info("Zip archiving the baked configuration...")
-        archive_path = shutil.make_archive(
-            target_path,
-            "zip",
-            root_dir=target_path
-        )
+        archive_path = shutil.make_archive(target_path, "zip", root_dir=target_path)
         logger.info("Zip archive available here: %s" % archive_path)
 
 
@@ -229,23 +236,19 @@ For information about the various descriptors that can be used, see
 http://developer.shotgunsoftware.com/tk-core/descriptor
 
 
-""".format(automated_setup_documentation=automated_setup_documentation)
-    parser = OptionParserLineBreakingEpilog(usage=usage, description=desc, epilog=epilog)
-
-    parser.add_option(
-        "-d",
-        "--debug",
-        default=False,
-        action="store_true",
-        help="Enable debug logging"
+""".format(
+        automated_setup_documentation=automated_setup_documentation
+    )
+    parser = OptionParserLineBreakingEpilog(
+        usage=usage, description=desc, epilog=epilog
     )
 
     parser.add_option(
-        "-z",
-        "--zip",
-        default=False,
-        action="store_true",
-        help="Zip archive the config"
+        "-d", "--debug", default=False, action="store_true", help="Enable debug logging"
+    )
+
+    parser.add_option(
+        "-z", "--zip", default=False, action="store_true", help="Zip archive the config"
     )
 
     parser.add_option(
@@ -253,7 +256,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         "--sparse",
         default=False,
         action="store_true",
-        help="Don't cache any app_store bundles"
+        help="Don't cache any app_store bundles",
     )
 
     add_authentication_options(parser)
@@ -279,9 +282,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     except TankDescriptorError as e:
         # Check if it is a local path
         path = os.path.abspath(
-            os.path.expanduser(
-                os.path.expandvars(config_descriptor)
-            )
+            os.path.expanduser(os.path.expandvars(config_descriptor))
         )
         if os.path.isdir(path):
             logger.info("Using a dev descriptor for local path %s" % path)
@@ -289,10 +290,13 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
             # TODO: try to retrieve a valid version from the folder, e.g. with a
             # git tag from the folder.
             config_descriptor = "sgtk:descriptor:dev?name=%s&path=%s&version=latest" % (
-                os.path.basename(path), path
+                os.path.basename(path),
+                path,
             )
         else:
-            logger.error("%s is not a valid descriptor nor a local path." % config_descriptor)
+            logger.error(
+                "%s is not a valid descriptor nor a local path." % config_descriptor
+            )
             raise
     # Get output path
     target_path = remaining_args[1]
@@ -304,17 +308,13 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     # make sure we are properly connected
     try:
         sg_connection.find_one("HumanUser", [])
-    except Exception, e:
+    except Exception as e:
         logger.error("Could not communicate with Shotgun: %s" % e)
         return 3
 
     # we are all set.
     bake_config(
-        sg_connection,
-        config_descriptor,
-        target_path,
-        options.zip,
-        options.sparse
+        sg_connection, config_descriptor, target_path, options.zip, options.sparse
     )
 
     # all good!
@@ -332,7 +332,7 @@ if __name__ == "__main__":
     exit_code = 1
     try:
         exit_code = main()
-    except Exception, e:
+    except Exception as e:
         logger.exception("An exception was raised: %s" % e)
 
     sys.exit(exit_code)

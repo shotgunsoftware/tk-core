@@ -57,7 +57,9 @@ def _should_skip_caching(desc):
     return desc["type"] in ["dev", "path"]
 
 
-def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root, should_skip_caching_callable=None):
+def cache_apps(
+    sg_connection, cfg_descriptor, bundle_cache_root, should_skip_caching_callable=None
+):
     """
     Iterates over all environments within the given configuration descriptor
     and caches all items into the bundle cache root.
@@ -99,10 +101,7 @@ def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root, should_skip_cac
             if not _skip_caching(desc):
                 # resolve descriptor and clone cache into bundle cache
                 _cache_descriptor(
-                    sg_connection,
-                    Descriptor.ENGINE,
-                    desc,
-                    bundle_cache_root
+                    sg_connection, Descriptor.ENGINE, desc, bundle_cache_root
                 )
 
             for app in env.get_apps(eng):
