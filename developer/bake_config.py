@@ -27,7 +27,6 @@ sys.path.append(python_folder)
 # sgtk imports
 from tank import LogManager
 from tank.util import filesystem
-from tank.errors import TankError
 from tank.descriptor import Descriptor, descriptor_uri_to_dict
 from tank.descriptor import create_descriptor, is_descriptor_version_missing
 from tank.descriptor.errors import TankDescriptorError
@@ -63,6 +62,8 @@ def _should_skip_caching_sparse(desc):
     :param dict desc: Descriptor to check.
     :returns: ``True`` if the contents should be skipped, ``False`` otherwise.
     """
+    if desc["type"] in ["dev", "path"]:
+        logger.warning("'%s' will not be cached inside the configuration.", desc)
     return desc["type"] in ["dev", "path", "app_store"]
 
 
@@ -119,7 +120,6 @@ def bake_config(
     logger.info("Your Toolkit config '%s' will be processed." % config_uri)
     logger.info("Baking into '%s'" % (target_path))
 
-    config_uri_dict = descriptor_uri_to_dict(config_uri)
     config_descriptor = _process_configuration(sg_connection, config_uri)
     # Control the output path by adding a folder based on the
     # configuration descriptor and version.
@@ -279,7 +279,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     # Try to parse it, check if it is a local path if it fails
     try:
         descriptor_uri_to_dict(config_descriptor)
-    except TankDescriptorError as e:
+    except TankDescriptorError:
         # Check if it is a local path
         path = os.path.abspath(
             os.path.expanduser(os.path.expandvars(config_descriptor))
