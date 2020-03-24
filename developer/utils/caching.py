@@ -46,17 +46,9 @@ def _cache_descriptor(sg, desc_type, desc_dict, target_path):
 
 def _should_skip_caching(desc):
     """
-    Returns if a descriptor's content should not be cached.
-
-    We should not attempt to cache descriptors that are path-based. Not only they don't
-    need to be cached, but they might be using special tokens like CONFIG_FOLDER
-    that can't be understood outside a pipeline configuration.
-
-    :returns: ``True`` if the contents should be skipped, ``False`` otherwise.
+    By default, everything is cached.
     """
-    if desc["type"] in ["dev", "path"]:
-        logger.warning("'%s' will not be cached inside the configuration.", desc)
-    return desc["type"] in ["dev", "path"]
+    return False
 
 
 def cache_apps(
@@ -96,13 +88,25 @@ def cache_apps(
     for desc, bundle_type in _iterate_environment(env_filenames):
         # This will avoid us from attempting to process
         # the same descriptor twice.
-        if ("%s" % desc) in processed:
+        if repr(desc) in processed:
             continue
         # Mark it as processed now, so we don't have to evaluate skip caching
         # multiple times
-        processed.add("%s" % desc)
+        processed.add(repr(desc))
+
+        # We should not attempt to cache descriptors that are path-based. Not only don't they
+        # need to be cached, but they might be using special tokens like CONFIG_FOLDER
+        # that can't be understood outside a pipeline configuration. We also skip caching
+        # app_store descriptors in sparse configs since SG Desktop will take care of downloading
+        # these automatically from the app store at runtime.
+
+        if desc["type"] in ["dev", "path"]:
+            logger.warning("'%s' will not be cached inside the configuration.", desc)
+            continue
+
         if _skip_caching(desc):
             continue
+
         _cache_descriptor(sg_connection, bundle_type, desc, bundle_cache_root)
 
     logger.info(

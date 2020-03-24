@@ -49,22 +49,12 @@ logger = LogManager.get_logger("bake_config")
 BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 
 
-def _should_skip_caching_sparse(desc):
+def _should_skip_appstore(desc):
     """
-    Returns if a descriptor's content should not be cached.
-
-    We should not attempt to cache descriptors that are path-based. Not only don't they
-    need to be cached, but they might be using special tokens like CONFIG_FOLDER
-    that can't be understood outside a pipeline configuration. We also skip caching
-    app_store descriptors in sparse configs since SG Desktop will take care of downloading
-    these automatically from the app store at runtime.
-
-    :param dict desc: Descriptor to check.
+    Check if a descriptor is for the appstore so it can be skipped.
     :returns: ``True`` if the contents should be skipped, ``False`` otherwise.
     """
-    if desc["type"] in ["dev", "path"]:
-        logger.warning("'%s' will not be cached inside the configuration.", desc)
-    return desc["type"] in ["dev", "path", "app_store"]
+    return desc["type"] == "app_store"
 
 
 def _process_configuration(sg_connection, config_uri_str):
@@ -101,9 +91,7 @@ def _process_configuration(sg_connection, config_uri_str):
     return cfg_descriptor
 
 
-def bake_config(
-    sg_connection, config_uri, target_path, do_zip=False, sparse_caching=False
-):
+def bake_config(sg_connection, config_uri, target_path, do_zip=False, full_cache=False):
     """
     Bake a Toolkit Pipeline configuration.
 
@@ -115,7 +103,7 @@ def bake_config(
     :param config_uri: A TK config descriptor uri.
     :param target_path: Path to build
     :param do_zip: Optionally zip up config once it's baked. Defaults to False.
-    :param sparse_caching: Don't cache app_store bundles into the config. Defaults to False.
+    :param full_cache: Cache app_store bundles into the config. Defaults to False.
     """
     logger.info("Your Toolkit config '%s' will be processed." % config_uri)
     logger.info("Baking into '%s'" % (target_path))
@@ -149,26 +137,24 @@ def bake_config(
     # If sparse_caching is True, we use our own descriptor filter which skips
     # app_store descriptors to keep our bundle cache small and lets Toolkit
     # download the bundles from the app store at runtime.
-    if sparse_caching:
+    if full_cache:
+        cache_apps(
+            sg_connection, config_descriptor, bundle_cache_root,
+        )
+    else:
         logger.info(
             "Performing sparse caching. Will not cache standard app_store bundles."
         )
         cache_apps(
-            sg_connection,
-            config_descriptor,
-            bundle_cache_root,
-            _should_skip_caching_sparse,
+            sg_connection, config_descriptor, bundle_cache_root, _should_skip_appstore
         )
-    else:
-        cache_apps(sg_connection, config_descriptor, bundle_cache_root)
 
     # Now analyze what core the config needs and cache it if needed.
     core_descriptor = config_descriptor.associated_core_descriptor
     if core_descriptor:
         logger.info("Config defines a specific core in config/core/core_api.yml.")
         logger.info("This will be used when the config is executing.")
-        # If sparse_caching is True, check if we need to cache tk-core or not
-        if not sparse_caching or not _should_skip_caching_sparse(core_descriptor):
+        if full_cache or not _should_skip_appstore(core_descriptor):
             logger.info("Ensuring this core (%s) is cached..." % core_descriptor)
             associated_core_desc = create_descriptor(
                 sg_connection,
@@ -177,11 +163,6 @@ def bake_config(
                 bundle_cache_root_override=bundle_cache_root,
             )
             associated_core_desc.ensure_local()
-        else:
-            logger.info(
-                "No need to cache this core (%s), it will be cached at runtime."
-                % config_descriptor.associated_core_descriptor
-            )
 
     # Remove unwanted files, e.g. git history.
     cleanup_bundle_cache(bundle_cache_root)
@@ -230,6 +211,8 @@ Any type of Toolkit config descriptor uri can be used, if a version is not speci
 
 > python bake_config.py "sgtk:descriptor:app_store?name=tk-config-basic" /tmp/baked_configurations
 
+By default, bundles fetched from the Toolkit AppStore will not be cached.
+
 {automated_setup_documentation}
 
 For information about the various descriptors that can be used, see
@@ -253,10 +236,10 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
 
     parser.add_option(
         "-r",
-        "--sparse",
+        "--full",
         default=False,
         action="store_true",
-        help="Don't cache any app_store bundles",
+        help="Cache every bundle types.",
     )
 
     add_authentication_options(parser)
@@ -314,7 +297,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
 
     # we are all set.
     bake_config(
-        sg_connection, config_descriptor, target_path, options.zip, options.sparse
+        sg_connection, config_descriptor, target_path, options.zip, options.full
     )
 
     # all good!
