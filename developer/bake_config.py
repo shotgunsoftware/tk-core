@@ -31,6 +31,7 @@ from tank.descriptor import Descriptor, descriptor_uri_to_dict
 from tank.descriptor import create_descriptor, is_descriptor_version_missing
 from tank.descriptor.errors import TankDescriptorError
 from tank.bootstrap import constants as bootstrap_constants
+import functools
 
 from utils import (
     cache_apps,
@@ -49,12 +50,12 @@ logger = LogManager.get_logger("bake_config")
 BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 
 
-def _should_skip_appstore(desc):
+def _should_skip(types, desc):
     """
     Check if a descriptor is for the appstore so it can be skipped.
     :returns: ``True`` if the contents should be skipped, ``False`` otherwise.
     """
-    return desc["type"] == "app_store"
+    return desc["type"] in types
 
 
 def _process_configuration(sg_connection, config_uri_str):
@@ -91,7 +92,7 @@ def _process_configuration(sg_connection, config_uri_str):
     return cfg_descriptor
 
 
-def bake_config(sg_connection, config_uri, target_path, do_zip=False, full_cache=False):
+def bake_config(sg_connection, config_uri, target_path, do_zip, skip_bundles_types):
     """
     Bake a Toolkit Pipeline configuration.
 
@@ -102,11 +103,13 @@ def bake_config(sg_connection, config_uri, target_path, do_zip=False, full_cache
     :param sg_connection: Shotgun connection
     :param config_uri: A TK config descriptor uri.
     :param target_path: Path to build
-    :param do_zip: Optionally zip up config once it's baked. Defaults to False.
-    :param full_cache: Cache app_store bundles into the config. Defaults to False.
+    :param do_zip: Optionally zip up config once it's baked.
+    :param skip_bundles: Bundle types to skip.
     """
     logger.info("Your Toolkit config '%s' will be processed." % config_uri)
     logger.info("Baking into '%s'" % (target_path))
+
+    should_skip_functor = functools.partial(_should_skip, skip_bundles_types)
 
     config_descriptor = _process_configuration(sg_connection, config_uri)
     # Control the output path by adding a folder based on the
@@ -137,24 +140,14 @@ def bake_config(sg_connection, config_uri, target_path, do_zip=False, full_cache
     # If sparse_caching is True, we use our own descriptor filter which skips
     # app_store descriptors to keep our bundle cache small and lets Toolkit
     # download the bundles from the app store at runtime.
-    if full_cache:
-        cache_apps(
-            sg_connection, config_descriptor, bundle_cache_root,
-        )
-    else:
-        logger.info(
-            "Performing sparse caching. Will not cache standard app_store bundles."
-        )
-        cache_apps(
-            sg_connection, config_descriptor, bundle_cache_root, _should_skip_appstore
-        )
+    cache_apps(sg_connection, config_descriptor, bundle_cache_root, should_skip_functor)
 
     # Now analyze what core the config needs and cache it if needed.
     core_descriptor = config_descriptor.associated_core_descriptor
     if core_descriptor:
         logger.info("Config defines a specific core in config/core/core_api.yml.")
         logger.info("This will be used when the config is executing.")
-        if full_cache or not _should_skip_appstore(core_descriptor):
+        if not should_skip_functor(core_descriptor):
             logger.info("Ensuring this core (%s) is cached..." % core_descriptor)
             associated_core_desc = create_descriptor(
                 sg_connection,
@@ -235,11 +228,9 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     )
 
     parser.add_option(
-        "-r",
-        "--full",
-        default=False,
-        action="store_true",
-        help="Cache every bundle types.",
+        "--skip-bundles-types",
+        default="app_store,shotgun",
+        help="Comma separated list of bundle types to skip. Defaults to 'app_store,shotgun'.",
     )
 
     add_authentication_options(parser)
@@ -297,7 +288,11 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
 
     # we are all set.
     bake_config(
-        sg_connection, config_descriptor, target_path, options.zip, options.full
+        sg_connection,
+        config_descriptor,
+        target_path,
+        options.zip,
+        options.skip_bundles_types.split(","),
     )
 
     # all good!
