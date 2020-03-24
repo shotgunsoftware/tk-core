@@ -213,31 +213,33 @@ def _process_includes_r(file_name, data, context):
     fw_lookup = {}
     for include_file in include_files:
 
-        # path exists, so try to read it
-        included_data = g_yaml_cache.get(include_file) or {}
+        
+        if os.path.exists(include_file):
+            # path exists, so try to read it
+            included_data = g_yaml_cache.get(include_file) or {}
 
-        # now resolve this data before proceeding
-        included_data, included_fw_lookup = _process_includes_r(
-            include_file, included_data, context
-        )
+            # now resolve this data before proceeding
+            included_data, included_fw_lookup = _process_includes_r(
+                include_file, included_data, context
+            )
 
-        # update our big lookup dict with this included data:
-        if "frameworks" in included_data and isinstance(
-            included_data["frameworks"], dict
-        ):
-            # special case handling of frameworks to merge them from the various
-            # different included files rather than have frameworks section from
-            # one file overwrite the frameworks from previous includes!
-            lookup_dict = _resolve_frameworks(included_data, lookup_dict)
+            # update our big lookup dict with this included data:
+            if "frameworks" in included_data and isinstance(
+                included_data["frameworks"], dict
+            ):
+                # special case handling of frameworks to merge them from the various
+                # different included files rather than have frameworks section from
+                # one file overwrite the frameworks from previous includes!
+                lookup_dict = _resolve_frameworks(included_data, lookup_dict)
 
-            # also, keey track of where the framework has been referenced from:
-            for fw_name in included_data["frameworks"].keys():
-                fw_lookup[fw_name] = include_file
+                # also, keey track of where the framework has been referenced from:
+                for fw_name in included_data["frameworks"].keys():
+                    fw_lookup[fw_name] = include_file
 
-            del included_data["frameworks"]
+                del included_data["frameworks"]
 
-        fw_lookup.update(included_fw_lookup)
-        lookup_dict.update(included_data)
+            fw_lookup.update(included_fw_lookup)
+            lookup_dict.update(included_data)
 
     # now go through our own data, recursively, and replace any refs.
     # recurse down in dicts and lists

@@ -16,7 +16,9 @@ import ntpath
 from .shotgun_path import ShotgunPath
 from .platforms import is_windows
 from ..errors import TankError
+from .. import LogManager
 
+log = LogManager.get_logger(__name__)
 
 def _is_abs(path):
     """
@@ -86,9 +88,11 @@ def resolve_include(file_name, include):
 
     # make sure that the paths all exist
     if not os.path.exists(path):
-        raise TankError(
-            "Include resolve error in '%s': '%s' resolved to '%s' which does not exist!"
-            % (file_name, include, path)
-        )
+        log.warning("Include resolve error in '%s': '%s' resolved to '%s' which does not exist!"
+            % (file_name, include, path))
+        # raise TankError(
+        #     "Include resolve error in '%s': '%s' resolved to '%s' which does not exist!"
+        #     % (file_name, include, path)
+        # )
 
     return path
