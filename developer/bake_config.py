@@ -204,7 +204,7 @@ Any type of Toolkit config descriptor uri can be used, if a version is not speci
 
 > python bake_config.py "sgtk:descriptor:app_store?name=tk-config-basic" /tmp/baked_configurations
 
-By default, bundles fetched from the Toolkit AppStore will not be cached.
+By default, bundles pulled with the 'app_store' and 'shotgun' descriptor will not be cached.
 
 {automated_setup_documentation}
 
@@ -214,6 +214,8 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
 
 """.format(
         automated_setup_documentation=automated_setup_documentation
+    ).format(
+        script_name="bake_config.py"
     )
     parser = OptionParserLineBreakingEpilog(
         usage=usage, description=desc, epilog=epilog
