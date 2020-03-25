@@ -204,8 +204,8 @@ Any type of Toolkit config descriptor uri can be used, if a version is not speci
 
 > python bake_config.py "sgtk:descriptor:app_store?name=tk-config-basic" /tmp/baked_configurations
 
-By default, all bundle types are cached. If you want to skip bundles from the 'app_store'
-and 'shotgun' descriptor, add --skip-bundles=app_store,shotgun
+By default, all bundle types are cached. If you want to omit certain types, simply provide a comma seperated list
+of bundle types to skip, e.g. --skip-bundle-types=app_store,shotgun,github_release.
 
 {automated_setup_documentation}
 
@@ -232,8 +232,8 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
 
     parser.add_option(
         "--skip-bundles-types",
-        default="app_store,shotgun",
-        help="Comma separated list of bundle types to skip. Possible values are 'app_store', 'git', 'git_branch', 'shotgun'. Empty by default.",
+        default="",
+        help="Comma separated list of bundle types to skip. Possible values are 'app_store', 'git', 'git_branch', 'github_release', 'shotgun'. Empty by default.",
     )
 
     add_authentication_options(parser)
