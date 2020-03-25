@@ -164,6 +164,13 @@ sgtk.util.json
 sgtk.util.pickle
 -----------------------------------
 
+Toolkit's ``pickle`` module isn't a drop-in replacement for Python's, but a wrapper around Python's :mod:`pickle` module so collections and scalar types can be exchanged freely between Python 2 and Python 3 processes without having to worry about the subtle pickle serialization differences between the two.
+
+If you wish to serialize your own custom classes to be exchanged between Python 2 and Python 3, you will need to sanitize data unpickled with Python 2 that was pickled with Python 3 and vice-versa. Otheriwse, your data will contain unexpected ``bytes`` or ``unicode`` objects instead of utf-8 encoded ``str`` instances.
+
+.. note::
+    In the ``load``/``loads`` methods, Python 3's ``bytes`` is always decoded back to a utf-8 encoded ``str``. If you need to store arbitrary binary data, consider saving it as a base64 string instead.
+
 .. autofunction:: dump
 .. autofunction:: dumps
 .. autofunction:: load
