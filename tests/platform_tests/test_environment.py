@@ -15,6 +15,7 @@ from tank.errors import TankError
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import TankTestBase
 from tank_vendor import yaml
+from tank.platform.environment import Environment
 
 import copy
 
@@ -104,6 +105,57 @@ class TestEnvironment(TankTestBase):
             self.env.get_app_descriptor("test_engine", "test_app").configuration_schema,
             self.raw_app_metadata["configuration"],
         )
+
+    def test_engine_missing_location(self):
+
+        env_file = os.path.join(
+            self.project_config,
+            "env",
+            "invalid_settings",
+            "missing_engine_location.yml",
+        )
+        self.assertRaises(TankError, Environment, env_file)
+
+    def test_app_missing_location(self):
+
+        env_file = os.path.join(
+            self.project_config, "env", "invalid_settings", "missing_app_location.yml"
+        )
+        self.assertRaises(TankError, Environment, env_file)
+
+    def test_framework_missing_location(self):
+
+        env_file = os.path.join(
+            self.project_config,
+            "env",
+            "invalid_settings",
+            "missing_framework_location.yml",
+        )
+        self.assertRaises(TankError, Environment, env_file)
+
+    def test_engine_empty_settings(self):
+
+        env_file = os.path.join(
+            self.project_config, "env", "invalid_settings", "empty_engine_settings.yml"
+        )
+        self.assertRaises(TankError, Environment, env_file)
+
+    def test_app_empty_settings(self):
+
+        env_file = os.path.join(
+            self.project_config, "env", "invalid_settings", "empty_app_settings.yml"
+        )
+        self.assertRaises(TankError, Environment, env_file)
+
+    def test_framework_empty_settings(self):
+
+        env_file = os.path.join(
+            self.project_config,
+            "env",
+            "invalid_settings",
+            "empty_framework_settings.yml",
+        )
+        self.assertRaises(TankError, Environment, env_file)
 
 
 class TestDumpEnvironment(TankTestBase):
