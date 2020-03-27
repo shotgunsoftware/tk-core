@@ -236,7 +236,9 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
 
     parser.add_option(
         "--skip-bundle-types",
-        default="",
+        # You can't have an empty default optional value, so we'll pick something
+        # and treat it accordingly.
+        default="none",
         help="Comma separated list of bundle types to skip. Possible values are 'app_store', "
         "'git', 'git_branch', 'github_release', 'shotgun'. Empty by default.",
     )
@@ -307,6 +309,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
             "path",
             "github_release",
             "shotgun",
+            "none",
         ]:
             logger.error("Unknown bundle type: %s" % bundle_type)
             return 4
