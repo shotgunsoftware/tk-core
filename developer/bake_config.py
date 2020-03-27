@@ -235,7 +235,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     )
 
     parser.add_option(
-        "--skip-bundles-types",
+        "--skip-bundle-types",
         default="",
         help="Comma separated list of bundle types to skip. Possible values are 'app_store', "
         "'git', 'git_branch', 'github_release', 'shotgun'. Empty by default.",
@@ -294,13 +294,26 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         logger.error("Could not communicate with Shotgun: %s" % e)
         return 3
 
+    # Strip any extra whitespaces and make sure every bundle type exists.
+    skip_bundle_types = options.skip_bundle_types.split(",")
+    skip_bundle_types = [bundle_type.strip() for bundle_type in skip_bundle_types]
+    for bundle_type in skip_bundle_types:
+        if bundle_type not in [
+            "app_store",
+            "git",
+            "git_branch",
+            "manual",
+            "dev",
+            "path",
+            "github_release",
+            "shotgun",
+        ]:
+            logger.error("Unknown bundle type: %s" % bundle_type)
+            return 4
+
     # we are all set.
     bake_config(
-        sg_connection,
-        config_descriptor,
-        target_path,
-        options.zip,
-        options.skip_bundles_types.split(","),
+        sg_connection, config_descriptor, target_path, options.zip, skip_bundle_types,
     )
 
     # all good!
