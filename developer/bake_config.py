@@ -27,11 +27,11 @@ sys.path.append(python_folder)
 # sgtk imports
 from tank import LogManager
 from tank.util import filesystem
-from tank.errors import TankError
 from tank.descriptor import Descriptor, descriptor_uri_to_dict
 from tank.descriptor import create_descriptor, is_descriptor_version_missing
 from tank.descriptor.errors import TankDescriptorError
 from tank.bootstrap import constants as bootstrap_constants
+import functools
 
 from utils import (
     cache_apps,
@@ -50,20 +50,16 @@ logger = LogManager.get_logger("bake_config")
 BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 
 
-def _should_skip_caching_sparse(desc):
+def _should_skip(types, desc):
     """
-    Returns if a descriptor's content should not be cached.
+    Check if a descriptor should be skipped.
 
-    We should not attempt to cache descriptors that are path-based. Not only don't they
-    need to be cached, but they might be using special tokens like CONFIG_FOLDER
-    that can't be understood outside a pipeline configuration. We also skip caching
-    app_store descriptors in sparse configs since SG Desktop will take care of downloading
-    these automatically from the app store at runtime.
+    :param list types: List of descriptor type names that should be skipped.
+    :param dict desc: Descriptor dictionary to check.
 
-    :param dict desc: Descriptor to check.
     :returns: ``True`` if the contents should be skipped, ``False`` otherwise.
     """
-    return desc["type"] in ["dev", "path", "app_store"]
+    return desc["type"] in types
 
 
 def _process_configuration(sg_connection, config_uri_str):
@@ -100,9 +96,7 @@ def _process_configuration(sg_connection, config_uri_str):
     return cfg_descriptor
 
 
-def bake_config(
-    sg_connection, config_uri, target_path, do_zip=False, sparse_caching=False
-):
+def bake_config(sg_connection, config_uri, target_path, do_zip, skip_bundles_types):
     """
     Bake a Toolkit Pipeline configuration.
 
@@ -113,13 +107,14 @@ def bake_config(
     :param sg_connection: Shotgun connection
     :param config_uri: A TK config descriptor uri.
     :param target_path: Path to build
-    :param do_zip: Optionally zip up config once it's baked. Defaults to False.
-    :param sparse_caching: Don't cache app_store bundles into the config. Defaults to False.
+    :param do_zip: Optionally zip up config once it's baked.
+    :param skip_bundles: Bundle types to skip.
     """
     logger.info("Your Toolkit config '%s' will be processed." % config_uri)
     logger.info("Baking into '%s'" % (target_path))
 
-    config_uri_dict = descriptor_uri_to_dict(config_uri)
+    should_skip_functor = functools.partial(_should_skip, skip_bundles_types)
+
     config_descriptor = _process_configuration(sg_connection, config_uri)
     # Control the output path by adding a folder based on the
     # configuration descriptor and version.
@@ -149,26 +144,14 @@ def bake_config(
     # If sparse_caching is True, we use our own descriptor filter which skips
     # app_store descriptors to keep our bundle cache small and lets Toolkit
     # download the bundles from the app store at runtime.
-    if sparse_caching:
-        logger.info(
-            "Performing sparse caching. Will not cache standard app_store bundles."
-        )
-        cache_apps(
-            sg_connection,
-            config_descriptor,
-            bundle_cache_root,
-            _should_skip_caching_sparse,
-        )
-    else:
-        cache_apps(sg_connection, config_descriptor, bundle_cache_root)
+    cache_apps(sg_connection, config_descriptor, bundle_cache_root, should_skip_functor)
 
     # Now analyze what core the config needs and cache it if needed.
     core_descriptor = config_descriptor.associated_core_descriptor
     if core_descriptor:
         logger.info("Config defines a specific core in config/core/core_api.yml.")
         logger.info("This will be used when the config is executing.")
-        # If sparse_caching is True, check if we need to cache tk-core or not
-        if not sparse_caching or not _should_skip_caching_sparse(core_descriptor):
+        if not should_skip_functor(core_descriptor):
             logger.info("Ensuring this core (%s) is cached..." % core_descriptor)
             associated_core_desc = create_descriptor(
                 sg_connection,
@@ -177,11 +160,6 @@ def bake_config(
                 bundle_cache_root_override=bundle_cache_root,
             )
             associated_core_desc.ensure_local()
-        else:
-            logger.info(
-                "No need to cache this core (%s), it will be cached at runtime."
-                % config_descriptor.associated_core_descriptor
-            )
 
     # Remove unwanted files, e.g. git history.
     cleanup_bundle_cache(bundle_cache_root)
@@ -230,6 +208,9 @@ Any type of Toolkit config descriptor uri can be used, if a version is not speci
 
 > python bake_config.py "sgtk:descriptor:app_store?name=tk-config-basic" /tmp/baked_configurations
 
+By default, all bundle types are cached. If you want to omit certain types, simply provide a comma seperated list
+of bundle types to skip, e.g. --skip-bundle-types=app_store,shotgun,github_release.
+
 {automated_setup_documentation}
 
 For information about the various descriptors that can be used, see
@@ -238,6 +219,8 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
 
 """.format(
         automated_setup_documentation=automated_setup_documentation
+    ).format(
+        script_name="bake_config.py"
     )
     parser = OptionParserLineBreakingEpilog(
         usage=usage, description=desc, epilog=epilog
@@ -252,11 +235,12 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     )
 
     parser.add_option(
-        "-r",
-        "--sparse",
-        default=False,
-        action="store_true",
-        help="Don't cache any app_store bundles",
+        "--skip-bundle-types",
+        # You can't have an empty default optional value, so we'll pick something
+        # and treat it accordingly.
+        default="none",
+        help="Comma separated list of bundle types to skip. Possible values are 'app_store', "
+        "'git', 'git_branch', 'github_release', 'shotgun'. Empty by default.",
     )
 
     add_authentication_options(parser)
@@ -279,7 +263,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     # Try to parse it, check if it is a local path if it fails
     try:
         descriptor_uri_to_dict(config_descriptor)
-    except TankDescriptorError as e:
+    except TankDescriptorError:
         # Check if it is a local path
         path = os.path.abspath(
             os.path.expanduser(os.path.expandvars(config_descriptor))
@@ -312,9 +296,24 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
         logger.error("Could not communicate with Shotgun: %s" % e)
         return 3
 
+    # Strip any extra whitespaces and make sure every bundle type exists.
+    skip_bundle_types = options.skip_bundle_types.split(",")
+    skip_bundle_types = [bundle_type.strip() for bundle_type in skip_bundle_types]
+    for bundle_type in skip_bundle_types:
+        if bundle_type not in [
+            "app_store",
+            "git",
+            "git_branch",
+            "github_release",
+            "shotgun",
+            "none",
+        ]:
+            logger.error("Unknown bundle type: %s" % bundle_type)
+            return 4
+
     # we are all set.
     bake_config(
-        sg_connection, config_descriptor, target_path, options.zip, options.sparse
+        sg_connection, config_descriptor, target_path, options.zip, skip_bundle_types,
     )
 
     # all good!
