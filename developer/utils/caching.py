@@ -104,6 +104,14 @@ def cache_apps(
             logger.warning("'%s' will not be cached inside the configuration.", desc)
             continue
 
+        if desc["type"] == "manual":
+            logger.warning(
+                "'%s' will not be cached because they are deprecated. "
+                "We recommend you convert them to a git-based or path/dev descriptors.",
+                desc,
+            )
+            continue
+
         if _skip_caching(desc):
             continue
 
