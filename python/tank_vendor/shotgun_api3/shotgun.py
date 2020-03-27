@@ -4098,10 +4098,6 @@ class CACertsHTTPSConnection(http_client.HTTPConnection):
         """
         # Pop that argument,
         self.__ca_certs = kwargs.pop("ca_certs")
-        try:
-            kwargs['ssl_version'] = ssl.PROTOCOL_TLSv1_2
-        except Exception:
-            pass
         http_client.HTTPConnection.__init__(self, *args, **kwargs)
 
     def connect(self):
@@ -4111,7 +4107,8 @@ class CACertsHTTPSConnection(http_client.HTTPConnection):
         self.sock = ssl.wrap_socket(
             self.sock,
             ca_certs=self.__ca_certs,
-            cert_reqs=ssl.CERT_REQUIRED
+            cert_reqs=ssl.CERT_REQUIRED,
+            ssl_version=ssl.PROTOCOL_TLS
         )
 
 
