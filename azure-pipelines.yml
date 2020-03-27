@@ -40,7 +40,6 @@ variables:
 jobs:
 - template: build-pipeline.yml@templates
   parameters:
-    tk_toolchain_ref: debug_azure
     # After the tests have run, run the integration tests.
     post_tests_steps:
       - bash: python tests/integration_tests/run_integration_tests.py
