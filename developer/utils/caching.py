@@ -33,7 +33,7 @@ def _cache_descriptor(sg, desc_type, desc_dict, target_path):
     """
     desc = create_descriptor(sg, desc_type, desc_dict, fallback_roots=[target_path])
     desc.ensure_local()
-    desc_size_kb = filesystem.compute_folder_size(desc.get_path()) / 1024
+    desc_size_kb = filesystem.compute_folder_size(desc.get_path()) // 1024
     logger.info(
         "Caching %s into plugin bundle cache (size %d KiB)" % (desc, desc_size_kb)
     )
@@ -46,18 +46,14 @@ def _cache_descriptor(sg, desc_type, desc_dict, target_path):
 
 def _should_skip_caching(desc):
     """
-    Returns if a descriptor's content should not be cached.
-
-    We should not attempt to cache descriptors that are path-based. Not only they don't
-    need to be cached, but they might be using special tokens like CONFIG_FOLDER
-    that can't be understood outside a pipeline configuration.
-
-    :returns: ``True`` if the contents should be skipped, ``False`` otherwise.
+    By default, everything is cached.
     """
-    return desc["type"] in ["dev", "path"]
+    return False
 
 
-def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
+def cache_apps(
+    sg_connection, cfg_descriptor, bundle_cache_root, should_skip_caching_callable=None
+):
     """
     Iterates over all environments within the given configuration descriptor
     and caches all items into the bundle cache root.
@@ -65,10 +61,20 @@ def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
     :param sg_connection: Shotgun connection
     :param cfg_descriptor: Config descriptor
     :param bundle_cache_root: Root where to cache payload
+    :param should_skip_caching_callable: Optional callable that will check the descriptor
+        and return `True` or `False` to indicate whether it should be cached.
+        Callable must accept a single parameter, the descriptor as a `dict`, and
+        return a `bool`. If `None`, the default :func:`_should_skip_caching()` will be used
     """
     # introspect the config and cache everything
     logger.info("Introspecting environments...")
     env_path = os.path.join(cfg_descriptor.get_path(), "env")
+
+    # set the function to call when checking whether to cache the bundle
+    if should_skip_caching_callable:
+        _skip_caching = should_skip_caching_callable
+    else:
+        _skip_caching = _should_skip_caching
 
     # find all environment files
     env_filenames = []
@@ -78,6 +84,54 @@ def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
             logger.info("> found %s" % filename)
             env_filenames.append(os.path.join(env_path, filename))
 
+    processed = set()
+    for desc, bundle_type in _iterate_environment(env_filenames):
+        # This will avoid us from attempting to process
+        # the same descriptor twice.
+        if repr(desc) in processed:
+            continue
+        # Mark it as processed now, so we don't have to evaluate skip caching
+        # multiple times
+        processed.add(repr(desc))
+
+        # We should not attempt to cache descriptors that are path-based. Not only don't they
+        # need to be cached, but they might be using special tokens like CONFIG_FOLDER
+        # that can't be understood outside a pipeline configuration. We also skip caching
+        # app_store descriptors in sparse configs since SG Desktop will take care of downloading
+        # these automatically from the app store at runtime.
+
+        if desc["type"] in ["dev", "path"]:
+            logger.warning("'%s' will not be cached inside the configuration.", desc)
+            continue
+
+        if desc["type"] == "manual":
+            logger.warning(
+                "'%s' will not be cached because they are deprecated. "
+                "We recommend you convert them to a git-based or path/dev descriptors.",
+                desc,
+            )
+            continue
+
+        if _skip_caching(desc):
+            continue
+
+        _cache_descriptor(sg_connection, bundle_type, desc, bundle_cache_root)
+
+    logger.info(
+        "Total size of bundle cache: %d KiB"
+        % (filesystem.compute_folder_size(bundle_cache_root) // 1024)
+    )
+
+
+def _iterate_environment(env_filenames):
+    """
+    Iterates over the environment files and yields each descriptor
+    found.
+
+    :param list env_filenames: List of environment files to search for descriptors.
+
+    :returns: A generator of descriptor ``dict``.
+    """
     # traverse and cache
     for env_path in env_filenames:
         logger.info("Processing %s..." % env_path)
@@ -85,32 +139,17 @@ def cache_apps(sg_connection, cfg_descriptor, bundle_cache_root):
 
         for eng in env.get_engines():
             desc = env.get_engine_descriptor_dict(eng)
-            if _should_skip_caching(desc):
-                continue
-            # resolve descriptor and clone cache into bundle cache
-            _cache_descriptor(sg_connection, Descriptor.ENGINE, desc, bundle_cache_root)
+
+            yield desc, Descriptor.ENGINE
 
             for app in env.get_apps(eng):
                 desc = env.get_app_descriptor_dict(eng, app)
-                if _should_skip_caching(desc):
-                    continue
                 # resolve descriptor and clone cache into bundle cache
-                _cache_descriptor(
-                    sg_connection, Descriptor.APP, desc, bundle_cache_root
-                )
+                yield desc, Descriptor.APP
 
         for framework in env.get_frameworks():
             desc = env.get_framework_descriptor_dict(framework)
-            if _should_skip_caching(desc):
-                continue
-            _cache_descriptor(
-                sg_connection, Descriptor.FRAMEWORK, desc, bundle_cache_root
-            )
-
-    logger.info(
-        "Total size of bundle cache: %d KiB"
-        % (filesystem.compute_folder_size(bundle_cache_root) / 1024)
-    )
+            yield desc, Descriptor.FRAMEWORK
 
 
 def _on_rm_error(func, path, exc_info):

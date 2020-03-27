@@ -20,7 +20,7 @@ logger = LogManager.get_logger("utils.authentication")
 automated_setup_documentation = """For automated build setups, you can provide a specific shotgun API script name and
 and corresponding script key:
 
-> python populate_bundle_cache.py
+> python {script_name}
             --shotgun-host='https://mysite.shotgunstudio.com'
             --shotgun-script-name='plugin_build'
             --shotgun-script-key='<script-key-here>'
