@@ -52,7 +52,11 @@ BUNDLE_CACHE_ROOT_FOLDER_NAME = "bundle_cache"
 
 def _should_skip(types, desc):
     """
-    Check if a descriptor is for the appstore so it can be skipped.
+    Check if a descriptor should be skipped.
+
+    :param list types: List of descriptor type names that should be skipped.
+    :param dict desc: Descriptor dictionary to check.
+
     :returns: ``True`` if the contents should be skipped, ``False`` otherwise.
     """
     return desc["type"] in types
@@ -233,7 +237,8 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     parser.add_option(
         "--skip-bundles-types",
         default="",
-        help="Comma separated list of bundle types to skip. Possible values are 'app_store', 'git', 'git_branch', 'github_release', 'shotgun'. Empty by default.",
+        help="Comma separated list of bundle types to skip. Possible values are 'app_store', "
+        "'git', 'git_branch', 'github_release', 'shotgun'. Empty by default.",
     )
 
     add_authentication_options(parser)
