@@ -51,6 +51,17 @@ def _ensure_contains_str(input_value, visited):
             item = input_value[i]
             input_value[i] = _ensure_contains_str(item, visited)
         return input_value
+    elif isinstance(input_value, tuple):
+        # Tuples are immutable, so we don't need to track which one have been
+        # converted so far.
+        #
+        # We could start to track tuples instances that have been converted and reinsert
+        # those, but it would make the code a lot more complex for very little benefit.
+        # We need to modify other types in place as we can create circular dependencies,
+        # but you cannot create a circular dependency of tuples, so this is not an issue.
+        return tuple(
+            _ensure_contains_str(tuple_item, visited) for tuple_item in input_value
+        )
     # If we've found a new dict, we must ensure each key and value
     # is not a unicode object.
     elif isinstance(input_value, dict) and id(input_value) not in visited:
