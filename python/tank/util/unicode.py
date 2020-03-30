@@ -56,7 +56,7 @@ def _ensure_contains_str(input_value, visited):
         # converted so far.
         #
         # We could start to track tuples instances that have been converted and reinsert
-        # those, but it make the code a lot more complex for very little benefit.
+        # those, but it would make the code a lot more complex for very little benefit.
         # We need to modify other types in place as we can create circular dependencies,
         # but you cannot create a circular dependency of tuples, so this is not an issue.
         return tuple(
