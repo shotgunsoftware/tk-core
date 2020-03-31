@@ -119,13 +119,21 @@ class Environment(object):
                 'No settings found for "{}" in {}'.format(name, self.disk_location)
             )
 
-        # Make sure the location key exists
-        if "location" not in settings:
-            raise TankError(
-                '"location" key missing in the definition of "{}" in file {}'.format(
-                    name, self.disk_location
+        # Make sure the required keys exist and have values
+        required_keys = [constants.ENVIRONMENT_LOCATION_KEY]
+        for key in required_keys:
+            if key not in settings:
+                raise TankError(
+                    '"{}" key missing in the definition of "{}" in file {}'.format(
+                        key, name, self.disk_location
+                    )
                 )
-            )
+            if settings[key] is None:
+                raise TankError(
+                    '"{}" key of "{}" has an empty definition in file {}'.format(
+                        key, name, self.disk_location
+                    )
+                )
 
     def __is_item_disabled(self, settings):
         """
