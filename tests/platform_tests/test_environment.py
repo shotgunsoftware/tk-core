@@ -157,6 +157,27 @@ class TestEnvironment(TankTestBase):
         )
         self.assertRaises(TankError, Environment, env_file)
 
+    def test_app_empty_location(self):
+        env_file = os.path.join(
+            self.project_config, "env", "invalid_settings", "empty_app_location.yml"
+        )
+        self.assertRaises(TankError, Environment, env_file)
+
+    def test_engine_empty_location(self):
+        env_file = os.path.join(
+            self.project_config, "env", "invalid_settings", "empty_engine_location.yml"
+        )
+        self.assertRaises(TankError, Environment, env_file)
+
+    def test_framework_empty_location(self):
+        env_file = os.path.join(
+            self.project_config,
+            "env",
+            "invalid_settings",
+            "empty_framework_location.yml",
+        )
+        self.assertRaises(TankError, Environment, env_file)
+
 
 class TestDumpEnvironment(TankTestBase):
     def setUp(self):
