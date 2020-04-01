@@ -731,6 +731,8 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
 
 """.format(
         automated_setup_documentation=automated_setup_documentation
+    ).format(
+        script_name="build_plugin.py"
     )
     parser = OptionParserLineBreakingEpilog(
         usage=usage, description=desc, epilog=epilog

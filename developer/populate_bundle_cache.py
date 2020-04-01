@@ -150,6 +150,8 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
 
 """.format(
         automated_setup_documentation=automated_setup_documentation
+    ).format(
+        script_name="populate_bundle_cache.py"
     )
     parser = OptionParserLineBreakingEpilog(
         usage=usage, description=desc, epilog=epilog
