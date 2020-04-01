@@ -232,10 +232,17 @@ class Entity(Folder):
 
         entities_to_remove = []
         for entity in entities:
+            if entity.get('type') == 'Step' and entity.get('code') == 'Production':
+                if entity not in entities_to_remove:
+                    entities_to_remove.append(entity)
+            if entity.get('type') == 'Task' and entity.get('step').get('name') == 'Production':
+                if entity not in entities_to_remove:
+                    entities_to_remove.append(entity)
             if entity.get('milestone'):
-                entities_to_remove.append(entity)
+                if entity not in entities_to_remove:
+                    entities_to_remove.append(entity)
 
-        # Filtered list without the milestone tasks
+        # Filtered entities
         return [entity for entity in entities if entity not in entities_to_remove]
 
     def extract_shotgun_data_upwards(self, sg, shotgun_data):
