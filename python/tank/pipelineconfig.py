@@ -421,10 +421,12 @@ class PipelineConfiguration(object):
             yaml_cache.g_yaml_cache.merge_cache_items(cache_items)
         except Exception as e:
             log.warning("Could not merge yaml cache %s: %s" % (cache_file, e))
+        else:
+            log.debug(
+                "Read %s items from yaml cache %s" % (len(cache_items), cache_file)
+            )
         finally:
             fh.close()
-
-        log.debug("Read %s items from yaml cache %s" % (len(cache_items), cache_file))
 
     ########################################################################################
     # general access and properties
