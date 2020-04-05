@@ -364,6 +364,13 @@ class TankBundle(object):
         """
         return self.__log
 
+    @property
+    def engine(self):
+        """
+        The engine associated with this bundle.
+        """
+        raise NotImplementedError
+
     ##########################################################################################
     # public methods
 

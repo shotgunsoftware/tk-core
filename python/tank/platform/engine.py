@@ -539,6 +539,13 @@ class Engine(TankBundle):
         return self.tank.shotgun        
 
     @property
+    def engine(self):
+        """
+        The engine, returns self.
+        """
+        return self
+
+    @property
     def environment(self):
         """
         A dictionary with information about the environment.
