@@ -3242,7 +3242,7 @@ def find_app_settings(engine_name, app_name, tk, context, engine_instance_name=N
                 # incomplete context at this stage!
                 validation.validate_settings(app, tk, None, schema, settings)
             except TankError as e:
-                core_logger.debug(
+                core_logger.warning(
                     "Could not validate app settings for the "
                     '"%s" app instance in the "%s" environment '
                     'on the "%s" engine.\nError: %s' % (app, env_name, engine_name, e)
