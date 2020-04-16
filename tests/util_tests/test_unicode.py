@@ -64,3 +64,21 @@ class TestUnicode(TestCase):
         # The second element should always be pointing back to the original
         # array object.
         self.assertEqual(id(value), id(converted_value[1]))
+
+    def test_tuple_are_converted(self):
+        """
+        Ensure tuples are properly iterated on and converted.
+        """
+        # Create an array with a circular reference.
+        value = ["item"]
+        a_tuple = (value, value, value)
+        value.append(a_tuple)
+
+        converted_value = sgtk.util.unicode.ensure_contains_str(value)
+
+        # We should still have a tuple at position 1.
+        self.assertIsInstance(converted_value[1], tuple)
+        # Each item of the tuple should be the same instance
+        self.assertEqual(id(value), id(converted_value[1][0]))
+        self.assertEqual(id(value), id(converted_value[1][1]))
+        self.assertEqual(id(value), id(converted_value[1][2]))

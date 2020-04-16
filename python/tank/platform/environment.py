@@ -108,6 +108,33 @@ class Environment(object):
         self.__framework_locations = {}
         self.__extract_locations()
 
+    def __validate_settings(self, name, settings):
+        """
+        Validates the engine/app/framework settings dictionary
+        """
+
+        # Make sure the settings dict is not empty
+        if not settings:
+            raise TankError(
+                'No settings found for "{}" in {}'.format(name, self.disk_location)
+            )
+
+        # Make sure the required keys exist and have values
+        required_keys = [constants.ENVIRONMENT_LOCATION_KEY]
+        for key in required_keys:
+            if key not in settings:
+                raise TankError(
+                    '"{}" key missing in the definition of "{}" in file {}'.format(
+                        key, name, self.disk_location
+                    )
+                )
+            if settings[key] is None:
+                raise TankError(
+                    '"{}" key of "{}" has an empty definition in file {}'.format(
+                        key, name, self.disk_location
+                    )
+                )
+
     def __is_item_disabled(self, settings):
         """
         handles the checks to see if an item is disabled
@@ -140,6 +167,7 @@ class Environment(object):
             return
         # iterate over the apps dict
         for app, app_settings in data.items():
+            self.__validate_settings(app, app_settings)
             if not self.__is_item_disabled(app_settings):
                 self.__app_settings[(engine, app)] = app_settings
 
@@ -151,6 +179,7 @@ class Environment(object):
             return
         # iterate over the engine dict
         for engine, engine_settings in engines.items():
+            self.__validate_settings(engine, engine_settings)
             # Check for engine disabled
             if not self.__is_item_disabled(engine_settings):
                 engine_apps = engine_settings.pop("apps")
@@ -165,6 +194,7 @@ class Environment(object):
             return
 
         for fw, fw_settings in frameworks.items():
+            self.__validate_settings(fw, fw_settings)
             # Check for framework disabled
             if not self.__is_item_disabled(fw_settings):
                 self.__framework_settings[fw] = fw_settings

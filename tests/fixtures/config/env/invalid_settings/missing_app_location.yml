@@ -1,0 +1,6 @@
+engines:
+    test_engine:
+        location: {"type": "dev", "path": "engine/path"}
+        apps:
+            test_app:
+                test_setting: test
