@@ -104,14 +104,16 @@ class TestShotgunEntity(TankTestBase):
         Test retrieving the right "name" field for various entity types.
         """
         # Test most standard entities, and check that custom entities use "code"
-        sg_schema = self.mockgun.schema_read()
         for entity_name in KNOWN_SG_ENTITIES:
             field_name = sgtk.util.get_sg_entity_name_field(entity_name)
+            # Some entities do not have a name field, those can be skipped.
             if field_name is None:
                 continue
-
+            # Find the schema for that field
             entity_schema = self.mockgun.schema_field_read(entity_name, field_name)
+            # Make sure one field was returned
             assert field_name in entity_schema, entity_name
+            # Sanity check that the field is a text field.
             assert entity_schema[field_name]["data_type"]["value"] == "text"
 
     def test_entity_to_string(self):
