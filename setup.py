@@ -32,7 +32,7 @@ def get_version():
     # will be picked up from the most recently added tag.
     try:
         version_git = subprocess.check_output(
-            ["git", "describe", "--abbrev=0"]
+            ["git", "describe", "--abbrev=0"], universal_newlines=True
         ).rstrip()
         return version_git
     except:
