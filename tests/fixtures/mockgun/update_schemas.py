@@ -15,7 +15,7 @@ This script will update the Shotgun schema for Mockgun.
 from __future__ import print_function
 import sys
 
-sys.path.append("../../../python")
+sys.path.insert(0, "../../../python")
 
 from sgtk.authentication import ShotgunAuthenticator
 from tank_vendor.shotgun_api3.lib import mockgun
