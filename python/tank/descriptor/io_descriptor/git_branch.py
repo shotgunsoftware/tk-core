@@ -126,8 +126,9 @@ class IODescriptorGitBranch(IODescriptorGit):
         try:
             # clone the repo, switch to the given branch
             # then reset to the given commit
+            commands = ['checkout -q "%s"' % self._version]
             self._clone_then_execute_git_commands(
-                destination_path, [], depth=1, ref=self._version
+                destination_path, commands, depth=1, ref=self._branch
             )
         except Exception as e:
             raise TankDescriptorError(
