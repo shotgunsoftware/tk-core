@@ -3222,27 +3222,32 @@ def find_app_settings(engine_name, app_name, tk, context, engine_instance_name=N
                 schema = app_desc.configuration_schema
                 settings = env.get_app_settings(eng, app)
 
-                # check that the context contains all the info that the app needs
+                # Check that the context contains all the info that the app needs.
                 validation.validate_context(app_desc, context)
 
-                # make sure the current operating system platform is supported
+                # Make sure the current operating system platform is supported.
                 validation.validate_platform(app_desc)
 
-                # for multi engine apps, make sure our engine is supported
+                # For multi engine apps, make sure our engine is supported.
                 supported_engines = app_desc.supported_engines
                 if supported_engines and engine_name not in supported_engines:
                     raise TankError(
-                        "The app could not be loaded since it only supports "
-                        "the following engines: %s" % supported_engines
+                        "The app doesn't support the engine %s. It supports "
+                        "the following engines: %s" % (engine_name, supported_engines)
                     )
 
-                # finally validate the configuration.
+                # Finally validate the configuration.
                 # Note: context is set to None as we don't
                 # want to fail validation because of an
                 # incomplete context at this stage!
                 validation.validate_settings(app, tk, None, schema, settings)
-            except TankError:
-                # ignore any Tank exceptions to skip invalid apps
+            except TankError as e:
+                core_logger.warning(
+                    "Could not validate app settings for the "
+                    '"%s" app instance in the "%s" environment '
+                    'on the "%s" engine.\nError: %s' % (app, env_name, engine_name, e)
+                )
+                # Ignore any Tank exceptions to skip invalid apps.
                 continue
 
             # settings are valid so add them to return list:
