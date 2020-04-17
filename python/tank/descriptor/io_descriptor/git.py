@@ -88,7 +88,9 @@ class IODescriptorGit(IODescriptorDownloadable):
             self._path = self._path[:-1]
 
     @LogManager.log_timing
-    def _clone_then_execute_git_commands(self, target_path, commands, depth=None, ref=None):
+    def _clone_then_execute_git_commands(
+        self, target_path, commands, depth=None, ref=None
+    ):
         """
         Clones the git repository into the given location and
         executes the given list of git commands::
@@ -146,9 +148,14 @@ class IODescriptorGit(IODescriptorDownloadable):
         # complications in cleanup scenarios and with file copying. We want
         # each repo that we clone to be completely independent on a filesystem level.
         log.debug("Git Cloning %r into %s" % (self, target_path))
-        depth = '--depth %s' % depth if depth else ''
-        ref = '-b %s' % ref if ref else ''
-        cmd = "git clone --no-hardlinks -q \"%s\" %s \"%s\" %s" % (self._path, ref, target_path, depth)
+        depth = "--depth %s" % depth if depth else ""
+        ref = "-b %s" % ref if ref else ""
+        cmd = 'git clone --no-hardlinks -q "%s" %s "%s" %s' % (
+            self._path,
+            ref,
+            target_path,
+            depth,
+        )
 
         run_with_os_system = True
 
@@ -264,7 +271,9 @@ class IODescriptorGit(IODescriptorDownloadable):
         )
         filesystem.ensure_folder_exists(clone_tmp)
         try:
-            return self._clone_then_execute_git_commands(clone_tmp, commands, depth, ref)
+            return self._clone_then_execute_git_commands(
+                clone_tmp, commands, depth, ref
+            )
         finally:
             log.debug("Cleaning up temp location '%s'" % clone_tmp)
             shutil.rmtree(clone_tmp, ignore_errors=True)

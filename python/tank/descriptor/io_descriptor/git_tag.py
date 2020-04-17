@@ -142,7 +142,9 @@ class IODescriptorGitTag(IODescriptorGit):
         """
         try:
             # clone the repo, checkout the given tag
-            self._clone_then_execute_git_commands(destination_path, [], depth=1, ref=self._version)
+            self._clone_then_execute_git_commands(
+                destination_path, [], depth=1, ref=self._version
+            )
         except Exception as e:
             raise TankDescriptorError(
                 "Could not download %s, " "tag %s: %s" % (self._path, self._version, e)
@@ -198,9 +200,11 @@ class IODescriptorGitTag(IODescriptorGit):
             # clone the repo, list all tags
             # for the repository, across all branches
             commands = ["ls-remote -q --tags %s" % self._path]
-            tags = self._tmp_clone_then_execute_git_commands(commands, depth=1).split("\n")
+            tags = self._tmp_clone_then_execute_git_commands(commands, depth=1).split(
+                "\n"
+            )
             tags = six.ensure_str(git_tags)
-            regex = re.compile('.*refs/tags/([^^]*)$')
+            regex = re.compile(".*refs/tags/([^^]*)$")
             git_tags = []
             for tag in tags:
                 m = regex.match(tag)

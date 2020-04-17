@@ -126,7 +126,9 @@ class IODescriptorGitBranch(IODescriptorGit):
         try:
             # clone the repo, switch to the given branch
             # then reset to the given commit
-            self._clone_then_execute_git_commands(destination_path, [], depth=1, ref=self._version)
+            self._clone_then_execute_git_commands(
+                destination_path, [], depth=1, ref=self._version
+            )
         except Exception as e:
             raise TankDescriptorError(
                 "Could not download %s, branch %s, "
