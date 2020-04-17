@@ -64,20 +64,39 @@ def _resolve_includes(file_name, data, context):
 
     for include in includes:
 
-        if "{" in include:
+        # Convert string includes into dictionaries with default values
+        if isinstance(include, six.string_types):
+            include = {
+                "path": include,
+                "optional": False,
+            }
+
+        # Validate
+        if "path" not in include:
+            raise TankError(
+                'Failed to process an include in %s. Misisng required "path" key. %s'
+                % (file_name, include)
+            )
+        if "optional" in include and not isinstance(include["optional"], bool):
+            raise TankError(
+                'Invalid "optional" value for the include %s in %s. Expected a boolean'
+                % (include["path"], file_name)
+            )
+
+        if "{" in include["path"]:
             # it's a template path
             if context is None:
                 # skip - these paths are optional always
                 log.debug(
                     "%s: Skipping template based include '%s' "
-                    "because there is no active context." % (file_name, include)
+                    "because there is no active context." % (file_name, include["path"])
                 )
                 continue
 
             # extract all {tokens}
             _key_name_regex = "[a-zA-Z_ 0-9]+"
             regex = r"(?<={)%s(?=})" % _key_name_regex
-            key_names = re.findall(regex, include)
+            key_names = re.findall(regex, include["path"])
 
             # get all the data roots for this project
             # note - it is possible that this call may raise an exception for configs
@@ -96,11 +115,13 @@ def _resolve_includes(file_name, data, context):
                     template_keys[key_name] = StringKey(key_name)
 
                 # Make a template
-                template = TemplatePath(include, template_keys, primary_data_root)
+                template = TemplatePath(
+                    include["path"], template_keys, primary_data_root
+                )
             except TankError as e:
                 raise TankError(
                     "Syntax error in %s: Could not transform include path '%s' "
-                    "into a template: %s" % (file_name, include, e)
+                    "into a template: %s" % (file_name, include["path"], e)
                 )
 
             # and turn the template into a path based on the context
@@ -115,7 +136,12 @@ def _resolve_includes(file_name, data, context):
                 # skip - these paths are optional always
                 continue
         else:
-            path = resolve_include(file_name, include)
+            try:
+                path = resolve_include(file_name, include["path"])
+            except TankError as e:
+                if not include.get("optional", False):
+                    raise
+                log.warning("Skipping optional include. %s" % e.message)
 
         if path and path not in resolved_includes:
             resolved_includes.append(path)
