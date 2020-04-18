@@ -10,21 +10,25 @@
 
 from __future__ import with_statement
 import os
-import sys
+import itertools
 
 import tank
-from tank_test.tank_test_base import TankTestBase, setUpModule, temp_env_var
+from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
+from tank_test.tank_test_base import setUpModule  # noqa
 from tank.template_includes import _get_includes as get_template_includes
-from tank.platform.environment_includes import _resolve_includes as get_environment_includes
+from tank.platform.environment_includes import (
+    _resolve_includes as get_environment_includes,
+)
+from tank_vendor.shotgun_api3.lib import sgsix
 from mock import patch
 
 
-class TestIncludes(object):
+class Includes(object):
     """
     Allows to nest the Imp class so that the unit test runner doesn't try to run it.
     """
 
-    class Imp(TankTestBase):
+    class Imp(ShotgunTestBase):
         """
         Tests includes. _resolve_includes needs to be reimplemented by the derived class
 
@@ -44,8 +48,7 @@ class TestIncludes(object):
             with temp_env_var(INCLUDE_ENV_VAR=resolved_include):
                 os.environ["INCLUDE_ENV_VAR"]
                 self.assertEqual(
-                    self._resolve_includes("$INCLUDE_ENV_VAR"),
-                    [resolved_include]
+                    self._resolve_includes("$INCLUDE_ENV_VAR"), [resolved_include]
                 )
 
         @patch("os.path.exists", return_value=True)
@@ -55,10 +58,7 @@ class TestIncludes(object):
             """
             include = os.path.join("~", "test.yml")
             resolved_include = os.path.expanduser(include)
-            self.assertEqual(
-                self._resolve_includes(include),
-                [resolved_include]
-            )
+            self.assertEqual(self._resolve_includes(include), [resolved_include])
 
         @patch("os.path.exists", return_value=True)
         def test_relative_path(self, _):
@@ -68,7 +68,7 @@ class TestIncludes(object):
             relative_include = "sub_folder/include.yml"
             self.assertEqual(
                 self._resolve_includes(relative_include),
-                [os.path.join(self._file_dir, "sub_folder", "include.yml")]
+                [os.path.join(self._file_dir, "sub_folder", "include.yml")],
             )
 
         @patch("os.path.exists", return_value=True)
@@ -80,7 +80,7 @@ class TestIncludes(object):
             with temp_env_var(INCLUDE_ENV_VAR=os.getcwd()):
                 self.assertEqual(
                     self._resolve_includes(relative_include),
-                    [os.path.join(os.getcwd(), "include.yml")]
+                    [os.path.join(os.getcwd(), "include.yml")],
                 )
 
         @patch("os.path.exists", return_value=True)
@@ -92,7 +92,7 @@ class TestIncludes(object):
             with temp_env_var(INCLUDE_ENV_VAR=os.getcwd()):
                 self.assertEqual(
                     self._resolve_includes(include),
-                    [os.path.join(os.getcwd(), "include.yml")]
+                    [os.path.join(os.getcwd(), "include.yml")],
                 )
 
         @patch("os.path.exists", return_value=True)
@@ -103,8 +103,7 @@ class TestIncludes(object):
             include = os.path.join(os.getcwd(), "$INCLUDE_ENV_VAR", "include.yml")
             with temp_env_var(INCLUDE_ENV_VAR="includes"):
                 self.assertEqual(
-                    self._resolve_includes(include),
-                    [os.path.expandvars(include)]
+                    self._resolve_includes(include), [os.path.expandvars(include)]
                 )
 
         @patch("os.path.exists", return_value=True)
@@ -115,12 +114,12 @@ class TestIncludes(object):
             paths = {
                 "win32": "C:\\test.yml",
                 "darwin": "/test.yml",
-                "linux2": "/test.yml"
+                "linux2": "/test.yml",
             }
             # Make sure that we are returning the include for the current platform.
             self.assertEqual(
-                self._resolve_includes(set(paths.values())), # get unique values.
-                [paths[sys.platform]] # get the value for the current platform
+                self._resolve_includes(set(paths.values())),  # get unique values.
+                [paths[sgsix.platform]],  # get the value for the current platform
             )
 
         @patch("os.path.exists", return_value=True)
@@ -132,29 +131,49 @@ class TestIncludes(object):
             with temp_env_var(INCLUDE_ENV_VAR="sub_folder"):
                 self.assertEqual(
                     self._resolve_includes(include),
-                    [os.path.join(os.getcwd(), "sub_folder", "include.yml")]
+                    [os.path.join(os.getcwd(), "sub_folder", "include.yml")],
                 )
 
         def _resolve_includes(self, includes):
             """
             Take the tedium out of calling _get_include
             """
-            raise NotImplementedError("TestIncludes._resolve_includes is not implemented.")
+            raise NotImplementedError(
+                "TestIncludes._resolve_includes is not implemented."
+            )
 
         def test_missing_file(self):
             """
             Make sure an exception is raised when the include doesn't exist.
             """
-            with self.assertRaisesRegexp(tank.TankError, "Include resolve error"):
+            with self.assertRaisesRegex(tank.TankError, "Include resolve error"):
                 self._resolve_includes("dead/path/to/a/file")
 
+        @patch("os.path.exists", return_value=True)
+        def test_includes_ordering(self, _):
+            """
+            Ensure include orders is preserved.
+            """
+            # Try different permutations of the same set of includes and they should
+            # always return in the same order. This is important as values found
+            # in later includes override earlier ones.
 
-# TODO: These tests should be move within the respective test package, but because they share
+            # We do permutations here because Python 2 and Python 3 handle
+            # set ordering differently.
+            for includes in itertools.permutations(["a.yml", "b.yml", "c.yml"]):
+                self.assertEqual(
+                    self._resolve_includes(includes),
+                    [os.path.join(os.getcwd(), include) for include in includes],
+                )
+
+
+# TODO: These tests should be moved within their respective test packages, but because they share
 # the same suite of tests there's no easy way to share the suite. However, once we finish the
 # refactoring of the include system, I suspect most of these tests will move to the refactored
 # framework location and this messiness will go away.
 
-class TestTemplateIncludes(TestIncludes.Imp):
+
+class TestTemplateIncludes(Includes.Imp):
     """
     Tests template includes.
     """
@@ -168,7 +187,7 @@ class TestTemplateIncludes(TestIncludes.Imp):
         return get_template_includes(self._file_name, {"includes": includes})
 
 
-class TestEnvironmentIncludes(TestIncludes.Imp):
+class TestEnvironmentIncludes(Includes.Imp):
     """
     Tests environment includes.
     """

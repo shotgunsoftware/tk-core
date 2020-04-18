@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
 import copy
@@ -13,6 +13,8 @@ import copy
 from .git import IODescriptorGit
 from ..errors import TankDescriptorError
 from ... import LogManager
+
+from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
 
@@ -35,29 +37,30 @@ class IODescriptorGitTag(IODescriptorGit):
         /full/path/to/local/repo.git
     """
 
-    def __init__(self, descriptor_dict, bundle_type):
+    def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
         Constructor
 
         :param descriptor_dict: descriptor dictionary describing the bundle
+        :param sg_connection: Shotgun connection to associated site.
         :param bundle_type: The type of bundle. ex: Descriptor.APP
         :return: Descriptor instance
         """
         # make sure all required fields are there
         self._validate_descriptor(
-            descriptor_dict,
-            required=["type", "path", "version"],
-            optional=[]
+            descriptor_dict, required=["type", "path", "version"], optional=[]
         )
 
         # call base class
-        super(IODescriptorGitTag, self).__init__(descriptor_dict)
+        super(IODescriptorGitTag, self).__init__(
+            descriptor_dict, sg_connection, bundle_type
+        )
 
         # path is handled by base class - all git descriptors
         # have a path to a repo
         self._version = descriptor_dict.get("version")
-
-        self._type = bundle_type
+        self._sg_connection = sg_connection
+        self._bundle_type = bundle_type
 
     def __str__(self):
         """
@@ -78,12 +81,7 @@ class IODescriptorGitTag(IODescriptorGit):
         # /full/path/to/local/repo.git -> repo.git
         name = os.path.basename(self._path)
 
-        return os.path.join(
-            bundle_cache_root,
-            "git",
-            name,
-            self.get_version()
-        )
+        return os.path.join(bundle_cache_root, "git", name, self.get_version())
 
     def _get_cache_paths(self):
         """
@@ -112,11 +110,7 @@ class IODescriptorGitTag(IODescriptorGit):
         name = os.path.basename(self._path)
 
         legacy_folder = self._get_legacy_bundle_install_folder(
-            "git",
-            self._bundle_cache_root,
-            self._type,
-            name,
-            self.get_version()
+            "git", self._bundle_cache_root, self._bundle_type, name, self.get_version()
         )
         if legacy_folder:
             paths.append(legacy_folder)
@@ -129,7 +123,7 @@ class IODescriptorGitTag(IODescriptorGit):
         """
         return self._version
 
-    def download_local(self):
+    def _download_local(self, destination_path):
         """
         Retrieves this version to local repo.
         Will exit early if app already exists local.
@@ -141,23 +135,17 @@ class IODescriptorGitTag(IODescriptorGit):
 
         The git repo will be cloned into the local cache and
         will then be adjusted to point at the relevant tag.
+
+        :param destination_path: The destination path on disk to which
+        the git tag descriptor is to be downloaded to.
         """
-        if self.exists_local():
-            # nothing to do!
-            return
-
-        # cache into the primary location
-        target = self._get_primary_cache_path()
-
         try:
             # clone the repo, checkout the given tag
-            commands = ["checkout -q \"%s\"" % self._version]
-            self._clone_then_execute_git_commands(target, commands)
-
-        except Exception, e:
+            commands = ['checkout -q "%s"' % self._version]
+            self._clone_then_execute_git_commands(destination_path, commands)
+        except Exception as e:
             raise TankDescriptorError(
-                "Could not download %s, "
-                "tag %s: %s" % (self._path, self._version, e)
+                "Could not download %s, " "tag %s: %s" % (self._path, self._version, e)
             )
 
     def get_latest_version(self, constraint_pattern=None):
@@ -187,10 +175,10 @@ class IODescriptorGitTag(IODescriptorGit):
             tag_name = self._get_latest_version()
 
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
-        new_loc_dict["version"] = tag_name
+        new_loc_dict["version"] = six.ensure_str(tag_name)
 
         # create new descriptor to represent this tag
-        desc = IODescriptorGitTag(new_loc_dict, self._type)
+        desc = IODescriptorGitTag(new_loc_dict, self._sg_connection, self._bundle_type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
         return desc
 
@@ -210,9 +198,11 @@ class IODescriptorGitTag(IODescriptorGit):
             # clone the repo, list all tags
             # for the repository, across all branches
             commands = ["tag"]
-            git_tags = self._tmp_clone_then_execute_git_commands(commands).split("\n")
+            git_tags = six.ensure_text(
+                self._tmp_clone_then_execute_git_commands(commands)
+            ).split("\n")
 
-        except Exception, e:
+        except Exception as e:
             raise TankDescriptorError(
                 "Could not get list of tags for %s: %s" % (self._path, e)
             )
@@ -226,7 +216,8 @@ class IODescriptorGitTag(IODescriptorGit):
         if latest_tag is None:
             raise TankDescriptorError(
                 "'%s' does not have a version matching the pattern '%s'. "
-                "Available versions are: %s" % (self.get_system_name(), pattern, ", ".join(git_tags))
+                "Available versions are: %s"
+                % (self.get_system_name(), pattern, ", ".join(git_tags))
             )
 
         return latest_tag
@@ -244,7 +235,7 @@ class IODescriptorGitTag(IODescriptorGit):
             ]
             latest_tag = self._tmp_clone_then_execute_git_commands(commands)
 
-        except Exception, e:
+        except Exception as e:
             raise TankDescriptorError(
                 "Could not get latest tag for %s: %s" % (self._path, e)
             )
@@ -271,21 +262,23 @@ class IODescriptorGitTag(IODescriptorGit):
         :returns: instance deriving from IODescriptorBase or None if not found
         """
         log.debug("Looking for cached versions of %r..." % self)
-        all_versions = self._get_locally_cached_versions().keys()
+        all_versions = list(self._get_locally_cached_versions().keys())
         log.debug("Found %d versions" % len(all_versions))
 
         if len(all_versions) == 0:
             return None
 
         # get latest
-        version_to_use = self._find_latest_tag_by_pattern(all_versions, constraint_pattern)
+        version_to_use = self._find_latest_tag_by_pattern(
+            all_versions, constraint_pattern
+        )
         if version_to_use is None:
             return None
 
         # create new descriptor to represent this tag
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
         new_loc_dict["version"] = version_to_use
-        desc = IODescriptorGitTag(new_loc_dict, self._type)
+        desc = IODescriptorGitTag(new_loc_dict, self._sg_connection, self._bundle_type)
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
 
         log.debug("Latest cached version resolved to %r" % desc)

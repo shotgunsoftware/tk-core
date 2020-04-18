@@ -36,9 +36,7 @@ class IncompleteCredentials(ShotgunAuthenticationError):
         """
         :param str msg: Reason why the credentials are incomplete.
         """
-        ShotgunAuthenticationError.__init__(
-            self, "Incomplete credentials: %s" % msg
-        )
+        ShotgunAuthenticationError.__init__(self, "Incomplete credentials: %s" % msg)
 
 
 class AuthenticationCancelled(ShotgunAuthenticationError):
@@ -47,6 +45,31 @@ class AuthenticationCancelled(ShotgunAuthenticationError):
     """
 
     def __init__(self):
+        """
+        Constructor.
+        """
         ShotgunAuthenticationError.__init__(
             self, "Authentication was cancelled by the user."
         )
+
+
+class ConsoleLoginNotSupportedError(ShotgunAuthenticationError):
+    """
+    Thrown when attempting to use Username/Password pair to login onto
+    an SSO-enabled site.
+    """
+
+    def __init__(self, url, site_auth_type="Single Sign-On"):
+        """
+        :param str url: Url of the site where login was attempted.
+        :param str site_auth_type: type of authentication, e.g. SSO, Identity.
+                                   The default value is for backward compatibility.
+        """
+        super(ConsoleLoginNotSupportedError, self).__init__(
+            "Authentication using username/password is not supported on "
+            "the console %s for sites using %s." % (url, site_auth_type)
+        )
+
+
+# For backward compatibility.
+ConsoleLoginWithSSONotSupportedError = ConsoleLoginNotSupportedError

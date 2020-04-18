@@ -9,8 +9,9 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import logging
-import Queue
+from tank_vendor.six.moves import queue
 import sys
+
 
 class ToolkitEngineHandler(logging.Handler):
     """
@@ -65,7 +66,7 @@ class ToolkitEngineLegacyHandler(logging.Handler):
         # avoiding super in order to be py25-compatible
         logging.Handler.__init__(self)
         self._engine = engine
-        self._inside_dispatch_stack = Queue.Queue()
+        self._inside_dispatch_stack = queue.Queue()
 
     @property
     def inside_dispatch(self):
@@ -125,4 +126,3 @@ class ToolkitEngineLegacyHandler(logging.Handler):
         finally:
             # take one item out
             self._inside_dispatch_stack.get()
-

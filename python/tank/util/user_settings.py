@@ -13,13 +13,14 @@ User settings management.
 """
 
 import os
-import ConfigParser
-import urllib
+from tank_vendor.six.moves import configparser
+from tank_vendor import six
 
 from .local_file_storage import LocalFileStorageManager
 from .errors import EnvironmentVariableFileLookupError, TankError
 from .. import LogManager
 from .singleton import Singleton
+from .system_settings import SystemSettings
 
 
 logger = LogManager.get_logger(__name__)
@@ -57,6 +58,14 @@ class UserSettings(Singleton):
         proxy = self._get_filtered_proxy(self.app_store_proxy)
         logger.debug("App Store proxy: %s", self._to_display_value(proxy))
 
+        # A small hack here, but we also want to log the system http
+        # proxy. We don't use the SystemSettings in this module, but
+        # it is a convenient and safe place to log the proxy given that
+        # we know it will only happen once, and we have access to the
+        # sanitization logic here.
+        system_proxy = self._get_filtered_proxy(SystemSettings().http_proxy)
+        logger.debug("System proxy: %s", self._to_display_value(system_proxy))
+
     @property
     def shotgun_proxy(self):
         """
@@ -88,6 +97,19 @@ class UserSettings(Singleton):
         """
         return self.get_setting(self._LOGIN, "default_login")
 
+    def get_section_settings(self, section):
+        """
+        Retrieves the name of the settings in a given section.
+
+        :param str section: Name of the section of the settings to retrieve.
+
+        :returns: A list of setting's name. If the section is missing, returns
+            ``None``.
+        """
+        if not self._user_config.has_section(section):
+            return None
+        return self._user_config.options(section)
+
     def get_setting(self, section, name):
         """
         Provides access to any setting, including ones in user defined sections.
@@ -99,13 +121,13 @@ class UserSettings(Singleton):
             an empty string if the setting is present but has no value associated.
         :rtype: str
         """
-        if not self._user_config.has_section(section) or not self._user_config.has_option(section, name):
+        if not self._user_config.has_section(
+            section
+        ) or not self._user_config.has_option(section, name):
             return None
 
         value = os.path.expanduser(
-            os.path.expandvars(
-                self._user_config.get(section, name)
-            )
+            os.path.expandvars(self._user_config.get(section, name))
         )
         return value.strip()
 
@@ -116,8 +138,16 @@ class UserSettings(Singleton):
 
     # This is taken from RawConfigParser. Values are copied in case future Python implementation
     # rename this. (like Python 3, not that this is going to be an issue in the foreseable future. :p)
-    _boolean_states = {'1': True, 'yes': True, 'true': True, 'on': True,
-                       '0': False, 'no': False, 'false': False, 'off': False}
+    _boolean_states = {
+        "1": True,
+        "yes": True,
+        "true": True,
+        "on": True,
+        "0": False,
+        "no": False,
+        "false": False,
+        "off": False,
+    }
 
     def get_boolean_setting(self, section, name):
         """
@@ -143,8 +173,13 @@ class UserSettings(Singleton):
             return self._boolean_states[value.lower()]
         else:
             raise TankError(
-                "Invalid value '%s' in '%s' for setting '%s' in section '%s': expecting one of '%s'." % (
-                    value, self._path, name, section, "', '".join(self._boolean_states.keys())
+                "Invalid value '%s' in '%s' for setting '%s' in section '%s': expecting one of '%s'."
+                % (
+                    value,
+                    self._path,
+                    name,
+                    section,
+                    "', '".join(self._boolean_states.keys()),
                 )
             )
 
@@ -169,9 +204,8 @@ class UserSettings(Singleton):
             return int(value)
         except ValueError:
             raise TankError(
-                "Invalid value '%s' in '%s' for setting '%s' in section '%s': expecting integer." % (
-                    value, self._path, name, section
-                )
+                "Invalid value '%s' in '%s' for setting '%s' in section '%s': expecting integer."
+                % (value, self._path, name, section)
             )
 
     def _evaluate_env_var(self, var_name):
@@ -212,8 +246,10 @@ class UserSettings(Singleton):
 
         # This is the default location.
         default_location = os.path.join(
-            LocalFileStorageManager.get_global_root(LocalFileStorageManager.PREFERENCES),
-            "toolkit.ini"
+            LocalFileStorageManager.get_global_root(
+                LocalFileStorageManager.PREFERENCES
+            ),
+            "toolkit.ini",
         )
 
         # This is the complete list of paths we need to test.
@@ -225,11 +261,12 @@ class UserSettings(Singleton):
             # This is the location set by users of the Shotgun Desktop in the past.
             os.path.join(
                 LocalFileStorageManager.get_global_root(
-                    LocalFileStorageManager.CACHE,
-                    LocalFileStorageManager.CORE_V17
+                    LocalFileStorageManager.CACHE, LocalFileStorageManager.CORE_V17
                 ),
-                "desktop", "config", "config.ini"
-            )
+                "desktop",
+                "config",
+                "config.ini",
+            ),
         ]
 
         # Search for the first path that exists and then use it.
@@ -248,7 +285,15 @@ class UserSettings(Singleton):
 
         :returns: A ConfigParser instance with the contents from the configuration file.
         """
-        config = ConfigParser.SafeConfigParser()
+        # In Python 3.2, SafeConfigParser has been renamed to ConfigParser and using the
+        # old class name generates a warning.
+        if six.PY2:
+            config = configparser.SafeConfigParser()
+        else:
+            # Technically this only appeared in Python 3.2, but we don't support
+            # less than 3.7, so we don't have to be very precise about which
+            # version of Python 3 we are running.
+            config = configparser.ConfigParser()
         if os.path.exists(path):
             config.read(path)
         return config
@@ -265,7 +310,10 @@ class UserSettings(Singleton):
         if proxy and "@" in proxy:
             # Filter out the username and password
             # Given xzy:123@localhost or xyz:12@3@locahost, this will return localhost in both cases
-            return "<your credentials have been removed for security reasons>@%s" % proxy.rsplit("@", 1)[-1]
+            return (
+                "<your credentials have been removed for security reasons>@%s"
+                % proxy.rsplit("@", 1)[-1]
+            )
         else:
             return proxy
 

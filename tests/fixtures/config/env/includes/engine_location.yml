@@ -1,0 +1,8 @@
+
+engine.location:
+  type: dev
+  path: '{CONFIG_FOLDER}/bundles/test_engine'
+
+incomplete_engine.location:
+  type: dev
+  path: '{CONFIG_FOLDER}/bundles/incomplete_engine'

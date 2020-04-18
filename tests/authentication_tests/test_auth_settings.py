@@ -15,15 +15,16 @@ Tests settings retrieval through the DefaultsManager
 from __future__ import with_statement
 from mock import patch, Mock, PropertyMock
 
-from tank_test.tank_test_base import TankTestBase
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import ShotgunTestBase
+from tank_test.tank_test_base import setUpModule  # noqa
 
-from tank.util import CoreDefaultsManager
+from tank.authentication import CoreDefaultsManager
 from tank.authentication import DefaultsManager
 from tank.util.user_settings import UserSettings
+import sgtk
 
 
-class DefaultsManagerTest(TankTestBase):
+class DefaultsManagerTest(ShotgunTestBase):
     """
     Tests the defaults manager.
     """
@@ -44,16 +45,16 @@ class DefaultsManagerTest(TankTestBase):
         """
         Sets up the next test's environment.
         """
-        TankTestBase.setUp(self)
+        ShotgunTestBase.setUp(self)
         UserSettings.clear_singleton()
 
     @patch(
         "tank.authentication.session_cache.get_current_host",
-        return_value=_SESSION_CACHE_HOST
+        return_value=_SESSION_CACHE_HOST,
     )
     @patch(
         "tank.authentication.session_cache.get_current_user",
-        return_value=_SESSION_CACHE_USER
+        return_value=_SESSION_CACHE_USER,
     )
     def test_no_settings(self, *unused_mocks):
         """
@@ -84,19 +85,13 @@ class DefaultsManagerTest(TankTestBase):
         with patch(
             "tank.util.system_settings.SystemSettings.http_proxy",
             new_callable=PropertyMock,
-            return_value="192.168.10.1"
+            return_value="192.168.10.1",
         ):
             dm = DefaultsManager()
             self.assertIs(dm.get_http_proxy(), "192.168.10.1")
 
-    @patch(
-        "tank.authentication.session_cache.get_current_host",
-        return_value=None
-    )
-    @patch(
-        "tank.authentication.session_cache.get_current_user",
-        return_value=None
-    )
+    @patch("tank.authentication.session_cache.get_current_host", return_value=None)
+    @patch("tank.authentication.session_cache.get_current_user", return_value=None)
     def test_empty_session_cache(self, *unused_mocks):
         """
         Test the behaviour of the defaults manager when the cache is empty
@@ -114,10 +109,7 @@ class DefaultsManagerTest(TankTestBase):
 
     @patch(
         "tank.util.shotgun.get_associated_sg_config_data",
-        return_value={
-            "host": _SHOTGUN_YML_HOST,
-            "http_proxy": _SHOTGUN_YML_PROXY
-        }
+        return_value={"host": _SHOTGUN_YML_HOST, "http_proxy": _SHOTGUN_YML_PROXY},
     )
     def test_shotgun_yml_over_global(self, *unused_mocks):
         """
@@ -135,9 +127,7 @@ class DefaultsManagerTest(TankTestBase):
 
     @patch(
         "tank.util.shotgun.get_associated_sg_config_data",
-        return_value={
-            "host": _SHOTGUN_YML_HOST
-        }
+        return_value={"host": _SHOTGUN_YML_HOST},
     )
     def test_shotgun_yml_no_proxy_uses_global_proxy(self, *unused_mocks):
         """
@@ -152,12 +142,9 @@ class DefaultsManagerTest(TankTestBase):
     @patch(
         "tank.util.system_settings.SystemSettings.http_proxy",
         new_callable=PropertyMock,
-        return_value="192.168.10.1"
+        return_value="192.168.10.1",
     )
-    @patch(
-        "tank.util.shotgun.get_associated_sg_config_data",
-        return_value={}
-    )
+    @patch("tank.util.shotgun.get_associated_sg_config_data", return_value={})
     def test_toolkit_ini_disabling_global_proxy(self, *_):
         """
         Make sure that toolkit.ini can disable the system level proxy.
@@ -171,14 +158,12 @@ class DefaultsManagerTest(TankTestBase):
 
     @patch(
         "tank.util.shotgun.get_associated_sg_config_data",
-        return_value={
-            "http_proxy": ""
-        }
+        return_value={"http_proxy": ""},
     )
     @patch(
         "tank.util.system_settings.SystemSettings.http_proxy",
         new_callable=PropertyMock,
-        return_value="192.168.10.1"
+        return_value="192.168.10.1",
     )
     def test_shotgun_yml_empty_string_can_override_global_proxy(self, *_):
         """
@@ -189,3 +174,21 @@ class DefaultsManagerTest(TankTestBase):
 
         dm = CoreDefaultsManager()
         self.assertIs(dm.get_http_proxy(), "")
+
+    def test_backwards_compatible(self):
+        """
+        Ensures the API is backwards compatible as we've moved CoreDefaulsManager to a new location.
+        """
+        self.assertEqual(
+            sgtk.authentication.CoreDefaultsManager, sgtk.util.CoreDefaultsManager
+        )
+
+    @patch(
+        "tank.authentication.session_cache.get_current_host",
+        return_value=_SESSION_CACHE_HOST,
+    )
+    def test_fixed_host_on_init_overrides_everything(self, _):
+        fixed_host = "https://my-custom-host.shotgunstudio.com"
+        dm = DefaultsManager(fixed_host)
+        self.assertEqual(dm.is_host_fixed(), True)
+        self.assertEqual(dm.get_host(), fixed_host)

@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
 from .base import IODescriptorBase
@@ -22,23 +22,24 @@ class IODescriptorManual(IODescriptorBase):
     This descriptor type is largely deprecated. Please do not use.
     """
 
-    def __init__(self, descriptor_dict, bundle_type):
+    def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
         Constructor
 
         :param descriptor_dict: descriptor dictionary describing the bundle
+        :param sg_connection: Shotgun connection to associated site.
         :param bundle_type: The type of bundle. ex: Descriptor.APP
         :return: Descriptor instance
         """
-        super(IODescriptorManual, self).__init__(descriptor_dict)
-
-        self._validate_descriptor(
-            descriptor_dict,
-            required=["type", "name", "version"],
-            optional=[]
+        super(IODescriptorManual, self).__init__(
+            descriptor_dict, sg_connection, bundle_type
         )
 
-        self._type = bundle_type
+        self._validate_descriptor(
+            descriptor_dict, required=["type", "name", "version"], optional=[]
+        )
+
+        self._bundle_type = bundle_type
         self._name = descriptor_dict.get("name")
         self._version = descriptor_dict.get("version")
 
@@ -50,12 +51,7 @@ class IODescriptorManual(IODescriptorBase):
         :param bundle_cache_root: Bundle cache root path
         :return: Path to bundle cache location
         """
-        return os.path.join(
-            bundle_cache_root,
-            "manual",
-            self._name,
-            self._version
-        )
+        return os.path.join(bundle_cache_root, "manual", self._name, self._version)
 
     def _get_cache_paths(self):
         """
@@ -81,9 +77,9 @@ class IODescriptorManual(IODescriptorBase):
         legacy_folder = self._get_legacy_bundle_install_folder(
             "manual",
             self._bundle_cache_root,
-            self._type,
+            self._bundle_type,
             self._name,
-            self._version
+            self._version,
         )
         if legacy_folder:
             paths.append(legacy_folder)
@@ -114,17 +110,17 @@ class IODescriptorManual(IODescriptorBase):
     def get_latest_version(self, constraint_pattern=None):
         """
         Returns a descriptor object that represents the latest version.
-        
+
         :param constraint_pattern: If this is specified, the query will be constrained
         by the given pattern. Version patterns are on the following forms:
-        
+
             - v1.2.3 (means the descriptor returned will inevitably be same as self)
-            - v1.2.x 
+            - v1.2.x
             - v1.x.x
 
         :returns: IODescriptorManual object
         """
-        # since this descriptor has no way of updating and no way of knowing 
+        # since this descriptor has no way of updating and no way of knowing
         # what is latest, just return our own version as representing the latest version.
         return self
 
@@ -157,4 +153,3 @@ class IODescriptorManual(IODescriptorBase):
         """
         # the remote is the same as the cache for manual descriptors
         return True
-

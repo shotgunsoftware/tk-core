@@ -1,0 +1,23 @@
+HTTP/1.1 200 OK
+Server: GitHub.com
+Date: Thu, 21 Mar 2019 14:09:08 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 57537
+Status: 200 OK
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 58
+X-RateLimit-Reset: 1553180948
+Cache-Control: public, max-age=60, s-maxage=60
+Vary: Accept
+ETag: "4d4e31a870ce322b1461b8edf03e9846"
+X-GitHub-Media-Type: github.v3; format=json
+Link: <https://api.github.com/repositories/174021161/releases?page=2>; rel="next", <https://api.github.com/repositories/174021161/releases?page=2>; rel="last"
+Access-Control-Expose-Headers: ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type
+Access-Control-Allow-Origin: *
+Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+X-Frame-Options: deny
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Referrer-Policy: origin-when-cross-origin, strict-origin-when-cross-origin
+Content-Security-Policy: default-src 'none'
+X-GitHub-Request-Id: D255:4067:107692:2C63E4:5C939B04

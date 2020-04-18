@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import sys
+from .platforms import is_linux, is_macos, is_windows
 
 
 class ShotgunPath(object):
@@ -43,11 +44,21 @@ class ShotgunPath(object):
         >>> p.current_os
         '/tmp'
 
+        # boolean operations
+        >>> if p: print "a path value defined for windows, linux or mac"
+
+        # equality
+        >>> if p1 == p2: print "paths are same"
+
         # multi-platform access
         >>> p.as_shotgun_dict()
         { "windows_path": "C:\\temp", "mac_path": None, "linux_path": "/tmp"}
         >>> p.as_system_dict()
         { "win32": "C:\\temp", "darwin": None, "linux2": "/tmp"}
+
+        # descriptor uri conversion
+        >>> p.as_descriptor_uri()
+        'sgtk:descriptor:path?linux_path=/tmp/foo'
 
         # path manipulation
         >>> p2 = p.join('foo')
@@ -72,16 +83,15 @@ class ShotgunPath(object):
 
         :returns: Path with the OS name substituted in.
         """
-        if platform == "win32":
+        if is_windows(platform):
             os_name = "Windows"
-        elif platform == "darwin":
+        elif is_macos(platform):
             os_name = "Darwin"
-        elif platform.startswith("linux"):
+        elif is_linux(platform):
             os_name = "Linux"
         else:
             raise ValueError(
-                "Cannot resolve file name - unsupported "
-                "os platform '%s'" % platform
+                "Cannot resolve file name - unsupported " "os platform '%s'" % platform
             )
         return template % os_name
 
@@ -109,11 +119,11 @@ class ShotgunPath(object):
                          'win32' or 'darwin'.
         :returns: Shotgun storage path as string.
         """
-        if platform == "win32":
+        if is_windows(platform):
             return "windows_path"
-        elif platform == "darwin":
+        elif is_macos(platform):
             return "mac_path"
-        elif platform.startswith("linux"):
+        elif is_linux(platform):
             return "linux_path"
         else:
             raise ValueError(
@@ -164,11 +174,11 @@ class ShotgunPath(object):
         linux_path = None
         macosx_path = None
 
-        if sys.platform == "win32":
+        if is_windows():
             windows_path = path
-        elif sys.platform.startswith("linux"):
+        elif is_linux():
             linux_path = path
-        elif sys.platform == "darwin":
+        elif is_macos():
             macosx_path = path
         else:
             raise ValueError("Unsupported platform '%s'." % sys.platform)
@@ -186,7 +196,7 @@ class ShotgunPath(object):
         Normalization include checking that separators are matching the
         current operating system, removal of trailing separators
         and removal of double separators. This is done automatically
-        for all :class:`ShotgunPath`s but sometimes it is useful
+        for all :class:`ShotgunPath`, but sometimes it is useful
         to just perform the normalization quickly on a local path.
 
         :param str path: Local operating system path to normalize
@@ -213,11 +223,21 @@ class ShotgunPath(object):
         # If we're different than an empty path, we're not zero!
         return True if self.windows or self.linux or self.macosx else False
 
+    def __bool__(self):
+        """
+        Checks if one or more of the OSes have a path specified.
+
+        :returns: True if one or more of the OSes has a path specified. False if all are None.
+        """
+        # In python 3 __bool__ replaces __nonzero__.  For compatiblity we will define
+        # both, and return the result of __nonzero__ here.
+        return self.__nonzero__()
+
     def __repr__(self):
         return "<Path win:'%s', linux:'%s', macosx:'%s'>" % (
             self._windows_path,
             self._linux_path,
-            self._macosx_path
+            self._macosx_path,
         )
 
     def __eq__(self, other):
@@ -230,7 +250,17 @@ class ShotgunPath(object):
         if not isinstance(other, ShotgunPath):
             return NotImplemented
 
-        return self.macosx == other.macosx and self.windows == other.windows and self.linux == other.linux
+        return (
+            self.macosx == other.macosx
+            and self.windows == other.windows
+            and self.linux == other.linux
+        )
+
+    def __hash__(self):
+        """
+        Creates an hash from this ShotgunPath.
+        """
+        return hash((self.macosx, self.windows, self.linux))
 
     def __ne__(self, other):
         """
@@ -245,7 +275,7 @@ class ShotgunPath(object):
         return not is_equal
 
     def _sanitize_path(self, path, separator):
-        """
+        r"""
         Multi-platform sanitize and clean up of paths.
 
         The following modifications will be carried out:
@@ -324,13 +354,13 @@ class ShotgunPath(object):
 
     def _get_windows(self):
         """
-        The windows representation of the path
+        The Windows representation of the path
         """
         return self._windows_path
 
     def _set_windows(self, value):
         """
-        The windows representation of the path
+        The Windows representation of the path
         """
         self._windows_path = self._sanitize_path(value, "\\")
 
@@ -338,13 +368,13 @@ class ShotgunPath(object):
 
     def _get_linux(self):
         """
-        The linux representation of the path
+        The Linux representation of the path
         """
         return self._linux_path
 
     def _set_linux(self, value):
         """
-        The windows representation of the path
+        The Windows representation of the path
         """
         self._linux_path = self._sanitize_path(value, "/")
 
@@ -354,11 +384,11 @@ class ShotgunPath(object):
         """
         The path on the current os
         """
-        if sys.platform == "win32":
+        if is_windows():
             return self.windows
-        elif sys.platform.startswith("linux"):
+        elif is_linux():
             return self.linux
-        elif sys.platform == "darwin":
+        elif is_macos():
             return self.macosx
         else:
             raise ValueError("Unsupported platform '%s'." % sys.platform)
@@ -367,11 +397,13 @@ class ShotgunPath(object):
         """
         The path on the current os
         """
-        if sys.platform == "win32":
+        # Please note that we're using the property setters to set the path, so they
+        # will be sanitized by the setter.
+        if is_windows():
             self.windows = value
-        elif sys.platform.startswith("linux"):
+        elif is_linux():
             self.linux = value
-        elif sys.platform == "darwin":
+        elif is_macos():
             self.macosx = value
         else:
             raise ValueError("Unsupported platform '%s'." % sys.platform)
@@ -424,6 +456,43 @@ class ShotgunPath(object):
             d["linux2"] = self._linux_path
         return d
 
+    def as_descriptor_uri(self, for_development=False):
+        """
+        Translates the path to a descriptor uri. For more information
+        about descriptors, see the :ref:`reference documentation<descriptor>`.
+
+        This method will either return a dev or a path descriptor uri
+        path string, suitable for use with for example pipeline configurations
+        in Shotgun.
+
+        :param bool for_development: Set to true for a dev descriptor
+        :returns: Dev or Path descriptor uri string representing the path
+        :raises: ValueError if the path object has no paths defined
+        """
+        # local import to avoid cycles
+        from ..descriptor import descriptor_dict_to_uri
+
+        if not self:
+            # no paths defined
+            raise ValueError(
+                "%s does not have any paths defined and "
+                "cannot be converted to a descriptor uri." % self
+            )
+
+        # build up dictionary based decriptor
+        descriptor_dict = {}
+
+        if for_development:
+            descriptor_dict["type"] = "dev"
+        else:
+            descriptor_dict["type"] = "path"
+
+        # add paths
+        descriptor_dict.update(self.as_shotgun_dict(include_empty=False))
+
+        # convert to string based uri
+        return descriptor_dict_to_uri(descriptor_dict)
+
     def join(self, folder):
         """
         Appends a single folder to the path.
@@ -434,8 +503,20 @@ class ShotgunPath(object):
         # get rid of any slashes at the end
         # so value is "/foo/bar", "c:" or "\\hello"
         # then append separator and new folder
-        linux_path = "%s/%s" % (self._linux_path.rstrip("/\\"), folder) if self._linux_path else None
-        macosx_path = "%s/%s" % (self._macosx_path.rstrip("/\\"), folder) if self._macosx_path else None
-        win_path = "%s\\%s" % (self._windows_path.rstrip("/\\"), folder) if self._windows_path else None
+        linux_path = (
+            "%s/%s" % (self._linux_path.rstrip("/\\"), folder)
+            if self._linux_path
+            else None
+        )
+        macosx_path = (
+            "%s/%s" % (self._macosx_path.rstrip("/\\"), folder)
+            if self._macosx_path
+            else None
+        )
+        win_path = (
+            "%s\\%s" % (self._windows_path.rstrip("/\\"), folder)
+            if self._windows_path
+            else None
+        )
 
         return ShotgunPath(win_path, linux_path, macosx_path)

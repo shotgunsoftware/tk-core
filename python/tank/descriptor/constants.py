@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 # pending QA environment variable
@@ -78,3 +78,19 @@ LOWEST_SHOTGUN_VERSION = "5.0.0"
 
 # name of the app store specific proxy setting
 APP_STORE_HTTP_PROXY = "app_store_http_proxy"
+
+# environment variable used to indicate the primary bundle cache path to be used.
+BUNDLE_CACHE_PATH_ENV_VAR = "SHOTGUN_BUNDLE_CACHE_PATH"
+
+# environment variable used to disable connection to the app store
+DISABLE_APPSTORE_ACCESS_ENV_VAR = "SHOTGUN_DISABLE_APPSTORE_ACCESS"
+
+# the Descriptor types
+(
+    DESCRIPTOR_APP,
+    DESCRIPTOR_FRAMEWORK,
+    DESCRIPTOR_ENGINE,
+    DESCRIPTOR_CONFIG,
+    DESCRIPTOR_CORE,
+    DESCRIPTOR_INSTALLED_CONFIG,
+) = range(6)

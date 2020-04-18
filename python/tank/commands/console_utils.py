@@ -11,6 +11,7 @@
 """
 Various helper methods relating to user interaction via the shell.
 """
+from __future__ import print_function
 
 import textwrap
 
@@ -19,64 +20,11 @@ from ..platform import validation
 from ..errors import TankError, TankNoDefaultValueError
 from ..descriptor import CheckVersionConstraintsError
 from ..platform.bundle import resolve_default_value
-from ..util import shotgun
-
-##########################################################################################
-# user prompts
-
-g_ask_questions = True
-
-def ask_question(question, force_promt=False):
-    """
-    Ask a yes-no-always question
-    returns true if user pressed yes (or previously always)
-    false if no
-
-    if force_prompt is True, it always ask, regardless of if the user
-    has previously pressed [a]lways
-
-    """
-    global g_ask_questions
-    if g_ask_questions == False and force_promt == False:
-        # auto-press YES
-        return True
-
-    answer = raw_input("%s [Yna?]" % question)
-    answer = answer.lower()
-    if answer != "n" and answer != "a" and answer != "y" and answer != "":
-        print("Press ENTER or y for YES, n for NO and a for ALWAYS.")
-        answer = raw_input("%s [Yna?]" % question)
-
-    if answer == "a":
-        g_ask_questions = False
-        return True
-
-    if answer == "y" or answer == "":
-        return True
-
-    return False
-
-def ask_yn_question(question):
-    """
-    Ask a yes-no question
-    returns true if user pressed yes (or previously always)
-    false if no
-    """
-
-    answer = raw_input("%s [yn]" % question )
-    answer = answer.lower()
-    if answer != "n" and answer != "y":
-        print("Press y for YES, n for NO")
-        answer = raw_input("%s [yn]" % question )
-
-    if answer == "y":
-        return True
-
-    return False
 
 
 ##########################################################################################
 # displaying of info in the terminal, ascii-graphcics style
+
 
 def format_bundle_info(log, descriptor, required_updates=None):
     """
@@ -133,15 +81,17 @@ def format_bundle_info(log, descriptor, required_updates=None):
         for name in required_updates[1:]:
             log.info("|                   %s" % name)
 
-    log.info("\%s" % ("-" * 70))
+    log.info(r"\%s" % ("-" * 70))
 
 
-
-
-##########################################################################################
-# displaying of info in the terminal, ascii-graphcics style
-
-def get_configuration(log, tank_api_instance, new_descriptor, old_descriptor, suppress_prompts, parent_engine_name):
+def get_configuration(
+    log,
+    tank_api_instance,
+    new_descriptor,
+    old_descriptor,
+    interaction_interface,
+    parent_engine_name,
+):
     """
     Retrieves all the parameters needed for an app, engine or framework.
     May prompt the user for information.
@@ -157,7 +107,9 @@ def get_configuration(log, tank_api_instance, new_descriptor, old_descriptor, su
     """
 
     # first get data for all new settings values in the config
-    param_diff = _generate_settings_diff(parent_engine_name, new_descriptor, old_descriptor)
+    param_diff = _generate_settings_diff(
+        parent_engine_name, new_descriptor, old_descriptor
+    )
 
     if len(param_diff) > 0:
         log.info("Several new settings are associated with %s." % new_descriptor)
@@ -166,12 +118,14 @@ def get_configuration(log, tank_api_instance, new_descriptor, old_descriptor, su
         log.info("")
 
         # recurse over new parameters:
-        params = _get_configuration_recursive(log,
-                                              tank_api_instance,
-                                              new_descriptor,
-                                              param_diff,
-                                              suppress_prompts,
-                                              parent_engine_name)
+        params = _get_configuration_recursive(
+            log,
+            tank_api_instance,
+            new_descriptor,
+            param_diff,
+            interaction_interface,
+            parent_engine_name,
+        )
 
     else:
         # nothing new!
@@ -179,7 +133,16 @@ def get_configuration(log, tank_api_instance, new_descriptor, old_descriptor, su
 
     return params
 
-def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, params, suppress_prompts, parent_engine_name, parent_path=None):
+
+def _get_configuration_recursive(
+    log,
+    tank_api_instance,
+    new_ver_descriptor,
+    params,
+    interaction_interface,
+    parent_engine_name,
+    parent_path=None,
+):
     """
     Retrieves all the parameters needed for an app, engine or framework.
     May prompt the user for information.
@@ -189,21 +152,25 @@ def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, par
     parent_path = parent_path or []
 
     param_values = {}
-    for param_name, param_data in params.iteritems():
+    for param_name, param_data in params.items():
         if "children" in param_data:
             # recurse to children:
-            param_path = list(parent_path) + ["%s (type: %s)" % (param_name, param_data["type"])]
-            child_params = _get_configuration_recursive(log,
-                                                        tank_api_instance,
-                                                        new_ver_descriptor,
-                                                        param_data["children"],
-                                                        suppress_prompts,
-                                                        parent_engine_name,
-                                                        param_path)
+            param_path = list(parent_path) + [
+                "%s (type: %s)" % (param_name, param_data["type"])
+            ]
+            child_params = _get_configuration_recursive(
+                log,
+                tank_api_instance,
+                new_ver_descriptor,
+                param_data["children"],
+                interaction_interface,
+                parent_engine_name,
+                param_path,
+            )
             param_values[param_name] = child_params
 
         else:
-            
+
             # leaf param so need to get value:
             param_path = list(parent_path) + [param_name]
 
@@ -212,12 +179,17 @@ def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, par
             log.info("/%s" % ("-" * 70))
             log.info("| Item:    %s" % param_path[0])
             for level, name in enumerate(param_path[1:]):
-                log.info("|          %s  \ %s" % ("  " * level, name))
+                log.info(r"|          %s  \ %s" % ("  " * level, name))
             log.info("| Type:    %s" % param_data["type"])
             str_to_wrap = "Summary: %s" % param_data["description"]
-            for x in textwrap.wrap(str_to_wrap, width=68, initial_indent="| ", subsequent_indent="|          "):
+            for x in textwrap.wrap(
+                str_to_wrap,
+                width=68,
+                initial_indent="| ",
+                subsequent_indent="|          ",
+            ):
                 log.info(x)
-            log.info("\%s" % ("-" * 70))
+            log.info(r"\%s" % ("-" * 70))
 
             if "value" in param_data:
                 # default value in param data, just log the info for the user
@@ -225,8 +197,10 @@ def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, par
                 log.info("Using default value '%s'" % (str(default_value),))
             else:
                 # no default value in the param_data, prompt the user
-                if suppress_prompts:
-                    log.warning("No default value! Please update the environment by hand later!")
+                if not interaction_interface.supports_interaction:
+                    log.warning(
+                        "No default value! Please update the environment by hand later!"
+                    )
                     param_values[param_name] = None
                     continue
 
@@ -235,17 +209,26 @@ def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, par
                 input_valid = False
                 while not input_valid:
                     # ask user
-                    answer = raw_input("Please enter value (enter to skip): ")
+                    answer = interaction_interface.request_input(
+                        "Please enter value (enter to skip):"
+                    )
                     if answer == "":
                         # user chose to skip
-                        log.warning("You skipped this value! Please update the environment by hand later!")
+                        log.warning(
+                            "You skipped this value! Please update the environment by hand later!"
+                        )
                         param_values[param_name] = None
                         input_valid = True
                     else:
                         # validate value
                         try:
-                            obj_value = _validate_parameter(tank_api_instance, new_ver_descriptor, param_name, answer)
-                        except Exception, e:
+                            obj_value = _validate_parameter(
+                                tank_api_instance,
+                                new_ver_descriptor,
+                                param_name,
+                                answer,
+                            )
+                        except Exception as e:
                             log.error("Validation failed: %s" % e)
                         else:
                             input_valid = True
@@ -254,13 +237,22 @@ def _get_configuration_recursive(log, tank_api_instance, new_ver_descriptor, par
     return param_values
 
 
-def ensure_frameworks_installed(log, tank_api_instance, file_location, descriptor, environment, suppress_prompts):
+def ensure_frameworks_installed(
+    log,
+    tank_api_instance,
+    file_location,
+    descriptor,
+    environment,
+    interaction_interface,
+):
     """
     Recursively check that all required frameworks are installed.
     Anything not installed will be downloaded from the app store.
     """
 
-    missing_fws = validation.get_missing_frameworks(descriptor, environment, file_location)
+    missing_fws = validation.get_missing_frameworks(
+        descriptor, environment, file_location
+    )
 
     # this returns dictionaries with name and version keys, the way
     # they are defined in the manifest for that descriptor
@@ -285,12 +277,17 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
 
         pc = tank_api_instance.pipeline_configuration
 
-        fw_descriptor = pc.get_latest_framework_descriptor(location_stub, version_pattern)
+        fw_descriptor = pc.get_latest_framework_descriptor(
+            location_stub, version_pattern
+        )
 
         installed_fw_descriptors.append(fw_descriptor)
 
         # and now process this framework
-        log.info("Installing required framework %s %s. Downloading %s..." % (name, version_pattern, fw_descriptor))
+        log.info(
+            "Installing required framework %s %s. Downloading %s..."
+            % (name, version_pattern, fw_descriptor)
+        )
         if not fw_descriptor.exists_local():
             fw_descriptor.download_local()
 
@@ -301,7 +298,7 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
         # now make sure all constraints are okay
         try:
             check_constraints_for_item(fw_descriptor, environment)
-        except TankError, e:
+        except TankError as e:
             raise TankError("Cannot install framework: %s" % e)
 
         # okay to install!
@@ -313,16 +310,26 @@ def ensure_frameworks_installed(log, tank_api_instance, file_location, descripto
         fw_descriptor.run_post_install(tank_api_instance)
 
         # now get data for all new settings values in the config
-        params = get_configuration(log, tank_api_instance, fw_descriptor, None, suppress_prompts, None)
+        params = get_configuration(
+            log, tank_api_instance, fw_descriptor, None, interaction_interface, None
+        )
 
         # next step is to add the new configuration values to the environment
-        environment.create_framework_settings(file_location, fw_instance_name, params, fw_descriptor.get_dict())
-
+        environment.create_framework_settings(
+            file_location, fw_instance_name, params, fw_descriptor.get_dict()
+        )
 
     # second pass: For all the missing frameworks that were installed, ensure that these in turn also
     # have their dependency requirements satisfied...
     for fw_descriptor in installed_fw_descriptors:
-        ensure_frameworks_installed(log, tank_api_instance, file_location, fw_descriptor, environment, suppress_prompts)
+        ensure_frameworks_installed(
+            log,
+            tank_api_instance,
+            file_location,
+            fw_descriptor,
+            environment,
+            interaction_interface,
+        )
 
 
 def check_constraints_for_item(descriptor, environment_obj, engine_instance_name=None):
@@ -337,7 +344,9 @@ def check_constraints_for_item(descriptor, environment_obj, engine_instance_name
     # get the parent engine descriptor, if we are checking an app
     if engine_instance_name:
         # we are checking an engine object (it has no parent engine)
-        parent_engine_descriptor = environment_obj.get_engine_descriptor(engine_instance_name)
+        parent_engine_descriptor = environment_obj.get_engine_descriptor(
+            engine_instance_name
+        )
     else:
         parent_engine_descriptor = None
 
@@ -345,12 +354,15 @@ def check_constraints_for_item(descriptor, environment_obj, engine_instance_name
     try:
         descriptor.check_version_constraints(
             pipelineconfig_utils.get_currently_running_api_version(),
-            parent_engine_descriptor
+            parent_engine_descriptor,
         )
-    except CheckVersionConstraintsError, e:
+    except CheckVersionConstraintsError as e:
         reasons = e.reasons[:]
-        reasons.insert(0, "%s requires an upgrade to one or more "
-                          "of your installed components." % descriptor)
+        reasons.insert(
+            0,
+            "%s requires an upgrade to one or more "
+            "of your installed components." % descriptor,
+        )
         details = " ".join(reasons)
         raise TankError(details)
 
@@ -398,9 +410,10 @@ def _generate_settings_diff(parent_engine_name, new_descriptor, old_descriptor=N
             # not valid. This is an edge case.
             old_schema = {}
 
-
     # find all new config parameters
-    new_parameters = _generate_settings_diff_recursive(parent_engine_name, old_schema, schema)
+    new_parameters = _generate_settings_diff_recursive(
+        parent_engine_name, old_schema, schema
+    )
     return new_parameters
 
 
@@ -425,7 +438,7 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
 
     new_params = {}
 
-    for param_name, new_param_definition_dict in new_schema.iteritems():
+    for param_name, new_param_definition_dict in new_schema.items():
 
         param_type = new_param_definition_dict.get("type", "Unknown")
         param_desc = new_param_definition_dict.get("description", "No description.")
@@ -438,8 +451,9 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
 
             # attempt to resolve a default value from the new parameter def.
             try:
-                default_value = resolve_default_value(new_param_definition_dict,
-                    parent_engine_name, raise_if_missing=True)
+                default_value = resolve_default_value(
+                    new_param_definition_dict, parent_engine_name, raise_if_missing=True
+                )
             except TankNoDefaultValueError:
                 # No default value exists. We won't add it to the dict.
                 # It will be prompted for later.
@@ -457,9 +471,15 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
                 new_items = new_param_definition_dict.get("items", {})
                 old_items = old_param_definition_dict.get("items", {})
 
-                new_child_params = _generate_settings_diff_recursive(parent_engine_name, old_items, new_items)
+                new_child_params = _generate_settings_diff_recursive(
+                    parent_engine_name, old_items, new_items
+                )
                 if new_child_params:
-                    new_params[param_name] = {"description": param_desc, "type": param_type, "children":new_child_params}
+                    new_params[param_name] = {
+                        "description": param_desc,
+                        "type": param_type,
+                        "children": new_child_params,
+                    }
             elif param_type == "list":
                 # check to see if this is a list of dicts:
                 new_list_param_values = new_param_definition_dict.get("values", {})
@@ -474,9 +494,15 @@ def _generate_settings_diff_recursive(parent_engine_name, old_schema, new_schema
                     new_items = new_list_param_values.get("items", {})
                     old_items = old_list_param_values.get("items", {})
 
-                    new_child_params = _generate_settings_diff_recursive(parent_engine_name, old_items, new_items)
+                    new_child_params = _generate_settings_diff_recursive(
+                        parent_engine_name, old_items, new_items
+                    )
                     if new_child_params:
-                        new_params[param_name] = {"description": param_desc, "type": param_type, "children":new_child_params}
+                        new_params[param_name] = {
+                            "description": param_desc,
+                            "type": param_type,
+                            "children": new_child_params,
+                        }
                 elif new_list_param_values_type == "list":
                     # lists of lists are currently not handled!
                     continue
@@ -497,7 +523,9 @@ def _validate_parameter(tank_api_instance, descriptor, parameter, str_value):
     # now convert string value input to objet (int, string, dict etc)
     obj_value = validation.convert_string_to_type(str_value, schema_type)
     # finally validate this object against the schema
-    validation.validate_single_setting(descriptor.display_name, tank_api_instance, schema, parameter, obj_value)
+    validation.validate_single_setting(
+        descriptor.display_name, tank_api_instance, schema, parameter, obj_value
+    )
 
     # we are here, must mean we are good to go!
     return obj_value

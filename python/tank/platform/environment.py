@@ -26,6 +26,8 @@ from .errors import TankMissingEnvironmentFile
 
 from ..util.yaml_cache import g_yaml_cache
 from .. import LogManager
+from tank_vendor import six
+from tank_vendor.shotgun_api3.lib import sgsix
 
 logger = LogManager.get_logger(__name__)
 
@@ -38,7 +40,7 @@ class Environment(object):
     files from the various apps and engines referenced in the environment file)
 
     This class contains immutable methods only, e.g. you can only read from
-    the yaml file. If you want to modify the yaml content, create a 
+    the yaml file. If you want to modify the yaml content, create a
     WritableEnvironment instance instead.
     """
 
@@ -51,7 +53,7 @@ class Environment(object):
         """
         self._env_path = env_path
         self._env_data = None
-        
+
         self.__engine_locations = {}
         self.__app_locations = {}
         self.__framework_locations = {}
@@ -59,7 +61,6 @@ class Environment(object):
 
         # validate and populate config
         self._refresh()
-
 
     def __repr__(self):
         return "<Sgtk Environment %s>" % self._env_path
@@ -72,10 +73,12 @@ class Environment(object):
         """
         data = self.__load_environment_data()
 
-        self._env_data = environment_includes.process_includes(self._env_path, data, self.__context)
-        
+        self._env_data = environment_includes.process_includes(
+            self._env_path, data, self.__context
+        )
+
         if not self._env_data:
-            raise TankError('No data in env file: %s' % (self._env_path))
+            raise TankError("No data in env file: %s" % (self._env_path))
 
         if "engines" not in self._env_data:
             raise TankError("No 'engines' section in env file: %s" % (self._env_path))
@@ -105,10 +108,39 @@ class Environment(object):
         self.__framework_locations = {}
         self.__extract_locations()
 
+    def __validate_settings(self, name, settings):
+        """
+        Validates the engine/app/framework settings dictionary
+        """
+
+        # Make sure the settings dict is not empty
+        if not settings:
+            raise TankError(
+                'No settings found for "{}" in {}'.format(name, self.disk_location)
+            )
+
+        # Make sure the required keys exist and have values
+        required_keys = [constants.ENVIRONMENT_LOCATION_KEY]
+        for key in required_keys:
+            if key not in settings:
+                raise TankError(
+                    '"{}" key missing in the definition of "{}" in file {}'.format(
+                        key, name, self.disk_location
+                    )
+                )
+            if settings[key] is None:
+                raise TankError(
+                    '"{}" key of "{}" has an empty definition in file {}'.format(
+                        key, name, self.disk_location
+                    )
+                )
+
     def __is_item_disabled(self, settings):
         """
         handles the checks to see if an item is disabled
         """
+        # TODO: This should be redesigned to use the descriptor API disabled and disabled_platforms properties to help
+        #       better encapsulate the feature?
         descriptor_dict = settings.get(constants.ENVIRONMENT_LOCATION_KEY)
 
         # Check for disabled and deny_platforms
@@ -119,7 +151,9 @@ class Environment(object):
         # now check if the current platform is disabled
         deny_platforms = descriptor_dict.get("deny_platforms", [])
         # current os: linux/mac/windows
-        nice_system_name = {"linux2": "linux", "darwin": "mac", "win32": "windows"}[sys.platform]
+        nice_system_name = {"linux2": "linux", "darwin": "mac", "win32": "windows"}[
+            sgsix.platform
+        ]
         if nice_system_name in deny_platforms:
             return True
 
@@ -133,6 +167,7 @@ class Environment(object):
             return
         # iterate over the apps dict
         for app, app_settings in data.items():
+            self.__validate_settings(app, app_settings)
             if not self.__is_item_disabled(app_settings):
                 self.__app_settings[(engine, app)] = app_settings
 
@@ -144,9 +179,10 @@ class Environment(object):
             return
         # iterate over the engine dict
         for engine, engine_settings in engines.items():
+            self.__validate_settings(engine, engine_settings)
             # Check for engine disabled
             if not self.__is_item_disabled(engine_settings):
-                engine_apps = engine_settings.pop('apps')
+                engine_apps = engine_settings.pop("apps")
                 self.__process_apps(engine, engine_apps)
                 self.__engine_settings[engine] = engine_settings
 
@@ -158,6 +194,7 @@ class Environment(object):
             return
 
         for fw, fw_settings in frameworks.items():
+            self.__validate_settings(fw, fw_settings)
             # Check for framework disabled
             if not self.__is_item_disabled(fw_settings):
                 self.__framework_settings[fw] = fw_settings
@@ -171,28 +208,46 @@ class Environment(object):
         """
 
         for fw in self.__framework_settings:
-            descriptor_dict = self.__framework_settings[fw].get(constants.ENVIRONMENT_LOCATION_KEY)
+            descriptor_dict = self.__framework_settings[fw].get(
+                constants.ENVIRONMENT_LOCATION_KEY
+            )
             if descriptor_dict is None:
-                raise TankError("The environment %s does not have a valid location "
-                                "key for framework %s" % (self._env_path, fw))
+                raise TankError(
+                    "The environment %s does not have a valid location "
+                    "key for framework %s" % (self._env_path, fw)
+                )
             # remove location from dict
-            self.__framework_locations[fw] = self.__framework_settings[fw].pop(constants.ENVIRONMENT_LOCATION_KEY)
+            self.__framework_locations[fw] = self.__framework_settings[fw].pop(
+                constants.ENVIRONMENT_LOCATION_KEY
+            )
 
         for eng in self.__engine_settings:
-            descriptor_dict = self.__engine_settings[eng].get(constants.ENVIRONMENT_LOCATION_KEY)
+            descriptor_dict = self.__engine_settings[eng].get(
+                constants.ENVIRONMENT_LOCATION_KEY
+            )
             if descriptor_dict is None:
-                raise TankError("The environment %s does not have a valid location "
-                                "key for engine %s" % (self._env_path, eng))
+                raise TankError(
+                    "The environment %s does not have a valid location "
+                    "key for engine %s" % (self._env_path, eng)
+                )
             # remove location from dict
-            self.__engine_locations[eng] = self.__engine_settings[eng].pop(constants.ENVIRONMENT_LOCATION_KEY)
+            self.__engine_locations[eng] = self.__engine_settings[eng].pop(
+                constants.ENVIRONMENT_LOCATION_KEY
+            )
 
         for (eng, app) in self.__app_settings:
-            descriptor_dict = self.__app_settings[(eng,app)].get(constants.ENVIRONMENT_LOCATION_KEY)
+            descriptor_dict = self.__app_settings[(eng, app)].get(
+                constants.ENVIRONMENT_LOCATION_KEY
+            )
             if descriptor_dict is None:
-                raise TankError("The environment %s does not have a valid location "
-                                "key for app %s.%s" % (self._env_path, eng, app))
+                raise TankError(
+                    "The environment %s does not have a valid location "
+                    "key for app %s.%s" % (self._env_path, eng, app)
+                )
             # remove location from dict
-            self.__engine_locations[(eng,app)] = self.__app_settings[(eng,app)].pop(constants.ENVIRONMENT_LOCATION_KEY)
+            self.__engine_locations[(eng, app)] = self.__app_settings[(eng, app)].pop(
+                constants.ENVIRONMENT_LOCATION_KEY
+            )
 
     def __load_data(self, path):
         """
@@ -213,7 +268,9 @@ class Environment(object):
             return self.__load_data(self._env_path)
         except TankUnreadableFileError:
             logger.exception("Missing environment file:")
-            raise TankMissingEnvironmentFile("Missing environment file: %s" % self._env_path)
+            raise TankMissingEnvironmentFile(
+                "Missing environment file: %s" % self._env_path
+            )
 
     ##########################################################################################
     # Properties
@@ -242,7 +299,6 @@ class Environment(object):
         """
         return self._env_path
 
-
     ##########################################################################################
     # Public methods - data retrieval
 
@@ -250,23 +306,25 @@ class Environment(object):
         """
         Returns all the engines contained in this environment file
         """
-        return self.__engine_settings.keys()
+        return list(self.__engine_settings.keys())
 
     def get_frameworks(self):
         """
         Returns all the frameworks contained in this environment file
         """
-        return self.__framework_settings.keys()
+        return list(self.__framework_settings.keys())
 
     def get_apps(self, engine):
         """
         Returns all apps for an engine contained in this environment file
         """
         if engine not in self.get_engines():
-            raise TankError("Engine '%s' is not part of environment %s" % (engine, self._env_path))
+            raise TankError(
+                "Engine '%s' is not part of environment %s" % (engine, self._env_path)
+            )
 
         apps = []
-        engine_app_tuples = self.__app_settings.keys()
+        engine_app_tuples = list(self.__app_settings.keys())
         for (engine_name, app_name) in engine_app_tuples:
             if engine_name == engine:
                 apps.append(app_name)
@@ -278,7 +336,10 @@ class Environment(object):
         """
         d = self.__framework_settings.get(framework)
         if d is None:
-            raise TankError("Framework '%s' is not part of environment %s" % (framework, self._env_path))
+            raise TankError(
+                "Framework '%s' is not part of environment %s"
+                % (framework, self._env_path)
+            )
         return d
 
     def get_engine_settings(self, engine):
@@ -287,7 +348,9 @@ class Environment(object):
         """
         d = self.__engine_settings.get(engine)
         if d is None:
-            raise TankError("Engine '%s' is not part of environment %s" % (engine, self._env_path))
+            raise TankError(
+                "Engine '%s' is not part of environment %s" % (engine, self._env_path)
+            )
         return d
 
     def get_app_settings(self, engine, app):
@@ -297,7 +360,10 @@ class Environment(object):
         key = (engine, app)
         d = self.__app_settings.get(key)
         if d is None:
-            raise TankError("App '%s.%s' is not part of environment %s" % (engine, app, self._env_path))
+            raise TankError(
+                "App '%s.%s' is not part of environment %s"
+                % (engine, app, self._env_path)
+            )
         return d
 
     ##########################################################################################
@@ -314,7 +380,8 @@ class Environment(object):
         if descriptor_dict is None:
             raise TankError(
                 "The framework %s does not have a valid location "
-                "key for engine %s" % (self._env_path, framework_name))
+                "key for engine %s" % (self._env_path, framework_name)
+            )
         return descriptor_dict
 
     def get_engine_descriptor_dict(self, engine_name):
@@ -342,8 +409,10 @@ class Environment(object):
         """
         descriptor_dict = self.__engine_locations.get((engine_name, app_name))
         if descriptor_dict is None:
-            raise TankError("The environment %s does not have a valid location "
-                            "key for app %s.%s" % (self._env_path, engine_name, app_name))
+            raise TankError(
+                "The environment %s does not have a valid location "
+                "key for app %s.%s" % (self._env_path, engine_name, app_name)
+            )
         return descriptor_dict
 
     def find_location_for_engine(self, engine_name):
@@ -351,19 +420,47 @@ class Environment(object):
         Returns the filename and a list of dictionary keys where an engine instance resides.
         The dictionary key list (tokens) can be nested, for example [engines, tk-maya] or just flat [tk-maya-ref]
 
-        :param engine_name: The name of the engine to find
-        :returns:           (list of tokens, file path)
+        :param str engine_name: The name of the engine to find
+
+        :returns: (list of tokens, file path)
+        :rtype: tuple
+        """
+        return self._find_location_for_engine(engine_name)
+
+    def _find_location_for_engine(self, engine_name, absolute_location=False):
+        """
+        Returns the filename and a list of dictionary keys where an engine instance resides.
+        The dictionary key list (tokens) can be nested, for example [engines, tk-maya] or just flat [tk-maya-ref]
+
+        :param str engine_name: The name of the engine to find
+        :param bool absolute_location: Whether to resolve to the yml file and
+            tokens that point to the concrete location descriptor of the bundle.
+
+        :returns: (list of tokens, file path)
         """
         # get the raw data:
         root_yml_data = self.__load_environment_data()
-        
-        # find the location for the engine:
-        tokens, path = self.__find_location_for_bundle(self._env_path, root_yml_data, "engines", engine_name)
-    
-        if not path:
-            raise TankError("Failed to find the location of the '%s' engine in the '%s' environment!"
-                            % (engine_name, self._env_path))
 
+        logger.debug(
+            "Finding %s, absolute_location=%s...", engine_name, absolute_location
+        )
+
+        # find the location for the engine:
+        tokens, path = self.__find_location_for_bundle(
+            self._env_path,
+            root_yml_data,
+            "engines",
+            engine_name,
+            absolute_location=absolute_location,
+        )
+
+        if not path:
+            raise TankError(
+                "Failed to find the location of the '%s' engine in the '%s' environment!"
+                % (engine_name, self._env_path)
+            )
+
+        logger.debug("Engine %s found: %s", tokens, path)
         return tokens, path
 
     def find_framework_instances_from(self, yml_file):
@@ -378,7 +475,9 @@ class Environment(object):
             return self.get_frameworks()
         else:
             return [
-                fw for fw in self.get_frameworks() if self._is_framework_available_from(fw, yml_file)
+                fw
+                for fw in self.get_frameworks()
+                if self._is_framework_available_from(fw, yml_file)
             ]
 
     def _is_framework_available_from(self, framework_name, starting_point):
@@ -390,10 +489,25 @@ class Environment(object):
 
         :returns: True if the framework is available from the starting point, False otherwise.
         """
-        fw_location = environment_includes.find_framework_location(starting_point, framework_name, self.__context)
+        fw_location = environment_includes.find_framework_location(
+            starting_point, framework_name, self.__context
+        )
         return True if fw_location else False
 
     def find_location_for_framework(self, framework_name):
+        """
+        Returns the filename and a list of dictionary keys where a framework instance resides.
+        The dictionary key list (tokens) can be nested, for example [frameworks, tk-framework-widget_v0.2.x]
+        or just flat [tk-framework-widget_v0.2.x]
+
+        :param framework_name: The name of the framework to find the location of
+
+        :returns: (list of tokens, file path)
+        :rtype: tuple
+        """
+        return self._find_location_for_framework(framework_name)
+
+    def _find_location_for_framework(self, framework_name, absolute_location=False):
         """
         Returns the filename and a list of dictionary keys where a framework instance resides.
         The dictionary key list (tokens) can be nested, for example [frameworks, tk-framework-widget_v0.2.x]
@@ -407,13 +521,20 @@ class Environment(object):
         The second stage is to check for a framework (or frameworks block) that has been
         specified using the @include syntax.
 
-        :param framework_name:  The name of the framework to find the location of
-        :returns:               (list of tokens, file path)
+        :param framework_name: The name of the framework to find the location of
+        :param bool absolute_location: Whether to resolve to the yml file and
+            tokens that point to the concrete location descriptor of the bundle.
+
+        :returns: (list of tokens, file path)
+        :rtype: tuple
         """
         # first, try to find the place on disk of the framework definition that will be used at
         # run-time.  This handles the special case where multiple 'frameworks' blocks from
         # different levels of included files have been concatenated together.
-        fw_location = environment_includes.find_framework_location(self._env_path, framework_name, self.__context)
+        fw_location = environment_includes.find_framework_location(
+            self._env_path, framework_name, self.__context
+        )
+
         if not fw_location:
             # assume the framework is in the environment - this also handles the @include syntax
             # not handled by the previous search method!
@@ -423,12 +544,24 @@ class Environment(object):
         root_yml_data = self.__load_data(fw_location)
 
         # find the location for the framework:
-        tokens, path = self.__find_location_for_bundle(fw_location, root_yml_data, "frameworks", framework_name)
+        logger.debug(
+            "Finding %s, absolute_location=%s...", framework_name, absolute_location
+        )
+        tokens, path = self.__find_location_for_bundle(
+            fw_location,
+            root_yml_data,
+            "frameworks",
+            framework_name,
+            absolute_location=absolute_location,
+        )
 
         if not path:
-            raise TankError("Failed to find the location of the '%s' framework in the '%s' environment!"
-                            % (framework_name, self._env_path))
+            raise TankError(
+                "Failed to find the location of the '%s' framework in the '%s' environment!"
+                % (framework_name, self._env_path)
+            )
 
+        logger.debug("Framework %s found: %s", tokens, path)
         return tokens, path
 
     def find_location_for_app(self, engine_name, app_name):
@@ -437,10 +570,34 @@ class Environment(object):
         The dictionary key list (tokens) can be nested, for example [engines, tk-maya, apps, tk-multi-about]
         or just flat [tk-mylti-about-def]
 
-        :param engine_name: The name of the engine to look for the app in
-        :param app_name:    The name of the app to find
-        :returns:           (list of tokens, file path)
+        :param str engine_name: The name of the engine to look for the app in
+        :param str app_name: The name of the app to find
+
+        :returns: (list of tokens, file path)
+        :rtype: tuple
         """
+        return self._find_location_for_app(engine_name, app_name)
+
+    def _find_location_for_app(self, engine_name, app_name, absolute_location=False):
+        """
+        Returns the filename and the dictionary key where an app instance resides.
+        The dictionary key list (tokens) can be nested, for example [engines, tk-maya, apps, tk-multi-about]
+        or just flat [tk-mylti-about-def]
+
+        :param str engine_name: The name of the engine to look for the app in
+        :param str app_name: The name of the app to find
+        :param bool absolute_location: Whether to resolve to the yml file and
+            tokens that point to the concrete location descriptor of the bundle.
+
+        :returns: (list of tokens, file path)
+        :rtype: tuple
+        """
+        logger.debug(
+            "Finding %s, engine_name=%s, absolute_location=%s...",
+            app_name,
+            engine_name,
+            absolute_location,
+        )
         # first, find the location of the engine:
         (engine_tokens, engine_yml_file) = self.find_location_for_engine(engine_name)
 
@@ -454,59 +611,135 @@ class Environment(object):
             engine_data = engine_data.get(x)
 
         # find the location for the app within the engine data:
-        tokens, path = self.__find_location_for_bundle(engine_yml_file, engine_data, "apps", app_name, engine_tokens)
-        
+        tokens, path = self.__find_location_for_bundle(
+            engine_yml_file,
+            engine_data,
+            "apps",
+            app_name,
+            engine_tokens,
+            absolute_location=absolute_location,
+        )
+
         if not path:
-            raise TankError("Failed to find the location of the '%s' app under the '%s' engine in the '%s' environment!"
-                            % (engine_name, app_name, self._env_path))
-        
+            raise TankError(
+                "Failed to find the location of the '%s' app under the '%s' engine in the '%s' environment!"
+                % (engine_name, app_name, self._env_path)
+            )
+
+        logger.debug("App %s found: %s", tokens, path)
         return tokens, path
 
-    def __find_location_for_bundle(self, yml_file, parent_yml_data, section_name, bundle_name, parent_tokens=None):
+    def __find_location_for_bundle(
+        self,
+        yml_file,
+        parent_yml_data,
+        section_name,
+        bundle_name,
+        parent_tokens=None,
+        absolute_location=False,
+    ):
         """
-        Return the location for the specified bundle within the specified section of the parent yml data block.
+        Return the location for the specified bundle within the specified section of the parent yml
+        data block.
 
-        :param yml_file:            The starting environment yml file
-        :param parent_yml_data:     The parent yml data block to start the search from
-        :param section_name:        The name of the section that contains the bundle
-        :param bundle_name:         The name of the bundle to find
-        :param bundle_tokens:       A list of tokens representing the path to the parent data block
-        :returns:                   (list of tokens, file path)
+        .. note:: The absolute_location should be True or False depending on
+            what it is the caller intends to do with the resulting location
+            returned. In the situation where the descriptor for the bundle
+            is to be updated to a new version, it is ctitical that the location
+            returned by this method be the yml file and associated tokens
+            housing the concrete descriptor dictionary. The goal is to ensure
+            that the new descriptor contents are written to the same yml file
+            where the old descriptor is defined, rather than what might be
+            an included value from another yml file. A good example is how
+            engines are structured in tk-config-basic, where the engine instance
+            is defined in a project.yml file, but the engine's location setting
+            points to an included value. In the case where absolute_location
+            is True, that include will be followed and the yml file where it
+            is defined will be returned. If absolute_location were False, the
+            yml file where the engine instance itself is defined will be returned,
+            meaning the location setting's include will not be resolved and
+            followed to its source. There is the need for each of these,
+            depending on the situation: when a descriptor is going to be
+            updated, absolute_location should be True, and when settings other
+            than the descriptor are to be queried or updated, absolute_location
+            should be False. In some cases these two will return the same
+            thing, but that is not guaranteed and it is entirely up to how
+            the config is structured as to whether they are consistent.
+
+        :param str yml_file: The starting environment yml file
+        :param dict parent_yml_data: The parent yml data block to start the search from
+        :param str section_name: The name of the section that contains the bundle
+        :param str bundle_name: The name of the bundle to find
+        :param list bundle_tokens: A list of tokens representing the path to the parent data block
+        :param bool absolute_location: Whether to ensure that the file path and tokens returned
+            references where the given bundle's location descriptor is
+            defined in full.
+
+        :returns: (list of tokens, file path)
+        :rtype: tuple
         """
         bundle_tokens = list(parent_tokens or [])
         bundle_yml_file = yml_file
 
-        # check to see if the whole bundle section is a reference or not:
+        # Check to see if the whole bundle section is a reference.
         bundle_section = parent_yml_data[section_name]
         bundle_data = None
-        if isinstance(bundle_section, basestring) and bundle_section.startswith("@"):
-            # whole section is a reference!
+
+        def is_included(item):
+            """
+            Tests whether the given item is an included value or not. This
+            is determined by whether it is a string, and if so, it is an
+            included value if it has an @ at its head.
+            """
+            return isinstance(item, six.string_types) and item.startswith("@")
+
+        if is_included(bundle_section):
+            # The whole section is a reference! The token is just the include
+            # definition with the @ at the head chopped off.
             bundle_section_token = bundle_section[1:]
-            bundle_yml_file = environment_includes.find_reference(bundle_yml_file, self.__context, bundle_section_token)
+            bundle_yml_file, bundle_section_token = environment_includes.find_reference(
+                bundle_yml_file, self.__context, bundle_section_token, absolute_location
+            )
             bundle_yml_data = self.__load_data(bundle_yml_file)
             bundle_data = bundle_yml_data[bundle_section_token]
             bundle_tokens = [bundle_section_token]
         else:
-            # found the right section:
-            bundle_tokens.append(section_name)
             bundle_data = bundle_section.get(bundle_name)
+            bundle_tokens.append(section_name)
 
         if not bundle_data:
             # failed to find the data for the specified bundle!
             return ([], None)
 
-        if isinstance(bundle_data, basestring) and bundle_data.startswith("@"):
-            # this is a reference!
-            # now we are at the top of the token stack again because we switched files
+        if is_included(bundle_data):
+            # This is a reference, so we need to flatten it out. The token
+            # is just the include definition with the @ at the head chopped
+            # off.
             bundle_token = bundle_data[1:]
+            bundle_yml_file, bundle_token = environment_includes.find_reference(
+                bundle_yml_file, self.__context, bundle_token, absolute_location
+            )
             bundle_tokens = [bundle_token]
-            bundle_yml_file = environment_includes.find_reference(bundle_yml_file, self.__context, bundle_token)
+        elif absolute_location:
+            # The bundle data isn't included, but we need to make sure that
+            # the location is concrete if we've been asked to ensure that.
+            location = bundle_data.get(constants.ENVIRONMENT_LOCATION_KEY)
+
+            if is_included(location):
+                bundle_yml_file, bundle_token = environment_includes.find_reference(
+                    bundle_yml_file,
+                    self.__context,
+                    location[1:],  # Trim the @ at the head.
+                    absolute_location,
+                )
+                bundle_tokens = [bundle_token]
+            else:
+                bundle_tokens.append(bundle_name)
         else:
             # bundle is defined in the current file
             bundle_tokens.append(bundle_name)
 
         return (bundle_tokens, bundle_yml_file)
-
 
 
 class InstalledEnvironment(Environment):
@@ -517,6 +750,7 @@ class InstalledEnvironment(Environment):
     Don't construct this class by hand! Instead, use the
     pipelineConfiguration.get_environment() method.
     """
+
     def __init__(self, env_path, pipeline_config, context=None):
         """
         :param env_path: Path to the environment file
@@ -572,7 +806,6 @@ class InstalledEnvironment(Environment):
         )
 
 
-
 class WritableEnvironment(InstalledEnvironment):
     """
     Represents a mutable environment.
@@ -611,13 +844,15 @@ class WritableEnvironment(InstalledEnvironment):
         """
         try:
             fh = open(path, "r")
-        except Exception, e:
-            raise TankError("Could not open file '%s'. Error reported: '%s'" % (path, e))
-        
+        except Exception as e:
+            raise TankError(
+                "Could not open file '%s'. Error reported: '%s'" % (path, e)
+            )
+
         try:
-            # the ruamel parser doesn't have 2.5 support so 
-            # only use it on 2.6+            
-            if self._use_ruamel_yaml_parser and not(sys.version_info < (2,6)):
+            # the ruamel parser doesn't have 2.5 support so
+            # only use it on 2.6+
+            if self._use_ruamel_yaml_parser and not (sys.version_info < (2, 6)):
                 # note that we use the RoundTripLoader loader here. This ensures
                 # that structure and comments are preserved when the yaml is
                 # written back to disk.
@@ -627,6 +862,7 @@ class WritableEnvironment(InstalledEnvironment):
                 # required by the parse to maintain the lexical integrity
                 # of the content.
                 from tank_vendor import ruamel_yaml
+
                 yaml_data = ruamel_yaml.load(fh, ruamel_yaml.RoundTripLoader)
             else:
                 # use pyyaml parser
@@ -636,13 +872,14 @@ class WritableEnvironment(InstalledEnvironment):
             # instead. This is known to happen when and old version (<= v1.3.20) of
             # tk-framework-desktopstartup is in use.
             yaml_data = yaml.load(fh)
-        except Exception, e:
-            raise TankError("Could not parse file '%s'. Error reported: '%s'" % (path, e))
+        except Exception as e:
+            raise TankError(
+                "Could not parse file '%s'. Error reported: '%s'" % (path, e)
+            )
         finally:
-            fh.close()            
-        
+            fh.close()
+
         return yaml_data
-        
 
     def __write_data(self, path, data):
         """
@@ -654,18 +891,21 @@ class WritableEnvironment(InstalledEnvironment):
         try:
             g_yaml_cache.invalidate(path)
             fh = open(path, "wt")
-        except Exception, e:
-            raise TankError("Could not open file '%s' for writing. "
-                            "Error reported: '%s'" % (path, e))
+        except Exception as e:
+            raise TankError(
+                "Could not open file '%s' for writing. "
+                "Error reported: '%s'" % (path, e)
+            )
 
         try:
             self.__write_data_file(fh, data)
-        except Exception, e:
-            raise TankError("Could not write to environment file '%s'. "
-                            "Error reported: %s" % (path, e))
+        except Exception as e:
+            raise TankError(
+                "Could not write to environment file '%s'. "
+                "Error reported: %s" % (path, e)
+            )
         finally:
             fh.close()
-
 
     def __write_data_file(self, fh, data):
         """
@@ -678,7 +918,7 @@ class WritableEnvironment(InstalledEnvironment):
         try:
             # the ruamel parser doesn't have 2.5 support so
             # only use it on 2.6+
-            if self._use_ruamel_yaml_parser and not(sys.version_info < (2,6)):
+            if self._use_ruamel_yaml_parser and not (sys.version_info < (2, 6)):
                 # note that we are using the RoundTripDumper in order to
                 # preserve the structure when writing the file to disk.
                 #
@@ -697,10 +937,13 @@ class WritableEnvironment(InstalledEnvironment):
                 # roundtrip dumper, it will adopt a 'safe' behaviour
                 # by default.
                 from tank_vendor import ruamel_yaml
-                ruamel_yaml.dump(data,
-                                 fh,
-                                 default_flow_style=False,
-                                 Dumper=ruamel_yaml.RoundTripDumper)
+
+                ruamel_yaml.dump(
+                    data,
+                    fh,
+                    default_flow_style=False,
+                    Dumper=ruamel_yaml.RoundTripDumper,
+                )
             else:
                 # use pyyaml parser
                 #
@@ -725,14 +968,13 @@ class WritableEnvironment(InstalledEnvironment):
             # of tk-framework-desktopstartup is being used.
             yaml.safe_dump(data, fh)
 
-
     def set_yaml_preserve_mode(self, val):
         """
-        If set to true, the ruamel parser will be used instead of the 
-        traditional pyyaml one. This parser will preserve structure and 
-        comments and generally try to more gracefully update the yaml 
+        If set to true, the ruamel parser will be used instead of the
+        traditional pyyaml one. This parser will preserve structure and
+        comments and generally try to more gracefully update the yaml
         content
-        
+
         :param val: True to enable new parser, false to disable
         """
         # environment variable setting overrides
@@ -740,16 +982,80 @@ class WritableEnvironment(InstalledEnvironment):
             self._use_ruamel_yaml_parser = False
         else:
             self._use_ruamel_yaml_parser = val
-        
+
+    def _update_location_data(self, data, new_location_data):
+        """
+        Updates the location contents of the given data dictionary
+        with that contained in the given new_location_data. If the
+        old data contains a location key, that will be replaced with
+        with the contents of new_location_data, otherwise the
+        new location data will be returned as is.
+
+        :param dict data: The data dictionary to update with the new
+            location information.
+        :param dict new_location_data: The new location information to
+            use.
+
+        :returns: An updated dictionary containing the new location
+            information.
+        :rtype: dict
+        """
+        # This is ghetto, but is required given the current design of
+        # this environment API and how the updates work. We might be in
+        # a situation where we're updating a descriptor, but in a bare
+        # data structure in the yml that isn't under a "location" key.
+        # This is possible and probably in configs structured like
+        # tk-config-basic and tk-config-default2, where we have locations
+        # centralized in an include file, and those are then referenced
+        # into location settings for bundled in other yml files. In that
+        # situation we need to drop the new location into the bundle
+        # settings as is, so as not to create a new location key where
+        # it isn't correct to have one.
+        #
+        # It is the difference between the following:
+        #
+        # common.engines.tk-maya.location:
+        #   type: app_store
+        #   name: tk-maya
+        #   version: v0.8.1
+        #
+        # And:
+        #
+        # common.apps.tk-multi-shotgunpanel:
+        #   location:
+        #     type: app_store
+        #     name: tk-multi-shotgunpanel
+        #     version: v1.4.3
+        #
+        # In the former, the new location information is replaced at
+        # the top level of the data dictionary. For the latter, the
+        # location key's contents is replaced.
+        if new_location_data and constants.ENVIRONMENT_LOCATION_KEY in data:
+            data[constants.ENVIRONMENT_LOCATION_KEY] = new_location_data
+        elif new_location_data:
+            data.update(new_location_data)
+
+        return data
+
     def update_engine_settings(self, engine_name, new_data, new_location):
         """
         Updates the engine configuration
         """
 
         if engine_name not in self._env_data["engines"]:
-            raise TankError("Engine %s does not exist in environment %s" % (engine_name, self._env_path) )
+            raise TankError(
+                "Engine %s does not exist in environment %s"
+                % (engine_name, self._env_path)
+            )
 
-        (tokens, yml_file) = self.find_location_for_engine(engine_name)
+        # In this case, we want to make sure that we are getting the
+        # yml file where the engine's location descriptor is defined
+        # in a concrete manner (ie: the actual dict and not an include
+        # to another yml file). The absolute_location argument will allow
+        # us to do that.
+        (tokens, yml_file) = self._find_location_for_engine(
+            engine_name, absolute_location=True
+        )
 
         # now update the yml file where the engine is defined
         yml_data = self.__load_writable_yaml(yml_file)
@@ -760,8 +1066,8 @@ class WritableEnvironment(InstalledEnvironment):
         for x in tokens:
             engine_data = engine_data.get(x)
 
-        if new_location:
-            engine_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
+        # Update our data with the new location.
+        engine_data = self._update_location_data(engine_data, new_location)
 
         self._update_settings_recursive(engine_data, new_data)
         self.__write_data(yml_file, yml_data)
@@ -769,18 +1075,30 @@ class WritableEnvironment(InstalledEnvironment):
         # sync internal data with disk
         self._refresh()
 
-
     def update_app_settings(self, engine_name, app_name, new_data, new_location):
         """
         Updates the app configuration.
         """
 
         if engine_name not in self._env_data["engines"]:
-            raise TankError("Engine %s does not exist in environment %s" % (engine_name, self._env_path) )
+            raise TankError(
+                "Engine %s does not exist in environment %s"
+                % (engine_name, self._env_path)
+            )
         if app_name not in self._env_data["engines"][engine_name]["apps"]:
-            raise TankError("App %s.%s does not exist in environment %s" % (engine_name, app_name, self._env_path) )
+            raise TankError(
+                "App %s.%s does not exist in environment %s"
+                % (engine_name, app_name, self._env_path)
+            )
 
-        (tokens, yml_file) = self.find_location_for_app(engine_name, app_name)
+        # In this case, we want to make sure that we are getting the
+        # yml file where the app's location descriptor is defined
+        # in a concrete manner (ie: the actual dict and not an include
+        # to another yml file). The absolute_location argument will allow
+        # us to do that.
+        (tokens, yml_file) = self._find_location_for_app(
+            engine_name, app_name, absolute_location=True
+        )
 
         # now update the yml file where the engine is defined
         yml_data = self.__load_writable_yaml(yml_file)
@@ -791,8 +1109,8 @@ class WritableEnvironment(InstalledEnvironment):
         for x in tokens:
             app_data = app_data.get(x)
 
-        # finally update the file
-        app_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
+        # Update our data with the new location information.
+        app_data = self._update_location_data(app_data, new_location)
 
         self._update_settings_recursive(app_data, new_data)
         self.__write_data(yml_file, yml_data)
@@ -806,9 +1124,19 @@ class WritableEnvironment(InstalledEnvironment):
         """
 
         if framework_name not in self._env_data["frameworks"]:
-            raise TankError("Framework %s does not exist in environment %s" % (framework_name, self._env_path) )
+            raise TankError(
+                "Framework %s does not exist in environment %s"
+                % (framework_name, self._env_path)
+            )
 
-        (tokens, yml_file) = self.find_location_for_framework(framework_name)
+        # In this case, we want to make sure that we are getting the
+        # yml file where the framework's location descriptor is defined
+        # in a concrete manner (ie: the actual dict and not an include
+        # to another yml file). The absolute_location argument will allow
+        # us to do that.
+        (tokens, yml_file) = self._find_location_for_framework(
+            framework_name, absolute_location=True
+        )
 
         # now update the yml file where the engine is defined
         yml_data = self.__load_writable_yaml(yml_file)
@@ -819,8 +1147,8 @@ class WritableEnvironment(InstalledEnvironment):
         for x in tokens:
             framework_data = framework_data.get(x)
 
-        if new_location:
-            framework_data[constants.ENVIRONMENT_LOCATION_KEY] = new_location
+        # Update our data with the new location information.
+        framework_data = self._update_location_data(framework_data, new_location)
 
         self._update_settings_recursive(framework_data, new_data)
         self.__write_data(yml_file, yml_data)
@@ -835,7 +1163,7 @@ class WritableEnvironment(InstalledEnvironment):
         :param settings: settings dictionary to update with the new values
         :parma new_data: new settings data to update into the settings dictionary
         """
-        for name, data in new_data.iteritems():
+        for name, data in new_data.items():
             # if data is a dictionary then we may need to recurse to update nested settings:
             if isinstance(data, dict):
                 setting = settings.get(name)
@@ -883,29 +1211,38 @@ class WritableEnvironment(InstalledEnvironment):
         #
         # frameworks: '@included_fw'
         frameworks_section = data["frameworks"]
-        if isinstance( frameworks_section, str) and frameworks_section.startswith("@"):
-            raise TankError("The frameworks section in environment file '%s' is a reference to another file. "
-                            "This type of configuration arrangement cannot currently be automatically "
-                            "modified - please edit it by hand! Please add the following to your external "
-                            "framework include: "
-                            "%s: { %s: %s }. "
-                            "If the framework has any settings, these need to be added "
-                            "by hand." % (self._env_path,
-                                          framework_name,
-                                          constants.ENVIRONMENT_LOCATION_KEY,
-                                          location))
+        if isinstance(frameworks_section, str) and frameworks_section.startswith("@"):
+            raise TankError(
+                "The frameworks section in environment file '%s' is a reference to another file. "
+                "This type of configuration arrangement cannot currently be automatically "
+                "modified - please edit it by hand! Please add the following to your external "
+                "framework include: "
+                "%s: { %s: %s }. "
+                "If the framework has any settings, these need to be added "
+                "by hand."
+                % (
+                    self._env_path,
+                    framework_name,
+                    constants.ENVIRONMENT_LOCATION_KEY,
+                    location,
+                )
+            )
 
         if framework_name in data["frameworks"]:
-            raise TankError("Framework %s already exists in environment %s" % (framework_name, yml_file) )
+            raise TankError(
+                "Framework %s already exists in environment %s"
+                % (framework_name, yml_file)
+            )
 
         data["frameworks"][framework_name] = {}
-        data["frameworks"][framework_name][constants.ENVIRONMENT_LOCATION_KEY] = location
+        data["frameworks"][framework_name][
+            constants.ENVIRONMENT_LOCATION_KEY
+        ] = location
         self._update_settings_recursive(data["frameworks"][framework_name], params)
 
         self.__write_data(yml_file, data)
         # sync internal data with disk
         self._refresh()
-
 
     def create_engine_settings(self, engine_name):
         """
@@ -915,7 +1252,10 @@ class WritableEnvironment(InstalledEnvironment):
         data = self.__load_writable_yaml(self._env_path)
 
         if engine_name in data["engines"]:
-            raise TankError("Engine %s already exists in environment %s" % (engine_name, self._env_path) )
+            raise TankError(
+                "Engine %s already exists in environment %s"
+                % (engine_name, self._env_path)
+            )
 
         data["engines"][engine_name] = {}
         # and make sure we also create the location key
@@ -942,10 +1282,13 @@ class WritableEnvironment(InstalledEnvironment):
         """
         engines_section = data["engines"][engine_name]
         if isinstance(engines_section, str) and engines_section.startswith("@"):
-            raise TankError("The configuration for engine '%s' located in the environment file '%s' has a "
-                            "reference to another file ('%s'). This type "
-                            "of configuration arrangement cannot currently be automatically "
-                            "modified - please edit it by hand!" % (engine_name, self._env_path, engines_section))
+            raise TankError(
+                "The configuration for engine '%s' located in the environment file '%s' has a "
+                "reference to another file ('%s'). This type "
+                "of configuration arrangement cannot currently be automatically "
+                "modified - please edit it by hand!"
+                % (engine_name, self._env_path, engines_section)
+            )
 
     def __verify_apps_local(self, data, engine_name):
         """
@@ -959,10 +1302,13 @@ class WritableEnvironment(InstalledEnvironment):
         """
         apps_section = data["engines"][engine_name]["apps"]
         if isinstance(apps_section, str) and apps_section.startswith("@"):
-            raise TankError("The configuration for engine '%s' located in the environment file '%s' has an "
-                            "apps section which is referenced from another file ('%s'). This type "
-                            "of configuration arrangement cannot currently be automatically "
-                            "modified - please edit it by hand!" % (engine_name, self._env_path, apps_section))
+            raise TankError(
+                "The configuration for engine '%s' located in the environment file '%s' has an "
+                "apps section which is referenced from another file ('%s'). This type "
+                "of configuration arrangement cannot currently be automatically "
+                "modified - please edit it by hand!"
+                % (engine_name, self._env_path, apps_section)
+            )
 
     def create_app_settings(self, engine_name, app_name):
         """
@@ -973,7 +1319,10 @@ class WritableEnvironment(InstalledEnvironment):
 
         # check that the engine name exists in the config
         if engine_name not in data["engines"]:
-            raise TankError("Engine %s does not exist in environment %s" % (engine_name, self._env_path) )
+            raise TankError(
+                "Engine %s does not exist in environment %s"
+                % (engine_name, self._env_path)
+            )
 
         # make sure the engine's apps setting is local to this file
         self.__verify_engine_local(data, engine_name)
@@ -984,14 +1333,19 @@ class WritableEnvironment(InstalledEnvironment):
             data["engines"][engine_name]["apps"] = {}
 
         # check that it doesn't already exist
-        apps_section = data["engines"][engine_name]["apps"]        
-            
+        apps_section = data["engines"][engine_name]["apps"]
+
         if app_name in apps_section:
-            raise TankError("App %s.%s already exists in environment %s" % (engine_name, app_name, self._env_path) )
+            raise TankError(
+                "App %s.%s already exists in environment %s"
+                % (engine_name, app_name, self._env_path)
+            )
 
         data["engines"][engine_name]["apps"][app_name] = {}
         # and make sure we also create the location key
-        data["engines"][engine_name]["apps"][app_name][constants.ENVIRONMENT_LOCATION_KEY] = {}
+        data["engines"][engine_name]["apps"][app_name][
+            constants.ENVIRONMENT_LOCATION_KEY
+        ] = {}
 
         self.__write_data(self._env_path, data)
         # sync internal data with disk
@@ -1009,9 +1363,15 @@ class WritableEnvironment(InstalledEnvironment):
 
         # check that the engine names exists in the config
         if src_engine_name not in data["engines"]:
-            raise TankError("Engine %s does not exist in environment %s" % (src_engine_name, self._env_path))
+            raise TankError(
+                "Engine %s does not exist in environment %s"
+                % (src_engine_name, self._env_path)
+            )
         if dst_engine_name not in data["engines"]:
-            raise TankError("Engine %s does not exist in environment %s" % (dst_engine_name, self._env_path))
+            raise TankError(
+                "Engine %s does not exist in environment %s"
+                % (dst_engine_name, self._env_path)
+            )
 
         # make sure the actual engine settings are both local
         self.__verify_engine_local(data, src_engine_name)
@@ -1024,7 +1384,6 @@ class WritableEnvironment(InstalledEnvironment):
         self.__write_data(self._env_path, data)
         # sync internal data with disk
         self._refresh()
-
 
     ############################################################################
     # Methods specific to dumping environment settings
@@ -1062,21 +1421,25 @@ class WritableEnvironment(InstalledEnvironment):
             engine_descriptor = self.get_engine_descriptor(engine_name)
             engine_schema = engine_descriptor.configuration_schema
             engine_manifest_file = os.path.join(
-                engine_descriptor.get_path(),
-                constants.BUNDLE_METADATA_FILE
+                engine_descriptor.get_path(), constants.BUNDLE_METADATA_FILE
             )
 
             # update the settings by adding or removing keys based on the
             # type of dumping being performed.
-            self._update_settings(transform, engine_schema, engine_settings,
-                engine_name, engine_manifest_file, include_debug_comments)
+            self._update_settings(
+                transform,
+                engine_schema,
+                engine_settings,
+                engine_name,
+                engine_manifest_file,
+                include_debug_comments,
+            )
 
             # processing all the installed apps
             for app_name in self.get_apps(engine_name):
 
                 # only process settings in this file
-                (tokens, app_file) = self.find_location_for_app(engine_name,
-                                                                app_name)
+                (tokens, app_file) = self.find_location_for_app(engine_name, app_name)
                 if not app_file == self._env_path:
                     continue
 
@@ -1090,13 +1453,20 @@ class WritableEnvironment(InstalledEnvironment):
                 # settings.
                 app_descriptor = self.get_app_descriptor(engine_name, app_name)
                 app_schema = app_descriptor.configuration_schema
-                app_manifest_file = os.path.join(app_descriptor.get_path(),
-                                                 constants.BUNDLE_METADATA_FILE)
+                app_manifest_file = os.path.join(
+                    app_descriptor.get_path(), constants.BUNDLE_METADATA_FILE
+                )
 
                 # update the settings by adding or removing keys based on the
                 # type of dumping being performed.
-                self._update_settings(transform, app_schema, app_settings,
-                    engine_name, app_manifest_file, include_debug_comments)
+                self._update_settings(
+                    transform,
+                    app_schema,
+                    app_settings,
+                    engine_name,
+                    app_manifest_file,
+                    include_debug_comments,
+                )
 
         # processing all the frameworks
         for fw_name in self.get_frameworks():
@@ -1116,24 +1486,37 @@ class WritableEnvironment(InstalledEnvironment):
             # settings.
             fw_descriptor = self.get_framework_descriptor(fw_name)
             fw_schema = fw_descriptor.configuration_schema
-            fw_manifest_file = os.path.join(fw_descriptor.get_path(),
-                                            constants.BUNDLE_METADATA_FILE)
+            fw_manifest_file = os.path.join(
+                fw_descriptor.get_path(), constants.BUNDLE_METADATA_FILE
+            )
 
             # update the settings by adding or removing keys based on the
             # type of dumping being performed.
-            self._update_settings(transform, fw_schema, fw_settings,
-                fw_manifest_file, include_debug_comments)
+            self._update_settings(
+                transform,
+                fw_schema,
+                fw_settings,
+                fw_manifest_file,
+                include_debug_comments,
+            )
 
         try:
             self.__write_data_file(file, yml_data)
-        except Exception, e:
+        except Exception as e:
             raise TankError(
                 "Could not write to environment file handle. "
                 "Error reported: %s" % (e,)
             )
 
-    def _update_settings(self, transform, schema, settings, engine_name=None,
-        manifest_file=None, include_debug_comments=False):
+    def _update_settings(
+        self,
+        transform,
+        schema,
+        settings,
+        engine_name=None,
+        manifest_file=None,
+        include_debug_comments=False,
+    ):
         """
         Given a schema and settings, update them based on the specified
         transform mode.
@@ -1159,8 +1542,9 @@ class WritableEnvironment(InstalledEnvironment):
             setting_schema = schema[setting_name]
 
             # the default value from the schema
-            schema_default = resolve_default_value(setting_schema,
-                engine_name=engine_name)
+            schema_default = resolve_default_value(
+                setting_schema, engine_name=engine_name
+            )
 
             if setting_name in settings and transform == self.STRIP_DEFAULTS:
 
@@ -1185,8 +1569,7 @@ class WritableEnvironment(InstalledEnvironment):
                     del settings[setting_name]
                     modified = True
 
-            elif (setting_name not in settings and
-                  transform == self.INCLUDE_DEFAULTS):
+            elif setting_name not in settings and transform == self.INCLUDE_DEFAULTS:
 
                 # the setting is not in the environment and we are including
                 # default values. need to add it.
@@ -1199,34 +1582,27 @@ class WritableEnvironment(InstalledEnvironment):
             # necessary to add the comment) and the setting is still there
             # (wasn't removed for sparse dumping) then add the debug comment.
             # this will add comments when transform was set to NONE as well.
-            if (include_debug_comments and
-                hasattr(settings, 'yaml_add_eol_comment') and
-                setting_name in settings):
+            if (
+                include_debug_comments
+                and hasattr(settings, "yaml_add_eol_comment")
+                and setting_name in settings
+            ):
 
                 if schema_default == settings[setting_name]:
                     # The value of the setting matches the default value in the
                     # manifest.
-                    debug_comment = (
-                        "MATCHES: %s default in manifest %s" % (
-                            engine_name or "",
-                            manifest_file or ""
-                        )
+                    debug_comment = "MATCHES: %s default in manifest %s" % (
+                        engine_name or "",
+                        manifest_file or "",
                     )
                 else:
-                    debug_comment = (
-                        "DIFFERS: %s default (%s) in manifest %s" % (
-                            engine_name or "",
-                            schema_default or '""',
-                            manifest_file or ""
-                        )
+                    debug_comment = "DIFFERS: %s default (%s) in manifest %s" % (
+                        engine_name or "",
+                        schema_default or '""',
+                        manifest_file or "",
                     )
 
                 # now add the comment
-                settings.yaml_add_eol_comment(
-                    debug_comment,
-                    setting_name,
-                    column=90
-                )
+                settings.yaml_add_eol_comment(debug_comment, setting_name, column=90)
 
         return modified
-

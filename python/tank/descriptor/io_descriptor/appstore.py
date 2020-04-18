@@ -13,18 +13,16 @@ Toolkit App Store Descriptor.
 """
 
 import os
-import urllib
+from tank_vendor.six.moves import urllib
 import fnmatch
-import urllib2
-import httplib
+from tank_vendor.six.moves import http_client
 from tank_vendor.shotgun_api3.lib import httplib2
-import cPickle as pickle
 
-from ...util import shotgun, filesystem
+from ...util import shotgun
+from ...util import pickle
 from ...util import UnresolvableCoreConfigurationError, ShotgunAttachmentDownloadError
 from ...util.user_settings import UserSettings
 
-from ..descriptor import Descriptor
 from ..errors import TankAppStoreConnectionError
 from ..errors import TankAppStoreError
 from ..errors import TankDescriptorError
@@ -32,12 +30,14 @@ from ..errors import InvalidAppStoreCredentialsError
 
 from ... import LogManager
 from .. import constants
-from .base import IODescriptorBase
+from .downloadable import IODescriptorDownloadable
 
 from ...constants import SUPPORT_EMAIL
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
+from tank_vendor import six
+
 json = shotgun_api3.shotgun.json
 
 log = LogManager.get_logger(__name__)
@@ -47,7 +47,7 @@ log = LogManager.get_logger(__name__)
 METADATA_FILE = ".cached_metadata.pickle"
 
 
-class IODescriptorAppStore(IODescriptorBase):
+class IODescriptorAppStore(IODescriptorDownloadable):
     """
     Represents a toolkit app store item.
 
@@ -56,8 +56,6 @@ class IODescriptorAppStore(IODescriptorBase):
 
     """
 
-    _DOWNLOAD_TRANSACTION_COMPLETE_FILE = "download_complete"
-
     # cache app store connections for performance
     _app_store_connections = {}
 
@@ -65,39 +63,39 @@ class IODescriptorAppStore(IODescriptorBase):
     (APP, FRAMEWORK, ENGINE, CONFIG, CORE) = range(5)
 
     _APP_STORE_OBJECT = {
-        Descriptor.APP: constants.TANK_APP_ENTITY_TYPE,
-        Descriptor.FRAMEWORK: constants.TANK_FRAMEWORK_ENTITY_TYPE,
-        Descriptor.ENGINE: constants.TANK_ENGINE_ENTITY_TYPE,
-        Descriptor.CONFIG: constants.TANK_CONFIG_ENTITY_TYPE,
-        Descriptor.INSTALLED_CONFIG: None,
-        Descriptor.CORE: None,
+        constants.DESCRIPTOR_APP: constants.TANK_APP_ENTITY_TYPE,
+        constants.DESCRIPTOR_FRAMEWORK: constants.TANK_FRAMEWORK_ENTITY_TYPE,
+        constants.DESCRIPTOR_ENGINE: constants.TANK_ENGINE_ENTITY_TYPE,
+        constants.DESCRIPTOR_CONFIG: constants.TANK_CONFIG_ENTITY_TYPE,
+        constants.DESCRIPTOR_INSTALLED_CONFIG: None,
+        constants.DESCRIPTOR_CORE: None,
     }
 
     _APP_STORE_VERSION = {
-        Descriptor.APP: constants.TANK_APP_VERSION_ENTITY_TYPE,
-        Descriptor.FRAMEWORK: constants.TANK_FRAMEWORK_VERSION_ENTITY_TYPE,
-        Descriptor.ENGINE: constants.TANK_ENGINE_VERSION_ENTITY_TYPE,
-        Descriptor.CONFIG: constants.TANK_CONFIG_VERSION_ENTITY_TYPE,
-        Descriptor.INSTALLED_CONFIG: None,
-        Descriptor.CORE: constants.TANK_CORE_VERSION_ENTITY_TYPE,
+        constants.DESCRIPTOR_APP: constants.TANK_APP_VERSION_ENTITY_TYPE,
+        constants.DESCRIPTOR_FRAMEWORK: constants.TANK_FRAMEWORK_VERSION_ENTITY_TYPE,
+        constants.DESCRIPTOR_ENGINE: constants.TANK_ENGINE_VERSION_ENTITY_TYPE,
+        constants.DESCRIPTOR_CONFIG: constants.TANK_CONFIG_VERSION_ENTITY_TYPE,
+        constants.DESCRIPTOR_INSTALLED_CONFIG: None,
+        constants.DESCRIPTOR_CORE: constants.TANK_CORE_VERSION_ENTITY_TYPE,
     }
 
     _APP_STORE_LINK = {
-        Descriptor.APP: "sg_tank_app",
-        Descriptor.FRAMEWORK: "sg_tank_framework",
-        Descriptor.ENGINE: "sg_tank_engine",
-        Descriptor.CONFIG: "sg_tank_config",
-        Descriptor.INSTALLED_CONFIG: None,
-        Descriptor.CORE: None,
+        constants.DESCRIPTOR_APP: "sg_tank_app",
+        constants.DESCRIPTOR_FRAMEWORK: "sg_tank_framework",
+        constants.DESCRIPTOR_ENGINE: "sg_tank_engine",
+        constants.DESCRIPTOR_CONFIG: "sg_tank_config",
+        constants.DESCRIPTOR_INSTALLED_CONFIG: None,
+        constants.DESCRIPTOR_CORE: None,
     }
 
     _DOWNLOAD_STATS_EVENT_TYPE = {
-        Descriptor.APP: "TankAppStore_App_Download",
-        Descriptor.FRAMEWORK: "TankAppStore_Framework_Download",
-        Descriptor.ENGINE: "TankAppStore_Engine_Download",
-        Descriptor.CONFIG: "TankAppStore_Config_Download",
-        Descriptor.INSTALLED_CONFIG: None,
-        Descriptor.CORE: "TankAppStore_CoreApi_Download",
+        constants.DESCRIPTOR_APP: "TankAppStore_App_Download",
+        constants.DESCRIPTOR_FRAMEWORK: "TankAppStore_Framework_Download",
+        constants.DESCRIPTOR_ENGINE: "TankAppStore_Engine_Download",
+        constants.DESCRIPTOR_CONFIG: "TankAppStore_Config_Download",
+        constants.DESCRIPTOR_INSTALLED_CONFIG: None,
+        constants.DESCRIPTOR_CORE: "TankAppStore_CoreApi_Download",
     }
 
     _VERSION_FIELDS_TO_CACHE = [
@@ -108,14 +106,14 @@ class IODescriptorAppStore(IODescriptorBase):
         "tags",
         "sg_detailed_release_notes",
         "sg_documentation",
-        constants.TANK_CODE_PAYLOAD_FIELD
+        constants.TANK_CODE_PAYLOAD_FIELD,
     ]
 
     _BUNDLE_FIELDS_TO_CACHE = [
         "id",
         "sg_system_name",
         "sg_status_list",
-        "sg_deprecation_message"
+        "sg_deprecation_message",
     ]
 
     def __init__(self, descriptor_dict, sg_connection, bundle_type):
@@ -127,16 +125,16 @@ class IODescriptorAppStore(IODescriptorBase):
         :param bundle_type: Either Descriptor.APP, CORE, ENGINE or FRAMEWORK or CONFIG
         :return: Descriptor instance
         """
-        super(IODescriptorAppStore, self).__init__(descriptor_dict)
+        super(IODescriptorAppStore, self).__init__(
+            descriptor_dict, sg_connection, bundle_type
+        )
 
         self._validate_descriptor(
-            descriptor_dict,
-            required=["type", "name", "version"],
-            optional=["label"]
+            descriptor_dict, required=["type", "name", "version"], optional=["label"]
         )
 
         self._sg_connection = sg_connection
-        self._type = bundle_type
+        self._bundle_type = bundle_type
         self._name = descriptor_dict.get("name")
         self._version = descriptor_dict.get("version")
         self._label = descriptor_dict.get("label")
@@ -146,21 +144,25 @@ class IODescriptorAppStore(IODescriptorBase):
         Human readable representation
         """
         display_name_lookup = {
-            Descriptor.APP: "App",
-            Descriptor.FRAMEWORK: "Framework",
-            Descriptor.ENGINE: "Engine",
-            Descriptor.CONFIG: "Config",
-            Descriptor.CORE: "Core",
+            constants.DESCRIPTOR_APP: "App",
+            constants.DESCRIPTOR_FRAMEWORK: "Framework",
+            constants.DESCRIPTOR_ENGINE: "Engine",
+            constants.DESCRIPTOR_CONFIG: "Config",
+            constants.DESCRIPTOR_CORE: "Core",
         }
 
         # Toolkit App Store App tk-multi-loader2 v1.2.3
         # Toolkit App Store Framework tk-framework-shotgunutils v1.2.3
         # Toolkit App Store Core v1.2.3
-        if self._type == Descriptor.CORE:
+        if self._bundle_type == constants.DESCRIPTOR_CORE:
             display_name = "Toolkit App Store Core %s" % self._version
         else:
-            display_name = display_name_lookup[self._type]
-            display_name = "Toolkit App Store %s %s %s" % (display_name, self._name, self._version)
+            display_name = display_name_lookup[self._bundle_type]
+            display_name = "Toolkit App Store %s %s %s" % (
+                display_name,
+                self._name,
+                self._version,
+            )
 
         if self._label:
             display_name += " [label %s]" % self._label
@@ -176,7 +178,7 @@ class IODescriptorAppStore(IODescriptorBase):
         """
         cache_file = os.path.join(path, METADATA_FILE)
         if os.path.exists(cache_file):
-            fp = open(cache_file, "rt")
+            fp = open(cache_file, "rb")
             try:
                 metadata = pickle.load(fp)
             finally:
@@ -213,31 +215,34 @@ class IODescriptorAppStore(IODescriptorBase):
         cache_file = os.path.join(path, METADATA_FILE)
         log.debug("Will attempt to refresh cache in %s" % cache_file)
 
-        if sg_version_data:  # no none-check for sg_bundle_data param since this is none for tk-core
+        if (
+            sg_version_data
+        ):  # no none-check for sg_bundle_data param since this is none for tk-core
             log.debug("Will cache pre-fetched cache data.")
         else:
             log.debug("Connecting to Shotgun to retrieve metadata for %r" % self)
 
             # get the appropriate shotgun app store types and fields
-            bundle_entity_type = self._APP_STORE_OBJECT[self._type]
-            version_entity_type = self._APP_STORE_VERSION[self._type]
-            link_field = self._APP_STORE_LINK[self._type]
+            bundle_entity_type = self._APP_STORE_OBJECT[self._bundle_type]
+            version_entity_type = self._APP_STORE_VERSION[self._bundle_type]
+            link_field = self._APP_STORE_LINK[self._bundle_type]
 
             # connect to the app store
             (sg, _) = self.__create_sg_app_store_connection()
 
-            if self._type == self.CORE:
+            if self._bundle_type == self.CORE:
                 # special handling of core since it doesn't have a high-level 'bundle' entity
                 sg_bundle_data = None
 
                 sg_version_data = sg.find_one(
                     constants.TANK_CORE_VERSION_ENTITY_TYPE,
                     [["code", "is", self._version]],
-                    self._VERSION_FIELDS_TO_CACHE
+                    self._VERSION_FIELDS_TO_CACHE,
                 )
                 if sg_version_data is None:
                     raise TankDescriptorError(
-                        "The App store does not have a version '%s' of Core!" % self._version
+                        "The App store does not have a version '%s' of Core!"
+                        % self._version
                     )
             else:
                 # engines, apps etc have a 'bundle level entity' in the app store,
@@ -246,22 +251,20 @@ class IODescriptorAppStore(IODescriptorBase):
                 sg_bundle_data = sg.find_one(
                     bundle_entity_type,
                     [["sg_system_name", "is", self._name]],
-                    self._BUNDLE_FIELDS_TO_CACHE
+                    self._BUNDLE_FIELDS_TO_CACHE,
                 )
 
                 if sg_bundle_data is None:
                     raise TankDescriptorError(
-                        "The App store does not contain an item named '%s'!" % self._name
+                        "The App store does not contain an item named '%s'!"
+                        % self._name
                     )
 
                 # now get the version
                 sg_version_data = sg.find_one(
                     version_entity_type,
-                    [
-                        [link_field, "is", sg_bundle_data],
-                        ["code", "is", self._version]
-                    ],
-                    self._VERSION_FIELDS_TO_CACHE
+                    [[link_field, "is", sg_bundle_data], ["code", "is", self._version]],
+                    self._VERSION_FIELDS_TO_CACHE,
                 )
                 if sg_version_data is None:
                     raise TankDescriptorError(
@@ -272,21 +275,23 @@ class IODescriptorAppStore(IODescriptorBase):
         # create metadata
         metadata = {
             "sg_bundle_data": sg_bundle_data,
-            "sg_version_data": sg_version_data
+            "sg_version_data": sg_version_data,
         }
 
         # try to write to location - but it may be located in a
         # readonly bundle cache - if the caching fails, gracefully
         # fall back and log
         try:
-            fp = open(cache_file, "wt")
+            fp = open(cache_file, "wb")
             try:
                 pickle.dump(metadata, fp)
                 log.debug("Wrote app store metadata cache '%s'" % cache_file)
             finally:
                 fp.close()
-        except Exception, e:
-            log.debug("Did not update app store metadata cache '%s': %s" % (cache_file, e))
+        except Exception as e:
+            log.debug(
+                "Did not update app store metadata cache '%s': %s" % (cache_file, e)
+            )
 
         return metadata
 
@@ -299,10 +304,7 @@ class IODescriptorAppStore(IODescriptorBase):
         :return: Path to bundle cache location
         """
         return os.path.join(
-            bundle_cache_root,
-            "app_store",
-            self.get_system_name(),
-            self.get_version()
+            bundle_cache_root, "app_store", self.get_system_name(), self.get_version()
         )
 
     def _get_cache_paths(self):
@@ -329,9 +331,9 @@ class IODescriptorAppStore(IODescriptorBase):
         legacy_folder = self._get_legacy_bundle_install_folder(
             "app_store",
             self._bundle_cache_root,
-            self._type,
+            self._bundle_type,
             self.get_system_name(),
-            self.get_version()
+            self.get_version(),
         )
         if legacy_folder:
             paths.append(legacy_folder)
@@ -361,9 +363,7 @@ class IODescriptorAppStore(IODescriptorBase):
         # make sure we have the app payload + metadata
         self.ensure_local()
         # grab metadata
-        metadata = self.__load_cached_app_store_metadata(
-            self.get_path()
-        )
+        metadata = self.__load_cached_app_store_metadata(self.get_path())
         sg_bundle_data = metadata.get("sg_bundle_data") or {}
         if sg_bundle_data.get("sg_status_list") == "dep":
             msg = sg_bundle_data.get("sg_deprecation_message", "No reason given.")
@@ -393,9 +393,7 @@ class IODescriptorAppStore(IODescriptorBase):
         # make sure we have the app payload + metadata
         self.ensure_local()
         # grab metadata
-        metadata = self.__load_cached_app_store_metadata(
-            self.get_path()
-        )
+        metadata = self.__load_cached_app_store_metadata(self.get_path())
         try:
             sg_version_data = metadata.get("sg_version_data") or {}
             summary = sg_version_data.get("description")
@@ -404,82 +402,18 @@ class IODescriptorAppStore(IODescriptorBase):
             pass
         return (summary, url)
 
-    def _exists_local(self, path):
-        """
-        Checks is the bundle exists on disk and ensures that it has been completely
-        downloaded if possible.
-
-        :param str path: Path to the bundle to test.
-
-        :returns: True if the bundle is deemed completed, False otherwise.
-        """
-        if not super(IODescriptorAppStore, self)._exists_local(path):
-            return False
-
-        # Now that we are guaranteed there is a folder on disk, we'll attempt to do some integrity
-        # checking.
-
-        # The metadata folder is a folder that lives inside the bundle.
-        metadata_folder = self._get_metadata_folder(path)
-
-        # If the metadata folder does not exist, this is a bundle that was downloaded with an older
-        # core. We will have to assume that it has been unzipped correctly.
-        if not os.path.isdir(metadata_folder):
-            log.debug(
-                "Pre-core-0.18.80 AppStore download found at '%s'. Assuming it is complete.", metadata_folder
-            )
-            return True
-
-        # Great, we're in the presence of a bundle that was downloaded with integrity check logic.
-
-        # The completed file flag is a file that gets written out after the bundle has been
-        # completely unzipped.
-        completed_file_flag = os.path.join(metadata_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
-
-        # If the complete file flag is missing, it means the download operation failed, so we'll
-        # consider it as inexistent.
-        if os.path.exists(completed_file_flag):
-            return True
-        else:
-            log.debug(
-                "Note: Missing download complete ticket file '%s'. "
-                "This suggests a partial download" % completed_file_flag
-            )
-            return False
-
-    def _get_metadata_folder(self, path):
-        """
-        Returns the corresponding metadata folder given a path
-        """
-        # Do not set this as a hidden folder (with a . in front) in case somebody does a
-        # rm -rf * or a manual deletion of the files. This will ensure this is treated just like
-        # any other file.
-        return os.path.join(path, "appstore-metadata")
-
-    def download_local(self):
+    def _download_local(self, destination_path):
         """
         Retrieves this version to local repo.
-        Will exit early if app already exists local.
-        Caches app store metadata.
+
+        :param destination_path: The directory to which the app store descriptor
+        is to be downloaded to.
         """
-        if self.exists_local():
-            # nothing to do!
-            return
-
-        # cache into the primary location
-        target = self._get_primary_cache_path()
-        # create folder
-        filesystem.ensure_folder_exists(target)
-
-        # create settings folder
-        metadata_folder = self._get_metadata_folder(target)
-        filesystem.ensure_folder_exists(metadata_folder)
-
         # connect to the app store
         (sg, script_user) = self.__create_sg_app_store_connection()
 
         # fetch metadata from sg...
-        metadata = self.__refresh_metadata(target)
+        metadata = self.__refresh_metadata(destination_path)
 
         # now get the attachment info
         version = metadata.get("sg_version_data")
@@ -495,32 +429,43 @@ class IODescriptorAppStore(IODescriptorBase):
 
         # download and unzip
         try:
-            shotgun.download_and_unpack_attachment(sg, attachment_id, target)
-        except ShotgunAttachmentDownloadError, e:
-            raise TankAppStoreError(
-                "Failed to download %s. Error: %s" % (self, e)
-            )
+            shotgun.download_and_unpack_attachment(sg, attachment_id, destination_path)
+        except ShotgunAttachmentDownloadError as e:
+            raise TankAppStoreError("Failed to download %s. Error: %s" % (self, e))
 
-        # write end receipt
-        filesystem.touch_file(
-            os.path.join(metadata_folder, self._DOWNLOAD_TRANSACTION_COMPLETE_FILE)
-        )
+    def _post_download(self, download_path):
+        """
+        Code run after the descriptor is successfully downloaded to disk
 
+        :param download_path: The path to which the descriptor is downloaded to.
+        """
         # write a stats record to the tank app store
         try:
+            # connect to the app store
+            (sg, script_user) = self.__create_sg_app_store_connection()
+
+            # fetch metadata from sg...
+            metadata = self.__refresh_metadata(download_path)
+
+            # now get the attachment info
+            version = metadata.get("sg_version_data")
+
+            # setup the data entry
             data = {}
             data["description"] = "%s: %s %s was downloaded" % (
                 self._sg_connection.base_url,
                 self._name,
-                self._version
+                self._version,
             )
-            data["event_type"] = self._DOWNLOAD_STATS_EVENT_TYPE[self._type]
+            data["event_type"] = self._DOWNLOAD_STATS_EVENT_TYPE[self._bundle_type]
             data["entity"] = version
             data["user"] = script_user
             data["project"] = constants.TANK_APP_STORE_DUMMY_PROJECT
             data["attribute_name"] = constants.TANK_CODE_PAYLOAD_FIELD
+
+            # log the data to shotgun
             sg.create("EventLogEntry", data)
-        except Exception, e:
+        except Exception as e:
             log.warning("Could not write app store download receipt: %s" % e)
 
     #############################################################################
@@ -549,25 +494,28 @@ class IODescriptorAppStore(IODescriptorBase):
             # the sought-after label
             version_numbers = []
             log.debug("culling out versions not labelled '%s'..." % self._label)
-            for (version_str, path) in all_versions.iteritems():
+            for (version_str, path) in all_versions.items():
                 metadata = self.__load_cached_app_store_metadata(path)
                 try:
                     tags = [x["name"] for x in metadata["sg_version_data"]["tags"]]
                     if self.__match_label(tags):
                         version_numbers.append(version_str)
-                except Exception, e:
+                except Exception as e:
                     log.debug(
-                        "Could not determine label metadata for %s. Ignoring. Details: %s" % (path, e)
+                        "Could not determine label metadata for %s. Ignoring. Details: %s"
+                        % (path, e)
                     )
 
         else:
             # no label based filtering. all versions are valid.
-            version_numbers = all_versions.keys()
+            version_numbers = list(all_versions.keys())
 
         if len(version_numbers) == 0:
             return None
 
-        version_to_use = self._find_latest_tag_by_pattern(version_numbers, constraint_pattern)
+        version_to_use = self._find_latest_tag_by_pattern(
+            version_numbers, constraint_pattern
+        )
         if version_to_use is None:
             return None
 
@@ -575,14 +523,16 @@ class IODescriptorAppStore(IODescriptorBase):
         descriptor_dict = {
             "type": "app_store",
             "name": self._name,
-            "version": version_to_use
+            "version": version_to_use,
         }
 
         if self._label:
             descriptor_dict["label"] = self._label
 
         # and return a descriptor instance
-        desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type)
+        desc = IODescriptorAppStore(
+            descriptor_dict, self._sg_connection, self._bundle_type
+        )
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
 
         log.debug("Latest cached version resolved to %r" % desc)
@@ -606,7 +556,8 @@ class IODescriptorAppStore(IODescriptorBase):
         :returns: IODescriptorAppStore object
         """
         log.debug(
-            "Determining latest version for %r given constraint pattern %s" % (self, constraint_pattern)
+            "Determining latest version for %r given constraint pattern %s"
+            % (self, constraint_pattern)
         )
 
         # connect to the app store
@@ -618,23 +569,25 @@ class IODescriptorAppStore(IODescriptorBase):
         else:
             sg_filter = [
                 ["sg_status_list", "is_not", "rev"],
-                ["sg_status_list", "is_not", "bad"]
+                ["sg_status_list", "is_not", "bad"],
             ]
 
-        if self._type != self.CORE:
+        if self._bundle_type != self.CORE:
             # find the main entry
             sg_bundle_data = sg.find_one(
-                self._APP_STORE_OBJECT[self._type],
+                self._APP_STORE_OBJECT[self._bundle_type],
                 [["sg_system_name", "is", self._name]],
-                self._BUNDLE_FIELDS_TO_CACHE
+                self._BUNDLE_FIELDS_TO_CACHE,
             )
 
             if sg_bundle_data is None:
-                raise TankDescriptorError("App store does not contain an item named '%s'!" % self._name)
+                raise TankDescriptorError(
+                    "App store does not contain an item named '%s'!" % self._name
+                )
 
             # now get all versions
-            link_field = self._APP_STORE_LINK[self._type]
-            entity_type = self._APP_STORE_VERSION[self._type]
+            link_field = self._APP_STORE_LINK[self._bundle_type]
+            entity_type = self._APP_STORE_VERSION[self._bundle_type]
             sg_filter += [[link_field, "is", sg_bundle_data]]
 
         else:
@@ -656,7 +609,7 @@ class IODescriptorAppStore(IODescriptorBase):
             filters=sg_filter,
             fields=self._VERSION_FIELDS_TO_CACHE,
             order=[{"field_name": "created_at", "direction": "desc"}],
-            limit=limit
+            limit=limit,
         )
 
         log.debug("Downloaded data for %d versions from Shotgun." % len(sg_versions))
@@ -668,27 +621,36 @@ class IODescriptorAppStore(IODescriptorBase):
             if self.__match_label(tags):
                 matching_records.append(sg_version_entry)
 
-        log.debug("After applying label filters, %d records remain." % len(matching_records))
+        log.debug(
+            "After applying label filters, %d records remain." % len(matching_records)
+        )
 
         if len(matching_records) == 0:
-            raise TankDescriptorError("Cannot find any versions for %s in the App store!" % self)
+            raise TankDescriptorError(
+                "Cannot find any versions for %s in the App store!" % self
+            )
 
         # and filter out based on version constraint
         if constraint_pattern:
 
             version_numbers = [x.get("code") for x in matching_records]
-            version_to_use = self._find_latest_tag_by_pattern(version_numbers, constraint_pattern)
+            version_to_use = self._find_latest_tag_by_pattern(
+                version_numbers, constraint_pattern
+            )
             if version_to_use is None:
                 raise TankDescriptorError(
                     "'%s' does not have a version matching the pattern '%s'. "
-                    "Available versions are: %s" % (
+                    "Available versions are: %s"
+                    % (
                         self.get_system_name(),
                         constraint_pattern,
-                        ", ".join(version_numbers)
+                        ", ".join(version_numbers),
                     )
                 )
             # get the sg data for the given version
-            sg_data_for_version = [d for d in matching_records if d["code"] == version_to_use][0]
+            sg_data_for_version = [
+                d for d in matching_records if d["code"] == version_to_use
+            ][0]
 
         else:
             # no constraints applied. Pick first (latest) match
@@ -699,14 +661,16 @@ class IODescriptorAppStore(IODescriptorBase):
         descriptor_dict = {
             "type": "app_store",
             "name": self._name,
-            "version": version_to_use
+            "version": version_to_use,
         }
 
         if self._label:
             descriptor_dict["label"] = self._label
 
         # and return a descriptor instance
-        desc = IODescriptorAppStore(descriptor_dict, self._sg_connection, self._type)
+        desc = IODescriptorAppStore(
+            descriptor_dict, self._sg_connection, self._bundle_type
+        )
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
 
         # if this item exists locally, attempt to update the metadata cache
@@ -756,6 +720,15 @@ class IODescriptorAppStore(IODescriptorBase):
         # this assumes that there is a strict
         # 1:1 relationship between app store accounts
         # and shotgun sites.
+
+        if os.environ.get(constants.DISABLE_APPSTORE_ACCESS_ENV_VAR, "0") == "1":
+            message = (
+                "The '%s' environment variable is active, preventing connection to app store."
+                % constants.DISABLE_APPSTORE_ACCESS_ENV_VAR
+            )
+            log.debug(message)
+            raise TankAppStoreConnectionError(message)
+
         sg_url = self._sg_connection.base_url
 
         if sg_url not in self._app_store_connections:
@@ -764,7 +737,7 @@ class IODescriptorAppStore(IODescriptorBase):
             # connect to the app store site
             try:
                 (script_name, script_key) = self.__get_app_store_key_from_shotgun()
-            except urllib2.HTTPError, e:
+            except urllib.error.HTTPError as e:
                 if e.code == 403:
                     # edge case alert!
                     # this is likely because our session token in shotgun has expired.
@@ -789,7 +762,7 @@ class IODescriptorAppStore(IODescriptorBase):
                 script_name=script_name,
                 api_key=script_key,
                 http_proxy=self.__get_app_store_proxy_setting(),
-                connect=False
+                connect=False,
             )
             # set the default timeout for app store connections
             app_store_sg.config.timeout_secs = constants.SGTK_APP_STORE_CONN_TIMEOUT
@@ -800,7 +773,7 @@ class IODescriptorAppStore(IODescriptorBase):
                 script_user = app_store_sg.find_one(
                     "ApiUser",
                     filters=[["firstname", "is", script_name]],
-                    fields=["type", "id"]
+                    fields=["type", "id"],
                 )
             except shotgun_api3.AuthenticationFault:
                 raise InvalidAppStoreCredentialsError(
@@ -809,22 +782,27 @@ class IODescriptorAppStore(IODescriptorBase):
                 )
             # Connection errors can occur for a variety of reasons. For example, there is no
             # internet access or there is a proxy server blocking access to the Toolkit app store.
-            except (httplib2.HttpLib2Error, httplib2.socks.HTTPError, httplib.HTTPException), e:
+            except (
+                httplib2.HttpLib2Error,
+                httplib2.socks.HTTPError,
+                http_client.HTTPException,
+            ) as e:
                 raise TankAppStoreConnectionError(e)
             # In cases where there is a firewall/proxy blocking access to the app store, sometimes
             # the firewall will drop the connection instead of rejecting it. The API request will
             # timeout which unfortunately results in a generic SSLError with only the message text
             # to give us a clue why the request failed.
             # The exception raised in this case is "ssl.SSLError: The read operation timed out"
-            except httplib2.ssl.SSLError, e:
+            except httplib2.ssl.SSLError as e:
                 if "timed" in e.message:
                     raise TankAppStoreConnectionError(
-                        "Connection to %s timed out: %s" % (app_store_sg.config.server, e)
+                        "Connection to %s timed out: %s"
+                        % (app_store_sg.config.server, e)
                     )
                 else:
                     # other type of ssl error
                     raise TankAppStoreError(e)
-            except Exception, e:
+            except Exception as e:
                 raise TankAppStoreError(e)
 
             if script_user is None:
@@ -878,13 +856,16 @@ class IODescriptorAppStore(IODescriptorBase):
 
         # handle proxy setup by pulling the proxy details from the main shotgun connection
         if sg.config.proxy_handler:
-            opener = urllib2.build_opener(sg.config.proxy_handler)
-            urllib2.install_opener(opener)
+            opener = urllib.request.build_opener(sg.config.proxy_handler)
+            urllib.request.install_opener(opener)
 
         # now connect to our site and use a special url to retrieve the app store script key
         session_token = sg.get_session_token()
         post_data = {"session_token": session_token}
-        response = urllib2.urlopen("%s/api3/sgtk_install_script" % sg.base_url, urllib.urlencode(post_data))
+        response = urllib.request.urlopen(
+            "%s/api3/sgtk_install_script" % sg.base_url,
+            six.ensure_binary(urllib.parse.urlencode(post_data)),
+        )
         html = response.read()
         data = json.loads(html)
 
@@ -894,7 +875,9 @@ class IODescriptorAppStore(IODescriptorBase):
                 "Please contact %s to resolve this issue." % SUPPORT_EMAIL
             )
 
-        log.debug("Retrieved app store credentials for account '%s'." % data["script_name"])
+        log.debug(
+            "Retrieved app store credentials for account '%s'." % data["script_name"]
+        )
 
         return data["script_name"], data["script_key"]
 
@@ -907,14 +890,18 @@ class IODescriptorAppStore(IODescriptorBase):
 
         :return: True if a remote is accessible, false if not.
         """
+
         # check if we can connect to Shotgun
         can_connect = True
         try:
-            log.debug("%r: Probing if a connection to the App Store can be established..." % self)
+            log.debug(
+                "%r: Probing if a connection to the App Store can be established..."
+                % self
+            )
             # connect to the app store
             (sg, _) = self.__create_sg_app_store_connection()
             log.debug("...connection established: %s" % sg)
-        except Exception, e:
+        except Exception as e:
             log.debug("...could not establish connection: %s" % e)
             can_connect = False
         return can_connect

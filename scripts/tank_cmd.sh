@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 # note! any changes made here need to be reflected in
@@ -54,16 +54,18 @@ interpreter=`cat "$interpreter_config_file"`
 # Convert windows interpreter paths to forward-slash
 if [[ "$uname_os_str" == CYGWIN_NT* ]];
 then
-	interpreter=$( cygpath -u $interpreter )
+    interpreter=$( cygpath -u $interpreter )
 fi
 
+# Expand environment variables
+interpreter=`eval echo $interpreter`
+
 # and check that it exists...
-if [ ! -f "$interpreter" ] && [[ ! `type "$interpreter"` ]];
+if [ ! -f "$interpreter" ];
 then
     echo "Cannot find interpreter $interpreter defined in config file $interpreter_config_file!"
     exit 1
 fi
-
 
 # execute the python script which does the actual work
 exec $interpreter "$core_install_root/scripts/tank_cmd.py" "$@"

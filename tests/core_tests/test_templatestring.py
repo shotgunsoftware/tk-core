@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -14,19 +14,23 @@ Tests of class TemplateString
 
 import os
 
-from tank_test.tank_test_base import *
+from tank_test.tank_test_base import ShotgunTestBase, setUpModule  # noqa
 
 from tank.errors import TankError
 from tank.template import TemplateString
-from tank.templatekey import (StringKey, IntegerKey)
+from tank.templatekey import StringKey, IntegerKey
 
-class TestTemplateString(TankTestBase):
+
+class TestTemplateString(ShotgunTestBase):
     """Base class for TemplateString tests."""
+
     def setUp(self):
         super(TestTemplateString, self).setUp()
-        self.keys = {"Sequence": StringKey("Sequence"),
-                     "Shot": StringKey("Shot"),
-                     "version": IntegerKey("version")}
+        self.keys = {
+            "Sequence": StringKey("Sequence"),
+            "Shot": StringKey("Shot"),
+            "version": IntegerKey("version"),
+        }
         self.template_string = TemplateString("something-{Shot}.{Sequence}", self.keys)
 
 
@@ -35,29 +39,30 @@ class TestInit(TestTemplateString):
         definition = "something-{Shot}.{Sequence}"
         template = TemplateString(definition, self.keys)
         expected = [["%s%ssomething-" % (template._prefix, os.path.sep), "."]]
-        self.assertEquals(expected, template._static_tokens)
+        self.assertEqual(expected, template._static_tokens)
 
     def test_static_key_first(self):
         definition = "{Shot}something-{Sequence}."
         template = TemplateString(definition, self.keys)
         expected = [["%s%s" % (template._prefix, os.path.sep), "something-", "."]]
-        self.assertEquals(expected, template._static_tokens)
+        self.assertEqual(expected, template._static_tokens)
 
     def test_definition_preseves_leading_slash(self):
         """
-        The TemplateString should not change the use of os seperators in the 
+        The TemplateString should not change the use of os seperators in the
         input definition.
         """
         # forward slashes with leading slash
         definition = "/tmp/{Shot}/something/{Sequence}/"
         template_string = TemplateString(definition, self.keys)
-        self.assertEquals(definition, template_string.definition)
+        self.assertEqual(definition, template_string.definition)
 
     def test_definition_preserves_back_slashes(self):
         # back slashes with leading slash
         definition = r"\something\{Shot}\\"
         template_string = TemplateString(definition, self.keys)
-        self.assertEquals(definition, template_string.definition)
+        self.assertEqual(definition, template_string.definition)
+
 
 class TestParent(TestTemplateString):
     def test_none(self):
@@ -89,11 +94,9 @@ class TestValidate(TestTemplateString):
         template_string = TemplateString("something-{Shot}[.{Sequence}]", self.keys)
 
         input_string = "something-shot_1.seq_2"
-        expected = {"Shot": "shot_1",
-                    "Sequence": "seq_2"}
+        expected = {"Shot": "shot_1", "Sequence": "seq_2"}
 
         self.assertTrue(template_string.validate(input_string))
-
 
         # without optional value
         input_string = "something-shot_1"
@@ -104,11 +107,10 @@ class TestValidate(TestTemplateString):
 
 class TestApplyFields(TestTemplateString):
     def test_good(self):
-        fields = {"Shot": "shot_1",
-                  "Sequence": "seq_2"}
+        fields = {"Shot": "shot_1", "Sequence": "seq_2"}
         expected = "something-shot_1.seq_2"
         result = self.template_string.apply_fields(fields)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_value_missing(self):
         fields = {"Shot": "shot_1"}
@@ -116,36 +118,32 @@ class TestApplyFields(TestTemplateString):
 
     def test_optional_value(self):
         template_string = TemplateString("something-{Shot}[.{Sequence}]", self.keys)
-        fields = {"Shot": "shot_1",
-                  "Sequence": "seq_2"}
+        fields = {"Shot": "shot_1", "Sequence": "seq_2"}
         expected = "something-shot_1.seq_2"
         result = template_string.apply_fields(fields)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
         # remove optional value
-        del(fields["Sequence"])
+        del fields["Sequence"]
         expected = "something-shot_1"
         result = template_string.apply_fields(fields)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
 
 class TestGetFields(TestTemplateString):
-
     def test_simple(self):
         input_string = "something-shot_1.Seq_12"
-        expected = {"Shot": "shot_1",
-                    "Sequence": "Seq_12"}
+        expected = {"Shot": "shot_1", "Sequence": "Seq_12"}
         result = self.template_string.get_fields(input_string)
-        self.assertEquals(expected, result)
-        
+        self.assertEqual(expected, result)
+
     def test_key_first(self):
         definition = "{Shot}.{Sequence}"
         template_string = TemplateString(definition, self.keys)
         input_string = "shot_1.Seq_12"
-        expected = {"Shot": "shot_1",
-                    "Sequence": "Seq_12"}
+        expected = {"Shot": "shot_1", "Sequence": "Seq_12"}
         result = template_string.get_fields(input_string)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_key_only(self):
         definition = "{Shot}"
@@ -153,7 +151,7 @@ class TestGetFields(TestTemplateString):
         input_string = "shot_1"
         expected = {"Shot": "shot_1"}
         result = template_string.get_fields(input_string)
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_missing_value(self):
         input_string = "shot_1."
@@ -179,31 +177,24 @@ class TestGetFields(TestTemplateString):
         template_string = TemplateString("something-{Shot}[.{Sequence}]", self.keys)
 
         input_string = "something-shot_1.seq_2"
-        expected = {"Shot": "shot_1",
-                    "Sequence": "seq_2"}
+        expected = {"Shot": "shot_1", "Sequence": "seq_2"}
 
         result = template_string.get_fields(input_string)
-        self.assertEquals(expected, result)
-
+        self.assertEqual(expected, result)
 
         # without optional value
         input_string = "something-shot_1"
         expected = {"Shot": "shot_1"}
 
         result = template_string.get_fields(input_string)
-        self.assertEquals(expected, result)
-    
-    #TODO this won't pass with current algorithm
+        self.assertEqual(expected, result)
+
+    # TODO this won't pass with current algorithm
+
+
 #    def test_definition_short_end_key(self):
 #        """Tests case when input string longer than definition which ends with key."""
 #        definition = "something.{Shot}"
 #        template_string = TemplateString(definition, self.keys)
 #        input_string = "something.shot_1-more-stuff"
 #        self.assertRaises(TankError, self.template_string.get_fields, input_string)
-
-
-
-
-    
-
-

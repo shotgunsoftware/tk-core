@@ -1,11 +1,11 @@
 # Copyright (c) 2016 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 import os
 import copy
@@ -13,6 +13,8 @@ import copy
 from .git import IODescriptorGit
 from ..errors import TankDescriptorError
 from ... import LogManager
+
+from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
 
@@ -48,27 +50,31 @@ class IODescriptorGitBranch(IODescriptorGit):
     adjusted to point at the given branch and commit.
     """
 
-    def __init__(self, descriptor_dict):
+    def __init__(self, descriptor_dict, sg_connection, bundle_type):
         """
         Constructor
 
         :param descriptor_dict: descriptor dictionary describing the bundle
+        :param sg_connection: Shotgun connection to associated site.
+        :param bundle_type: Either AppDescriptor.APP, CORE, ENGINE or FRAMEWORK.
         :return: Descriptor instance
         """
         # make sure all required fields are there
         self._validate_descriptor(
-            descriptor_dict,
-            required=["type", "path", "version", "branch"],
-            optional=[]
+            descriptor_dict, required=["type", "path", "version", "branch"], optional=[]
         )
 
         # call base class
-        super(IODescriptorGitBranch, self).__init__(descriptor_dict)
+        super(IODescriptorGitBranch, self).__init__(
+            descriptor_dict, sg_connection, bundle_type
+        )
 
         # path is handled by base class - all git descriptors
         # have a path to a repo
+        self._sg_connection = sg_connection
+        self._bundle_type = bundle_type
         self._version = descriptor_dict.get("version")
-        self._branch = descriptor_dict.get("branch")
+        self._branch = six.ensure_str(descriptor_dict.get("branch"))
 
     def __str__(self):
         """
@@ -92,12 +98,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         # /full/path/to/local/repo.git -> repo.git
         name = os.path.basename(self._path)
 
-        return os.path.join(
-            bundle_cache_root,
-            "gitbranch",
-            name,
-            short_hash
-        )
+        return os.path.join(bundle_cache_root, "gitbranch", name, short_hash)
 
     def get_version(self):
         """
@@ -106,7 +107,7 @@ class IODescriptorGitBranch(IODescriptorGit):
         """
         return self._version
 
-    def download_local(self):
+    def _download_local(self, destination_path):
         """
         Retrieves this version to local repo.
         Will exit early if app already exists local.
@@ -118,29 +119,23 @@ class IODescriptorGitBranch(IODescriptorGit):
 
         The git repo will be cloned into the local cache and
         will then be adjusted to point at the relevant commit.
+
+        :param destination_path: The destination path on disk to which
+        the git branch descriptor is to be downloaded to.
         """
-        if self.exists_local():
-            # nothing to do!
-            return
-
-        # cache into the primary location
-        target = self._get_primary_cache_path()
-
         try:
             # clone the repo, switch to the given branch
             # then reset to the given commit
             commands = [
-                "checkout -q \"%s\"" % self._branch,
-                "reset --hard -q \"%s\"" % self._version
+                'checkout -q "%s"' % self._branch,
+                'reset --hard -q "%s"' % self._version,
             ]
-            self._clone_then_execute_git_commands(target, commands)
-
-        except Exception, e:
+            self._clone_then_execute_git_commands(destination_path, commands)
+        except Exception as e:
             raise TankDescriptorError(
                 "Could not download %s, branch %s, "
                 "commit %s: %s" % (self._path, self._branch, self._version, e)
             )
-
 
     def get_latest_version(self, constraint_pattern=None):
         """
@@ -178,12 +173,12 @@ class IODescriptorGitBranch(IODescriptorGit):
             # clone the repo, get the latest commit hash
             # for the given branch
             commands = [
-                "checkout -q \"%s\"" % self._branch,
-                "log -n 1 \"%s\" --pretty=format:'%%H'" % self._branch
+                'checkout -q "%s"' % self._branch,
+                "log -n 1 \"%s\" --pretty=format:'%%H'" % self._branch,
             ]
             git_hash = self._tmp_clone_then_execute_git_commands(commands)
 
-        except Exception, e:
+        except Exception as e:
             raise TankDescriptorError(
                 "Could not get latest commit for %s, "
                 "branch %s: %s" % (self._path, self._branch, e)
@@ -191,8 +186,10 @@ class IODescriptorGitBranch(IODescriptorGit):
 
         # make a new descriptor
         new_loc_dict = copy.deepcopy(self._descriptor_dict)
-        new_loc_dict["version"] = git_hash
-        desc = IODescriptorGitBranch(new_loc_dict)
+        new_loc_dict["version"] = six.ensure_str(git_hash)
+        desc = IODescriptorGitBranch(
+            new_loc_dict, self._sg_connection, self._bundle_type
+        )
         desc.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
         return desc
 
@@ -218,4 +215,3 @@ class IODescriptorGitBranch(IODescriptorGit):
         else:
             # no cached version exists
             return None
-

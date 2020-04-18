@@ -8,8 +8,10 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from .configuration import Configuration
+import os
 
+from .errors import TankBootstrapError
+from .configuration import Configuration
 from .. import LogManager
 
 log = LogManager.get_logger(__name__)
@@ -47,7 +49,36 @@ class InstalledConfiguration(Configuration):
 
         :returns: LOCAL_CFG_UP_TO_DATE
         """
-        log.debug("%s is always up to date:" % self)
+        log.debug("Checking that centralized config has got all the required files.")
+        # check that the path we have been given actually points at
+        # a centralized configuration.
+        config_path = self._path.current_os
+        pipe_cfg_path = os.path.join(
+            config_path, "config", "core", "pipeline_configuration.yml"
+        )
+        if not os.path.exists(pipe_cfg_path):
+
+            log.warning(
+                "Your centralized pipeline configuration is missing the file %s. "
+                "Pipeline configurations using the fields windows_path, mac_path "
+                "or linux_path need to be created via the Toolkit "
+                "project setup process." % pipe_cfg_path
+            )
+
+            log.warning(
+                "Note: If you want to bootstrap toolkit directly from a "
+                "configuration that is stored locally, use the "
+                "PipelineConfiguration.descriptor field together with a path descriptor."
+            )
+
+            raise TankBootstrapError(
+                "Cannot find required system file 'config/core/pipeline_configuration.yml' "
+                "in configuration %s." % config_path
+            )
+
+        log.debug(
+            "Checking status of %s: Installed configs are always up to date:" % self
+        )
 
         return self.LOCAL_CFG_UP_TO_DATE
 
@@ -58,9 +89,10 @@ class InstalledConfiguration(Configuration):
         pass
 
     @property
-    def has_local_bundle_cache(self):
+    def requires_dynamic_bundle_caching(self):
         """
-        If True, indicates that pipeline configuration has a local bundle cache. If False, it
-        depends on the global bundle cache.
+        If True, indicates that pipeline configuration relies on dynamic caching
+        of bundles to operate. If False, the configuration has its own bundle
+        cache.
         """
-        return True
+        return False

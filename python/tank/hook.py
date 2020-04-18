@@ -12,7 +12,6 @@
 Defines the base class for all Tank Hooks.
 """
 import os
-import re
 import sys
 import logging
 import inspect
@@ -93,7 +92,7 @@ class Hook(object):
 
         # in a callback method once a user has selected an action -
         # call out to the hook to execute the action
-        self.execute_hook_method("actions_hook", "run_action", sg_data, action_name)
+        self.execute_hook_method("actions_hook", "run_action", action_name, sg_data)
 
     In the configuration for your app, you can now 'glue together' different functionality
     for different scenarios. For example, when you install the app to run inside the Maya
@@ -151,6 +150,10 @@ class Hook(object):
     resolve the hook code distributed with the maya engine. The base class will be automatically
     determined to be the default value set in the manifest, allowing for the app to carry a default
     base implementation that is always taken into account.
+
+    .. _hook-formats:
+
+    **Resolving paths to hooks**
 
     Several different path formats exist, making this a very powerful configuration mechanism:
 
@@ -229,7 +232,7 @@ class Hook(object):
         """
         The sgtk core API instance associated with the Hook parent.
 
-        .. deprecated::
+        .. deprecated:: v0.18.70
            Use :meth:`sgtk` instead.
         """
         return self.sgtk
@@ -265,6 +268,7 @@ class Hook(object):
         """
         # avoid cyclic refs
         from .util import resolve_publish_path
+
         return resolve_publish_path(self.sgtk, sg_publish_data)
 
     def get_publish_paths(self, sg_publish_data_list):
@@ -289,6 +293,7 @@ class Hook(object):
         """
         # avoid cyclic refs
         from .util import resolve_publish_path
+
         paths = []
         for sg_publish_data in sg_publish_data_list:
             paths.append(resolve_publish_path(self.sgtk, sg_publish_data))
@@ -439,13 +444,18 @@ class Hook(object):
         """
         # avoid circular refs
         from .platform import framework
+
         try:
             engine = self.__parent.engine
         except:
-            raise TankError("Cannot load framework %s for %r - it does not have a "
-                            "valid engine property!" % (framework_instance_name, self.__parent))
+            raise TankError(
+                "Cannot load framework %s for %r - it does not have a "
+                "valid engine property!" % (framework_instance_name, self.__parent)
+            )
 
-        return framework.load_framework(engine, engine.get_env(), framework_instance_name)
+        return framework.load_framework(
+            engine, engine.get_env(), framework_instance_name
+        )
 
     def execute(self):
         """
@@ -453,12 +463,14 @@ class Hook(object):
         """
         return None
 
+
 class _HooksCache(object):
     """
     A thread-safe cache of loaded hooks.  This uses the hook file path
     and base class as the key to cache all hooks loaded by Toolkit in
     the current session.
     """
+
     def __init__(self):
         """
         Construction
@@ -474,6 +486,7 @@ class _HooksCache(object):
         :param func:    The function to wrap
         :returns:       The return value from func
         """
+
         def inner(self, *args, **kwargs):
             """
             Decorator inner function - executes the function within a lock.
@@ -485,6 +498,7 @@ class _HooksCache(object):
                 return func(self, *args, **kwargs)
             finally:
                 lock.release()
+
         return inner
 
     @thread_exclusive
@@ -530,14 +544,17 @@ class _HooksCache(object):
         """
         return len(self._cache)
 
+
 _hooks_cache = _HooksCache()
 _current_hook_baseclass = threading.local()
+
 
 def clear_hooks_cache():
     """
     Clears the cache where tank keeps hook classes
     """
     _hooks_cache.clear()
+
 
 def execute_hook(hook_path, parent, **kwargs):
     """
@@ -559,7 +576,8 @@ def execute_hook(hook_path, parent, **kwargs):
     """
     return execute_hook_method([hook_path], parent, None, **kwargs)
 
-def execute_hook_method(hook_paths, parent, method_name, **kwargs):
+
+def execute_hook_method(hook_paths, parent, method_name, base_class=None, **kwargs):
     """
     New style hook execution, with method arguments and support for inheritance.
 
@@ -582,14 +600,22 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
 
         4. HookC class is instantiated and method method_name is executed.
 
+    An optional `base_class` can be provided to override the default ``Hook``
+    base class. This is useful for bundles that wish to execute a hook method
+    while providing a default implementation without the need to configure a
+    base hook.
+
     :param hook_paths: List of full paths to hooks, in inheritance order.
     :param parent: Parent object. This will be accessible inside
                    the hook as self.parent, and is typically an
                    app, engine or core object.
     :param method_name: method to execute. If None, the default method will be executed.
+    :param base_class: A python class to use as the base class for the hook
+        class. This will override the default hook base class, ``Hook``. The
+        class should derive from ``Hook``.
     :returns: Whatever the hook returns.
     """
-    hook = create_hook_instance(hook_paths, parent)
+    hook = create_hook_instance(hook_paths, parent, base_class=base_class)
 
     # get the method
     method_name = method_name or Hook.DEFAULT_HOOK_METHOD
@@ -607,19 +633,20 @@ def execute_hook_method(hook_paths, parent, method_name, **kwargs):
     return ret_val
 
 
-def create_hook_instance(hook_paths, parent):
+def create_hook_instance(hook_paths, parent, base_class=None):
     """
     New style hook execution, with method arguments and support for inheritance.
 
     This method takes a list of hook paths and will load each of the classes
     in, while maintaining the correct state of the class returned via
     get_hook_baseclass(). Once all classes have been successfully loaded,
-    the last class in the list is instantiated and returned.
+    an instance of the last class in the list is returned.
 
         Example: ["/tmp/a.py", "/tmp/b.py", "/tmp/c.py"]
 
         1. The code in a.py is loaded in. get_hook_baseclass() will return Hook
-           at this point. class HookA is returned from our plugin loader.
+           at this point (or a custom base class, if supplied, that derives from
+           Hook). class HookA is returned from our plugin loader.
 
         2. /tmp/b.py is loaded in. get_hook_baseclass() now returns HookA, so
            if the hook code in B utilises get_hook_baseclass, this will will
@@ -627,23 +654,39 @@ def create_hook_instance(hook_paths, parent):
 
         3. /tmp/c.py is finally loaded in, get_hook_baseclass() now returns HookB.
 
-        4. HookC class is instantiated and method method_name is executed.
+        4. An instance of the HookC class is returned.
+
+    An optional `base_class` can be provided to override the default ``Hook``
+    base class. This is useful for bundles that create hook instances at
+    execution time and wish to provide default implementation without the need
+    to configure the base hook.
 
     :param hook_paths: List of full paths to hooks, in inheritance order.
-    :param parent: Parent object. This will be accessible inside
-                   the hook as self.parent, and is typically an
-                   app, engine or core object.
+    :param base_class: A python class to use as the base class for the created
+        hook. This will override the default hook base class, ``Hook``.
     :returns: Instance of the hook.
     """
+
+    if base_class:
+        # ensure the supplied base class is a subclass of Hook
+        if not issubclass(base_class, Hook):
+            raise TankError(
+                "Invalid custom hook base class. The supplied class '%s' does "
+                "not inherit from Hook." % (Hook,)
+            )
+    else:
+        base_class = Hook
+
     # keep track of the current base class - this is used when loading hooks to dynamically
     # inherit from the correct base.
-    _current_hook_baseclass.value = Hook
+    _current_hook_baseclass.value = base_class
 
     for hook_path in hook_paths:
 
         if not os.path.exists(hook_path):
             raise TankFileDoesNotExistError(
-                "Cannot execute hook '%s' - this file does not exist on disk!" % hook_path
+                "Cannot execute hook '%s' - this file does not exist on disk!"
+                % hook_path
             )
 
         # look to see if we've already loaded this hook into the cache
@@ -664,25 +707,27 @@ def create_hook_instance(hook_paths, parent):
             loaded_hook_class = load_plugin(
                 hook_path,
                 valid_base_class=_current_hook_baseclass.value,
-                alternate_base_classes=alternate_base_classes
+                alternate_base_classes=alternate_base_classes,
             )
 
             # add it to the cache...
-            _hooks_cache.add(hook_path, _current_hook_baseclass.value, loaded_hook_class)
+            _hooks_cache.add(
+                hook_path, _current_hook_baseclass.value, loaded_hook_class
+            )
 
             # ...and find it again - this is to avoid different threads ending up using
             # different instances of the loaded class.
-            found_hook_class = _hooks_cache.find(hook_path, _current_hook_baseclass.value)
+            found_hook_class = _hooks_cache.find(
+                hook_path, _current_hook_baseclass.value
+            )
 
         # keep track of the current base class:
         _current_hook_baseclass.value = found_hook_class
 
-    # all class construction done. _current_hook_baseclass contains
-    # the last class we iterated over. This is the one we want to
-    # instantiate.
-
-    # instantiate the class
+    # all class construction done. _current_hook_baseclass contains the last
+    # class we iterated over. An instance of this is what we want to return
     return _current_hook_baseclass.value(parent)
+
 
 def get_hook_baseclass():
     """

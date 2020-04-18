@@ -15,7 +15,6 @@ Unit tests tank updates.
 from __future__ import with_statement
 
 import os
-import re
 import logging
 import functools
 import tempfile
@@ -27,7 +26,8 @@ from .tank_test_base import TankTestBase, setUpModule
 import sgtk
 from sgtk.descriptor import Descriptor
 from sgtk.descriptor.io_descriptor.base import IODescriptorBase
-from sgtk.descriptor.descriptor import create_descriptor
+from sgtk.descriptor import create_descriptor
+from sgtk.util import sgre as re
 
 from tank import TankError
 from tank.platform.environment import InstalledEnvironment
@@ -94,13 +94,15 @@ class MockStore(object):
         def _set_required_frameworks(self, dependencies):
             self._dependencies = dependencies
 
-        required_frameworks = property(_get_required_frameworks, _set_required_frameworks)
+        required_frameworks = property(
+            _get_required_frameworks, _set_required_frameworks
+        )
 
         def get_major_dependency_descriptor(self):
             return {
                 "version": "v%s.x.x" % self._split_version()[0],
                 "name": self.name,
-                "type": "app_store"
+                "type": "app_store",
             }
 
         def _split_version(self):
@@ -168,7 +170,9 @@ class MockStore(object):
 
         :param bundle: Bundle to register
         """
-        self._bundles.setdefault(bundle.bundle_type, {}).setdefault(bundle.name, {})[bundle.version] = bundle
+        self._bundles.setdefault(bundle.bundle_type, {}).setdefault(bundle.name, {})[
+            bundle.version
+        ] = bundle
 
     def get_bundle(self, bundle_type, name, version):
         """
@@ -191,12 +195,14 @@ class MockStore(object):
 
         :returns: List of version strings for a particular bundle.
         """
-        return self._bundles[bundle_type][name].keys()
+        return list(self._bundles[bundle_type][name].keys())
 
 
 # Simpler than having to write three class types that would also have to be documented.
 MockStoreApp = functools.partial(MockStore._Entry, bundle_type=Descriptor.APP)
-MockStoreFramework = functools.partial(MockStore._Entry, bundle_type=Descriptor.FRAMEWORK)
+MockStoreFramework = functools.partial(
+    MockStore._Entry, bundle_type=Descriptor.FRAMEWORK
+)
 MockStoreEngine = functools.partial(MockStore._Entry, bundle_type=Descriptor.ENGINE)
 
 
@@ -215,7 +221,7 @@ class TankMockStoreDescriptor(IODescriptorBase):
         :param sg_connection: Shotgun connection to associated site
         :param bundle_type: Either Descriptor.APP, CORE, ENGINE or FRAMEWORK
         """
-        IODescriptorBase.__init__(self, location_dict)
+        IODescriptorBase.__init__(self, location_dict, sg_connection, bundle_type)
         self._type = bundle_type
 
     def create(self, version):
@@ -225,11 +231,9 @@ class TankMockStoreDescriptor(IODescriptorBase):
         :returns: A IODescriptorAppStore object.
         """
         descriptor = TankMockStoreDescriptor(
-            {"name": self.get_system_name(),
-             "type": "app_store",
-             "version": version},
+            {"name": self.get_system_name(), "type": "app_store", "version": version},
             None,
-            self._type
+            self._type,
         )
 
         descriptor.set_cache_roots(self._bundle_cache_root, self._fallback_roots)
@@ -271,8 +275,7 @@ class TankMockStoreDescriptor(IODescriptorBase):
         """
 
         versions = MockStore.instance.get_bundle_versions(
-            self._type,
-            self.get_system_name()
+            self._type, self.get_system_name()
         )
         latest = "v0.0.0"
         for version in versions:
@@ -291,13 +294,11 @@ class TankMockStoreDescriptor(IODescriptorBase):
         """
 
         version_numbers = MockStore.instance.get_bundle_versions(
-            self._type,
-            self.get_system_name()
+            self._type, self.get_system_name()
         )
 
         version_to_use = self._find_latest_tag_by_pattern(
-            version_numbers,
-            version_pattern
+            version_numbers, version_pattern
         )
 
         return self.create(version_to_use)
@@ -307,9 +308,7 @@ class TankMockStoreDescriptor(IODescriptorBase):
         Returns the manifest data
         """
         bundle = MockStore.instance.get_bundle(
-            self._type,
-            self.get_system_name(),
-            self.get_version()
+            self._type, self.get_system_name(), self.get_version()
         )
 
         return {"frameworks": bundle.required_frameworks}
@@ -317,6 +316,18 @@ class TankMockStoreDescriptor(IODescriptorBase):
     def has_remote_access(self):
         """
         Do we have a remote connection?
+        """
+        return True
+
+    def clone_cache(self, cache_root):
+        """
+        The descriptor system maintains an internal cache where it downloads
+        the payload that is associated with the descriptor. Toolkit supports
+        complex cache setups, where you can specify a series of path where toolkit
+        should go and look for cached items.
+
+        :param cache_root: Root point of the cache location to copy to.
+        :returns: True if the cache was copied, false if not
         """
         return True
 
@@ -333,7 +344,7 @@ class _Patcher(object):
         """
         self._patch = mock.patch(
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore",
-            new=TankMockStoreDescriptor
+            new=TankMockStoreDescriptor,
         )
 
         self._mock_store = MockStore()
@@ -361,6 +372,7 @@ class _Patcher(object):
         """
         MockStore.instance = self._mock_store
         self._patch.start()
+        IODescriptorBase._factory["app_store"] = TankMockStoreDescriptor
         return MockStore.instance
 
     def stop(self):
@@ -369,6 +381,9 @@ class _Patcher(object):
         """
         del MockStore.instance
         self._patch.stop()
+        from tank.descriptor.io_descriptor.appstore import IODescriptorAppStore
+
+        IODescriptorBase._factory["app_store"] = IODescriptorAppStore
 
     def __call__(self, func):
         """
@@ -388,6 +403,7 @@ class _Patcher(object):
                 # Adds the mockstore at the tail of any expected positional
                 # arguments.
                 return func(*(args + (mock_store,)), **kwargs)
+
         return wrapper
 
 
@@ -409,7 +425,3 @@ def patch_app_store(func=None):
         return _Patcher()(func)
     else:
         return _Patcher()
-
-
-
-

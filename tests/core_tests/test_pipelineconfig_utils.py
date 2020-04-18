@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Shotgun Software Inc.
+# Copyright (c) 2017 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -8,31 +8,64 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from __future__ import with_statement
-
 import os
 import inspect
 import sys
 
+from mock import patch
+
 import sgtk
+import tank
 
 from tank import pipelineconfig_utils
 from tank import (
     TankInvalidInterpreterLocationError,
     TankFileDoesNotExistError,
     TankInvalidCoreLocationError,
-    TankNotPipelineConfigurationError
+    TankNotPipelineConfigurationError,
 )
-from tank.util import ShotgunPath
+from tank.util import ShotgunPath, is_windows
 
-from tank_test.tank_test_base import TankTestBase
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
+from tank_test.tank_test_base import setUpModule  # noqa
 
 
-class TestPipelineConfigUtils(TankTestBase):
+class TestGetConfigInstallLocationPathSlashes(ShotgunTestBase):
+    """
+    Tests the case where a Windows config location uses double slashes.
+    """
+
+    @patch("tank.pipelineconfig_utils._get_install_locations")
+    def test_config_path_cleanup(self, get_install_locations_mock):
+        """
+        Check that any glitches in the path are correctly cleaned up.
+        """
+        # only run this test on windows
+        if is_windows():
+
+            # This path has multiple issues we've encountered in the wild
+            # It without any escaping sequence, it reads as
+            # "   C:/configs\\site//project   "
+            # 1. it has whitespace at the begging and end.
+            # 2. Uses double slashes instead of single backslash
+            # 3. Uses slash instead of backslash
+            # 4. Uses double backslashes as a folder separator.
+            get_install_locations_mock.return_value = sgtk.util.ShotgunPath(
+                "   C:/configs\\\\site//project   ", None, None
+            )
+
+            self.assertEqual(
+                # We don't need to pass an actual path since _get_install_location is mocked.
+                tank.pipelineconfig_utils.get_config_install_location(None),
+                "C:\\configs\\site\\project",
+            )
+
+
+class TestPipelineConfigUtils(ShotgunTestBase):
     """
     Tests pipeline configuration utilities.
     """
+
     def _create_interpreter_file(self, config_root, path):
         """
         Creates an interpreter file in a configuration.
@@ -42,12 +75,9 @@ class TestPipelineConfigUtils(TankTestBase):
         """
         self.create_file(
             ShotgunPath.get_file_name_from_template(
-                os.path.join(
-                    config_root, "config", "core",
-                    "interpreter_%s.cfg"
-                )
+                os.path.join(config_root, "config", "core", "interpreter_%s.cfg")
             ),
-            path
+            path,
         )
 
     def _create_core_file(self, config_root, path):
@@ -59,12 +89,9 @@ class TestPipelineConfigUtils(TankTestBase):
         """
         self.create_file(
             ShotgunPath.get_file_name_from_template(
-                os.path.join(
-                    config_root, "install", "core",
-                    "core_%s.cfg"
-                )
+                os.path.join(config_root, "install", "core", "core_%s.cfg")
             ),
-            path
+            path,
         )
 
     def _create_core(self, core_root):
@@ -78,7 +105,7 @@ class TestPipelineConfigUtils(TankTestBase):
 
         self.create_file(
             os.path.join(core_root, "install", "core", "_core_upgrader.py"),
-            "" # Content is unimportant.
+            "",  # Content is unimportant.
         )
         return core_root
 
@@ -104,7 +131,7 @@ class TestPipelineConfigUtils(TankTestBase):
         config_root = os.path.join(self.tank_temp, config_name)
         self.create_file(
             os.path.join(config_root, "config", "core", "roots.yml"),
-            "{}" # We don't care for the content of that file
+            "{}",  # We don't care for the content of that file
         )
         return config_root
 
@@ -132,6 +159,25 @@ class TestPipelineConfigUtils(TankTestBase):
         with self.assertRaises(TankNotPipelineConfigurationError):
             sgtk.get_python_interpreter_for_config("/this/path/does/not/exist")
 
+    def test_localize_config_with_interpreter_as_env_var(self):
+        """
+        Test for interpreter file in a localized config.
+        """
+        config_root = self._create_pipeline_configuration(
+            "localized_core_with_interpreter_as_env_var"
+        )
+        # Create interpreter file for good config.
+        self._create_interpreter_file(config_root, "$SGTK_TEST_INTERPRETER")
+
+        # Patch os.path.exists since /i/wish/this/was/python3 is obviously not a real
+        # file name.
+        with patch("os.path.exists", return_value=True):
+            with temp_env_var(SGTK_TEST_INTERPRETER="/i/wish/this/was/python3"):
+                self.assertEqual(
+                    pipelineconfig_utils.get_python_interpreter_for_config(config_root),
+                    "/i/wish/this/was/python3",
+                )
+
     def test_localized_config_interpreter_file(self):
         """
         Test for interpreter file in a localized config.
@@ -151,54 +197,59 @@ class TestPipelineConfigUtils(TankTestBase):
             "localized_core_with_bad_interpreter"
         )
         # Create interpreter file for config with bad interpreter location.
-        self._create_interpreter_file(config_root_with_bad_interpreter, "/path/to/non/existing/python")
+        self._create_interpreter_file(
+            config_root_with_bad_interpreter, "/path/to/non/existing/python"
+        )
 
         # Test when the interpreter file is present and has a valid python interpreter.
         self.assertEqual(
-            pipelineconfig_utils.get_python_interpreter_for_config(config_root), sys.executable
+            pipelineconfig_utils.get_python_interpreter_for_config(config_root),
+            sys.executable,
         )
 
         # Test when the interpreter file is present but the interpreter path is bad.
         with self.assertRaises(TankInvalidInterpreterLocationError):
-            pipelineconfig_utils.get_python_interpreter_for_config(config_root_with_bad_interpreter)
+            pipelineconfig_utils.get_python_interpreter_for_config(
+                config_root_with_bad_interpreter
+            )
 
         # Test when the interpreter file is missing
-        with self.assertRaisesRegexp(TankFileDoesNotExistError, "No interpreter file for"):
-            pipelineconfig_utils.get_python_interpreter_for_config(config_root_without_interpreter_file)
+        with self.assertRaisesRegex(
+            TankFileDoesNotExistError, "No interpreter file for"
+        ):
+            pipelineconfig_utils.get_python_interpreter_for_config(
+                config_root_without_interpreter_file
+            )
 
     def test_core_location_retrieval(self):
         """
         Ensure we can retrieve the core location for localize and unlocalized cores.
         """
-        config_root = self._create_pipeline_configuration(
-            "localized_core"
-        )
+        config_root = self._create_pipeline_configuration("localized_core")
 
         self.assertEqual(
             pipelineconfig_utils.get_core_python_path_for_config(config_root),
-            os.path.join(config_root, "install", "core", "python")
+            os.path.join(config_root, "install", "core", "python"),
         )
 
         self.assertEqual(
-            pipelineconfig_utils.get_core_path_for_config(config_root),
-            config_root
+            pipelineconfig_utils.get_core_path_for_config(config_root), config_root
         )
 
         unlocalized_core_root = self._create_studio_core("unlocalized_core")
 
         config_root = self._create_pipeline_configuration(
-            "config_without_core",
-            core_location=unlocalized_core_root
+            "config_without_core", core_location=unlocalized_core_root
         )
 
         self.assertEqual(
             pipelineconfig_utils.get_core_python_path_for_config(config_root),
-            os.path.join(unlocalized_core_root, "install", "core", "python")
+            os.path.join(unlocalized_core_root, "install", "core", "python"),
         )
 
         self.assertEqual(
             pipelineconfig_utils.get_core_path_for_config(config_root),
-            unlocalized_core_root
+            unlocalized_core_root,
         )
 
     def test_shared_config_interpreter_file(self):
@@ -213,11 +264,10 @@ class TestPipelineConfigUtils(TankTestBase):
         self.assertEqual(
             pipelineconfig_utils.get_python_interpreter_for_config(
                 self._create_pipeline_configuration(
-                    "config_with_valid_studio_core",
-                    core_location=valid_studio_core
+                    "config_with_valid_studio_core", core_location=valid_studio_core
                 )
             ),
-            sys.executable
+            sys.executable,
         )
 
         # Test shared config with a bad interpreter location.
@@ -232,7 +282,7 @@ class TestPipelineConfigUtils(TankTestBase):
             pipelineconfig_utils.get_python_interpreter_for_config(
                 self._create_pipeline_configuration(
                     "config_using_studio_core_with_bad_interpreter",
-                    core_location=studio_core_with_bad_interpreter_location
+                    core_location=studio_core_with_bad_interpreter_location,
                 )
             )
 
@@ -240,11 +290,13 @@ class TestPipelineConfigUtils(TankTestBase):
         studio_core_with_missing_interpreter_file_location = self._create_studio_core(
             "studio_core_with_missing_interpreter_file"
         )
-        with self.assertRaisesRegexp(TankFileDoesNotExistError, "No interpreter file for"):
+        with self.assertRaisesRegex(
+            TankFileDoesNotExistError, "No interpreter file for"
+        ):
             pipelineconfig_utils.get_python_interpreter_for_config(
                 self._create_pipeline_configuration(
                     "config_using_studio_core_with_missing_interpreter_file",
-                    core_location=studio_core_with_missing_interpreter_file_location
+                    core_location=studio_core_with_missing_interpreter_file_location,
                 )
             )
 
@@ -253,30 +305,41 @@ class TestPipelineConfigUtils(TankTestBase):
             "config_with_invalid_core"
         )
 
-        self._create_core_file(config_with_invalid_core_location, "/path/to/missing/core")
+        self._create_core_file(
+            config_with_invalid_core_location, "/path/to/missing/core"
+        )
 
         with self.assertRaises(TankInvalidCoreLocationError):
-            pipelineconfig_utils.get_python_interpreter_for_config(config_with_invalid_core_location)
+            pipelineconfig_utils.get_python_interpreter_for_config(
+                config_with_invalid_core_location
+            )
 
         # Test when the core file is missing.
         config_with_no_core_file_location = self._create_unlocalized_pipeline_configuration(
             "config_with_no_core_file"
         )
 
-        with self.assertRaisesRegexp(TankFileDoesNotExistError, "is missing a core location file"):
-            pipelineconfig_utils.get_python_interpreter_for_config(config_with_no_core_file_location)
+        with self.assertRaisesRegex(
+            TankFileDoesNotExistError, "is missing a core location file"
+        ):
+            pipelineconfig_utils.get_python_interpreter_for_config(
+                config_with_no_core_file_location
+            )
 
     def test_missing_core_location_file(self):
         """
         Ensure we detect missing core location file.
         """
-        config_root = self._create_unlocalized_pipeline_configuration("missing_core_location_file")
+        config_root = self._create_unlocalized_pipeline_configuration(
+            "missing_core_location_file"
+        )
 
-        self.assertIsNone(pipelineconfig_utils.get_core_path_for_config(config_root), None)
+        self.assertIsNone(
+            pipelineconfig_utils.get_core_path_for_config(config_root), None
+        )
 
-        with self.assertRaisesRegexp(
-            TankFileDoesNotExistError,
-            "without a localized core is missing a core"
+        with self.assertRaisesRegex(
+            TankFileDoesNotExistError, "without a localized core is missing a core"
         ):
             pipelineconfig_utils.get_python_interpreter_for_config(config_root)
 

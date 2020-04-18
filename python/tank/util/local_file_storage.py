@@ -9,11 +9,12 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
-import sys
-import urlparse
+from tank_vendor.six.moves import urllib
 from . import filesystem
+from .platforms import is_linux, is_macos, is_windows
 from .. import LogManager
 from ..errors import TankError
+from tank_vendor.shotgun_api3.lib import sgsix
 
 log = LogManager.get_logger(__name__)
 
@@ -53,6 +54,7 @@ class LocalFileStorageManager(object):
                            to be retained between sessions.
     :constant PREFERENCES: Indicates a path that suitable for storing settings files and preferences.
     """
+
     # generation of path structures
     (CORE_V17, CORE_V18) = range(2)
 
@@ -84,12 +86,18 @@ class LocalFileStorageManager(object):
                            which is the current generation of paths.
         :return: Path as string
         """
-        if generation == cls.CORE_V18:
 
-            # If the environment variable is available and set to an actual value.
-            shotgun_home_override = os.environ.get("SHOTGUN_HOME")
+        # If SHOTGUN_HOME is set, the intent is to not use any of official locations and instead use
+        # a sandbox.
+        #
+        # If we still allowed the LocalFileStorageManager to return paths outside of SHOTGUN_HOME,
+        # it would mean that data from outside SHOTGUN_HOME could leak into it and that a user
+        # couldn't be confident that the sandbox was self-contained.
+
+        # If the environment variable is available and set to an actual value.
+        shotgun_home_override = os.environ.get("SHOTGUN_HOME")
+        if generation == cls.CORE_V18 or shotgun_home_override:
             if shotgun_home_override:
-
                 # Make sure environment variables and ~ are evaluated.
                 shotgun_home_override = os.path.expanduser(
                     os.path.expandvars(shotgun_home_override)
@@ -108,7 +116,7 @@ class LocalFileStorageManager(object):
                 else:
                     raise ValueError("Unsupported path type!")
             # current generation of paths
-            elif sys.platform == "darwin":
+            elif is_macos():
                 if path_type == cls.CACHE:
                     return os.path.expanduser("~/Library/Caches/Shotgun")
                 elif path_type == cls.PERSISTENT:
@@ -120,7 +128,7 @@ class LocalFileStorageManager(object):
                 else:
                     raise ValueError("Unsupported path type!")
 
-            elif sys.platform == "win32":
+            elif is_windows():
                 app_data = os.environ.get("APPDATA", "APPDATA_NOT_SET")
                 if path_type == cls.CACHE:
                     return os.path.join(app_data, "Shotgun")
@@ -133,7 +141,7 @@ class LocalFileStorageManager(object):
                 else:
                     raise ValueError("Unsupported path type!")
 
-            elif sys.platform.startswith("linux"):
+            elif is_linux():
                 if path_type == cls.CACHE:
                     return os.path.expanduser("~/.shotgun")
                 elif path_type == cls.PERSISTENT:
@@ -146,12 +154,12 @@ class LocalFileStorageManager(object):
                     raise ValueError("Unsupported path type!")
 
             else:
-                raise ValueError("Unknown platform: %s" % sys.platform)
+                raise ValueError("Unknown platform: %s" % sgsix.platform)
 
         if generation == cls.CORE_V17:
 
             # previous generation of paths
-            if sys.platform == "darwin":
+            if is_macos():
                 if path_type == cls.CACHE:
                     return os.path.expanduser("~/Library/Caches/Shotgun")
                 elif path_type == cls.PERSISTENT:
@@ -161,17 +169,23 @@ class LocalFileStorageManager(object):
                 else:
                     raise ValueError("Unsupported path type!")
 
-            elif sys.platform == "win32":
+            elif is_windows():
                 if path_type == cls.CACHE:
-                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun")
+                    return os.path.join(
+                        os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun"
+                    )
                 elif path_type == cls.PERSISTENT:
-                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun")
+                    return os.path.join(
+                        os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun"
+                    )
                 elif path_type == cls.LOGGING:
-                    return os.path.join(os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun")
+                    return os.path.join(
+                        os.environ.get("APPDATA", "APPDATA_NOT_SET"), "Shotgun"
+                    )
                 else:
                     raise ValueError("Unsupported path type!")
 
-            elif sys.platform.startswith("linux"):
+            elif is_linux():
                 if path_type == cls.CACHE:
                     return os.path.expanduser("~/.shotgun")
                 elif path_type == cls.PERSISTENT:
@@ -182,7 +196,7 @@ class LocalFileStorageManager(object):
                     raise ValueError("Unsupported path type!")
 
             else:
-                raise ValueError("Unknown platform: %s" % sys.platform)
+                raise ValueError("Unknown platform: %s" % sgsix.platform)
 
     @classmethod
     def get_site_root(cls, hostname, path_type, generation=CORE_V18):
@@ -211,7 +225,7 @@ class LocalFileStorageManager(object):
             )
 
         # get site only; https://www.FOO.com:8080 -> www.foo.com
-        base_url = urlparse.urlparse(hostname).netloc.split(":")[0].lower()
+        base_url = urllib.parse.urlparse(hostname).netloc.split(":")[0].lower()
 
         if generation > cls.CORE_V17:
             # for 0.18, in order to apply further shortcuts to avoid hitting
@@ -223,20 +237,18 @@ class LocalFileStorageManager(object):
             #
             base_url = base_url.replace(".shotgunstudio.com", "")
 
-        return os.path.join(
-            cls.get_global_root(path_type, generation),
-            base_url
-        )
+        return os.path.join(cls.get_global_root(path_type, generation), base_url)
 
     @classmethod
     def get_configuration_root(
-            cls,
-            hostname,
-            project_id,
-            plugin_id,
-            pipeline_config_id,
-            path_type,
-            generation=CORE_V18):
+        cls,
+        hostname,
+        project_id,
+        plugin_id,
+        pipeline_config_id,
+        path_type,
+        generation=CORE_V18,
+    ):
         """
         Returns the storage root for any data that is project and config specific.
 
@@ -290,7 +302,7 @@ class LocalFileStorageManager(object):
             return os.path.join(
                 cls.get_site_root(hostname, path_type, generation),
                 "project_%s" % project_id,
-                "config_%s" % pipeline_config_id
+                "config_%s" % pipeline_config_id,
             )
 
         else:
@@ -298,7 +310,7 @@ class LocalFileStorageManager(object):
             # new paths are on the form
             # project 123, config 33:       root/mysite/p123c33
             # project 123 with plugin id:   root/mysite/p123.review.rv
-            # site project:                 root/mysite/p0
+            # site project:                 root/mysite/site
 
             pc_suffix = ""
             if pipeline_config_id and not plugin_id:
@@ -308,9 +320,13 @@ class LocalFileStorageManager(object):
                 # no pc id but instead an plugin id string
                 pc_suffix = ".%s" % filesystem.create_valid_filename(plugin_id)
             elif plugin_id and pipeline_config_id:
-                pc_suffix = "c%d.%s" % (pipeline_config_id, filesystem.create_valid_filename(plugin_id))
+                pc_suffix = "c%d.%s" % (
+                    pipeline_config_id,
+                    filesystem.create_valid_filename(plugin_id),
+                )
             else:
-                # this is a possible, however not recommended state
+                # No pipeline config id nor plugin id which is possible for caching
+                # at the site level.
                 pc_suffix = ""
 
             if project_id is None:
@@ -321,5 +337,5 @@ class LocalFileStorageManager(object):
 
             return os.path.join(
                 cls.get_site_root(hostname, path_type, generation),
-                project_config_folder
+                project_config_folder,
             )

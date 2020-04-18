@@ -143,7 +143,7 @@ def restart(new_context=None):
         # first, reload the template defs
         engine.tank.reload_templates()
         engine.log_debug("Template definitions were reloaded.")
-    except TankError, e:
+    except TankError as e:
         engine.log_error(e)
 
     _restart_engine(new_context or engine.context)
@@ -163,8 +163,8 @@ def current_bundle():
     This special helper method can be useful when code deep inside an app needs
     to reach out to for example grab a configuration value. Then you can simply do::
 
-    app = sgtk.platform.current_bundle()
-    app.get_setting("frame_range")
+        app = sgtk.platform.current_bundle()
+        app.get_setting("frame_range")
 
     :returns: :class:`Application`, :class:`Engine` or :class:`Framework` instance
     """
@@ -185,8 +185,8 @@ def get_framework(framework):
     need to retrieve a configuration setting from this framework, then you can
     simply do::
 
-    fw = sgtk.platform.get_framework("tk-framework-helpers")
-    fw.get_setting("frame_range")
+        fw = sgtk.platform.get_framework("tk-framework-helpers")
+        fw.get_setting("frame_range")
 
     :param framework: name of the framework object to access, as defined in the app's
                       info.yml manifest.
@@ -197,7 +197,10 @@ def get_framework(framework):
     current_bundle = _get_current_bundle()
 
     if framework not in current_bundle.frameworks:
-        raise Exception("import_framework: %s does not have a framework %s associated!" % (current_bundle, framework))
+        raise Exception(
+            "import_framework: %s does not have a framework %s associated!"
+            % (current_bundle, framework)
+        )
 
     fw = current_bundle.frameworks[framework]
 
@@ -231,7 +234,10 @@ def import_framework(framework, module):
     current_bundle = _get_current_bundle()
 
     if framework not in current_bundle.frameworks:
-        raise Exception("import_framework: %s does not have a framework %s associated!" % (current_bundle, framework))
+        raise Exception(
+            "import_framework: %s does not have a framework %s associated!"
+            % (current_bundle, framework)
+        )
 
     fw = current_bundle.frameworks[framework]
 

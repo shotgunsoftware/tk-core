@@ -19,7 +19,19 @@ at any point.
 """
 
 from .. import LogManager
+
 logger = LogManager.get_logger(__name__)
+
+
+# When importing qt_abstraction, a lot of code is executed to detects which
+# version of Qt is being used. Running business logic at import time is not
+# something usually done by the Toolkit. The worry is that the import may fail
+# in the context of a DCC, but occur too early for the Toolkit logging to be
+# fully in place to record it.
+try:
+    from .ui.qt_abstraction import QtCore, QtGui
+except Exception:
+    QtCore, QtGui = None, None
 
 
 def create():
@@ -28,16 +40,16 @@ def create():
     called from a different thread.
 
     You typically use this method like this:
-    
+
         def show_ui():
             # show QT dialog
             dlg = MyQtDialog()
             result = dlg.exec_()
             return result
-        
-        # create invoker object 
+
+        # create invoker object
         my_invoker = invoker.create()
-    
+
         # launch dialog - invoker ensures that the UI
         # gets launched in the main thread
         result = my_invoker(show_ui)
@@ -46,8 +58,6 @@ def create():
               simple pass through method will execute the code in the same
               thread will be produced.
     """
-    from .ui.qt_abstraction import QtCore, QtGui
-
     # If we are already in the main thread, no need for an invoker, invoke directly in this thread.
     if QtCore.QThread.currentThread() == QtGui.QApplication.instance().thread():
         return lambda fn, *args, **kwargs: fn(*args, **kwargs)
@@ -61,6 +71,7 @@ def create():
         to the invoking thread as if it was the thread that actually executed
         the code.
         """
+
         def __init__(self):
             """
             Constructor.
@@ -85,7 +96,9 @@ def create():
 
             logger.debug("Sending ui request to main thread.")
 
-            QtCore.QMetaObject.invokeMethod(self, "_do_invoke", QtCore.Qt.BlockingQueuedConnection)
+            QtCore.QMetaObject.invokeMethod(
+                self, "_do_invoke", QtCore.Qt.BlockingQueuedConnection
+            )
 
             # If an exception has been thrown, rethrow it.
             if self._exception:
@@ -100,7 +113,7 @@ def create():
             try:
                 logger.debug("Invoking from main thread.")
                 self._res = self._fn()
-            except Exception, e:
+            except Exception as e:
                 self._exception = e
 
     return MainThreadInvoker()

@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -20,18 +20,19 @@ from ..util.loader import load_plugin
 from . import constants
 
 from .bundle import TankBundle
-from ..util import log_user_activity_metric, log_user_attribute_metric
+from ..util.metrics import EventMetric
+
 
 class Application(TankBundle):
     """
     Base class for all Applications (Apps) running in Toolkit.
     """
-    
+
     def __init__(self, engine, descriptor, settings, instance_name, env):
         """
         Application instances are constructed by the toolkit launch process
         and various factory methods such as :meth:`start_engine`.
-        
+
         :param engine: The engine instance to connect this app to
         :param app_name: The short name of this app (e.g. tk-nukepublish)
         :param settings: a settings dictionary for this app
@@ -44,7 +45,9 @@ class Application(TankBundle):
         logger = self.__engine.get_child_logger(self.__instance_name)
 
         # init base class
-        TankBundle.__init__(self, engine.tank, engine.context, settings, descriptor, env, logger)
+        TankBundle.__init__(
+            self, engine.tank, engine.context, settings, descriptor, env, logger
+        )
 
         self.log_debug("App init: Instantiating %s" % self)
 
@@ -59,7 +62,7 @@ class Application(TankBundle):
                 self.log_debug("Appending to PYTHONPATH: %s" % python_path)
                 sys.path.append(python_path)
 
-    def __repr__(self):        
+    def __repr__(self):
         return "<Sgtk App 0x%08x: %s, engine: %s>" % (id(self), self.name, self.engine)
 
     def _destroy_frameworks(self):
@@ -74,7 +77,7 @@ class Application(TankBundle):
 
     ##########################################################################################
     # properties
-        
+
     @property
     def shotgun(self):
         """
@@ -89,16 +92,15 @@ class Application(TankBundle):
         # in the shotgun data centre and makes it easy to track which app and engine versions
         # are being used by clients
         try:
-            self.tank.shotgun.tk_user_agent_handler.set_current_app(self.name,
-                                                                    self.version,
-                                                                    self.engine.name,
-                                                                    self.engine.version)
+            self.tank.shotgun.tk_user_agent_handler.set_current_app(
+                self.name, self.version, self.engine.name, self.engine.version
+            )
         except AttributeError:
             # looks like this sg instance for some reason does not have a
             # tk user agent handler associated.
             pass
-        
-        return self.tank.shotgun        
+
+        return self.tank.shotgun
 
     def _get_instance_name(self):
         """
@@ -113,7 +115,7 @@ class Application(TankBundle):
         self.__instance_name = instance_name
 
     instance_name = property(_get_instance_name, _set_instance_name)
-        
+
     @property
     def engine(self):
         """
@@ -121,9 +123,35 @@ class Application(TankBundle):
         """
         return self.__engine
 
+    def get_metrics_properties(self):
+        """
+        Returns a dictionary with properties to use when emitting a metric event
+        for this application in the current engine.
+
+        The dictionary contains information about this application, about the
+        current engine, and about the application hosting the engine. For each of
+        them, a name and a version string are available::
+
+            {
+                'Host App': 'Maya',
+                'Host App Version': '2017',
+                'Engine': 'tk-maya',
+                'Engine Version': 'v0.4.1',
+                'App': 'tk-multi-about',
+                'App Version': '1.2.3'
+            }
+
+        :returns: Dictionary with info per above.
+        """
+        properties = self.engine.get_metrics_properties()
+        properties.update(
+            {EventMetric.KEY_APP: self.name, EventMetric.KEY_APP_VERSION: self.version}
+        )
+        return properties
+
     ##########################################################################################
     # init, destroy, and context changing
-        
+
     def init_app(self):
         """
         Implemented by deriving classes in order to initialize the app
@@ -262,55 +290,20 @@ class Application(TankBundle):
         self.logger.exception(msg)
 
 
-    ##########################################################################################
-    # internal API
-
-    def log_metric(self, action, log_version=False, log_once=False):
-        """Logs an app metric.
-
-        :param action: Action string to log, e.g. 'Execute Action'
-        :param log_version: If True, also log a user attribute metric for the
-            version of the app. Default is `False`.
-        :param bool log_once: ``True`` if this metric should be ignored if it
-            has already been logged. Defaults to ``False``.
-
-        Logs a user activity metric as performed within an app. This is a
-        convenience method that auto-populates the module portion of
-        `tank.util.log_user_activity_metric()`.
-
-        If the optional `log_version` flag is set to True, this method will
-        also log a user attribute metric for the current version of the app.
-
-        Internal Use Only - We provide no guarantees that this method
-        will be backwards compatible.
-
-        """
-        # the action contains the engine and app name, e.g.
-        # module: tk-multi-loader2
-        # action: (tk-maya) tk-multi-loader2 - Load...
-        full_action = "(%s) %s %s" % (self.engine.name, self.name, action)
-        log_user_activity_metric(self.name, full_action, log_once=log_once)
-
-        if log_version:
-            # log the app version as a user attribute
-            log_user_attribute_metric(
-                "%s version" % (self.name,), self.version, log_once=log_once)
-
 def get_application(engine, app_folder, descriptor, settings, instance_name, env):
     """
-    Internal helper method. 
+    Internal helper method.
     (Removed from the engine base class to make it easier to run unit tests).
     Returns an application object given an engine and app settings.
-    
+
     :param engine: the engine this app should run in
     :param app_folder: the folder on disk where the app is located
     :param descriptor: descriptor for the app
     :param settings: a settings dict to pass to the app
     """
     plugin_file = os.path.join(app_folder, constants.APP_FILE)
-        
+
     # Instantiate the app
     class_obj = load_plugin(plugin_file, Application)
     obj = class_obj(engine, descriptor, settings, instance_name, env)
     return obj
-

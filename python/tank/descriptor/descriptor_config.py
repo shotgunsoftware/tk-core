@@ -11,16 +11,17 @@
 from __future__ import with_statement
 
 import os
-from ..util.process import subprocess_check_output, SubprocessCalledProcessError
-
-from tank_vendor import yaml
 
 from ..errors import TankFileDoesNotExistError
 from . import constants
 from .errors import TankInvalidInterpreterLocationError
-from .descriptor import Descriptor
+from .descriptor import Descriptor, create_descriptor
+from .io_descriptor import is_descriptor_version_missing
 from .. import LogManager
+from ..util import StorageRoots
 from ..util import ShotgunPath
+from ..util.version import is_version_older
+from .io_descriptor import descriptor_uri_to_dict
 
 log = LogManager.get_logger(__name__)
 
@@ -30,6 +31,27 @@ class ConfigDescriptor(Descriptor):
     Descriptor that describes a Toolkit Configuration
     """
 
+    def __init__(
+        self, sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots
+    ):
+        """
+        .. note:: Use the factory method :meth:`create_descriptor` when
+                  creating new descriptor objects.
+
+        :param sg_connection: Connection to the current site.
+        :param io_descriptor: Associated IO descriptor.
+        :param bundle_cache_root_override: Override for root path to where
+            downloaded apps are cached.
+        :param fallback_roots: List of immutable fallback cache locations where
+            apps will be searched for.
+        """
+        super(ConfigDescriptor, self).__init__(io_descriptor)
+        self._cached_core_descriptor = None
+        self._sg_connection = sg_connection
+        self._bundle_cache_root_override = bundle_cache_root_override
+        self._fallback_roots = fallback_roots
+        self._storage_roots = None
+
     @property
     def associated_core_descriptor(self):
         """
@@ -37,19 +59,78 @@ class ConfigDescriptor(Descriptor):
 
         :returns: Core descriptor dict or uri or ``None`` if not defined
         """
-        raise NotImplementedError("ConfigDescriptor.associated_core_descriptor is not implemented.")
+        raise NotImplementedError(
+            "ConfigDescriptor.associated_core_descriptor is not implemented."
+        )
 
     @property
     def python_interpreter(self):
         """
         Retrieves the Python interpreter for the current platform from the interpreter files.
 
-        :raises TankFileDoesNotExistError: If the interpreter file is missing.
-        :raises TankInvalidInterpreterLocationError: If the interpreter can't be found on disk.
+        .. note:: Most runtime environments (Nuke, Maya, Houdini, etc.) provide their
+            own python interpreter that needs to used when executing code. This property
+            is useful if the engine you are running (e.g. ``tk-shell``) does not have
+            an explicit interpreter associated.
+
+        :raises: :class:`TankFileDoesNotExistError` If the interpreter file is missing.
+        :raises: :class:`TankInvalidInterpreterLocationError` If the interpreter can't be found on disk.
 
         :returns: Path value stored in the interpreter file.
         """
-        raise NotImplementedError("ConfigDescriptor.python_interpreter is not implemented.")
+        raise NotImplementedError(
+            "ConfigDescriptor.python_interpreter is not implemented."
+        )
+
+    def resolve_core_descriptor(self):
+        """
+        Resolves the :class:`CoreDescriptor` from :attr:`ConfigDescriptor.associated_core_descriptor`.
+
+        :returns: The core descriptor if :attr:`ConfigDescriptor.associated_core_descriptor` is set,
+            ``None`` otherwise.
+        """
+        if not self.associated_core_descriptor:
+            return None
+
+        # When resolving the descriptor, we need to take into account that the config folder may be
+        # holding a bundle cache with the core in it, so we're adding it to the list of fallback
+        # roots.
+        config_bundle_cache = os.path.join(self.get_config_folder(), "bundle_cache")
+
+        if not self._cached_core_descriptor:
+            self._cached_core_descriptor = create_descriptor(
+                self._sg_connection,
+                Descriptor.CORE,
+                self.associated_core_descriptor,
+                self._bundle_cache_root_override,
+                [config_bundle_cache] + self._fallback_roots,
+                resolve_latest=is_descriptor_version_missing(
+                    self.associated_core_descriptor
+                ),
+            )
+
+        return self._cached_core_descriptor
+
+    def get_associated_core_feature_info(self, feature_name, default_value=None):
+        """
+        Retrieves information for a given feature in the manifest of the core.
+
+        The ``default_value`` will be returned in the following cases:
+            - a feature is missing from the manifest
+            - the manifest is empty
+            - the manifest is missing
+            - there is no core associated with this configuration.
+
+        :param str feature_name: Name of the feature to retrieve from the manifest.
+        :param object default_value: Value to return if the feature is missing.
+
+        :returns: The value for the feature if present, ``default_value`` otherwise.
+        """
+        if self.resolve_core_descriptor():
+            return self.resolve_core_descriptor().get_feature_info(
+                feature_name, default_value
+            )
+        return default_value
 
     @property
     def version_constraints(self):
@@ -84,8 +165,7 @@ class ConfigDescriptor(Descriptor):
         readme_content = []
 
         readme_file = os.path.join(
-            self._get_config_folder(),
-            constants.CONFIG_README_FILE
+            self.get_config_folder(), constants.CONFIG_README_FILE
         )
         if os.path.exists(readme_file):
             with open(readme_file) as fh:
@@ -94,7 +174,34 @@ class ConfigDescriptor(Descriptor):
 
         return readme_content
 
-    def _get_config_folder(self):
+    def associated_core_version_less_than(self, version_str):
+        """
+        Attempt to determine if the associated core version is less than
+        a given version. Returning True means that the associated core
+        version is less than the given one, however returning False
+        does not guarantee that the associated version is higher, it may
+        also be an indication that a version number couldn't be determined.
+
+        :param version_str: Version string, e.g. '0.18.123'
+        :returns: true if core version is less, false otherwise
+        """
+        core_desc = self.associated_core_descriptor
+
+        result = False
+        if core_desc:
+            # (note: returning None means we are tracking latest version)
+
+            if isinstance(core_desc, str):
+                # convert to dict
+                core_desc = descriptor_uri_to_dict(core_desc)
+
+            if core_desc["type"] == "app_store":
+                if is_version_older(core_desc["version"], version_str):
+                    result = True
+
+        return result
+
+    def get_config_folder(self):
         """
         Returns the folder in which the configuration files are located.
 
@@ -102,7 +209,9 @@ class ConfigDescriptor(Descriptor):
 
         :returns: Path to the configuration files folder.
         """
-        raise NotImplementedError("ConfigDescriptor._get_config_folder is not implemented.")
+        raise NotImplementedError(
+            "ConfigDescriptor.get_config_folder is not implemented."
+        )
 
     def _get_current_platform_interpreter_file_name(self, install_root):
         """
@@ -130,59 +239,24 @@ class ConfigDescriptor(Descriptor):
         :returns: Path to the Python interpreter.
         """
         # Find the interpreter file for the current platform.
-        interpreter_config_file = self._get_current_platform_interpreter_file_name(
-            path
-        )
+        interpreter_config_file = self._get_current_platform_interpreter_file_name(path)
 
         if os.path.exists(interpreter_config_file):
             with open(interpreter_config_file, "r") as f:
-                path_to_python = f.read().strip()
+                path_to_python = os.path.expandvars(f.read().strip())
 
-            if not path_to_python:
+            if not path_to_python or not os.path.exists(path_to_python):
                 raise TankInvalidInterpreterLocationError(
                     "Cannot find interpreter '%s' defined in "
                     "config file '%s'." % (path_to_python, interpreter_config_file)
                 )
-
-            if not os.path.exists(path_to_python):
-                try:
-                    # Python interpreter could be a bash function
-                    subprocess_check_output("type {0}".format(path_to_python), shell=True)
-                except SubprocessCalledProcessError:
-                    raise TankInvalidInterpreterLocationError(
-                        "Cannot find interpreter '%s' defined in "
-                        "config file '%s'." % (path_to_python, interpreter_config_file)
-                    )
-                else:
-                    return path_to_python
             else:
                 return path_to_python
         else:
             raise TankFileDoesNotExistError(
-                "No interpreter file for the current platform found at '%s'." % interpreter_config_file
+                "No interpreter file for the current platform found at '%s'."
+                % interpreter_config_file
             )
-
-    def _get_roots_data(self):
-        """
-        Returns roots.yml data for this config.
-        If no root file can be loaded, {} is returned.
-
-        :returns: Roots data yaml content, usually a dictionary
-        """
-        # get the roots definition
-        root_file_path = os.path.join(
-            self._get_config_folder(),
-            "core",
-            constants.STORAGE_ROOTS_FILE)
-
-        roots_data = {}
-
-        if os.path.exists(root_file_path):
-            with open(root_file_path, "r") as root_file:
-                # if file is empty, initializae with empty dict...
-                roots_data = yaml.load(root_file) or {}
-
-        return roots_data
 
     @property
     def required_storages(self):
@@ -193,5 +267,25 @@ class ConfigDescriptor(Descriptor):
 
         :returns: List of storage names as strings
         """
-        roots_data = self._get_roots_data()
-        return roots_data.keys()
+
+        # empty list if the described config does not define storage roots
+        if not StorageRoots.file_exists(self.get_config_folder()):
+            return []
+
+        return self.storage_roots.required_roots
+
+    @property
+    def storage_roots(self):
+        """
+        A ``StorageRoots`` instance for this config descriptor.
+
+        Returns None if the config does not define any storage roots.
+        """
+
+        config_folder = self.get_config_folder()
+
+        # defer StorageRoots instance creation until requested
+        if not self._storage_roots:
+            self._storage_roots = StorageRoots.from_config(config_folder)
+
+        return self._storage_roots

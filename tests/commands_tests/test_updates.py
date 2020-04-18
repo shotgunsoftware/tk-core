@@ -17,7 +17,7 @@ from __future__ import with_statement
 import os
 import logging
 
-from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
+from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
 
 from tank.platform.environment import InstalledEnvironment
 
@@ -39,7 +39,9 @@ class TestSimpleUpdates(TankTestBase):
         self._mock_store = patcher.start()
         self.addCleanup(patcher.stop)
 
-        self.setup_fixtures("app_store_tests")
+        # Test is running updates on the configuration files, so we'll copy the config into the
+        # pipeline configuration.
+        self.setup_fixtures("app_store_tests", parameters={"installed_config": True})
 
         self._mock_store.add_engine("tk-test", "v1.0.0")
         self._mock_store.add_application("tk-multi-nodep", "v1.0.0")
@@ -52,13 +54,20 @@ class TestSimpleUpdates(TankTestBase):
         """
         Make sure we can instantiate an environment and get information about the installed apps and their descriptors.
         """
-        env = InstalledEnvironment(os.path.join(self.project_config, "env", "simple.yml"), self.pipeline_configuration)
+        env = InstalledEnvironment(
+            os.path.join(self.project_config, "env", "simple.yml"),
+            self.pipeline_configuration,
+        )
 
         self.assertListEqual(env.get_engines(), ["tk-test"])
         self.assertListEqual(env.get_apps("tk-test"), ["tk-multi-nodep"])
         self.assertListEqual(
             env.get_frameworks(),
-            ["tk-framework-test_v1.0.0", "tk-framework-test_v1.0.x", "tk-framework-test_v1.x.x"]
+            [
+                "tk-framework-test_v1.0.0",
+                "tk-framework-test_v1.0.x",
+                "tk-framework-test_v1.x.x",
+            ],
         )
 
         desc = env.get_framework_descriptor("tk-framework-test_v1.0.0")
@@ -83,7 +92,10 @@ class TestSimpleUpdates(TankTestBase):
         command.execute({"environment_filter": "simple"})
 
         # Make sure we are v2.
-        env = InstalledEnvironment(os.path.join(self.project_config, "env", "simple.yml"), self.pipeline_configuration)
+        env = InstalledEnvironment(
+            os.path.join(self.project_config, "env", "simple.yml"),
+            self.pipeline_configuration,
+        )
 
         desc = env.get_app_descriptor("tk-test", "tk-multi-nodep")
         self.assertEqual(desc.version, "v2.0.0")
@@ -108,7 +120,9 @@ class TestIncludeUpdates(TankTestBase):
         Prepares unit test with basic bundles.
         """
         TankTestBase.setUp(self)
-        self.setup_fixtures("app_store_tests")
+        # Test is running updates on the configuration files, so we'll copy the config into the
+        # pipeline configuration.
+        self.setup_fixtures("app_store_tests", parameters={"installed_config": True})
 
         patcher = patch_app_store()
         self._mock_store = patcher.start()
@@ -116,7 +130,9 @@ class TestIncludeUpdates(TankTestBase):
 
         self._engine_bundle = self._mock_store.add_engine("tk-engine", "v1.0.0")
         self._app_bundle = self._mock_store.add_application("tk-multi-app", "v1.0.0")
-        self._2nd_level_dep_bundle = self._mock_store.add_framework("tk-framework-2nd-level-dep", "v1.0.0")
+        self._2nd_level_dep_bundle = self._mock_store.add_framework(
+            "tk-framework-2nd-level-dep", "v1.0.0"
+        )
 
         self._update_cmd = self.tk.get_command("updates")
         self._update_cmd.set_logger(logging.getLogger("/dev/null"))
@@ -126,7 +142,8 @@ class TestIncludeUpdates(TankTestBase):
         Retrieves the environment file specified.
         """
         return InstalledEnvironment(
-            os.path.join(self.project_config, "env", "%s.yml" % env_name), self.pipeline_configuration
+            os.path.join(self.project_config, "env", "%s.yml" % env_name),
+            self.pipeline_configuration,
         )
 
     def _update_env(self, env_name):
@@ -154,11 +171,7 @@ class TestIncludeUpdates(TankTestBase):
 
         self.assertDictEqual(
             env.get_app_descriptor("tk-engine", "tk-multi-app").get_location(),
-            {
-                "name": "tk-multi-app",
-                "version": "v2.0.0",
-                "type": "app_store"
-            }
+            {"name": "tk-multi-app", "version": "v2.0.0", "type": "app_store"},
         )
 
     def test_update_include_with_new_framework(self):
@@ -176,15 +189,17 @@ class TestIncludeUpdates(TankTestBase):
         """
         # The 2nd level dependency is initialially available from the main environment file.
         env = self._get_env("updating_included_app")
-        _, file_path = env.find_location_for_framework("tk-framework-2nd-level-dep_v1.x.x")
+        _, file_path = env.find_location_for_framework(
+            "tk-framework-2nd-level-dep_v1.x.x"
+        )
         self.assertEqual(os.path.basename(file_path), "updating_included_app.yml")
 
         # Create a new framework that we've never seen before.
         fwk = self._mock_store.add_framework("tk-framework-test", "v1.0.0")
         # Add a new version of the app and add give it a dependency on the new framework.
-        self._mock_store.add_application("tk-multi-app", "v2.0.0").required_frameworks = [
-            fwk.get_major_dependency_descriptor()
-        ]
+        self._mock_store.add_application(
+            "tk-multi-app", "v2.0.0"
+        ).required_frameworks = [fwk.get_major_dependency_descriptor()]
         self._update_env("updating_included_app")
 
         # Reload env
@@ -194,14 +209,14 @@ class TestIncludeUpdates(TankTestBase):
         _, file_path = env.find_location_for_framework("tk-framework-test_v1.x.x")
         self.assertEqual(os.path.basename(file_path), "common_apps.yml")
         desc = env.get_framework_descriptor("tk-framework-test_v1.x.x")
-        self.assertEqual(
-            desc.get_location()["version"], "v1.0.0"
-        )
+        self.assertEqual(desc.get_location()["version"], "v1.0.0")
 
         # Add another version, which this time will bring in a new framework
         # that is already being used in the environment file.
         fwk = self._mock_store.add_framework("tk-framework-test", "v1.0.1")
-        fwk.required_frameworks = [self._2nd_level_dep_bundle.get_major_dependency_descriptor()]
+        fwk.required_frameworks = [
+            self._2nd_level_dep_bundle.get_major_dependency_descriptor()
+        ]
 
         self._update_env("updating_included_app")
 
@@ -213,5 +228,7 @@ class TestIncludeUpdates(TankTestBase):
         self.assertEqual(os.path.basename(file_path), "common_apps.yml")
 
         # Also, its dependency should now be picked up from the common_apps.yml file.
-        _, file_path = env.find_location_for_framework("tk-framework-2nd-level-dep_v1.x.x")
+        _, file_path = env.find_location_for_framework(
+            "tk-framework-2nd-level-dep_v1.x.x"
+        )
         self.assertEqual(os.path.basename(file_path), "common_apps.yml")
