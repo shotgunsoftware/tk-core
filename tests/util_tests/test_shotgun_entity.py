@@ -112,7 +112,7 @@ class TestShotgunEntity(TankTestBase):
             # Find the schema for that field
             entity_schema = self.mockgun.schema_field_read(entity_name, field_name)
             # Make sure one field was returned
-            assert field_name in entity_schema, entity_name
+            assert field_name in entity_schema
             # Sanity check that the field is a text field.
             assert entity_schema[field_name]["data_type"]["value"] == "text"
 
