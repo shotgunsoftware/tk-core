@@ -320,11 +320,16 @@ class TestPipelineConfigurationEnumeration(ShotgunTestBase):
 
         # Create two projects with different tank names.
         self.project_with_tank_name = self.mockgun.create(
-            "Project", {"name": "WithTankName", "tank_name": "with_tank_name", "archived": False}
+            "Project",
+            {"name": "WithTankName", "tank_name": "with_tank_name", "archived": False},
         )
         self.project_with_another_tank_name = self.mockgun.create(
             "Project",
-            {"name": "WithAnotherTankName", "tank_name": "with_another_tank_name", "archived": False},
+            {
+                "name": "WithAnotherTankName",
+                "tank_name": "with_another_tank_name",
+                "archived": False,
+            },
         )
 
         # Create four different kinds of pipeline configurations, 2 site wide ones and 2 project specific ones.
@@ -386,8 +391,12 @@ class TestPipelineConfigurationEnumeration(ShotgunTestBase):
             self.proj_spec_desc, ["plugin_ids", "descriptor"]
         )
 
-        self.project_with_tank_name = self._remove_items(self.project_with_tank_name, ["archived"])
-        self.project_with_another_tank_name = self._remove_items(self.project_with_another_tank_name, ["archived"])
+        self.project_with_tank_name = self._remove_items(
+            self.project_with_tank_name, ["archived"]
+        )
+        self.project_with_another_tank_name = self._remove_items(
+            self.project_with_another_tank_name, ["archived"]
+        )
 
         # Retrieve all the pipeline configuration info.
         self._sg_data = sgtk.pipelineconfig_factory._get_pipeline_configs(True)
