@@ -498,7 +498,8 @@ class TestInstallationLocationFile(ShotgunTestBase):
         writer.write_install_location_file()
 
         with open(install_location_path, "rt") as f:
-            path = ShotgunPath(yaml.safe_load(f))
+            paths = yaml.safe_load(f)
+            path = ShotgunPath(paths["Windows"], paths["Linux"], paths["Darwin"])
         assert path.current_os == new_config_root
 
 
