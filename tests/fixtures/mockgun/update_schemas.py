@@ -42,8 +42,9 @@ errors = []
 schema_requirements = {
     # This is a builtin entity that is disabled by default.
     "Scene": [],
-    # Simply turn this one on. Nothing else to do.
+    # Simply turn these on. Nothing else to do.
     "CustomEntity02": [],
+    "CustomEntity03": [],
 }
 
 # Ensure every entity is present and their fields.
