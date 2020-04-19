@@ -478,6 +478,30 @@ class TestWritePipelineConfigFile(ShotgunTestBase):
         )
 
 
+class TestInstallationLocationFile(ShotgunTestBase):
+
+    def test_character_escaping(self):
+        """
+        Ensure that the ' and " charactes are properly escaped
+        when writing out install_location.yml
+        """
+        new_config_root = os.path.join(self.tank_temp, self.short_test_name, "O'Connell")
+
+        writer = ConfigurationWriter(
+            ShotgunPath.from_current_os_path(new_config_root), self.mockgun
+        )
+
+        install_location_path = os.path.join(new_config_root, "config", "core", "install_location.yml")
+
+        os.makedirs(os.path.dirname(install_location_path))
+
+        writer.write_install_location_file()
+
+        with open(install_location_path, "rt") as f:
+            path = ShotgunPath(yaml.safe_load(f))
+        assert path.current_os == new_config_root
+
+
 class TestTransaction(ShotgunTestBase):
     def test_transactions(self):
         """
