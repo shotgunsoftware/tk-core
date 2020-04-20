@@ -15,6 +15,7 @@ from tank.errors import TankError
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import TankTestBase
 from tank_vendor import yaml
+from tank.platform.environment import Environment
 
 import copy
 
@@ -104,6 +105,37 @@ class TestEnvironment(TankTestBase):
             self.env.get_app_descriptor("test_engine", "test_app").configuration_schema,
             self.raw_app_metadata["configuration"],
         )
+
+    def test_missing_include(self):
+
+        env_file = os.path.join(
+            self.project_config, "env", "invalid_settings", "missing_include.yml"
+        )
+        self.assertRaises(TankError, Environment, env_file)
+
+    def test_missing_include_path(self):
+
+        env_file = os.path.join(
+            self.project_config, "env", "invalid_settings", "missing_include_path.yml"
+        )
+        self.assertRaises(TankError, Environment, env_file)
+
+    def test_invalid_include_optional(self):
+
+        env_file = os.path.join(
+            self.project_config,
+            "env",
+            "invalid_settings",
+            "invalid_include_required.yml",
+        )
+        self.assertRaises(TankError, Environment, env_file)
+
+    def test_optional_include(self):
+
+        env_file = os.path.join(
+            self.project_config, "env", "invalid_settings", "optional_include.yml"
+        )
+        Environment(env_file)
 
 
 class TestDumpEnvironment(TankTestBase):

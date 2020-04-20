@@ -1,0 +1,2 @@
+includes:
+- { path: ./includes/bad_path.yml, required: "not boolean" }

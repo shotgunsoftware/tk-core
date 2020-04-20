@@ -64,11 +64,13 @@ def _resolve_includes(file_name, data, context):
 
     for include in includes:
 
+        path = None
+
         # Convert string includes into dictionaries with default values
         if isinstance(include, six.string_types):
             include = {
                 "path": include,
-                "optional": False,
+                "required": True,
             }
 
         # Validate
@@ -77,9 +79,9 @@ def _resolve_includes(file_name, data, context):
                 'Failed to process an include in %s. Misisng required "path" key. %s'
                 % (file_name, include)
             )
-        if "optional" in include and not isinstance(include["optional"], bool):
+        if "required" in include and not isinstance(include["required"], bool):
             raise TankError(
-                'Invalid "optional" value for the include %s in %s. Expected a boolean'
+                'Invalid "required" value for the include %s in %s. Expected a boolean'
                 % (include["path"], file_name)
             )
 
@@ -139,7 +141,7 @@ def _resolve_includes(file_name, data, context):
             try:
                 path = resolve_include(file_name, include["path"])
             except TankError as e:
-                if not include.get("optional", False):
+                if include.get("required", True):
                     raise
                 log.warning("Skipping optional include. %s" % e.message)
 
