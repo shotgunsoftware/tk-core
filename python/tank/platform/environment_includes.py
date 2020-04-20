@@ -143,7 +143,7 @@ def _resolve_includes(file_name, data, context):
             except TankError as e:
                 if include.get("required", True):
                     raise
-                log.warning("Skipping optional include. %s" % e.message)
+                log.warning("Skipping optional include. %s" % str(e))
 
         if path and path not in resolved_includes:
             resolved_includes.append(path)
