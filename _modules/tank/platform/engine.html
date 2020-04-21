@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.platform.engine &mdash; tk-core v0.19.5 documentation</title>
+  <title>tank.platform.engine &mdash; tk-core v0.19.6 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.19.5 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.19.6 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.5.<br>
+    <b>tk-core</b> v0.19.6.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -3397,27 +3397,32 @@
                 <span class="n">schema</span> <span class="o">=</span> <span class="n">app_desc</span><span class="o">.</span><span class="n">configuration_schema</span>
                 <span class="n">settings</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get_app_settings</span><span class="p">(</span><span class="n">eng</span><span class="p">,</span> <span class="n">app</span><span class="p">)</span>
 
-                <span class="c1"># check that the context contains all the info that the app needs</span>
+                <span class="c1"># Check that the context contains all the info that the app needs.</span>
                 <span class="n">validation</span><span class="o">.</span><span class="n">validate_context</span><span class="p">(</span><span class="n">app_desc</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
 
-                <span class="c1"># make sure the current operating system platform is supported</span>
+                <span class="c1"># Make sure the current operating system platform is supported.</span>
                 <span class="n">validation</span><span class="o">.</span><span class="n">validate_platform</span><span class="p">(</span><span class="n">app_desc</span><span class="p">)</span>
 
-                <span class="c1"># for multi engine apps, make sure our engine is supported</span>
+                <span class="c1"># For multi engine apps, make sure our engine is supported.</span>
                 <span class="n">supported_engines</span> <span class="o">=</span> <span class="n">app_desc</span><span class="o">.</span><span class="n">supported_engines</span>
                 <span class="k">if</span> <span class="n">supported_engines</span> <span class="ow">and</span> <span class="n">engine_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">supported_engines</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
-                        <span class="s2">&quot;The app could not be loaded since it only supports &quot;</span>
-                        <span class="s2">&quot;the following engines: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">supported_engines</span>
+                        <span class="s2">&quot;The app doesn&#39;t support the engine </span><span class="si">%s</span><span class="s2">. It supports &quot;</span>
+                        <span class="s2">&quot;the following engines: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">engine_name</span><span class="p">,</span> <span class="n">supported_engines</span><span class="p">)</span>
                     <span class="p">)</span>
 
-                <span class="c1"># finally validate the configuration.</span>
+                <span class="c1"># Finally validate the configuration.</span>
                 <span class="c1"># Note: context is set to None as we don&#39;t</span>
                 <span class="c1"># want to fail validation because of an</span>
                 <span class="c1"># incomplete context at this stage!</span>
                 <span class="n">validation</span><span class="o">.</span><span class="n">validate_settings</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">tk</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
-            <span class="k">except</span> <span class="n">TankError</span><span class="p">:</span>
-                <span class="c1"># ignore any Tank exceptions to skip invalid apps</span>
+            <span class="k">except</span> <span class="n">TankError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">core_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;Could not validate app settings for the &quot;</span>
+                    <span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot; app instance in the &quot;</span><span class="si">%s</span><span class="s1">&quot; environment &#39;</span>
+                    <span class="s1">&#39;on the &quot;</span><span class="si">%s</span><span class="s1">&quot; engine.</span><span class="se">\n</span><span class="s1">Error: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">env_name</span><span class="p">,</span> <span class="n">engine_name</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="c1"># Ignore any Tank exceptions to skip invalid apps.</span>
                 <span class="k">continue</span>
 
             <span class="c1"># settings are valid so add them to return list:</span>
@@ -3648,7 +3653,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.19.5',
+            VERSION:'v0.19.6',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
