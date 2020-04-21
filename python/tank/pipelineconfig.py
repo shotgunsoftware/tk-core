@@ -608,6 +608,10 @@ class PipelineConfiguration(object):
     ########################################################################################
     # storage roots related
 
+    @property
+    def storage_roots(self):
+        return self._storage_roots
+
     def get_local_storage_roots(self):
         """
         Returns local OS paths to each shotgun local storage defined in this
@@ -773,7 +777,7 @@ class PipelineConfiguration(object):
         configuration, keyed by their storage name. Only returns paths for
         current platform. Paths are guaranteed to be not None.
 
-        Exaple return dictionary::
+        Example return dictionary::
 
             {
                 "primary": "/studio/my_project",

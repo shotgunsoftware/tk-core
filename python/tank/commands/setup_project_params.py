@@ -1441,7 +1441,7 @@ class TemplateConfiguration(object):
         will be updated on the existing storage data.
 
         :param root_name: The name of a root to update.
-        :param storage_data: A dctionary
+        :param storage_data: A dictionary
         :return:
         """
         self._storage_roots.update_root(root_name, storage_data)

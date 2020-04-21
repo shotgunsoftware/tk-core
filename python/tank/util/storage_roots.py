@@ -13,6 +13,7 @@ import os
 from tank_vendor import yaml
 
 from .. import LogManager
+from .. import hook
 from ..errors import TankError
 
 from . import filesystem
@@ -20,6 +21,113 @@ from . import ShotgunPath
 from . import yaml_cache
 
 log = LogManager.get_logger(__name__)
+
+
+class StorageRootUtils(object):
+    def __init__(self, storage_roots):
+        self._storage_roots = storage_roots
+
+    def remap_roots(self, root_name, root_info):
+        log.debug("Remap roots")
+        root_info = root_info.copy()
+
+        hook_name = "storage_roots"
+        hook_folder = os.path.join(
+            os.path.join(self._storage_roots._config_root_folder, "core"), "hooks"
+        )
+        file_name = "%s.py" % hook_name
+        hook_path = os.path.join(hook_folder, file_name)
+        if not os.path.exists(hook_path):
+            # no custom hook detected in the pipeline configuration
+            # fall back on the hooks that come with the currently running version
+            # of the core API.
+            hooks_path = os.path.abspath(
+                os.path.join(os.path.dirname(__file__), "..", "..", "..", "hooks")
+            )
+            hook_path = os.path.join(hooks_path, file_name)
+
+        log.debug("remap roots hook path %s" % hook_path)
+        try:
+            result = hook.execute_hook_method(
+                [hook_path],
+                self,
+                "resolve_root_path",
+                root_name=root_name,
+                root_info=root_info,
+            )
+            return result
+        except:
+            # log the full callstack to make sure that whatever the
+            # calling code is doing, this error is logged to help
+            # with troubleshooting and support
+            log.exception("Exception raised while executing hook '%s'" % hook_path)
+            raise
+
+    def undo_root_remapping_for_path(self, path):
+
+        root_name, relative_path = self.separate_root(path)
+        print("root_name", root_name)
+        print("relative_path", relative_path)
+
+        original_path = self.get_pre_remapped_root_shotgun_path(root_name)
+
+        return os.path.join(original_path.current_os, relative_path.lstrip("/"))
+
+    def get_pre_remapped_root_shotgun_path(self, root_name):
+        root_info = self._storage_roots.metadata[root_name]
+
+        def get_pre_remapped_paths(name):
+            original = root_info.get(
+                self._storage_roots.PRE_REMAPPED_PATH_PREFIX + name
+            )
+            if original is None:
+                # The are no paths in the root info with the pre remapping prefix, so
+                # it looks as though no remapping took place, look for it using the default platform name
+                original = root_info[name]
+            return original
+
+        return ShotgunPath.from_shotgun_dict(
+            dict(
+                [
+                    (name, get_pre_remapped_paths(name))
+                    for name in self._storage_roots.PLATFORM_KEYS
+                ]
+            )
+        )
+
+    def separate_root(self, full_path):
+        """
+        Determines project root path and relative path.
+
+        :returns: root_name, relative_path
+        """
+        n_path = full_path.replace(os.sep, "/")
+        # Determine which root
+        root_name = None
+        relative_path = None
+        for cur_root_name, root_path in self._storage_roots.as_shotgun_paths.items():
+
+            # break out the ShotgunPath object in sys.platform style dict
+            current_os_root_path = root_path.current_os
+
+            n_root = current_os_root_path.replace(os.sep, "/")
+            if n_path.lower().startswith(n_root.lower()):
+                root_name = cur_root_name
+                # chop off root
+                relative_path = full_path[len(current_os_root_path) :]
+                break
+
+        if not root_name:
+
+            storages_str = ",".join(list(self._storage_roots.as_shotgun_paths.values()))
+
+            raise TankError(
+                "The path '%s' could not be split up into a project centric path for "
+                "any of the storages %s that are associated with this "
+                "project." % (full_path, storages_str)
+            )
+
+        return root_name, relative_path
 
 
 class StorageRoots(object):
@@ -50,6 +158,9 @@ class StorageRoots(object):
 
     # sys.platform-specific path keys as expected in the root definitions
     PLATFORM_KEYS = ["mac_path", "linux_path", "windows_path"]
+
+    REMAPPED_PATH_PREFIX = "remapped_"
+    PRE_REMAPPED_PATH_PREFIX = "pre-remapped_"
 
     ############################################################################
     # class methods
@@ -144,9 +255,11 @@ class StorageRoots(object):
             the required roots.
         """
 
-        (local_storage_lookup, unmapped_roots) = storage_roots.get_local_storages(
-            sg_connection
-        )
+        (
+            local_storage_lookup,
+            unmapped_roots,
+            remapped_local_storage_lookup,
+        ) = storage_roots.get_local_storages(sg_connection)
 
         roots_file = os.path.join(config_folder, cls.STORAGE_ROOTS_FILE_PATH)
 
@@ -171,7 +284,9 @@ class StorageRoots(object):
         # build up a new metadata dict
         roots_metadata = storage_roots.metadata
 
-        for root_name, root_info in storage_roots:
+        log.debug("roots_metadata: %s" % (roots_metadata,))
+
+        for root_name, root_info in roots_metadata.items():
 
             # get the cached SG storage dict
             sg_local_storage = local_storage_lookup[root_name]
@@ -182,6 +297,21 @@ class StorageRoots(object):
             # update the root's metadata with the dictionary of all
             # sys.platform-style paths
             root_info.update(storage_sg_path.as_shotgun_dict())
+
+            # Handle thee remapped storage if remapping has taken place.
+            if root_name not in remapped_local_storage_lookup:
+                # No remapping has been performed on this root.
+                continue
+            remapped_local_storage = remapped_local_storage_lookup[root_name]
+            remapped_storage_path = ShotgunPath.from_shotgun_dict(
+                remapped_local_storage
+            )
+
+            remapped_storage_dict = {}
+            for platform_key, path in remapped_storage_path.as_shotgun_dict().items():
+                remapped_storage_dict[cls.REMAPPED_PATH_PREFIX + platform_key] = path
+
+            root_info.update(remapped_storage_dict)
 
         log.debug("Writing storage roots metadata: %s" % (roots_metadata,))
 
@@ -216,6 +346,8 @@ class StorageRoots(object):
 
         # the default storage name as determined when parsing the metadata
         self._default_storage_name = None
+
+        self.utils = StorageRootUtils(self)
 
     def __iter__(self):
         """
@@ -353,6 +485,8 @@ class StorageRoots(object):
 
         # build a lookup of storage root name to local storages SG dicts
         local_storage_lookup = {}
+        # The same storages by the storage_roots.py core hook.
+        remapped_local_storage_lookup = {}
 
         # keep a list of storages that could not be mapped to a SG local storage
         unmapped_root_names = []
@@ -360,14 +494,7 @@ class StorageRoots(object):
         # query all local storages from SG so we can store a lookup of roots
         # defined here to SG storages
 
-        # fields required for SG local storage queries
-        local_storage_fields = ["code", "id"]
-        local_storage_fields.extend(ShotgunPath.SHOTGUN_PATH_FIELDS)
-
-        # create the SG connection and query
-        log.debug("Querying SG local storages...")
-        sg_storages = sg_connection.find("LocalStorage", [], local_storage_fields)
-        log.debug("Query returned %s storages." % (len(sg_storages)))
+        sg_storages = self._get_shotgun_local_storage_roots(sg_connection)
 
         # create lookups of storages by name and id for convenience. we'll check
         # against each root's shotgun_storage_id first, falling back to the
@@ -381,18 +508,20 @@ class StorageRoots(object):
             sg_storages_by_name[name] = sg_storage
 
         for root_name, root_info in self:
-
             # see if the shotgun storage id is specified explicitly in the
             # roots.yml file.
             root_storage_id = root_info.get("shotgun_storage_id")
             if root_storage_id and root_storage_id in sg_storages_by_id:
                 # found a match. store it in the lookup
                 sg_storage = sg_storages_by_id[root_storage_id]
+                remapped_storage = self.utils.remap_roots(root_name, sg_storage)
                 log.debug(
                     "Storage root %s explicitly associated with SG local "
                     "storage id %s (%s)" % (root_name, root_storage_id, sg_storage)
                 )
                 local_storage_lookup[root_name] = sg_storage
+                if remapped_storage:
+                    remapped_local_storage_lookup[root_name] = remapped_storage
                 continue
 
             # if we're here, no storage is specified explicitly. fall back to
@@ -400,11 +529,14 @@ class StorageRoots(object):
             if root_name in sg_storages_by_name:
                 # found a match. store it in the lookup
                 sg_storage = sg_storages_by_name[root_name]
+                remapped_storage = self.utils.remap_roots(root_name, sg_storage)
                 log.debug(
                     "Storage root %s matches SG local storage with same name "
                     "(%s)" % (root_name, sg_storage)
                 )
                 local_storage_lookup[root_name] = sg_storage
+                if remapped_storage:
+                    remapped_local_storage_lookup[root_name] = remapped_storage
                 continue
 
             # if we're here, then we could not map the storage root to a local
@@ -416,7 +548,7 @@ class StorageRoots(object):
             unmapped_root_names.append(root_name)
 
         # return a tuple of the processed info
-        return local_storage_lookup, unmapped_root_names
+        return local_storage_lookup, unmapped_root_names, remapped_local_storage_lookup
 
     def populate_defaults(self):
         """
@@ -477,7 +609,7 @@ class StorageRoots(object):
         will be updated on the existing storage data.
 
         :param root_name: The name of a root to update.
-        :param storage_data: A dctionary
+        :param storage_data: A dictionary
         """
 
         if root_name in self._storage_roots_metadata:
@@ -497,6 +629,18 @@ class StorageRoots(object):
 
     ############################################################################
     # protected methods
+
+    def _get_shotgun_local_storage_roots(self, sg_connection):
+        # fields required for SG local storage queries
+        local_storage_fields = ["code", "id"]
+        local_storage_fields.extend(ShotgunPath.SHOTGUN_PATH_FIELDS)
+
+        # create the SG connection and query
+        # ROOT: This method would need to remap the storage roots based on the hook
+        log.debug("Querying SG local storages...")
+        sg_storages = sg_connection.find("LocalStorage", [], local_storage_fields)
+        log.debug("Query returned %s storages." % (len(sg_storages)))
+        return sg_storages
 
     def _init_from_config(self, config_folder):
         """
@@ -540,7 +684,7 @@ class StorageRoots(object):
         data structures. This includes storing easy access to the default root
         and other commonly accessed information.
 
-        :param dict roots_metadata: A dictonary of metadata to use to populate
+        :param dict roots_metadata: A dictionary of metadata to use to populate
             the object. See the ``from_metadata`` class method for more info.
         """
 
@@ -559,9 +703,44 @@ class StorageRoots(object):
 
             log.debug("Processing storage: %s - %s" % (root_name, root_info))
 
+            # ROOT: this commented out code probably doesn't need to be here
+            # self.utils.remap_roots(root_name, root_info)
+            #
+            # log.debug("Root info after remapping: %s" % (root_info))
+
             # store a shotgun path for each root definition. sanitize path data
             # by passing it through the ShotgunPath object. if the configuration
             # has not been installed, these paths may be None.
+
+            if root_info.get(self.REMAPPED_PATH_PREFIX + self.PLATFORM_KEYS[0]):
+                # ROOT: This check could maybe be better
+                # We have remapped paths which we should use over the ones from Shotgun.
+
+                # Rename the remapped dictionary keys so they become the standard and rename the orginal
+                # root keys so they can be found for later use
+
+                # eg:
+                # {"mac_path": "o", "windows_path": "o", "linux_path": "o",
+                #  "remapped_mac_path": "r", "remapped_windows_path": "r", "remapped_linux_path": "r", }
+                # becomes:
+                # {"mac_path":"r", "windows_path": "r", "linux_path":"r",
+                #  "pre-remapped_mac_path":"o", "pre-remapped_windows_path": "o", "pre-remapped_linux_path":"o",}
+                # We are not using dictionary comprehension for backwards compatibility reasons.
+                remapped_paths_dict = dict(
+                    [
+                        (name, root_info[self.REMAPPED_PATH_PREFIX + name])
+                        for name in self.PLATFORM_KEYS
+                    ]
+                )
+                original_paths_dict = dict(
+                    [
+                        (self.PRE_REMAPPED_PATH_PREFIX + name, root_info[name])
+                        for name in self.PLATFORM_KEYS
+                    ]
+                )
+                root_info.update(remapped_paths_dict)
+                root_info.update(original_paths_dict)
+
             self._shotgun_paths_lookup[root_name] = ShotgunPath.from_shotgun_dict(
                 root_info
             )

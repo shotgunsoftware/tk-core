@@ -297,7 +297,7 @@ def _validate_and_create_pipeline_configuration(associated_pipeline_configs, sou
         pc_id = pipeline_configuration.get_shotgun_id()
 
         # find the pipeline config in our list of configs. If we cannot find it, we
-        # don't have a match beetween the code that is being run and the config
+        # don't have a match between the code that is being run and the config
         # we are trying to start up.
 
         if pc_id not in [x["id"] for x in all_pc_data]:

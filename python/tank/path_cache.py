@@ -1305,6 +1305,11 @@ class PathCache(object):
             data_for_sg = []
 
             for d in data:
+                # ROOT: this should be altered if Shotgun was modified to accept and path as any root.
+                temp_path = self._tk.pipeline_configuration.storage_roots.utils.undo_root_remapping_for_path(
+                    d["path"]
+                )
+                d["path"] = temp_path
                 new_rowid = self._add_db_mapping(
                     c, d["path"], d["entity"], d["primary"]
                 )
