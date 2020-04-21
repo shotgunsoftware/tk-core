@@ -83,6 +83,8 @@ KNOWN_SG_ENTITIES = [
     "TimeLog",
     "Tool",
     "Version",
+    "CustomEntity02",
+    "CustomNonProjectEntity01",
 ]
 
 
