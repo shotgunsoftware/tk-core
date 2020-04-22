@@ -191,7 +191,7 @@ class CoreUpdateAction(Action):
             msg = (
                 "The core on this config can't be updated using this method,"
                 ' as the config is using a "%s" type descriptor.'
-                "Please update the source configuration." % descriptor_type
+                " Please update the source configuration." % descriptor_type
             )
             log.error(msg)
             return_status = {"status": "update_blocked", "reason": msg}
