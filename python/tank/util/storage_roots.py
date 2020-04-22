@@ -19,11 +19,12 @@ from ..errors import TankError
 from . import filesystem
 from . import ShotgunPath
 from . import yaml_cache
+from . import is_windows, is_linux, is_macos
 
 log = LogManager.get_logger(__name__)
 
 
-class StorageRootUtils(object):
+class StorageRootRemapUtils(object):
     def __init__(self, storage_roots):
         self._storage_roots = storage_roots
 
@@ -71,7 +72,7 @@ class StorageRootUtils(object):
 
         original_path = self.get_pre_remapped_root_shotgun_path(root_name)
 
-        return os.path.join(original_path.current_os, relative_path.lstrip("/"))
+        return os.path.join(original_path.current_os)
 
     def get_pre_remapped_root_shotgun_path(self, root_name):
         root_info = self._storage_roots.metadata[root_name]
@@ -94,6 +95,23 @@ class StorageRootUtils(object):
                 ]
             )
         )
+
+    def get_original_and_remapped(self, root_name):
+        """
+        Returns the original and the remapped path (if available) for the current os.
+        :return:
+        """
+        root_info = self._storage_roots.metadata[root_name]
+
+        current_os = (
+            "mac_path "
+            if is_macos()
+            else "windows_path"
+            if is_windows()
+            else "linux_path"
+        )
+
+        original = root_info[self._storage_roots.PRE_REMAPPED_PATH_PREFIX + current_os]
 
     def separate_root(self, full_path):
         """
@@ -127,6 +145,7 @@ class StorageRootUtils(object):
                 "project." % (full_path, storages_str)
             )
 
+        relative_path = relative_path.lstrip("/")
         return root_name, relative_path
 
 
@@ -347,7 +366,7 @@ class StorageRoots(object):
         # the default storage name as determined when parsing the metadata
         self._default_storage_name = None
 
-        self.utils = StorageRootUtils(self)
+        self.utils = StorageRootRemapUtils(self)
 
     def __iter__(self):
         """
