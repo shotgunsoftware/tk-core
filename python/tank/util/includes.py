@@ -16,6 +16,11 @@ import ntpath
 from .shotgun_path import ShotgunPath
 from .platforms import is_windows
 from ..errors import TankError
+from ..log import LogManager
+from .. import constants
+from tank_vendor import six
+
+log = LogManager.get_logger(__name__)
 
 
 def _is_abs(path):
@@ -43,6 +48,59 @@ def _is_current_platform_abspath(path):
         return ntpath.isabs(path) and not posixpath.isabs(path)
     else:
         return posixpath.isabs(path)
+
+
+def _get_includes(file_name, data):
+    """
+    Parse the includes section and return a list of valid paths
+
+    :param str file_name: Name of the file to parse.
+    :param array or str data: Include path or array of include paths to evaluate.
+    """
+    includes = []
+    resolved_includes = list()
+
+    if constants.SINGLE_INCLUDE_SECTION in data:
+        # single include section
+        includes.append(data[constants.SINGLE_INCLUDE_SECTION])
+
+    if constants.MULTI_INCLUDE_SECTION in data:
+        # multi include section
+        includes.extend(data[constants.MULTI_INCLUDE_SECTION])
+
+    for include in includes:
+
+        # Convert string includes into dictionaries with default values
+        if isinstance(include, six.string_types):
+            include = {
+                "path": include,
+                "required": True,
+            }
+
+        # Validate
+        if "path" not in include:
+            raise TankError(
+                'Failed to process an include in %s. Misisng required "path" key. %s'
+                % (file_name, include)
+            )
+        if "required" in include and not isinstance(include["required"], bool):
+            raise TankError(
+                'Invalid "required" value for the include %s in %s. Expected a boolean'
+                % (include["path"], file_name)
+            )
+
+        resolved = None
+        try:
+            resolved = resolve_include(file_name, include["path"])
+        except TankError as e:
+            if include.get("required", True):
+                raise
+            log.warning("Skipping optional include. %s" % str(e))
+
+        if resolved and resolved not in resolved_includes:
+            resolved_includes.append(resolved)
+
+    return resolved_includes
 
 
 def resolve_include(file_name, include):

@@ -33,35 +33,8 @@ import os
 from .errors import TankError
 from . import constants
 from .util import yaml_cache
-from .util.includes import resolve_include
+from .util.includes import _get_includes
 from tank_vendor import six
-
-
-def _get_includes(file_name, data):
-    """
-    Parse the includes section and return a list of valid paths
-
-    :param str file_name: Name of the file to parse.
-    :param aray or str data: Include path or array of include paths to evaluate.
-    """
-    includes = []
-
-    resolved_includes = list()
-
-    if constants.SINGLE_INCLUDE_SECTION in data:
-        # single include section
-        includes.append(data[constants.SINGLE_INCLUDE_SECTION])
-
-    if constants.MULTI_INCLUDE_SECTION in data:
-        # multi include section
-        includes.extend(data[constants.MULTI_INCLUDE_SECTION])
-
-    for include in includes:
-        resolved = resolve_include(file_name, include)
-        if resolved and resolved not in resolved_includes:
-            resolved_includes.append(resolved)
-
-    return resolved_includes
 
 
 def _process_template_includes_r(file_name, data):

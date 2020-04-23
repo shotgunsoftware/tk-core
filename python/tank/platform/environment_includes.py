@@ -28,127 +28,18 @@ relative paths are always required and context based paths are always optional.
 """
 
 
-import os
-import sys
 import copy
 
 from ..errors import TankError
-from ..template import TemplatePath
-from ..templatekey import StringKey
 from ..log import LogManager
 
 from . import constants
 
-from ..util import sgre as re
 from ..util.yaml_cache import g_yaml_cache
-from ..util.includes import resolve_include
+from ..util.includes import _get_includes
 from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
-
-
-def _resolve_includes(file_name, data, context):
-    """
-    Parses the includes section and returns a list of valid paths
-    """
-    includes = []
-    resolved_includes = list()
-
-    if constants.SINGLE_INCLUDE_SECTION in data:
-        # single include section
-        includes.append(data[constants.SINGLE_INCLUDE_SECTION])
-
-    if constants.MULTI_INCLUDE_SECTION in data:
-        # multi include section
-        includes.extend(data[constants.MULTI_INCLUDE_SECTION])
-
-    for include in includes:
-
-        path = None
-
-        # Convert string includes into dictionaries with default values
-        if isinstance(include, six.string_types):
-            include = {
-                "path": include,
-                "required": True,
-            }
-
-        # Validate
-        if "path" not in include:
-            raise TankError(
-                'Failed to process an include in %s. Misisng required "path" key. %s'
-                % (file_name, include)
-            )
-        if "required" in include and not isinstance(include["required"], bool):
-            raise TankError(
-                'Invalid "required" value for the include %s in %s. Expected a boolean'
-                % (include["path"], file_name)
-            )
-
-        if "{" in include["path"]:
-            # it's a template path
-            if context is None:
-                # skip - these paths are optional always
-                log.debug(
-                    "%s: Skipping template based include '%s' "
-                    "because there is no active context." % (file_name, include["path"])
-                )
-                continue
-
-            # extract all {tokens}
-            _key_name_regex = "[a-zA-Z_ 0-9]+"
-            regex = r"(?<={)%s(?=})" % _key_name_regex
-            key_names = re.findall(regex, include["path"])
-
-            # get all the data roots for this project
-            # note - it is possible that this call may raise an exception for configs
-            # which don't have a primary storage defined - this is logical since such
-            # configurations cannot make use of references into the file system hierarchy
-            # (because no such hierarchy exists)
-            primary_data_root = (
-                context.tank.pipeline_configuration.get_primary_data_root()
-            )
-
-            # try to construct a path object for each template
-            try:
-                # create template key objects
-                template_keys = {}
-                for key_name in key_names:
-                    template_keys[key_name] = StringKey(key_name)
-
-                # Make a template
-                template = TemplatePath(
-                    include["path"], template_keys, primary_data_root
-                )
-            except TankError as e:
-                raise TankError(
-                    "Syntax error in %s: Could not transform include path '%s' "
-                    "into a template: %s" % (file_name, include["path"], e)
-                )
-
-            # and turn the template into a path based on the context
-            try:
-                f = context.as_template_fields(template)
-                full_path = template.apply_fields(f)
-            except TankError as e:
-                # if this path could not be resolved, that's ok! These paths are always optional.
-                continue
-
-            if not os.path.exists(full_path):
-                # skip - these paths are optional always
-                continue
-        else:
-            try:
-                path = resolve_include(file_name, include["path"])
-            except TankError as e:
-                if include.get("required", True):
-                    raise
-                log.warning("Skipping optional include. %s" % str(e))
-
-        if path and path not in resolved_includes:
-            resolved_includes.append(path)
-
-    return resolved_includes
 
 
 def _resolve_refs_r(lookup_dict, data):
@@ -235,7 +126,7 @@ def _process_includes_r(file_name, data, context):
                         they were loaded from.
     """
     # first build our big fat lookup dict
-    include_files = _resolve_includes(file_name, data, context)
+    include_files = _get_includes(file_name, data)
 
     lookup_dict = {}
     fw_lookup = {}
@@ -356,7 +247,7 @@ def find_reference(file_name, context, token, absolute_location=False):
     data = g_yaml_cache.get(file_name) or {}
 
     # first build our big fat lookup dict
-    include_files = _resolve_includes(file_name, data, context)
+    include_files = _get_includes(file_name, data)
     found_file = None
     found_token = token
 
