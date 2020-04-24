@@ -36,7 +36,7 @@ from ..log import LogManager
 from . import constants
 
 from ..util.yaml_cache import g_yaml_cache
-from ..util.includes import _get_includes
+from ..util.includes import get_includes
 from tank_vendor import six
 
 log = LogManager.get_logger(__name__)
@@ -126,7 +126,7 @@ def _process_includes_r(file_name, data, context):
                         they were loaded from.
     """
     # first build our big fat lookup dict
-    include_files = _get_includes(file_name, data)
+    include_files = get_includes(file_name, data)
 
     lookup_dict = {}
     fw_lookup = {}
@@ -247,7 +247,7 @@ def find_reference(file_name, context, token, absolute_location=False):
     data = g_yaml_cache.get(file_name) or {}
 
     # first build our big fat lookup dict
-    include_files = _get_includes(file_name, data)
+    include_files = get_includes(file_name, data)
     found_file = None
     found_token = token
 

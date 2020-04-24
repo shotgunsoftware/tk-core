@@ -50,7 +50,7 @@ def _is_current_platform_abspath(path):
         return posixpath.isabs(path)
 
 
-def _get_includes(file_name, data):
+def get_includes(file_name, data):
     """
     Parse the includes section and return a list of valid paths
 
@@ -95,7 +95,7 @@ def _get_includes(file_name, data):
         except TankError as e:
             if include.get("required", True):
                 raise
-            log.warning("Skipping optional include. %s" % str(e))
+            log.warning("Skipping optional include. %s" % e)
 
         if resolved and resolved not in resolved_includes:
             resolved_includes.append(resolved)

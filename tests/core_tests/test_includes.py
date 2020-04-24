@@ -13,13 +13,18 @@ import os
 import itertools
 from mock import patch
 import re
-from StringIO import StringIO
 import logging
+
+# Import the correct StringIO module whether using python 2 or 3
+try:
+    from StringIO import StringIO
+except:
+    from io import StringIO
 
 import tank
 from tank_test.tank_test_base import TankTestBase, temp_env_var
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank.util.includes import _get_includes
+from tank.util.includes import get_includes
 from tank_vendor.shotgun_api3.lib import sgsix
 
 from tank.platform.environment import Environment
@@ -140,7 +145,7 @@ class TestIncludes(TankTestBase):
         """
         if isinstance(includes, str):
             includes = [includes]
-        return _get_includes(self._file_name, {"includes": includes})
+        return get_includes(self._file_name, {"includes": includes})
 
     def test_missing_file(self):
         """
@@ -167,7 +172,9 @@ class TestIncludes(TankTestBase):
             )
 
     def test_missing_include(self):
-
+        """
+        Test the behaviour and error message when an include file does not exist
+        """
         env_file = os.path.join(
             self.project_config, "env", "invalid_settings", "missing_include.yml"
         )
@@ -179,7 +186,9 @@ class TestIncludes(TankTestBase):
         )
 
     def test_missing_include_path(self):
-
+        """
+        Test the behaviour and error message when using a dictionary to define includes and the "path" key is missing
+        """
         env_file = os.path.join(
             self.project_config, "env", "invalid_settings", "missing_include_path.yml"
         )
@@ -191,7 +200,9 @@ class TestIncludes(TankTestBase):
         )
 
     def test_invalid_include_optional(self):
-
+        """
+        Test the behaviour and error message when the "required" parameter of an include is not set to a boolean
+        """
         env_file = os.path.join(
             self.project_config,
             "env",

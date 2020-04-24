@@ -33,7 +33,7 @@ import os
 from .errors import TankError
 from . import constants
 from .util import yaml_cache
-from .util.includes import _get_includes
+from .util.includes import get_includes
 from tank_vendor import six
 
 
@@ -55,7 +55,7 @@ def _process_template_includes_r(file_name, data):
         return output_data
 
     # process includes
-    included_paths = _get_includes(file_name, data)
+    included_paths = get_includes(file_name, data)
 
     for included_path in included_paths:
         included_data = (
