@@ -11,16 +11,22 @@
 from __future__ import with_statement
 import os
 import itertools
+from mock import patch
+import re
+from StringIO import StringIO
+import logging
 
 import tank
-from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
+from tank_test.tank_test_base import TankTestBase, temp_env_var
 from tank_test.tank_test_base import setUpModule  # noqa
 from tank.util.includes import _get_includes
 from tank_vendor.shotgun_api3.lib import sgsix
-from mock import patch
+
+from tank.platform.environment import Environment
+from tank.log import LogManager
 
 
-class TestIncludes(ShotgunTestBase):
+class TestIncludes(TankTestBase):
     """
     Note that these tests will only test the code for the current platform. They
     need to be run on other platforms to get complete coverage.
@@ -28,6 +34,10 @@ class TestIncludes(ShotgunTestBase):
 
     _file_name = os.path.join(os.getcwd(), "test.yml")
     _file_dir = os.path.dirname(_file_name)
+
+    def setUp(self):
+        super(TestIncludes, self).setUp()
+        self.setup_fixtures()
 
     @patch("os.path.exists", return_value=True)
     def test_env_var_only(self, _):
@@ -155,3 +165,63 @@ class TestIncludes(ShotgunTestBase):
                 self._resolve_includes(includes),
                 [os.path.join(os.getcwd(), include) for include in includes],
             )
+
+    def test_missing_include(self):
+
+        env_file = os.path.join(
+            self.project_config, "env", "invalid_settings", "missing_include.yml"
+        )
+        self.assertRaisesRegex(
+            tank.TankError,
+            "Include resolve error in .+ resolved to .+ which does not exist!",
+            Environment,
+            env_file,
+        )
+
+    def test_missing_include_path(self):
+
+        env_file = os.path.join(
+            self.project_config, "env", "invalid_settings", "missing_include_path.yml"
+        )
+        self.assertRaisesRegex(
+            tank.TankError,
+            "Failed to process an include in .+ Misisng required 'path' key",
+            Environment,
+            env_file,
+        )
+
+    def test_invalid_include_optional(self):
+
+        env_file = os.path.join(
+            self.project_config,
+            "env",
+            "invalid_settings",
+            "invalid_include_required.yml",
+        )
+        self.assertRaisesRegex(
+            tank.TankError,
+            "Invalid 'required' value for the include .+ in .+. Expected a boolean",
+            Environment,
+            env_file,
+        )
+
+    def test_optional_include(self):
+        """
+        Make sure we log the fact that a non-existent optional include was skipped
+        """
+        stream = StringIO()
+        handler = logging.StreamHandler(stream)
+        log_manager = LogManager()
+        log_manager.initialize_custom_handler(handler)
+        self.addCleanup(lambda: log_manager._root_logger.removeHandler(handler))
+
+        env_file = os.path.join(
+            self.project_config, "env", "invalid_settings", "optional_include.yml"
+        )
+        Environment(env_file)
+        self.assertIsNotNone(
+            re.match(
+                "Skipping optional include. .+ resolved to '/not/a/valid/path.yml' which does not exist!",
+                stream.getvalue(),
+            )
+        )

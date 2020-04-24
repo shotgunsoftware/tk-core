@@ -80,12 +80,12 @@ def _get_includes(file_name, data):
         # Validate
         if "path" not in include:
             raise TankError(
-                'Failed to process an include in %s. Misisng required "path" key. %s'
+                "Failed to process an include in '%s'. Misisng required 'path' key. %s"
                 % (file_name, include)
             )
         if "required" in include and not isinstance(include["required"], bool):
             raise TankError(
-                'Invalid "required" value for the include %s in %s. Expected a boolean'
+                "Invalid 'required' value for the include '%s' in '%s'. Expected a boolean"
                 % (include["path"], file_name)
             )
 
