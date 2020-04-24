@@ -18,7 +18,7 @@ import logging
 # Import the correct StringIO module whether using python 2 or 3
 try:
     from StringIO import StringIO
-except:
+except ModuleNotFoundError:
     from io import StringIO
 
 import tank
