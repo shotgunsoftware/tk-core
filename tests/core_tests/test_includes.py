@@ -232,7 +232,7 @@ class TestIncludes(TankTestBase):
         Environment(env_file)
         self.assertIsNotNone(
             re.match(
-                "Skipping optional include. .+ resolved to '/not/a/valid/path.yml' which does not exist!",
+                "Skipping optional include .+ resolved to .+ which does not exist!",
                 stream.getvalue(),
             )
         )
