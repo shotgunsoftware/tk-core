@@ -72,7 +72,7 @@ class StorageRootRemapUtils(object):
 
         original_path = self.get_pre_remapped_root_shotgun_path(root_name)
 
-        return os.path.join(original_path.current_os)
+        return os.path.join(original_path.current_os, relative_path)
 
     def get_pre_remapped_root_shotgun_path(self, root_name):
         root_info = self._storage_roots.metadata[root_name]
@@ -96,22 +96,33 @@ class StorageRootRemapUtils(object):
             )
         )
 
-    def get_original_and_remapped(self, root_name):
+    def get_original_and_remapped(self, root_info):
         """
         Returns the original and the remapped path (if available) for the current os.
         :return:
         """
-        root_info = self._storage_roots.metadata[root_name]
 
         current_os = (
-            "mac_path "
+            "mac_path"
             if is_macos()
             else "windows_path"
             if is_windows()
             else "linux_path"
         )
 
-        original = root_info[self._storage_roots.PRE_REMAPPED_PATH_PREFIX + current_os]
+        # If remapping had taken place then the original root will be stored in the pre remapped prefixed entry.
+        # However if that doesn't exist then no remapping took place and we can just extract the
+        # path listed against the non prefixed os name.
+        original = root_info.get(
+            self._storage_roots.PRE_REMAPPED_PATH_PREFIX + current_os
+        )
+        if original is None:
+            original = root_info[current_os]
+            remapped = None
+        else:
+            remapped = root_info[current_os]
+
+        return original, remapped
 
     def separate_root(self, full_path):
         """
@@ -119,20 +130,26 @@ class StorageRootRemapUtils(object):
 
         :returns: root_name, relative_path
         """
-        n_path = full_path.replace(os.sep, "/")
+        sanitized_path = full_path.replace(os.sep, "/").lower()
         # Determine which root
         root_name = None
         relative_path = None
-        for cur_root_name, root_path in self._storage_roots.as_shotgun_paths.items():
 
-            # break out the ShotgunPath object in sys.platform style dict
-            current_os_root_path = root_path.current_os
+        for cur_root_name, root_info in self._storage_roots:
+            original, remapped = self.get_original_and_remapped(root_info)
 
-            n_root = current_os_root_path.replace(os.sep, "/")
-            if n_path.lower().startswith(n_root.lower()):
+            o_sanitized_root = original.replace(os.sep, "/").lower()
+            r_sanitized_root = remapped.replace(os.sep, "/").lower()
+
+            if sanitized_path.startswith(o_sanitized_root):
                 root_name = cur_root_name
                 # chop off root
-                relative_path = full_path[len(current_os_root_path) :]
+                relative_path = full_path[len(original) :]
+                break
+            elif sanitized_path.startswith(r_sanitized_root):
+                root_name = cur_root_name
+                # chop off root
+                relative_path = full_path[len(remapped) :]
                 break
 
         if not root_name:

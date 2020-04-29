@@ -84,6 +84,7 @@ class PathCache(object):
             self._path_cache_disabled = False
             self._init_db()
             self._roots = tk.pipeline_configuration.get_data_roots()
+            self._root_utils = self._tk.pipeline_configuration.storage_roots.utils
         else:
             # no primary location found. Path cache therefore does not exist!
             # go into a no-path-cache-mode
@@ -485,7 +486,7 @@ class PathCache(object):
 
             # get a name for the clickable url in the path field
             # this will include the name of the storage
-            root_name, relative_path = self._separate_root(d["path"])
+            root_name, relative_path = self._root_utils.separate_root(d["path"])
             db_path = self._path_to_dbpath(relative_path)
             path_display_name = "[%s] %s" % (root_name, db_path)
 
@@ -1306,9 +1307,7 @@ class PathCache(object):
 
             for d in data:
                 # ROOT: this should be altered if Shotgun was modified to accept and path as any root.
-                temp_path = self._tk.pipeline_configuration.storage_roots.utils.undo_root_remapping_for_path(
-                    d["path"]
-                )
+                temp_path = self._root_utils.undo_root_remapping_for_path(d["path"])
                 d["path"] = temp_path
                 new_rowid = self._add_db_mapping(
                     c, d["path"], d["entity"], d["primary"]
@@ -1416,7 +1415,7 @@ class PathCache(object):
                 return None
 
         # there was no entity in the db. So let's create it!
-        root_name, relative_path = self._separate_root(path)
+        root_name, relative_path = self._root_utils.separate_root(path)
         db_path = self._path_to_dbpath(relative_path)
         # note: the INSERT OR IGNORE INTO checks if we already have a
         # record in the db for this combination - if we do, the insert
@@ -1632,8 +1631,8 @@ class PathCache(object):
                     continue
 
                 # assemble path
-                path_str = self._dbpath_to_path(root_path, relative_path)
-                paths.append(path_str)
+                # path_str = self._dbpath_to_path(root_path, relative_path)
+                paths.append(root_path)
         finally:
             if cursor is None:
                 c.close()
@@ -1664,7 +1663,7 @@ class PathCache(object):
             return None
 
         try:
-            root_path, relative_path = self._separate_root(path)
+            root_path, relative_path = self._root_utils.separate_root(path)
         except TankError:
             # fail gracefully if path is not a valid path
             # eg. doesn't belong to the project
