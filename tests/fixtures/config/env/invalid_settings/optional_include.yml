@@ -1,4 +1,4 @@
 includes:
-- {path: /not/a/valid/path.yml, required: False}
+- {path: ./not/a/valid/path.yml, required: False}
 
 engines:
