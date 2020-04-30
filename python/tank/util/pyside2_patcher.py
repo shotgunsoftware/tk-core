@@ -192,7 +192,7 @@ class PySide2Patcher(object):
         class QStandardItemModel(original_QStandardItemModel):
             def __init__(self, *args):
                 original_QStandardItemModel.__init__(self, *args)
-                # Ideally we would only wrap the emit method but that attibute
+                # Ideally we would only wrap the emit method but that attribute
                 # is read only so we end up wrapping the whole object.
                 self.dataChanged = SignalWrapper(self.dataChanged)
 
@@ -215,10 +215,8 @@ class PySide2Patcher(object):
             QtGui.QMessageBox.Help,
             QtGui.QMessageBox.SaveAll,
             QtGui.QMessageBox.Yes,
-            QtGui.QMessageBox.YesAll,
             QtGui.QMessageBox.YesToAll,
             QtGui.QMessageBox.No,
-            QtGui.QMessageBox.NoAll,
             QtGui.QMessageBox.NoToAll,
             QtGui.QMessageBox.Abort,
             QtGui.QMessageBox.Retry,
@@ -385,7 +383,9 @@ class PySide2Patcher(object):
         cls._patch_QApplication(qt_gui_shim)
         cls._patch_QAbstractItemView(qt_gui_shim)
         cls._patch_QStandardItemModel(qt_gui_shim)
-        cls._patch_QMessageBox(qt_gui_shim)
+        if PySide2.__version_info__[0] < 5:
+            # This patch is not needed in more recent versions of PySide2
+            cls._patch_QMessageBox(qt_gui_shim)
         cls._patch_QDesktopServices(qt_gui_shim, qt_core_shim)
 
         return qt_core_shim, qt_gui_shim
