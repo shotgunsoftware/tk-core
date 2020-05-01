@@ -16,7 +16,7 @@ from .factory import (
 )
 
 
-def _initialize_descriptor_factory():
+def _initialize_descriptor_factory(io_descriptor_base):
     """
     Register the IODescriptor subclasses with the IODescriptorBase factory.
     This complex process for handling the IODescriptor abstract factory
@@ -32,13 +32,13 @@ def _initialize_descriptor_factory():
     from .github_release import IODescriptorGithubRelease
     from .manual import IODescriptorManual
 
-    IODescriptorBase.register_descriptor_factory("app_store", IODescriptorAppStore)
-    IODescriptorBase.register_descriptor_factory("dev", IODescriptorDev)
-    IODescriptorBase.register_descriptor_factory("path", IODescriptorPath)
-    IODescriptorBase.register_descriptor_factory("shotgun", IODescriptorShotgunEntity)
-    IODescriptorBase.register_descriptor_factory("git", IODescriptorGitTag)
-    IODescriptorBase.register_descriptor_factory("git_branch", IODescriptorGitBranch)
-    IODescriptorBase.register_descriptor_factory(
+    io_descriptor_base.register_descriptor_factory("app_store", IODescriptorAppStore)
+    io_descriptor_base.register_descriptor_factory("dev", IODescriptorDev)
+    io_descriptor_base.register_descriptor_factory("path", IODescriptorPath)
+    io_descriptor_base.register_descriptor_factory("shotgun", IODescriptorShotgunEntity)
+    io_descriptor_base.register_descriptor_factory("git", IODescriptorGitTag)
+    io_descriptor_base.register_descriptor_factory("git_branch", IODescriptorGitBranch)
+    io_descriptor_base.register_descriptor_factory(
         "github_release", IODescriptorGithubRelease
     )
-    IODescriptorBase.register_descriptor_factory("manual", IODescriptorManual)
+    io_descriptor_base.register_descriptor_factory("manual", IODescriptorManual)
