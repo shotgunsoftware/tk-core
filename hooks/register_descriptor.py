@@ -32,6 +32,10 @@ class RegisterDescriptors(get_hook_baseclass()):
         The default implementation copies the arguments into the attributes named ``shotgun``,
         ``pipeline_configuration_id`` and ``configuration_descriptor``.
 
+        Additional attributes of note are ``io_descriptor_base``
+            which are the base classes that you register types against using the
+            ``register_descriptor_factory`` method.
+
         :param shotgun: Connection to the Shotgun site.
         :type shotgun: :class:`~shotgun_api3.Shotgun`
 
