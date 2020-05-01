@@ -24,6 +24,12 @@ class TankDescriptorError(TankError):
     pass
 
 
+class RegisterDescriptorError(TankDescriptorError):
+    """
+    Errors indicating an error during registration of custom descriptor types.
+    """
+
+
 class TankDescriptorIOError(TankDescriptorError):
     """
     Base class for all descriptor I/O related errors.
