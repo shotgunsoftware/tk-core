@@ -19,12 +19,29 @@ from tank_vendor import six
 # A dictionary for Shotgun entities which do not store their name
 # in the standard "code" field.
 SG_ENTITY_SPECIAL_NAME_FIELDS = {
-    "Project": "name",
-    "Task": "content",
-    "HumanUser": "name",
-    "Note": "subject",
-    "Department": "name",
+    "ActionMenuItem": "title",
+    "ApiUser": "firstname",
+    "Attachment": None,
+    "Booking": None,
+    "ClientUser": "name",
     "Delivery": "title",
+    "Department": "name",
+    "EventLogEntry": None,
+    "HumanUser": "name",
+    "Icon": "name",
+    "Note": "subject",
+    "Page": "name",
+    "PageHit": None,
+    "PageSetting": None,
+    "PlaylistShare": None,
+    "Project": "name",
+    "PublishedFileDependency": None,
+    "Reply": None,
+    "Tag": "name",
+    "Task": "content",
+    "TaskDependency": None,
+    "Ticket": "title",
+    "TimeLog": None,
 }
 
 
