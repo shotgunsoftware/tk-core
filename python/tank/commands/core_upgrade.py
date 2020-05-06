@@ -27,7 +27,6 @@ from ..util import shotgun
 from .. import pipelineconfig_utils
 from . import console_utils
 from ..util.version import is_version_newer, is_version_head
-from .. import platform
 
 from tank_vendor import yaml
 
