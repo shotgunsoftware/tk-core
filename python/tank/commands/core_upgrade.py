@@ -159,7 +159,9 @@ class CoreUpdateAction(Action):
         log.info("https://support.shotgunsoftware.com/entries/96142347")
         log.info("")
 
-        installer = TankCoreUpdater(code_install_root, log, core_version)
+        config_desc = self.tk.configuration_descriptor if self.tk is not None else None
+
+        installer = TankCoreUpdater(code_install_root, log, core_version, config_desc)
         current_version = installer.get_current_version_number()
         new_version = installer.get_update_version_number()
         log.info(
@@ -184,8 +186,7 @@ class CoreUpdateAction(Action):
 
         elif status == TankCoreUpdater.UPDATE_BLOCKED_BY_CONFIG:
             # The config is immutable so can't be updated.
-            engine = platform.current_engine()
-            descriptor_type = engine.sgtk.configuration_descriptor.get_dict().get(
+            descriptor_type = self._configuration_descriptor.get_dict().get(
                 "type", "type unknown."
             )
             msg = (
@@ -269,7 +270,9 @@ class TankCoreUpdater(object):
         UPDATE_BLOCKED_BY_CONFIG,  # The config descriptor is not suitable for updating.
     ) = range(4)
 
-    def __init__(self, install_folder_root, logger, core_version=None):
+    def __init__(
+        self, install_folder_root, logger, core_version=None, config_desc=None
+    ):
         """
         Constructor
 
@@ -283,6 +286,7 @@ class TankCoreUpdater(object):
                              version. Defaults to None.
         """
         self._log = logger
+        self._configuration_descriptor = config_desc
 
         from ..descriptor import Descriptor, create_descriptor
 
@@ -356,10 +360,10 @@ class TankCoreUpdater(object):
             # running updated version already
             return self.UP_TO_DATE
         else:
-            engine = platform.current_engine()
-            # When running using a centralized config from the tank command an engine might not be available
-            # but also the centralized config won't be immutable anyway so it won't matter.
-            if engine and engine.sgtk.configuration_descriptor.is_immutable():
+            if (
+                self._configuration_descriptor
+                and self._configuration_descriptor.is_immutable()
+            ):
                 # The config is immutable so we should not try updating it.
                 return TankCoreUpdater.UPDATE_BLOCKED_BY_CONFIG
 
@@ -394,11 +398,10 @@ class TankCoreUpdater(object):
         # We should check to see if the config is using a dev descriptor
         # because if we are we don't want to update the cached version of the config,
         # instead we want to update the core_api.yml in the dev config location.
-        engine = platform.current_engine()
-        if engine and engine.sgtk.configuration_descriptor.is_dev():
+        if self._configuration_descriptor and self._configuration_descriptor.is_dev():
             # We shouldn't try to install the core, a reload will be required to re cache things,
             # just update the core_api.yml instead.
-            root = engine.sgtk.configuration_descriptor.get_path()
+            root = self._configuration_descriptor.get_path()
             self._update_core_api_descriptor(root)
 
         else:
