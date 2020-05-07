@@ -57,7 +57,7 @@ class TestCoreUpdate(TankTestBase):
 
         # Test is running updates on the configuration files, so we'll copy the config into the
         # pipeline configuration.
-        self.setup_fixtures("app_store_tests", parameters={"installed_config": True})
+        self.setup_fixtures("core_update_tests", parameters={"installed_config": True})
 
         # This will be the core version we will update to.
         self._mock_store.add_core("v0.19.5")
