@@ -185,9 +185,7 @@ class CoreUpdateAction(Action):
 
         elif status == TankCoreUpdater.UPDATE_BLOCKED_BY_CONFIG:
             # The config is immutable so can't be updated.
-            descriptor_type = self._configuration_descriptor.get_dict().get(
-                "type", "type unknown."
-            )
+            descriptor_type = config_desc.get_dict().get("type", "type unknown.")
             msg = (
                 "The core on this config can't be updated using this method,"
                 ' as the config is using a "%s" type descriptor.'
@@ -358,13 +356,13 @@ class TankCoreUpdater(object):
         elif self.get_current_version_number() == self._new_core_descriptor.version:
             # running updated version already
             return self.UP_TO_DATE
+        elif (
+            self._configuration_descriptor
+            and self._configuration_descriptor.is_immutable()
+        ):
+            # The config is immutable so we should not try updating it.
+            return TankCoreUpdater.UPDATE_BLOCKED_BY_CONFIG
         else:
-            if (
-                self._configuration_descriptor
-                and self._configuration_descriptor.is_immutable()
-            ):
-                # The config is immutable so we should not try updating it.
-                return TankCoreUpdater.UPDATE_BLOCKED_BY_CONFIG
 
             # FIXME: We should cache info.yml on the appstore so we don't have
             #  to download the whole bundle just to see the file.
