@@ -20,7 +20,7 @@ from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
 from sgtk.pipelineconfig_utils import get_core_descriptor
 from mock import patch
 
-from tank_test.mock_appstore import TankMockStoreDescriptor, patch_app_store
+from tank_test.mock_appstore import patch_app_store
 
 
 # We need to patch the currently running core API version, as this will
