@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.template &mdash; tk-core v0.19.6 documentation</title>
+  <title>tank.template &mdash; tk-core v0.19.7 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.19.6 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.19.7 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.6.<br>
+    <b>tk-core</b> v0.19.7.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -224,7 +224,7 @@
         <span class="n">key_names</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">definition</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">key_name</span> <span class="ow">in</span> <span class="n">key_names</span><span class="p">:</span>
             <span class="n">key</span> <span class="o">=</span> <span class="n">keys</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key_name</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Template definition for template </span><span class="si">%s</span><span class="s2"> refers to key {</span><span class="si">%s</span><span class="s2">}, which does not appear in supplied keys.&quot;</span>
                 <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="n">msg</span> <span class="o">%</span> <span class="p">(</span><span class="n">template_name</span><span class="p">,</span> <span class="n">key_name</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
@@ -239,7 +239,7 @@
                 <span class="n">ordered_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">names_keys</span><span class="p">,</span> <span class="n">ordered_keys</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This class is not designed to be used directly but</span>
 <span class="sd">        should be subclassed by any Template implementations.</span>
@@ -260,7 +260,7 @@
 
         <span class="n">variations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_definition_variations</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span>
         <span class="c1"># We want them most inclusive(longest) version first</span>
-        <span class="n">variations</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">variations</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="c1"># get format keys and types</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_keys</span> <span class="o">=</span> <span class="p">[]</span>
@@ -339,11 +339,11 @@
         <span class="c1"># minimum set of keys for this template</span>
         <span class="k">if</span> <span class="n">key_name</span> <span class="ow">in</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">keys</span><span class="p">())):</span>
             <span class="c1"># this key is required</span>
-            <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">return</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">True</span></div>
+            <span class="k">return</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="Template.missing_keys"><a class="viewcode-back" href="../../core.html#sgtk.Template.missing_keys">[docs]</a>    <span class="k">def</span> <span class="nf">missing_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Template.missing_keys"><a class="viewcode-back" href="../../core.html#sgtk.Template.missing_keys">[docs]</a>    <span class="k">def</span> <span class="nf">missing_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Determines keys required for use of template which do not exist</span>
 <span class="sd">        in a given fields.</span>
@@ -381,13 +381,13 @@
 <span class="sd">                  values of None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">skip_defaults</span><span class="p">:</span>
-            <span class="n">required_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">]</span>
+            <span class="n">required_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">required_keys</span> <span class="o">=</span> <span class="n">keys</span>
 
-        <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">required_keys</span> <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">required_keys</span> <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)]</span>
 
-<div class="viewcode-block" id="Template.apply_fields"><a class="viewcode-back" href="../../core.html#sgtk.Template.apply_fields">[docs]</a>    <span class="k">def</span> <span class="nf">apply_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Template.apply_fields"><a class="viewcode-back" href="../../core.html#sgtk.Template.apply_fields">[docs]</a>    <span class="k">def</span> <span class="nf">apply_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates path using fields. Certain fields may be processed in special ways, for</span>
 <span class="sd">        example :class:`SequenceKey` fields, which can take a `FORMAT` string which will intelligently</span>
@@ -435,7 +435,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_fields</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="n">platform</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_apply_fields</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="bp">False</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates path using fields.</span>
@@ -460,7 +460,7 @@
         <span class="n">ignore_types</span> <span class="o">=</span> <span class="n">ignore_types</span> <span class="ow">or</span> <span class="p">[]</span>
 
         <span class="c1"># find largest key mapping without missing values</span>
-        <span class="n">keys</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="c1"># index of matching keys will be used to find cleaned_definition</span>
         <span class="n">index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">cur_keys</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="p">):</span>
@@ -476,7 +476,7 @@
                 <span class="n">keys</span> <span class="o">=</span> <span class="n">cur_keys</span>
                 <span class="k">break</span>
 
-        <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
                 <span class="s2">&quot;Tried to resolve a path from the template </span><span class="si">%s</span><span class="s2"> and a set &quot;</span>
                 <span class="s2">&quot;of input fields &#39;</span><span class="si">%s</span><span class="s2">&#39; but the following required fields were missing &quot;</span>
@@ -587,7 +587,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
-<div class="viewcode-block" id="Template.validate_and_get_fields"><a class="viewcode-back" href="../../core.html#sgtk.Template.validate_and_get_fields">[docs]</a>    <span class="k">def</span> <span class="nf">validate_and_get_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">required_fields</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Template.validate_and_get_fields"><a class="viewcode-back" href="../../core.html#sgtk.Template.validate_and_get_fields">[docs]</a>    <span class="k">def</span> <span class="nf">validate_and_get_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">required_fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Takes an input string and determines whether it can be mapped to the template pattern.</span>
 <span class="sd">        If it can then the list of matching fields is returned. Example::</span>
@@ -620,16 +620,16 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">path_fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fields</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="n">skip_keys</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">TankError</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">return</span> <span class="kc">None</span>
 
         <span class="c1"># Check that all required fields were found in the path:</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">required_fields</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">skip_keys</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">path_fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">!=</span> <span class="n">value</span><span class="p">):</span>
-                <span class="k">return</span> <span class="bp">None</span>
+                <span class="k">return</span> <span class="kc">None</span>
 
         <span class="k">return</span> <span class="n">path_fields</span></div>
 
-<div class="viewcode-block" id="Template.validate"><a class="viewcode-back" href="../../core.html#sgtk.Template.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Template.validate"><a class="viewcode-back" href="../../core.html#sgtk.Template.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Validates that a path can be mapped to the pattern given by the template. Example::</span>
 
@@ -651,9 +651,9 @@
 <span class="sd">        :returns:           True if the path is valid for this template</span>
 <span class="sd">        :rtype:             Bool</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_and_get_fields</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">skip_keys</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">None</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_and_get_fields</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">skip_keys</span><span class="p">)</span> <span class="o">!=</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="Template.get_fields"><a class="viewcode-back" href="../../core.html#sgtk.Template.get_fields">[docs]</a>    <span class="k">def</span> <span class="nf">get_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_path</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Template.get_fields"><a class="viewcode-back" href="../../core.html#sgtk.Template.get_fields">[docs]</a>    <span class="k">def</span> <span class="nf">get_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_path</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Extracts key name, value pairs from a string. Example::</span>
 
@@ -674,16 +674,16 @@
 <span class="sd">        :returns: Values found in the path based on keys in template</span>
 <span class="sd">        :rtype: Dictionary</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">path_parser</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">path_parser</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">for</span> <span class="n">ordered_keys</span><span class="p">,</span> <span class="n">static_tokens</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ordered_keys</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_static_tokens</span><span class="p">):</span>
             <span class="n">path_parser</span> <span class="o">=</span> <span class="n">TemplatePathParser</span><span class="p">(</span><span class="n">ordered_keys</span><span class="p">,</span> <span class="n">static_tokens</span><span class="p">)</span>
             <span class="n">fields</span> <span class="o">=</span> <span class="n">path_parser</span><span class="o">.</span><span class="n">parse_path</span><span class="p">(</span><span class="n">input_path</span><span class="p">,</span> <span class="n">skip_keys</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">fields</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">fields</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">break</span>
 
-        <span class="k">if</span> <span class="n">fields</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">fields</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Template </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="n">path_parser</span><span class="o">.</span><span class="n">last_error</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">fields</span></div></div>
@@ -695,7 +695,7 @@
 <span class="sd">    and you can pass it per-os roots given by a separate :meth:`root_path`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">root_path</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">per_platform_roots</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">root_path</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">per_platform_roots</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        TemplatePath objects are typically created automatically by toolkit reading</span>
 <span class="sd">        the template configuration.</span>
@@ -747,13 +747,13 @@
                 <span class="n">parent_definition</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">root_path</span><span class="p">,</span>
-                <span class="bp">None</span><span class="p">,</span>
+                <span class="kc">None</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_per_platform_roots</span><span class="p">,</span>
             <span class="p">)</span>
-        <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">_apply_fields</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="bp">False</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates path using fields.</span>
@@ -779,7 +779,7 @@
             <span class="n">fields</span><span class="p">,</span> <span class="n">ignore_types</span><span class="p">,</span> <span class="n">platform</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="n">skip_defaults</span>
         <span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">platform</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">platform</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># return the current OS platform&#39;s path</span>
             <span class="k">return</span> <span class="p">(</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root_path</span><span class="p">,</span> <span class="n">relative_path</span><span class="p">)</span>
@@ -790,7 +790,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">platform</span> <span class="o">=</span> <span class="n">sgsix</span><span class="o">.</span><span class="n">normalize_platform</span><span class="p">(</span><span class="n">platform</span><span class="p">)</span>
             <span class="c1"># caller has requested a path for another OS</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_per_platform_roots</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_per_platform_roots</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># it&#39;s possible that the additional os paths are not set for a template</span>
                 <span class="c1"># object (mainly because of backwards compatibility reasons) and in this case</span>
                 <span class="c1"># we cannot compute the path.</span>
@@ -802,7 +802,7 @@
 
             <span class="n">platform_root_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_per_platform_roots</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">platform</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">platform_root_path</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">platform_root_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># either the platform is undefined or unknown</span>
                 <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
                     <span class="s2">&quot;Cannot resolve path for operating system &#39;</span><span class="si">%s</span><span class="s2">&#39;! Please ensure &quot;</span>
@@ -846,7 +846,7 @@
 <span class="sd">    be configured in Shotgun, given a series of key values.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">validate_with</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">validate_with</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        TemplatePath objects are typically created automatically by toolkit reading</span>
 <span class="sd">        the template configuration.</span>
@@ -870,9 +870,9 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Strings don&#39;t have a concept of parent so this always returns ``None``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">get_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_path</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_path</span><span class="p">,</span> <span class="n">skip_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Extracts key name, value pairs from a string. Example::</span>
 
@@ -926,7 +926,7 @@
         <span class="c1"># support both the case where the section</span>
         <span class="c1"># name exists and is set to None and the case where it doesn&#39;t exist</span>
         <span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section_name</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">return</span> <span class="n">d</span>
 
@@ -956,7 +956,7 @@
     <span class="k">return</span> <span class="n">templates</span>
 
 
-<span class="k">def</span> <span class="nf">make_template_paths</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">all_per_platform_roots</span><span class="p">,</span> <span class="n">default_root</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">make_template_paths</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">all_per_platform_roots</span><span class="p">,</span> <span class="n">default_root</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Factory function which creates TemplatePaths.</span>
 
@@ -1005,7 +1005,7 @@
             <span class="p">)</span>
 
         <span class="n">root_path</span> <span class="o">=</span> <span class="n">all_per_platform_roots</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">root_name</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sgsix</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">root_path</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">root_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
                 <span class="s2">&quot;Undefined Shotgun storage! The local file storage &#39;</span><span class="si">%s</span><span class="s2">&#39; is not defined for this &quot;</span>
                 <span class="s2">&quot;operating system.&quot;</span> <span class="o">%</span> <span class="n">root_name</span>
@@ -1093,7 +1093,7 @@
         <span class="k">if</span> <span class="n">template_type</span> <span class="o">==</span> <span class="s2">&quot;path&quot;</span><span class="p">:</span>
             <span class="n">root_name</span> <span class="o">=</span> <span class="n">cur_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;root_name&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">root_name</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">root_name</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># Record this templates definition</span>
         <span class="n">cur_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">root_name</span><span class="p">,</span> <span class="n">definition</span><span class="p">)</span>
@@ -1150,7 +1150,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.19.6',
+            VERSION:'v0.19.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

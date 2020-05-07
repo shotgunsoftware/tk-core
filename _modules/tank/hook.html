@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.hook &mdash; tk-core v0.19.6 documentation</title>
+  <title>tank.hook &mdash; tk-core v0.19.7 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.19.6 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.19.7 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.6.<br>
+    <b>tk-core</b> v0.19.7.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -389,9 +389,9 @@
         <span class="c1"># local import to avoid cycles</span>
         <span class="kn">from</span> <span class="nn">.api</span> <span class="kn">import</span> <span class="n">Sgtk</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># system hook</span>
-            <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">return</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">Sgtk</span><span class="p">):</span>
             <span class="c1"># core hook</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span>
@@ -400,7 +400,7 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">sgtk</span>
             <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">None</span>
+                <span class="k">return</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">tank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -511,7 +511,7 @@
         <span class="c1"># relative to self. Self represents the leaf in the</span>
         <span class="c1"># inheritance tree.</span>
         <span class="c1">#</span>
-        <span class="n">path_to_file</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">path_to_file</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="n">current_frame</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span>
         <span class="n">all_frames</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getouterframes</span><span class="p">(</span><span class="n">current_frame</span><span class="p">)</span>
@@ -526,7 +526,7 @@
 
         <span class="c1"># first check failed. fall back on computing</span>
         <span class="c1"># the location relative to self</span>
-        <span class="k">if</span> <span class="n">path_to_file</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">path_to_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">path_to_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="vm">__module__</span><span class="p">]</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">)</span>
@@ -636,7 +636,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Legacy support for old style hooks</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">None</span></div>
+        <span class="k">return</span> <span class="kc">None</span></div>
 
 
 <span class="k">class</span> <span class="nc">_HooksCache</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -695,7 +695,7 @@
         <span class="c1"># The unique cache key is a tuple of the path and the base class to allow</span>
         <span class="c1"># loading of classes with different bases from the same file</span>
         <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">hook_path</span><span class="p">,</span> <span class="n">hook_base_class</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="nd">@thread_exclusive</span>
     <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook_path</span><span class="p">,</span> <span class="n">hook_base_class</span><span class="p">,</span> <span class="n">hook_class</span><span class="p">):</span>
@@ -749,10 +749,10 @@
 <span class="sd">                   app, engine or core object.</span>
 <span class="sd">    :returns: Whatever the hook returns.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">execute_hook_method</span><span class="p">([</span><span class="n">hook_path</span><span class="p">],</span> <span class="n">parent</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">execute_hook_method</span><span class="p">([</span><span class="n">hook_path</span><span class="p">],</span> <span class="n">parent</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">execute_hook_method</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">execute_hook_method</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">method_name</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    New style hook execution, with method arguments and support for inheritance.</span>
 
@@ -808,7 +808,7 @@
     <span class="k">return</span> <span class="n">ret_val</span>
 
 
-<span class="k">def</span> <span class="nf">create_hook_instance</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">create_hook_instance</span><span class="p">(</span><span class="n">hook_paths</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">base_class</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    New style hook execution, with method arguments and support for inheritance.</span>
 
@@ -942,7 +942,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.19.6',
+            VERSION:'v0.19.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

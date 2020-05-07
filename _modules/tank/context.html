@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.context &mdash; tk-core v0.19.6 documentation</title>
+  <title>tank.context &mdash; tk-core v0.19.7 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.19.6 documentation" href="../../index.html"/>
+    <link rel="top" title="tk-core v0.19.7 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.6.<br>
+    <b>tk-core</b> v0.19.7.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -240,13 +240,13 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">tk</span><span class="p">,</span>
-        <span class="n">project</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-        <span class="n">entity</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-        <span class="n">step</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-        <span class="n">task</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-        <span class="n">user</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-        <span class="n">additional_entities</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-        <span class="n">source_entity</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">project</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">entity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">step</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">task</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">user</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">additional_entities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">source_entity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Context objects are not constructed by hand but are fabricated by the</span>
@@ -281,16 +281,16 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        String representation for context</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># We&#39;re in a &quot;site&quot; context, so we&#39;ll give the site&#39;s url</span>
             <span class="c1"># minus the &quot;https://&quot; if that&#39;s attached.</span>
             <span class="n">ctx_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shotgun_url</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;//&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># project-only, e.g &#39;Project foobar&#39;</span>
             <span class="n">ctx_name</span> <span class="o">=</span> <span class="s2">&quot;Project </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
 
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># entity only</span>
             <span class="c1"># e.g. Shot ABC_123</span>
 
@@ -303,7 +303,7 @@
 
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># we have either step or task</span>
-            <span class="n">task_step</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">task_step</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">:</span>
                 <span class="n">task_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span><span class="p">:</span>
@@ -351,26 +351,26 @@
 <span class="sd">            :param d2:  Second entity dictionary</span>
 <span class="sd">            :returns:   True if d1 and d2 are considered equal, otherwise False.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="k">if</span> <span class="n">d1</span> <span class="o">==</span> <span class="n">d2</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">True</span>
-            <span class="k">if</span> <span class="n">d1</span> <span class="o">==</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">d2</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="n">d1</span> <span class="o">==</span> <span class="n">d2</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">d1</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">d2</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
             <span class="k">return</span> <span class="n">d1</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">d2</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">d1</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">d2</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Context</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">NotImplemented</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">_entity_dicts_eq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">project</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">_entity_dicts_eq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">entity</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">_entity_dicts_eq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">step</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">_entity_dicts_eq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">task</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">task</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
         <span class="c1"># compare additional entities</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">additional_entities</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">additional_entities</span><span class="p">:</span>
@@ -384,16 +384,16 @@
                 <span class="p">[(</span><span class="n">e</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span> <span class="n">e</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">])</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">additional_entities</span> <span class="k">if</span> <span class="n">e</span><span class="p">]</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">types_and_ids</span> <span class="o">!=</span> <span class="n">other_types_and_ids</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">False</span>
+                <span class="k">return</span> <span class="kc">False</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">additional_entities</span> <span class="ow">or</span> <span class="n">other</span><span class="o">.</span><span class="n">additional_entities</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
         <span class="c1"># finally compare the user - this may result in a Shotgun look-up</span>
         <span class="c1"># so do this last!</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">_entity_dicts_eq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">user</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
-        <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -416,7 +416,7 @@
         <span class="c1"># Use sort_keys to ensure dict order does not affect hash.</span>
         <span class="c1"># This hash is only guaranteed to be stable within a Python session,</span>
         <span class="c1"># however this is expected behavior for __hash__.</span>
-        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">sort_keys</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">__deepcopy__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memo</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -553,9 +553,9 @@
         <span class="c1"># NOTE! get_shotgun_user returns more fields than just type, id and name</span>
         <span class="c1"># so make sure we get rid of those. We should make sure we return the data</span>
         <span class="c1"># in a consistent way, similar to all other entities. No more. No less.</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__user</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__user</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">user</span> <span class="o">=</span> <span class="n">login</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__user</span> <span class="o">=</span> <span class="p">{</span>
                     <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">),</span>
                     <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">),</span>
@@ -593,7 +593,7 @@
 
 <span class="sd">        :returns: A list of paths</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[]</span>
 
         <span class="n">paths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">paths_from_entity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
@@ -616,17 +616,17 @@
 
         <span class="c1"># walk up task -&gt; entity -&gt; project -&gt; site</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/detail/</span><span class="si">%s</span><span class="s2">/</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">shotgun_url</span><span class="p">,</span> <span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/detail/</span><span class="si">%s</span><span class="s2">/</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">shotgun_url</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
             <span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/detail/</span><span class="si">%s</span><span class="s2">/</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">shotgun_url</span><span class="p">,</span>
                 <span class="s2">&quot;Project&quot;</span><span class="p">,</span>
@@ -652,11 +652,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># first handle special cases: empty context</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[]</span>
 
         <span class="c1"># first handle special cases: project context</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">paths_from_entity</span><span class="p">(</span><span class="s2">&quot;Project&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
 
         <span class="c1"># at this stage we know that the context contains an entity</span>
@@ -673,14 +673,14 @@
             <span class="n">ctx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
             <span class="c1"># the stuff we need to compare against are all the &quot;child&quot; levels</span>
             <span class="c1"># below entity: task and user</span>
-            <span class="n">matching</span> <span class="o">=</span> <span class="bp">False</span>
-            <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">user</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">matching</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">user</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># no user data in either context</span>
-                <span class="n">matching</span> <span class="o">=</span> <span class="bp">True</span>
-            <span class="k">elif</span> <span class="n">ctx</span><span class="o">.</span><span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">matching</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">elif</span> <span class="n">ctx</span><span class="o">.</span><span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># both contexts have user data - is it matching?</span>
                 <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">user</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]:</span>
-                    <span class="n">matching</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="n">matching</span> <span class="o">=</span> <span class="kc">True</span>
 
             <span class="k">if</span> <span class="n">matching</span><span class="p">:</span>
                 <span class="c1"># ok so user looks good, now check task.</span>
@@ -688,10 +688,10 @@
                 <span class="c1"># there is a task populated which is not being used in the file system</span>
                 <span class="c1"># so when we compare tasks, only if there are differing task ids,</span>
                 <span class="c1"># we should treat it as a mismatch.</span>
-                <span class="n">task_matching</span> <span class="o">=</span> <span class="bp">True</span>
-                <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">task_matching</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">task</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]:</span>
-                        <span class="n">task_matching</span> <span class="o">=</span> <span class="bp">False</span>
+                        <span class="n">task_matching</span> <span class="o">=</span> <span class="kc">False</span>
 
                 <span class="k">if</span> <span class="n">task_matching</span><span class="p">:</span>
                     <span class="c1"># both user and task is matching</span>
@@ -720,7 +720,7 @@
     <span class="c1">################################################################################################</span>
     <span class="c1"># public methods</span>
 
-<div class="viewcode-block" id="Context.as_template_fields"><a class="viewcode-back" href="../../core.html#sgtk.Context.as_template_fields">[docs]</a>    <span class="k">def</span> <span class="nf">as_template_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Context.as_template_fields"><a class="viewcode-back" href="../../core.html#sgtk.Context.as_template_fields">[docs]</a>    <span class="k">def</span> <span class="nf">as_template_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the context object as a dictionary of template fields.</span>
 
@@ -830,7 +830,7 @@
             <span class="c1"># Note: A &#39;None&#39; value for a field indicates an ambiguity and was set in the</span>
             <span class="c1"># _fields_from_entity_paths method (!)</span>
             <span class="n">non_none_fields</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-                <span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">fields</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">]</span>
+                <span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">fields</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
             <span class="p">)</span>
 
             <span class="c1"># Determine additional field values by walking down the template tree</span>
@@ -886,7 +886,7 @@
     <span class="c1">################################################################################################</span>
     <span class="c1"># serialization</span>
 
-<div class="viewcode-block" id="Context.serialize"><a class="viewcode-back" href="../../core.html#sgtk.Context.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_user_credentials</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">use_json</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Context.serialize"><a class="viewcode-back" href="../../core.html#sgtk.Context.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_user_credentials</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_json</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Serializes the context into a string.</span>
 
@@ -1029,8 +1029,8 @@
 <span class="sd">        :returns: Dictionary with keys id and type and optionally name and the entity&#39;s</span>
 <span class="sd">            real name field.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
 
         <span class="n">filtered_entity</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]}</span>
         <span class="k">if</span> <span class="s2">&quot;name&quot;</span> <span class="ow">in</span> <span class="n">entity</span><span class="p">:</span>
@@ -1148,8 +1148,8 @@
                     <span class="c1"># fields dictionary from as_template_fields, and this may be injected into</span>
                     <span class="c1"># a template with optional fields.</span>
 
-                    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                        <span class="n">processed_val</span> <span class="o">=</span> <span class="bp">None</span>
+                    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">processed_val</span> <span class="o">=</span> <span class="kc">None</span>
 
                     <span class="k">else</span><span class="p">:</span>
 
@@ -1200,17 +1200,17 @@
         <span class="c1"># are matching the template that is passed in. In that case, try to</span>
         <span class="c1"># extract the fields values.</span>
         <span class="k">for</span> <span class="n">cur_path</span> <span class="ow">in</span> <span class="n">path_cache_locations</span><span class="p">:</span>
-            <span class="n">previous_path</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">previous_path</span> <span class="o">=</span> <span class="kc">None</span>
 
             <span class="c1"># walk up path until we reach the project root and get values</span>
             <span class="k">while</span> <span class="n">cur_path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">project_roots</span><span class="p">:</span>
                 <span class="n">cur_fields</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">validate_and_get_fields</span><span class="p">(</span><span class="n">cur_path</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">cur_fields</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">cur_fields</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="c1"># If there are conflicts, there is ambiguity in the schema</span>
                     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">cur_fields</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                         <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
                             <span class="c1"># Value is ambiguous for this key</span>
-                            <span class="n">cur_fields</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+                            <span class="n">cur_fields</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
                     <span class="n">fields</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">cur_fields</span><span class="p">)</span>
                     <span class="k">break</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -1371,18 +1371,18 @@
                     <span class="c1"># Therefore, we need to validate that we didn&#39;t find any entity fields that we should have found</span>
                     <span class="c1"># previously/higher up in the template definition.  If we did then the entries that were found</span>
                     <span class="c1"># may not be correct so we have to discard them!</span>
-                    <span class="n">found_mismatching_field</span> <span class="o">=</span> <span class="bp">False</span>
+                    <span class="n">found_mismatching_field</span> <span class="o">=</span> <span class="kc">False</span>
                     <span class="k">for</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">field_value</span> <span class="ow">in</span> <span class="n">entity_fields</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                         <span class="k">if</span> <span class="n">field_name</span> <span class="ow">in</span> <span class="n">known_fields</span><span class="p">:</span>
                             <span class="c1"># We found a field we already knew about...</span>
                             <span class="k">if</span> <span class="n">field_value</span> <span class="o">!=</span> <span class="n">known_fields</span><span class="p">[</span><span class="n">field_name</span><span class="p">]:</span>
                                 <span class="c1"># ...but it doesn&#39;t match!</span>
-                                <span class="n">found_mismatching_field</span> <span class="o">=</span> <span class="bp">True</span>
+                                <span class="n">found_mismatching_field</span> <span class="o">=</span> <span class="kc">True</span>
                         <span class="k">elif</span> <span class="n">field_name</span> <span class="ow">in</span> <span class="n">found_fields</span><span class="p">:</span>
                             <span class="c1"># We found a field we found before...</span>
                             <span class="k">if</span> <span class="n">field_value</span> <span class="o">!=</span> <span class="n">found_fields</span><span class="p">[</span><span class="n">field_name</span><span class="p">]:</span>
                                 <span class="c1"># ...but it doesn&#39;t match!</span>
-                                <span class="n">found_mismatching_field</span> <span class="o">=</span> <span class="bp">True</span>
+                                <span class="n">found_mismatching_field</span> <span class="o">=</span> <span class="kc">True</span>
                         <span class="k">elif</span> <span class="n">field_name</span> <span class="o">==</span> <span class="n">key_name</span><span class="p">:</span>
                             <span class="c1"># We found a field that matches the entity we were searching for so it must be valid!</span>
                             <span class="n">found_fields</span><span class="p">[</span><span class="n">field_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">field_value</span>
@@ -1390,7 +1390,7 @@
                             <span class="c1"># We found an entity type that we should have found before (in a previous/shorter</span>
                             <span class="c1"># template).  This means we can&#39;t trust any other fields that were found as they</span>
                             <span class="c1"># may belong to a completely different entity/path!</span>
-                            <span class="n">found_mismatching_field</span> <span class="o">=</span> <span class="bp">True</span>
+                            <span class="n">found_mismatching_field</span> <span class="o">=</span> <span class="kc">True</span>
 
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">found_mismatching_field</span><span class="p">:</span>
                         <span class="c1"># all fields are ok so we can add them all to the list of found fields :)</span>
@@ -1439,7 +1439,7 @@
     <span class="k">return</span> <span class="n">_from_entity_type_and_id</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">entity_type</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">entity_id</span><span class="p">))</span>
 
 
-<span class="k">def</span> <span class="nf">_from_entity_type_and_id</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">source_entity</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_from_entity_type_and_id</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">source_entity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constructs a context from the entity type and id as stored in the given</span>
 <span class="sd">    entity. Any other data necessary to construct the context beyond the type</span>
@@ -1467,20 +1467,20 @@
     <span class="n">entity_type</span> <span class="o">=</span> <span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
     <span class="n">entity_id</span> <span class="o">=</span> <span class="n">entity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">entity_type</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">entity_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Cannot create a context from an entity type &#39;None&#39;!&quot;</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">entity_id</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">entity_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="s2">&quot;Cannot create a context from an entity id set to &#39;None&#39;!&quot;</span><span class="p">)</span>
 
     <span class="c1"># prep our return data structure</span>
     <span class="n">context</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;tk&quot;</span><span class="p">:</span> <span class="n">tk</span><span class="p">,</span>
-        <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
-        <span class="s2">&quot;entity&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
-        <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
-        <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
-        <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;entity&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
         <span class="s2">&quot;additional_entities&quot;</span><span class="p">:</span> <span class="p">[],</span>
         <span class="s2">&quot;source_entity&quot;</span><span class="p">:</span> <span class="n">source_entity</span><span class="p">,</span>
     <span class="p">}</span>
@@ -1496,7 +1496,7 @@
             <span class="n">entity_type</span><span class="p">,</span> <span class="p">[[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">]],</span> <span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="s2">&quot;entity&quot;</span><span class="p">,</span> <span class="s2">&quot;task&quot;</span><span class="p">]</span>
         <span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">sg_entity</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sg_entity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
                 <span class="s2">&quot;Entity </span><span class="si">%s</span><span class="s2"> with id </span><span class="si">%s</span><span class="s2"> not found in Shotgun!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">)</span>
             <span class="p">)</span>
@@ -1519,7 +1519,7 @@
 
         <span class="c1"># make sure this was actually found in the cache</span>
         <span class="c1"># fall back on a shotgun lookup if not found</span>
-        <span class="k">if</span> <span class="n">entity_context</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">entity_context</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">entity_context</span> <span class="o">=</span> <span class="n">_entity_from_sg</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">)</span>
 
         <span class="n">context</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">entity_context</span><span class="p">)</span>
@@ -1527,7 +1527,7 @@
         <span class="k">if</span> <span class="n">entity_type</span> <span class="o">==</span> <span class="s2">&quot;Project&quot;</span><span class="p">:</span>
             <span class="c1"># no need to set entity to point at project in this case</span>
             <span class="c1"># that only produces double entries.</span>
-            <span class="n">context</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="n">context</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="c1"># If there isn&#39;t an explicit source_entity, we set it to be</span>
     <span class="c1"># the same as the entity property.</span>
@@ -1551,7 +1551,7 @@
     <span class="k">return</span> <span class="n">_from_entity_dictionary</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_from_entity_dictionary</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">,</span> <span class="n">source_entity</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_from_entity_dictionary</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">entity_dictionary</span><span class="p">,</span> <span class="n">source_entity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constructs a context from a Shotgun entity dictionary.</span>
 
@@ -1586,11 +1586,11 @@
     <span class="c1"># prep our context data structure</span>
     <span class="n">context</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;tk&quot;</span><span class="p">:</span> <span class="n">tk</span><span class="p">,</span>
-        <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
-        <span class="s2">&quot;entity&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
-        <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
-        <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
-        <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;entity&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
         <span class="s2">&quot;additional_entities&quot;</span><span class="p">:</span> <span class="p">[],</span>
         <span class="s2">&quot;source_entity&quot;</span><span class="p">:</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">source_entity</span> <span class="ow">or</span> <span class="n">entity_dictionary</span><span class="p">),</span>
     <span class="p">}</span>
@@ -1599,11 +1599,11 @@
     <span class="n">entity_id</span> <span class="o">=</span> <span class="n">entity_dictionary</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
 
     <span class="c1"># try to determine the various entities from the entity dictionary:</span>
-    <span class="n">project</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="n">entity</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="n">step</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="n">task</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="n">fallback_to_ctx_from_entity</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">project</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">entity</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">task</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">fallback_to_ctx_from_entity</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">if</span> <span class="n">entity_type</span> <span class="o">==</span> <span class="s2">&quot;Project&quot;</span><span class="p">:</span>
         <span class="c1"># find entities for a project context</span>
         <span class="n">project</span> <span class="o">=</span> <span class="n">entity_dictionary</span>
@@ -1611,7 +1611,7 @@
         <span class="c1"># find entities for a task context</span>
         <span class="n">task</span> <span class="o">=</span> <span class="n">entity_dictionary</span>
         <span class="k">if</span> <span class="s2">&quot;project&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">task</span> <span class="ow">or</span> <span class="s2">&quot;entity&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">task</span> <span class="ow">or</span> <span class="s2">&quot;step&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">task</span><span class="p">:</span>
-            <span class="n">fallback_to_ctx_from_entity</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">fallback_to_ctx_from_entity</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">project</span> <span class="o">=</span> <span class="n">task</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">]</span>
             <span class="n">entity</span> <span class="o">=</span> <span class="n">task</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">]</span>
@@ -1635,12 +1635,12 @@
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># fall back on from_entity:</span>
-            <span class="n">fallback_to_ctx_from_entity</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">fallback_to_ctx_from_entity</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># find entities for an entity context</span>
         <span class="n">entity</span> <span class="o">=</span> <span class="n">entity_dictionary</span>
         <span class="k">if</span> <span class="s2">&quot;project&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">entity</span><span class="p">:</span>
-            <span class="n">fallback_to_ctx_from_entity</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">fallback_to_ctx_from_entity</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">project</span> <span class="o">=</span> <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">]</span>
 
@@ -1659,32 +1659,32 @@
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="c1"># make sure we have id, type and name:</span>
             <span class="k">if</span> <span class="s2">&quot;id&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ent</span> <span class="ow">or</span> <span class="s2">&quot;type&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ent</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">None</span>
+                <span class="k">return</span> <span class="kc">None</span>
             <span class="n">ent_name</span> <span class="o">=</span> <span class="n">_get_entity_name</span><span class="p">(</span><span class="n">ent</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">ent_name</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">if</span> <span class="n">ent_name</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
             <span class="c1"># return a clean dictionary:</span>
             <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">ent</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">ent</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">ent_name</span><span class="p">}</span>
 
         <span class="k">if</span> <span class="n">project</span><span class="p">:</span>
             <span class="n">context</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_build_clean_entity</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">context</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">]:</span>
-                <span class="n">fallback_to_ctx_from_entity</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">fallback_to_ctx_from_entity</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">fallback_to_ctx_from_entity</span> <span class="ow">and</span> <span class="n">entity</span><span class="p">:</span>
             <span class="n">context</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_build_clean_entity</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">context</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">]:</span>
-                <span class="n">fallback_to_ctx_from_entity</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">fallback_to_ctx_from_entity</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">fallback_to_ctx_from_entity</span> <span class="ow">and</span> <span class="n">step</span><span class="p">:</span>
             <span class="n">context</span><span class="p">[</span><span class="s2">&quot;step&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_build_clean_entity</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">context</span><span class="p">[</span><span class="s2">&quot;step&quot;</span><span class="p">]:</span>
-                <span class="n">fallback_to_ctx_from_entity</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">fallback_to_ctx_from_entity</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">fallback_to_ctx_from_entity</span> <span class="ow">and</span> <span class="n">task</span><span class="p">:</span>
             <span class="n">context</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_build_clean_entity</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">context</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">]:</span>
-                <span class="n">fallback_to_ctx_from_entity</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">fallback_to_ctx_from_entity</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">if</span> <span class="n">fallback_to_ctx_from_entity</span><span class="p">:</span>
         <span class="c1"># entity dict doesn&#39;t contain enough information to build a</span>
@@ -1706,7 +1706,7 @@
     <span class="k">return</span> <span class="n">Context</span><span class="o">.</span><span class="n">_from_dict</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">from_path</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">previous_context</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">from_path</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">previous_context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Factory method that constructs a context object from a path on disk.</span>
 
@@ -1726,11 +1726,11 @@
     <span class="c1"># prep our return data structure</span>
     <span class="n">context</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;tk&quot;</span><span class="p">:</span> <span class="n">tk</span><span class="p">,</span>
-        <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
-        <span class="s2">&quot;entity&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
-        <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
-        <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
-        <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="s2">&quot;project&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;entity&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
         <span class="s2">&quot;additional_entities&quot;</span><span class="p">:</span> <span class="p">[],</span>
     <span class="p">}</span>
 
@@ -1751,7 +1751,7 @@
     <span class="n">entities</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">secondary_entities</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">curr_path</span> <span class="o">=</span> <span class="n">path</span>
-    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">curr_entity</span> <span class="o">=</span> <span class="n">path_cache</span><span class="o">.</span><span class="n">get_entity</span><span class="p">(</span><span class="n">curr_path</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">curr_entity</span><span class="p">:</span>
             <span class="c1"># Don&#39;t worry about entity types we&#39;ve already got in the context. In the future</span>
@@ -1801,19 +1801,19 @@
     <span class="k">for</span> <span class="n">curr_entity</span> <span class="ow">in</span> <span class="n">secondary_entities</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
         <span class="c1"># handle the special context fields first</span>
         <span class="k">if</span> <span class="n">curr_entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Project&quot;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">context</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">context</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">context</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">curr_entity</span>
 
         <span class="k">elif</span> <span class="n">curr_entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Step&quot;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">context</span><span class="p">[</span><span class="s2">&quot;step&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">context</span><span class="p">[</span><span class="s2">&quot;step&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">context</span><span class="p">[</span><span class="s2">&quot;step&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">curr_entity</span>
 
         <span class="k">elif</span> <span class="n">curr_entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Task&quot;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">context</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">context</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">context</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">curr_entity</span>
 
         <span class="k">elif</span> <span class="n">curr_entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;HumanUser&quot;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">context</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">context</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">context</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">curr_entity</span>
 
         <span class="k">elif</span> <span class="n">curr_entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">additional_types</span><span class="p">:</span>
@@ -1822,7 +1822,7 @@
                 <span class="n">context</span><span class="p">[</span><span class="s2">&quot;additional_entities&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">curr_entity</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">context</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">context</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">context</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">curr_entity</span>
 
     <span class="c1"># see if we can populate it based on the previous context</span>
@@ -1835,11 +1835,11 @@
         <span class="c1"># cool, everything is matching down to the step/task level.</span>
         <span class="c1"># if context is missing a step and a task, we try to auto populate it.</span>
         <span class="c1"># (note: weird edge that a context can have a task but no step)</span>
-        <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;step&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;step&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">context</span><span class="p">[</span><span class="s2">&quot;step&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">previous_context</span><span class="o">.</span><span class="n">step</span>
 
         <span class="c1"># now try to assign previous task but only if the step matches!</span>
-        <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;step&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">previous_context</span><span class="o">.</span><span class="n">step</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">context</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;step&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">previous_context</span><span class="o">.</span><span class="n">step</span><span class="p">:</span>
             <span class="n">context</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">previous_context</span><span class="o">.</span><span class="n">task</span>
 
     <span class="c1"># ensure that we don&#39;t have a Project as the entity. Projects should only</span>
@@ -1850,7 +1850,7 @@
         <span class="ow">and</span> <span class="n">context</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Project&quot;</span>
     <span class="p">):</span>
         <span class="c1"># remove double entry!</span>
-        <span class="n">context</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">context</span><span class="p">[</span><span class="s2">&quot;entity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">return</span> <span class="n">Context</span><span class="o">.</span><span class="n">_from_dict</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
 
@@ -1920,7 +1920,7 @@
     <span class="kn">from</span> <span class="nn">.api</span> <span class="kn">import</span> <span class="n">Tank</span>
 
     <span class="c1"># get the dict from yaml</span>
-    <span class="n">context_constructor_dict</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">construct_mapping</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">deep</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">context_constructor_dict</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">construct_mapping</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># first get the pipeline config path out of the dict</span>
     <span class="n">pipeline_config_path</span> <span class="o">=</span> <span class="n">context_constructor_dict</span><span class="p">[</span><span class="s2">&quot;_pc_path&quot;</span><span class="p">]</span>
@@ -1951,14 +1951,14 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">name_field</span> <span class="o">=</span> <span class="n">shotgun_entity</span><span class="o">.</span><span class="n">get_sg_entity_name_field</span><span class="p">(</span><span class="n">entity_dictionary</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">])</span>
     <span class="n">entity_name</span> <span class="o">=</span> <span class="n">entity_dictionary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name_field</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">entity_name</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">entity_name</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># Also check to see if entity contains &#39;name&#39;:</span>
         <span class="k">if</span> <span class="n">name_field</span> <span class="o">!=</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span>
             <span class="n">entity_name</span> <span class="o">=</span> <span class="n">entity_dictionary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">entity_name</span>
 
 
-<span class="k">def</span> <span class="nf">_task_from_sg</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">task_id</span><span class="p">,</span> <span class="n">additional_fields</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_task_from_sg</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">task_id</span><span class="p">,</span> <span class="n">additional_fields</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constructs a context from a shotgun task.</span>
 <span class="sd">    Because we are constructing the context from a task, we will get a context</span>
@@ -1981,7 +1981,7 @@
     <span class="c1"># theses keys map directly to linked entities, users will be handled separately</span>
     <span class="n">context_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="s2">&quot;entity&quot;</span><span class="p">,</span> <span class="s2">&quot;step&quot;</span><span class="p">,</span> <span class="s2">&quot;task&quot;</span><span class="p">]</span>
 
-    <span class="k">if</span> <span class="n">additional_fields</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">additional_fields</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># ask hook for extra Task entity fields we should query and insert into the additional_entities list.</span>
         <span class="n">additional_fields</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">execute_core_hook</span><span class="p">(</span><span class="s2">&quot;context_additional_entities&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
             <span class="s2">&quot;entity_fields_on_task&quot;</span><span class="p">,</span> <span class="p">[]</span>
@@ -1998,7 +1998,7 @@
 
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">context_keys</span> <span class="o">+</span> <span class="n">additional_fields</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># gracefully skip stuff we don&#39;t have</span>
             <span class="c1"># for example tasks may not have a step</span>
             <span class="k">continue</span>
@@ -2105,16 +2105,16 @@
             <span class="n">tk</span><span class="o">.</span><span class="n">pipeline_configuration</span><span class="o">.</span><span class="n">get_primary_data_root</span><span class="p">()</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">context</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">context</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="n">paths</span> <span class="o">=</span> <span class="n">path_cache</span><span class="o">.</span><span class="n">get_paths</span><span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">primary_only</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">paths</span> <span class="o">=</span> <span class="n">path_cache</span><span class="o">.</span><span class="n">get_paths</span><span class="p">(</span><span class="n">entity_type</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">primary_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
         <span class="c1"># now recurse upwards and look for entity types we haven&#39;t found yet</span>
         <span class="n">curr_path</span> <span class="o">=</span> <span class="n">path</span>
         <span class="n">curr_entity</span> <span class="o">=</span> <span class="n">path_cache</span><span class="o">.</span><span class="n">get_entity</span><span class="p">(</span><span class="n">curr_path</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">curr_entity</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">curr_entity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># this is some sort of anomaly! the path returned by get_paths</span>
             <span class="c1"># does not resolve in get_entity. This can happen if the storage</span>
             <span class="c1"># mappings are not consistent or if there is not a 1 to 1 relationship</span>
@@ -2160,7 +2160,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># use the databsae to go from shotgun type/id --&gt; paths</span>
-    <span class="n">entity_paths</span> <span class="o">=</span> <span class="n">path_cache</span><span class="o">.</span><span class="n">get_paths</span><span class="p">(</span><span class="n">entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span> <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="n">primary_only</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">entity_paths</span> <span class="o">=</span> <span class="n">path_cache</span><span class="o">.</span><span class="n">get_paths</span><span class="p">(</span><span class="n">entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span> <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="n">primary_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># Mapping for field values found in conjunction with this entities paths</span>
     <span class="n">unique_fields</span> <span class="o">=</span> <span class="p">{}</span>
@@ -2192,7 +2192,7 @@
                     <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span><span class="n">msg</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">entity</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">cur_template</span><span class="p">)))</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># ambiguity for Static key</span>
-                    <span class="n">unique_fields</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+                    <span class="n">unique_fields</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
                     <span class="n">remove_keys</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
             <span class="k">else</span><span class="p">:</span>
@@ -2212,7 +2212,7 @@
     <span class="c1"># TODO this would probably be better as the Template&#39;s responsibility</span>
     <span class="n">templates</span> <span class="o">=</span> <span class="p">[</span><span class="n">template</span><span class="p">]</span>
     <span class="n">cur_template</span> <span class="o">=</span> <span class="n">template</span>
-    <span class="k">while</span> <span class="n">cur_template</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur_template</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">keys</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">while</span> <span class="n">cur_template</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur_template</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">keys</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">next_template</span> <span class="o">=</span> <span class="n">cur_template</span><span class="o">.</span><span class="n">parent</span>
         <span class="n">templates</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">next_template</span><span class="p">)</span>
         <span class="n">cur_template</span> <span class="o">=</span> <span class="n">next_template</span>
@@ -2249,7 +2249,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v0.19.6',
+            VERSION:'v0.19.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

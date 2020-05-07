@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Apps, Engines and Frameworks &mdash; tk-core v0.19.6 documentation</title>
+  <title>Apps, Engines and Frameworks &mdash; tk-core v0.19.7 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.19.6 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.19.7 documentation" href="index.html"/>
         <link rel="next" title="Utilities" href="utils.html"/>
         <link rel="prev" title="Core" href="core.html"/> 
 
@@ -173,7 +173,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.6.<br>
+    <b>tk-core</b> v0.19.7.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -1293,7 +1293,7 @@ method can introduce a deadlock if the main thread is waiting for a background t
 and the background thread is invoking this method. Since the main thread is waiting
 for the background thread to finish, Qt&#8217;s event loop won&#8217;t be able to process the request
 to execute in the main thread:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sgtk.platform.qt</span> <span class="k">import</span> <span class="n">QtGui</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sgtk.platform.qt</span> <span class="kn">import</span> <span class="n">QtGui</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">engine</span><span class="o">.</span><span class="n">execute_in_main_thread</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">information</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Hello&quot;</span><span class="p">,</span> <span class="s2">&quot;Hello from the main thread!&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -4169,7 +4169,7 @@ info.yml manifest.</td>
 <dd><p>Convenience method for using frameworks code inside of apps, engines and other frameworks.</p>
 <p>This method is intended to replace an import statement.
 Instead of typing:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">foo_bar</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">foo_bar</span>
 </pre></div>
 </div>
 <p>You use the following syntax to load a framework module:</p>
@@ -4697,7 +4697,7 @@ platform considerations in the background. Typically, PySide is being used for Q
 may use PyQT in certain engines. Normally, the code is pretty portable between the two systems and it
 should be no problem writing code that works with both libraries.</p>
 <p>In order to use QT, import it from Sgtk:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sgtk.platform.qt</span> <span class="k">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sgtk.platform.qt</span> <span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
 </pre></div>
 </div>
 <p>Toolkit will make sure Qt is sourced in the correct way. Keep in mind that many applications (for example Nuke)
@@ -4726,13 +4726,13 @@ so that we may update it.</p>
 you from managing this by yourself, but for maximum compatibility and portabilty, we strongly suggest that you l
 et Toolkit handle it. When using Sgtk to set up your UI, just let your UI class derive from QtGui.QWidget and pass
 it to one of the UI factory methods that the engine has. For example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sgtk.platform.qt</span> <span class="k">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sgtk.platform.qt</span> <span class="kn">import</span> <span class="n">QtCore</span><span class="p">,</span> <span class="n">QtGui</span>
 
 <span class="c1"># derive from QtGui.QWidget for your UI components.</span>
 
 <span class="k">class</span> <span class="nc">AppDialog</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param1</span><span class="p">,</span> <span class="n">param2</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param1</span><span class="p">,</span> <span class="n">param2</span><span class="p">):</span>
         <span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
 <span class="c1"># the engine is then used to correctly launch this dialog. In your app code</span>
@@ -4779,7 +4779,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <span class="k">def</span> <span class="nf">hide_tk_title_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">True</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="o">...</span>
 </pre></div>
 </div>
@@ -4836,7 +4836,7 @@ especially when the contained widget is quite small. To hide the title bar, just
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.19.6',
+            VERSION:'v0.19.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

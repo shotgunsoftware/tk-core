@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.19.6 documentation</title>
+  <title>tank.util.shotgun.publish_creation &mdash; tk-core v0.19.7 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.19.6 documentation" href="../../../../index.html"/>
+    <link rel="top" title="tk-core v0.19.7 documentation" href="../../../../index.html"/>
         <link rel="up" title="Module code" href="../../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.6.<br>
+    <b>tk-core</b> v0.19.7.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -208,7 +208,7 @@
 <span class="n">log</span> <span class="o">=</span> <span class="n">LogManager</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<span class="nd">@LogManager.log_timing</span>
+<span class="nd">@LogManager</span><span class="o">.</span><span class="n">log_timing</span>
 <div class="viewcode-block" id="register_publish"><a class="viewcode-back" href="../../../../utils.html#sgtk.util.register_publish">[docs]</a><span class="k">def</span> <span class="nf">register_publish</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">context</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">version_number</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a Published File in Shotgun.</span>
@@ -396,15 +396,15 @@
 <span class="sd">    :returns: The created entity dictionary.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-        <span class="s2">&quot;Publish: Begin register publish for context {0} and path {1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="s2">&quot;Publish: Begin register publish for context </span><span class="si">{0}</span><span class="s2"> and path </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">context</span><span class="p">,</span> <span class="n">path</span>
         <span class="p">)</span>
     <span class="p">)</span>
-    <span class="n">entity</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">entity</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="c1"># get the task from the optional args, fall back on context task if not set</span>
         <span class="n">task</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;task&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">task</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">task</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">task</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">task</span>
 
         <span class="n">thumbnail_path</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;thumbnail_path&quot;</span><span class="p">)</span>
@@ -415,18 +415,18 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">published_file_type</span><span class="p">:</span>
             <span class="c1"># check for legacy name:</span>
             <span class="n">published_file_type</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tank_type&quot;</span><span class="p">)</span>
-        <span class="n">update_entity_thumbnail</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;update_entity_thumbnail&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
-        <span class="n">update_task_thumbnail</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;update_task_thumbnail&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">update_entity_thumbnail</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;update_entity_thumbnail&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">update_task_thumbnail</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;update_task_thumbnail&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
         <span class="n">created_by_user</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;created_by&quot;</span><span class="p">)</span>
         <span class="n">created_at</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;created_at&quot;</span><span class="p">)</span>
         <span class="n">version_entity</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;version_entity&quot;</span><span class="p">)</span>
         <span class="n">sg_fields</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sg_fields&quot;</span><span class="p">,</span> <span class="p">{})</span>
-        <span class="n">dry_run</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dry_run&quot;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">dry_run</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dry_run&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 
         <span class="n">published_file_entity_type</span> <span class="o">=</span> <span class="n">get_published_file_entity_type</span><span class="p">(</span><span class="n">tk</span><span class="p">)</span>
 
         <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Publish: Resolving the published file type&quot;</span><span class="p">)</span>
-        <span class="n">sg_published_file_type</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">sg_published_file_type</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="c1"># query shotgun for the published_file_type</span>
         <span class="k">if</span> <span class="n">published_file_type</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">published_file_type</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
@@ -488,13 +488,13 @@
                 <span class="p">)</span>
 
                 <span class="c1"># entity</span>
-                <span class="k">if</span> <span class="n">update_entity_thumbnail</span> <span class="o">==</span> <span class="bp">True</span> <span class="ow">and</span> <span class="n">context</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">update_entity_thumbnail</span> <span class="o">==</span> <span class="kc">True</span> <span class="ow">and</span> <span class="n">context</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">upload_thumbnail</span><span class="p">(</span>
                         <span class="n">context</span><span class="o">.</span><span class="n">entity</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span> <span class="n">context</span><span class="o">.</span><span class="n">entity</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="n">thumbnail_path</span>
                     <span class="p">)</span>
 
                 <span class="c1"># task</span>
-                <span class="k">if</span> <span class="n">update_task_thumbnail</span> <span class="o">==</span> <span class="bp">True</span> <span class="ow">and</span> <span class="n">task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">update_task_thumbnail</span> <span class="o">==</span> <span class="kc">True</span> <span class="ow">and</span> <span class="n">task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">tk</span><span class="o">.</span><span class="n">shotgun</span><span class="o">.</span><span class="n">upload_thumbnail</span><span class="p">(</span><span class="s2">&quot;Task&quot;</span><span class="p">,</span> <span class="n">task</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="n">thumbnail_path</span><span class="p">)</span>
 
             <span class="k">else</span><span class="p">:</span>
@@ -540,8 +540,8 @@
     <span class="n">created_by_user</span><span class="p">,</span>
     <span class="n">created_at</span><span class="p">,</span>
     <span class="n">version_entity</span><span class="p">,</span>
-    <span class="n">sg_fields</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-    <span class="n">dry_run</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+    <span class="n">sg_fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">dry_run</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a publish entity in shotgun given some standard fields.</span>
@@ -585,7 +585,7 @@
     <span class="p">}</span>
 
     <span class="c1"># we set the optional additional fields first so we don&#39;t allow overwriting the standard parameters</span>
-    <span class="k">if</span> <span class="n">sg_fields</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">sg_fields</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">sg_fields</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">sg_fields</span><span class="p">)</span>
 
@@ -613,7 +613,7 @@
         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">version_entity</span>
 
     <span class="c1"># Determine the value of the link field based on the given context</span>
-    <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">project</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">context</span><span class="o">.</span><span class="n">project</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># when running toolkit as a standalone plugin, the context may be</span>
         <span class="c1"># empty and not contain a project. Publishes are project entities</span>
         <span class="c1"># in Shotgun, so we cannot proceed without a project.</span>
@@ -621,7 +621,7 @@
             <span class="s2">&quot;Your context needs to at least have a project set in order to publish.&quot;</span>
         <span class="p">)</span>
 
-    <span class="k">elif</span> <span class="n">context</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">context</span><span class="o">.</span><span class="n">entity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># If the context does not have an entity, link it up to the project.</span>
         <span class="c1"># This happens for project specific workflows such as editorial</span>
         <span class="c1"># workflows, ingest and when running zero config toolkit plugins in</span>
@@ -639,14 +639,14 @@
     <span class="c1">#</span>
     <span class="c1">#     scheme://netloc/path</span>
     <span class="c1">#</span>
-    <span class="n">path_is_url</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="n">path_is_url</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">res</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">scheme</span><span class="p">:</span>
         <span class="c1"># handle Windows drive letters - note this adds a limitation</span>
         <span class="c1"># but one that is not likely to be a problem as single-character</span>
         <span class="c1"># schemes are unlikely!</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">scheme</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">res</span><span class="o">.</span><span class="n">scheme</span><span class="o">.</span><span class="n">isalpha</span><span class="p">():</span>
-            <span class="n">path_is_url</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">path_is_url</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="c1"># naming and path logic is different depending on url</span>
     <span class="k">if</span> <span class="n">path_is_url</span><span class="p">:</span>
@@ -715,7 +715,7 @@
                     <span class="n">root_name</span>
                 <span class="p">)</span>
 
-                <span class="k">if</span> <span class="n">storage</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">storage</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="c1"># there is no storage in Shotgun that matches the one toolkit expects.</span>
                     <span class="c1"># this *may* be ok because there may be another storage in Shotgun that</span>
                     <span class="c1"># magically picks up the publishes and associates with them. In this case,</span>
@@ -755,7 +755,7 @@
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path &#39;</span><span class="si">%s</span><span class="s2">&#39; does not have an associated config root.&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Will check shotgun local storages to see if there is a match.&quot;</span><span class="p">)</span>
 
-            <span class="n">matching_local_storage</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="n">matching_local_storage</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">for</span> <span class="n">storage</span> <span class="ow">in</span> <span class="n">get_cached_local_storages</span><span class="p">(</span><span class="n">tk</span><span class="p">):</span>
                 <span class="n">local_storage_path</span> <span class="o">=</span> <span class="n">ShotgunPath</span><span class="o">.</span><span class="n">from_shotgun_dict</span><span class="p">(</span><span class="n">storage</span><span class="p">)</span><span class="o">.</span><span class="n">current_os</span>
                 <span class="c1"># assume case preserving file systems rather than case sensitive</span>
@@ -765,7 +765,7 @@
                     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
                         <span class="s2">&quot;Path matches Shotgun local storage &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">storage</span><span class="p">[</span><span class="s2">&quot;code&quot;</span><span class="p">]</span>
                     <span class="p">)</span>
-                    <span class="n">matching_local_storage</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="n">matching_local_storage</span> <span class="o">=</span> <span class="kc">True</span>
                     <span class="k">break</span>
 
             <span class="k">if</span> <span class="n">matching_local_storage</span><span class="p">:</span>
@@ -844,7 +844,7 @@
                         <span class="n">cur_fields</span><span class="p">[</span><span class="n">abstract_key_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span>
                             <span class="n">abstract_key_name</span>
                         <span class="p">]</span><span class="o">.</span><span class="n">_get_default</span><span class="p">()</span>
-                <span class="n">path</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">_apply_fields</span><span class="p">(</span><span class="n">cur_fields</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">_apply_fields</span><span class="p">(</span><span class="n">cur_fields</span><span class="p">,</span> <span class="n">skip_defaults</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
                 <span class="s2">&quot;Path does not match a template. Not translating abstract fields: </span><span class="si">%s</span><span class="s2">&quot;</span>
@@ -1003,7 +1003,7 @@
 
     <span class="c1"># not found, return None values</span>
     <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Unable to split path &#39;</span><span class="si">%s</span><span class="s2">&#39; into a storage and a relative path.&quot;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
-    <span class="k">return</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
 
 
 <span class="k">def</span> <span class="nf">group_by_storage</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">list_of_paths</span><span class="p">):</span>
@@ -1047,7 +1047,7 @@
         <span class="n">root_name</span><span class="p">,</span> <span class="n">dep_path_cache</span> <span class="o">=</span> <span class="n">_calc_path_cache</span><span class="p">(</span><span class="n">tk</span><span class="p">,</span> <span class="n">abstract_path</span><span class="p">)</span>
 
         <span class="c1"># make sure that the path is even remotely valid, otherwise skip</span>
-        <span class="k">if</span> <span class="n">dep_path_cache</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">dep_path_cache</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">continue</span>
 
         <span class="c1"># Update data for this storage</span>
@@ -1090,7 +1090,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'v0.19.6',
+            VERSION:'v0.19.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

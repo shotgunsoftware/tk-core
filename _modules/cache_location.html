@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>cache_location &mdash; tk-core v0.19.6 documentation</title>
+  <title>cache_location &mdash; tk-core v0.19.7 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.19.6 documentation" href="../index.html"/>
+    <link rel="top" title="tk-core v0.19.7 documentation" href="../index.html"/>
         <link rel="up" title="Module code" href="index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.6.<br>
+    <b>tk-core</b> v0.19.7.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -225,7 +225,7 @@
 <span class="sd">        :rtype: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># backwards compatibility with custom hooks created before 0.18</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;path_cache&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;path_cache&quot;</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;path_cache&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;path_cache&quot;</span><span class="p">)):</span>
             <span class="c1"># there is a custom version of the legacy hook path_cache</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s2">&quot;Detected old core cache hook implementation. &quot;</span>
@@ -236,7 +236,7 @@
             <span class="c1"># implementation that is provided by the user.</span>
             <span class="c1"># this implementation expects project id 0 for</span>
             <span class="c1"># the site config, so ensure that&#39;s the case too</span>
-            <span class="k">if</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">project_id</span> <span class="o">=</span> <span class="mi">0</span>
 
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_cache</span><span class="p">(</span><span class="n">project_id</span><span class="p">,</span> <span class="n">pipeline_configuration_id</span><span class="p">)</span>
@@ -326,7 +326,7 @@
 <span class="sd">        :rtype: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># backwards compatibility with custom hooks created before 0.18</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;bundle_cache&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;bundle_cache&quot;</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;bundle_cache&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;bundle_cache&quot;</span><span class="p">)):</span>
             <span class="c1"># there is a custom version of the legacy hook path_cache</span>
             <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s2">&quot;Detected old core cache hook implementation. &quot;</span>
@@ -337,7 +337,7 @@
             <span class="c1"># implementation that is provided by the user.</span>
             <span class="c1"># this implementation expects project id 0 for</span>
             <span class="c1"># the site config, so ensure that&#39;s the case too</span>
-            <span class="k">if</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">project_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">project_id</span> <span class="o">=</span> <span class="mi">0</span>
 
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bundle_cache</span><span class="p">(</span><span class="n">project_id</span><span class="p">,</span> <span class="n">pipeline_configuration_id</span><span class="p">,</span> <span class="n">bundle</span><span class="p">)</span>
@@ -423,7 +423,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v0.19.6',
+            VERSION:'v0.19.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

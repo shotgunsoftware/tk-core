@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Initialization and startup &mdash; tk-core v0.19.6 documentation</title>
+  <title>Initialization and startup &mdash; tk-core v0.19.7 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.19.6 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.19.7 documentation" href="index.html"/>
         <link rel="next" title="Core" href="core.html"/>
         <link rel="prev" title="Overview" href="overview.html"/> 
 
@@ -170,7 +170,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.6.<br>
+    <b>tk-core</b> v0.19.7.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -653,7 +653,7 @@ a bundle, always create a new version number.</p>
         <span class="k">if</span> <span class="n">entity</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;sg_content&quot;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">populate_bundle_cache_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1629,7 +1629,7 @@ DCC and startup the engine integration.</li>
         <span class="o">...</span>
         <span class="k">return</span> <span class="n">software_versions</span>
 
-    <span class="k">def</span> <span class="nf">prepare_launch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exec_path</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">file_to_open</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">prepare_launch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exec_path</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">file_to_open</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># Construct an environment to launch the DCC in,</span>
         <span class="c1"># confirm the correct executable path to</span>
         <span class="c1"># launch, and provide required command line args.</span>
@@ -2283,7 +2283,7 @@ launching DCC.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.19.6',
+            VERSION:'v0.19.7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
