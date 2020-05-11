@@ -21,7 +21,7 @@ class Ui_TankDialog(object):
         self.stackedWidget = QtGui.QStackedWidget(TankDialog)
         self.stackedWidget.setObjectName("stackedWidget")
         self.page_1 = QtGui.QWidget()
-        self.page_1.setStyleSheet("")
+        self.page_1.setStyleSheet("QWidget#page_1 {\n" "margin: 0px;\n" "}")
         self.page_1.setObjectName("page_1")
         self.verticalLayout = QtGui.QVBoxLayout(self.page_1)
         self.verticalLayout.setSpacing(0)
@@ -73,13 +73,13 @@ class Ui_TankDialog(object):
         self.lbl_context = QtGui.QLabel(self.top_group)
         self.lbl_context.setStyleSheet(
             "/* want this stylesheet to apply to the label but not the tooltip */\n"
-            "QLabel { \n"
+            "QLabel {\n"
             "    color: rgba(250,250,250,180);\n"
             "    font-size: 11px;\n"
             "    margin-right: 8px;\n"
             '    font-family: "Open Sans";\n'
             '    font-style: "Regular";\n'
-            "} \n"
+            "}\n"
             "\n"
             "\n"
             ""
@@ -134,7 +134,7 @@ class Ui_TankDialog(object):
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.page_2_group = QtGui.QGroupBox(self.page_2)
         self.page_2_group.setMinimumSize(QtCore.QSize(0, 100))
-        self.page_2_group.setStyleSheet("")
+        self.page_2_group.setStyleSheet("QGroupBox {\n" "margin: 0px;\n" "}")
         self.page_2_group.setTitle("")
         self.page_2_group.setObjectName("page_2_group")
         self.horizontalLayout_2 = QtGui.QHBoxLayout(self.page_2_group)
@@ -156,7 +156,7 @@ class Ui_TankDialog(object):
         self.gradient.setMaximumSize(QtCore.QSize(11, 16777215))
         self.gradient.setStyleSheet(
             "#gradient {\n"
-            "background-image: url(:/Tank.Platform.Qt/gradient.png); \n"
+            "background-image: url(:/Tank.Platform.Qt/gradient.png);\n"
             "border: none;\n"
             "}"
         )
@@ -181,7 +181,7 @@ class Ui_TankDialog(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 383, 577))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 398, 550))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.verticalLayout_4 = QtGui.QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
