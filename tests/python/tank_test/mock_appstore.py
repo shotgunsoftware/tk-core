@@ -131,6 +131,16 @@ class MockStore(object):
         self.add_bundle(bundle)
         return bundle
 
+    def add_core(self, version):
+        """
+        Create a core and register it to the mock store.
+
+        :param version: Version of tk-core.
+
+        :returns: A MockStoreCore object.
+        """
+        return self._add_typed_bundle(Descriptor.CORE, "tk-core", version)
+
     def add_framework(self, name, version):
         """
         Create a framework and registers it to the mock store.
@@ -199,6 +209,7 @@ class MockStore(object):
 
 
 # Simpler than having to write three class types that would also have to be documented.
+MockStoreCore = functools.partial(MockStore._Entry, bundle_type=Descriptor.CORE)
 MockStoreApp = functools.partial(MockStore._Entry, bundle_type=Descriptor.APP)
 MockStoreFramework = functools.partial(
     MockStore._Entry, bundle_type=Descriptor.FRAMEWORK
