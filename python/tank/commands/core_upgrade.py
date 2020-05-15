@@ -158,7 +158,9 @@ class CoreUpdateAction(Action):
         log.info("https://support.shotgunsoftware.com/entries/96142347")
         log.info("")
 
-        installer = TankCoreUpdater(code_install_root, log, core_version)
+        config_desc = self.tk.configuration_descriptor if self.tk is not None else None
+
+        installer = TankCoreUpdater(code_install_root, log, core_version, config_desc)
         current_version = installer.get_current_version_number()
         new_version = installer.get_update_version_number()
         log.info(
@@ -177,6 +179,17 @@ class CoreUpdateAction(Action):
             msg = (
                 "%s version of core requires a more recent version (%s) of Shotgun!"
                 % ("The newest" if core_version is None else "The requested", req_sg)
+            )
+            log.error(msg)
+            return_status = {"status": "update_blocked", "reason": msg}
+
+        elif status == TankCoreUpdater.UPDATE_BLOCKED_BY_CONFIG:
+            # The config is immutable so can't be updated.
+            descriptor_type = config_desc.get_dict().get("type", "type unknown.")
+            msg = (
+                "The core on this config can't be updated using this method,"
+                ' as the config is using a "%s" type descriptor.'
+                " Please update the source configuration." % descriptor_type
             )
             log.error(msg)
             return_status = {"status": "update_blocked", "reason": msg}
@@ -251,9 +264,12 @@ class TankCoreUpdater(object):
         UP_TO_DATE,  # all good, no update necessary
         UPDATE_POSSIBLE,  # more recent version exists
         UPDATE_BLOCKED_BY_SG,  # more recent version exists but SG version is too low.
-    ) = range(3)
+        UPDATE_BLOCKED_BY_CONFIG,  # The config descriptor is not suitable for updating.
+    ) = range(4)
 
-    def __init__(self, install_folder_root, logger, core_version=None):
+    def __init__(
+        self, install_folder_root, logger, core_version=None, config_desc=None
+    ):
         """
         Constructor
 
@@ -267,6 +283,7 @@ class TankCoreUpdater(object):
                              version. Defaults to None.
         """
         self._log = logger
+        self._configuration_descriptor = config_desc
 
         from ..descriptor import Descriptor, create_descriptor
 
@@ -330,7 +347,7 @@ class TankCoreUpdater(object):
         get the required Shotgun version.
         """
         if is_version_head(self.get_current_version_number()):
-            # head is the verison number which is stored in tank core trunk
+            # head is the version number which is stored in tank core trunk
             # getting this as a result means that we are not actually running
             # a version of tank that came from the app store, but some sort
             # of dev version
@@ -339,9 +356,16 @@ class TankCoreUpdater(object):
         elif self.get_current_version_number() == self._new_core_descriptor.version:
             # running updated version already
             return self.UP_TO_DATE
+        elif (
+            self._configuration_descriptor
+            and self._configuration_descriptor.is_immutable()
+        ):
+            # The config is immutable so we should not try updating it.
+            return TankCoreUpdater.UPDATE_BLOCKED_BY_CONFIG
         else:
+
             # FIXME: We should cache info.yml on the appstore so we don't have
-            # to download the whole bundle just to see the file.
+            #  to download the whole bundle just to see the file.
             if not self._new_core_descriptor.exists_local():
                 self._log.info("")
                 self._log.info(
@@ -367,8 +391,20 @@ class TankCoreUpdater(object):
         """
         Installs the requested core and updates core_api.yml.
         """
-        self._install_core()
-        self._update_core_api_descriptor()
+
+        # We should check to see if the config is using a dev descriptor
+        # because if we are we don't want to update the cached version of the config,
+        # instead we want to update the core_api.yml in the dev config location.
+        if self._configuration_descriptor and self._configuration_descriptor.is_dev():
+            # We shouldn't try to install the core, a reload will be required to re cache things,
+            # just update the core_api.yml instead.
+            root = self._configuration_descriptor.get_path()
+            self._update_core_api_descriptor(root)
+
+        else:
+            self._install_core()
+            root = os.path.join(os.path.dirname(self._install_root), "config")
+            self._update_core_api_descriptor(root)
 
     def _install_core(self):
         """
@@ -385,13 +421,12 @@ class TankCoreUpdater(object):
             self._log.exception(e)
             raise Exception("Could not run update script! Error reported: %s" % e)
 
-    def _update_core_api_descriptor(self):
+    def _update_core_api_descriptor(self, config_root):
         """
         Updates the core_api.yml descriptor file.
         """
-        core_api_yaml_path = os.path.join(
-            os.path.dirname(self._install_root), "config", "core", "core_api.yml"
-        )
+
+        core_api_yaml_path = os.path.join(config_root, "core", "core_api.yml")
 
         message = (
             "# Shotgun Pipeline Toolkit configuration file. This file was automatically\n"
