@@ -217,6 +217,40 @@ class TestIODescriptors(ShotgunTestBase):
             ],
         )
 
+    def test_custom_io_descriptor_type(self):
+        config_root = os.path.join(self.fixtures_root, "config")
+        sg = self.mockgun
+
+        d = sgtk.descriptor.create_descriptor(
+            self.mockgun,
+            sgtk.descriptor.Descriptor.CONFIG,
+            {
+                "type": "dev",
+                "path": config_root,
+                "version": "v0.1.0",
+                "name": "tk-core",
+            },
+        )
+
+        location = {
+            "type": "bitbucket_release",
+            "organization": "tk-core-testing",
+            "repository": "tk-multi-demo",
+            "version": "v0.1.0",
+        }
+
+        downloads_root = os.path.join(self.fixtures_root, "config")
+        tk_bundle_app = sgtk.descriptor.create_descriptor(
+            sg,
+            sgtk.descriptor.Descriptor.APP,
+            location,
+            bundle_cache_root_override=downloads_root,
+        )
+        tk_bundle_app._io_descriptor.ensure_local()
+        self.assertTrue(
+            os.path.exists(tk_bundle_app._io_descriptor._get_primary_cache_path())
+        )
+
     def test_download_receipt(self):
         """
         Tests the download receipt logic
