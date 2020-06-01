@@ -68,13 +68,13 @@ class BootstrapHookTests(SgtkIntegrationTest):
                 "CustomNonProjectEntity01", {"sg_descriptor": descriptor}
             )
 
-        for i in range(5):
+        for _ in range(5):
             try:
                 # Upload the bundle to Shotgun.
                 cls.sg.upload(
                     "CustomNonProjectEntity01", item["id"], temp_zipfile, "sg_content"
                 )
-            except Exception as e:
+            except Exception:
                 logger.exception(
                     "An unexpected exception was raised using the upload of the configuration:"
                 )
