@@ -31,7 +31,9 @@ def _initialize_descriptor_factory():
     from .git_branch import IODescriptorGitBranch
     from .github_release import IODescriptorGithubRelease
     from .manual import IODescriptorManual
+    from ._rez import IODescriptorRez
 
+    IODescriptorBase.register_descriptor_factory("rez", IODescriptorRez)
     IODescriptorBase.register_descriptor_factory("app_store", IODescriptorAppStore)
     IODescriptorBase.register_descriptor_factory("dev", IODescriptorDev)
     IODescriptorBase.register_descriptor_factory("path", IODescriptorPath)
