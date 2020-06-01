@@ -1,17 +1,91 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import sgtk
 import tank
 from tank_test.tank_test_base import TankTestBase, ShotgunTestBase, setUpModule  # noqa
 from tank.util.shotgun_entity import get_sg_entity_name_field, sg_entity_to_string
+
+
+KNOWN_SG_ENTITIES = [
+    "ActionMenuItem",
+    "ApiUser",
+    "ApiUser",
+    "Asset",
+    "AssetLibrary",
+    "Attachment",
+    "Blendshape",
+    "Booking",
+    "Camera",
+    "Candidate",
+    "ClientUser",
+    "Composition",
+    "Cut",
+    "CutItem",
+    "Delivery",
+    "Department",
+    "Element",
+    "Episode",
+    "EventLogEntry",
+    "FilesystemLocation",
+    "Group",
+    "HumanUser",
+    "Icon",
+    "Launch",
+    "Level",
+    "LocalStorage",
+    "MocapPass",
+    "MocapSetup",
+    "MocapTake",
+    "MocapTakeRange",
+    "Note",
+    "Page",
+    "PageHit",
+    "PageSetting",
+    "Performer",
+    "PermissionRuleSet",
+    "Phase",
+    "PhysicalAsset",
+    "PipelineConfiguration",
+    "Playlist",
+    "PlaylistShare",
+    "Project",
+    "PublishEvent",
+    "PublishedFile",
+    "PublishedFileDependency",
+    "PublishedFileType",
+    "Reel",
+    "Release",
+    "Reply",
+    "Revision",
+    "Routine",
+    "RvLicense",
+    "Scene",
+    "Sequence",
+    "ShootDay",
+    "Shot",
+    "Slate",
+    "Software",
+    "Status",
+    "Step",
+    "Tag",
+    "Task",
+    "TaskDependency",
+    "TaskTemplate",
+    "Ticket",
+    "TimeLog",
+    "Tool",
+    "Version",
+    "CustomEntity02",
+    "CustomNonProjectEntity01",
+]
 
 
 class TestShotgunEntity(TankTestBase):
@@ -32,19 +106,17 @@ class TestShotgunEntity(TankTestBase):
         Test retrieving the right "name" field for various entity types.
         """
         # Test most standard entities, and check that custom entities use "code"
-        for entity_type in ["Sequence", "Shot", "Asset", "CustomXXXXEntity"]:
-            self.assertEqual(
-                get_sg_entity_name_field(entity_type), "code"
-            )
-        # Test most standard entities where the name is in a "name" field.
-        for entity_type in ["HumanUser", "Project", "Department"]:
-            self.assertEqual(
-                get_sg_entity_name_field(entity_type), "name"
-            )
-
-        self.assertEqual(get_sg_entity_name_field("Task"), "content")
-        self.assertEqual(get_sg_entity_name_field("Note"), "subject")
-        self.assertEqual(get_sg_entity_name_field("Delivery"), "title")
+        for entity_name in KNOWN_SG_ENTITIES:
+            field_name = sgtk.util.get_sg_entity_name_field(entity_name)
+            # Some entities do not have a name field, those can be skipped.
+            if field_name is None:
+                continue
+            # Find the schema for that field
+            entity_schema = self.mockgun.schema_field_read(entity_name, field_name)
+            # Make sure one field was returned
+            assert field_name in entity_schema
+            # Sanity check that the field is a text field.
+            assert entity_schema[field_name]["data_type"]["value"] == "text"
 
     def test_entity_to_string(self):
         """
@@ -57,9 +129,9 @@ class TestShotgunEntity(TankTestBase):
                 sg_entity_type="Project",
                 sg_id=123,
                 sg_field_name="tank_name",
-                data="foo/bar&"
+                data="foo/bar&",
             ),
-            "foo/bar-"
+            "foo/bar-",
         )
         # other ETs are not.
         self.assertEqual(
@@ -68,9 +140,9 @@ class TestShotgunEntity(TankTestBase):
                 sg_entity_type="Shot",
                 sg_id=123,
                 sg_field_name="code",
-                data="foo/bar&"
+                data="foo/bar&",
             ),
-            "foo-bar-"
+            "foo-bar-",
         )
 
         # basic conversion of other types
@@ -80,9 +152,9 @@ class TestShotgunEntity(TankTestBase):
                 sg_entity_type="Shot",
                 sg_id=123,
                 sg_field_name="int_field",
-                data=123
+                data=123,
             ),
-            "123"
+            "123",
         )
 
         self.assertEqual(
@@ -91,9 +163,9 @@ class TestShotgunEntity(TankTestBase):
                 sg_entity_type="Shot",
                 sg_id=123,
                 sg_field_name="link_field",
-                data={"type": "Shot", "id": 123, "name": "foo"}
+                data={"type": "Shot", "id": 123, "name": "foo"},
             ),
-            "foo"
+            "foo",
         )
 
         self.assertEqual(
@@ -102,9 +174,9 @@ class TestShotgunEntity(TankTestBase):
                 sg_entity_type="Shot",
                 sg_id=123,
                 sg_field_name="link_field",
-                data=[{"name": "foo"}, {"name": "bar"}]
+                data=[{"name": "foo"}, {"name": "bar"}],
             ),
-            "foo_bar"
+            "foo_bar",
         )
 
     def test_entity_expression_simple(self):
@@ -116,93 +188,105 @@ class TestShotgunEntity(TankTestBase):
         self.assertEqual(ee.get_shotgun_link_fields(), set())
         self.assertEqual(ee.generate_name({"code": "foo", "extra": "data"}), "foo")
 
-        ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code}_{entity}")
+        ee = sgtk.util.shotgun_entity.EntityExpression(
+            self.tk, "Shot", "{code}_{entity}"
+        )
         self.assertEqual(ee.get_shotgun_fields(), set(["code", "entity"]))
         self.assertEqual(ee.get_shotgun_link_fields(), set())
         self.assertEqual(
-            ee.generate_name({"code": "foo", "entity": {"type:": "Asset", "id": 123, "name": "NAB"}}),
-            "foo_NAB"
+            ee.generate_name(
+                {"code": "foo", "entity": {"type:": "Asset", "id": 123, "name": "NAB"}}
+            ),
+            "foo_NAB",
         )
 
-        ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code}_{sg_sequence.Sequence.code}")
-        self.assertEqual(ee.get_shotgun_fields(), set(["code", "sg_sequence.Sequence.code"]))
+        ee = sgtk.util.shotgun_entity.EntityExpression(
+            self.tk, "Shot", "{code}_{sg_sequence.Sequence.code}"
+        )
+        self.assertEqual(
+            ee.get_shotgun_fields(), set(["code", "sg_sequence.Sequence.code"])
+        )
         self.assertEqual(ee.get_shotgun_link_fields(), set(["sg_sequence"]))
         self.assertEqual(
             ee.generate_name(
-                {"code": "foo",
-                 "sg_sequence.Sequence.code": "NAB",
-                 "sg_sequence": {"type:": "Sequence", "id": 123, "name": "NAB"}}
+                {
+                    "code": "foo",
+                    "sg_sequence.Sequence.code": "NAB",
+                    "sg_sequence": {"type:": "Sequence", "id": 123, "name": "NAB"},
+                }
             ),
-            "foo_NAB"
+            "foo_NAB",
         )
 
         # raise exception when fields are not supplied
         ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code}")
-        self.assertRaises(
-            tank.errors.TankError,
-            ee.generate_name,
-            {"extra": "data"}
-        )
+        self.assertRaises(tank.errors.TankError, ee.generate_name, {"extra": "data"})
 
     def test_entity_expression_multi_folder(self):
         """
         Tests that expressions can contain slashes
         """
-        ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code}/{code2}")
+        ee = sgtk.util.shotgun_entity.EntityExpression(
+            self.tk, "Shot", "{code}/{code2}"
+        )
         self.assertEqual(ee.generate_name({"code": "foo", "code2": "bar"}), "foo/bar")
 
         # make sure that we don't have any empty tokens - in static syntax
-        ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code}//{code2}")
+        ee = sgtk.util.shotgun_entity.EntityExpression(
+            self.tk, "Shot", "{code}//{code2}"
+        )
         self.assertRaises(
-            tank.errors.TankError,
-            ee.generate_name,
-            {"code": "foo", "code2": "bar"}
+            tank.errors.TankError, ee.generate_name, {"code": "foo", "code2": "bar"}
         )
 
         # make sure that we don't have any empty tokens - in dynamic syntax
-        ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code}/{code2}")
+        ee = sgtk.util.shotgun_entity.EntityExpression(
+            self.tk, "Shot", "{code}/{code2}"
+        )
         self.assertRaises(
-            tank.errors.TankError,
-            ee.generate_name,
-            {"code": "foo", "code2": ""}
+            tank.errors.TankError, ee.generate_name, {"code": "foo", "code2": ""}
         )
 
     def test_entity_expression_optional(self):
         """
         Tests basic expressions for entity objects with optional tokens
         """
-        ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code}[_{entity}]")
+        ee = sgtk.util.shotgun_entity.EntityExpression(
+            self.tk, "Shot", "{code}[_{entity}]"
+        )
         self.assertEqual(ee.get_shotgun_fields(), set(["code", "entity"]))
         self.assertEqual(ee.get_shotgun_link_fields(), set())
         self.assertEqual(
-            ee.generate_name({"code": "foo", "entity": {"type:": "Asset", "id": 123, "name": "NAB"}}),
-            "foo_NAB"
+            ee.generate_name(
+                {"code": "foo", "entity": {"type:": "Asset", "id": 123, "name": "NAB"}}
+            ),
+            "foo_NAB",
         )
 
         # setting entity to none omits the optional field
         self.assertEqual(ee.generate_name({"code": "foo", "entity": None}), "foo")
 
         # omitting the field raises an exception
-        self.assertRaises(
-            tank.errors.TankError,
-            ee.generate_name,
-            {"code": "foo"}
-        )
+        self.assertRaises(tank.errors.TankError, ee.generate_name, {"code": "foo"})
 
         # setting the required field raises an exception
         self.assertRaises(
             tank.errors.TankError,
             ee.generate_name,
-            {"code": None, "entity": {"type:": "Asset", "id": 123, "name": "NAB"}, }
+            {"code": None, "entity": {"type:": "Asset", "id": 123, "name": "NAB"}},
         )
 
         # verify that deep links work with optional expressions
-        ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code}[_{sg_sequence.Sequence.code}]")
-        self.assertEqual(ee.get_shotgun_fields(), set(["code", "sg_sequence.Sequence.code"]))
+        ee = sgtk.util.shotgun_entity.EntityExpression(
+            self.tk, "Shot", "{code}[_{sg_sequence.Sequence.code}]"
+        )
+        self.assertEqual(
+            ee.get_shotgun_fields(), set(["code", "sg_sequence.Sequence.code"])
+        )
         self.assertEqual(ee.get_shotgun_link_fields(), set(["sg_sequence"]))
         self.assertEqual(
             ee.generate_name({"code": "foo", "sg_sequence.Sequence.code": "NAB"}),
-            "foo_NAB"
+            "foo_NAB",
         )
 
     def test_entity_expression_regex(self):
@@ -210,30 +294,39 @@ class TestShotgunEntity(TankTestBase):
         Tests regex entity expressions
         """
         # test simple
-        ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code:^([^_]+)}")
+        ee = sgtk.util.shotgun_entity.EntityExpression(
+            self.tk, "Shot", "{code:^([^_]+)}"
+        )
         self.assertEqual(ee.get_shotgun_fields(), set(["code"]))
         self.assertEqual(ee.get_shotgun_link_fields(), set())
         self.assertEqual(ee.generate_name({"code": "foo_bar"}), "foo")
 
         # test that multiple regex expressions get concatenated
-        ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code:^([^_]+)_(.+)$}")
+        ee = sgtk.util.shotgun_entity.EntityExpression(
+            self.tk, "Shot", "{code:^([^_]+)_(.+)$}"
+        )
         self.assertEqual(ee.generate_name({"code": "foo_the_rest"}), "foothe_rest")
 
         # test that this works with optional expressions
-        ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code:^([^_]+)}[XXX{status:^([^_]+)}]")
-        self.assertEqual(ee.generate_name({"code": "foo_bar", "status": "baz_boo"}), "fooXXXbaz")
+        ee = sgtk.util.shotgun_entity.EntityExpression(
+            self.tk, "Shot", "{code:^([^_]+)}[XXX{status:^([^_]+)}]"
+        )
+        self.assertEqual(
+            ee.generate_name({"code": "foo_bar", "status": "baz_boo"}), "fooXXXbaz"
+        )
         self.assertEqual(ee.generate_name({"code": "foo_bar", "status": None}), "foo")
 
         # test that we can repeat a token
-        ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code:^(.)}/{code}")
+        ee = sgtk.util.shotgun_entity.EntityExpression(
+            self.tk, "Shot", "{code:^(.)}/{code}"
+        )
         self.assertEqual(ee.generate_name({"code": "hello"}), "h/hello")
 
         # test what happens when regex fails to match
-        ee = sgtk.util.shotgun_entity.EntityExpression(self.tk, "Shot", "{code:^([A-Z]+)}")
+        ee = sgtk.util.shotgun_entity.EntityExpression(
+            self.tk, "Shot", "{code:^([A-Z]+)}"
+        )
         self.assertEqual(ee.generate_name({"code": "Toolkitty"}), "T")
         self.assertRaises(
-            tank.errors.TankError,
-            ee.generate_name,
-            {"code": "toolkitty"}
+            tank.errors.TankError, ee.generate_name, {"code": "toolkitty"}
         )
-

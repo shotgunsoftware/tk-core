@@ -49,7 +49,9 @@ class BundleDescriptor(Descriptor):
 
         manifest = self._get_manifest()
 
-        constraints["min_sg"] = manifest.get("requires_shotgun_version") or constants.LOWEST_SHOTGUN_VERSION
+        constraints["min_sg"] = (
+            manifest.get("requires_shotgun_version") or constants.LOWEST_SHOTGUN_VERSION
+        )
 
         if manifest.get("requires_core_version") is not None:
             constraints["min_core"] = manifest.get("requires_core_version")
@@ -76,7 +78,9 @@ class BundleDescriptor(Descriptor):
         try:
             version_tuple = connection.server_info["version"]
         except Exception as e:
-            raise TankDescriptorError("Could not extract version number for site: %s" % e)
+            raise TankDescriptorError(
+                "Could not extract version number for site: %s" % e
+            )
 
         return ".".join([str(x) for x in version_tuple])
 
@@ -97,17 +101,18 @@ class BundleDescriptor(Descriptor):
         if key in constraints:
             minimum_version = constraints[key]
             if not current_version:
-                reasons.append("Requires at least %s %s but no version was specified." % (item_name, minimum_version))
+                reasons.append(
+                    "Requires at least %s %s but no version was specified."
+                    % (item_name, minimum_version)
+                )
             elif is_version_older(current_version, minimum_version):
-                reasons.append("Requires at least %s %s but currently installed version is %s." % (
-                    item_name, minimum_version, current_version
-                ))
+                reasons.append(
+                    "Requires at least %s %s but currently installed version is %s."
+                    % (item_name, minimum_version, current_version)
+                )
 
     def check_version_constraints(
-        self,
-        core_version=None,
-        engine_descriptor=None,
-        desktop_version=None
+        self, core_version=None, engine_descriptor=None, desktop_version=None
     ):
         """
         Checks if there are constraints blocking an upgrade or install.
@@ -128,35 +133,50 @@ class BundleDescriptor(Descriptor):
             "min_sg", self._get_sg_version(self._sg_connection), "Shotgun", reasons
         )
         self._test_version_constraint(
-            "min_core", core_version or pipelineconfig_utils.get_currently_running_api_version(), "Core API", reasons
+            "min_core",
+            core_version or pipelineconfig_utils.get_currently_running_api_version(),
+            "Core API",
+            reasons,
         )
 
         constraints = self.version_constraints
 
         if "min_engine" in constraints:
             if engine_descriptor is None:
-                reasons.append("Requires a minimal engine version but no engine was specified.")
+                reasons.append(
+                    "Requires a minimal engine version but no engine was specified."
+                )
             else:
                 curr_engine_version = engine_descriptor.version
 
                 minimum_engine_version = constraints["min_engine"]
                 if is_version_older(curr_engine_version, minimum_engine_version):
-                    reasons.append("Requires at least Engine %s %s but currently "
-                                   "installed version is %s." % (engine_descriptor.display_name,
-                                                                 minimum_engine_version,
-                                                                 curr_engine_version))
+                    reasons.append(
+                        "Requires at least Engine %s %s but currently "
+                        "installed version is %s."
+                        % (
+                            engine_descriptor.display_name,
+                            minimum_engine_version,
+                            curr_engine_version,
+                        )
+                    )
 
         # for multi engine apps, validate the supported_engines list
-        supported_engines  = self.supported_engines
+        supported_engines = self.supported_engines
         if supported_engines is not None:
             if engine_descriptor is None:
-                reasons.append("Bundle is compatible with a subset of engines but no engine was specified.")
+                reasons.append(
+                    "Bundle is compatible with a subset of engines but no engine was specified."
+                )
             else:
                 # this is a multi engine app!
                 engine_name = engine_descriptor.system_name
                 if engine_name not in supported_engines:
-                    reasons.append("Not compatible with engine %s. "
-                                   "Supported engines are %s." % (engine_name, ", ".join(supported_engines)))
+                    reasons.append(
+                        "Not compatible with engine %s. "
+                        "Supported engines are %s."
+                        % (engine_name, ", ".join(supported_engines))
+                    )
 
         self._test_version_constraint(
             "min_desktop", desktop_version, "Shotgun Desktop", reasons
@@ -267,7 +287,7 @@ class BundleDescriptor(Descriptor):
         return self.supported_engines
 
     def get_required_frameworks(self):
-        return self.required_frameworks # noqa
+        return self.required_frameworks  # noqa
 
     ###############################################################################################
     # helper methods
@@ -317,7 +337,8 @@ class BundleDescriptor(Descriptor):
                     sg_field_name = field["system_name"]
 
                     log.debug(
-                        "Field %s.%s (type %s) is required." % (sg_entity_type, sg_field_name, sg_data_type)
+                        "Field %s.%s (type %s) is required."
+                        % (sg_entity_type, sg_field_name, sg_data_type)
                     )
 
                     # now check that the field exists
@@ -333,7 +354,8 @@ class BundleDescriptor(Descriptor):
                             # can therefore not be created.
                             raise TankDescriptorError(
                                 "Cannot create field '%s.%s' as required by app manifest. "
-                                "Only fields starting with sg_ can be created" % (sg_entity_type, sg_field_name)
+                                "Only fields starting with sg_ can be created"
+                                % (sg_entity_type, sg_field_name)
                             )
 
                         # sg_my_awesome_field -> My Awesome Field
@@ -341,18 +363,21 @@ class BundleDescriptor(Descriptor):
                             word.capitalize() for word in sg_field_name[3:].split("_")
                         )
 
-                        log.debug("Computed the field display name to be '%s'" % ui_field_name)
+                        log.debug(
+                            "Computed the field display name to be '%s'" % ui_field_name
+                        )
 
                         log.debug("Creating field...")
                         tk.shotgun.schema_field_create(
-                            sg_entity_type,
-                            sg_data_type,
-                            ui_field_name
+                            sg_entity_type, sg_data_type, ui_field_name
                         )
                         log.debug("...field creation complete.")
 
                     else:
-                        log.debug("Field %s.%s already exists in Shotgun." % (sg_entity_type, sg_field_name))
+                        log.debug(
+                            "Field %s.%s already exists in Shotgun."
+                            % (sg_entity_type, sg_field_name)
+                        )
 
     def run_post_install(self, tk=None):
         """
@@ -363,7 +388,7 @@ class BundleDescriptor(Descriptor):
         Errors reported in the post install hook will be reported to the error
         log but execution will continue.
 
-        .. warning:: We longer recommend using post install hooks. Should you
+        .. warning:: We no longer recommend using post install hooks. Should you
                      need to use one, take great care when designing it so that
                      it can execute correctly for all users, regardless of
                      their shotgun and system permissions.
@@ -392,7 +417,9 @@ class EngineDescriptor(BundleDescriptor):
     Descriptor that describes a Toolkit Engine
     """
 
-    def __init__(self, sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots):
+    def __init__(
+        self, sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots
+    ):
         """
         .. note:: Use the factory method :meth:`create_descriptor` when
                   creating new descriptor objects.
@@ -412,7 +439,9 @@ class AppDescriptor(BundleDescriptor):
     Descriptor that describes a Toolkit App
     """
 
-    def __init__(self, sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots):
+    def __init__(
+        self, sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots
+    ):
         """
         .. note:: Use the factory method :meth:`create_descriptor` when
                   creating new descriptor objects.
@@ -432,7 +461,9 @@ class FrameworkDescriptor(BundleDescriptor):
     Descriptor that describes a Toolkit Framework
     """
 
-    def __init__(self, sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots):
+    def __init__(
+        self, sg_connection, io_descriptor, bundle_cache_root_override, fallback_roots
+    ):
         """
         .. note:: Use the factory method :meth:`create_descriptor` when
                   creating new descriptor objects.

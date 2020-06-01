@@ -54,7 +54,9 @@ def unzip_file(src_zip_file, target_folder, auto_detect_bundle=False):
 
         # compute number of unique root folders
         # note: zip module uses forward slash on all operating systems
-        root_items = set([item.split("/")[0] for item in zip_obj.namelist() if "/" in item])
+        root_items = set(
+            [item.split("/")[0] for item in zip_obj.namelist() if "/" in item]
+        )
         # remove certain system items
         root_items -= SYSTEM_FILE_ITEMS
 
@@ -82,6 +84,7 @@ def unzip_file(src_zip_file, target_folder, auto_detect_bundle=False):
             # process them one by one
             _process_item(zip_obj, x, target_folder)
 
+
 @filesystem.with_cleared_umask
 def zip_file(source_folder, target_zip_file):
     """
@@ -92,10 +95,10 @@ def zip_file(source_folder, target_zip_file):
     """
     log.debug("Zipping contents of %s to %s" % (source_folder, target_zip_file))
     zf = zipfile.ZipFile(target_zip_file, "w", zipfile.ZIP_DEFLATED)
-    for root, ignored, files, in os.walk(source_folder):
+    for root, ignored, files in os.walk(source_folder):
         for fname in files:
             fspath = os.path.join(root, fname)
-            arcpath = os.path.join(root, fname)[len(source_folder) + 1:]
+            arcpath = os.path.join(root, fname)[len(source_folder) + 1 :]
             zf.write(fspath, arcpath)
     zf.close()
     log.debug("Zip complete. Size: %s" % os.path.getsize(target_zip_file))
@@ -117,8 +120,10 @@ def _process_item(zip_obj, item_path, target_path, root_to_omit=None):
     # build the destination pathname, replacing
     # forward slashes to platform specific separators.
     # Strip trailing path separator, unless it represents the root.
-    if (target_path[-1:] in (os.path.sep, os.path.altsep)
-        and len(os.path.splitdrive(target_path)[1]) > 1):
+    if (
+        target_path[-1:] in (os.path.sep, os.path.altsep)
+        and len(os.path.splitdrive(target_path)[1]) > 1
+    ):
         target_path = target_path[:-1]
 
     # see if we need to omit a root_folder
@@ -128,12 +133,12 @@ def _process_item(zip_obj, item_path, target_path, root_to_omit=None):
     # /tmp/foo/bar.png
     #
     if root_to_omit and item_path.startswith(root_to_omit):
-        processed_item_path = item_path[len(root_to_omit) + 1:]
+        processed_item_path = item_path[len(root_to_omit) + 1 :]
     else:
         processed_item_path = item_path
 
     # don't include leading "/" from file name if present
-    if item_path[0] == '/':
+    if item_path[0] == "/":
         target_path = os.path.join(target_path, processed_item_path[1:])
     else:
         target_path = os.path.join(target_path, processed_item_path)
@@ -145,7 +150,7 @@ def _process_item(zip_obj, item_path, target_path, root_to_omit=None):
     if upperdirs and not os.path.exists(upperdirs):
         os.makedirs(upperdirs, 0o777)
 
-    if item_path[-1] == '/':
+    if item_path[-1] == "/":
         # this is a directory!
         if not os.path.isdir(target_path):
             os.mkdir(target_path, 0o777)

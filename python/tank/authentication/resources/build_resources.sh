@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# 
+#
 # Copyright (c) 2015 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-# The path to output all built .py files to: 
+# The path to output all built .py files to:
 UI_PYTHON_PATH=../ui
 PYTHON_BASE="/Applications/Shotgun.app/Contents/Resources/Python"
 
@@ -33,7 +33,11 @@ function build_ui {
 }
 
 function build_res {
-    build_qt "${PYTHON_BASE}/bin/pyside-rcc" "$1.qrc" "../ui/$1_rc"
+	# Include the "-py3" flag so that we add the `b` prefix to strings for
+	# PySide2 / Python3 compatibility.  This means these files will no longer
+	# be compatible with Python 2.5 and below, but the `b` prefix is ignored in
+	# Python 2.6+.
+    build_qt "${PYTHON_BASE}/bin/pyside-rcc -py3" "$1.qrc" "../ui/$1_rc"
 }
 
 

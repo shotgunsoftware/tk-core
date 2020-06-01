@@ -42,7 +42,7 @@ class CachedConfiguration(Configuration):
         project_id,
         plugin_id,
         pipeline_config_id,
-        bundle_cache_fallback_paths
+        bundle_cache_fallback_paths,
     ):
         """
         :param path: ShotgunPath object describing the path to this configuration
@@ -86,7 +86,7 @@ class CachedConfiguration(Configuration):
             self._pipeline_config_id,
             self._project_id,
             self._plugin_id,
-            self._descriptor
+            self._descriptor,
         )
 
     def verify_required_shotgun_fields(self):
@@ -135,12 +135,11 @@ class CachedConfiguration(Configuration):
         # ---- validate the storage roots
 
         log.debug(
-            "Detected storage roots definition file %s with roots %s" %
-            (storage_roots.roots_file, storage_roots.required_roots)
+            "Detected storage roots definition file %s with roots %s"
+            % (storage_roots.roots_file, storage_roots.required_roots)
         )
 
-        (_, unmapped_roots) = storage_roots.get_local_storages(
-            self._sg_connection)
+        (_, unmapped_roots) = storage_roots.get_local_storages(self._sg_connection)
 
         # get a list of all defined storage roots without a corresponding SG
         # local storage defined
@@ -149,19 +148,15 @@ class CachedConfiguration(Configuration):
                 "This configuration defines one or more storage roots that can "
                 "not be mapped to a local storage defined in Shotgun. Please "
                 "update the roots.yml file in this configuration to correct "
-                "this issue. Roots file: '%s'. Unmapped storage roots: %s." % (
-                    storage_roots.roots_file,
-                    ", ".join(unmapped_roots)
-                )
+                "this issue. Roots file: '%s'. Unmapped storage roots: %s."
+                % (storage_roots.roots_file, ", ".join(unmapped_roots))
             )
 
         # ---- Ensure tank_name is defined for the project
 
         log.debug("Ensuring that current project has a tank_name field...")
         proj_data = self._sg_connection.find_one(
-            "Project",
-            [["id", "is", self._project_id]],
-            ["tank_name"]
+            "Project", [["id", "is", self._project_id]], ["tank_name"]
         )
         if proj_data["tank_name"] is None:
             raise TankMissingTankNameError(
@@ -182,10 +177,7 @@ class CachedConfiguration(Configuration):
 
         # Pass 1:
         # first check if there is any config at all
-        sg_config_folder = os.path.join(
-            self._path.current_os,
-            "config"
-        )
+        sg_config_folder = os.path.join(self._path.current_os, "config")
         if not os.path.exists(sg_config_folder):
             return self.LOCAL_CFG_MISSING
 
@@ -208,7 +200,9 @@ class CachedConfiguration(Configuration):
                 descriptor_dict = data["config_descriptor"]
         except Exception as e:
             # yaml info not valid.
-            log.warning("Cannot parse file '%s' - ignoring. Error: %s" % (config_info_file, e))
+            log.warning(
+                "Cannot parse file '%s' - ignoring. Error: %s" % (config_info_file, e)
+            )
             return self.LOCAL_CFG_INVALID
 
         if deploy_generation != constants.BOOTSTRAP_LOGIC_GENERATION:
@@ -217,14 +211,16 @@ class CachedConfiguration(Configuration):
             log.debug(
                 "Config was installed with a different generation of the logic. "
                 "Was expecting %s but got %s.",
-                constants.BOOTSTRAP_LOGIC_GENERATION, deploy_generation
+                constants.BOOTSTRAP_LOGIC_GENERATION,
+                deploy_generation,
             )
             return self.LOCAL_CFG_DIFFERENT
 
         if descriptor_dict != self._descriptor.get_dict():
             log.debug(
                 "Local Config %r does not match "
-                "associated descriptor %r" % (descriptor_dict, self._descriptor.get_dict())
+                "associated descriptor %r"
+                % (descriptor_dict, self._descriptor.get_dict())
             )
             return self.LOCAL_CFG_DIFFERENT
 
@@ -235,8 +231,10 @@ class CachedConfiguration(Configuration):
             # point (e.g like a dev or path descriptor). Assume a worst case
             # in this case - that the config that is cached locally is
             # not the same as the source descriptor it is based on.
-            log.debug("Your configuration contains dev or path descriptors. "
-                      "Triggering full config rebuild.")
+            log.debug(
+                "Your configuration contains dev or path descriptors. "
+                "Triggering full config rebuild."
+            )
 
             return self.LOCAL_CFG_DIFFERENT
 
@@ -259,7 +257,9 @@ class CachedConfiguration(Configuration):
         try:
             # Move to backup needs to undo changes when failing because we need to put the configuration
             # in a usable state.
-            (config_backup_path, core_backup_path) = self._config_writer.move_to_backup(undo_on_error=True)
+            (config_backup_path, core_backup_path) = self._config_writer.move_to_backup(
+                undo_on_error=True
+            )
         except Exception as e:
             log.exception(
                 "Unexpected error while making a backup of the configuration. Toolkit will use the "
@@ -288,7 +288,12 @@ class CachedConfiguration(Configuration):
             # compatibility checks
             self._verify_descriptor_compatible()
             # v1 of the lean_config allows to run the config from the bundle cache.
-            if self._descriptor.get_associated_core_feature_info("bootstrap.lean_config.version", 0) < 1:
+            if (
+                self._descriptor.get_associated_core_feature_info(
+                    "bootstrap.lean_config.version", 0
+                )
+                < 1
+            ):
                 # Old-style config, so copy the contents inside it.
                 self._descriptor.copy(os.path.join(self._path.current_os, "config"))
 
@@ -297,17 +302,15 @@ class CachedConfiguration(Configuration):
             # the config, making it self contained and not requiring additional
             # bundle downloads
             local_bundle_cache_path = os.path.join(
-                self._descriptor.get_config_folder(),
-                constants.BUNDLE_CACHE_FOLDER_NAME
+                self._descriptor.get_config_folder(), constants.BUNDLE_CACHE_FOLDER_NAME
             )
             if os.path.exists(local_bundle_cache_path):
                 log.debug(
                     "Local bundle cache found in config. "
-                    "Adding local bundle cache as fallback path: %s" %
-                    (local_bundle_cache_path,)
+                    "Adding local bundle cache as fallback path: %s"
+                    % (local_bundle_cache_path,)
                 )
-                self._bundle_cache_fallback_paths.append(
-                    local_bundle_cache_path)
+                self._bundle_cache_fallback_paths.append(local_bundle_cache_path)
             else:
                 log.debug("No local bundle cache found in config.")
 
@@ -320,7 +323,7 @@ class CachedConfiguration(Configuration):
                 self._project_id,
                 self._plugin_id,
                 self._bundle_cache_fallback_paths,
-                self._descriptor
+                self._descriptor,
             )
 
             # make sure roots file reflects current paths
@@ -333,7 +336,8 @@ class CachedConfiguration(Configuration):
 
             log.debug(
                 "An exception was raised when trying to install the config descriptor %r. "
-                "Exception traceback details: %s" % (self._descriptor.get_uri(), traceback.format_exc())
+                "Exception traceback details: %s"
+                % (self._descriptor.get_uri(), traceback.format_exc())
             )
 
             # step 1 - clear core and config locations
@@ -349,35 +353,39 @@ class CachedConfiguration(Configuration):
                     "Failed to install configuration %s. Error: %s. "
                     "Cannot continue." % (self._descriptor.get_uri(), e)
                 )
-                raise TankBootstrapError("Configuration could not be installed: %s." % e)
+                raise TankBootstrapError(
+                    "Configuration could not be installed: %s." % e
+                )
 
             else:
                 # ok to restore
 
                 log.error(
                     "Failed to install configuration %s. Will continue with "
-                    "the previous version instead. Error reported: %s" % (self._descriptor.get_uri(), e)
+                    "the previous version instead. Error reported: %s"
+                    % (self._descriptor.get_uri(), e)
                 )
 
                 log.debug("Restoring previous config %s" % config_backup_path)
                 filesystem.copy_folder(
-                    config_backup_path,
-                    os.path.join(self._path.current_os, "config")
+                    config_backup_path, os.path.join(self._path.current_os, "config")
                 )
                 log.debug("Previous config restore complete...")
 
                 log.debug("Restoring previous core %s" % core_backup_path)
                 filesystem.copy_folder(
                     core_backup_path,
-                    os.path.join(self._path.current_os, "install", "core")
+                    os.path.join(self._path.current_os, "install", "core"),
                 )
                 log.debug("Previous core restore complete...")
         else:
             # remove backup folders now that the update has completed successfully
             # note: config_path points at a config folder inside a timestamped
             # backup folder. It's this parent folder we want to clean up.
-            self._cleanup_backup_folders(os.path.dirname(config_backup_path) if config_backup_path else None,
-                                         core_backup_path)
+            self._cleanup_backup_folders(
+                os.path.dirname(config_backup_path) if config_backup_path else None,
+                core_backup_path,
+            )
             log.debug("Latest backup cleanup complete.")
 
         # @todo - prime caches (yaml, path cache)
@@ -405,13 +413,13 @@ class CachedConfiguration(Configuration):
                 Descriptor.CORE,
                 constants.LATEST_CORE_DESCRIPTOR,
                 fallback_roots=self._bundle_cache_fallback_paths,
-                resolve_latest=True
+                resolve_latest=True,
             )
         else:
             # we have an exact core descriptor. Get a descriptor for it
             log.debug(
-                "Config has a specific core defined in core/core_api.yml: %s" %
-                self._descriptor.associated_core_descriptor
+                "Config has a specific core defined in core/core_api.yml: %s"
+                % self._descriptor.associated_core_descriptor
             )
             core_descriptor = self._descriptor.resolve_core_descriptor()
 
@@ -444,7 +452,8 @@ class CachedConfiguration(Configuration):
             features = core_information.get_features_info()
             log.debug(
                 "The core '%s' associated with '%s' has the following feature information:",
-                core_information, self._descriptor
+                core_information,
+                self._descriptor,
             )
             if features:
                 log.debug(pprint.pformat(features))
@@ -454,7 +463,9 @@ class CachedConfiguration(Configuration):
             # Do not let an error in here trip the bootstrap, but do report.
             log.warning(
                 "The core '%s' associated with '%s' couldn't report its features: %s.",
-                core_information, self._descriptor, ex
+                core_information,
+                self._descriptor,
+                ex,
             )
 
     def cache_bundles(self, pipeline_configuration, engine_constraint, progress_cb):
@@ -473,10 +484,15 @@ class CachedConfiguration(Configuration):
 
         if engine_constraint:
             # Download and cache the sole config dependencies needed to run the engine being started,
-            log.debug("caching_policy is CACHE_SPARSE - only check items associated with %s" % engine_constraint)
+            log.debug(
+                "caching_policy is CACHE_SPARSE - only check items associated with %s"
+                % engine_constraint
+            )
         else:
             # download and cache the entire config
-            log.debug("caching_policy is CACHE_FULL - will download all items defined in the config")
+            log.debug(
+                "caching_policy is CACHE_FULL - will download all items defined in the config"
+            )
 
         # Reinitialize the configuration cacher so we use the new swapped core's.
         self._try_initialize_configuration_cacher()
@@ -500,19 +516,34 @@ class CachedConfiguration(Configuration):
         # pass 2 - download all apps
         for idx, descriptor in enumerate(descriptors.values()):
             if not descriptor.exists_local():
-                message = "Downloading %s (%s of %s)..." % (descriptor, idx + 1, len(descriptors))
+                message = "Downloading %s (%s of %s)..." % (
+                    descriptor,
+                    idx + 1,
+                    len(descriptors),
+                )
                 progress_cb(message, idx, len(descriptors))
                 try:
                     self._download_bundle(descriptor)
                 except Exception as e:
-                    log.error("Downloading %r failed to complete successfully. This bundle will be skipped.", e)
+                    log.error(
+                        "Downloading %r failed to complete successfully. This bundle will be skipped.",
+                        e,
+                    )
                     log.exception(e)
             else:
-                message = "Checking %s (%s of %s)." % (descriptor, idx + 1, len(descriptors))
-                log.debug("%s exists locally at '%s'.", descriptor, descriptor.get_path())
+                message = "Checking %s (%s of %s)." % (
+                    descriptor,
+                    idx + 1,
+                    len(descriptors),
+                )
+                log.debug(
+                    "%s exists locally at '%s'.", descriptor, descriptor.get_path()
+                )
                 progress_cb(message, idx, len(descriptors))
 
-    def _cleanup_backup_folders(self, config_backup_folder_path, core_backup_folder_path):
+    def _cleanup_backup_folders(
+        self, config_backup_folder_path, core_backup_folder_path
+    ):
         """
         Cleans up backup folders generated by a call to the update_configuration method
 
@@ -526,7 +557,10 @@ class CachedConfiguration(Configuration):
                     filesystem.safe_delete_folder(path)
                     log.debug("Deleted backup folder: %s", path)
                 except Exception as e:
-                    log.warning("Failed to clean up temporary backup folder '%s': %s" % (path, e))
+                    log.warning(
+                        "Failed to clean up temporary backup folder '%s': %s"
+                        % (path, e)
+                    )
 
     def _try_initialize_configuration_cacher(self):
         """
@@ -537,6 +571,7 @@ class CachedConfiguration(Configuration):
         """
         try:
             from sgtk.bootstrap.bundle_downloader import BundleDownloader
+
             self._bundle_downloader = BundleDownloader(
                 self._sg_connection, self._pipeline_config_id, self._descriptor
             )

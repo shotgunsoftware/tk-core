@@ -10,6 +10,7 @@
 
 # Import Qt without having to worry about the version to use.
 from ..util.qt_importer import QtImporter
+
 importer = QtImporter()
 QtCore = importer.QtCore
 QtGui = importer.QtGui
@@ -25,7 +26,15 @@ class AsyncBootstrapWrapper(QtCore.QObject):
     of an :class:`~sgtk.platform.Engine` instance in the main application thread.
     """
 
-    def __init__(self, toolkit_manager, engine_name, entity, completed_callback, failed_callback, parent=None):
+    def __init__(
+        self,
+        toolkit_manager,
+        engine_name,
+        entity,
+        completed_callback,
+        failed_callback,
+        parent=None,
+    ):
         """
         Initializes an instance of the asynchronous bootstrap wrapper.
 
@@ -64,7 +73,9 @@ class AsyncBootstrapWrapper(QtCore.QObject):
         self._failed_callback = failed_callback
 
         # Create a worker that can bootstrap the toolkit asynchronously in a background thread.
-        self._worker = _BootstrapToolkitWorker(self._toolkit_manager, engine_name, entity)
+        self._worker = _BootstrapToolkitWorker(
+            self._toolkit_manager, engine_name, entity
+        )
 
         # This QThread object will live in the main thread, not in the new thread it will manage.
         self._thread = QtCore.QThread(parent=self)
@@ -121,7 +132,9 @@ class AsyncBootstrapWrapper(QtCore.QObject):
         try:
 
             # Ladies and Gentlemen, start your engines!
-            engine = self._toolkit_manager._start_engine(self._worker.get_sgtk(), self._engine_name, self._entity)
+            engine = self._toolkit_manager._start_engine(
+                self._worker.get_sgtk(), self._engine_name, self._entity
+            )
 
         except Exception as exception:
 

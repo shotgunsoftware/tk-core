@@ -1,0 +1,56 @@
+# Copyright (c) 2019 Shotgun Software Inc.
+#
+# CONFIDENTIAL AND PROPRIETARY
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+# Source Code License included in this distribution package. See LICENSE.
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
+# not expressly granted therein are reserved by Shotgun Software Inc.
+
+# Styles the code properly
+# Exclude the following file types
+# - third party modules (tank_vendor/third_party)
+# - any UI files (ui/*.py)
+# - any images (*.png)
+# - any pickles (*.pickle)
+# - any files that are compared against the output of a tool (test_post_update_new_parser.yml, test_post_update_old_parser.yml, tank_core.txt)
+exclude: "tank_vendor|third_party|ui\/.*py$|\/.*png|\/.*pickle|test_post_update_new_parser.yml|test_post_update_old_parser.yml|tank_core.txt|zip_with_root_folder.txt|zip_with_root_auto_detect.txt"
+# List of super useful formatters.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.4.0
+    hooks:
+    # Ensures the code is syntaxically correct
+    - id: check-ast
+      language_version: python3
+    # Ensures a file name will resolve on all platform
+    - id: check-case-conflict
+    # Checks files with the execute bit set have shebangs
+    #- id: check-executables-have-shebangs
+    # Ensure there's no incomplete merges
+    - id: check-merge-conflict
+    # Adds an empty line if missing at the end of a file.
+    - id: end-of-file-fixer
+      # Windows's batch file processor reads one unbuffered line from the .bat at a time,
+      # which means that if we replace the file while it is being executed, the
+      # processor will pick up at the exact same byte position. This is very bad
+      # for us because `tank core` can update the content of those .bat
+      # files. If we fix the current whitespace issues in those .bat files,
+      # then the parser will start reading "mid-line" into the new file
+      # and give a parsing error. So do not clean up the file!
+      # FIXME: We should update out .bat files so that nothing executes after them
+      # so an update is not dangerous.
+      exclude: "scripts\/tank_cmd.bat|setup\/root_binaries\/tank.bat"
+    # Makes sure requirements.txt is properly formatted
+    - id: requirements-txt-fixer
+    # Removes trailing whitespaces.
+    - id: trailing-whitespace
+      # Same comment as the end-of-file-fixer
+      exclude: "scripts\/tank_cmd.bat|setup\/root_binaries\/tank.bat"
+  # Leave black at the bottom so all touchups are done before it is run.
+  - repo: https://github.com/ambv/black
+    rev: 19.10b0
+    hooks:
+    - id: black
+      language_version: python3

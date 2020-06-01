@@ -15,7 +15,7 @@ frameworks:
 engines:
   # this is a comment after the engines section
     test_included_engine:
-        apps: 
+        apps:
         location: '@engine.location'
 
     incomplete_engine:
@@ -47,6 +47,8 @@ engines:
                 test_hook_self: "{self}/test_hook.py"
                 test_hook_config: "{config}/foo/bar.py"
                 test_hook_engine: "{engine}/foo/bar.py"
+                test_hook_framework: "{test_framework_v1.x.x}/test_hook.py"
+                test_hook_unknown_framework: "{test_framework_v2.x.x}/test_hook.py"
 
                 test_hook_inheritance_1: "{self}/inheritance1.py"
                 test_hook_inheritance_2: "{config}/inherit.py"
@@ -130,5 +132,3 @@ engines:
         apps:
             test_app:
                 location: {'type': 'dev', 'path': 'TEST_APP_LOCATION'}
-
-
