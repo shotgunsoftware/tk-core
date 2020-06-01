@@ -44,6 +44,7 @@ def _initialize_descriptor_factory():
         "github_release", IODescriptorGithubRelease
     )
     IODescriptorBase.register_descriptor_factory("manual", IODescriptorManual)
+    IODescriptorBase.register_descriptor_factory("rez", IODescriptorRez)
 
 
 _initialize_descriptor_factory()
