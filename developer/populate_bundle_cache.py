@@ -160,14 +160,6 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     parser.add_option(
         "-d", "--debug", default=False, action="store_true", help="Enable debug logging"
     )
-    parser.add_option(
-        "-i",
-        "--ignore-descriptor-type",
-        default=["dev", "path"],
-        action="append",
-        help="Descriptor types to ignore. Can be used multiple times",
-        dest="ignore_descriptor_types"
-    )
 
     add_authentication_options(parser)
 
@@ -176,7 +168,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
 
     logger.info("Welcome to the Toolkit bundle cache builder.")
     logger.info("")
-    
+
     if options.debug:
         LogManager().global_debug = True
 

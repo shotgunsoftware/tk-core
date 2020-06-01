@@ -13,8 +13,8 @@ import sys
 import subprocess
 
 from .base import IODescriptorBase
-from tank.errors import TankDescriptorError
-from python import LogManager
+from ..errors import TankDescriptorError
+from tank import LogManager
 
 log = LogManager.get_logger(__name__)
 
