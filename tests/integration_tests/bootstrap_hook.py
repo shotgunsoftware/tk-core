@@ -68,10 +68,20 @@ class BootstrapHookTests(SgtkIntegrationTest):
                 "CustomNonProjectEntity01", {"sg_descriptor": descriptor}
             )
 
-        # Upload the bundle to Shotgun.
-        cls.sg.upload(
-            "CustomNonProjectEntity01", item["id"], temp_zipfile, "sg_content"
-        )
+        for _ in range(5):
+            try:
+                # Upload the bundle to Shotgun.
+                cls.sg.upload(
+                    "CustomNonProjectEntity01", item["id"], temp_zipfile, "sg_content"
+                )
+            except Exception:
+                logger.exception(
+                    "An unexpected exception was raised using the upload of the configuration:"
+                )
+            else:
+                return
+        else:
+            raise RuntimeError("Failed uploading media after 5 retries.")
 
     @classmethod
     def _find_bundle_in_sg(cls, descriptor):
