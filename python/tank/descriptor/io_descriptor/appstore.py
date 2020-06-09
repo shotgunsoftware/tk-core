@@ -425,11 +425,11 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         #  'type': 'Attachment',
         #  'id': 139,
         #  'link_type': 'upload'}
-        attachment_url = version[constants.TANK_CODE_PAYLOAD_FIELD]["url"]
+        attachment_id = version[constants.TANK_CODE_PAYLOAD_FIELD]["id"]
 
         # download and unzip
         try:
-            shotgun.download_and_unpack_url(sg, attachment_url, destination_path)
+            shotgun.download_and_unpack_attachment(sg, attachment_id, destination_path)
         except ShotgunAttachmentDownloadError as e:
             raise TankAppStoreError("Failed to download %s. Error: %s" % (self, e))
 
