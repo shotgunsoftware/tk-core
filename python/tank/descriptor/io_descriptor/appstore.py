@@ -425,11 +425,11 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         #  'type': 'Attachment',
         #  'id': 139,
         #  'link_type': 'upload'}
-        attachment_id = version[constants.TANK_CODE_PAYLOAD_FIELD]["id"]
+        attachment_url = version[constants.TANK_CODE_PAYLOAD_FIELD]["url"]
 
         # download and unzip
         try:
-            shotgun.download_and_unpack_attachment(sg, attachment_id, destination_path)
+            shotgun.download_and_unpack_url(sg, attachment_url, destination_path)
         except ShotgunAttachmentDownloadError as e:
             raise TankAppStoreError("Failed to download %s. Error: %s" % (self, e))
 
@@ -753,12 +753,14 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                 else:
                     raise
 
-            log.debug("Connecting to %s..." % constants.SGTK_APP_STORE)
+            app_store = os.environ.get("SGTK_APP_STORE", constants.SGTK_APP_STORE)
+
+            log.debug("Connecting to %s..." % app_store)
             # Connect to the app store and resolve the script user id we are connecting with.
             # Set the timeout explicitly so we ensure the connection won't hang in cases where
             # a response is not returned in a reasonable amount of time.
             app_store_sg = shotgun_api3.Shotgun(
-                constants.SGTK_APP_STORE,
+                app_store,
                 script_name=script_name,
                 api_key=script_key,
                 http_proxy=self.__get_app_store_proxy_setting(),
