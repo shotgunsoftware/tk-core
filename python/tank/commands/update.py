@@ -676,6 +676,9 @@ class AppUpdatesAction(Action):
         # we come across another instance of the new descriptor we can skip it.
         # We don't add a key based on the original descriptor since there might
         # be multiple instances of the old descriptor that need updating.
+        # Also since we are not storing the original descriptor, if the user chooses
+        # not to update the component they will still be asked again next time
+        # it comes across an instance of it.
         desc_key = self._get_descriptor_dict_lookup(status["latest"])
         self._descriptor_look_up[desc_key] = status
 
