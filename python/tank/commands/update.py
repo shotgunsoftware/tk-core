@@ -679,19 +679,43 @@ class AppUpdatesAction(Action):
         # Also since we are not storing the original descriptor, if the user chooses
         # not to update the component they will still be asked again next time
         # it comes across an instance of it.
-        desc_key = self._get_descriptor_dict_lookup(status["latest"])
+        desc_key = self._get_descriptor_dict_lookup(status["latest"], framework_name)
         self._descriptor_look_up[desc_key] = status
 
         return updated_items
 
-    def _get_descriptor_dict_lookup(self, descriptor):
+    def _get_descriptor_dict_lookup(self, descriptor, framework_name=None):
         """
         Converts the descriptors dictionary into an immutable value that
         can be used as a key in a dictionary.
+        If the framework name is provided it will be added to the returned key. This is important for frameworks
+        since it is possible to have two descriptors that are the same but have different behaviour.
+        For example given the following:
+
+        tk-framework-qtwidgets_v2.9.1:
+            location:
+                type: app_store
+                name: tk-framework-qtwidgets
+                version: v2.9.1
+        tk-framework-qtwidgets_v2.x.x:
+            location:
+                type: app_store
+                name: tk-framework-qtwidgets
+                version: v2.9.1
+
+        One descriptor is already up to date and the other is not so should be updated.
+        However the location descriptor itself is the same in both cases, so we need
+        to include the framework name so that we can distinguish between them.
+
         :param descriptor: Descriptor
+        :param framework_name: str optional framework name.
         :return: frozenset
         """
-        return frozenset(descriptor.get_dict().items())
+
+        desc_dict = descriptor.get_dict()
+        if framework_name:
+            desc_dict["framework_name"] = framework_name
+        return frozenset(desc_dict.items())
 
     def _check_item_update_status(
         self, environment_obj, engine_name=None, app_name=None, framework_name=None
