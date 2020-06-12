@@ -73,6 +73,8 @@ class AppUpdatesAction(Action):
             "type": "bool",
         }
 
+        self._descriptor_look_up = {}
+
     def run_noninteractive(self, log, parameters):
         """
         Tank command API accessor.
@@ -268,6 +270,8 @@ class AppUpdatesAction(Action):
         """
         pc = tk.pipeline_configuration
 
+        self._descriptor_look_up = {}
+
         processed_items = []
 
         if external:
@@ -384,6 +388,7 @@ class AppUpdatesAction(Action):
             d = {}
             d["engine_instance"] = x["engine_name"]
             d["app_instance"] = x["app_name"]
+            d["framework_name"] = x["framework_name"]
             d["environment"] = x["env_name"].name
             d["updated"] = x["was_updated"]
             if x["was_updated"]:
@@ -592,7 +597,9 @@ class AppUpdatesAction(Action):
         item_was_updated = False
         updated_items = []
 
-        if status["can_update"]:
+        if status["skip"]:
+            log.info("Skipping %s as it has already been checked." % status["current"])
+        elif status["can_update"]:
             new_descriptor = status["latest"]
 
             required_framework_updates = self._get_framework_requirements(
@@ -660,10 +667,28 @@ class AppUpdatesAction(Action):
         d["new_descriptor"] = status["latest"]
         d["app_name"] = app_name
         d["engine_name"] = engine_name
+        d["framework_name"] = framework_name
         d["env_name"] = env
 
         updated_items.append(d)
+
+        # Add the new descriptor to the descriptor lookup so that if
+        # we come across another instance of the new descriptor we can skip it.
+        # We don't add a key based on the original descriptor since there might
+        # be multiple instances of the old descriptor that need updating.
+        desc_key = self._get_descriptor_dict_lookup(status["latest"])
+        self._descriptor_look_up[desc_key] = status
+
         return updated_items
+
+    def _get_descriptor_dict_lookup(self, descriptor):
+        """
+        Converts the descriptors dictionary into an immutable value that
+        can be used as a key in a dictionary.
+        :param descriptor: Descriptor
+        :return: frozenset
+        """
+        return frozenset(descriptor.get_dict().items())
 
     def _check_item_update_status(
         self, environment_obj, engine_name=None, app_name=None, framework_name=None
@@ -684,26 +709,38 @@ class AppUpdatesAction(Action):
         """
 
         parent_engine_desc = None
+        version_pattern = None
 
         if framework_name:
             curr_desc = environment_obj.get_framework_descriptor(framework_name)
             # framework_name follows a convention and is on the form 'frameworkname_version',
             # where version is on the form v1.2.3, v1.2.x, v1.x.x
             version_pattern = framework_name.split("_")[-1]
-            # use this pattern as a constraint as we check for updates
-            latest_desc = curr_desc.find_latest_version(version_pattern)
 
         elif app_name:
             curr_desc = environment_obj.get_app_descriptor(engine_name, app_name)
             # for apps, also get the descriptor for their parent engine
             parent_engine_desc = environment_obj.get_engine_descriptor(engine_name)
-            # and get potential upgrades
-            latest_desc = curr_desc.find_latest_version()
 
         else:
             curr_desc = environment_obj.get_engine_descriptor(engine_name)
-            # and get potential upgrades
-            latest_desc = curr_desc.find_latest_version()
+
+        desc_key = self._get_descriptor_dict_lookup(curr_desc)
+        pre_checked_descriptor = self._descriptor_look_up.get(desc_key)
+        if pre_checked_descriptor:
+            # prepare return data
+            data = {}
+            data["current"] = pre_checked_descriptor["current"]
+            data["latest"] = pre_checked_descriptor["latest"]
+            data["out_of_date"] = pre_checked_descriptor["out_of_date"]
+            data["can_update"] = pre_checked_descriptor["can_update"]
+            data["update_status"] = pre_checked_descriptor["update_status"]
+            data["skip"] = True
+
+            return data
+
+        # get potential upgrades
+        latest_desc = curr_desc.find_latest_version(version_pattern)
 
         # out of date check
         out_of_date = latest_desc.version != curr_desc.version
@@ -755,6 +792,7 @@ class AppUpdatesAction(Action):
         data["out_of_date"] = out_of_date
         data["can_update"] = can_update
         data["update_status"] = status
+        data["skip"] = False
 
         return data
 
