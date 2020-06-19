@@ -379,12 +379,15 @@ class SsoSaml2Core(object):
         cookie_jar = self._view.page().networkAccessManager().cookieJar()
 
         # Here, the cookie jar is a dictionary of key/values
-        cookies = SimpleCookie()
+        # cookies = SimpleCookie()
+        cookies = []
 
         for cookie in cookie_jar.allCookies():
-            cookies.load(str(cookie.toRawForm()))
+            self._logger.debug("-> %s", str(cookie.toRawForm()))
+            # cookies.load(str(cookie.toRawForm()))
+            cookies.append("Set-Cookie: %s" % str(cookie.toRawForm()))
 
-        encoded_cookies = _encode_cookies(cookies)
+        encoded_cookies = _encode_cookies("\r\n".join(cookies))
         content = {
             "session_expiration": get_saml_claims_expiration(encoded_cookies),
             "session_id": get_session_id(encoded_cookies),
@@ -432,9 +435,11 @@ class SsoSaml2Core(object):
                 )
                 QtNetwork.QNetworkProxy.setApplicationProxy(proxy)
 
-            cookies = _decode_cookies(self._session.cookies)
+            cookies = _decode_cookies(self._session.cookies).replace("Set-Cookie: ", "")
+            self._logger.debug("Cookies: %s", cookies)
             qt_cookies = QtNetwork.QNetworkCookie.parseCookies(
-                cookies.output(header="")
+                # cookies.output(header="")
+                cookies
             )
 
         self._view.page().networkAccessManager().cookieJar().setAllCookies(qt_cookies)
