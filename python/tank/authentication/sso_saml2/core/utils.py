@@ -63,9 +63,8 @@ def _decode_cookies(encoded_cookies):
 
     :param encoded_cookies: An encoded string representing the cookie jar.
 
-    :returns: A SimpleCookie containing all the cookies.
+    :returns: A string containing all the cookies.
     """
-    # cookies = SimpleCookie()
     decoded_cookies = ""
     if encoded_cookies:
         try:
@@ -74,7 +73,6 @@ def _decode_cookies(encoded_cookies):
                 # If decoded_cookies is not a string, it's likely we're on
                 # Python3, and decoded_cookies is binary.  Try to decode it.
                 decoded_cookies = decoded_cookies.decode()
-            # cookies.load(decoded_cookies)
         except (TypeError, binascii.Error) as e:
             # In Python 2 this raises a TypeError, while in 3 it will raise a
             # binascii.Error.  Catch either and handle them the same.
@@ -86,12 +84,11 @@ def _encode_cookies(cookies):
     """
     Extract the cookies from a base64 encoded string.
 
-    :param cookies: A Cookie.SimpleCookie instance representing the cookie jar.
+    :param cookies: A string representing the serialized cookie jar.
 
     :returns: An encoded string representing the cookie jar.
     """
     PY3 = sys.version_info[0] == 3
-    # output = cookies.output()
     if PY3 and isinstance(cookies, str):
         # On Python 3, encode str to binary before passing it to b64encode.
         cookies = cookies.encode()

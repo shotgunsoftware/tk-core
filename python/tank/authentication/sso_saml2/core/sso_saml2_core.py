@@ -21,14 +21,6 @@ import os
 import sys
 import time
 
-try:
-    # For Python 2/3 compatibility without a dependency on six, we'll just try
-    # to import SimpleCookie as in Python 2...
-    from http.cookies import SimpleCookie
-except ImportError:
-    # and fall back to its Python 3 location if not found.
-    from Cookie import SimpleCookie
-
 from .authentication_session_data import AuthenticationSessionData
 from .errors import (
     SsoSaml2MissingQtCore,
@@ -378,16 +370,13 @@ class SsoSaml2Core(object):
 
         cookie_jar = self._view.page().networkAccessManager().cookieJar()
 
-        # Here, the cookie jar is a dictionary of key/values
-        # cookies = SimpleCookie()
+        # Serializing the cookies in a format compatible with SimpleCookie
+        # to maintain backward compatibility.
         cookies = []
-
         for cookie in cookie_jar.allCookies():
-            self._logger.debug("-> %s", str(cookie.toRawForm()))
-            # cookies.load(str(cookie.toRawForm()))
             cookies.append("Set-Cookie: %s" % str(cookie.toRawForm()))
-
         encoded_cookies = _encode_cookies("\r\n".join(cookies))
+
         content = {
             "session_expiration": get_saml_claims_expiration(encoded_cookies),
             "session_id": get_session_id(encoded_cookies),
@@ -435,12 +424,10 @@ class SsoSaml2Core(object):
                 )
                 QtNetwork.QNetworkProxy.setApplicationProxy(proxy)
 
+            # The session cookies are serialized using a format that must
+            # be readable by SimpleCookie for backward compatibility.
             cookies = _decode_cookies(self._session.cookies).replace("Set-Cookie: ", "")
-            self._logger.debug("Cookies: %s", cookies)
-            qt_cookies = QtNetwork.QNetworkCookie.parseCookies(
-                # cookies.output(header="")
-                cookies
-            )
+            qt_cookies = QtNetwork.QNetworkCookie.parseCookies(cookies)
 
         self._view.page().networkAccessManager().cookieJar().setAllCookies(qt_cookies)
 
