@@ -21,14 +21,6 @@ import os
 import sys
 import time
 
-try:
-    # For Python 2/3 compatibility without a dependency on six, we'll just try
-    # to import SimpleCookie as in Python 2...
-    from http.cookies import SimpleCookie
-except ImportError:
-    # and fall back to its Python 3 location if not found.
-    from Cookie import SimpleCookie
-
 from .authentication_session_data import AuthenticationSessionData
 from .errors import (
     SsoSaml2MissingQtCore,
@@ -378,13 +370,20 @@ class SsoSaml2Core(object):
 
         cookie_jar = self._view.page().networkAccessManager().cookieJar()
 
-        # Here, the cookie jar is a dictionary of key/values
-        cookies = SimpleCookie()
-
+        # WARNING: Serializing the cookies in a format compatible with SimpleCookie
+        # to maintain backward compatibility:
+        #
+        # In the past, we used SimpleCookie as an interim storage for cookies.
+        # This turned out to be a bad decision, since SimpleCookie does not
+        # discriminate based on the Domain. With two cookies with the same name
+        # but different domains, the second overwrites the first.
+        # But the SimpleCookie format is used for storage, thus the need for
+        # backward/forward compatibility
+        cookies = []
         for cookie in cookie_jar.allCookies():
-            cookies.load(str(cookie.toRawForm()))
+            cookies.append("Set-Cookie: %s" % str(cookie.toRawForm()))
+        encoded_cookies = _encode_cookies("\r\n".join(cookies))
 
-        encoded_cookies = _encode_cookies(cookies)
         content = {
             "session_expiration": get_saml_claims_expiration(encoded_cookies),
             "session_id": get_session_id(encoded_cookies),
@@ -432,10 +431,11 @@ class SsoSaml2Core(object):
                 )
                 QtNetwork.QNetworkProxy.setApplicationProxy(proxy)
 
-            cookies = _decode_cookies(self._session.cookies)
-            qt_cookies = QtNetwork.QNetworkCookie.parseCookies(
-                cookies.output(header="")
-            )
+            # WARNING: The session cookies are serialized using a format that
+            # must be readable by SimpleCookie for backward compatibility.
+            # See comment in method update_session_from_browser for details.
+            cookies = _decode_cookies(self._session.cookies).replace("Set-Cookie: ", "")
+            qt_cookies = QtNetwork.QNetworkCookie.parseCookies(cookies)
 
         self._view.page().networkAccessManager().cookieJar().setAllCookies(qt_cookies)
 
