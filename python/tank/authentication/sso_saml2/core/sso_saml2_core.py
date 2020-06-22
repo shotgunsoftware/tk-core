@@ -370,8 +370,15 @@ class SsoSaml2Core(object):
 
         cookie_jar = self._view.page().networkAccessManager().cookieJar()
 
-        # Serializing the cookies in a format compatible with SimpleCookie
-        # to maintain backward compatibility.
+        # WARNING: Serializing the cookies in a format compatible with SimpleCookie
+        # to maintain backward compatibility:
+        #
+        # In the past, we used SimpleCookie as an interim storage for cookies.
+        # This turned out to be a bad decision, since SimpleCookie does not
+        # discriminate based on the Domain. With two cookies with the same name
+        # but different domains, the second overwrites the first.
+        # But the SimpleCookie format is used for storage, thus the need for
+        # backward/forward compatibility
         cookies = []
         for cookie in cookie_jar.allCookies():
             cookies.append("Set-Cookie: %s" % str(cookie.toRawForm()))
@@ -424,8 +431,9 @@ class SsoSaml2Core(object):
                 )
                 QtNetwork.QNetworkProxy.setApplicationProxy(proxy)
 
-            # The session cookies are serialized using a format that must
-            # be readable by SimpleCookie for backward compatibility.
+            # WARNING: The session cookies are serialized using a format that
+            # must be readable by SimpleCookie for backward compatibility.
+            # See comment in method update_session_from_browser for details.
             cookies = _decode_cookies(self._session.cookies).replace("Set-Cookie: ", "")
             qt_cookies = QtNetwork.QNetworkCookie.parseCookies(cookies)
 
