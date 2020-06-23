@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.util.shotgun.download &mdash; tk-core v0.19.10 documentation</title>
+  <title>tank.util.shotgun.download &mdash; tk-core v0.19.11 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.19.10 documentation" href="../../../../index.html"/>
+    <link rel="top" title="tk-core v0.19.11 documentation" href="../../../../index.html"/>
         <link rel="up" title="Module code" href="../../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.10.<br>
+    <b>tk-core</b> v0.19.11.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -350,6 +350,8 @@
 <span class="sd">        the bundle in a subfolder, this should be correctly unfolded.</span>
 <span class="sd">    :raises: ShotgunAttachmentDownloadError on failure</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># NOTE Downloading by attachment ID is deprecated in the Shotgun API.</span>
+    <span class="c1"># We should avoid using this where possible.</span>
     <span class="k">return</span> <span class="n">_download_and_unpack</span><span class="p">(</span>
         <span class="n">sg</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">retries</span><span class="p">,</span> <span class="n">auto_detect_bundle</span><span class="p">,</span> <span class="n">attachment_id</span><span class="o">=</span><span class="n">attachment_id</span>
     <span class="p">)</span></div>
@@ -514,7 +516,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../../',
-            VERSION:'v0.19.10',
+            VERSION:'v0.19.11',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
