@@ -753,12 +753,14 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                 else:
                     raise
 
-            log.debug("Connecting to %s..." % constants.SGTK_APP_STORE)
+            app_store = os.environ.get("SGTK_APP_STORE", constants.SGTK_APP_STORE)
+
+            log.debug("Connecting to %s..." % app_store)
             # Connect to the app store and resolve the script user id we are connecting with.
             # Set the timeout explicitly so we ensure the connection won't hang in cases where
             # a response is not returned in a reasonable amount of time.
             app_store_sg = shotgun_api3.Shotgun(
-                constants.SGTK_APP_STORE,
+                app_store,
                 script_name=script_name,
                 api_key=script_key,
                 http_proxy=self.__get_app_store_proxy_setting(),
