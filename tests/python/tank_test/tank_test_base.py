@@ -140,6 +140,14 @@ def _is_pyside_missing():
 
         return False
     except ImportError:
+        pass
+
+    try:
+        # If PySide2 wasn't found, check for PyQt5
+        import PyQt5  # noqa
+
+        return False
+    except ImportError:
         return True
 
 

@@ -383,7 +383,7 @@ class PySide2Patcher(object):
         cls._patch_QApplication(qt_gui_shim)
         cls._patch_QAbstractItemView(qt_gui_shim)
         cls._patch_QStandardItemModel(qt_gui_shim)
-        if PySide2.__version_info__[0] < 5:
+        if PySide2.__name__ == "PySide2" and PySide2.__version_info__[0] < 5:
             # This patch is not needed in more recent versions of PySide2
             cls._patch_QMessageBox(qt_gui_shim)
         cls._patch_QDesktopServices(qt_gui_shim, qt_core_shim)
