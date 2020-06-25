@@ -127,6 +127,13 @@ class QtImporter(object):
     def qt_version_tuple(self):
         return self._qt_version_tuple
 
+    def _from_import(self, module_name, sub_module_name):
+        module = __import__(module_name, globals(), locals(), [sub_module_name])
+        return getattr(module, sub_module_name)
+
+    def _import(self, module_name):
+        return __import__(module_name, globals(), locals())
+
     def _import_module_by_name(self, parent_module_name, module_name):
         """
         Import a module by its string name.
@@ -135,8 +142,7 @@ class QtImporter(object):
         """
         module = None
         try:
-            module = __import__(parent_module_name, globals(), locals(), [module_name])
-            module = getattr(module, module_name)
+            module = self._from_import(parent_module_name, module_name)
         except Exception as e:
             logger.debug("Unable to import module '%s': %s", module_name, e)
             pass
@@ -180,7 +186,7 @@ class QtImporter(object):
             self._to_version_tuple(QtCore.qVersion()),
         )
 
-    def _import_pyside2(self):
+    def _import_qt5(self, qt_module_name):
         """
         This will be called at initialization to discover every PySide 2 modules.
 
@@ -190,7 +196,7 @@ class QtImporter(object):
         # throw an import error which will be handled by the calling code. Note that PySide2 can be
         # imported even if the Qt binaries are missing, so it's better to try importing QtCore for
         # testing.
-        from PySide2 import QtCore
+        QtCore = self._from_import(qt_module_name, "QtCore")
 
         # List of all Qt 5 modules.
         sub_modules = [
@@ -239,41 +245,46 @@ class QtImporter(object):
         # Testing each module like this individually helps get as many as possible.
         for module_name in sub_modules:
             try:
-                wrapper = __import__("PySide2", globals(), locals(), [module_name])
-                if hasattr(wrapper, module_name):
-                    modules_dict[module_name] = getattr(wrapper, module_name)
+                modules_dict[module_name] = self._from_module(
+                    qt_module_name, globals(), locals(), [module_name]
+                )
             except Exception as e:
                 logger.debug("'%s' was skipped: %s", module_name, e)
                 pass
 
-        import PySide2
+        QtLibrary = self._import(qt_module_name)
 
         return (
-            PySide2.__name__,
-            PySide2.__version__,
-            PySide2,
+            QtLibrary.__name__,
+            QtCore.qVersion(),
+            QtLibrary,
             modules_dict,
             self._to_version_tuple(QtCore.qVersion()),
         )
 
-    def _import_pyside2_as_pyside(self):
+    def _import_qt5_as_qt4(self, qt5_lib_name):
         """
         Imports PySide2.
 
         :returns: The (binding name, binding version, modules) tuple.
         """
-        import PySide2
-        from PySide2 import QtCore, QtGui, QtWidgets
+        QtLibrary = self._import(qt5_lib_name)
+        QtCore = self._from_import(qt5_lib_name, "QtCore")
+        QtGui = self._from_import(qt5_lib_name, "QtGui")
+        QtWidgets = self._from_import(qt5_lib_name, "QtWidgets")
+
         from .pyside2_patcher import PySide2Patcher
 
-        QtCore, QtGui = PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
-        QtNetwork = self._import_module_by_name("PySide2", "QtNetwork")
-        QtWebKit = self._import_module_by_name("PySide2.QtWebKitWidgets", "QtWebKit")
+        QtCore, QtGui = PySide2Patcher.patch(QtCore, QtGui, QtWidgets, QtLibrary)
+        QtNetwork = self._import_module_by_name(qt5_lib_name, "QtNetwork")
+        QtWebKit = self._import_module_by_name(
+            "{0}.QtWebKitWidgets".format(qt5_lib_name), "QtWebKit"
+        )
 
         return (
-            "PySide2",
-            PySide2.__version__,
-            PySide2,
+            qt5_lib_name,
+            QtCore.qVersion(),
+            QtLibrary,
             {
                 "QtCore": QtCore,
                 "QtGui": QtGui,
@@ -348,23 +359,19 @@ class QtImporter(object):
         # First try PySide 2.
         if interface_version_requested == self.QT4:
             try:
-                pyside2 = self._import_pyside2_as_pyside()
+                pyside2 = self._import_qt5_as_qt4("PySide2")
                 logger.debug("Imported PySide2 as PySide.")
                 return pyside2
             except ImportError as e:
                 pass
-        elif interface_version_requested == self.QT5:
+
             try:
-                pyside2 = self._import_pyside2()
-                logger.debug("Imported PySide2.")
-                return pyside2
-            except ImportError:
+                pyqt5 = self._import_qt5_as_qt4("PyQt5")
+                logger.debug("Imported PyQt5 as PySide.")
+                return pyqt5
+            except ImportError as e:
                 pass
 
-        # We do not test for PyQt5 since it is supported on Python 3 only at the moment.
-
-        # Now try PySide 1
-        if interface_version_requested == self.QT4:
             try:
                 pyside = self._import_pyside()
                 logger.debug("Imported PySide1.")
@@ -372,12 +379,24 @@ class QtImporter(object):
             except ImportError:
                 pass
 
-        # Now try PyQt4
-        if interface_version_requested == self.QT4:
             try:
                 pyqt = self._import_pyqt4()
                 logger.debug("Imported PyQt4.")
                 return pyqt
+            except ImportError:
+                pass
+
+        elif interface_version_requested == self.QT5:
+            try:
+                pyside2 = self._import_qt5("PySide2")
+                logger.debug("Imported PySide2.")
+                return pyside2
+            except ImportError:
+                pass
+
+            try:
+                pyqt5 = self._import_qt5("PyQt5")
+                return pyqt5
             except ImportError:
                 pass
 
