@@ -388,4 +388,17 @@ class PySide2Patcher(object):
             cls._patch_QMessageBox(qt_gui_shim)
         cls._patch_QDesktopServices(qt_gui_shim, qt_core_shim)
 
+        # FIXME: This file should probably be renamed qt5lib_patcher.py
+        # and we should have wrappers for it that do PySide2 and PyQt5
+        # specific fixes.
+        if hasattr(QtCore, "pyqtSlot"):
+            qt_core_shim.Slot = QtCore.pyqtSlot
+            qt_core_shim.Signal = QtCore.pyqtSignal
+
+            class QPyTextObject(qt_core_shim.QObject, qt_gui_shim.QTextObjectInterface):
+                pass
+
+            qt_gui_shim.QPyTextObject = QPyTextObject
+            qt_core_shim.__version__ = QtCore.qVersion()
+
         return qt_core_shim, qt_gui_shim

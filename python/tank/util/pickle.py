@@ -33,17 +33,14 @@ def dumps(data):
     This methods wraps the functionality from the :func:`pickle.dumps` method so
     pickles can be shared between Python 2 and Python 3.
 
-    As opposed to the Python 3 implementation, it will return a ``str`` object
-    and not ``bytes`` object.
-
     :param data: The object to pickle and store.
     :returns: A pickled str of the input object.
-    :rtype: str
+    :rtype: bytes
     """
     # Force pickle protocol 0, since this is a non-binary pickle protocol.
     # See https://docs.python.org/2/library/pickle.html#pickle.HIGHEST_PROTOCOL
     # Decode the result to a str before returning.
-    return six.ensure_str(cPickle.dumps(data, **DUMP_KWARGS))
+    return cPickle.dumps(data, **DUMP_KWARGS)
 
 
 def dump(data, fh):
