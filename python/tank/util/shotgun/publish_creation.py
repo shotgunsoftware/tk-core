@@ -33,10 +33,6 @@ from tank_vendor import six
 log = LogManager.get_logger(__name__)
 
 
-def _expand_path(path):
-    return os.path.expanduser(os.path.expandvars(path))
-
-
 def _make_relative(path, root_path):
     return path[len(root_path) :].lstrip("/")
 
@@ -808,7 +804,7 @@ def _calc_path_cache(tk, path):
         # Since environment variables can be found inside a storage path, we need to resolve
         # it's location on this computer so the file that is about to be published
         # can be inserted into the right storage.
-        norm_root_path = _expand_path(root_path_obj.current_os)
+        norm_root_path = ShotgunPath.expand(root_path_obj.current_os)
         print(root_path_obj.current_os, "->", norm_root_path)
         norm_root_path = norm_root_path.replace(os.sep, "/")
 
@@ -847,7 +843,7 @@ def _find_basic_storage(tk, path):
         if not local_storage_path:
             continue
 
-        local_storage_path = _expand_path(local_storage_path)
+        local_storage_path = ShotgunPath.expand(local_storage_path)
 
         # Normalize paths so we can match slashes correctly.
         local_storage_path = ShotgunPath.normalize(local_storage_path)

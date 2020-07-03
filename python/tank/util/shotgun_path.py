@@ -204,6 +204,10 @@ class ShotgunPath(object):
         """
         return cls.from_current_os_path(path).current_os
 
+    @classmethod
+    def expand(cls, path):
+        return os.path.expanduser(os.path.expandvars(path))
+
     def __init__(self, windows_path=None, linux_path=None, macosx_path=None):
         """
         :param windows_path: Path on windows to associate with this path object
