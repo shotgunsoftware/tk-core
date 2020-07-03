@@ -33,6 +33,10 @@ from tank_vendor import six
 log = LogManager.get_logger(__name__)
 
 
+def _expand_path(path):
+    return os.path.expanduser(os.path.expandvars(path))
+
+
 @LogManager.log_timing
 def register_publish(tk, context, path, name, version_number, **kwargs):
     """
@@ -401,7 +405,7 @@ def _create_published_file(
 
     :returns: The result of the shotgun API create method.
     """
-
+    print("_create_published_file", path)
     data = {
         "description": comment,
         "name": name,
@@ -518,6 +522,8 @@ def _create_published_file(
         # to a storage that is associated with this toolkit config.
         root_name, path_cache = _calc_path_cache(tk, path)
 
+        print(root_name, path_cache, path)
+
         if path_cache:
             # there is a toolkit storage mapping defined for this storage
             log.debug(
@@ -583,6 +589,7 @@ def _create_published_file(
             matching_local_storage = False
             for storage in get_cached_local_storages(tk):
                 local_storage_path = ShotgunPath.from_shotgun_dict(storage).current_os
+
                 # assume case preserving file systems rather than case sensitive
                 if local_storage_path and path.lower().startswith(
                     local_storage_path.lower()
@@ -619,6 +626,8 @@ def _create_published_file(
     data = tk.execute_core_hook(
         constants.TANK_PUBLISH_HOOK_NAME, shotgun_data=data, context=context
     )
+
+    print(data)
 
     if dry_run:
         # add the publish type to be as consistent as possible
@@ -808,7 +817,12 @@ def _calc_path_cache(tk, path):
 
         root_path_obj = ShotgunPath.from_current_os_path(root_path)
         # normalize the root path
-        norm_root_path = root_path_obj.current_os.replace(os.sep, "/")
+        # Since environment variables can be found inside a storage path, we need to resolve
+        # it's location on this computer so the file that is about to be published
+        # can be inserted into the right storage.
+        norm_root_path = _expand_path(root_path_obj.current_os)
+        print(root_path_obj.current_os, "->", norm_root_path)
+        norm_root_path = norm_root_path.replace(os.sep, "/")
 
         # append project and normalize
         proj_path = root_path_obj.join(project_disk_name).current_os
