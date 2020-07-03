@@ -672,15 +672,24 @@ class AppUpdatesAction(Action):
 
         updated_items.append(d)
 
-        # Add the new descriptor to the descriptor lookup so that if
-        # we come across another instance of the new descriptor we can skip it.
-        # We don't add a key based on the original descriptor since there might
-        # be multiple instances of the old descriptor that need updating.
-        # Also since we are not storing the original descriptor, if the user chooses
-        # not to update the component they will still be asked again next time
-        # it comes across an instance of it.
-        desc_key = self._get_descriptor_dict_lookup(status["latest"], framework_name)
-        self._descriptor_look_up[desc_key] = status
+        # Add the new and current descriptors to the descriptor lookup so that if
+        # we come across another instance of the new descriptor we can either skip updating it
+        # or at least skip looking up the latest version.
+        # We store the status data as well as whether we updated this descriptor or not.
+
+        current_desc_key = self._get_descriptor_dict_lookup(
+            status["current"], framework_name
+        )
+        if current_desc_key not in self._descriptor_look_up:
+            self._descriptor_look_up[current_desc_key] = (status, item_was_updated)
+
+        # When we store the latest descriptor to the look up we always say it was not updated
+        # so that if we come across it again in a different environment we know to skip it and not update it.
+        new_desc_key = self._get_descriptor_dict_lookup(
+            status["latest"], framework_name
+        )
+        if new_desc_key not in self._descriptor_look_up:
+            self._descriptor_look_up[new_desc_key] = (status, False)
 
         return updated_items
 
@@ -753,8 +762,13 @@ class AppUpdatesAction(Action):
             curr_desc = environment_obj.get_engine_descriptor(engine_name)
 
         desc_key = self._get_descriptor_dict_lookup(curr_desc)
-        pre_checked_descriptor = self._descriptor_look_up.get(desc_key)
-        if pre_checked_descriptor:
+        pre_checked_descriptor, was_updated = self._descriptor_look_up.get(
+            desc_key, (None, False)
+        )
+        if not was_updated and pre_checked_descriptor:
+            # The cached descriptor was not updated when it was found last time so we should skip it this time as well.
+            # Or this descriptor has been updated previously in this same process and we have come across the updated
+            # descriptor, in which case it has already been updated and we can skip it.
             # prepare return data
             data = {}
             data["current"] = pre_checked_descriptor["current"]
@@ -765,9 +779,13 @@ class AppUpdatesAction(Action):
             data["skip"] = True
 
             return data
-
-        # get potential upgrades
-        latest_desc = curr_desc.find_latest_version(version_pattern)
+        elif was_updated and pre_checked_descriptor:
+            # Rather than searching for what the latest descriptor should be, use the cached instance of this descriptor
+            # we found to grab the latest update descriptor.
+            latest_desc = pre_checked_descriptor["latest"]
+        else:
+            # Descriptor has not previously been cached so we should find the latest version.
+            latest_desc = curr_desc.find_latest_version(version_pattern)
 
         # out of date check
         out_of_date = latest_desc.version != curr_desc.version

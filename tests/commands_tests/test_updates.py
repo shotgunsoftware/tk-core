@@ -15,6 +15,7 @@ Unit tests tank updates.
 from __future__ import with_statement
 
 import os
+import sys
 import logging
 
 from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
@@ -91,50 +92,52 @@ class TestSimpleUpdates(TankTestBase):
         command.set_logger(logging.getLogger("/dev/null"))
         results = command.execute({"environment_filter": "simple"})
 
+        # The expected results in this situation are the same between python 2 and 3,
+        # but if the environment is changed with future updates, then this may not be the
+        # case. See `test_update_include` for more details.
+        expected_results = [
+            {
+                "environment": "simple",
+                "app_instance": None,
+                "updated": False,
+                "engine_instance": "tk-test",
+                "framework_name": None,
+            },
+            {
+                "app_instance": "tk-multi-nodep",
+                "updated": True,
+                "engine_instance": "tk-test",
+                "new_version": "v2.0.0",
+                "framework_name": None,
+                "environment": "simple",
+            },
+            {
+                "environment": "simple",
+                "app_instance": None,
+                "updated": False,
+                "engine_instance": None,
+                "framework_name": "tk-framework-test_v1.0.0",
+            },
+            {
+                "app_instance": None,
+                "updated": True,
+                "engine_instance": None,
+                "new_version": "v1.0.1",
+                "framework_name": "tk-framework-test_v1.0.x",
+                "environment": "simple",
+            },
+            {
+                "app_instance": None,
+                "updated": True,
+                "engine_instance": None,
+                "new_version": "v1.1.0",
+                "framework_name": "tk-framework-test_v1.x.x",
+                "environment": "simple",
+            },
+        ]
+
         # Check the results returned by the update command
-        self.assertListEqual(
-            results,
-            [
-                {
-                    "environment": "simple",
-                    "app_instance": None,
-                    "updated": False,
-                    "engine_instance": "tk-test",
-                    "framework_name": None,
-                },
-                {
-                    "app_instance": "tk-multi-nodep",
-                    "updated": True,
-                    "engine_instance": "tk-test",
-                    "new_version": "v2.0.0",
-                    "framework_name": None,
-                    "environment": "simple",
-                },
-                {
-                    "environment": "simple",
-                    "app_instance": None,
-                    "updated": False,
-                    "engine_instance": None,
-                    "framework_name": "tk-framework-test_v1.0.0",
-                },
-                {
-                    "app_instance": None,
-                    "updated": True,
-                    "engine_instance": None,
-                    "new_version": "v1.0.1",
-                    "framework_name": "tk-framework-test_v1.0.x",
-                    "environment": "simple",
-                },
-                {
-                    "app_instance": None,
-                    "updated": True,
-                    "engine_instance": None,
-                    "new_version": "v1.1.0",
-                    "framework_name": "tk-framework-test_v1.x.x",
-                    "environment": "simple",
-                },
-            ],
-        )
+        self.assertListEqual(results, expected_results)
 
         # Make sure we are v2.
         env = InstalledEnvironment(
@@ -212,9 +215,14 @@ class TestIncludeUpdates(TankTestBase):
         # Note that when bundles share location descriptors, the first instance that is found
         # will be updated and then all further instances will be marked as not updated
         # since they were updated when the first on was found.
-        self.assertListEqual(
-            results,
-            [
+
+        # The expected results are actually different between Python versions.
+        # This is because of the order in which the items are read during the update process
+        # being different. Ultimately all items should be updated just the same, but the
+        # reported results will be different since it only reports the first instance
+        # it comes across as being updated, which can be different between Python versions.
+        if sys.version_info.major == 2:
+            expected_results = [
                 {
                     "environment": "updating_included_app",
                     "app_instance": None,
@@ -252,8 +260,49 @@ class TestIncludeUpdates(TankTestBase):
                     "engine_instance": None,
                     "framework_name": "tk-framework-2nd-level-dep_v1.x.x",
                 },
-            ],
-        )
+            ]
+        elif sys.version_info.major == 3:
+            expected_results = [
+                {
+                    "engine_instance": "tk-engine",
+                    "app_instance": None,
+                    "framework_name": None,
+                    "environment": "updating_included_app",
+                    "updated": False,
+                },
+                {
+                    "engine_instance": "tk-engine",
+                    "app_instance": "tk-multi-app",
+                    "framework_name": None,
+                    "environment": "updating_included_app",
+                    "updated": True,
+                    "new_version": "v2.0.0",
+                },
+                {
+                    "engine_instance": "tk-engine",
+                    "app_instance": "tk-multi-app2",
+                    "framework_name": None,
+                    "environment": "updating_included_app",
+                    "updated": False,
+                },
+                {
+                    "engine_instance": "tk-engine",
+                    "app_instance": "tk-multi-app3",
+                    "framework_name": None,
+                    "environment": "updating_included_app",
+                    "updated": True,
+                    "new_version": "v2.0.0",
+                },
+                {
+                    "engine_instance": None,
+                    "app_instance": None,
+                    "framework_name": "tk-framework-2nd-level-dep_v1.x.x",
+                    "environment": "updating_included_app",
+                    "updated": False,
+                },
+            ]
+
+        self.assertListEqual(results, expected_results)
 
         # Reload env
         env = self._get_env("updating_included_app")
@@ -290,7 +339,7 @@ class TestIncludeUpdates(TankTestBase):
         in them. In other words, new frameworks that are installed need to be added as close
         as possible as the bundles that depend on them. This is what this test ensures.
         """
-        # The 2nd level dependency is initialially available from the main environment file.
+        # The 2nd level dependency is initially available from the main environment file.
         env = self._get_env("updating_included_app")
         _, file_path = env.find_location_for_framework(
             "tk-framework-2nd-level-dep_v1.x.x"
