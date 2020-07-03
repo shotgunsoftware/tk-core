@@ -37,6 +37,10 @@ def _expand_path(path):
     return os.path.expanduser(os.path.expandvars(path))
 
 
+def _make_relative(path, root_path):
+    return path[len(root_path) :].lstrip("/")
+
+
 @LogManager.log_timing
 def register_publish(tk, context, path, name, version_number, **kwargs):
     """
@@ -579,32 +583,16 @@ def _create_published_file(
             data["path_cache"] = path_cache
 
         else:
+            # The file wasn't found under one of the Toolkit project roots.
+            # Look in all other roots.
+            storage, relative_path = _find_basic_storage(tk, path)
 
-            # path does not map to any configured root - fall back gracefully:
-            # 1. look for storages in Shotgun and see if we can create a local path
-            # 2. failing that, just register the entry as a file:// resource.
-            log.debug("Path '%s' does not have an associated config root." % path)
-            log.debug("Will check shotgun local storages to see if there is a match.")
-
-            matching_local_storage = False
-            for storage in get_cached_local_storages(tk):
-                local_storage_path = ShotgunPath.from_shotgun_dict(storage).current_os
-
-                # assume case preserving file systems rather than case sensitive
-                if local_storage_path and path.lower().startswith(
-                    local_storage_path.lower()
-                ):
-                    log.debug(
-                        "Path matches Shotgun local storage '%s'" % storage["code"]
-                    )
-                    matching_local_storage = True
-                    break
-
-            if matching_local_storage:
-                # there is a local storage matching this path
-                # so use that when publishing
-                data["path"] = {"local_path": path}
-
+            if storage:
+                # We found the file under one of the many storages
+                data["path"] = {
+                    "relative_path": relative_path,
+                    "local_storage": storage,
+                }
             else:
                 # no local storage defined so publish as a file:// url
                 log.debug(
@@ -833,7 +821,7 @@ def _calc_path_cache(tk, path):
 
             # Remove parent dir plus "/" - be careful to handle the case where
             # the parent dir ends with a '/', e.g. 'T:/' for a Windows drive
-            path_cache = norm_path[len(norm_root_path) :].lstrip("/")
+            path_cache = _make_relative(norm_path, norm_path_root)
             log.debug(
                 "Split up path '%s' into storage %s and relative path '%s'"
                 % (path, root_name, path_cache)
@@ -842,6 +830,39 @@ def _calc_path_cache(tk, path):
 
     # not found, return None values
     log.debug("Unable to split path '%s' into a storage and a relative path." % path)
+    return None, None
+
+
+def _find_basic_storage(tk, path):
+    # We couldn't find a storage based for the storages configured with this project
+    # and the project's tank_name.
+    # We going to cast a wider net now and just look under every storage.
+
+    log.debug("Path '%s' does not have an associated config root." % path)
+    log.debug("Will check shotgun local storages to see if there is a match.")
+
+    for storage in get_cached_local_storages(tk):
+        local_storage_path = ShotgunPath.from_shotgun_dict(storage).current_os
+
+        if not local_storage_path:
+            continue
+
+        local_storage_path = _expand_path(local_storage_path)
+
+        # Normalize paths so we can match slashes correctly.
+        local_storage_path = ShotgunPath.normalize(local_storage_path)
+        path = ShotgunPath.normalize(path)
+
+        print(path, local_storage_path)
+
+        # assume case preserving file systems rather than case sensitive
+        # FIXME: Here we should replicate the same behaviour as in Shotgun,
+        # i.e. we should match the longest storage path instead of matching
+        # just any path.
+        if path.lower().startswith(local_storage_path.lower()):
+            log.debug("Path matches Shotgun local storage '%s'" % storage["code"])
+
+            return storage, _make_relative(path, local_storage_path)
     return None, None
 
 
