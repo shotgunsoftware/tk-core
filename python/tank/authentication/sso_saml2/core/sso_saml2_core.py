@@ -70,6 +70,12 @@ SHOTGUN_SSO_RENEWAL_INTERVAL = 5000
 # inject prior to running the IdP code.
 # The reference for this code is:
 #     https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind#Polyfill
+#
+# The redefinition of Array.prototype.splice was required following an update to
+# the Okta Sign-In Widget (version 4.2.0) in which Babel did not re-define splice
+# to be up to the latest definition. Not clear if it is a Babel bug or not. But
+# redefining the method the way we do triggers Babel to use the updated version.
+# Given our redefinition, we ensure that the original version is called if needed.
 FUNCTION_PROTOTYPE_BIND_POLYFILL = """
     // Yes, it does work with `new funcA.bind(thisArg, args)`
     if (!Function.prototype.bind) (function(){
@@ -102,6 +108,14 @@ FUNCTION_PROTOTYPE_BIND_POLYFILL = """
         return fBound;
       };
     })();
+
+    // Simply create an alias of splice. This will trigger Babel
+    // into polyfilling using a more recent version. Otherwise,
+    // the original Qt4 WebKit version is used.
+    Array.prototype.splice_copy = Array.prototype.splice;
+    Array.prototype.splice = function() {
+        return this.splice_copy.apply(this, arguments);
+    }
 """
 
 
@@ -603,7 +617,7 @@ class SsoSaml2Core(object):
         frame = self._view.page().currentFrame()
         frame.evaluateJavaScript(FUNCTION_PROTOTYPE_BIND_POLYFILL)
         self._logger.debug(
-            "Injected polyfill JavaScript code for Function.prototype.bind"
+            "Injected polyfill JavaScript code for Function.prototype.bind and Array.prototype.splice"
         )
 
     def on_load_finished(self, _succeeded):
