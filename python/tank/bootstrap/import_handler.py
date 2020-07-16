@@ -8,12 +8,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import imp
 import uuid
 import os
 import sys
 import warnings
+
 from .. import LogManager
+from ..util import import_module_from_spec, find_spec, Lock
 
 log = LogManager.get_logger(__name__)
 
@@ -27,8 +28,9 @@ class CoreImportHandler(object):
     path can be set via `set_core_path` to alter the location of existing and
     future core imports.
 
-    For more information on custom import hooks, see PEP 302:
+    For more information on custom import hooks, see PEP 302 and now 451 (Python 3 changes):
         https://www.python.org/dev/peps/pep-0302/
+        https://www.python.org/dev/peps/pep-0451/
 
     """
 
@@ -62,9 +64,8 @@ class CoreImportHandler(object):
 
         # make sure that this entire operation runs inside the import thread lock
         # in order to not cause any type of cross-thread confusion during the swap
-        imp.acquire_lock()
-
-        try:
+        lock = Lock()
+        with lock:
             handler._swap_core(core_path)
 
             # because we are swapping out the code that we are currently running, Python is
@@ -99,9 +100,6 @@ class CoreImportHandler(object):
                 warnings.filters = original_filters
 
             log.debug("...import complete")
-
-        finally:
-            imp.release_lock()
 
         # and re-init our disk logging based on the new code
         # access it from the new tank instance to ensure we get the new code
@@ -174,9 +172,8 @@ class CoreImportHandler(object):
 
         # acquire a lock to prevent issues with other
         # threads importing at the same time.
-        imp.acquire_lock()
-
-        try:
+        lock = Lock()
+        with lock:
 
             # sort by package depth, deeper modules first
             module_names = sorted(
@@ -229,13 +226,12 @@ class CoreImportHandler(object):
             self._module_info = {}
             self._core_path = core_path
 
-        finally:
-            # release the lock so that other threads can continue importing from
-            # the new core location.
-            imp.release_lock()
-
+    # TODO replace find_module with find_spec for Python 3.4
     def find_module(self, module_fullname, package_path=None):
-        """Locates the given module in the current core.
+        """
+        * Deprecated since Python 3.4 *
+
+        Locates the given module in the current core.
 
         This method is part of the custom import handler interface contract.
 
@@ -307,8 +303,18 @@ class CoreImportHandler(object):
             #
             # If this find is successful, we'll need the info in order
             # to load it later.
-            module_info = imp.find_module(module_name, package_path)
-            self._module_info[module_fullname] = module_info
+
+            # TODO: handle both py2 imp and py3 import lib approaches
+            if len(package_path) == 0:
+                # There were no paths in the package_path so fall back to regular import.
+                return None
+
+            spec = find_spec(module_fullname, package_path)
+
+            # module_info = imp.find_module(module_name, package_path)
+            # self._module_info[module_fullname] = module_info
+            self._module_info[module_fullname] = spec
+
         except ImportError:
             # no module found, fall back to regular import
             return None
@@ -316,8 +322,12 @@ class CoreImportHandler(object):
         # since this object is also the "loader" return itself
         return self
 
+    # TODO replace load_module with create_module and exec_module for Python 3.4
     def load_module(self, module_fullname):
-        """Custom loader.
+        """
+        * Deprecated since Python 3.4 *
+
+        Custom loader.
 
         Called by python if the find_module was successful.
 
@@ -333,15 +343,20 @@ class CoreImportHandler(object):
         """
         file_obj = None
         try:
+            # TODO: handle both py2 imp and py3 import lib approaches
             # retrieve the found module info
-            (file_obj, filename, desc) = self._module_info[module_fullname]
+            spec = self._module_info[module_fullname]
+            # file_obj, filename, desc = self._module_info[module_fullname]
 
             # uncomment for lots of import related debug :)
             # log.debug("Custom load module! %s [%s]" % (module_fullname, filename))
 
             # attempt to load the module. if this fails, allow it to raise
             # the usual `ImportError`
-            module = imp.load_module(module_fullname, file_obj, filename, desc)
+            print("loading %s" % module_fullname)
+
+            module = import_module_from_spec(spec)
+            # module = imp.load_module(module_fullname, file_obj, filename, desc)
         finally:
             # as noted in the imp.load_module docs, must close the file handle.
             if file_obj:

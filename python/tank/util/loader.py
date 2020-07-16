@@ -23,6 +23,8 @@ from .. import LogManager
 
 log = LogManager.get_logger(__name__)
 
+from .import_util import Lock, load_source
+
 
 class TankLoadPluginError(TankError):
     """
@@ -54,28 +56,28 @@ def load_plugin(plugin_file, valid_base_class, alternate_base_classes=None):
 
     module_uid = uuid.uuid4().hex
     module = None
-    try:
-        imp.acquire_lock()
-        module = imp.load_source(module_uid, plugin_file)
-    except Exception:
-        # log the full callstack to make sure that whatever the
-        # calling code is doing, this error is logged to help
-        # with troubleshooting and support
-        log.exception("Cannot load plugin file '%s'" % plugin_file)
 
-        # dump out the callstack for this one -- to help people get good messages when there is a plugin error
-        (exc_type, exc_value, exc_traceback) = sys.exc_info()
-        message = ""
-        message += (
-            "Failed to load plugin %s. The following error was reported:\n"
-            % plugin_file
-        )
-        message += "Exception: %s - %s\n" % (exc_type, exc_value)
-        message += "Traceback (most recent call last):\n"
-        message += "\n".join(traceback.format_tb(exc_traceback))
-        raise TankLoadPluginError(message)
-    finally:
-        imp.release_lock()
+    lock = Lock()
+    with lock:
+        try:
+            module = load_source(module_uid, plugin_file)
+        except Exception:
+            # log the full callstack to make sure that whatever the
+            # calling code is doing, this error is logged to help
+            # with troubleshooting and support
+            log.exception("Cannot load plugin file '%s'" % plugin_file)
+
+            # dump out the callstack for this one -- to help people get good messages when there is a plugin error
+            (exc_type, exc_value, exc_traceback) = sys.exc_info()
+            message = ""
+            message += (
+                "Failed to load plugin %s. The following error was reported:\n"
+                % plugin_file
+            )
+            message += "Exception: %s - %s\n" % (exc_type, exc_value)
+            message += "Traceback (most recent call last):\n"
+            message += "\n".join(traceback.format_tb(exc_traceback))
+            raise TankLoadPluginError(message)
 
     # cool, now validate the module
     found_classes = list()

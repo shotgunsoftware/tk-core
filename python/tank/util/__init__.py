@@ -47,3 +47,11 @@ from .errors import PublishPathNotDefinedError, PublishPathNotSupported
 from .user_settings import UserSettings
 
 from .storage_roots import StorageRoots
+
+from .import_util import (
+    import_module_from_path,
+    import_module_from_spec,
+    find_spec,
+    Lock,
+    load_source,
+)
