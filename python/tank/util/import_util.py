@@ -1,10 +1,8 @@
 import os
 import sys
 
-from tank_vendor import six
 
-# TODO: this check should probably be for py3.4
-if six.PY3:
+if sys.version_info >= (3, 4):
     import importlib
 
     imp = None
@@ -19,18 +17,6 @@ else:
 
         def __exit__(self, type, value, traceback):
             imp.release_lock()
-
-
-def find_spec(name, paths):
-    if "." in name:
-        _, _, module_name = name.rpartition(".")
-    else:
-        module_name = name
-
-    for a_path in paths:
-        spec = _get_spec(name, os.path.join(a_path, module_name))
-        if spec:
-            return spec
 
 
 def _get_spec(name, path):
@@ -74,14 +60,35 @@ def _get_spec(name, path):
             return importlib.util.spec_from_file_location(name, file_path)
 
 
-def import_module_from_path(name, path, package=False):
-    # if package:
-    #     imp.load_module(
-    #         name, None, path, ("", "", imp.PKG_DIRECTORY)
-    #     )
+def find_spec(name, paths):
+    if "." in name:
+        _, _, module_name = name.rpartition(".")
+    else:
+        module_name = name
 
-    spec = _get_spec(name, path)
-    return import_module_from_spec(spec)
+    for a_path in paths:
+        spec = _get_spec(name, os.path.join(a_path, module_name))
+        if spec:
+            return spec
+
+
+def import_module_from_path(name, path, module_info=False):
+    if imp:
+        # FIXME: this feels ugly
+        if module_info:
+            mfile, pathname, description = module_info
+        else:
+            mfile, pathname, description = imp.find_module(name, [path])
+
+        try:
+            module = imp.load_module(name, mfile, pathname, description)
+        finally:
+            if mfile:
+                mfile.close()
+        return module
+    else:
+        spec = _get_spec(name, path)
+        return import_module_from_spec(spec)
 
 
 def load_source(name, file):

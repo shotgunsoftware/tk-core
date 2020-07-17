@@ -459,7 +459,11 @@ class TankBundle(object):
                 # alias the python folder with a UID to ensure it is unique every time it is imported
                 self.__module_uid = "tkimp%s" % uuid.uuid4().hex
 
-                import_module_from_path(self.__module_uid, python_folder, package=True)
+                import_module_from_path(
+                    self.__module_uid,
+                    python_folder,
+                    module_info=(None, python_folder, ("", "", 5)),
+                )
 
             # we can now find our actual module in sys.modules as GUID.module_name
             mod_name = "%s.%s" % (self.__module_uid, module_name)

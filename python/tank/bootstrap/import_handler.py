@@ -13,6 +13,10 @@ import os
 import sys
 import warnings
 
+if sys.version_info < (3, 4):
+    # This is deprecated in 3.4 and above.
+    import imp
+
 from .. import LogManager
 from ..util import import_module_from_spec, find_spec, Lock
 
@@ -292,9 +296,6 @@ class CoreImportHandler(object):
             # current core's root path.
             package_path = [self._core_path]
 
-        # module path without the target module name
-        module_name = module_path_parts.pop()
-
         try:
             # find the module and store its info in a lookup based on the
             # full module name. The module info is a tuple of the form:
@@ -309,11 +310,17 @@ class CoreImportHandler(object):
                 # There were no paths in the package_path so fall back to regular import.
                 return None
 
-            spec = find_spec(module_fullname, package_path)
+            if sys.version_info < (3, 4):
+                # module path without the target module name
+                module_name = module_path_parts.pop()
+                module_info = imp.find_module(module_name, package_path)
+                self._module_info[module_fullname] = module_info
+            else:
+                module_info = find_spec(module_fullname, package_path)
 
             # module_info = imp.find_module(module_name, package_path)
             # self._module_info[module_fullname] = module_info
-            self._module_info[module_fullname] = spec
+            self._module_info[module_fullname] = module_info
 
         except ImportError:
             # no module found, fall back to regular import
@@ -343,20 +350,21 @@ class CoreImportHandler(object):
         """
         file_obj = None
         try:
-            # TODO: handle both py2 imp and py3 import lib approaches
             # retrieve the found module info
-            spec = self._module_info[module_fullname]
-            # file_obj, filename, desc = self._module_info[module_fullname]
+            print("loading %s" % module_fullname)
+            if sys.version_info < (3, 4):
+                file_obj, filename, desc = self._module_info[module_fullname]
+                module = imp.load_module(module_fullname, file_obj, filename, desc)
+            else:
+                spec = self._module_info[module_fullname]
+                module = import_module_from_spec(spec)
 
             # uncomment for lots of import related debug :)
             # log.debug("Custom load module! %s [%s]" % (module_fullname, filename))
 
             # attempt to load the module. if this fails, allow it to raise
             # the usual `ImportError`
-            print("loading %s" % module_fullname)
 
-            module = import_module_from_spec(spec)
-            # module = imp.load_module(module_fullname, file_obj, filename, desc)
         finally:
             # as noted in the imp.load_module docs, must close the file handle.
             if file_obj:
