@@ -22,6 +22,7 @@ import subprocess
 import webbrowser
 
 from .. import constants
+from .import_util import new_module
 from .platforms import is_linux, is_macos, is_windows
 
 
@@ -363,8 +364,9 @@ class PySide2Patcher(object):
         :param QtGui: The QtGui module.
         :param QtWidgets: The QtWidgets module.
         """
-        qt_core_shim = imp.new_module("PySide.QtCore")
-        qt_gui_shim = imp.new_module("PySide.QtGui")
+
+        qt_core_shim = new_module("PySide.QtCore")
+        qt_gui_shim = new_module("PySide.QtGui")
 
         # Move everything from QtGui and QtWidgets unto the QtGui shim since
         # they belonged there in Qt 4.

@@ -114,3 +114,11 @@ def import_module_from_spec(spec):
 
     spec.loader.exec_module(module)
     return module
+
+
+def new_module(name):
+    if imp:
+        return imp.new_module(name)
+    else:
+        spec = importlib.util.spec_from_loader(name, loader=None)
+        return importlib.util.module_from_spec(spec)

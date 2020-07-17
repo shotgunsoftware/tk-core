@@ -14,7 +14,6 @@ Methods for loading and managing plugins, e.g. Apps, Engines, Hooks etc.
 """
 
 import sys
-import imp
 import traceback
 import inspect
 
