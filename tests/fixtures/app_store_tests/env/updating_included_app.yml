@@ -6,6 +6,8 @@ engines:
   tk-engine:
     apps:
       tk-multi-app: "@app"
+      tk-multi-app2: "@app"
+      tk-multi-app3: "@app3"
     location: {"type": "app_store", "version": "v1.0.0", "name": "tk-engine"}
 
 frameworks:

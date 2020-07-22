@@ -1,3 +1,6 @@
 
 app:
   location: {"type": "app_store", "version": "v1.0.0", "name": "tk-multi-app"}
+
+app3:
+  location: {"type": "app_store", "version": "v1.0.0", "name": "tk-multi-app"}
