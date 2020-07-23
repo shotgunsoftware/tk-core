@@ -359,7 +359,7 @@ class Hook(object):
     @property
     def logger(self):
         """
-        Standard python logger handle for this hook.
+        Standard python :class:`~logging.Logger` handle for this hook.
 
         The logger can be used to report
         progress back to the app in a standardized fashion
