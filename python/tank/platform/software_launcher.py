@@ -245,7 +245,7 @@ class SoftwareLauncher(object):
     @property
     def logger(self):
         """
-        :class:`logging.Logger` for this launcher. Use this whenever you want to emit or process log messages.
+        :class:`~logging.Logger` for this launcher. Use this whenever you want to emit or process log messages.
         """
         return LogManager.get_logger(
             "env.%s.%s.startup" % (self.__environment.name, self.__engine_name)

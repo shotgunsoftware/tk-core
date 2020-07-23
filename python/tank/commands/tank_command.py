@@ -341,7 +341,7 @@ class SgtkSystemCommand(object):
     @property
     def logger(self):
         """
-        The python logger associated with this tank command
+        The python :class:`~logging.Logger` associated with this tank command
         """
         return self.__log
 

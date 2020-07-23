@@ -23,6 +23,7 @@ from collections import deque
 from threading import Event, Thread, Lock
 import platform
 from tank_vendor.six.moves import urllib
+from tank_vendor import six
 from copy import deepcopy
 
 from . import constants, sgre as re
@@ -32,6 +33,16 @@ from tank_vendor import shotgun_api3, six
 
 json = shotgun_api3.shotgun.json
 
+# From Python 3.8 and later, platform.linux_distribution has been removed,
+# so we need something else. Fortunately, the functionality was preserved
+# as the distro package on pypi.org. Given that the functionality is
+# equivalent between the two, we'll use distro for every version of Python 3.
+# As for Python 2, we need to keep using platform as distro is Python 2.7+
+# compliant only.
+if six.PY2:
+    import platform as distro
+else:
+    from tank_vendor import distro
 
 ###############################################################################
 
@@ -86,12 +97,12 @@ class PlatformInfo(object):
 
         try:
             # Get the distributon name and capitalize word(s) (e.g.: Ubuntu, Red Hat)
-            distro = platform.linux_distribution()[0].title()
-            raw_version_str = platform.linux_distribution()[1]
+            distribution = six.ensure_str(distro.linux_distribution()[0].title())
+            raw_version_str = six.ensure_str(distro.linux_distribution()[1])
 
             # For Linux we really just want the 'major' version component
             major_version_str = re.findall(r"\d*", raw_version_str)[0]
-            os_version = "%s %s" % (distro, major_version_str)
+            os_version = "%s %s" % (distribution, major_version_str)
 
         except:
             pass
