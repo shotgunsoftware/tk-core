@@ -339,7 +339,13 @@ class Configuration(object):
         if not project_user:
             try:
                 # Try to deserialize the bootstrap user.
-                project_user = deserialize_user(serialized_user)
+                # Note that the RVUser does not currently support
+                # serialization so we'll default to use the current user.
+                # For reference: SG-13315
+                if bootstrap_user.impl.__class__.__name__ == "RVUserImpl":
+                    project_user = bootstrap_user
+                else:
+                    project_user = deserialize_user(serialized_user)
             except Exception:
                 log.exception(
                     "Couldn't deserialize the user object with the new core API. "
