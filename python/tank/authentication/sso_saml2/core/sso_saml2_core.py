@@ -491,9 +491,6 @@ class SsoSaml2Core(object):
         """
         self._logger.debug("Updating session cookies from browser")
 
-        # WARNING: Serializing the cookies in a format compatible with SimpleCookie
-        # to maintain backward compatibility:
-        #
         # In the past, we used SimpleCookie as an interim storage for cookies.
         # This turned out to be a bad decision, since SimpleCookie does not
         # discriminate based on the Domain. With two cookies with the same name
@@ -502,7 +499,12 @@ class SsoSaml2Core(object):
         # backward/forward compatibility
         cookies = []
         for cookie in self._cookie_jar.allCookies():
-            cookies.append("Set-Cookie: %s" % str(cookie.toRawForm(), "utf-8"))
+            cookie = cookie.toRawForm().data()
+
+            # In Python3, the data is of class bytes, not string.
+            if type(cookie) is not str:
+                cookie = cookie.decode()
+            cookies.append(cookie)
         encoded_cookies = _encode_cookies("\r\n".join(cookies))
 
         content = {
@@ -555,7 +557,7 @@ class SsoSaml2Core(object):
             # WARNING: The session cookies are serialized using a format that
             # must be readable by SimpleCookie for backward compatibility.
             # See comment in method update_session_from_browser for details.
-            cookies = _decode_cookies(self._session.cookies).replace("Set-Cookie: ", "")
+            cookies = _decode_cookies(self._session.cookies)
             qt_cookies = QtNetwork.QNetworkCookie.parseCookies(cookies.encode())
 
         # Given that QWebEngineCookieStore.setCookie is not yet exposed to

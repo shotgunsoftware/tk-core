@@ -79,6 +79,11 @@ def _decode_cookies(encoded_cookies):
             # In Python 2 this raises a TypeError, while in 3 it will raise a
             # binascii.Error.  Catch either and handle them the same.
             get_logger().error("Unable to decode the cookies: %s", str(e))
+    # Should the decoded cookies be used with SimpleCookie, we strip out the
+    # 'Set-Cookie: ' prefix to maintain Python2 and Python3 compatibility.
+    # It turns out that the regex to parse cookies has change in SimpleCookie
+    # in Python3, causing problems when the prefix was present.
+    decoded_cookies = decoded_cookies.replace("Set-Cookie: ", "")
     return decoded_cookies
 
 
@@ -145,7 +150,7 @@ def _get_cookie(encoded_cookies, cookie_name):
     """
     value = None
     cookies = SimpleCookie()
-    cookies.load(_decode_cookies(encoded_cookies).replace("Set-Cookie: ", ""))
+    cookies.load(_decode_cookies(encoded_cookies))
     if cookie_name in cookies:
         value = cookies[cookie_name].value
     return value
@@ -162,7 +167,7 @@ def _get_cookie_from_prefix(encoded_cookies, cookie_prefix):
     """
     value = None
     cookies = SimpleCookie()
-    cookies.load(_decode_cookies(encoded_cookies).replace("Set-Cookie: ", ""))
+    cookies.load(_decode_cookies(encoded_cookies))
     key = "%s%s" % (cookie_prefix, _get_shotgun_user_id(cookies))
     if key in cookies:
         value = cookies[key].value
@@ -261,7 +266,7 @@ def get_session_id(encoded_cookies):
     """
     session_id = None
     cookies = SimpleCookie()
-    cookies.load(_decode_cookies(encoded_cookies).replace("Set-Cookie: ", ""))
+    cookies.load(_decode_cookies(encoded_cookies))
     key = "_session_id"
     if key in cookies:
         session_id = cookies[key].value
@@ -290,7 +295,7 @@ def get_csrf_key(encoded_cookies):
     :returns: A string with the csrf token name
     """
     cookies = SimpleCookie()
-    cookies.load(_decode_cookies(encoded_cookies).replace("Set-Cookie: ", ""))
+    cookies.load(_decode_cookies(encoded_cookies))
     # Shotgun appends the unique numerical ID of the user to the cookie name:
     # ex: csrf_token_u78
     return "csrf_token_u%s" % _get_shotgun_user_id(cookies)
