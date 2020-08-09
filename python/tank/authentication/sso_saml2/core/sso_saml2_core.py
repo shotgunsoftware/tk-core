@@ -502,7 +502,7 @@ class SsoSaml2Core(object):
         # backward/forward compatibility
         cookies = []
         for cookie in self._cookie_jar.allCookies():
-            cookies.append("Set-Cookie: %s" % str(cookie.toRawForm()))
+            cookies.append("Set-Cookie: %s" % str(cookie.toRawForm(), "utf-8"))
         encoded_cookies = _encode_cookies("\r\n".join(cookies))
 
         content = {
@@ -556,7 +556,7 @@ class SsoSaml2Core(object):
             # must be readable by SimpleCookie for backward compatibility.
             # See comment in method update_session_from_browser for details.
             cookies = _decode_cookies(self._session.cookies).replace("Set-Cookie: ", "")
-            qt_cookies = QtNetwork.QNetworkCookie.parseCookies(cookies)
+            qt_cookies = QtNetwork.QNetworkCookie.parseCookies(cookies.encode())
 
         # Given that QWebEngineCookieStore.setCookie is not yet exposed to
         # PySide2, we need to rely on the profile for cookie persistency as

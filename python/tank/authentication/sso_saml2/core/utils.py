@@ -24,8 +24,10 @@ import urllib
 # fail.
 try:
     import urlparse
+    from urllib import unquote
 except ImportError:
     import urllib.parse as urlparse
+    from urllib.parse import unquote
 try:
     from http.cookies import SimpleCookie
 except ImportError:
@@ -143,7 +145,7 @@ def _get_cookie(encoded_cookies, cookie_name):
     """
     value = None
     cookies = SimpleCookie()
-    cookies.load(_decode_cookies(encoded_cookies))
+    cookies.load(_decode_cookies(encoded_cookies).replace("Set-Cookie: ", ""))
     if cookie_name in cookies:
         value = cookies[cookie_name].value
     return value
@@ -160,7 +162,7 @@ def _get_cookie_from_prefix(encoded_cookies, cookie_prefix):
     """
     value = None
     cookies = SimpleCookie()
-    cookies.load(_decode_cookies(encoded_cookies))
+    cookies.load(_decode_cookies(encoded_cookies).replace("Set-Cookie: ", ""))
     key = "%s%s" % (cookie_prefix, _get_shotgun_user_id(cookies))
     if key in cookies:
         value = cookies[key].value
@@ -245,7 +247,7 @@ def get_user_name(encoded_cookies):
         encoded_cookies, "shotgun_current_user_login"
     ) or _get_cookie_from_prefix(encoded_cookies, "shotgun_sso_session_userid_u")
     if user_name is not None:
-        user_name = urllib.unquote(user_name)
+        user_name = unquote(user_name)
     return user_name
 
 
@@ -259,7 +261,7 @@ def get_session_id(encoded_cookies):
     """
     session_id = None
     cookies = SimpleCookie()
-    cookies.load(_decode_cookies(encoded_cookies))
+    cookies.load(_decode_cookies(encoded_cookies).replace("Set-Cookie: ", ""))
     key = "_session_id"
     if key in cookies:
         session_id = cookies[key].value
@@ -288,7 +290,7 @@ def get_csrf_key(encoded_cookies):
     :returns: A string with the csrf token name
     """
     cookies = SimpleCookie()
-    cookies.load(_decode_cookies(encoded_cookies))
+    cookies.load(_decode_cookies(encoded_cookies).replace("Set-Cookie: ", ""))
     # Shotgun appends the unique numerical ID of the user to the cookie name:
     # ex: csrf_token_u78
     return "csrf_token_u%s" % _get_shotgun_user_id(cookies)
