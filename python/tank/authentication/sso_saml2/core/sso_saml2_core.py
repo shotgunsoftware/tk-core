@@ -202,11 +202,13 @@ class SsoSaml2Core(object):
                     :param n_type:  NavigationType (LinkClicked, FormSubmitted, etc.)
                     :returns:       A boolean indicating if we accept or refuse the request.
                     """
-                    get_logger().debug(
-                        "NavigationRequest, destination and reason: %s (%s)",
-                        request.url().toString(),
-                        n_type,
-                    )
+                    # This makes for a very verbose log.
+                    # get_logger().debug(
+                    #     "NavigationRequest, destination and reason: %s (%s)",
+                    #     request.url().toString(),
+                    #     n_type,
+                    # )
+
                     # A null frame means : open a new window/tab. so we just farm out
                     # the request to the external browser.
                     if (
@@ -317,10 +319,14 @@ class SsoSaml2Core(object):
         else:
             self._profile = QtWebEngineWidgets.QWebEngineProfile.defaultProfile()
             self._logger.debug(
-                "Using WebEngineProfile: %s", self._profile.persistentStoragePath()
+                "Initial WebEngineProfile storage location: %s",
+                self._profile.persistentStoragePath(),
             )
             self._view = QtWebEngineWidgets.QWebEngineView(self._dialog)
             self._view.setPage(TKWebPageQt5(self._profile, self._dialog))
+            self._view.page().authenticationRequired.connect(
+                self.on_authentication_required
+            )
 
         self._view.urlChanged.connect(self._on_url_changed)
         self._view.loadFinished.connect(self.on_load_finished)
@@ -329,7 +335,6 @@ class SsoSaml2Core(object):
 
         if QtWebKit:
             self._logger.debug("We are in a Qt4 environment, Getting the cookie jar.")
-            # self._view.page().setNetworkAccessManager(self._networkAccessManager)
             self._cookie_jar = self._view.page().networkAccessManager().cookieJar()
 
             self._logger.debug("Registering callback to handle polyfilling.")
@@ -560,12 +565,13 @@ class SsoSaml2Core(object):
             cookies = _decode_cookies(self._session.cookies)
             qt_cookies = QtNetwork.QNetworkCookie.parseCookies(cookies.encode())
 
-        # Given that QWebEngineCookieStore.setCookie is not yet exposed to
-        # PySide2, we need to rely on the profile for cookie persistency as
-        # well as keeping our own copy in the tk-core session.
+        # Given that QWebEngineCookieStore's setCookie and deleteCookie are
+        # not yet exposed to PySide2/Qt5, we need to rely on the profile for
+        # cookie persistency as well as keeping our own copy in the tk-core
+        # session. This is in case a PySide/Qt4 application is used later on.
         if not self._QtWebKit and not qt_cookies:
-            # self._logger.debug("Clearing all of the browser cookies")
-            # self._profile.cookieStore().deleteAllCookies()
+            self._logger.debug("Clearing all of the browser cookies")
+            self._profile.cookieStore().deleteAllCookies()
             pass
         self._cookie_jar.setAllCookies(qt_cookies)
 
@@ -628,12 +634,12 @@ class SsoSaml2Core(object):
         """TBD."""
         # This logging is commented out due to its verbosity.
         # log.debug("==- on_cookie_added: %s", cookie.toRawForm())
-        self._logger.debug(
-            "==- on_cookie_added: %s",
-            # cookie.toRawForm(self._QtNetwork.QNetworkCookie.NameAndValueOnly)
-            # cookie.toRawForm(self._QtNetwork.QNetworkCookie.toRawForm)
-            cookie,
-        )
+        # self._logger.debug(
+        #     "==- on_cookie_added: %s",
+        #     # cookie.toRawForm(self._QtNetwork.QNetworkCookie.NameAndValueOnly)
+        #     # cookie.toRawForm(self._QtNetwork.QNetworkCookie.toRawForm)
+        #     cookie,
+        # )
         self._cookie_jar.insertCookie(cookie)
 
     def _on_cookie_deleted(self, cookie):
@@ -860,7 +866,9 @@ class SsoSaml2Core(object):
     #
     ############################################################################
 
-    def on_sso_login_attempt(self, event_data=None, use_watchdog=False):
+    def on_sso_login_attempt(
+        self, event_data=None, use_watchdog=False, profile_location=None
+    ):
         """
         Called to attempt a login process with user interaction.
 
@@ -872,6 +880,42 @@ class SsoSaml2Core(object):
         self._logger.debug("Web login attempt")
         # pylint: disable=invalid-name
         QtCore = self._QtCore  # noqa
+
+        if not self._QtWebKit and profile_location:
+            # Having separate Chromium profile persistency location have been proven
+            # necessary for a few reasons:
+            # - Because all of the cookies are serialized to the user's cache, this makes
+            #   the session_metadata property increase in size over time. The SG Desktop
+            #   serializes the user's properties as environment variables when starting
+            #   desktop-linked apps. On Windows, there is a maximum length of 32676 bytes
+            #   for them.
+            # - By splitting Chromium profiles on a per-site basis (as is the case with
+            #   the user infos), we reduce the chances of busting that 32767 limit. It is
+            #   still possible for a user to reach it (as cookies accumulate). But then
+            #   the easy fix is to sign-out of the SG Desktop (or clear_default_user()).
+            # - We a user signs out of a site, that site's user data (and session_metadata)
+            #   is cleared. At authentication time, if we see that there are no cookies
+            #   present, we clear whatever cookies are present in the local Chromium
+            #   profile.
+            # - Unfortunately, cookies are more difficult to manage with PySide2 than
+            #   with PySide. We cannot inject individual cookies in a Chromium profile
+            #   The APIs, QWebEngineCookieStore's setCookie and deleteCookie, while
+            #   documented are unfortunately not yet available to PySide2/Qt5. Our only
+            #   solution is to have the Chromium profile do the persistency (with our
+            #   own cache in case we are called by a PySide/Qt4 application). With
+            #   the occasional use of deleteAllCookies() when deemed necessary.
+            #
+            # While having separate profiles for different sites seems contrary to the
+            # use of SSO : in a browser, you could access all the sites behind the same
+            # IdP by authenticating once, while with the Toolkit you will likely need
+            # to authenticate once per site. But this is the same behaviour as we
+            # have in our Qt4 environment.
+            profile_path = os.path.join(profile_location, "QWebEngineProfile")
+            self._profile.setPersistentStoragePath(profile_path)
+            self._logger.debug(
+                "Actual WebEngineProfile storage location: %s",
+                self._profile.persistentStoragePath(),
+            )
 
         if event_data is not None:
             self.handle_event(event_data)
