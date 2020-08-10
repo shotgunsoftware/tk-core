@@ -159,7 +159,9 @@ class SsoSaml2Core(object):
 
         if QtWebKit is None and QtWebEngineWidgets is None:
             # @TODO: change exception
-            raise SsoSaml2MissingQtWebKit("The QtWebKit module is unavailable")
+            raise SsoSaml2MissingQtWebKit(
+                "The QtWebKit or QtWebEngineWidgets modules are unavailable"
+            )
 
         if QtWebKit:
 
@@ -264,7 +266,7 @@ class SsoSaml2Core(object):
                     links.
                     """
                     # This makes for a very verbose log.
-                    # log.debug('==- TKWebPageQt5.acceptNavigationRequest: %s (%s)', url.toString(), n_type)
+                    # log.debug("TKWebPageQt5.acceptNavigationRequest: %s (%s)", url.toString(), n_type)
 
                     # A null profile means that a window/tab had to be created to handle
                     # this request. So we just farm out the request to the external system
@@ -329,7 +331,6 @@ class SsoSaml2Core(object):
             )
 
         self._view.urlChanged.connect(self._on_url_changed)
-        self._view.loadFinished.connect(self.on_load_finished)
         self._layout.addWidget(self._view)
         self._dialog.resize(800, 600)
 
@@ -341,7 +342,14 @@ class SsoSaml2Core(object):
             frame = self._view.page().currentFrame()
             frame.javaScriptWindowObjectCleared.connect(self._polyfill)
 
+            # Purposely disable the 'Reload' contextual menu, as it should not be
+            # used for SSO. Reloading the page confuses the server.
+            self._view.page().action(QtWebKit.QWebPage.Reload).setVisible(False)
+
             # Ensure that the background color is not controlled by the login page.
+            # We want to be able to display any login dialog page without having
+            # the night theme of the SG Desktop impacting it. White is the safest
+            # background color.
             self._view.setStyleSheet("background-color:white;")
 
             # The context : in some special cases, Shotgun will take you into an alternate
@@ -367,15 +375,14 @@ class SsoSaml2Core(object):
             css_style = base64.b64encode(
                 "div.browser_not_approved { display: none !important; }"
             )
-            self._view.settings().setUserStyleSheetUrl(
-                "data:text/css;charset=utf-8;base64," + css_style
-            )
+            url = QtCore.QUrl("data:text/css;charset=utf-8;base64," + css_style)
+            self._view.settings().setUserStyleSheetUrl(url)
         else:
             self._logger.debug(
                 "We are in a Qt5 environment, registering cookie handlers."
             )
             # We want to persist cookies accross sessions.
-            # The cookies will be cleared if there are no prior RV session in
+            # The cookies will be cleared if there are no prior session in
             # method 'update_browser_from_session' if needed.
             self._profile.setPersistentCookiesPolicy(
                 QtWebEngineWidgets.QWebEngineProfile.ForcePersistentCookies
@@ -383,10 +390,6 @@ class SsoSaml2Core(object):
             self._cookie_jar = QtNetwork.QNetworkCookieJar()
             self._profile.cookieStore().cookieAdded.connect(self._on_cookie_added)
             self._profile.cookieStore().cookieRemoved.connect(self._on_cookie_deleted)
-
-        # Purposely disable the 'Reload' contextual menu, as it should not be
-        # used for SSO. Reloading the page confuses the server.
-        # self._view.page().action(QtWebKit.QWebPage.Reload).setVisible(False)
 
         # Threshold percentage of the SSO session duration, at which
         # time the pre-emptive renewal operation should be started.
@@ -489,10 +492,6 @@ class SsoSaml2Core(object):
     def update_session_from_browser(self):
         """
         Updtate our session from the browser cookies.
-
-        We want to limit access to the actual session cookies, as their name
-        in the browser may differ from how the value is named on our session
-        representation, which is loosely based on that of RV itself.
         """
         self._logger.debug("Updating session cookies from browser")
 
@@ -533,11 +532,6 @@ class SsoSaml2Core(object):
     def update_browser_from_session(self):
         """
         Update/reset the browser cookies with what we have.
-
-        We keep in the session a snapshot of the cookies used in the login and
-        renewal. These are persisted in the RV session. This function will
-        be used when originally setting the browser for login using a saved
-        session or when opening a connection to a new server.
         """
         self._logger.debug("Updating browser cookies from session")
         # pylint: disable=invalid-name
@@ -631,24 +625,32 @@ class SsoSaml2Core(object):
         self._session_renewal_active = True
 
     def _on_cookie_added(self, cookie):
-        """TBD."""
+        """
+        In PySid2/Qt5, we have limited access to query/update the CookieStore. We
+        must rely on signals called at each cookie addition and removal. We thus
+        keep a cache of the present CookieStore state in our own cookie jar.
+        This class existed in PySide/Qt4, but then was used as the actual cookie
+        store.
+        """
         # This logging is commented out due to its verbosity.
-        # log.debug("==- on_cookie_added: %s", cookie.toRawForm())
         # self._logger.debug(
-        #     "==- on_cookie_added: %s",
-        #     # cookie.toRawForm(self._QtNetwork.QNetworkCookie.NameAndValueOnly)
-        #     # cookie.toRawForm(self._QtNetwork.QNetworkCookie.toRawForm)
+        #     "_on_cookie_added: %s",
+        #     cookie.toRawForm(self._QtNetwork.QNetworkCookie.toRawForm)
         #     cookie,
         # )
         self._cookie_jar.insertCookie(cookie)
 
     def _on_cookie_deleted(self, cookie):
-        """TBD."""
+        """
+        In PySid2/Qt5, we have limited access to query/update the CookieStore. We
+        must rely on signals called at each cookie addition and removal. We thus
+        keep a cache of the present CookieStore state in our own cookie jar.
+        This class existed in PySide/Qt4, but then was used as the actual cookie
+        store.
+        """
         # This logging is commented out due to its verbosity.
-        # log.debug("==- on_cookie_deleted: %s", cookie.toRawForm())
         # self._logger.debug(
-        #     "==- on_cookie_deleted: %s",
-        #     # cookie.toRawForm(self._QtNetwork.QNetworkCookie.NameAndValueOnly)
+        #     "_on_cookie_deleted: %s",
         #     cookie.toRawForm(self._QtNetwork.QNetworkCookie.toRawForm)
         # )
         self._cookie_jar.deleteCookie(cookie)
@@ -794,37 +796,6 @@ class SsoSaml2Core(object):
         if not succeeded:
             self._logger.error('Loading of page "%s" generated an error.', url)
             # @FIXME: Figure out proper way of handling error.
-
-    def on_load_finished(self, _succeeded):
-        """
-        Called by Qt when the Web Page has finished loading.
-
-        The renewal process goes thru a number of redirects. We detect the
-        end of the process by checking the page loaded, as we know where we
-        expect to land in the end.
-
-        At that point, we stop the process by sending the 'accept' event to
-        the dialog. If the process is taking too long, we have a timer
-        (_sso_renew_watchdog_timer) which will trigger and attempt to cleanup
-        the process.
-
-        :param succeeded: indicate the status of the load process. (not used)
-        """
-        pass
-        # url = self._view.page().mainFrame().url().toString().encode("utf-8")
-        # if (
-        #         # This callback may be triggered outside the actual auth process
-        #         # like when we clear the page to use the "about:blank".
-        #         # or after there has been a prior error. So we ensure that we
-        #         # update our session and accept only when we really have to.
-        #         self._session is not None and self._event_data is not None and
-        #         url.startswith(self._session.host + self.landing_path)
-        # ):
-        #     self.update_session_from_browser()
-        #     if self._session_renewal_active:
-        #         self.start_sso_renewal()
-
-        #     self._dialog.accept()
 
     def on_authentication_required(self, _reply, authenticator):
         """
