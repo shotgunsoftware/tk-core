@@ -138,6 +138,9 @@ class SsoSaml2Core(object):
 
         self._logger = get_logger()
         self._logger.debug("Constructing SSO dialog: %s", window_title)
+        self._developer_mode = False
+        if "SHOTGUN_SSO_DEVELOPER_ENABLED" in os.environ:
+            self._developer_mode = True
 
         # pylint: disable=invalid-name
         QtCore = self._QtCore = qt_modules.get("QtCore")  # noqa
@@ -180,12 +183,13 @@ class SsoSaml2Core(object):
                  - Any other links which may be presented by SSO Providers
                 """
 
-                def __init__(self, parent=None):
+                def __init__(self, parent=None, developer_mode=False):
                     """
                     Class Constructor.
                     """
                     get_logger().debug("TKWebPageQt4.__init__")
                     super(TKWebPageQt4, self).__init__(parent)
+                    self._developer_mode = developer_mode
 
                 def __del__(self):
                     """
@@ -204,12 +208,12 @@ class SsoSaml2Core(object):
                     :param n_type:  NavigationType (LinkClicked, FormSubmitted, etc.)
                     :returns:       A boolean indicating if we accept or refuse the request.
                     """
-                    # This makes for a very verbose log.
-                    # get_logger().debug(
-                    #     "NavigationRequest, destination and reason: %s (%s)",
-                    #     request.url().toString(),
-                    #     n_type,
-                    # )
+                    if self._developer_mode:
+                        get_logger().debug(
+                            "NavigationRequest, destination and reason: %s (%s)",
+                            request.url().toString(),
+                            n_type,
+                        )
 
                     # A null frame means : open a new window/tab. so we just farm out
                     # the request to the external browser.
@@ -234,13 +238,14 @@ class SsoSaml2Core(object):
                 we defer the page to the external browser.
                 """
 
-                def __init__(self, profile, parent):
+                def __init__(self, profile, parent, developer_mode=False):
                     """
                     Class Constructor.
                     """
                     get_logger().debug("TKWebPageQt5.__init__")
                     super(TKWebPageQt5, self).__init__(profile, parent)
                     self._profile = profile
+                    self._developer_mode = developer_mode
 
                 def __del__(self):
                     """
@@ -265,8 +270,12 @@ class SsoSaml2Core(object):
                     Overloaded method, to properly control the behaviour of clicking on
                     links.
                     """
-                    # This makes for a very verbose log.
-                    # log.debug("TKWebPageQt5.acceptNavigationRequest: %s (%s)", url.toString(), n_type)
+                    if self._developer_mode:
+                        get_logger().debug(
+                            "TKWebPageQt5.acceptNavigationRequest: %s (%s)",
+                            url.toString(),
+                            n_type,
+                        )
 
                     # A null profile means that a window/tab had to be created to handle
                     # this request. So we just farm out the request to the external system
@@ -313,8 +322,13 @@ class SsoSaml2Core(object):
         self._layout.setContentsMargins(0, 0, 0, 0)
 
         if QtWebKit:
+            # Disable SSL validation, to allow self-signed certs for local installs.
+            config = QtNetwork.QSslConfiguration.defaultConfiguration()
+            config.setPeerVerifyMode(QtNetwork.QSslSocket.VerifyNone)
+            QtNetwork.QSslConfiguration.setDefaultConfiguration(config)
+
             self._view = QtWebKit.QWebView(self._dialog)
-            self._view.setPage(TKWebPageQt4(self._dialog))
+            self._view.setPage(TKWebPageQt4(self._dialog, self._developer_mode))
             self._view.page().networkAccessManager().authenticationRequired.connect(
                 self.on_authentication_required
             )
@@ -325,7 +339,9 @@ class SsoSaml2Core(object):
                 self._profile.persistentStoragePath(),
             )
             self._view = QtWebEngineWidgets.QWebEngineView(self._dialog)
-            self._view.setPage(TKWebPageQt5(self._profile, self._dialog))
+            self._view.setPage(
+                TKWebPageQt5(self._profile, self._dialog, self._developer_mode)
+            )
             self._view.page().authenticationRequired.connect(
                 self.on_authentication_required
             )
@@ -431,26 +447,35 @@ class SsoSaml2Core(object):
         self._login_status = 0
 
         # For debugging purposes
-        # @TODO: Find a better way than to use the log level
-        if (
-            self._logger.level == logging.DEBUG
-            or "SHOTGUN_SSO_DEVELOPER_ENABLED" in os.environ
-        ):
-            self._logger.debug(
-                "Using developer mode. Disabling strict SSL mode, enabling developer tools and local storage."
-            )
-            # Disable SSL validation, useful when using a VM or a test site.
-            config = QtNetwork.QSslConfiguration.defaultConfiguration()
-            config.setPeerVerifyMode(QtNetwork.QSslSocket.VerifyNone)
-            QtNetwork.QSslConfiguration.setDefaultConfiguration(config)
+        if self._developer_mode:
+            if QtWebKit:
+                self._logger.debug(
+                    "Using developer mode. Disabling strict SSL mode, enabling developer tools and local storage."
+                )
 
-            # Adds the Developer Tools option when right-clicking
-            QtWebKit.QWebSettings.globalSettings().setAttribute(
-                QtWebKit.QWebSettings.WebAttribute.DeveloperExtrasEnabled, True
-            )
-            QtWebKit.QWebSettings.globalSettings().setAttribute(
-                QtWebKit.QWebSettings.WebAttribute.LocalStorageEnabled, True
-            )
+                # Adds the Developer Tools option when right-clicking
+                QtWebKit.QWebSettings.globalSettings().setAttribute(
+                    QtWebKit.QWebSettings.WebAttribute.DeveloperExtrasEnabled, True
+                )
+                QtWebKit.QWebSettings.globalSettings().setAttribute(
+                    QtWebKit.QWebSettings.WebAttribute.LocalStorageEnabled, True
+                )
+            else:
+                self._logger.debug(
+                    "To debug the Qt5 WebEngine, use the following environment variables:"
+                )
+                self._logger.debug("  export QTWEBENGINE_REMOTE_DEBUGGING=8888")
+                self._logger.debug("  or")
+                self._logger.debug(
+                    '  export QTWEBENGINE_CHROMIUM_FLAGS="--remote-debugging-port=8888"'
+                )
+                self._logger.debug(" ")
+                self._logger.debug(
+                    " Then you just need to point a chrome browser to http://127.0.0.1:8888"
+                )
+                self._logger.debug(
+                    " In this example, port 8888 is used, but it could be set to another one"
+                )
 
     def __del__(self):
         """Destructor."""
@@ -616,7 +641,7 @@ class SsoSaml2Core(object):
 
             # For debugging purposes
             # @TODO: Find a better way than to use this EV
-            if "SHOTGUN_SSO_DEVELOPER_ENABLED" in os.environ:
+            if self._developer_mode:
                 interval = SHOTGUN_SSO_RENEWAL_INTERVAL
         self._logger.debug("Setting session renewal interval to: %s seconds", interval)
 
@@ -632,12 +657,11 @@ class SsoSaml2Core(object):
         This class existed in PySide/Qt4, but then was used as the actual cookie
         store.
         """
-        # This logging is commented out due to its verbosity.
-        # self._logger.debug(
-        #     "_on_cookie_added: %s",
-        #     cookie.toRawForm(self._QtNetwork.QNetworkCookie.toRawForm)
-        #     cookie,
-        # )
+        if self._developer_mode:
+            self._logger.debug(
+                "_on_cookie_added: %s",
+                cookie.toRawForm(self._QtNetwork.QNetworkCookie.toRawForm),
+            )
         self._cookie_jar.insertCookie(cookie)
 
     def _on_cookie_deleted(self, cookie):
@@ -648,11 +672,11 @@ class SsoSaml2Core(object):
         This class existed in PySide/Qt4, but then was used as the actual cookie
         store.
         """
-        # This logging is commented out due to its verbosity.
-        # self._logger.debug(
-        #     "_on_cookie_deleted: %s",
-        #     cookie.toRawForm(self._QtNetwork.QNetworkCookie.toRawForm)
-        # )
+        if self._developer_mode:
+            self._logger.debug(
+                "_on_cookie_deleted: %s",
+                cookie.toRawForm(self._QtNetwork.QNetworkCookie.toRawForm),
+            )
         self._cookie_jar.deleteCookie(cookie)
 
     def is_handling_event(self):
@@ -781,8 +805,10 @@ class SsoSaml2Core(object):
         the process.
         """
         url = self._view.page().mainFrame().url().toString()
-        self._dialog.setWindowTitle(url.split("?")[0])
-        self._logger.debug("==- _on_url_changed %s", url)
+        # in debug mode, use the title bar to show the url.
+        if self._developer_mode:
+            self._dialog.setWindowTitle(url)
+        self._logger.debug("_on_url_changed %s", url)
         if self._session is not None and url.startswith(
             self._session.host + self.landing_path
         ):
@@ -864,7 +890,7 @@ class SsoSaml2Core(object):
             #   the user infos), we reduce the chances of busting that 32767 limit. It is
             #   still possible for a user to reach it (as cookies accumulate). But then
             #   the easy fix is to sign-out of the SG Desktop (or clear_default_user()).
-            # - We a user signs out of a site, that site's user data (and session_metadata)
+            # - When a user signs out of a site, that site's user data (and session_metadata)
             #   is cleared. At authentication time, if we see that there are no cookies
             #   present, we clear whatever cookies are present in the local Chromium
             #   profile.
