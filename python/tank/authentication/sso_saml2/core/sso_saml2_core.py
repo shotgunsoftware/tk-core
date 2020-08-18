@@ -481,6 +481,15 @@ class SsoSaml2Core(object):
         """Destructor."""
         # We want to track destruction of the dialog in the logs.
         self._logger.debug("Destroying SSO dialog")
+        self._sso_countdown_timer.stop()
+        self._sso_renew_timer.stop()
+        self._sso_renew_watchdog_timer.stop()
+        if self._view:
+            self._view.urlChanged.disconnect(self._on_url_changed)
+            self._layout.removeWidget(self._view)
+            self._view = None
+            self._layout = None
+            self._dialog = None
 
     @property
     def _session(self):
@@ -758,9 +767,11 @@ class SsoSaml2Core(object):
 
         # We do not update the page cookies, assuming that they have already
         # have been cleared/updated before.
-        self._view.page().mainFrame().load(
+        url = (
             self._session.host + self.renew_path + "?product=%s" % self._session.product
         )
+        self._logger.debug("Navigating to %s", url)
+        self._view.page().mainFrame().load(url)
 
     def on_renew_sso_session_timeout(self):
         """
@@ -936,9 +947,11 @@ class SsoSaml2Core(object):
         self._view.raise_()
 
         # We append the product code to the GET request.
-        self._view.page().mainFrame().load(
+        url = (
             self._session.host + self.renew_path + "?product=%s" % self._session.product
         )
+        self._logger.debug("Navigating to %s", url)
+        self._view.page().mainFrame().load(url)
 
         self._dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         status = self._dialog.exec_()
