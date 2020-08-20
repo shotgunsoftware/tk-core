@@ -147,12 +147,11 @@ class LoginDialog(QtGui.QDialog):
             "QtWebKit": QtWebKit,
             "QtWebEngineWidgets": QtWebEngineWidgets,
         }
-        # try:
-        #     self._sso_saml2 = SsoSaml2Toolkit("Web Login", qt_modules=qt_modules)
-        # except SsoSaml2MissingQtModuleError as e:
-        #     logger.info("Web login not supported due to missing Qt module: %s" % e)
-        #     self._sso_saml2 = None
-        self._sso_saml2 = None
+        try:
+            self._sso_saml2 = SsoSaml2Toolkit("Web Login", qt_modules=qt_modules)
+        except SsoSaml2MissingQtModuleError as e:
+            logger.info("Web login not supported due to missing Qt module: %s" % e)
+            self._sso_saml2 = None
 
         hostname = hostname or ""
         login = login or ""
