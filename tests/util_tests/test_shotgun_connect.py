@@ -138,6 +138,10 @@ class TestGetSgConfigData(ShotgunTestBase):
         """
         Ensures host is cleaned-up properly.
         """
+
+        # Ensure empty string is not modified.
+        self.assertEqual("", sanitize_url(""))
+
         # Ensure https is added if no scheme is specified.
         self.assertEqual("https://no.scheme.com", sanitize_url("no.scheme.com"))
 

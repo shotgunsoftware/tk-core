@@ -432,8 +432,7 @@ def set_current_host(host):
 
     :param host: The new current host.
     """
-    if host:
-        host = connection.sanitize_url(host)
+    host = connection.sanitize_url(host)
 
     file_path = _get_global_authentication_file_location()
     _ensure_folder_for_file(file_path)
@@ -472,8 +471,7 @@ def get_current_host():
     info_path = _get_global_authentication_file_location()
     document = _try_load_global_authentication_file(info_path)
     host = document[_CURRENT_HOST]
-    if host:
-        host = connection.sanitize_url(host)
+    host = connection.sanitize_url(host)
     logger.debug("Current host is '%s'" % host)
     return host
 

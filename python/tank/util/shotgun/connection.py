@@ -274,6 +274,8 @@ def sanitize_url(server_url):
     """
     Cleans up a url to that only scheme, host and optional port number remains.
 
+    If the url is empty, the sanitized version is empty as well.
+
     For example::
         host.com => https://host.com
         host.com:8080 => https://host.com:8080
@@ -284,7 +286,8 @@ def sanitize_url(server_url):
 
     :returns: The cleaned up URL.
     """
-
+    if not server_url:
+        return ""
     # FIXME: Python 2.6.x has difficulty parsing a URL that doesn't start with a scheme when there
     # is already a port number. Python 2.7 doesn't have this issue. Ignore this bug for now since it
     # is very unlikely Shotgun will be running off a custom port.
