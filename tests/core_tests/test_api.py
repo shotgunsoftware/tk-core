@@ -365,6 +365,15 @@ class TestAbstractPathsFromTemplate(TankTestBase):
         )
         self.assertEqual(set(expected), set(result))
 
+    def test_sequence_format(self):
+        expected = [
+            os.path.join(self.shot_a_path, "%V", "filename.$F4.exr"),
+            os.path.join(self.shot_b_path, "%V", "filename.$F4.exr"),
+        ]
+        result = self.tk.abstract_paths_from_template(
+            self.template, {"name": "filename", "SEQ": "FORMAT: $F"}
+        )
+        self.assertEqual(set(expected), set(result))
 
 class TestPathsFromTemplateGlob(TankTestBase):
     """Tests for Tank.paths_from_template method which check the string sent to glob.glob."""
