@@ -224,8 +224,6 @@ class LoginDialog(QtGui.QDialog):
                 self.ui.password.setFocus(QtCore.Qt.OtherFocusReason)
             else:
                 self.ui.login.setFocus(QtCore.Qt.OtherFocusReason)
-        else:
-            self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
 
         # Select the right first page.
         self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
