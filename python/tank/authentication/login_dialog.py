@@ -224,6 +224,8 @@ class LoginDialog(QtGui.QDialog):
                 self.ui.password.setFocus(QtCore.Qt.OtherFocusReason)
             else:
                 self.ui.login.setFocus(QtCore.Qt.OtherFocusReason)
+        else:
+            self.ui.site.setFocus(QtCore.Qt.OtherFocusReason)
 
         # Select the right first page.
         self.ui.stackedWidget.setCurrentWidget(self.ui.login_page)
@@ -277,9 +279,12 @@ class LoginDialog(QtGui.QDialog):
 
         :returns: The site to connect to.
         """
-        return six.ensure_str(
-            connection.sanitize_url(self.ui.site.currentText().strip())
-        )
+        url = self.ui.site.currentText().strip()
+        # If the URL is empty, there's no need to satinize it.
+        if not url:
+            return url
+        else:
+            return six.ensure_str(connection.sanitize_url(url))
 
     def _get_current_user(self):
         """

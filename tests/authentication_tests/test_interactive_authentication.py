@@ -86,38 +86,41 @@ class InteractiveTests(ShotgunTestBase):
         QtGui.QApplication.processEvents()
 
     @contextlib.contextmanager
-    def _login_dialog(self, is_session_renewal, login=None, hostname=None):
+    def _login_dialog(self, is_session_renewal, hostname=None):
         # Import locally since login_dialog has a dependency on Qt and it might be missing
         from tank.authentication import login_dialog
 
-        with contextlib.closing(
-            login_dialog.LoginDialog(is_session_renewal=is_session_renewal)
-        ) as ld:
-            # SSO module and threading causes issues with unit tests, so disable it.
-            ld._saml2_sso = None
-            self._prepare_window(ld)
-            yield ld
+        # Patch out the SsoSaml2Toolkit class to avoid threads being created, which cause
+        # issues with tests.
+        with patch("tank.authentication.login_dialog.SsoSaml2Toolkit"):
+            with contextlib.closing(
+                login_dialog.LoginDialog(
+                    is_session_renewal=is_session_renewal, hostname=hostname
+                )
+            ) as ld:
+                self._prepare_window(ld)
+                yield ld
 
     @suppress_generated_code_qt_warnings
     def test_focus(self):
         """
-        Make sure that the site and user fields are disabled when doing session renewal
+        Make sure that the right fields are focused depending on what is already set.
         """
+        # login has default value based on the current OS user, but host is not
+        # set
         with self._login_dialog(is_session_renewal=False) as ld:
             self.assertEqual(ld.ui.site.currentText(), "")
-
-        with self._login_dialog(is_session_renewal=False, login="login") as ld:
-            self.assertEqual(ld.ui.site.currentText(), "")
+            self.assertNotEqual(ld.ui.login.currentText(), "")
+            self.assertTrue(ld.ui.site.hasFocus())
 
         # Makes sure the focus is set to the password even tough we've only specified the hostname
         # because the current os user name is the default.
         with self._login_dialog(is_session_renewal=False, hostname="host") as ld:
             # window needs to be activated to get focus.
-            self.assertTrue(ld.ui.password.hasFocus())
-
-        with self._login_dialog(
-            is_session_renewal=False, hostname="host", login="login"
-        ) as ld:
+            self.assertEqual(ld.ui.site.currentText(), "host")
+            # The login is always populate with the latest login for a given site,
+            # or the current user name. So it should be set.
+            self.assertNotEqual(ld.ui.login.currentText(), "")
             self.assertTrue(ld.ui.password.hasFocus())
 
     def _test_login(self, console):
