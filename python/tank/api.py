@@ -681,12 +681,14 @@ class Sgtk(object):
         if skip_leaf_level:
             search_template = template.parent
 
-        # now carry out a regular search based on the template
-        found_files = self.paths_from_template(search_template, fields)
-
         st_abstract_key_names = [
             k.name for k in search_template.keys.values() if k.is_abstract
         ]
+
+        # now carry out a regular search based on the template
+        # skip abstract keys to fetch paths in case of special value
+        # like SequenceKey with "FORMAT:" value
+        found_files = self.paths_from_template(search_template, fields, skip_keys=st_abstract_key_names)
 
         # now collapse down the search matches for any abstract fields,
         # and add the leaf level if necessary
