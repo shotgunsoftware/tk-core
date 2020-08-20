@@ -148,6 +148,7 @@ def is_sso_enabled_on_site(url, http_proxy=None):
 
     :returns:   A boolean indicating if SSO has been enabled or not.
     """
+    # return True
     return _get_user_authentication_method(url, http_proxy) == "saml2"
 
 
