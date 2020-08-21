@@ -528,9 +528,12 @@ class Sgtk(object):
         :returns: Matching file paths
         :rtype: List of strings.
         """
-        skip_keys = skip_keys or []
         if isinstance(skip_keys, six.string_types):
             skip_keys = [skip_keys]
+        elif isinstance(skip_keys, list):
+            skip_keys = list(skip_keys)
+        else:
+            skip_keys = []
 
         # construct local fields dictionary that doesn't include any skip keys:
         local_fields = dict(
