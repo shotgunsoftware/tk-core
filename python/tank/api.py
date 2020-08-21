@@ -21,6 +21,7 @@ from .util import shotgun, yaml_cache
 from .errors import TankError, TankMultipleMatchingTemplatesError
 from .path_cache import PathCache
 from .template import read_templates
+from .templatekey import SequenceKey
 from . import constants
 from . import pipelineconfig
 from . import pipelineconfig_utils
@@ -688,10 +689,20 @@ class Sgtk(object):
             k.name for k in search_template.keys.values() if k.is_abstract
         ]
 
+        # skip abstract SequenceKey declared as format_spec_format: "FORMAT:"
+        # then we can list properly existing paths
+        skip_keys = []
+        for k in st_abstract_key_names:
+            if k not in fields:
+                continue
+            if not isinstance(k, SequenceKey):
+                continue
+            if not k.is_framespec_format(fields[k]):
+                continue
+            skip_keys.append(k)
+
         # now carry out a regular search based on the template
-        # skip abstract keys to fetch paths in case of special value
-        # like SequenceKey with "FORMAT:" value
-        found_files = self.paths_from_template(search_template, fields, skip_keys=st_abstract_key_names)
+        found_files = self.paths_from_template(search_template, fields, skip_keys=skip_keys)
 
         # now collapse down the search matches for any abstract fields,
         # and add the leaf level if necessary
