@@ -702,7 +702,9 @@ class Sgtk(object):
             skip_keys.append(k)
 
         # now carry out a regular search based on the template
-        found_files = self.paths_from_template(search_template, fields, skip_keys=skip_keys)
+        found_files = self.paths_from_template(
+            search_template, fields, skip_keys=skip_keys
+        )
 
         # now collapse down the search matches for any abstract fields,
         # and add the leaf level if necessary

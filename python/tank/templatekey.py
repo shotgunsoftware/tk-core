@@ -1141,7 +1141,9 @@ class SequenceKey(IntegerKey):
             return super(SequenceKey, self).validate(value)
 
     def is_framespec_format(self, value):
-        return isinstance(value, six.string_types) and value.startswith(self.FRAMESPEC_FORMAT_INDICATOR)
+        return isinstance(value, six.string_types) and value.startswith(
+            self.FRAMESPEC_FORMAT_INDICATOR
+        )
 
     def _as_string(self, value):
         if self.is_framespec_format(value):

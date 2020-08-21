@@ -375,6 +375,7 @@ class TestAbstractPathsFromTemplate(TankTestBase):
         )
         self.assertEqual(set(expected), set(result))
 
+
 class TestPathsFromTemplateGlob(TankTestBase):
     """Tests for Tank.paths_from_template method which check the string sent to glob.glob."""
 
