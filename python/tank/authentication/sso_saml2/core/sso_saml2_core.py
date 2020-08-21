@@ -481,15 +481,16 @@ class SsoSaml2Core(object):
         """Destructor."""
         # We want to track destruction of the dialog in the logs.
         self._logger.debug("Destroying SSO dialog")
-        self._sso_countdown_timer.stop()
-        self._sso_renew_timer.stop()
-        self._sso_renew_watchdog_timer.stop()
-        if self._view:
-            self._view.urlChanged.disconnect(self._on_url_changed)
-            self._layout.removeWidget(self._view)
-            self._view = None
-            self._layout = None
-            self._dialog = None
+        # @TODO: Refactor these calls or figure out why they hang builds on Windows/3.7
+        # self._sso_countdown_timer.stop()
+        # self._sso_renew_timer.stop()
+        # self._sso_renew_watchdog_timer.stop()
+        # if self._view:
+        #     self._view.urlChanged.disconnect(self._on_url_changed)
+        #     self._layout.removeWidget(self._view)
+        #     self._view = None
+        #     self._layout = None
+        #     self._dialog = None
 
     @property
     def _session(self):
