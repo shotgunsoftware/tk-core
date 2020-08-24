@@ -10,6 +10,9 @@
 
 from distutils.version import LooseVersion
 from . import sgre as re
+from ..errors import TankError
+
+GITHUB_HASH_RE = re.compile("^[0-9a-fA-F]{7,40}$")
 
 
 def is_version_head(version):
@@ -21,6 +24,17 @@ def is_version_head(version):
     :returns: True if version is HEAD or MASTER, false otherwise.
     """
     return version.lower() in ["head", "master"]
+
+
+def _is_git_commit(version):
+    """
+    Returns if the version looks like a git commit id.
+
+    :param version: Version to test.
+
+    :returns: True if the version is a commit id, false otherwise.
+    """
+    return GITHUB_HASH_RE.match(version) is not None
 
 
 def is_version_newer(a, b):
@@ -79,6 +93,16 @@ def _compare_versions(a, b):
     if b is None:
         # a is always newer than None
         return True
+
+    if _is_git_commit(a) and not _is_git_commit(b):
+        return True
+    elif _is_git_commit(b) and not _is_git_commit(a):
+        return False
+    elif _is_git_commit(a) and _is_git_commit(b):
+        if a.lower() == b.lower():
+            return False
+        else:
+            raise TankError("Can't compare two git commits lexicographically.")
 
     if is_version_head(a):
         # our version is latest
