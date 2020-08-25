@@ -50,6 +50,14 @@ def is_version_newer(a, b):
     return _compare_versions(a, b)
 
 
+def is_version_newer_or_equal(a, b):
+    return is_version_older(a, b) is False
+
+
+def is_version_older_or_equal(a, b):
+    return is_version_newer(a, b) is False
+
+
 def is_version_older(a, b):
     """
     Is the version number string a older than b?
@@ -93,6 +101,8 @@ def _compare_versions(a, b):
     if b is None:
         # a is always newer than None
         return True
+
+    print(a, b)
 
     if _is_git_commit(a) and not _is_git_commit(b):
         return True
