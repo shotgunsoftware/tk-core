@@ -39,36 +39,62 @@ def _is_git_commit(version):
 
 def is_version_newer(a, b):
     """
-    Is the version number string a newer than b?
+    Is the version string ``a`` newer than ``b``?
 
-    a=v0.12.1 b=0.13.4 -- Returns False
-    a=v0.13.1 b=0.13.1 -- Returns True
-    a=HEAD b=0.13.4 -- Returns False
-    a=master b=0.13.4 -- Returns False
+    If one of the version is `master`, `head`, or formatted like a git commit sha,
+    it is considered more recent than the other version.
 
+    :raises TankError: Raised if the two versions are different git commit shas, as
+        they can't be compared.
+
+    :returns: ``True``is ``a`` is newer than ``b`` but not equal, ``False`` otherwise.
     """
     return _compare_versions(a, b)
 
 
+def is_version_older(a, b):
+    """
+    Is the version string ``a`` older than ``b``?
+
+    If one of the version is `master`, `head`, or formatted like a git commit sha,
+    it is considered more recent than the other version.
+
+    :raises TankError: Raised if the two versions are different git commit shas, as
+        they can't be compared.
+
+    :returns: ``True``is ``a`` is older than ``b`` but not equal, ``False`` otherwise.
+    """
+    return _compare_versions(b, a)
+
+
 def is_version_newer_or_equal(a, b):
+    """
+    Is the version string ``a`` newer than or equal to ``b``?
+
+    If one of the version is `master`, `head`, or formatted like a git commit sha,
+    it is considered more recent than the other version.
+
+    :raises TankError: Raised if the two versions are different git commit shas, as
+        they can't be compared.
+
+    :returns: ``True``is ``a`` is newer than or equal to ``b``, ``False`` otherwise.
+    """
     return is_version_older(a, b) is False
 
 
 def is_version_older_or_equal(a, b):
+    """
+    Is the version string ``a`` older than or equal to ``b``?
+
+    If one of the version is `master`, `head`, or formatted like a git commit sha,
+    it is considered more recent than the other version.
+
+    :raises TankError: Raised if the two versions are different git commit shas, as
+        they can't be compared.
+
+    :returns: ``True``is ``a`` is older than or equal to ``b``, ``False`` otherwise.
+    """
     return is_version_newer(a, b) is False
-
-
-def is_version_older(a, b):
-    """
-    Is the version number string a older than b?
-
-    a=v0.12.1 b=0.13.4 -- Returns True
-    a=v0.13.1 b=0.13.1 -- Returns True
-    a=HEAD b=0.13.4 -- Returns False
-    a=master b=0.13.4 -- Returns False
-
-    """
-    return _compare_versions(b, a)
 
 
 def is_version_number(version):
