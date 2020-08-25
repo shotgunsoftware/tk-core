@@ -16,6 +16,7 @@ from sgtk.util import (
     is_version_newer_or_equal,
     is_version_older_or_equal,
 )
+from sgtk import TankError
 
 OLDER = "older"
 NEWER = "newer"
@@ -102,11 +103,11 @@ class TestVersionCompare(ShotgunTestBase):
         We can't compare two different git commit shas together and that should
         return an error.
         """
-        with self.assertRaises(sgtk.TankError):
+        with self.assertRaises(TankError):
             is_version_newer("b2cbcb9cefea668eb4", "a2cbcb9cefea668eb4")
-        with self.assertRaises(sgtk.TankError):
+        with self.assertRaises(TankError):
             is_version_older("b2cbcb9cefea668eb4", "a2cbcb9cefea668eb4")
-        with self.assertRaises(sgtk.TankError):
+        with self.assertRaises(TankError):
             is_version_newer_or_equal("b2cbcb9cefea668eb4", "a2cbcb9cefea668eb4")
-        with self.assertRaises(sgtk.TankError):
+        with self.assertRaises(TankError):
             is_version_newer_or_equal("b2cbcb9cefea668eb4", "a2cbcb9cefea668eb4")

@@ -47,7 +47,7 @@ def is_version_newer(a, b):
     :raises TankError: Raised if the two versions are different git commit shas, as
         they can't be compared.
 
-    :returns: ``True``is ``a`` is newer than ``b`` but not equal, ``False`` otherwise.
+    :returns: ``True`` if ``a`` is newer than ``b`` but not equal, ``False`` otherwise.
     """
     return _compare_versions(a, b)
 
@@ -62,7 +62,7 @@ def is_version_older(a, b):
     :raises TankError: Raised if the two versions are different git commit shas, as
         they can't be compared.
 
-    :returns: ``True``is ``a`` is older than ``b`` but not equal, ``False`` otherwise.
+    :returns: ``True`` if ``a`` is older than ``b`` but not equal, ``False`` otherwise.
     """
     return _compare_versions(b, a)
 
@@ -77,7 +77,7 @@ def is_version_newer_or_equal(a, b):
     :raises TankError: Raised if the two versions are different git commit shas, as
         they can't be compared.
 
-    :returns: ``True``is ``a`` is newer than or equal to ``b``, ``False`` otherwise.
+    :returns: ``True`` if ``a`` is newer than or equal to ``b``, ``False`` otherwise.
     """
     return is_version_older(a, b) is False
 
@@ -92,7 +92,7 @@ def is_version_older_or_equal(a, b):
     :raises TankError: Raised if the two versions are different git commit shas, as
         they can't be compared.
 
-    :returns: ``True``is ``a`` is older than or equal to ``b``, ``False`` otherwise.
+    :returns: ``True`` if ``a`` is older than or equal to ``b``, ``False`` otherwise.
     """
     return is_version_newer(a, b) is False
 
