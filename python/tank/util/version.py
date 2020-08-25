@@ -102,8 +102,6 @@ def _compare_versions(a, b):
         # a is always newer than None
         return True
 
-    print(a, b)
-
     if _is_git_commit(a) and not _is_git_commit(b):
         return True
     elif _is_git_commit(b) and not _is_git_commit(a):
