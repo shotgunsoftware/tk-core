@@ -685,21 +685,20 @@ class Sgtk(object):
         if skip_leaf_level:
             search_template = template.parent
 
-        st_abstract_key_names = [
-            k.name for k in search_template.keys.values() if k.is_abstract
-        ]
+        st_abstract_keys = [k for k in search_template.keys.values() if k.is_abstract]
 
         # skip abstract SequenceKey declared as format_spec_format: "FORMAT:"
         # then we can list properly existing paths
         skip_keys = []
-        for k in st_abstract_key_names:
-            if k not in fields:
+        for k in st_abstract_keys:
+            key_name = k.name
+            if key_name not in fields:
                 continue
             if not isinstance(k, SequenceKey):
                 continue
-            if not k.is_framespec_format(fields[k]):
+            if not k.is_framespec_format(fields[key_name]):
                 continue
-            skip_keys.append(k)
+            skip_keys.append(key_name)
 
         # now carry out a regular search based on the template
         found_files = self.paths_from_template(
@@ -721,8 +720,8 @@ class Sgtk(object):
             # by deleting all eye values they will be replaced by %V
             # as the template is applied.
             #
-            for abstract_key_name in st_abstract_key_names:
-                del cur_fields[abstract_key_name]
+            for abstract_key in st_abstract_keys:
+                del cur_fields[abstract_key.name]
 
             # pass 2 - if we ignored the leaf level, add those fields back
             # note that there is no risk that we add abstract fields at this point
