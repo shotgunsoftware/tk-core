@@ -228,6 +228,17 @@ File Download Related
 .. autofunction:: download_and_unpack_attachment(sg, attachment_id, target, retries=5, auto_detect_bundle=False)
 .. autofunction:: download_and_unpack_url(sg, url, target, retries=5, auto_detect_bundle=False)
 
+
+Version Comparison Related
+=============================
+
+.. currentmodule:: sgtk.util
+
+.. autofunction:: is_version_older
+.. autofunction:: is_version_older_or_equal
+.. autofunction:: is_version_newer
+.. autofunction:: is_version_newer_or_equal
+
 Miscellaneous
 =============================
 
