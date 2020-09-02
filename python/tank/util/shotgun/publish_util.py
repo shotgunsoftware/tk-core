@@ -80,7 +80,7 @@ def get_cached_local_storages(tk):
 
 
 @LogManager.log_timing
-def find_publish(tk, list_of_paths, filters=None, fields=None):
+def find_publish(tk, list_of_paths, filters=None, fields=None, only_current_project=True):
     """
     Finds publishes in Shotgun given paths on disk.
     This method is similar to the find method in the Shotgun API,
@@ -120,7 +120,7 @@ def find_publish(tk, list_of_paths, filters=None, fields=None):
     # in case of sequences, there will be more than one file
     # per path cache
     # {<storage name>: { path_cache: [full_path, full_path]}}
-    storage_root_to_paths = group_by_storage(tk, list_of_paths)
+    storage_root_to_paths = group_by_storage(tk, list_of_paths, only_current_project)
 
     filters = filters or []
     fields = fields or []
