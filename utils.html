@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Utilities &mdash; tk-core v0.19.14 documentation</title>
+  <title>Utilities &mdash; tk-core v0.19.15 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.19.14 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.19.15 documentation" href="index.html"/>
         <link rel="next" title="Descriptors" href="descriptor.html"/>
         <link rel="prev" title="Apps, Engines and Frameworks" href="platform.html"/> 
 
@@ -125,6 +125,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#os-detection">OS detection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#shotgun-related">Shotgun Related</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#file-download-related">File Download Related</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-comparison-related">Version Comparison Related</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#miscellaneous">Miscellaneous</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#exceptions">Exceptions</a></li>
 </ul>
@@ -154,7 +155,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.14.<br>
+    <b>tk-core</b> v0.19.15.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -2358,6 +2359,85 @@ the bundle in a subfolder, this should be correctly unfolded.</li>
 </dd></dl>
 
 </div>
+<div class="section" id="version-comparison-related">
+<h2>Version Comparison Related<a class="headerlink" href="#version-comparison-related" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="sgtk.util.is_version_older">
+<code class="descclassname">sgtk.util.</code><code class="descname">is_version_older</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/version.html#is_version_older"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.is_version_older" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the version string <code class="docutils literal"><span class="pre">a</span></code> older than <code class="docutils literal"><span class="pre">b</span></code>?</p>
+<p>If one of the version is <cite>master</cite>, <cite>head</cite>, or formatted like a git commit sha,
+it is considered more recent than the other version.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><strong>TankError</strong> &#8211; Raised if the two versions are different git commit shas, as
+they can&#8217;t be compared.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="docutils literal"><span class="pre">True</span></code> if <code class="docutils literal"><span class="pre">a</span></code> is older than <code class="docutils literal"><span class="pre">b</span></code> but not equal, <code class="docutils literal"><span class="pre">False</span></code> otherwise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.is_version_older_or_equal">
+<code class="descclassname">sgtk.util.</code><code class="descname">is_version_older_or_equal</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/version.html#is_version_older_or_equal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.is_version_older_or_equal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the version string <code class="docutils literal"><span class="pre">a</span></code> older than or equal to <code class="docutils literal"><span class="pre">b</span></code>?</p>
+<p>If one of the version is <cite>master</cite>, <cite>head</cite>, or formatted like a git commit sha,
+it is considered more recent than the other version.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><strong>TankError</strong> &#8211; Raised if the two versions are different git commit shas, as
+they can&#8217;t be compared.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="docutils literal"><span class="pre">True</span></code> if <code class="docutils literal"><span class="pre">a</span></code> is older than or equal to <code class="docutils literal"><span class="pre">b</span></code>, <code class="docutils literal"><span class="pre">False</span></code> otherwise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.is_version_newer">
+<code class="descclassname">sgtk.util.</code><code class="descname">is_version_newer</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/version.html#is_version_newer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.is_version_newer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the version string <code class="docutils literal"><span class="pre">a</span></code> newer than <code class="docutils literal"><span class="pre">b</span></code>?</p>
+<p>If one of the version is <cite>master</cite>, <cite>head</cite>, or formatted like a git commit sha,
+it is considered more recent than the other version.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><strong>TankError</strong> &#8211; Raised if the two versions are different git commit shas, as
+they can&#8217;t be compared.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="docutils literal"><span class="pre">True</span></code> if <code class="docutils literal"><span class="pre">a</span></code> is newer than <code class="docutils literal"><span class="pre">b</span></code> but not equal, <code class="docutils literal"><span class="pre">False</span></code> otherwise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sgtk.util.is_version_newer_or_equal">
+<code class="descclassname">sgtk.util.</code><code class="descname">is_version_newer_or_equal</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/util/version.html#is_version_newer_or_equal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.util.is_version_newer_or_equal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the version string <code class="docutils literal"><span class="pre">a</span></code> newer than or equal to <code class="docutils literal"><span class="pre">b</span></code>?</p>
+<p>If one of the version is <cite>master</cite>, <cite>head</cite>, or formatted like a git commit sha,
+it is considered more recent than the other version.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><strong>TankError</strong> &#8211; Raised if the two versions are different git commit shas, as
+they can&#8217;t be compared.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="docutils literal"><span class="pre">True</span></code> if <code class="docutils literal"><span class="pre">a</span></code> is newer than or equal to <code class="docutils literal"><span class="pre">b</span></code>, <code class="docutils literal"><span class="pre">False</span></code> otherwise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
 <div class="section" id="miscellaneous">
 <h2>Miscellaneous<a class="headerlink" href="#miscellaneous" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
@@ -2510,7 +2590,7 @@ example unsupported url schemes.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.19.14',
+            VERSION:'v0.19.15',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
