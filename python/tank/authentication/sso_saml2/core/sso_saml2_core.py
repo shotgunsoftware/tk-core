@@ -161,7 +161,6 @@ class SsoSaml2Core(object):
             raise SsoSaml2MissingQtNetwork("The QtNetwork module is unavailable")
 
         if QtWebKit is None and QtWebEngineWidgets is None:
-            # @TODO: change exception
             raise SsoSaml2MissingQtWebKit(
                 "The QtWebKit or QtWebEngineWidgets modules are unavailable"
             )
@@ -449,10 +448,6 @@ class SsoSaml2Core(object):
         # For debugging purposes
         if self._developer_mode:
             if QtWebKit:
-                self._logger.debug(
-                    "Using developer mode. Disabling strict SSL mode, enabling developer tools and local storage."
-                )
-
                 # Adds the Developer Tools option when right-clicking
                 QtWebKit.QWebSettings.globalSettings().setAttribute(
                     QtWebKit.QWebSettings.WebAttribute.DeveloperExtrasEnabled, True
@@ -833,7 +828,6 @@ class SsoSaml2Core(object):
 
         if not succeeded:
             self._logger.error('Loading of page "%s" generated an error.', url)
-            # @FIXME: Figure out proper way of handling error.
 
     def on_authentication_required(self, _reply, authenticator):
         """
