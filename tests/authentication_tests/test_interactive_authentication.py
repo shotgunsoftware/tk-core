@@ -90,13 +90,14 @@ class InteractiveTests(ShotgunTestBase):
         # Import locally since login_dialog has a dependency on Qt and it might be missing
         from tank.authentication import login_dialog
 
-        with contextlib.closing(
-            login_dialog.LoginDialog(is_session_renewal=is_session_renewal)
-        ) as ld:
-            # SSO module and threading causes issues with unit tests, so disable it.
-            ld._saml2_sso = None
-            self._prepare_window(ld)
-            yield ld
+        # Patch out the SsoSaml2Toolkit class to avoid threads being created, which cause
+        # issues with tests.
+        with patch("tank.authentication.login_dialog.SsoSaml2Toolkit"):
+            with contextlib.closing(
+                login_dialog.LoginDialog(is_session_renewal=is_session_renewal)
+            ) as ld:
+                self._prepare_window(ld)
+                yield ld
 
     @suppress_generated_code_qt_warnings
     def test_focus(self):

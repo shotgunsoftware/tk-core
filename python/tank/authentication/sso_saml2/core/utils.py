@@ -24,8 +24,10 @@ import urllib
 # fail.
 try:
     import urlparse
+    from urllib import unquote
 except ImportError:
     import urllib.parse as urlparse
+    from urllib.parse import unquote
 try:
     from http.cookies import SimpleCookie
 except ImportError:
@@ -77,6 +79,11 @@ def _decode_cookies(encoded_cookies):
             # In Python 2 this raises a TypeError, while in 3 it will raise a
             # binascii.Error.  Catch either and handle them the same.
             get_logger().error("Unable to decode the cookies: %s", str(e))
+    # Should the decoded cookies be used with SimpleCookie, we strip out the
+    # 'Set-Cookie: ' prefix to maintain Python2 and Python3 compatibility.
+    # It turns out that the regex to parse cookies has change in SimpleCookie
+    # in Python3, causing problems when the prefix was present.
+    decoded_cookies = decoded_cookies.replace("Set-Cookie: ", "")
     return decoded_cookies
 
 
@@ -245,7 +252,7 @@ def get_user_name(encoded_cookies):
         encoded_cookies, "shotgun_current_user_login"
     ) or _get_cookie_from_prefix(encoded_cookies, "shotgun_sso_session_userid_u")
     if user_name is not None:
-        user_name = urllib.unquote(user_name)
+        user_name = unquote(user_name)
     return user_name
 
 
