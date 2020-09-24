@@ -54,16 +54,6 @@ class UserTests(ShotgunTestBase):
             )
         )
 
-    def _create_test_user(self):
-        return user.ShotgunUser(
-            user_impl.SessionUser(
-                host="https://tank.shotgunstudio.com",
-                login="login",
-                session_token="session_token",
-                http_proxy="http_proxy",
-            )
-        )
-
     def _create_test_web_user(self):
         return user.ShotgunWebUser(
             user_impl.SessionUser(
