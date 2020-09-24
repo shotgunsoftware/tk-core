@@ -53,6 +53,45 @@ class AuthenticationCancelled(ShotgunAuthenticationError):
         )
 
 
+class UnresolvableUser(ShotgunAuthenticationError):
+    """
+    Thrown when Toolkit is not able to resolve a user.
+    """
+
+    def __init__(self, nice_user_type, user_type, key_name, key_value):
+        """
+        Constructor.
+        """
+        super(UnresolvableUser, self).__init__(
+            "The {0} named '{3}' could not be resolved. Check if the "
+            "permissions for the current user are hiding the field '{1}.{2}'.".format(
+                nice_user_type, user_type, key_name, key_value
+            )
+        )
+
+
+class UnresolvableHumanUser(UnresolvableUser):
+    """
+    Thrown when Toolkit is not able to resolve a human user.
+    """
+
+    def __init__(self, login):
+        super(UnresolvableHumanUser, self).__init__(
+            "person", "HumanUser", "login", login
+        )
+
+
+class UnresolvableScriptUser(UnresolvableUser):
+    """
+    Thrown when Toolkit is not able to resolve a human user.
+    """
+
+    def __init__(self, script_name):
+        super(UnresolvableScriptUser, self).__init__(
+            "script", "ApiUser", "firstname", script_name
+        )
+
+
 class ConsoleLoginNotSupportedError(ShotgunAuthenticationError):
     """
     Thrown when attempting to use Username/Password pair to login onto

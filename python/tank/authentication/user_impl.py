@@ -25,7 +25,7 @@ from tank_vendor import six
 from tank_vendor.six.moves import http_client
 
 from . import session_cache
-from .errors import IncompleteCredentials
+from .errors import IncompleteCredentials, UnresolvableHumanUser, UnresolvableScriptUser
 from .. import LogManager
 from ..util import pickle
 from ..util import json as sgjson
@@ -63,6 +63,11 @@ class ShotgunUserImpl(object):
 
         self._host = host
         self._http_proxy = http_proxy
+
+        # This is the cached result of resolve_entity.
+        # One resolve_entity() has been called once,
+        # the cached entity will always be returned afterwards
+        self._cached_entity = None
 
     def get_host(self):
         """
@@ -283,6 +288,22 @@ class SessionUser(ShotgunUserImpl):
             connect=False,
         )
 
+    def resolve_entity(self):
+        """
+        Resolves the Shotgun entity associated with this user.
+
+        :returns: A dictionary with ``type`` and ``id`` values.
+        :rtype: dict
+        """
+        # We cache the entity to avoid fetching it multiple times.
+        if self._cached_entity is None:
+            self._cached_entity = self.create_sg_connection().find_one(
+                "HumanUser", [["login", "is", self._login]]
+            )
+            if self._cached_entity is None:
+                raise UnresolvableHumanUser(self._login)
+        return self._cached_entity
+
     @LogManager.log_timing
     def are_credentials_expired(self):
         """
@@ -434,6 +455,22 @@ class ScriptUser(ShotgunUserImpl):
             http_proxy=self._http_proxy,
             connect=False,
         )
+
+    def resolve_entity(self):
+        """
+        Resolves the Shotgun entity associated with this user.
+
+        :returns: A dictionary with ``type`` and ``id`` values.
+        :rtype: dict
+        """
+        # We cache the entity to avoid fetching it multiple times.
+        if self._cached_entity is None:
+            self._cached_entity = self.create_sg_connection().find_one(
+                "ApiUser", [["firstname", "is", self._api_script]]
+            )
+            if self._cached_entity is None:
+                raise UnresolvableScriptUser(self._api_script)
+        return self._cached_entity
 
     def refresh_credentials(self):
         """
