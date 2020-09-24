@@ -111,25 +111,21 @@ Exception Classes
 
 .. autoclass:: ShotgunAuthenticationError
     :show-inheritance:
-    :inherited-members:
-    :members:
 
 .. autoclass:: AuthenticationError
     :show-inheritance:
-    :inherited-members:
-    :members:
 
 .. autoclass:: IncompleteCredentials
     :show-inheritance:
-    :inherited-members:
-    :members:
 
 .. autoclass:: AuthenticationCancelled
     :show-inheritance:
-    :inherited-members:
-    :members:
 
 .. autoclass:: ConsoleLoginNotSupportedError
     :show-inheritance:
-    :inherited-members:
-    :members:
+
+.. autoclass:: UnresolvableHumanUser
+    :show-inheritance:
+
+.. autoclass:: UnresolvableScriptUser
+    :show-inheritance:

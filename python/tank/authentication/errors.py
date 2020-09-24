@@ -45,9 +45,6 @@ class AuthenticationCancelled(ShotgunAuthenticationError):
     """
 
     def __init__(self):
-        """
-        Constructor.
-        """
         ShotgunAuthenticationError.__init__(
             self, "Authentication was cancelled by the user."
         )
@@ -59,9 +56,6 @@ class UnresolvableUser(ShotgunAuthenticationError):
     """
 
     def __init__(self, nice_user_type, user_type, key_name, key_value):
-        """
-        Constructor.
-        """
         super(UnresolvableUser, self).__init__(
             "The {0} named '{3}' could not be resolved. Check if the "
             "permissions for the current user are hiding the field '{1}.{2}'.".format(
@@ -76,6 +70,9 @@ class UnresolvableHumanUser(UnresolvableUser):
     """
 
     def __init__(self, login):
+        """
+        :param str login: ``login`` field value of the ``HumanUser`` that could not be resolved.
+        """
         super(UnresolvableHumanUser, self).__init__(
             "person", "HumanUser", "login", login
         )
@@ -87,6 +84,9 @@ class UnresolvableScriptUser(UnresolvableUser):
     """
 
     def __init__(self, script_name):
+        """
+        :param str script_name: ``firstname`` field value of the ``ApiUser`` that could not be resolved.
+        """
         super(UnresolvableScriptUser, self).__init__(
             "script", "ApiUser", "firstname", script_name
         )
