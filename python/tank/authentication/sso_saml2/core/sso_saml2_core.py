@@ -165,6 +165,18 @@ class SsoSaml2Core(object):
             raise SsoSaml2MissingQtWebKit(
                 "The QtWebKit or QtWebEngineWidgets modules are unavailable"
             )
+
+        # If PySide2 is being used, we need to make  extra checks to ensure
+        # that needed components are indeed presentself.
+        #
+        # The versions of PySide2 are only lightly coupled with the versions
+        # of Qt it exposes. It is possible to mix-and-match a very recent Qt5
+        # and have a very old version of PySide2. The issue is that it does
+        # not necessarily expose to the Python layer all of the classes and
+        # methods needed for us to go forward with the Web-based authentication.
+        # At the time of this writing, there was one such reported situation:
+        # - recent and old versions of Flame using PySide2 version '2.0.0~alpha0':
+        #     missing the 'cookieStore' method for class QWebEngineProfile
         if QtWebEngineWidgets and not hasattr(
             QtWebEngineWidgets.QWebEngineProfile, "cookieStore"
         ):
