@@ -24,6 +24,7 @@ import time
 
 from .authentication_session_data import AuthenticationSessionData
 from .errors import (
+    SsoSaml2IncompletePySide2,
     SsoSaml2MissingQtCore,
     SsoSaml2MissingQtGui,
     SsoSaml2MissingQtNetwork,
@@ -163,6 +164,12 @@ class SsoSaml2Core(object):
         if QtWebKit is None and QtWebEngineWidgets is None:
             raise SsoSaml2MissingQtWebKit(
                 "The QtWebKit or QtWebEngineWidgets modules are unavailable"
+            )
+        if QtWebEngineWidgets and not hasattr(
+            QtWebEngineWidgets.QWebEngineProfile, "cookieStore"
+        ):
+            raise SsoSaml2IncompletePySide2(
+                "Missing method QtWebEngineWidgets.QWebEngineProfile.cookieStore()"
             )
 
         if QtWebKit:
