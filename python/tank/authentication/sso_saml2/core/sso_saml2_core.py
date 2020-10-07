@@ -167,7 +167,7 @@ class SsoSaml2Core(object):
             )
 
         # If PySide2 is being used, we need to make  extra checks to ensure
-        # that needed components are indeed presentself.
+        # that needed components are indeed present.
         #
         # The versions of PySide2 are only lightly coupled with the versions
         # of Qt it exposes. It is possible to mix-and-match a very recent Qt5
