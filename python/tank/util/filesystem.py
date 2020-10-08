@@ -171,7 +171,15 @@ def copy_file(src, dst, permissions=0o666):
     :param permissions: Permissions to use for target file. Default permissions will
                         be readable and writable for all users.
     """
-    shutil.copy(src, dst)
+    if is_windows():
+        windows_src = open(src, mode="rb")
+        windows_dst = open(dst, mode="wb")
+        shutil.copyfileobj(windows_src, windows_dst, length=16*1024*1024)
+        windows_src.close()
+        windows_dst.close()
+        log.debug("Used shutil override on Windows")
+    else:
+        shutil.copy(src, dst)
     os.chmod(dst, permissions)
 
 
