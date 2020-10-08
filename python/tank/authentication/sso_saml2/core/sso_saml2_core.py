@@ -183,6 +183,8 @@ class SsoSaml2Core(object):
             raise SsoSaml2IncompletePySide2(
                 "Missing method QtWebEngineWidgets.QWebEngineProfile.cookieStore()"
             )
+        if QtNetwork and not hasattr(QtNetwork, "QSslConfiguration"):
+            raise SsoSaml2IncompletePySide2("Missing class QtNetwork.QSslConfiguration")
 
         if QtWebKit:
 
