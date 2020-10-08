@@ -174,9 +174,12 @@ class SsoSaml2Core(object):
         # and have a very old version of PySide2. The issue is that it does
         # not necessarily expose to the Python layer all of the classes and
         # methods needed for us to go forward with the Web-based authentication.
-        # At the time of this writing, there was one such reported situation:
+        # At the time of this writing, there was these reported situations:
         # - recent and old versions of Flame using PySide2 version '2.0.0~alpha0':
         #     missing the 'cookieStore' method for class QWebEngineProfile
+        # - Maya 2017
+        #     missing the 'QSslConfiguration' class. Likely compiled without SSL
+        #     support.
         if QtWebEngineWidgets and not hasattr(
             QtWebEngineWidgets.QWebEngineProfile, "cookieStore"
         ):
