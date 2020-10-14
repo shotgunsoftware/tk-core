@@ -171,8 +171,12 @@ def copy_file(src, dst, permissions=0o666):
     :param permissions: Permissions to use for target file. Default permissions will
                         be readable and writable for all users.
     """
-    shutil.copy(src, dst)
-    os.chmod(dst, permissions)
+    shutil.copyfile(src, dst)
+
+    try:
+        os.chmod(dst, permissions)
+    except OSError as e:
+        pass
 
 
 def safe_delete_file(path):
