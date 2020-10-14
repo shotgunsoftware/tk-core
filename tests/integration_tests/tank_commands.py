@@ -155,7 +155,7 @@ class TankCommands(SgtkIntegrationTest):
 
         self.tank_setup_project(
             self.shared_core_location,
-            "tk-config-basic",
+            "tk-config-testing",
             None,
             self.project["id"],
             "tankcommandtest",
@@ -171,7 +171,7 @@ class TankCommands(SgtkIntegrationTest):
 
         self.tank_setup_project(
             self.shared_core_location,
-            "https://github.com/shotgunsoftware/tk-config-basic.git",
+            "https://github.com/shotgunsoftware/tk-config-testing.git",
             None,
             self.project["id"],
             "tankcommandtest",
@@ -195,9 +195,6 @@ class TankCommands(SgtkIntegrationTest):
             force=True,
         )
 
-    @unittest2.skipIf(
-        sys.version_info[0] > 2, "shell engine is not Python 3 compatible."
-    )
     def test_04_list_actions_for_project_with_shared_core(self):
         """
         Ensures that running the tank command when there is a site-wide Primary
