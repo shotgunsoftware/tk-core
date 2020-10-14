@@ -25,15 +25,15 @@ engines:
         location:
           type: app_store
           name: tk-multi-launchapp
-          version: v0.9.15
+          version: v0.11.1
     location:
       type: app_store
       name: tk-shell
-      version: v0.6.0
+      version: v0.8.0
 
 frameworks:
   tk-framework-shotgunutils_v5.x.x:
     location:
-      version: v5.3.4
+      version: v5.7.6
       type: app_store
       name: tk-framework-shotgunutils
