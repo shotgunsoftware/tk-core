@@ -29,6 +29,7 @@ from ..util import LocalFileStorageManager
 from .errors import AuthenticationError
 from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit, QtWebEngineWidgets
 from .sso_saml2 import (
+    SsoSaml2IncompletePySide2,
     SsoSaml2Toolkit,
     SsoSaml2MissingQtModuleError,
     is_autodesk_identity_enabled_on_site,
@@ -150,7 +151,12 @@ class LoginDialog(QtGui.QDialog):
         try:
             self._sso_saml2 = SsoSaml2Toolkit("Web Login", qt_modules=qt_modules)
         except SsoSaml2MissingQtModuleError as e:
-            logger.info("Web login not supported due to missing Qt module: %s" % e)
+            logger.warning("Web login not supported due to missing Qt module: %s" % e)
+            self._sso_saml2 = None
+        except SsoSaml2IncompletePySide2 as e:
+            logger.warning(
+                "Web login not supported due to missing Qt method/class: %s" % e
+            )
             self._sso_saml2 = None
 
         hostname = hostname or ""
