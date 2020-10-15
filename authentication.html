@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Authentication &mdash; tk-core v0.19.16 documentation</title>
+  <title>Authentication &mdash; tk-core v0.19.17 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.19.16 documentation" href="index.html"/>
+    <link rel="top" title="tk-core v0.19.17 documentation" href="index.html"/>
         <link rel="prev" title="Descriptors" href="descriptor.html"/> 
 
   
@@ -130,7 +130,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.16.<br>
+    <b>tk-core</b> v0.19.17.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -540,6 +540,22 @@ of a login (like API scripts), None is returned.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="sgtk.authentication.ShotgunUser.resolve_entity">
+<code class="descname">resolve_entity</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/user.html#ShotgunUser.resolve_entity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunUser.resolve_entity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resolves the Shotgun entity associated with this user.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A dictionary with <code class="docutils literal"><span class="pre">type</span></code> and <code class="docutils literal"><span class="pre">id</span></code> values.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)">dict</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="sgtk.authentication.ShotgunUser.create_sg_connection">
 <code class="descname">create_sg_connection</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/user.html#ShotgunUser.create_sg_connection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunUser.create_sg_connection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a Shotgun connection using the credentials for this user.</p>
@@ -834,7 +850,6 @@ A pickled representation will be generated otherwise.</li>
 <em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">AuthenticationCancelled</code><a class="reference internal" href="_modules/tank/authentication/errors.html#AuthenticationCancelled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.AuthenticationCancelled" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.authentication.errors.ShotgunAuthenticationError</span></code></p>
 <p>Thrown when the user cancels authentication or session renewal.</p>
-<p>Constructor.</p>
 </dd></dl>
 
 <dl class="class">
@@ -853,6 +868,36 @@ an SSO-enabled site.</p>
 The default value is for backward compatibility.</li>
 </ul>
 </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.authentication.UnresolvableHumanUser">
+<em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">UnresolvableHumanUser</code><span class="sig-paren">(</span><em>login</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/errors.html#UnresolvableHumanUser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.UnresolvableHumanUser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.authentication.errors.UnresolvableUser</span></code></p>
+<p>Thrown when Toolkit is not able to resolve a human user.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>login</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; <code class="docutils literal"><span class="pre">login</span></code> field value of the <code class="docutils literal"><span class="pre">HumanUser</span></code> that could not be resolved.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="sgtk.authentication.UnresolvableScriptUser">
+<em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">UnresolvableScriptUser</code><span class="sig-paren">(</span><em>script_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/errors.html#UnresolvableScriptUser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.UnresolvableScriptUser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.authentication.errors.UnresolvableUser</span></code></p>
+<p>Thrown when Toolkit is not able to resolve a human user.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>script_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; <code class="docutils literal"><span class="pre">firstname</span></code> field value of the <code class="docutils literal"><span class="pre">ApiUser</span></code> that could not be resolved.</td>
 </tr>
 </tbody>
 </table>
@@ -900,7 +945,7 @@ The default value is for backward compatibility.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'v0.19.16',
+            VERSION:'v0.19.17',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
