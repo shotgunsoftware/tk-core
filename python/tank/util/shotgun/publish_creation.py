@@ -795,7 +795,7 @@ def _calc_path_cache(tk, path, project_names=[]):
     norm_path = ShotgunPath.normalize(path)
 
     # normalize to only use forward slashes
-    norm_path = norm_path.replace("\\", "/")
+    norm_path = six.ensure_str(norm_path.replace("\\", "/"))
 
     # get roots - dict keyed by storage name
     storage_roots = tk.pipeline_configuration.get_local_storage_roots()
@@ -815,7 +815,7 @@ def _calc_path_cache(tk, path, project_names=[]):
 
             # append project and normalize
             proj_path = root_path_obj.join(project_name).current_os
-            proj_path = proj_path.replace(os.sep, "/")
+            proj_path = six.ensure_str(proj_path.replace(os.sep, "/"))
 
             if norm_path.lower().startswith(proj_path.lower()):
                 # our path matches this storage!
