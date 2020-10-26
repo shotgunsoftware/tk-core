@@ -681,6 +681,19 @@ class Engine(TankBundle):
         return True
 
     ##########################################################################################
+    # static methods
+    @staticmethod
+    def current_work_has_path():
+        """
+        Returns True if the current work has been saved at least once before in Shotgun. Defaults
+        to always return True.
+
+        Override method to implement this functionality specific to engine and DCC.
+        """
+
+        return True
+
+    ##########################################################################################
     # init and destroy
 
     def init_engine(self):
@@ -1978,6 +1991,35 @@ class Engine(TankBundle):
             "panel '%s' in a modeless dialog" % panel_id
         )
         return self.show_dialog(title, bundle, widget_class, *args, **kwargs)
+
+    def show_save_dialog(self, modal=False):
+        """
+        Show a save dialog suitable for this engine. Default to showing the workfiles2 save
+        dialog (if configured), else do nothing.
+
+        Override this method to show a save dialog specific to the engine and DCC.
+
+        :returns: True if a save dialog was successfully opened
+        """
+
+        show_func = None
+        kwargs = {}
+        workfiles = self.apps.get("tk-multi-workfiles2", None)
+
+        if workfiles:
+            if hasattr(workfiles, "show_file_save_dlg"):
+                show_func = workfiles.show_file_save_dlg
+                kwargs["use_modal_dialog"] = modal
+
+        try:
+            show_func(**kwargs)
+            return True
+        except TypeError:
+            # show_func is None, return False to indicate that the derived Engine is responsible
+            # for showing a save dialog
+            return False
+        except Exception as e:
+            raise TankError("Engine save dialog error: '%s'" % e)
 
     def _resolve_sg_stylesheet_tokens(self, style_sheet):
         """
