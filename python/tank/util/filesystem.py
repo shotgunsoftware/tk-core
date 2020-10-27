@@ -174,7 +174,7 @@ def copy_file(src, dst, permissions=0o666):
     if is_windows():
         windows_src = open(src, mode="rb")
         windows_dst = open(dst, mode="wb")
-        shutil.copyfileobj(windows_src, windows_dst, length=16*1024*1024)
+        shutil.copyfileobj(windows_src, windows_dst, length=16 * 1024 * 1024)
         windows_src.close()
         windows_dst.close()
         log.debug("Used shutil override on Windows")
