@@ -24,6 +24,7 @@ import time
 
 from .authentication_session_data import AuthenticationSessionData
 from .errors import (
+    SsoSaml2IncompletePySide2,
     SsoSaml2MissingQtCore,
     SsoSaml2MissingQtGui,
     SsoSaml2MissingQtNetwork,
@@ -164,6 +165,29 @@ class SsoSaml2Core(object):
             raise SsoSaml2MissingQtWebKit(
                 "The QtWebKit or QtWebEngineWidgets modules are unavailable"
             )
+
+        # If PySide2 is being used, we need to make  extra checks to ensure
+        # that needed components are indeed present.
+        #
+        # The versions of PySide2 are only lightly coupled with the versions
+        # of Qt it exposes. It is possible to mix-and-match a very recent Qt5
+        # and have a very old version of PySide2. The issue is that it does
+        # not necessarily expose to the Python layer all of the classes and
+        # methods needed for us to go forward with the Web-based authentication.
+        # At the time of this writing, there was these reported situations:
+        # - recent and old versions of Flame using PySide2 version '2.0.0~alpha0':
+        #     missing the 'cookieStore' method for class QWebEngineProfile
+        # - Maya 2017
+        #     missing the 'QSslConfiguration' class. Likely compiled without SSL
+        #     support.
+        if QtWebEngineWidgets and not hasattr(
+            QtWebEngineWidgets.QWebEngineProfile, "cookieStore"
+        ):
+            raise SsoSaml2IncompletePySide2(
+                "Missing method QtWebEngineWidgets.QWebEngineProfile.cookieStore()"
+            )
+        if QtNetwork and not hasattr(QtNetwork, "QSslConfiguration"):
+            raise SsoSaml2IncompletePySide2("Missing class QtNetwork.QSslConfiguration")
 
         if QtWebKit:
 
