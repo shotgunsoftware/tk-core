@@ -209,7 +209,11 @@ class TankQDialog(TankDialogBase):
         else:
             self.ui.label.setText(title)
 
-        self.setWindowTitle("Shotgun: %s" % title)
+        if title.startswith("Shotgun"):
+            self.setWindowTitle(title)
+        else:
+            self.setWindowTitle("Shotgun: %s" % title)
+
         if os.path.exists(bundle.icon_256):
             self._window_icon = QtGui.QIcon(bundle.icon_256)
             self.setWindowIcon(self._window_icon)
