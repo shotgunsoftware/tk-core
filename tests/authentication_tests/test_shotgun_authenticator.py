@@ -151,6 +151,15 @@ class ShotgunAuthenticatorTests(ShotgunTestBase):
         self.assertEqual(connection.config.script_name, "api_script")
         self.assertEqual(connection.config.api_key, "api_key")
 
+        # Test using sudo_as_login
+        user = ShotgunAuthenticator(CustomDefaultManager()).create_script_user(
+            "api_script", "api_key", "https://host.shotgunstudio.com", None, "sudouser"
+        )
+        connection = user.create_sg_connection()
+        self.assertEqual(connection.config.script_name, "api_script")
+        self.assertEqual(connection.config.api_key, "api_key")
+        self.assertEqual(connection.config.sudo_as_login, "sudouser")
+
     @patch("tank.authentication.session_cache.get_current_host", return_value=None)
     def test_no_current_host(self, _):
         """

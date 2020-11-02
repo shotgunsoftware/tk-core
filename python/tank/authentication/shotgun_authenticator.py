@@ -184,7 +184,7 @@ class ShotgunAuthenticator(object):
             return user.ShotgunWebUser(impl)
         return user.ShotgunUser(impl)
 
-    def create_script_user(self, api_script, api_key, host=None, http_proxy=None):
+    def create_script_user(self, api_script, api_key, host=None, http_proxy=None, sudo_as_login=None):
         """
         Create an AuthenticatedUser given a set of script credentials.
 
@@ -194,6 +194,8 @@ class ShotgunAuthenticator(object):
                      be used.
         :param http_proxy: Shotgun proxy to use. If None, the default http proxy
                            will be used.
+        :param sudo_as_login: A Shotgun user login string for the user whose permissions will be applied
+            to all actions. If None, api_script permissions will be used.
 
         :returns: A :class:`ShotgunUser` derived instance.
         """
@@ -203,6 +205,7 @@ class ShotgunAuthenticator(object):
                 api_script,
                 api_key,
                 http_proxy or self._defaults_manager.get_http_proxy(),
+                sudo_as_login,
             )
         )
 
@@ -245,6 +248,7 @@ class ShotgunAuthenticator(object):
                 api_key=credentials.get("api_key"),
                 host=credentials.get("host"),
                 http_proxy=credentials.get("http_proxy"),
+                sudo_as_login=credentials.get("sudo_as_login"),
             )
         # If this looks like a session user, delegate to create_session_user.
         # If some of the arguments are missing, don't worry, create_session_user

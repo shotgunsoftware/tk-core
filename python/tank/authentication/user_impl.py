@@ -111,6 +111,14 @@ class ShotgunUserImpl(object):
         """
         self.__class__._not_implemented("get_login")
 
+    def get_sudo_as_login(self):
+        """
+        Returns the sudo_as_login for this user.
+
+        :returns: The sudo_as_login string."
+        """
+        self.__class__._not_implemented("get_sudo_as_login")
+
     def get_session_metadata(self):
         """
         Returns the session metadata for this user.
@@ -235,6 +243,14 @@ class SessionUser(ShotgunUserImpl):
         :returns: The login name string.
         """
         return self._login
+
+    def get_sudo_as_login(self):
+        """
+        Returns the user used for sudo_as_login for this user.
+
+        :returns: The sudo_as_login user login string.
+        """
+        return None
 
     def get_session_token(self):
         """
@@ -421,7 +437,7 @@ class ScriptUser(ShotgunUserImpl):
     User that authenticates to the Shotgun server using a api name and api key.
     """
 
-    def __init__(self, host, api_script, api_key, http_proxy):
+    def __init__(self, host, api_script, api_key, http_proxy, sudo_as_login):
         """
         Constructor.
 
@@ -437,6 +453,7 @@ class ScriptUser(ShotgunUserImpl):
 
         self._api_script = api_script
         self._api_key = api_key
+        self._sudo_as_login = sudo_as_login
 
     def create_sg_connection(self):
         """
@@ -452,6 +469,7 @@ class ScriptUser(ShotgunUserImpl):
             self._host,
             script_name=self._api_script,
             api_key=self._api_key,
+            sudo_as_login=self._sudo_as_login,
             http_proxy=self._http_proxy,
             connect=False,
         )
@@ -509,7 +527,7 @@ class ScriptUser(ShotgunUserImpl):
         :returns: The login name string.
         """
         # Script user has no login.
-        return None
+        return self._sudo_as_login
 
     def get_session_metadata(self):
         """
@@ -520,6 +538,14 @@ class ScriptUser(ShotgunUserImpl):
         # Script user has no session_metadata.
         return None
 
+    def get_sudo_as_login(self):
+        """
+        Returns the user used for sudo_as_login for this user.
+
+        :returns: The sudo_as_login user login string.
+        """
+        return self._sudo_as_login
+
     def to_dict(self):
         """
         Converts the user into a dictionary object.
@@ -529,6 +555,7 @@ class ScriptUser(ShotgunUserImpl):
         data = super(ScriptUser, self).to_dict()
         data["api_script"] = self.get_script()
         data["api_key"] = self.get_key()
+        data["sudo_as_login"] = self.get_sudo_as_login()
         return data
 
     def __repr__(self):
@@ -537,7 +564,8 @@ class ScriptUser(ShotgunUserImpl):
 
         :returns: A string containing script name and site.
         """
-        return "<ScriptUser %s @ %s>" % (self._api_script, self._host)
+        sudo_as_login_repr = " (as %s)" % self._sudo_as_login if self._sudo_as_login else ""
+        return "<ScriptUser %s%s @ %s>" % (self._api_script, sudo_as_login_repr, self._host)
 
     def __str__(self):
         """
@@ -545,7 +573,10 @@ class ScriptUser(ShotgunUserImpl):
 
         :returns: A string.
         """
-        return self._api_script
+        value = self._api_script
+        if self._sudo_as_login:
+            value += " (as %s)" % self._sudo_as_login
+        return value
 
     @staticmethod
     def from_dict(payload):
@@ -560,6 +591,7 @@ class ScriptUser(ShotgunUserImpl):
             host=payload.get("host"),
             api_script=payload.get("api_script"),
             api_key=payload.get("api_key"),
+            sudo_as_login=payload.get("sudo_as_login"),
             http_proxy=payload.get("http_proxy"),
         )
 
