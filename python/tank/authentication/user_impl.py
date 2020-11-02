@@ -564,8 +564,14 @@ class ScriptUser(ShotgunUserImpl):
 
         :returns: A string containing script name and site.
         """
-        sudo_as_login_repr = " (as %s)" % self._sudo_as_login if self._sudo_as_login else ""
-        return "<ScriptUser %s%s @ %s>" % (self._api_script, sudo_as_login_repr, self._host)
+        sudo_as_login_repr = (
+            " (as %s)" % self._sudo_as_login if self._sudo_as_login else ""
+        )
+        return "<ScriptUser %s%s @ %s>" % (
+            self._api_script,
+            sudo_as_login_repr,
+            self._host,
+        )
 
     def __str__(self):
         """

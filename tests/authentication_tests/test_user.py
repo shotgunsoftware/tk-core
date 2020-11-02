@@ -51,6 +51,18 @@ class UserTests(ShotgunTestBase):
                 api_script="api_script",
                 api_key="api_key",
                 http_proxy="http_proxy",
+                sudo_as_login=None,
+            )
+        )
+
+    def _create_script_sudo_as_login_user(self):
+        return user.ShotgunUser(
+            user_impl.ScriptUser(
+                host="host",
+                api_script="api_script",
+                api_key="api_key",
+                http_proxy="http_proxy",
+                sudo_as_login="sudo_as_login",
             )
         )
 
@@ -95,6 +107,10 @@ class UserTests(ShotgunTestBase):
 
         script_user = self._create_script_user()
         self.assertIsNone(script_user.login)
+
+        sudo_user = self._create_script_sudo_as_login_user()
+        self.assertEqual(sudo_user.login, "sudo_as_login")
+        self.assertEqual(sudo_user.sudo_as_login, "sudo_as_login")
 
         class CustomUser(user_impl.ShotgunUserImpl):
             def __init__(self):

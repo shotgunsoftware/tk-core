@@ -184,7 +184,9 @@ class ShotgunAuthenticator(object):
             return user.ShotgunWebUser(impl)
         return user.ShotgunUser(impl)
 
-    def create_script_user(self, api_script, api_key, host=None, http_proxy=None, sudo_as_login=None):
+    def create_script_user(
+        self, api_script, api_key, host=None, http_proxy=None, sudo_as_login=None
+    ):
         """
         Create an AuthenticatedUser given a set of script credentials.
 
