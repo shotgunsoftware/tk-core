@@ -597,8 +597,8 @@ def _get_pipeline_configs_for_path(path, data):
     for project_path in project_paths:
 
         # (like the SG API, this logic is case preserving, not case insensitive)
-        path_lower = path.lower()
-        proj_path_lower = project_path.lower()
+        path_lower = six.ensure_str(path.lower())
+        proj_path_lower = six.ensure_str(project_path.lower())
         # check if the path matches. Either
         # direct match: path: /mnt/proj_x == project path: /mnt/proj_x
         # child path: path: /mnt/proj_x/foo/bar starts with /mnt/proj_x/
