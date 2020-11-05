@@ -872,8 +872,12 @@ def group_by_storage(tk, list_of_paths, only_current_project=True):
     if not only_current_project:
         sg_projects = tk.shotgun.find(
             "Project",
-            [["archived", "is", False], ["is_template", "is", False], ["tank_name", "is_not", None]],
-            ["tank_name"]
+            [
+                ["archived", "is", False],
+                ["is_template", "is", False],
+                ["tank_name", "is_not", None],
+            ],
+            ["tank_name"],
         )
         project_names = [p["tank_name"] for p in sg_projects]
     else:

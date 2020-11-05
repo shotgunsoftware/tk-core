@@ -80,7 +80,9 @@ def get_cached_local_storages(tk):
 
 
 @LogManager.log_timing
-def find_publish(tk, list_of_paths, filters=None, fields=None, only_current_project=True):
+def find_publish(
+    tk, list_of_paths, filters=None, fields=None, only_current_project=True
+):
     """
     Finds publishes in Shotgun given paths on disk.
     This method is similar to the find method in the Shotgun API,
