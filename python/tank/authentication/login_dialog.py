@@ -25,9 +25,11 @@ from .ui import login_dialog
 from . import session_cache
 from ..util.shotgun import connection
 from ..util import login
+from ..util import LocalFileStorageManager
 from .errors import AuthenticationError
-from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit
+from .ui.qt_abstraction import QtGui, QtCore, QtNetwork, QtWebKit, QtWebEngineWidgets
 from .sso_saml2 import (
+    SsoSaml2IncompletePySide2,
     SsoSaml2Toolkit,
     SsoSaml2MissingQtModuleError,
     is_autodesk_identity_enabled_on_site,
@@ -144,11 +146,17 @@ class LoginDialog(QtGui.QDialog):
             "QtGui": QtGui,
             "QtNetwork": QtNetwork,
             "QtWebKit": QtWebKit,
+            "QtWebEngineWidgets": QtWebEngineWidgets,
         }
         try:
             self._sso_saml2 = SsoSaml2Toolkit("Web Login", qt_modules=qt_modules)
         except SsoSaml2MissingQtModuleError as e:
-            logger.info("Web login not supported due to missing Qt module: %s" % e)
+            logger.warning("Web login not supported due to missing Qt module: %s" % e)
+            self._sso_saml2 = None
+        except SsoSaml2IncompletePySide2 as e:
+            logger.warning(
+                "Web login not supported due to missing Qt method/class: %s" % e
+            )
             self._sso_saml2 = None
 
         hostname = hostname or ""
@@ -445,12 +453,16 @@ class LoginDialog(QtGui.QDialog):
                   None if the user cancelled.
         """
         if self._session_metadata and self._sso_saml2:
+            profile_location = LocalFileStorageManager.get_site_root(
+                self._get_current_site(), LocalFileStorageManager.CACHE
+            )
             res = self._sso_saml2.login_attempt(
                 host=self._get_current_site(),
                 http_proxy=self._http_proxy,
                 cookies=self._session_metadata,
                 product=PRODUCT_IDENTIFIER,
                 use_watchdog=True,
+                profile_location=profile_location,
             )
             # If the offscreen session renewal failed, show the GUI as a failsafe
             if res == QtGui.QDialog.Accepted:
@@ -549,11 +561,15 @@ class LoginDialog(QtGui.QDialog):
         success = False
         try:
             if self._use_web and self._sso_saml2:
+                profile_location = LocalFileStorageManager.get_site_root(
+                    site, LocalFileStorageManager.CACHE
+                )
                 res = self._sso_saml2.login_attempt(
                     host=site,
                     http_proxy=self._http_proxy,
                     cookies=self._session_metadata,
                     product=PRODUCT_IDENTIFIER,
+                    profile_location=profile_location,
                 )
                 if res == QtGui.QDialog.Accepted:
                     self._new_session_token = self._sso_saml2.session_id
