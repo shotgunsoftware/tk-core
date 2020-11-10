@@ -20,3 +20,5 @@ setuptools==36.0.1
 
 # Used to run tests
 unittest2==1.1.0
+
+ordereddict==1.1

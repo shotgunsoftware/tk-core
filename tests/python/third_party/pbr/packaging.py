@@ -22,11 +22,22 @@ from __future__ import unicode_literals
 
 from distutils.command import install as du_install
 from distutils import log
+
+# (hberaud) do not use six here to import urlparse
+# to keep this module free from external dependencies
+# to avoid cross dependencies errors on minimal system
+# free from dependencies.
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
+
 import email
 import email.errors
 import os
 import re
 import sys
+import warnings
 
 import pkg_resources
 import setuptools
@@ -45,6 +56,8 @@ from pbr import testr_command
 from pbr import version
 
 REQUIREMENTS_FILES = ('requirements.txt', 'tools/pip-requires')
+PY_REQUIREMENTS_FILES = [x % sys.version_info[0] for x in (
+    'requirements-py%d.txt', 'tools/pip-requires-py%d')]
 TEST_REQUIREMENTS_FILES = ('test-requirements.txt', 'tools/test-requires')
 
 
@@ -56,9 +69,8 @@ def get_requirements_files():
     # - REQUIREMENTS_FILES with -py2 or -py3 in the name
     #   (e.g. requirements-py3.txt)
     # - REQUIREMENTS_FILES
-    return (list(map(('-py' + str(sys.version_info[0])).join,
-                     map(os.path.splitext, REQUIREMENTS_FILES)))
-            + list(REQUIREMENTS_FILES))
+
+    return PY_REQUIREMENTS_FILES + list(REQUIREMENTS_FILES)
 
 
 def append_text_list(config, key, text_list):
@@ -77,24 +89,49 @@ def _any_existing(file_list):
 
 # Get requirements from the first file that exists
 def get_reqs_from_files(requirements_files):
-    for requirements_file in _any_existing(requirements_files):
+    existing = _any_existing(requirements_files)
+
+    # TODO(stephenfin): Remove this in pbr 6.0+
+    deprecated = [f for f in existing if f in PY_REQUIREMENTS_FILES]
+    if deprecated:
+        warnings.warn('Support for \'-pyN\'-suffixed requirements files is '
+                      'removed in pbr 5.0 and these files are now ignored. '
+                      'Use environment markers instead. Conflicting files: '
+                      '%r' % deprecated,
+                      DeprecationWarning)
+
+    existing = [f for f in existing if f not in PY_REQUIREMENTS_FILES]
+    for requirements_file in existing:
         with open(requirements_file, 'r') as fil:
             return fil.read().split('\n')
+
     return []
+
+
+def egg_fragment(match):
+    return re.sub(r'(?P<PackageName>[\w.-]+)-'
+                  r'(?P<GlobalVersion>'
+                  r'(?P<VersionTripple>'
+                  r'(?P<Major>0|[1-9][0-9]*)\.'
+                  r'(?P<Minor>0|[1-9][0-9]*)\.'
+                  r'(?P<Patch>0|[1-9][0-9]*)){1}'
+                  r'(?P<Tags>(?:\-'
+                  r'(?P<Prerelease>(?:(?=[0]{1}[0-9A-Za-z-]{0})(?:[0]{1})|'
+                  r'(?=[1-9]{1}[0-9]*[A-Za-z]{0})(?:[0-9]+)|'
+                  r'(?=[0-9]*[A-Za-z-]+[0-9A-Za-z-]*)(?:[0-9A-Za-z-]+)){1}'
+                  r'(?:\.(?=[0]{1}[0-9A-Za-z-]{0})(?:[0]{1})|'
+                  r'\.(?=[1-9]{1}[0-9]*[A-Za-z]{0})(?:[0-9]+)|'
+                  r'\.(?=[0-9]*[A-Za-z-]+[0-9A-Za-z-]*)'
+                  r'(?:[0-9A-Za-z-]+))*){1}){0,1}(?:\+'
+                  r'(?P<Meta>(?:[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))){0,1}))',
+                  r'\g<PackageName>>=\g<GlobalVersion>',
+                  match.groups()[-1])
 
 
 def parse_requirements(requirements_files=None, strip_markers=False):
 
     if requirements_files is None:
         requirements_files = get_requirements_files()
-
-    def egg_fragment(match):
-        # take a versioned egg fragment and return a
-        # versioned package requirement e.g.
-        # nova-1.2.3 becomes nova>=1.2.3
-        return re.sub(r'([\w.]+)-([\w.-]+)',
-                      r'\1>=\2',
-                      match.groups()[-1])
 
     requirements = []
     for line in get_reqs_from_files(requirements_files):
@@ -103,7 +140,8 @@ def parse_requirements(requirements_files=None, strip_markers=False):
             continue
 
         # Ignore index URL lines
-        if re.match(r'^\s*(-i|--index-url|--extra-index-url).*', line):
+        if re.match(r'^\s*(-i|--index-url|--extra-index-url|--find-links).*',
+                    line):
             continue
 
         # Handle nested requirements files such as:
@@ -124,15 +162,20 @@ def parse_requirements(requirements_files=None, strip_markers=False):
         # such as:
         # -e git://github.com/openstack/nova/master#egg=nova
         # -e git://github.com/openstack/nova/master#egg=nova-1.2.3
-        if re.match(r'\s*-e\s+', line):
-            line = re.sub(r'\s*-e\s+.*#egg=(.*)$', egg_fragment, line)
-        # such as:
+        # -e git+https://foo.com/zipball#egg=bar&subdirectory=baz
         # http://github.com/openstack/nova/zipball/master#egg=nova
         # http://github.com/openstack/nova/zipball/master#egg=nova-1.2.3
-        elif re.match(r'\s*(https?|git(\+(https|ssh))?):', line):
-            line = re.sub(r'\s*(https?|git(\+(https|ssh))?):.*#egg=(.*)$',
-                          egg_fragment, line)
+        # git+https://foo.com/zipball#egg=bar&subdirectory=baz
+        # git+[ssh]://github.com/openstack/nova/zipball/master#egg=nova-1.2.3
+        # hg+[ssh]://github.com/openstack/nova/zipball/master#egg=nova-1.2.3
+        # svn+[proto]://github.com/openstack/nova/zipball/master#egg=nova-1.2.3
         # -f lines are for index locations, and don't get used here
+        if re.match(r'\s*-e\s+', line):
+            extract = re.match(r'\s*-e\s+(.*)$', line)
+            line = extract.group(1)
+        egg = urlparse(line)
+        if egg.scheme:
+            line = re.sub(r'egg=([^&]+).*$', egg_fragment, egg.fragment)
         elif re.match(r'\s*-f\s+', line):
             line = None
             reason = 'Index Location'
@@ -166,7 +209,7 @@ def parse_dependency_links(requirements_files=None):
         if re.match(r'\s*-[ef]\s+', line):
             dependency_links.append(re.sub(r'\s*-[ef]\s+', '', line))
         # lines that are only urls can go in unmolested
-        elif re.match(r'\s*(https?|git(\+(https|ssh))?):', line):
+        elif re.match(r'^\s*(https?|git(\+(https|ssh))?|svn|hg)\S*:', line):
             dependency_links.append(line)
     return dependency_links
 
@@ -204,8 +247,14 @@ class TestrTest(testr_command.Testr):
     """Make setup.py test do the right thing."""
 
     command_name = 'test'
+    description = 'DEPRECATED: Run unit tests using testr'
 
     def run(self):
+        warnings.warn('testr integration is deprecated in pbr 4.2 and will '
+                      'be removed in a future release. Please call your test '
+                      'runner directly',
+                      DeprecationWarning)
+
         # Can't use super - base class old-style class
         testr_command.Testr.run(self)
 
@@ -259,8 +308,14 @@ try:
         """Fallback test runner if testr is a no-go."""
 
         command_name = 'test'
+        description = 'DEPRECATED: Run unit tests using nose'
 
         def run(self):
+            warnings.warn('nose integration in pbr is deprecated. Please use '
+                          'the native nose setuptools configuration or call '
+                          'nose directly',
+                          DeprecationWarning)
+
             # Can't use super - base class old-style class
             commands.nosetests.run(self)
 
@@ -273,6 +328,7 @@ except ImportError:
 def have_nose():
     return _have_nose
 
+
 _wsgi_text = """#PBR Generated from %(group)r
 
 import threading
@@ -284,8 +340,6 @@ if __name__ == "__main__":
     import socket
     import sys
     import wsgiref.simple_server as wss
-
-    my_ip = socket.gethostbyname(socket.gethostname())
 
     parser = argparse.ArgumentParser(
         description=%(import_target)s.__doc__,
@@ -377,9 +431,13 @@ def generate_script(group, entry_point, header, template):
 
 
 def override_get_script_args(
-        dist, executable=os.path.normpath(sys.executable), is_wininst=False):
+        dist, executable=os.path.normpath(sys.executable)):
     """Override entrypoints console_script."""
-    header = easy_install.get_script_header("", executable, is_wininst)
+    # get_script_header() is deprecated since Setuptools 12.0
+    try:
+        header = easy_install.ScriptWriter.get_header("", executable)
+    except AttributeError:
+        header = easy_install.get_script_header("", executable)
     for group, template in ENTRY_POINTS_MAP.items():
         for name, ep in dist.get_entry_map(group).items():
             yield (name, generate_script(group, ep, header, template))
@@ -401,8 +459,12 @@ class LocalInstallScripts(install_scripts.install_scripts):
     """Intercepts console scripts entry_points."""
     command_name = 'install_scripts'
 
-    def _make_wsgi_scripts_only(self, dist, executable, is_wininst):
-        header = easy_install.get_script_header("", executable, is_wininst)
+    def _make_wsgi_scripts_only(self, dist, executable):
+        # get_script_header() is deprecated since Setuptools 12.0
+        try:
+            header = easy_install.ScriptWriter.get_header("", executable)
+        except AttributeError:
+            header = easy_install.get_script_header("", executable)
         wsgi_script_template = ENTRY_POINTS_MAP['wsgi_scripts']
         for name, ep in dist.get_entry_map('wsgi_scripts').items():
             content = generate_script(
@@ -428,16 +490,12 @@ class LocalInstallScripts(install_scripts.install_scripts):
         bs_cmd = self.get_finalized_command('build_scripts')
         executable = getattr(
             bs_cmd, 'executable', easy_install.sys_executable)
-        is_wininst = getattr(
-            self.get_finalized_command("bdist_wininst"), '_is_running', False
-        )
-
         if 'bdist_wheel' in self.distribution.have_run:
             # We're building a wheel which has no way of generating mod_wsgi
             # scripts for us. Let's build them.
             # NOTE(sigmavirus24): This needs to happen here because, as the
             # comment below indicates, no_ep is True when building a wheel.
-            self._make_wsgi_scripts_only(dist, executable, is_wininst)
+            self._make_wsgi_scripts_only(dist, executable)
 
         if self.no_ep:
             # no_ep is True if we're installing into an .egg file or building
@@ -451,7 +509,7 @@ class LocalInstallScripts(install_scripts.install_scripts):
             get_script_args = easy_install.get_script_args
             executable = '"%s"' % executable
 
-        for args in get_script_args(dist, executable, is_wininst):
+        for args in get_script_args(dist, executable):
             self.write_script(*args)
 
 
@@ -469,6 +527,15 @@ class LocalManifestMaker(egg_info.manifest_maker):
             self.filelist.process_template_line(template_line)
 
     def add_defaults(self):
+        """Add all the default files to self.filelist:
+
+        Extends the functionality provided by distutils to also included
+        additional sane defaults, such as the ``AUTHORS`` and ``ChangeLog``
+        files generated by *pbr*.
+
+        Warns if (``README`` or ``README.txt``) or ``setup.py`` are missing;
+        everything else is optional.
+        """
         option_dict = self.distribution.get_option_dict('pbr')
 
         sdist.sdist.add_defaults(self)
@@ -532,10 +599,64 @@ class LocalSDist(sdist.sdist):
 
     command_name = 'sdist'
 
+    def checking_reno(self):
+        """Ensure reno is installed and configured.
+
+        We can't run reno-based commands if reno isn't installed/available, and
+        don't want to if the user isn't using it.
+        """
+        if hasattr(self, '_has_reno'):
+            return self._has_reno
+
+        option_dict = self.distribution.get_option_dict('pbr')
+        should_skip = options.get_boolean_option(option_dict, 'skip_reno',
+                                                 'SKIP_GENERATE_RENO')
+        if should_skip:
+            self._has_reno = False
+            return False
+
+        try:
+            # versions of reno witout this module will not have the required
+            # feature, hence the import
+            from reno import setup_command  # noqa
+        except ImportError:
+            log.info('[pbr] reno was not found or is too old. Skipping '
+                     'release notes')
+            self._has_reno = False
+            return False
+
+        conf, output_file, cache_file = setup_command.load_config(
+            self.distribution)
+
+        if not os.path.exists(os.path.join(conf.reporoot, conf.notespath)):
+            log.info('[pbr] reno does not appear to be configured. Skipping '
+                     'release notes')
+            self._has_reno = False
+            return False
+
+        self._files = [output_file, cache_file]
+
+        log.info('[pbr] Generating release notes')
+        self._has_reno = True
+
+        return True
+
+    sub_commands = [('build_reno', checking_reno)] + sdist.sdist.sub_commands
+
     def run(self):
         _from_git(self.distribution)
         # sdist.sdist is an old style class, can't use super()
         sdist.sdist.run(self)
+
+    def make_distribution(self):
+        # This is included in make_distribution because setuptools doesn't use
+        # 'get_file_list'. As such, this is the only hook point that runs after
+        # the commands in 'sub_commands'
+        if self.checking_reno():
+            self.filelist.extend(self._files)
+            self.filelist.sort()
+        sdist.sdist.make_distribution(self)
+
 
 try:
     from pbr import builddoc
@@ -565,10 +686,14 @@ def _get_increment_kwargs(git_dir, tag):
         version_spec = tag + "..HEAD"
     else:
         version_spec = "HEAD"
-    changelog = git._run_git_command(['log', version_spec], git_dir)
-    header_len = len('    sem-ver:')
+    # Get the raw body of the commit messages so that we don't have to
+    # parse out any formatting whitespace and to avoid user settings on
+    # git log output affecting out ability to have working sem ver headers.
+    changelog = git._run_git_command(['log', '--pretty=%B', version_spec],
+                                     git_dir)
+    header_len = len('sem-ver:')
     commands = [line[header_len:].strip() for line in changelog.split('\n')
-                if line.lower().startswith('    sem-ver:')]
+                if line.lower().startswith('sem-ver:')]
     symbols = set()
     for command in commands:
         symbols.update([symbol.strip() for symbol in command.split(',')])

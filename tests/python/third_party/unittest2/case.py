@@ -13,6 +13,7 @@ import unittest
 import warnings
 
 import six
+from six.moves import range
 
 from unittest2 import result
 from unittest2.util import (

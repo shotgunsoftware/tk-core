@@ -37,12 +37,12 @@ echo
 echo "Testing installed libraries"
 echo "==========================="
 echo Launching $PYTHON
-$PYTHON - <<EOF
+$PYTHON - <<****
 
 from __future__ import print_function
 
 import sys
-sys.path.insert(0, 'third_party')
+sys.path.insert(0, "third_party")
 
 def main():
     # Ensures the ordereddict module was installed, which is required to run the tests on Python
@@ -65,3 +65,5 @@ def main():
     except Exception as e:
         print("Upgrade failed! %s" % e)
 main()
+****
+$PIP freeze --path third_party > third_party/frozen_requirements.txt

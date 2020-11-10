@@ -149,6 +149,7 @@ class SemanticVersion(object):
     @classmethod
     def _from_pip_string_unsafe(klass, version_string):
         # Versions need to start numerically, ignore if not
+        version_string = version_string.lstrip('vV')
         if not version_string[:1].isdigit():
             raise ValueError("Invalid version %r" % version_string)
         input_components = version_string.split('.')
@@ -322,8 +323,8 @@ class SemanticVersion(object):
             version number of the component to preserve sorting. (Used for
             rpm support)
         """
-        if ((self._prerelease_type or self._dev_count)
-                and pre_separator is None):
+        if ((self._prerelease_type or self._dev_count) and
+                pre_separator is None):
             segments = [self.decrement().brief_string()]
             pre_separator = "."
         else:
