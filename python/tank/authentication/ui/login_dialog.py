@@ -339,7 +339,7 @@ class Ui_LoginDialog(object):
         self.verticalLayout_2.setStretch(0, 1)
 
         self.retranslateUi(LoginDialog)
-        self.stackedWidget.setCurrentIndex(2)
+        self.stackedWidget.setCurrentIndex(0)
         QtCore.QObject.connect(self.cancel_tfa, QtCore.SIGNAL("clicked()"), LoginDialog.reject)
         QtCore.QObject.connect(self.cancel_backup, QtCore.SIGNAL("clicked()"), LoginDialog.reject)
         QtCore.QObject.connect(self.cancel, QtCore.SIGNAL("clicked()"), LoginDialog.reject)
