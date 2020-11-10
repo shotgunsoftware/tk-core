@@ -14,11 +14,11 @@
 # Use to temporarily replace part of the API or mock return vaues.
 mock==2.0.0
 
+ordereddict==1.1
+
 # The Shotgun Desktop does not include setuptools, which comes with pip. Make
 # sure they are installed in case the tests are run with this python.
 setuptools==36.0.1
 
 # Used to run tests
 unittest2==1.1.0
-
-ordereddict==1.1
