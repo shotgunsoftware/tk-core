@@ -40,8 +40,13 @@ PIPELINE_CONFIG_DESCRIPTOR_TOKEN = "{PIPELINE_CONFIG}"
 # as a replacement for the path to the config folder of a pipeline configuration.
 CONFIG_FOLDER_DESCRIPTOR_TOKEN = "{CONFIG_FOLDER}"
 
-# the name of the file that holds the templates.yml config
+# the name of the default file that holds the templates.yml config
 CONTENT_TEMPLATES_FILE = "templates.yml"
+
+### Squeeze | Add Begin
+# Possible override of the CONTENT_TEMPLATES_FILE
+CONTENT_TEMPLATES_FILE_ENV_VAR = 'SHOTGUN_TEMPLATES_FILE'
+### Squeeze | Add End
 
 # config file with information about which core to use
 CONFIG_CORE_DESCRIPTOR_FILE = "core_api.yml"

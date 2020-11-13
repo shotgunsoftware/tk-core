@@ -1174,10 +1174,14 @@ class PipelineConfiguration(object):
         """
         Returns the path to the configuration's template file.
         """
+        ### Squeeze | Modification Begin
+        template_file = os.environ.get(constants.CONTENT_TEMPLATES_FILE_ENV_VAR) or constants.CONTENT_TEMPLATES_FILE
         return os.path.join(
             os.path.join(self.get_config_location(), "core"),
             constants.CONTENT_TEMPLATES_FILE,
+            template_file,
         )
+        ### Squeeze | Modification End
 
     def get_templates_config(self):
         """

@@ -10,7 +10,7 @@
 
 from ...errors import TankError
 from .entity import Entity
-
+from .util import translate_filter_tokens
 
 class Project(Entity):
     """
@@ -54,7 +54,8 @@ class Project(Entity):
         constructor
         """
 
-        no_filters = {"logical_operator": "and", "conditions": []}
+        ### Squeeze | Modification Begin
+        filters = translate_filter_tokens(metadata.get('filters'), None, schema_config_project_folder)
 
         self._tk = tk
         self._storage_root_path = storage_root_path
@@ -67,9 +68,10 @@ class Project(Entity):
             metadata,
             "Project",
             "tank_name",
-            no_filters,
+            filters,
             create_with_parent=False,
         )
+        ### Squeeze | Modification End
 
     def get_storage_root(self):
         """
