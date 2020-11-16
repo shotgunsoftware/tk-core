@@ -1,4 +1,4 @@
-# Copyright (c) 2019 Shotgun Software Inc.
+# Copyright (c) 2020 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -8,13 +8,13 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+
+coverage==4.5.4
 # This file enumerates the various third party libraries Toolkit uses for unit testing.
 # They are committed inside this repo. See README.md in this folder for details.
 
 # Use to temporarily replace part of the API or mock return vaues.
 mock==2.0.0
-
-ordereddict==1.1
 
 # The Shotgun Desktop does not include setuptools, which comes with pip. Make
 # sure they are installed in case the tests are run with this python.

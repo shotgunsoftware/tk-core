@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2017 Shotgun Software Inc.
+# Copyright (c) 2020 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -42,23 +42,33 @@ $PYTHON - <<****
 from __future__ import print_function
 
 import sys
+import os
+import inspect
+
 sys.path.insert(0, "third_party")
+LOCAL_DIR = os.path.join(os.getcwd(), "third_party")
+
+def check_local(module_name):
+    mod = __import__(module_name)
+    if not os.path.abspath(inspect.getfile(mod)).startswith(LOCAL_DIR):
+        raise Exception('"%s" was not found in third_party directory.' % module_name)
 
 def main():
     # Ensures the ordereddict module was installed, which is required to run the tests on Python
     # 2.6
     try:
-        import ordereddict
-    except ImportError:
+        check_local("ordereddict")
+    except Exception:
         print("Upgrade failed because 'ordereddict' could not be imported.")
         print("Please run this script from Python 2.6.")
         return
 
     # Ensures other modules required by the unit tests work!
     try:
-        import mock
-        import unittest2
-        import coverage
+        check_local("mock")
+        check_local("unittest2")
+        check_local("coverage")
+
         print("Upgrade successful!")
         print()
         print("Run 'git add third_party' to add changes made to the repo to the next commit.")
@@ -66,4 +76,6 @@ def main():
         print("Upgrade failed! %s" % e)
 main()
 ****
-$PIP freeze --path third_party > third_party/frozen_requirements.txt
+# Once we stop running this script with python2.6, we can use the --path option with
+# pip freeze instead of setting PYTHONPATH
+PYTHONPATH=third_party $PIP freeze > third_party/frozen_requirements.txt
