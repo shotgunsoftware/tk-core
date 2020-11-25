@@ -32,7 +32,7 @@ from ... import LogManager
 from .. import constants
 from .downloadable import IODescriptorDownloadable
 
-from ...constants import SUPPORT_EMAIL
+from ...constants import SUPPORT_URL
 
 # use api json to cover py 2.5
 from tank_vendor import shotgun_api3
@@ -780,7 +780,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
             except shotgun_api3.AuthenticationFault:
                 raise InvalidAppStoreCredentialsError(
                     "The Toolkit App Store credentials found in Shotgun are invalid.\n"
-                    "Please contact %s to resolve this issue." % SUPPORT_EMAIL
+                    "Please contact support at %s to resolve this issue." % SUPPORT_URL
                 )
             # Connection errors can occur for a variety of reasons. For example, there is no
             # internet access or there is a proxy server blocking access to the Toolkit app store.
@@ -874,7 +874,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
         if not data["script_name"] or not data["script_key"]:
             raise InvalidAppStoreCredentialsError(
                 "Toolkit App Store credentials could not be retrieved from Shotgun.\n"
-                "Please contact %s to resolve this issue." % SUPPORT_EMAIL
+                "Please contact support at %s to resolve this issue." % SUPPORT_URL
             )
 
         log.debug(
