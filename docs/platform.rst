@@ -879,8 +879,8 @@ through :meth:`Engine.has_qt5`.
 
 .. warning:: The PySide 1 emulation layer for PySide 2 may be missing some features. It provides enough
              coverage to run the officially supported Toolkit applications. If you find that something
-             in the PySide 1 emulation layer is not working or missing, please contact support at
-             https://support.shotgunsoftware.com so that we may update it.
+             in the PySide 1 emulation layer is not working or missing, please contact support@shotgunsoftware.com
+             so that we may update it.
 
              To learn more about API discrepancies between Qt 4 and Qt 5, you can visit
              https://wiki.qt.io/Transition_from_Qt_4.x_to_Qt5.
