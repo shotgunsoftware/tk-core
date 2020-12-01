@@ -174,15 +174,6 @@ class TKMessageBox(QtGui.QMessageBox):
         # Set the title
         self.setWindowTitle(title)
 
-        # Create a paragraph per \n line of text.
-        # Create a paragraph per \n line of text.
-        message = "".join(
-            [
-                '<p><span style=" font-size:12pt;">%s</span></p>' % para
-                for para in message.split("\n")
-            ]
-        )
-
         self.setText(
             """
             <html>
@@ -191,10 +182,12 @@ class TKMessageBox(QtGui.QMessageBox):
                         a {color: rgb(35,165,225)}
                     </style>
                 </head>
-                <body>%s</body>
+                <body>
+                    <p style="font-size:12pt;">%s</p>
+                </body>
             </html>
         """
-            % message
+            % message.replace("\n", "<br>")
         )
 
     def exec_(self):
