@@ -1949,8 +1949,8 @@ def _context_data_from_cache(tk, entity_type, entity_id):
             raise TankError(
                 "The path '%s' associated with %s id %s does not "
                 "resolve correctly. This may be an indication of an issue "
-                "with the local storage setup. Please contact %s."
-                % (curr_path, entity_type, entity_id, constants.SUPPORT_EMAIL)
+                "with the local storage setup. Please contact support at %s."
+                % (curr_path, entity_type, entity_id, constants.SUPPORT_URL)
             )
 
         # grab the name for the context entity

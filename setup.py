@@ -68,7 +68,6 @@ setup(
     description="Shotgun Pipeline Toolkit Core API",
     long_description=readme,
     author="Shotgun Software",
-    author_email="support@shotgunsoftware.com",
     url="https://github.com/shotgunsoftware/tk-core",
     license=license,
     # Recursively discover all packages in python folder, excluding any tests
