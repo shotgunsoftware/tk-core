@@ -141,16 +141,16 @@ class TestFileSystem(TankTestBase):
         """
         # A root folder
         copy_test_root_folder = os.path.join(self.tank_temp, "copy_tests")
-        fs.ensure_folder_exists(copy_test_root_folder)
+        fs.ensure_folder_exists(copy_test_root_folder, permissions=0777)
         # Copy src file
         copy_test_basename = "copy_file.txt"
         copy_test_file = os.path.join(copy_test_root_folder, copy_test_basename)
-        fs.touch_file(copy_test_file)
+        fs.touch_file(copy_test_file, permissions=0777)
         # Copy dst folder
         copy_test_dst_folder = os.path.join(
             copy_test_root_folder, "copy_test_dst_folder"
         )
-        fs.ensure_folder_exists(copy_test_dst_folder)
+        fs.ensure_folder_exists(copy_test_dst_folder, permissions=0777)
         # Copy dst file
         copy_test_dst_file = os.path.join(copy_test_dst_folder, "copied_file.txt")
 
@@ -158,7 +158,7 @@ class TestFileSystem(TankTestBase):
         # Test folder name dst argument
         fs.copy_file(
             os.path.join(copy_test_root_folder, copy_test_basename),
-            copy_test_dst_folder,
+            copy_test_dst_folder, permissions=0777
         )
         self.assertTrue(
             os.path.exists(os.path.join(copy_test_dst_folder, copy_test_basename))
