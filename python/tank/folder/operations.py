@@ -132,7 +132,7 @@ def process_filesystem_structure(tk, entity_type, entity_ids, preview, engine):
 
     # Ensure ids is a list
     if not isinstance(entity_ids, (list, tuple)):
-        if isinstance(entity_ids, int):
+        if isinstance(entity_ids, int, long):
             entity_ids = (entity_ids,)
         elif isinstance(entity_ids, str) and entity_ids.isdigit():
             entity_ids = (int(entity_ids),)
