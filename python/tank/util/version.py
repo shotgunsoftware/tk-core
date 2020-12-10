@@ -10,6 +10,9 @@
 
 from distutils.version import LooseVersion
 from . import sgre as re
+from ..errors import TankError
+
+GITHUB_HASH_RE = re.compile("^[0-9a-fA-F]{7,40}$")
 
 
 def is_version_head(version):
@@ -23,30 +26,75 @@ def is_version_head(version):
     return version.lower() in ["head", "master"]
 
 
+def _is_git_commit(version):
+    """
+    Returns if the version looks like a git commit id.
+
+    :param version: Version to test.
+
+    :returns: True if the version is a commit id, false otherwise.
+    """
+    return GITHUB_HASH_RE.match(version) is not None
+
+
 def is_version_newer(a, b):
     """
-    Is the version number string a newer than b?
+    Is the version string ``a`` newer than ``b``?
 
-    a=v0.12.1 b=0.13.4 -- Returns False
-    a=v0.13.1 b=0.13.1 -- Returns True
-    a=HEAD b=0.13.4 -- Returns False
-    a=master b=0.13.4 -- Returns False
+    If one of the version is `master`, `head`, or formatted like a git commit sha,
+    it is considered more recent than the other version.
 
+    :raises TankError: Raised if the two versions are different git commit shas, as
+        they can't be compared.
+
+    :returns: ``True`` if ``a`` is newer than ``b`` but not equal, ``False`` otherwise.
     """
     return _compare_versions(a, b)
 
 
 def is_version_older(a, b):
     """
-    Is the version number string a older than b?
+    Is the version string ``a`` older than ``b``?
 
-    a=v0.12.1 b=0.13.4 -- Returns True
-    a=v0.13.1 b=0.13.1 -- Returns True
-    a=HEAD b=0.13.4 -- Returns False
-    a=master b=0.13.4 -- Returns False
+    If one of the version is `master`, `head`, or formatted like a git commit sha,
+    it is considered more recent than the other version.
 
+    :raises TankError: Raised if the two versions are different git commit shas, as
+        they can't be compared.
+
+    :returns: ``True`` if ``a`` is older than ``b`` but not equal, ``False`` otherwise.
     """
     return _compare_versions(b, a)
+
+
+def is_version_newer_or_equal(a, b):
+    """
+    Is the version string ``a`` newer than or equal to ``b``?
+
+    If one of the version is `master`, `head`, or formatted like a git commit sha,
+    it is considered more recent than the other version.
+
+    :raises TankError: Raised if the two versions are different git commit shas, as
+        they can't be compared.
+
+    :returns: ``True`` if ``a`` is newer than or equal to ``b``, ``False`` otherwise.
+    """
+    return is_version_older(a, b) is False
+
+
+def is_version_older_or_equal(a, b):
+    """
+    Is the version string ``a`` older than or equal to ``b``?
+
+    If one of the version is `master`, `head`, or formatted like a git commit sha,
+    it is considered more recent than the other version.
+
+    :raises TankError: Raised if the two versions are different git commit shas, as
+        they can't be compared.
+
+    :returns: ``True`` if ``a`` is older than or equal to ``b``, ``False`` otherwise.
+    """
+    return is_version_newer(a, b) is False
 
 
 def is_version_number(version):
@@ -79,6 +127,16 @@ def _compare_versions(a, b):
     if b is None:
         # a is always newer than None
         return True
+
+    if _is_git_commit(a) and not _is_git_commit(b):
+        return True
+    elif _is_git_commit(b) and not _is_git_commit(a):
+        return False
+    elif _is_git_commit(a) and _is_git_commit(b):
+        if a.lower() == b.lower():
+            return False
+        else:
+            raise TankError("Can't compare two git commits lexicographically.")
 
     if is_version_head(a):
         # our version is latest

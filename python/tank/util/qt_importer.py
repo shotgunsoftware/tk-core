@@ -79,6 +79,13 @@ class QtImporter(object):
         return self._modules["QtNetwork"] if self._modules else None
 
     @property
+    def QtWebEngineWidgets(self):
+        """
+        :returns: QtWebEngineWidgets module, if available.
+        """
+        return self._modules["QtWebEngineWidgets"] if self._modules else None
+
+    @property
     def binding(self):
         """
         :returns: The PySide* or PyQt* root module.
@@ -176,6 +183,7 @@ class QtImporter(object):
                 "QtGui": QtGui,
                 "QtNetwork": QtNetwork,
                 "QtWebKit": QtWebKit,
+                "QtWebEngineWidgets": None,
             },
             self._to_version_tuple(QtCore.qVersion()),
         )
@@ -269,6 +277,9 @@ class QtImporter(object):
         QtCore, QtGui = PySide2Patcher.patch(QtCore, QtGui, QtWidgets, PySide2)
         QtNetwork = self._import_module_by_name("PySide2", "QtNetwork")
         QtWebKit = self._import_module_by_name("PySide2.QtWebKitWidgets", "QtWebKit")
+        QtWebEngineWidgets = self._import_module_by_name(
+            "PySide2.QtWebEngineWidgets", "QtWebEngineWidgets"
+        )
 
         return (
             "PySide2",
@@ -279,6 +290,7 @@ class QtImporter(object):
                 "QtGui": QtGui,
                 "QtNetwork": QtNetwork,
                 "QtWebKit": QtWebKit,
+                "QtWebEngineWidgets": QtWebEngineWidgets,
             },
             self._to_version_tuple(QtCore.qVersion()),
         )

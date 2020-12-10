@@ -19,6 +19,8 @@ import time
 import uuid
 import shutil
 import zipfile
+import contextlib
+import pytest
 
 from tank_test.tank_test_base import ShotgunTestBase, skip_if_git_missing, temp_env_var
 from tank_test.tank_test_base import setUpModule  # noqa
@@ -44,6 +46,90 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
     """
     Tests the ability of the descriptor to download to a path on disk.
     """
+
+    # In Python 3.8+, the TestCase class cannot be serialized due to a regression.
+    # It appears an argument parser is reachable from the TestCase instance. The
+    # multiprocessing module serializes both the test method and the instance
+    # associated to it (which makes sense, since we need the test data on the
+    # instance!). This becomes an issue, because ArgumentParser is not picklable
+    # in Python 3.8 (due to a regression it seems). The cleanest way to avoid
+    # this serialization issue without mucking around with the TestCase internals
+    # and that generates the smallest diff is to create a new Implementation
+    # class defined below that reimplements the necessary interface from
+    # ShotgunTestBase and have the TestDownloadableIODescriptors call the test
+    # methods on that new clean instance that is serializable.
+    def setUp(self):
+        """
+        Instantiate the actual test class that is are pickle-able by multiprocessing
+        and pass any information required for the test to function.
+        """
+        super(TestDownloadableIODescriptors, self).setUp()
+        self.imp = Implementation(
+            self.tank_temp, self.project_root, self.mockgun, self.fixtures_root
+        )
+
+    def test_appstore_downloads(self):
+        self.imp.test_appstore_downloads()
+
+    def test_shotgun_entity_downloads(self):
+        self.imp.test_shotgun_entity_downloads()
+
+    @skip_if_git_missing
+    def test_git_tag_downloads(self):
+        self.imp.test_git_tag_downloads()
+
+    @skip_if_git_missing
+    def test_git_branch_downloads(self):
+        self.imp.test_git_branch_downloads()
+
+    def test_descriptor_download_error_throws_exception(self):
+        self.imp.test_descriptor_download_error_throws_exception()
+
+    def test_descriptor_rename_error_fallbacks(self):
+        self.imp.test_descriptor_rename_error_fallbacks()
+
+    def test_descriptor_rename_fallback_failure(self):
+        self.imp.test_descriptor_rename_fallback_failure()
+
+    def test_partial_download_handling(self):
+        self.imp.test_partial_download_handling()
+
+
+class Implementation(object):
+    """
+    Class that actually contains the test and its data.
+    """
+
+    def __init__(self, tank_temp, project_root, mockgun, fixtures_root):
+        """
+        :param str tank_temp: Temporary folder where the test will write its files.
+        :param str project_root: Root of the project
+        :param mockgun: Mockgun instance with the test data.
+        :param fixtures_root: Absolute path to the tests/fixtures folder.
+        """
+        self.tank_temp = tank_temp
+        self.project_root = project_root
+        self.mockgun = mockgun
+        self.fixtures_root = fixtures_root
+
+    # Implements some methods from TestCase, which will avoid
+    # us having to modify the tests below and keep the history clean.
+    def assertTrue(self, test, msg=""):
+        assert not not test, msg
+
+    def assertFalse(self, test, msg=""):
+        assert not test, msg
+
+    def assertEqual(self, lhs, rhs, msg=""):
+        assert lhs == rhs, msg
+
+    def assertNotEqual(self, lhs, rhs, msg=""):
+        assert lhs != rhs, msg
+
+    @contextlib.contextmanager
+    def assertRaises(self, exception_type):
+        with pytest.raises(exception_type):
+            yield
 
     ###############################################################################################
     # Helper methods

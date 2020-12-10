@@ -37,6 +37,12 @@ from tank_vendor import six
 from tank_vendor.six.moves import urllib
 
 
+if six.PY2:
+    LINUX_DISTRIBUTION_FUNCTION = "platform.linux_distribution"
+else:
+    LINUX_DISTRIBUTION_FUNCTION = "tank_vendor.distro.linux_distribution"
+
+
 class TestEventMetric(ShotgunTestBase):
     """Cases testing tank.util.metrics.EventMetric class"""
 
@@ -1269,7 +1275,7 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_mac_ver.called)
 
     @patch("platform.system", return_value="Linux")
-    @patch("platform.linux_distribution", return_value=("debian", "7.7", ""))
+    @patch(LINUX_DISTRIBUTION_FUNCTION, return_value=("debian", "7.7", ""))
     def test_as_linux(self, mocked_system, mocked_linux_distribution):
         """
         Tests as a Linux Debian system
@@ -1282,7 +1288,7 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_linux_distribution.called)
 
     @patch("platform.system", return_value="BSD")
-    @patch("platform.linux_distribution", side_effect=Exception)
+    @patch(LINUX_DISTRIBUTION_FUNCTION, side_effect=Exception)
     def test_as_unsupported_system(self, mocked_linux_distribution, mocked_system):
         """
         Tests a fake unsupported system
@@ -1296,7 +1302,7 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertFalse(mocked_linux_distribution.called)
 
     @patch("platform.system", return_value="Linux")
-    @patch("platform.linux_distribution", side_effect=Exception)
+    @patch(LINUX_DISTRIBUTION_FUNCTION, side_effect=Exception)
     def test_as_linux_without_distribution(
         self, mocked_linux_distribution, mocked_system
     ):

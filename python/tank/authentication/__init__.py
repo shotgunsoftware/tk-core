@@ -25,6 +25,8 @@ from .errors import (  # noqa
     ConsoleLoginNotSupportedError,
     IncompleteCredentials,
     ShotgunAuthenticationError,
+    UnresolvableHumanUser,
+    UnresolvableScriptUser,
 )
 from .web_login_support import (
     get_shotgun_authenticator_support_web_login,

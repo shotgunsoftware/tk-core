@@ -327,7 +327,7 @@ class UserSettings(Singleton):
         """
         if value is None:
             return "<missing>"
-        elif value is "":
+        elif value == "":
             return "<empty>"
         else:
             return value
