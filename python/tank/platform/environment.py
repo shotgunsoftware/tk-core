@@ -253,7 +253,7 @@ class Environment(object):
         """
         loads the main data from disk, raw form
         """
-        logger.debug("Loading environment data from path: %s", self._env_path)
+        logger.debug("Loading environment data from path: %s", path)
         return g_yaml_cache.get(path) or {}
 
     def __load_environment_data(self):
@@ -266,8 +266,10 @@ class Environment(object):
         """
         try:
             return self.__load_data(self._env_path)
-        except TankUnreadableFileError:
-            logger.exception("Missing environment file:")
+        except TankUnreadableFileError as e:
+            logger.debug(
+                "Failed to load environment file {}. {}".format(self._env_path, e)
+            )
             raise TankMissingEnvironmentFile(
                 "Missing environment file: %s" % self._env_path
             )
