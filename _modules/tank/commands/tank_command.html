@@ -10,7 +10,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>tank.commands.tank_command &mdash; tk-core v0.19.17 documentation</title>
+  <title>tank.commands.tank_command &mdash; tk-core v0.19.18 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="tk-core v0.19.17 documentation" href="../../../index.html"/>
+    <link rel="top" title="tk-core v0.19.18 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -119,7 +119,7 @@
                              text-decoration: underline; }
     </style>
 
-    <b>tk-core</b> v0.19.17.<br>
+    <b>tk-core</b> v0.19.18.<br>
     
         This documentation is part of the Shotgun Pipeline Toolkit.
     
@@ -447,8 +447,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="o">.</span><span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Action</span><span class="o">.</span><span class="n">GLOBAL</span><span class="p">,</span> <span class="n">Action</span><span class="o">.</span><span class="n">TK_INSTANCE</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">TankError</span><span class="p">(</span>
                 <span class="s2">&quot;The command </span><span class="si">%r</span><span class="s2"> is not of a type which is supported by Toolkit. &quot;</span>
-                <span class="s2">&quot;Please contact </span><span class="si">%s</span><span class="s2">.&quot;</span>
-                <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="p">,</span> <span class="n">constants_global</span><span class="o">.</span><span class="n">SUPPORT_EMAIL</span><span class="p">)</span>
+                <span class="s2">&quot;Please contact support at </span><span class="si">%s</span><span class="s2">.&quot;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__internal_action_obj</span><span class="p">,</span> <span class="n">constants_global</span><span class="o">.</span><span class="n">SUPPORT_URL</span><span class="p">)</span>
             <span class="p">)</span>
 
         <span class="c1"># make sure we pass a tk api for actions that require it</span>
@@ -768,7 +768,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'v0.19.17',
+            VERSION:'v0.19.18',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
