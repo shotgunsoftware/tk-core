@@ -862,6 +862,30 @@ def _find_basic_storage(tk, path):
     return None, None
 
 
+def get_variable_path(tk, path):
+    # This code is really crappy, it doesn't take into account the config
+    # settings, but guess what, this is a hackathon, we don't care about
+    # being correct, just to show that it can work.
+
+    # Find which storage this file goes under
+    storage, relative_path = _find_basic_storage(tk, path)
+
+    # If it didn't go under a storage, it's just a path, we can't do anything
+    # with it.
+    if storage is None and relative_path is None:
+        return False, path
+
+    # Figure out if the path is a variable root.
+    storage_path = ShotgunPath.from_shotgun_dict(storage).current_os
+    norm_path = os.path.normpath(storage_path)
+    if ShotgunPath.expand(norm_path) == norm_path:
+        # Expanding the path didn't do anything, so it's not variable
+        return False, path
+
+    # If was variable, so create the real path and return True.
+    return True, os.path.join(storage_path, relative_path)
+
+
 def group_by_storage(tk, list_of_paths):
     r"""
     Given a list of paths on disk, groups them into a data structure suitable for
