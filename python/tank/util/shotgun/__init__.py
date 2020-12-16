@@ -25,7 +25,7 @@ from .publish_util import (
     get_published_file_entity_type,
 )
 
-from .publish_creation import register_publish
+from .publish_creation import register_publish, get_variable_path
 from .publish_resolve import resolve_publish_path
 from .download import (
     download_url,
