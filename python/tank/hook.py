@@ -252,7 +252,7 @@ class Hook(object):
         """
         return self.__parent
 
-    def get_publish_path(self, sg_publish_data):
+    def get_publish_path(self, sg_publish_data, expand_vars=False):
         """
         Returns the path on disk for a publish entity in Shotgun.
 
@@ -260,6 +260,8 @@ class Hook(object):
 
         :param sg_publish_data: Dictionaries containing Shotgun publish data.
             Each dictionary needs to at least contain a code, type, id and a path key.
+        :param expand_vars: An optional flag that will cause any environment variables
+         in the publish path to be resolved.
 
         :returns: A path on disk to existing file or file sequence.
 
@@ -269,9 +271,9 @@ class Hook(object):
         # avoid cyclic refs
         from .util import resolve_publish_path
 
-        return resolve_publish_path(self.sgtk, sg_publish_data)
+        return resolve_publish_path(self.sgtk, sg_publish_data, expand_vars=expand_vars)
 
-    def get_publish_paths(self, sg_publish_data_list):
+    def get_publish_paths(self, sg_publish_data_list, expand_vars=False):
         """
         Returns several local paths on disk given a
         list of shotgun data dictionaries representing publishes.
@@ -286,6 +288,9 @@ class Hook(object):
                                      needs to at least contain a code, type,
                                      id and a path key.
 
+        :param expand_vars: An optional flag that will cause any environment variables
+         in the publish paths to be resolved.
+
         :returns: List of paths on disk to existing files or file sequences.
 
         :raises: :class:`~sgtk.util.PublishPathNotDefinedError` if any of the paths aren't defined.
@@ -296,7 +301,7 @@ class Hook(object):
 
         paths = []
         for sg_publish_data in sg_publish_data_list:
-            paths.append(resolve_publish_path(self.sgtk, sg_publish_data))
+            paths.append(resolve_publish_path(self.sgtk, sg_publish_data, expand_vars=expand_vars))
         return paths
 
     @property

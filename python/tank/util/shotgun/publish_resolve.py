@@ -28,7 +28,7 @@ from tank.util import sgre as re
 log = LogManager.get_logger(__name__)
 
 
-def resolve_publish_path(tk, sg_publish_data):
+def resolve_publish_path(tk, sg_publish_data, expand_vars=False):
     """
     Returns a local path on disk given a dictionary of Shotgun publish data.
 
@@ -54,6 +54,8 @@ def resolve_publish_path(tk, sg_publish_data):
     :param tk: :class:`~sgtk.Sgtk` instance
     :param sg_publish_data: Dictionary containing Shotgun publish data.
         Needs to at least contain a code, type, id and a path key.
+    :param expand_vars: An optional flag that will cause any environment variables
+         in the publish data path to be resolved.
 
     :returns: A local path to file or file sequence.
 
@@ -93,7 +95,7 @@ def resolve_publish_path(tk, sg_publish_data):
 
     elif path_field["link_type"] == "local":
         # local file link
-        path = __resolve_local_file_link(tk, path_field)
+        path = __resolve_local_file_link(tk, path_field, expand_vars=expand_vars)
         if path is None:
 
             raise PublishPathNotDefinedError(
@@ -116,13 +118,15 @@ def resolve_publish_path(tk, sg_publish_data):
         )
 
 
-def __resolve_local_file_link(tk, attachment_data):
+def __resolve_local_file_link(tk, attachment_data, expand_vars=False):
     """
     Resolves the given local path attachment into a local path.
     For details, see :meth:`resolve_publish_path`.
 
     :param tk: :class:`~sgtk.Sgtk` instance
     :param attachment_data: Shotgun Attachment dictionary.
+    :param expand_vars: An optional flag that will cause any environment variables
+         in the attachment path to be resolved.
 
     :returns: A local path to file or file sequence or None if it cannot be resolved.
     """
@@ -233,6 +237,9 @@ def __resolve_local_file_link(tk, attachment_data):
                     )
                     break
 
+    # Resolve any environment variables if the flag is set
+    if expand_vars is True:
+        local_path = os.path.expandvars(local_path)
     # normalize
     local_path = ShotgunPath.normalize(local_path)
     log.debug("Resolved local file link: '%s'" % local_path)
