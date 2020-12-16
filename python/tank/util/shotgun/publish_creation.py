@@ -817,7 +817,7 @@ def _calc_path_cache(tk, path):
 
             # Remove parent dir plus "/" - be careful to handle the case where
             # the parent dir ends with a '/', e.g. 'T:/' for a Windows drive
-            path_cache = _make_relative(norm_path, norm_path_root)
+            path_cache = _make_relative(norm_path, norm_root_path)
             log.debug(
                 "Split up path '%s' into storage %s and relative path '%s'"
                 % (path, root_name, path_cache)
