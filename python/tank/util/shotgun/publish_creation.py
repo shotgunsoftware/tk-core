@@ -34,7 +34,7 @@ log = LogManager.get_logger(__name__)
 
 
 def _make_relative(path, root_path):
-    return path[len(root_path) :].lstrip("/")
+    return path[len(root_path) :].replace("\\", "/").lstrip("/")
 
 
 @LogManager.log_timing
