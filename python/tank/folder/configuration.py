@@ -305,7 +305,10 @@ class FolderConfiguration(object):
             "values": [project_id],
             "relation": "is"
         }
-        shotgun_filters["conditions"].append(project_id_filter)
+        if not shotgun_filters.get("conditions"):
+            shotgun_filters["conditions"] = project_id_filter
+        else:
+            shotgun_filters["conditions"].append(project_id_filter)
 
         results = self._tk.shotgun.find_one("Project", shotgun_filters)
         if results:
