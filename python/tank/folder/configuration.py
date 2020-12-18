@@ -284,20 +284,20 @@ class FolderConfiguration(object):
         """
         if not self._tk.pipeline_configuration:
             print("FolderConfiguration._is_project_active(\"{}\") - "
-                  "No current pipeline configuration, project is active".format(project_obj.get_path()))
+                  "No current pipeline configuration, project folder template is active".format(project_obj.get_path()))
             return True
 
         project_id = self._tk.pipeline_configuration.get_project_id()
         if not project_id:
             print("FolderConfiguration._is_project_active(\"{}\") - "
-                  "No current project id, project is active".format(project_obj.get_path()))
+                  "No current project id, project folder template is active".format(project_obj.get_path()))
             return True
 
         empty_sg_data = {}
         shotgun_filters = project_obj.get_shotgun_filters(empty_sg_data)
         if not shotgun_filters:
             print("FolderConfiguration._is_project_active(\"{}\") - "
-                  "No filters, project is active".format(project_obj.get_path()))
+                  "No filters, project folder template is active".format(project_obj.get_path()))
             return True
 
         project_id_filter = {
@@ -313,11 +313,11 @@ class FolderConfiguration(object):
         results = self._tk.shotgun.find_one("Project", shotgun_filters)
         if results:
             print("FolderConfiguration._is_project_active(\"{}\") - "
-                  "Filters are matching, project is active".format(project_obj.get_path()))
+                  "Filters are matching, project folder template is active".format(project_obj.get_path()))
             return True
 
         print("FolderConfiguration._is_project_active(\"{}\") - "
-              "No match found with filters, project is inactive".format(project_obj.get_path()))
+              "No match found with filters, project folder template is inactive".format(project_obj.get_path()))
 
         return False
     ### Squeeze | Modification End
