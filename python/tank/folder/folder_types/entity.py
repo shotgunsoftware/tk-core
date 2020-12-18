@@ -102,6 +102,11 @@ class Entity(Folder):
         """
         return self._entity_type
 
+    ### Squeeze | Modification Begin
+    def get_shotgun_filters(self, sg_data):
+        return resolve_shotgun_filters(self._filters, sg_data)
+    ### Squeeze | Modification End
+
     def _should_item_be_processed(self, engine_str, is_primary):
         """
         Checks if this node should be processed, given its deferred status.

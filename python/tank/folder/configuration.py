@@ -265,12 +265,62 @@ class FolderConfiguration(object):
                 )
 
             project_obj = Project.create(self._tk, project_folder, metadata)
+            ### Squeeze | Modification Begin
+            if not self._is_project_active(project_obj):
+                continue
+            ### Squeeze | Modification End
 
             # store it in our lookup tables
             self._entity_nodes_by_type["Project"].append(project_obj)
 
             # recursively process the rest
             self._process_config_r(project_obj, project_folder)
+
+    ### Squeeze | Modification Begin
+    def _is_project_active(self, project_obj):
+        """
+        Checks if a project folder template is currently active, this is done
+        by validating that the filters are a match for the current environment
+        """
+        if not self._tk.pipeline_configuration:
+            print("FolderConfiguration._is_project_active(\"{}\") - "
+                  "No current pipeline configuration, project folder template is active".format(project_obj.get_path()))
+            return True
+
+        project_id = self._tk.pipeline_configuration.get_project_id()
+        if not project_id:
+            print("FolderConfiguration._is_project_active(\"{}\") - "
+                  "No current project id, project folder template is active".format(project_obj.get_path()))
+            return True
+
+        empty_sg_data = {}
+        shotgun_filters = project_obj.get_shotgun_filters(empty_sg_data)
+        if not shotgun_filters:
+            print("FolderConfiguration._is_project_active(\"{}\") - "
+                  "No filters, project folder template is active".format(project_obj.get_path()))
+            return True
+
+        project_id_filter = {
+            "path": "id",
+            "values": [project_id],
+            "relation": "is"
+        }
+        if not shotgun_filters.get("conditions"):
+            shotgun_filters["conditions"] = project_id_filter
+        else:
+            shotgun_filters["conditions"].append(project_id_filter)
+
+        results = self._tk.shotgun.find_one("Project", shotgun_filters)
+        if results:
+            print("FolderConfiguration._is_project_active(\"{}\") - "
+                  "Filters are matching, project folder template is active".format(project_obj.get_path()))
+            return True
+
+        print("FolderConfiguration._is_project_active(\"{}\") - "
+              "No match found with filters, project folder template is inactive".format(project_obj.get_path()))
+
+        return False
+    ### Squeeze | Modification End
 
     def _process_config_r(self, parent_node, parent_path):
         """
