@@ -300,7 +300,12 @@ class FolderConfiguration(object):
                   "No filters, project is active".format(project_obj.get_path()))
             return True
 
-        shotgun_filters += [["id", "is", project_id]]
+        project_id_filter = {
+            "path": "id",
+            "values": [project_id],
+            "relation": "is"
+        }
+        shotgun_filters["conditions"].append(project_id_filter)
 
         results = self._tk.shotgun.find_one("Project", shotgun_filters)
         if results:
