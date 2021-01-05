@@ -15,48 +15,49 @@
 
   
   
+  
+  
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="tk-core v0.19.18 documentation" href="index.html"/>
-        <link rel="next" title="Authentication" href="authentication.html"/>
-        <link rel="prev" title="Utilities" href="utils.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Authentication" href="authentication.html" />
+    <link rel="prev" title="Utilities" href="utils.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
+   
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
     <a href='http://developer.shotgunsoftware.com'>
     
         <img style='width: 191px;
-                height: 60px; 
+                height: 60px;
                 margin: 2px;
-                border-radius: 0px; 
-                padding: 0px;' 
+                border-radius: 0px;
+                padding: 0px;'
             src='_static/logo@2x.png'/>
     
     </a>
@@ -89,7 +90,10 @@
     
             
             
-                <ul class="current">
+              
+            
+            
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core</a></li>
@@ -130,16 +134,16 @@
     <div style='margin-top: 50px;
                 margin-left: 10px;
                 margin-right: 10px;
-                padding: 10px; 
-                color: #b3b3b3; 
+                padding: 10px;
+                color: #b3b3b3;
                 font-size: 70%;
                 border-radius: 3px;
                 background-color: #444;
                 line-height: 18px;
-                '>    
+                '>
     <style>
-        a.custom_post_menu { display: inline; 
-                             padding: 0px; 
+        a.custom_post_menu { display: inline;
+                             padding: 0px;
                              text-decoration: underline; }
     </style>
 
@@ -149,7 +153,7 @@
     
     For more information, please visit
     <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
-    The code associated with this documentation can be found 
+    The code associated with this documentation can be found
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
     </div>
@@ -163,32 +167,52 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">tk-core</a>
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">tk-core</a>
+        
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Descriptors</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Descriptors</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
+            
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -203,14 +227,14 @@ around installation and deployment.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">The Toolkit descriptor API does not require an installed or
 bootstrapped instance of the Toolkit Core platform. You can use it
-simply by importing <code class="docutils literal"><span class="pre">sgtk</span></code> and calling its methods.</p>
+simply by importing <code class="docutils literal notranslate"><span class="pre">sgtk</span></code> and calling its methods.</p>
 </div>
 <p>Descriptors are used extensively by Toolkit and allow a user to configure and drive
 Toolkit in a flexible fashion. Descriptors typically point at a remote location
 and makes it easy to handle code transport from that location into a local cache.
 Descriptors form the backbone for Shotgun deployment and installation. The following
 example shows basic usage:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
 <span class="kn">from</span> <span class="nn">sgtk.descriptor</span> <span class="kn">import</span> <span class="n">Descriptor</span>
 
 <span class="c1"># first, authenticate our user</span>
@@ -237,10 +261,10 @@ example shows basic usage:</p>
 <p>When descriptors serialized, they can have two different forms:</p>
 <ul>
 <li><p class="first">A descriptor URI is a compact string representation, for example
-<code class="docutils literal"><span class="pre">sgtk:descriptor:app_store?name=tk-config-default&amp;version=v1.2.3</span></code></p>
+<code class="docutils literal notranslate"><span class="pre">sgtk:descriptor:app_store?name=tk-config-default&amp;version=v1.2.3</span></code></p>
 </li>
 <li><p class="first">A descriptor dictionary contains the equivalent information in key-value pair form:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;app_store&quot;</span><span class="p">,</span>
     <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;v1.2.3&quot;</span><span class="p">,</span>
     <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tk-config-default&quot;</span>
@@ -252,28 +276,28 @@ example shows basic usage:</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">To convert between descriptor URI format and dictionary format, you can use
-the methods <a class="reference internal" href="#sgtk.descriptor.descriptor_dict_to_uri" title="sgtk.descriptor.descriptor_dict_to_uri"><code class="xref py py-meth docutils literal"><span class="pre">descriptor_dict_to_uri()</span></code></a> and <a class="reference internal" href="#sgtk.descriptor.descriptor_uri_to_dict" title="sgtk.descriptor.descriptor_uri_to_dict"><code class="xref py py-meth docutils literal"><span class="pre">descriptor_uri_to_dict()</span></code></a>.</p>
+the methods <a class="reference internal" href="#sgtk.descriptor.descriptor_dict_to_uri" title="sgtk.descriptor.descriptor_dict_to_uri"><code class="xref py py-meth docutils literal notranslate"><span class="pre">descriptor_dict_to_uri()</span></code></a> and <a class="reference internal" href="#sgtk.descriptor.descriptor_uri_to_dict" title="sgtk.descriptor.descriptor_uri_to_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">descriptor_uri_to_dict()</span></code></a>.</p>
 </div>
 <p>When a the payload of a descriptor is downloaded, it ends up by default in the <strong>global bundle cache</strong>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p>The global bundle cache can be found in the following locations:</p>
 <ul class="simple">
-<li>Macosx: <code class="docutils literal"><span class="pre">~/Library/Caches/Shotgun/bundle_cache</span></code></li>
-<li>Windows: <code class="docutils literal"><span class="pre">%APPDATA%\Shotgun\Caches\bundle_cache</span></code></li>
-<li>Linux: <code class="docutils literal"><span class="pre">~/.shotgun/caches/bundle_cache</span></code></li>
+<li>Macosx: <code class="docutils literal notranslate"><span class="pre">~/Library/Caches/Shotgun/bundle_cache</span></code></li>
+<li>Windows: <code class="docutils literal notranslate"><span class="pre">%APPDATA%\Shotgun\Caches\bundle_cache</span></code></li>
+<li>Linux: <code class="docutils literal notranslate"><span class="pre">~/.shotgun/caches/bundle_cache</span></code></li>
 </ul>
 <p>Unless specified otherwise, this is the location where descriptors will be
 cached locally.</p>
 <p class="last">Older versions of Toolkit Core (prior to v0.18) used to maintain a bundle cache
-in an <code class="docutils literal"><span class="pre">install</span></code> folder inside the pipeline configuration location.</p>
+in an <code class="docutils literal notranslate"><span class="pre">install</span></code> folder inside the pipeline configuration location.</p>
 </div>
 <p>In addition to the location above, you can specify additional folders where the
 descriptor API will go and look for cached items. This is useful if you want to
 pre-cache an environment for your studio or distribute a set of app and engine
 versions as an installable package that require no further retrieval in order
 to function.</p>
-<p>Alternatively, you can set the <code class="docutils literal"><span class="pre">SHOTGUN_BUNDLE_CACHE_PATH</span></code> environment variable to
+<p>Alternatively, you can set the <code class="docutils literal notranslate"><span class="pre">SHOTGUN_BUNDLE_CACHE_PATH</span></code> environment variable to
 a cache path on disk. This override helps facilitate workflows that require a
 centralized disk location to which the descriptors are cached.</p>
 <div class="section" id="descriptor-types">
@@ -300,19 +324,19 @@ while the <strong>path</strong>, <strong>dev</strong> and <strong>manual</strong
 <p>The Shotgun app store is used to release and distribute versions of Apps, Engines, Configs etc. that have been
 tested and approved by Shotgun. App store descriptors should include a name and version token and
 are on the following form:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">app_store</span><span class="p p-Indicator">,</span>
 <span class="nt">    name</span><span class="p">:</span> <span class="nv">tk-core</span><span class="p p-Indicator">,</span>
 <span class="nt">    version</span><span class="p">:</span> <span class="nv">v12.3.4</span>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:app_store?name=tk-core&amp;version=v12.3.4</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:app_store?name=tk-core&amp;version=v12.3.4</span>
 </pre></div>
 </div>
-<p>App store may also have an optional <code class="docutils literal"><span class="pre">label</span></code> parameter. This indicates that the descriptor is tracking
+<p>App store may also have an optional <code class="docutils literal notranslate"><span class="pre">label</span></code> parameter. This indicates that the descriptor is tracking
 against a particular label in the app store and will not download updates which do not have the label assigned:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">app_store</span><span class="p p-Indicator">,</span>
 <span class="nt">    name</span><span class="p">:</span> <span class="nv">tk-core</span><span class="p p-Indicator">,</span>
 <span class="nt">    version</span><span class="p">:</span> <span class="nv">v12.3.4</span><span class="p p-Indicator">,</span>
@@ -320,78 +344,78 @@ against a particular label in the app store and will not download updates which 
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:app_store?name=tk-core&amp;version=v12.3.4&amp;label=v2018.3</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:app_store?name=tk-core&amp;version=v12.3.4&amp;label=v2018.3</span>
 </pre></div>
 </div>
 <p>A label can for example be used by plugins that are bundled with DCCs to only receive app store updates
 targeting that particular DCC version. If you for example are running a plugin bundled together with
 v2017 of a DCC, the plugin can be set up to track against the latest released version of
-<code class="docutils literal"><span class="pre">sgtk:descriptor:app_store?name=tk-config-dcc&amp;label=v2017</span></code>. In this case, when the descriptor is checking
+<code class="docutils literal notranslate"><span class="pre">sgtk:descriptor:app_store?name=tk-config-dcc&amp;label=v2017</span></code>. In this case, when the descriptor is checking
 for the latest available version in the app store, only versions labelled with v2017 will be taken into account.</p>
 </div>
 <div class="section" id="tracking-against-tags-in-git">
 <span id="git-descriptors"></span><h3>Tracking against tags in git<a class="headerlink" href="#tracking-against-tags-in-git" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal"><span class="pre">git</span></code> descriptor type is used to track git tags and typically used when you are tracking released
+<p>The <code class="docutils literal notranslate"><span class="pre">git</span></code> descriptor type is used to track git tags and typically used when you are tracking released
 versions of something. You can use any syntax that git supports, with a path key containing the path
 to the git repository.</p>
 <p>Git repository residing on the local file system:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">git</span><span class="p p-Indicator">,</span>
 <span class="nt">    path</span><span class="p">:</span> <span class="nv">/path/to/repo.git</span><span class="p p-Indicator">,</span>
 <span class="nt">    version</span><span class="p">:</span> <span class="nv">v0.2.1</span>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=/path/to/repo.git&amp;version=v12.3.4</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=/path/to/repo.git&amp;version=v12.3.4</span>
 </pre></div>
 </div>
 <p>SSH git syntax:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">git</span><span class="p p-Indicator">,</span>
 <span class="nt">    path</span><span class="p">:</span> <span class="nv">user@remotehost</span><span class="p p-Indicator">:</span><span class="nv">/path_to/repo.git</span><span class="p p-Indicator">,</span>
 <span class="nt">    version</span><span class="p">:</span> <span class="nv">v0.1.0</span>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=user@remotehost:/path_to/repo.git&amp;version=v0.1.0</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=user@remotehost:/path_to/repo.git&amp;version=v0.1.0</span>
 </pre></div>
 </div>
 <p>Git protocol syntax:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">git</span><span class="p p-Indicator">,</span>
 <span class="nt">    path</span><span class="p">:</span> <span class="nv">git</span><span class="p p-Indicator">:</span><span class="nv">//github.com/user/tk-multi-publish.git</span><span class="p p-Indicator">,</span>
 <span class="nt">    version</span><span class="p">:</span> <span class="nv">v0.1.0</span>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=git://github.com/user/tk-multi-publish.git&amp;version=v0.1.0</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=git://github.com/user/tk-multi-publish.git&amp;version=v0.1.0</span>
 </pre></div>
 </div>
 <p>Http protocol syntax:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">git</span><span class="p p-Indicator">,</span>
 <span class="nt">    path</span><span class="p">:</span> <span class="nv">https</span><span class="p p-Indicator">:</span><span class="nv">//github.com/user/tk-multi-publish.git</span><span class="p p-Indicator">,</span>
 <span class="nt">    version</span><span class="p">:</span> <span class="nv">v0.1.0</span>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=https://github.com/user/tk-multi-publish.git&amp;version=v0.1.0</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git?path=https://github.com/user/tk-multi-publish.git&amp;version=v0.1.0</span>
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The latest version for a descriptor is determined by retrieving the list of tags for
 the repository and comparing the version numbers in order to determine the highest one.
-For this comparison, <code class="xref py py-class docutils literal"><span class="pre">LooseVersion</span></code> is used and we recommend
+For this comparison, <code class="xref py py-class docutils literal notranslate"><span class="pre">LooseVersion</span></code> is used and we recommend
 that version numbers follow the semantic versioning standard that can be found at <a class="reference external" href="http://semver.org">http://semver.org</a>.</p>
 </div>
 </div>
 <div class="section" id="tracking-against-commits-in-a-git-branch">
 <h3>Tracking against commits in a git branch<a class="headerlink" href="#tracking-against-commits-in-a-git-branch" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal"><span class="pre">git_branch</span></code> descriptor type is typically used during development and allows you to track
+<p>The <code class="docutils literal notranslate"><span class="pre">git_branch</span></code> descriptor type is typically used during development and allows you to track
 a commit in a particular branch.</p>
 <p>Git repository residing on the local file system:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">git_branch</span><span class="p p-Indicator">,</span>
 <span class="nt">    branch</span><span class="p">:</span> <span class="nv">master</span><span class="p p-Indicator">,</span>
 <span class="nt">    path</span><span class="p">:</span> <span class="nv">/path/to/repo.git</span><span class="p p-Indicator">,</span>
@@ -399,11 +423,11 @@ a commit in a particular branch.</p>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=/path/to/repo.git&amp;version=17fedd8</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=/path/to/repo.git&amp;version=17fedd8</span>
 </pre></div>
 </div>
 <p>SSH git syntax:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">git_branch</span><span class="p p-Indicator">,</span>
 <span class="nt">    branch</span><span class="p">:</span> <span class="nv">master</span><span class="p p-Indicator">,</span>
 <span class="nt">    path</span><span class="p">:</span> <span class="nv">user@remotehost</span><span class="p p-Indicator">:</span><span class="nv">/path_to/repo.git</span><span class="p p-Indicator">,</span>
@@ -411,11 +435,11 @@ a commit in a particular branch.</p>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=user@remotehost:/path_to/repo.git&amp;version=17fedd8</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=user@remotehost:/path_to/repo.git&amp;version=17fedd8</span>
 </pre></div>
 </div>
 <p>Git protocol syntax:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">git_branch</span><span class="p p-Indicator">,</span>
 <span class="nt">    branch</span><span class="p">:</span> <span class="nv">master</span><span class="p p-Indicator">,</span>
 <span class="nt">    path</span><span class="p">:</span> <span class="nv">git</span><span class="p p-Indicator">:</span><span class="nv">//github.com/user/tk-multi-publish.git</span><span class="p p-Indicator">,</span>
@@ -423,11 +447,11 @@ a commit in a particular branch.</p>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=git://github.com/user/tk-multi-publish.git&amp;version=17fedd8</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=git://github.com/user/tk-multi-publish.git&amp;version=17fedd8</span>
 </pre></div>
 </div>
 <p>Http protocol syntax:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">git_branch</span><span class="p p-Indicator">,</span>
 <span class="nt">    branch</span><span class="p">:</span> <span class="nv">master</span><span class="p p-Indicator">,</span>
 <span class="nt">    path</span><span class="p">:</span> <span class="nv">https</span><span class="p p-Indicator">:</span><span class="nv">//github.com/user/tk-multi-publish.git</span><span class="p p-Indicator">,</span>
@@ -435,7 +459,7 @@ a commit in a particular branch.</p>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=https://github.com/user/tk-multi-publish.git&amp;version=17fedd8</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:git_branch?branch=master&amp;path=https://github.com/user/tk-multi-publish.git&amp;version=17fedd8</span>
 </pre></div>
 </div>
 <p>You can use both long and short hash formats for the version token. The latest version for a git_branch
@@ -444,7 +468,7 @@ descriptor is defined as the most recent commit for a given branch.</p>
 <p class="first admonition-title">Warning</p>
 <p class="last">Repositories requiring authentication are not fully supported by Toolkit. For such
 setups, we strongly recommend using an ssh style git url
-(e.g. <code class="docutils literal"><span class="pre">git&#64;github.com:shotgunsoftware/tk-core.git</span></code>) in order to eliminate git
+(e.g. <code class="docutils literal notranslate"><span class="pre">git&#64;github.com:shotgunsoftware/tk-core.git</span></code>) in order to eliminate git
 trying to prompt for a password in the background.</p>
 </div>
 <div class="admonition note">
@@ -454,16 +478,16 @@ trying to prompt for a password in the background.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">When using the git descriptor, you need to have the git executable in
-the <code class="docutils literal"><span class="pre">PATH</span></code> in order for the API to be able to do a latest check or
+the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> in order for the API to be able to do a latest check or
 app download. The git executable is, however, not needed during descriptor
 resolve and normal operation.</p>
 </div>
 </div>
 <div class="section" id="tracking-against-releases-on-github">
 <h3>Tracking against releases on Github<a class="headerlink" href="#tracking-against-releases-on-github" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal"><span class="pre">github_release</span></code> descriptor type is useful for studios and 3rd parties wishing to deploy apps directly from Github.</p>
-<p>Getting <code class="docutils literal"><span class="pre">tk-multi-pythonconsole</span></code> from its <code class="docutils literal"><span class="pre">shotgunsoftware</span></code> Github repo:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<p>The <code class="docutils literal notranslate"><span class="pre">github_release</span></code> descriptor type is useful for studios and 3rd parties wishing to deploy apps directly from Github.</p>
+<p>Getting <code class="docutils literal notranslate"><span class="pre">tk-multi-pythonconsole</span></code> from its <code class="docutils literal notranslate"><span class="pre">shotgunsoftware</span></code> Github repo:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">github_release</span><span class="p p-Indicator">,</span>
 <span class="nt">    organization</span><span class="p">:</span> <span class="nv">shotgunsoftware</span><span class="p p-Indicator">,</span>
 <span class="nt">    repository</span><span class="p">:</span> <span class="nv">tk-multi-pythonconsole</span><span class="p p-Indicator">,</span>
@@ -471,13 +495,13 @@ resolve and normal operation.</p>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:github_release?organization=shotgunsoftware&amp;repository=tk-multi-pythonconsole&amp;version=v1.2.29</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:github_release?organization=shotgunsoftware&amp;repository=tk-multi-pythonconsole&amp;version=v1.2.29</span>
 </pre></div>
 </div>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">organization</span></code> is the Github organization or user that the repository belongs to.</li>
-<li><code class="docutils literal"><span class="pre">repository</span></code> is the name of the repository to find a Release for.</li>
-<li><code class="docutils literal"><span class="pre">version</span></code> is the name of the Release to use.</li>
+<li><code class="docutils literal notranslate"><span class="pre">organization</span></code> is the Github organization or user that the repository belongs to.</li>
+<li><code class="docutils literal notranslate"><span class="pre">repository</span></code> is the name of the repository to find a Release for.</li>
+<li><code class="docutils literal notranslate"><span class="pre">version</span></code> is the name of the Release to use.</li>
 </ul>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -485,7 +509,7 @@ resolve and normal operation.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">If you want constraint patterns (i.e. <code class="docutils literal"><span class="pre">v1.x.x</span></code>) to work correctly with this descriptor, you must follow the <a class="reference external" href="https://semver.org/">semantic versioning</a> specification when naming Releases on Github.</p>
+<p class="last">If you want constraint patterns (i.e. <code class="docutils literal notranslate"><span class="pre">v1.x.x</span></code>) to work correctly with this descriptor, you must follow the <a class="reference external" href="https://semver.org/">semantic versioning</a> specification when naming Releases on Github.</p>
 </div>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -496,27 +520,27 @@ resolve and normal operation.</p>
 <h3>Pointing to a path on disk<a class="headerlink" href="#pointing-to-a-path-on-disk" title="Permalink to this headline">¶</a></h3>
 <p>Pointing Toolkit to an app that resides in the local file system is often very useful for managing your own bundles
 or doing development on an app or engine before releasing onto production. To allow for these scenarios, Toolkit
-provides the <code class="docutils literal"><span class="pre">dev</span></code> and <code class="docutils literal"><span class="pre">path</span></code> descriptors.</p>
+provides the <code class="docutils literal notranslate"><span class="pre">dev</span></code> and <code class="docutils literal notranslate"><span class="pre">path</span></code> descriptors.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last"><code class="docutils literal"><span class="pre">dev</span></code> and <code class="docutils literal"><span class="pre">path</span></code> descriptors are using the exact same syntax. The difference between them is that
-the <code class="docutils literal"><span class="pre">dev</span></code> descriptor indicates that development is happening and Toolkit will use this to enable developer
+<p class="last"><code class="docutils literal notranslate"><span class="pre">dev</span></code> and <code class="docutils literal notranslate"><span class="pre">path</span></code> descriptors are using the exact same syntax. The difference between them is that
+the <code class="docutils literal notranslate"><span class="pre">dev</span></code> descriptor indicates that development is happening and Toolkit will use this to enable developer
 related functionality at runtime, such as making available options to automatically reload the code at runtime.
-For production deploys, always use the <code class="docutils literal"><span class="pre">path</span></code> descriptor.</p>
+For production deploys, always use the <code class="docutils literal notranslate"><span class="pre">path</span></code> descriptor.</p>
 </div>
 <p>Basic example with a path intended to be used on the local operating system - the typical setup for doing
 personal development:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">dev</span><span class="p p-Indicator">,</span>
 <span class="nt">    path</span><span class="p">:</span> <span class="nv">/path/to/app</span>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=/path/to/app</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=/path/to/app</span>
 </pre></div>
 </div>
-<p>When using a <code class="docutils literal"><span class="pre">path</span></code> descriptor in production, you can include paths to multiple different operating systems:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<p>When using a <code class="docutils literal notranslate"><span class="pre">path</span></code> descriptor in production, you can include paths to multiple different operating systems:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">path</span><span class="p p-Indicator">,</span>
 <span class="nt">    windows_path</span><span class="p">:</span> <span class="nv">c</span><span class="p p-Indicator">:</span><span class="nv">\path\to\app</span><span class="p p-Indicator">,</span>
 <span class="nt">    linux_path</span><span class="p">:</span> <span class="nv">/path/to/app</span><span class="p p-Indicator">,</span>
@@ -524,27 +548,27 @@ personal development:</p>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:path?linux_path=/path/to/app&amp;mac_path=/path/to/app&amp;windows_path=c:\path\to\app</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:path?linux_path=/path/to/app&amp;mac_path=/path/to/app&amp;windows_path=c:\path\to\app</span>
 </pre></div>
 </div>
 <p>Environment variables can be included in paths:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">dev</span><span class="p p-Indicator">,</span>
 <span class="nt">    path</span><span class="p">:</span> <span class="nv">$</span><span class="p p-Indicator">{</span><span class="nv">HOME</span><span class="p p-Indicator">}</span><span class="nv">/path/to/app</span>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=%24%7BHOME%7D/path/to/app</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=%24%7BHOME%7D/path/to/app</span>
 </pre></div>
 </div>
 <p>Home directory <cite>~</cite> syntax will be expanded:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">path</span><span class="p p-Indicator">,</span>
 <span class="nt">    path</span><span class="p">:</span> <span class="nv">~/path/to/app</span>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:path?path=%7E/path/to/app</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:path?path=%7E/path/to/app</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -556,48 +580,48 @@ that may not be accessible through the traditional distribution mechanism for To
 like the <a class="reference internal" href="#app-store-descriptor"><span class="std std-ref">App Store</span></a> or the various <a class="reference internal" href="#git-descriptors"><span class="std std-ref">Git</span></a>
 descriptor types. Although we recommend in those case to use the <a class="reference internal" href="initializing.html#local-bundle-caches"><span class="std std-ref">local bundle
 caches</span></a>, it may not always be desirable. In those cases, it is possible to
-package the application code alongside the <code class="docutils literal"><span class="pre">env</span></code> or <code class="docutils literal"><span class="pre">hooks</span></code> folder and refer to it with the
-<code class="docutils literal"><span class="pre">CONFIG_FOLDER</span></code> token:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+package the application code alongside the <code class="docutils literal notranslate"><span class="pre">env</span></code> or <code class="docutils literal notranslate"><span class="pre">hooks</span></code> folder and refer to it with the
+<code class="docutils literal notranslate"><span class="pre">CONFIG_FOLDER</span></code> token:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">dev</span><span class="p p-Indicator">,</span>
 <span class="nt">    path</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nv">CONFIG_FOLDER</span><span class="p p-Indicator">}</span><span class="nv">/dev/tk-nuke-myapp</span>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=%7BCONFIG_FOLDER%7D/dev/tk-nuke-myapp</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=%7BCONFIG_FOLDER%7D/dev/tk-nuke-myapp</span>
 </pre></div>
 </div>
 <p>When using an installed pipeline configuration, this will refer to
-<code class="docutils literal"><span class="pre">{PIPELINE_ROOT}/config</span></code>. When using a cached or baked pipeline configuration, it will point where
+<code class="docutils literal notranslate"><span class="pre">{PIPELINE_ROOT}/config</span></code>. When using a cached or baked pipeline configuration, it will point where
 the bundle was found in one of the bundle caches.</p>
 <img alt="_images/config_folder_token.png" src="_images/config_folder_token.png" />
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">If you don&#8217;t know if your configuration will be used with an installed, baked or cached pipeline
-configuration, we recommend the use of the <code class="docutils literal"><span class="pre">CONFIG_FOLDER</span></code> token as it allows to resolve where
-the configuration&#8217;s files will be located as the pipeline configuration may or may not contain
-the <code class="docutils literal"><span class="pre">config</span></code> folder depending on usage.</p>
+<p class="last">If you don’t know if your configuration will be used with an installed, baked or cached pipeline
+configuration, we recommend the use of the <code class="docutils literal notranslate"><span class="pre">CONFIG_FOLDER</span></code> token as it allows to resolve where
+the configuration’s files will be located as the pipeline configuration may or may not contain
+the <code class="docutils literal notranslate"><span class="pre">config</span></code> folder depending on usage.</p>
 </div>
 <p>When using an installed pipeline configuration, it can be useful to organize your development
 sandbox relative to a pipeline configuration. If all developers in the studio share a convention
-where they for example have a <code class="docutils literal"><span class="pre">dev</span></code> folder inside their pipeline configuration dev sandboxes, it
+where they for example have a <code class="docutils literal notranslate"><span class="pre">dev</span></code> folder inside their pipeline configuration dev sandboxes, it
 becomes easy to exchange environment configs. You can achieve this by using the special token
-<code class="docutils literal"><span class="pre">{PIPELINE_CONFIG}</span></code> which will resolve into the local path to the pipeline configuration:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<code class="docutils literal notranslate"><span class="pre">{PIPELINE_CONFIG}</span></code> which will resolve into the local path to the pipeline configuration:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">dev</span><span class="p p-Indicator">,</span>
 <span class="nt">    path</span><span class="p">:</span> <span class="p p-Indicator">{</span><span class="nv">PIPELINE_CONFIG</span><span class="p p-Indicator">}</span><span class="nv">/dev/tk-nuke-myapp</span>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=%7BPIPELINE_CONFIG%7D/dev/tk-nuke-myapp</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:dev?path=%7BPIPELINE_CONFIG%7D/dev/tk-nuke-myapp</span>
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The <code class="docutils literal"><span class="pre">PIPELINE_CONFIG</span></code> refers to the root of the pipeline configuration, which for cached or baked
-pipeline configurations do not contain the <code class="docutils literal"><span class="pre">config</span></code> folder with all the environment and hook files.
-If you wish to refer to elements inside the <code class="docutils literal"><span class="pre">config</span></code> folder and wish the configuration to be usable
-both with installed, baked or cached configuration, we recommend you use the <code class="docutils literal"><span class="pre">CONFIG_FOLDER</span></code> token.</p>
+<p class="last">The <code class="docutils literal notranslate"><span class="pre">PIPELINE_CONFIG</span></code> refers to the root of the pipeline configuration, which for cached or baked
+pipeline configurations do not contain the <code class="docutils literal notranslate"><span class="pre">config</span></code> folder with all the environment and hook files.
+If you wish to refer to elements inside the <code class="docutils literal notranslate"><span class="pre">config</span></code> folder and wish the configuration to be usable
+both with installed, baked or cached configuration, we recommend you use the <code class="docutils literal notranslate"><span class="pre">CONFIG_FOLDER</span></code> token.</p>
 </div>
 </div>
 <div class="section" id="pointing-at-a-file-attachment-in-shotgun">
@@ -607,9 +631,9 @@ to Shotgun and then reference it with a descriptor.</p>
 <p>This allows for workflows where you can distribute configurations, custom apps
 or other items to your distributed users - regardless of network or file access.
 All they need is a connection to Shotgun.</p>
-<p>A practical application of this is Toolkit&#8217;s cloud based configurations;
-Upload a zipped toolkit configuration to the <code class="docutils literal"><span class="pre">PipelineConfiguration.uploaded_config</span></code> field on your pipeline configuration.
-The <a class="reference internal" href="initializing.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a> bootstrapping interface will automatically detect
+<p>A practical application of this is Toolkit’s cloud based configurations;
+Upload a zipped toolkit configuration to the <code class="docutils literal notranslate"><span class="pre">PipelineConfiguration.uploaded_config</span></code> field on your pipeline configuration.
+The <a class="reference internal" href="initializing.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ToolkitManager</span></code></a> bootstrapping interface will automatically detect
 this, download the configuration locally and use this when launching.
 This allows for a powerful workflow where a configuration is simply
 uploaded to Shotgun and it gets automatically picked up by all
@@ -621,9 +645,9 @@ field in Shotgun and expects a zip file to be uploaded to the field.</p>
 one implicit which uses the name in shotgun to resolve a record. With the
 id based syntax you specify the Shotgun entity type and field name you want
 to look for and the entity id to inspect. For example, if your attachment field is called
-<code class="docutils literal"><span class="pre">PipelineConfiguration.uploaded_config</span></code> and you want to access the uploaded payload for
+<code class="docutils literal notranslate"><span class="pre">PipelineConfiguration.uploaded_config</span></code> and you want to access the uploaded payload for
 the Pipeline Configuration entity with id 111, use the following descriptor:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">shotgun</span><span class="p p-Indicator">,</span>
 <span class="nt">    entity_type</span><span class="p">:</span> <span class="nv">PipelineConfiguration</span><span class="p p-Indicator">,</span>  <span class="c1"># entity type</span>
 <span class="nt">    id</span><span class="p">:</span> <span class="nv">111</span><span class="p p-Indicator">,</span>                             <span class="c1"># shotgun entity id</span>
@@ -632,7 +656,7 @@ the Pipeline Configuration entity with id 111, use the following descriptor:</p>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&amp;id=111&amp;field=sg_config&amp;version=222</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&amp;id=111&amp;field=sg_config&amp;version=222</span>
 </pre></div>
 </div>
 <p>The version token above refers to the version of the attachment. Every time a new
@@ -642,7 +666,7 @@ attachment. It is also used to handle the underlying logic to understand what th
 latest version of an attachment is.</p>
 <p>In some workflows, typically where you follow name based naming conventions, the
 following syntax can be useful:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">shotgun</span><span class="p p-Indicator">,</span>
 <span class="nt">    entity_type</span><span class="p">:</span> <span class="nv">PipelineConfiguration</span><span class="p p-Indicator">,</span>  <span class="c1"># entity type</span>
 <span class="nt">    name</span><span class="p">:</span> <span class="nv">Primary</span><span class="p p-Indicator">,</span>                       <span class="c1"># name of the record in shotgun (e.g. &#39;code&#39; field)</span>
@@ -652,29 +676,29 @@ following syntax can be useful:</p>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&amp;name=primary&amp;project_id=123&amp;field=sg_config&amp;version=456</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:shotgun?entity_type=PipelineConfiguration&amp;name=primary&amp;project_id=123&amp;field=sg_config&amp;version=456</span>
 </pre></div>
 </div>
-<p>Here, instead of specifying the entity id you can specify a <code class="docutils literal"><span class="pre">name</span></code> and an optional <code class="docutils literal"><span class="pre">project_id</span></code> field. The name
-field will be translated into an appropriate Shotgun name field, typically the <code class="docutils literal"><span class="pre">code</span></code> field.</p>
+<p>Here, instead of specifying the entity id you can specify a <code class="docutils literal notranslate"><span class="pre">name</span></code> and an optional <code class="docutils literal notranslate"><span class="pre">project_id</span></code> field. The name
+field will be translated into an appropriate Shotgun name field, typically the <code class="docutils literal notranslate"><span class="pre">code</span></code> field.</p>
 </div>
 <div class="section" id="manual-descriptors">
 <h3>Manual Descriptors<a class="headerlink" href="#manual-descriptors" title="Permalink to this headline">¶</a></h3>
-<p>Toolkit also provides a <code class="docutils literal"><span class="pre">manual</span></code> mode to make it easy to manage production installations of apps
+<p>Toolkit also provides a <code class="docutils literal notranslate"><span class="pre">manual</span></code> mode to make it easy to manage production installations of apps
 and engines without any automation. When you use the manual descriptor, it is up to you to install the code in the right
 location and no automated update checks will ever take place. The manual mode uses the following syntax:</p>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">{</span>
 <span class="nt">    type</span><span class="p">:</span> <span class="nv">manual</span><span class="p p-Indicator">,</span>
 <span class="nt">    name</span><span class="p">:</span> <span class="nv">tk-nuke-publish</span><span class="p p-Indicator">,</span>
 <span class="nt">    version</span><span class="p">:</span> <span class="nv">v0.5.0</span>
 <span class="p p-Indicator">}</span>
 </pre></div>
 </div>
-<div class="highlight-yaml"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:manual?name=tk-nuke-publish&amp;version=v0.5.0</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">sgtk:descriptor:manual?name=tk-nuke-publish&amp;version=v0.5.0</span>
 </pre></div>
 </div>
-<p>It will look for the code in a <code class="docutils literal"><span class="pre">manual</span></code> folder in the bundle cache, so with the example above, Toolkit would look
-for the code in the <code class="docutils literal"><span class="pre">BUNDLE_CACHE/manual/tk-nuke-publish/v0.5.0</span></code> folder.</p>
+<p>It will look for the code in a <code class="docutils literal notranslate"><span class="pre">manual</span></code> folder in the bundle cache, so with the example above, Toolkit would look
+for the code in the <code class="docutils literal notranslate"><span class="pre">BUNDLE_CACHE/manual/tk-nuke-publish/v0.5.0</span></code> folder.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">Manual descriptors are part of an older toolkit workflow methodology and while they are supported,
@@ -709,7 +733,7 @@ for example useful if you maintain a centralized bundle cache location
 that you want the bootstrap API to pick up bundles from.</td>
 </tr>
 <tr class="row-odd"><td>SHOTGUN_DISABLE_APPSTORE_ACCESS</td>
-<td>Setting this to <code class="docutils literal"><span class="pre">1</span></code> will disable any Shotgun Appstore access. No attempts
+<td>Setting this to <code class="docutils literal notranslate"><span class="pre">1</span></code> will disable any Shotgun Appstore access. No attempts
 to connect will be carried out. This option can be useful in cases where
 complex proxy setups is preventing Toolkit to correctly operate.</td>
 </tr>
@@ -736,19 +760,19 @@ and should not be passed between threads.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>sg_connection</strong> &#8211; Shotgun connection to associated site</li>
-<li><strong>descriptor_type</strong> &#8211; Either <code class="docutils literal"><span class="pre">Descriptor.APP</span></code>, <code class="docutils literal"><span class="pre">CORE</span></code>, <code class="docutils literal"><span class="pre">CONFIG</span></code>, <code class="docutils literal"><span class="pre">INSTALLED_CONFIG</span></code>,
-<code class="docutils literal"><span class="pre">ENGINE</span></code> or <code class="docutils literal"><span class="pre">FRAMEWORK</span></code></li>
-<li><strong>dict_or_uri</strong> &#8211; A std descriptor dictionary dictionary or string</li>
-<li><strong>bundle_cache_root_override</strong> &#8211; Optional override for root path to where
+<li><strong>sg_connection</strong> – Shotgun connection to associated site</li>
+<li><strong>descriptor_type</strong> – Either <code class="docutils literal notranslate"><span class="pre">Descriptor.APP</span></code>, <code class="docutils literal notranslate"><span class="pre">CORE</span></code>, <code class="docutils literal notranslate"><span class="pre">CONFIG</span></code>, <code class="docutils literal notranslate"><span class="pre">INSTALLED_CONFIG</span></code>,
+<code class="docutils literal notranslate"><span class="pre">ENGINE</span></code> or <code class="docutils literal notranslate"><span class="pre">FRAMEWORK</span></code></li>
+<li><strong>dict_or_uri</strong> – A std descriptor dictionary dictionary or string</li>
+<li><strong>bundle_cache_root_override</strong> – Optional override for root path to where
 downloaded apps are cached. If not specified,
 the global bundle cache location will be used. This location is a per-user
 cache that is shared across all sites and projects.</li>
-<li><strong>fallback_roots</strong> &#8211; Optional List of immutable fallback cache locations where
+<li><strong>fallback_roots</strong> – Optional List of immutable fallback cache locations where
 apps will be searched for. Note that when descriptors
 download new content, it always ends up in the
 bundle_cache_root.</li>
-<li><strong>resolve_latest</strong> &#8211; <p>If true, the latest version will be determined and returned.</p>
+<li><strong>resolve_latest</strong> – <p>If true, the latest version will be determined and returned.</p>
 <p>If set to True, no version information needs to be supplied with
 the descriptor dictionary/uri for descriptor types which support
 a version number concept. Please note that setting this flag
@@ -758,30 +782,30 @@ is often required in order to establish what the latest version is.</p>
 the latest version, a local scan will be carried out and the highest
 version number that is cached locally will be returned.</p>
 </li>
-<li><strong>constraint_pattern</strong> &#8211; <p>If resolve_latest is True, this pattern can be used to constrain
+<li><strong>constraint_pattern</strong> – <p>If resolve_latest is True, this pattern can be used to constrain
 the search for latest to only take part over a subset of versions.
 This is a string that can be on the following form:</p>
 <blockquote>
 <div><ul>
-<li><code class="docutils literal"><span class="pre">v0.1.2</span></code>, <code class="docutils literal"><span class="pre">v0.12.3.2</span></code>, <code class="docutils literal"><span class="pre">v0.1.3beta</span></code> - a specific version</li>
-<li><code class="docutils literal"><span class="pre">v0.12.x</span></code> - get the highest v0.12 version</li>
-<li><code class="docutils literal"><span class="pre">v1.x.x</span></code> - get the highest v1 version</li>
+<li><code class="docutils literal notranslate"><span class="pre">v0.1.2</span></code>, <code class="docutils literal notranslate"><span class="pre">v0.12.3.2</span></code>, <code class="docutils literal notranslate"><span class="pre">v0.1.3beta</span></code> - a specific version</li>
+<li><code class="docutils literal notranslate"><span class="pre">v0.12.x</span></code> - get the highest v0.12 version</li>
+<li><code class="docutils literal notranslate"><span class="pre">v1.x.x</span></code> - get the highest v1 version</li>
 </ul>
 </div></blockquote>
 </li>
-<li><strong>local_fallback_when_disconnected</strong> &#8211; If resolve_latest is set to True, specify the behaviour
+<li><strong>local_fallback_when_disconnected</strong> – If resolve_latest is set to True, specify the behaviour
 in the case when no connection to a remote descriptor can be established,
-for example because and internet connection isn&#8217;t available. If True, the
+for example because and internet connection isn’t available. If True, the
 descriptor factory will attempt to fall back on any existing locally cached
 bundles and return the latest one available. If False, a
-<a class="reference internal" href="#sgtk.descriptor.TankDescriptorError" title="sgtk.descriptor.TankDescriptorError"><code class="xref py py-class docutils literal"><span class="pre">TankDescriptorError</span></code></a> is raised instead.</li>
+<a class="reference internal" href="#sgtk.descriptor.TankDescriptorError" title="sgtk.descriptor.TankDescriptorError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankDescriptorError</span></code></a> is raised instead.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> object</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><code class="xref py py-class docutils literal notranslate"><span class="pre">Descriptor</span></code> object</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.descriptor.TankDescriptorError" title="sgtk.descriptor.TankDescriptorError"><code class="xref py py-class docutils literal"><span class="pre">TankDescriptorError</span></code></a></p>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.descriptor.TankDescriptorError" title="sgtk.descriptor.TankDescriptorError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankDescriptorError</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -796,7 +820,7 @@ bundles and return the latest one available. If False, a
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ddict</strong> &#8211; descriptor dictionary</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ddict</strong> – descriptor dictionary</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">descriptor uri</td>
 </tr>
@@ -812,7 +836,7 @@ bundles and return the latest one available. If False, a
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>uri</strong> &#8211; descriptor string uri</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>uri</strong> – descriptor string uri</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">descriptor dictionary</td>
 </tr>
@@ -826,14 +850,14 @@ bundles and return the latest one available. If False, a
 <dd><p>Helper method which checks if a descriptor needs a version.</p>
 <p>If the given descriptor dictionary or uri is one of the
 types which requires a version token, and this token is not
-defined, <code class="docutils literal"><span class="pre">True</span></code> will be returned, otherwise <code class="docutils literal"><span class="pre">False</span></code>.</p>
+defined, <code class="docutils literal notranslate"><span class="pre">True</span></code> will be returned, otherwise <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
 <p>This is useful for a standard pattern which can be used used
 where you want to allow users to configure toolkit
 descriptors which track either the latest version or a specific one.
 In this pattern, the user hints that they want to track latest
 version by omitting the version token altogether.</p>
 <p>The following standard pattern can then be implemented:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># determine if we should request the latest version</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># determine if we should request the latest version</span>
 <span class="c1"># of the given descriptor</span>
 <span class="k">if</span> <span class="n">is_descriptor_version_missing</span><span class="p">(</span><span class="n">descriptor_uri</span><span class="p">):</span>
     <span class="c1"># require the descriptor system to return</span>
@@ -856,7 +880,7 @@ version by omitting the version token altogether.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dict_or_uri</strong> &#8211; A std descriptor dictionary dictionary or string</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dict_or_uri</strong> – A std descriptor dictionary dictionary or string</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Boolean to indicate if a required version token is missing</td>
 </tr>
@@ -873,7 +897,7 @@ version by omitting the version token altogether.</p>
 <dd><p>Descriptor that describes a Toolkit App</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Use the factory method <a class="reference internal" href="#sgtk.descriptor.create_descriptor" title="sgtk.descriptor.create_descriptor"><code class="xref py py-meth docutils literal"><span class="pre">create_descriptor()</span></code></a> when
+<p class="last">Use the factory method <a class="reference internal" href="#sgtk.descriptor.create_descriptor" title="sgtk.descriptor.create_descriptor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create_descriptor()</span></code></a> when
 creating new descriptor objects.</p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -881,11 +905,11 @@ creating new descriptor objects.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>sg_connection</strong> &#8211; Connection to the current site.</li>
-<li><strong>io_descriptor</strong> &#8211; Associated IO descriptor.</li>
-<li><strong>bundle_cache_root_override</strong> &#8211; Override for root path to where
+<li><strong>sg_connection</strong> – Connection to the current site.</li>
+<li><strong>io_descriptor</strong> – Associated IO descriptor.</li>
+<li><strong>bundle_cache_root_override</strong> – Override for root path to where
 downloaded apps are cached.</li>
-<li><strong>fallback_roots</strong> &#8211; List of immutable fallback cache locations where
+<li><strong>fallback_roots</strong> – List of immutable fallback cache locations where
 apps will be searched for.</li>
 </ul>
 </td>
@@ -900,7 +924,7 @@ apps will be searched for.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be <code class="docutils literal"><span class="pre">None</span></code>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be <code class="docutils literal notranslate"><span class="pre">None</span></code>
 to indicate that no changelog exists.</td>
 </tr>
 </tbody>
@@ -916,16 +940,16 @@ to indicate that no changelog exists.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Core version. If None, current core version will be used.</li>
-<li><strong>engine_descriptor</strong> (<code class="xref py py-class docutils literal"><span class="pre">DescriptorBundle</span></code>) &#8211; Descriptor of the engine this bundle will run under. None by default.</li>
-<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Version of the Shotgun Desktop. None by default.</li>
+<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Core version. If None, current core version will be used.</li>
+<li><strong>engine_descriptor</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DescriptorBundle</span></code>) – Descriptor of the engine this bundle will run under. None by default.</li>
+<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Version of the Shotgun Desktop. None by default.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first">Raised if one or multiple constraint checks has failed.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">sgtk.descriptor.CheckVersionConstraintsError</span></code></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal notranslate"><span class="pre">sgtk.descriptor.CheckVersionConstraintsError</span></code></p>
 </td>
 </tr>
 </tbody>
@@ -942,12 +966,12 @@ should go and look for cached items.</p>
 <p>This is an advanced method that helps in cases where a user wishes to
 administer such a setup, allowing a cached payload to be copied from
 its current location into a new cache structure.</p>
-<p>If the descriptor&#8217;s payload doesn&#8217;t exist on disk, it will be downloaded.</p>
+<p>If the descriptor’s payload doesn’t exist on disk, it will be downloaded.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_root</strong> &#8211; Root point of the cache location to copy to.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_root</strong> – Root point of the cache location to copy to.</td>
 </tr>
 </tbody>
 </table>
@@ -977,7 +1001,7 @@ in the manifest or {} if not defined</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target_folder</strong> &#8211; Folder to copy the descriptor to</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target_folder</strong> – Folder to copy the descriptor to</td>
 </tr>
 </tbody>
 </table>
@@ -1034,9 +1058,9 @@ a url to the toolkit user guide is returned.</p>
 <dt id="sgtk.descriptor.AppDescriptor.ensure_shotgun_fields_exist">
 <code class="descname">ensure_shotgun_fields_exist</code><span class="sig-paren">(</span><em>tk=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.ensure_shotgun_fields_exist" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ensures that any shotgun fields a particular descriptor requires
-exists in shotgun. In the metadata (<code class="docutils literal"><span class="pre">info.yml</span></code>) for an app or an engine,
+exists in shotgun. In the metadata (<code class="docutils literal notranslate"><span class="pre">info.yml</span></code>) for an app or an engine,
 it is possible to define a section for this:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># the Shotgun fields that this app needs in order to operate correctly</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># the Shotgun fields that this app needs in order to operate correctly</span>
 <span class="n">requires_shotgun_fields</span><span class="p">:</span>
     <span class="n">Version</span><span class="p">:</span>
         <span class="o">-</span> <span class="p">{</span> <span class="s2">&quot;system_name&quot;</span><span class="p">:</span> <span class="s2">&quot;sg_movie_type&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span> <span class="p">}</span>
@@ -1052,8 +1076,8 @@ fields exists.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> &#8211; Core API instance to use for post install execution. This value
-defaults to <code class="docutils literal"><span class="pre">None</span></code> for backwards compatibility reasons and in
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> – Core API instance to use for post install execution. This value
+defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code> for backwards compatibility reasons and in
 the case a None value is passed in, the hook will not execute.</td>
 </tr>
 </tbody>
@@ -1078,14 +1102,14 @@ but general good practice is to follow the semantic version numbering
 standard for any versions used in conjunction with toolkit. This ensures
 that toolkit can track and correctly determine not just the latest version
 but also apply constraint pattern matching such as looking for the latest
-version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+version matching the pattern <code class="docutils literal notranslate"><span class="pre">v1.x.x</span></code>. You can read more about semantic
 versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> – <p>If this is specified, the query will be constrained
 by the given pattern. Version patterns are on the following forms:</p>
 <blockquote>
 <div><ul class="simple">
@@ -1096,7 +1120,7 @@ by the given pattern. Version patterns are on the following forms:</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or <code class="docutils literal"><span class="pre">None</span></code> if no cached version
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal notranslate"><span class="pre">Descriptor</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code> if no cached version
 is available.</td>
 </tr>
 </tbody>
@@ -1114,14 +1138,14 @@ but general good practice is to follow the semantic version numbering
 standard for any versions used in conjunction with toolkit. This ensures
 that toolkit can track and correctly determine not just the latest version
 but also apply constraint pattern matching such as looking for the latest
-version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+version matching the pattern <code class="docutils literal notranslate"><span class="pre">v1.x.x</span></code>. You can read more about semantic
 versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> – <p>If this is specified, the query will be constrained
 by the given pattern. Version patterns are on the following forms:</p>
 <blockquote>
 <div><ul class="simple">
@@ -1132,7 +1156,7 @@ by the given pattern. Version patterns are on the following forms:</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code></td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">instance derived from <code class="xref py py-class docutils literal notranslate"><span class="pre">Descriptor</span></code></td>
 </tr>
 </tbody>
 </table>
@@ -1173,12 +1197,12 @@ by the given pattern. Version patterns are on the following forms:</p>
 <p>When locating the item, any bundle cache fallback paths
 will first be searched in the order they have been defined,
 and lastly the main bundle cached will be checked.</p>
-<p>If the item is not locally cached, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
+<p>If the item is not locally cached, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path string or <code class="docutils literal"><span class="pre">None</span></code> if not cached.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path string or <code class="docutils literal notranslate"><span class="pre">None</span></code> if not cached.</td>
 </tr>
 </tbody>
 </table>
@@ -1205,7 +1229,7 @@ descriptor dictionary returned by the get_dict() method.</p>
 <code class="descname">has_remote_access</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.has_remote_access" title="Permalink to this definition">¶</a></dt>
 <dd><p>Probes if the current descriptor is able to handle
 remote requests. If this method returns, true, operations
-such as <a class="reference internal" href="#sgtk.descriptor.AppDescriptor.download_local" title="sgtk.descriptor.AppDescriptor.download_local"><code class="xref py py-meth docutils literal"><span class="pre">download_local()</span></code></a> and <a class="reference internal" href="#sgtk.descriptor.AppDescriptor.find_latest_version" title="sgtk.descriptor.AppDescriptor.find_latest_version"><code class="xref py py-meth docutils literal"><span class="pre">find_latest_version()</span></code></a>
+such as <a class="reference internal" href="#sgtk.descriptor.AppDescriptor.download_local" title="sgtk.descriptor.AppDescriptor.download_local"><code class="xref py py-meth docutils literal notranslate"><span class="pre">download_local()</span></code></a> and <a class="reference internal" href="#sgtk.descriptor.AppDescriptor.find_latest_version" title="sgtk.descriptor.AppDescriptor.find_latest_version"><code class="xref py py-meth docutils literal notranslate"><span class="pre">find_latest_version()</span></code></a>
 can be expected to succeed.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1244,7 +1268,7 @@ can be expected to succeed.</p>
 This is true for most descriptors as they represent a particular
 version, tag or commit of an item. Examples of non-immutable
 descriptors include path and dev descriptors, where the
-descriptor points at a &#8220;live&#8221; location on disk where a user
+descriptor points at a “live” location on disk where a user
 can make changes at any time.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1261,7 +1285,7 @@ can make changes at any time.</p>
 <code class="descname">required_context</code><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.required_context" title="Permalink to this definition">¶</a></dt>
 <dd><p>The required context, if there is one defined, for a bundle.
 This is a list of strings, something along the lines of
-[&#8220;user&#8221;, &#8220;task&#8221;, &#8220;step&#8221;] for an app that requires a context with
+[“user”, “task”, “step”] for an app that requires a context with
 user task and step defined.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1278,7 +1302,7 @@ user task and step defined.</p>
 <code class="descname">required_frameworks</code><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.required_frameworks" title="Permalink to this definition">¶</a></dt>
 <dd><p>A list of required frameworks for this item.</p>
 <p>Always returns a list - for example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;v0.1.0&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;tk-framework-widget&#39;</span><span class="p">}]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;v0.1.0&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;tk-framework-widget&#39;</span><span class="p">}]</span>
 </pre></div>
 </div>
 <p>Each item contains a name and a version key.</p>
@@ -1296,7 +1320,7 @@ user task and step defined.</p>
 <dt id="sgtk.descriptor.AppDescriptor.run_post_install">
 <code class="descname">run_post_install</code><span class="sig-paren">(</span><em>tk=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.run_post_install" title="Permalink to this definition">¶</a></dt>
 <dd><p>If a post install hook exists in a descriptor, execute it. In the
-hooks directory for an app or engine, if a &#8216;post_install.py&#8217; hook
+hooks directory for an app or engine, if a ‘post_install.py’ hook
 exists, the hook will be executed upon each installation.</p>
 <p>Errors reported in the post install hook will be reported to the error
 log but execution will continue.</p>
@@ -1311,8 +1335,8 @@ their shotgun and system permissions.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> &#8211; Core API instance to use for post install execution. This value
-defaults to <code class="docutils literal"><span class="pre">None</span></code> for backwards compatibility reasons and in
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> – Core API instance to use for post install execution. This value
+defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code> for backwards compatibility reasons and in
 the case a None value is passed in, the hook will not execute.</td>
 </tr>
 </tbody>
@@ -1323,7 +1347,7 @@ the case a None value is passed in, the hook will not execute.</td>
 <dt id="sgtk.descriptor.AppDescriptor.support_url">
 <code class="descname">support_url</code><a class="headerlink" href="#sgtk.descriptor.AppDescriptor.support_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>A url that points at a support web page associated with this item.
-If not url has been defined, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
+If not url has been defined, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1333,8 +1357,8 @@ If not url has been defined, <code class="docutils literal"><span class="pre">No
 of return values:</p>
 <blockquote>
 <div><ul class="simple">
-<li><code class="docutils literal"><span class="pre">None</span></code> - Works in all engines.</li>
-<li><code class="docutils literal"><span class="pre">[&quot;tk-maya&quot;,</span> <span class="pre">&quot;tk-nuke&quot;]</span></code> - Works in Maya and Nuke.</li>
+<li><code class="docutils literal notranslate"><span class="pre">None</span></code> - Works in all engines.</li>
+<li><code class="docutils literal notranslate"><span class="pre">[&quot;tk-maya&quot;,</span> <span class="pre">&quot;tk-nuke&quot;]</span></code> - Works in Maya and Nuke.</li>
 </ul>
 </div></blockquote>
 </dd></dl>
@@ -1346,7 +1370,7 @@ of return values:</p>
 are windows, linux and mac.</p>
 <p>Always returns a list, returns an empty list if there is
 no constraint in place.</p>
-<p>example: [&#8220;windows&#8221;, &#8220;linux&#8221;]
+<p>example: [“windows”, “linux”]
 example: []</p>
 </dd></dl>
 
@@ -1390,7 +1414,7 @@ min_engine and min_desktop</td>
 <dd><p>Descriptor that describes a Toolkit Engine</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Use the factory method <a class="reference internal" href="#sgtk.descriptor.create_descriptor" title="sgtk.descriptor.create_descriptor"><code class="xref py py-meth docutils literal"><span class="pre">create_descriptor()</span></code></a> when
+<p class="last">Use the factory method <a class="reference internal" href="#sgtk.descriptor.create_descriptor" title="sgtk.descriptor.create_descriptor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create_descriptor()</span></code></a> when
 creating new descriptor objects.</p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1398,11 +1422,11 @@ creating new descriptor objects.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>sg_connection</strong> &#8211; Connection to the current site.</li>
-<li><strong>io_descriptor</strong> &#8211; Associated IO descriptor.</li>
-<li><strong>bundle_cache_root_override</strong> &#8211; Override for root path to where
+<li><strong>sg_connection</strong> – Connection to the current site.</li>
+<li><strong>io_descriptor</strong> – Associated IO descriptor.</li>
+<li><strong>bundle_cache_root_override</strong> – Override for root path to where
 downloaded apps are cached.</li>
-<li><strong>fallback_roots</strong> &#8211; List of immutable fallback cache locations where
+<li><strong>fallback_roots</strong> – List of immutable fallback cache locations where
 apps will be searched for.</li>
 </ul>
 </td>
@@ -1417,7 +1441,7 @@ apps will be searched for.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be <code class="docutils literal"><span class="pre">None</span></code>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be <code class="docutils literal notranslate"><span class="pre">None</span></code>
 to indicate that no changelog exists.</td>
 </tr>
 </tbody>
@@ -1433,16 +1457,16 @@ to indicate that no changelog exists.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Core version. If None, current core version will be used.</li>
-<li><strong>engine_descriptor</strong> (<code class="xref py py-class docutils literal"><span class="pre">DescriptorBundle</span></code>) &#8211; Descriptor of the engine this bundle will run under. None by default.</li>
-<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Version of the Shotgun Desktop. None by default.</li>
+<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Core version. If None, current core version will be used.</li>
+<li><strong>engine_descriptor</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DescriptorBundle</span></code>) – Descriptor of the engine this bundle will run under. None by default.</li>
+<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Version of the Shotgun Desktop. None by default.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first">Raised if one or multiple constraint checks has failed.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">sgtk.descriptor.CheckVersionConstraintsError</span></code></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal notranslate"><span class="pre">sgtk.descriptor.CheckVersionConstraintsError</span></code></p>
 </td>
 </tr>
 </tbody>
@@ -1459,12 +1483,12 @@ should go and look for cached items.</p>
 <p>This is an advanced method that helps in cases where a user wishes to
 administer such a setup, allowing a cached payload to be copied from
 its current location into a new cache structure.</p>
-<p>If the descriptor&#8217;s payload doesn&#8217;t exist on disk, it will be downloaded.</p>
+<p>If the descriptor’s payload doesn’t exist on disk, it will be downloaded.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_root</strong> &#8211; Root point of the cache location to copy to.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_root</strong> – Root point of the cache location to copy to.</td>
 </tr>
 </tbody>
 </table>
@@ -1494,7 +1518,7 @@ in the manifest or {} if not defined</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target_folder</strong> &#8211; Folder to copy the descriptor to</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target_folder</strong> – Folder to copy the descriptor to</td>
 </tr>
 </tbody>
 </table>
@@ -1551,9 +1575,9 @@ a url to the toolkit user guide is returned.</p>
 <dt id="sgtk.descriptor.EngineDescriptor.ensure_shotgun_fields_exist">
 <code class="descname">ensure_shotgun_fields_exist</code><span class="sig-paren">(</span><em>tk=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.ensure_shotgun_fields_exist" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ensures that any shotgun fields a particular descriptor requires
-exists in shotgun. In the metadata (<code class="docutils literal"><span class="pre">info.yml</span></code>) for an app or an engine,
+exists in shotgun. In the metadata (<code class="docutils literal notranslate"><span class="pre">info.yml</span></code>) for an app or an engine,
 it is possible to define a section for this:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># the Shotgun fields that this app needs in order to operate correctly</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># the Shotgun fields that this app needs in order to operate correctly</span>
 <span class="n">requires_shotgun_fields</span><span class="p">:</span>
     <span class="n">Version</span><span class="p">:</span>
         <span class="o">-</span> <span class="p">{</span> <span class="s2">&quot;system_name&quot;</span><span class="p">:</span> <span class="s2">&quot;sg_movie_type&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span> <span class="p">}</span>
@@ -1569,8 +1593,8 @@ fields exists.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> &#8211; Core API instance to use for post install execution. This value
-defaults to <code class="docutils literal"><span class="pre">None</span></code> for backwards compatibility reasons and in
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> – Core API instance to use for post install execution. This value
+defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code> for backwards compatibility reasons and in
 the case a None value is passed in, the hook will not execute.</td>
 </tr>
 </tbody>
@@ -1595,14 +1619,14 @@ but general good practice is to follow the semantic version numbering
 standard for any versions used in conjunction with toolkit. This ensures
 that toolkit can track and correctly determine not just the latest version
 but also apply constraint pattern matching such as looking for the latest
-version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+version matching the pattern <code class="docutils literal notranslate"><span class="pre">v1.x.x</span></code>. You can read more about semantic
 versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> – <p>If this is specified, the query will be constrained
 by the given pattern. Version patterns are on the following forms:</p>
 <blockquote>
 <div><ul class="simple">
@@ -1613,7 +1637,7 @@ by the given pattern. Version patterns are on the following forms:</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or <code class="docutils literal"><span class="pre">None</span></code> if no cached version
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal notranslate"><span class="pre">Descriptor</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code> if no cached version
 is available.</td>
 </tr>
 </tbody>
@@ -1631,14 +1655,14 @@ but general good practice is to follow the semantic version numbering
 standard for any versions used in conjunction with toolkit. This ensures
 that toolkit can track and correctly determine not just the latest version
 but also apply constraint pattern matching such as looking for the latest
-version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+version matching the pattern <code class="docutils literal notranslate"><span class="pre">v1.x.x</span></code>. You can read more about semantic
 versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> – <p>If this is specified, the query will be constrained
 by the given pattern. Version patterns are on the following forms:</p>
 <blockquote>
 <div><ul class="simple">
@@ -1649,7 +1673,7 @@ by the given pattern. Version patterns are on the following forms:</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code></td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">instance derived from <code class="xref py py-class docutils literal notranslate"><span class="pre">Descriptor</span></code></td>
 </tr>
 </tbody>
 </table>
@@ -1690,12 +1714,12 @@ by the given pattern. Version patterns are on the following forms:</p>
 <p>When locating the item, any bundle cache fallback paths
 will first be searched in the order they have been defined,
 and lastly the main bundle cached will be checked.</p>
-<p>If the item is not locally cached, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
+<p>If the item is not locally cached, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path string or <code class="docutils literal"><span class="pre">None</span></code> if not cached.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path string or <code class="docutils literal notranslate"><span class="pre">None</span></code> if not cached.</td>
 </tr>
 </tbody>
 </table>
@@ -1722,7 +1746,7 @@ descriptor dictionary returned by the get_dict() method.</p>
 <code class="descname">has_remote_access</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.has_remote_access" title="Permalink to this definition">¶</a></dt>
 <dd><p>Probes if the current descriptor is able to handle
 remote requests. If this method returns, true, operations
-such as <a class="reference internal" href="#sgtk.descriptor.EngineDescriptor.download_local" title="sgtk.descriptor.EngineDescriptor.download_local"><code class="xref py py-meth docutils literal"><span class="pre">download_local()</span></code></a> and <a class="reference internal" href="#sgtk.descriptor.EngineDescriptor.find_latest_version" title="sgtk.descriptor.EngineDescriptor.find_latest_version"><code class="xref py py-meth docutils literal"><span class="pre">find_latest_version()</span></code></a>
+such as <a class="reference internal" href="#sgtk.descriptor.EngineDescriptor.download_local" title="sgtk.descriptor.EngineDescriptor.download_local"><code class="xref py py-meth docutils literal notranslate"><span class="pre">download_local()</span></code></a> and <a class="reference internal" href="#sgtk.descriptor.EngineDescriptor.find_latest_version" title="sgtk.descriptor.EngineDescriptor.find_latest_version"><code class="xref py py-meth docutils literal notranslate"><span class="pre">find_latest_version()</span></code></a>
 can be expected to succeed.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1761,7 +1785,7 @@ can be expected to succeed.</p>
 This is true for most descriptors as they represent a particular
 version, tag or commit of an item. Examples of non-immutable
 descriptors include path and dev descriptors, where the
-descriptor points at a &#8220;live&#8221; location on disk where a user
+descriptor points at a “live” location on disk where a user
 can make changes at any time.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1778,7 +1802,7 @@ can make changes at any time.</p>
 <code class="descname">required_context</code><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.required_context" title="Permalink to this definition">¶</a></dt>
 <dd><p>The required context, if there is one defined, for a bundle.
 This is a list of strings, something along the lines of
-[&#8220;user&#8221;, &#8220;task&#8221;, &#8220;step&#8221;] for an app that requires a context with
+[“user”, “task”, “step”] for an app that requires a context with
 user task and step defined.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1795,7 +1819,7 @@ user task and step defined.</p>
 <code class="descname">required_frameworks</code><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.required_frameworks" title="Permalink to this definition">¶</a></dt>
 <dd><p>A list of required frameworks for this item.</p>
 <p>Always returns a list - for example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;v0.1.0&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;tk-framework-widget&#39;</span><span class="p">}]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;v0.1.0&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;tk-framework-widget&#39;</span><span class="p">}]</span>
 </pre></div>
 </div>
 <p>Each item contains a name and a version key.</p>
@@ -1813,7 +1837,7 @@ user task and step defined.</p>
 <dt id="sgtk.descriptor.EngineDescriptor.run_post_install">
 <code class="descname">run_post_install</code><span class="sig-paren">(</span><em>tk=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.run_post_install" title="Permalink to this definition">¶</a></dt>
 <dd><p>If a post install hook exists in a descriptor, execute it. In the
-hooks directory for an app or engine, if a &#8216;post_install.py&#8217; hook
+hooks directory for an app or engine, if a ‘post_install.py’ hook
 exists, the hook will be executed upon each installation.</p>
 <p>Errors reported in the post install hook will be reported to the error
 log but execution will continue.</p>
@@ -1828,8 +1852,8 @@ their shotgun and system permissions.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> &#8211; Core API instance to use for post install execution. This value
-defaults to <code class="docutils literal"><span class="pre">None</span></code> for backwards compatibility reasons and in
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> – Core API instance to use for post install execution. This value
+defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code> for backwards compatibility reasons and in
 the case a None value is passed in, the hook will not execute.</td>
 </tr>
 </tbody>
@@ -1840,7 +1864,7 @@ the case a None value is passed in, the hook will not execute.</td>
 <dt id="sgtk.descriptor.EngineDescriptor.support_url">
 <code class="descname">support_url</code><a class="headerlink" href="#sgtk.descriptor.EngineDescriptor.support_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>A url that points at a support web page associated with this item.
-If not url has been defined, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
+If not url has been defined, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1850,8 +1874,8 @@ If not url has been defined, <code class="docutils literal"><span class="pre">No
 of return values:</p>
 <blockquote>
 <div><ul class="simple">
-<li><code class="docutils literal"><span class="pre">None</span></code> - Works in all engines.</li>
-<li><code class="docutils literal"><span class="pre">[&quot;tk-maya&quot;,</span> <span class="pre">&quot;tk-nuke&quot;]</span></code> - Works in Maya and Nuke.</li>
+<li><code class="docutils literal notranslate"><span class="pre">None</span></code> - Works in all engines.</li>
+<li><code class="docutils literal notranslate"><span class="pre">[&quot;tk-maya&quot;,</span> <span class="pre">&quot;tk-nuke&quot;]</span></code> - Works in Maya and Nuke.</li>
 </ul>
 </div></blockquote>
 </dd></dl>
@@ -1863,7 +1887,7 @@ of return values:</p>
 are windows, linux and mac.</p>
 <p>Always returns a list, returns an empty list if there is
 no constraint in place.</p>
-<p>example: [&#8220;windows&#8221;, &#8220;linux&#8221;]
+<p>example: [“windows”, “linux”]
 example: []</p>
 </dd></dl>
 
@@ -1907,7 +1931,7 @@ min_engine and min_desktop</td>
 <dd><p>Descriptor that describes a Toolkit Framework</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Use the factory method <a class="reference internal" href="#sgtk.descriptor.create_descriptor" title="sgtk.descriptor.create_descriptor"><code class="xref py py-meth docutils literal"><span class="pre">create_descriptor()</span></code></a> when
+<p class="last">Use the factory method <a class="reference internal" href="#sgtk.descriptor.create_descriptor" title="sgtk.descriptor.create_descriptor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create_descriptor()</span></code></a> when
 creating new descriptor objects.</p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1915,11 +1939,11 @@ creating new descriptor objects.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>sg_connection</strong> &#8211; Connection to the current site.</li>
-<li><strong>io_descriptor</strong> &#8211; Associated IO descriptor.</li>
-<li><strong>bundle_cache_root_override</strong> &#8211; Override for root path to where
+<li><strong>sg_connection</strong> – Connection to the current site.</li>
+<li><strong>io_descriptor</strong> – Associated IO descriptor.</li>
+<li><strong>bundle_cache_root_override</strong> – Override for root path to where
 downloaded apps are cached.</li>
-<li><strong>fallback_roots</strong> &#8211; List of immutable fallback cache locations where
+<li><strong>fallback_roots</strong> – List of immutable fallback cache locations where
 apps will be searched for.</li>
 </ul>
 </td>
@@ -1950,7 +1974,7 @@ current environment.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be <code class="docutils literal"><span class="pre">None</span></code>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be <code class="docutils literal notranslate"><span class="pre">None</span></code>
 to indicate that no changelog exists.</td>
 </tr>
 </tbody>
@@ -1966,16 +1990,16 @@ to indicate that no changelog exists.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Core version. If None, current core version will be used.</li>
-<li><strong>engine_descriptor</strong> (<code class="xref py py-class docutils literal"><span class="pre">DescriptorBundle</span></code>) &#8211; Descriptor of the engine this bundle will run under. None by default.</li>
-<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Version of the Shotgun Desktop. None by default.</li>
+<li><strong>core_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Core version. If None, current core version will be used.</li>
+<li><strong>engine_descriptor</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DescriptorBundle</span></code>) – Descriptor of the engine this bundle will run under. None by default.</li>
+<li><strong>desktop_version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Version of the Shotgun Desktop. None by default.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first">Raised if one or multiple constraint checks has failed.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">sgtk.descriptor.CheckVersionConstraintsError</span></code></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal notranslate"><span class="pre">sgtk.descriptor.CheckVersionConstraintsError</span></code></p>
 </td>
 </tr>
 </tbody>
@@ -1992,12 +2016,12 @@ should go and look for cached items.</p>
 <p>This is an advanced method that helps in cases where a user wishes to
 administer such a setup, allowing a cached payload to be copied from
 its current location into a new cache structure.</p>
-<p>If the descriptor&#8217;s payload doesn&#8217;t exist on disk, it will be downloaded.</p>
+<p>If the descriptor’s payload doesn’t exist on disk, it will be downloaded.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_root</strong> &#8211; Root point of the cache location to copy to.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_root</strong> – Root point of the cache location to copy to.</td>
 </tr>
 </tbody>
 </table>
@@ -2027,7 +2051,7 @@ in the manifest or {} if not defined</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target_folder</strong> &#8211; Folder to copy the descriptor to</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target_folder</strong> – Folder to copy the descriptor to</td>
 </tr>
 </tbody>
 </table>
@@ -2084,9 +2108,9 @@ a url to the toolkit user guide is returned.</p>
 <dt id="sgtk.descriptor.FrameworkDescriptor.ensure_shotgun_fields_exist">
 <code class="descname">ensure_shotgun_fields_exist</code><span class="sig-paren">(</span><em>tk=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.ensure_shotgun_fields_exist" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ensures that any shotgun fields a particular descriptor requires
-exists in shotgun. In the metadata (<code class="docutils literal"><span class="pre">info.yml</span></code>) for an app or an engine,
+exists in shotgun. In the metadata (<code class="docutils literal notranslate"><span class="pre">info.yml</span></code>) for an app or an engine,
 it is possible to define a section for this:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># the Shotgun fields that this app needs in order to operate correctly</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># the Shotgun fields that this app needs in order to operate correctly</span>
 <span class="n">requires_shotgun_fields</span><span class="p">:</span>
     <span class="n">Version</span><span class="p">:</span>
         <span class="o">-</span> <span class="p">{</span> <span class="s2">&quot;system_name&quot;</span><span class="p">:</span> <span class="s2">&quot;sg_movie_type&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span> <span class="p">}</span>
@@ -2102,8 +2126,8 @@ fields exists.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> &#8211; Core API instance to use for post install execution. This value
-defaults to <code class="docutils literal"><span class="pre">None</span></code> for backwards compatibility reasons and in
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> – Core API instance to use for post install execution. This value
+defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code> for backwards compatibility reasons and in
 the case a None value is passed in, the hook will not execute.</td>
 </tr>
 </tbody>
@@ -2128,14 +2152,14 @@ but general good practice is to follow the semantic version numbering
 standard for any versions used in conjunction with toolkit. This ensures
 that toolkit can track and correctly determine not just the latest version
 but also apply constraint pattern matching such as looking for the latest
-version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+version matching the pattern <code class="docutils literal notranslate"><span class="pre">v1.x.x</span></code>. You can read more about semantic
 versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> – <p>If this is specified, the query will be constrained
 by the given pattern. Version patterns are on the following forms:</p>
 <blockquote>
 <div><ul class="simple">
@@ -2146,7 +2170,7 @@ by the given pattern. Version patterns are on the following forms:</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or <code class="docutils literal"><span class="pre">None</span></code> if no cached version
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal notranslate"><span class="pre">Descriptor</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code> if no cached version
 is available.</td>
 </tr>
 </tbody>
@@ -2164,14 +2188,14 @@ but general good practice is to follow the semantic version numbering
 standard for any versions used in conjunction with toolkit. This ensures
 that toolkit can track and correctly determine not just the latest version
 but also apply constraint pattern matching such as looking for the latest
-version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+version matching the pattern <code class="docutils literal notranslate"><span class="pre">v1.x.x</span></code>. You can read more about semantic
 versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> – <p>If this is specified, the query will be constrained
 by the given pattern. Version patterns are on the following forms:</p>
 <blockquote>
 <div><ul class="simple">
@@ -2182,7 +2206,7 @@ by the given pattern. Version patterns are on the following forms:</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code></td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">instance derived from <code class="xref py py-class docutils literal notranslate"><span class="pre">Descriptor</span></code></td>
 </tr>
 </tbody>
 </table>
@@ -2223,12 +2247,12 @@ by the given pattern. Version patterns are on the following forms:</p>
 <p>When locating the item, any bundle cache fallback paths
 will first be searched in the order they have been defined,
 and lastly the main bundle cached will be checked.</p>
-<p>If the item is not locally cached, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
+<p>If the item is not locally cached, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path string or <code class="docutils literal"><span class="pre">None</span></code> if not cached.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path string or <code class="docutils literal notranslate"><span class="pre">None</span></code> if not cached.</td>
 </tr>
 </tbody>
 </table>
@@ -2255,7 +2279,7 @@ descriptor dictionary returned by the get_dict() method.</p>
 <code class="descname">has_remote_access</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.has_remote_access" title="Permalink to this definition">¶</a></dt>
 <dd><p>Probes if the current descriptor is able to handle
 remote requests. If this method returns, true, operations
-such as <a class="reference internal" href="#sgtk.descriptor.FrameworkDescriptor.download_local" title="sgtk.descriptor.FrameworkDescriptor.download_local"><code class="xref py py-meth docutils literal"><span class="pre">download_local()</span></code></a> and <a class="reference internal" href="#sgtk.descriptor.FrameworkDescriptor.find_latest_version" title="sgtk.descriptor.FrameworkDescriptor.find_latest_version"><code class="xref py py-meth docutils literal"><span class="pre">find_latest_version()</span></code></a>
+such as <a class="reference internal" href="#sgtk.descriptor.FrameworkDescriptor.download_local" title="sgtk.descriptor.FrameworkDescriptor.download_local"><code class="xref py py-meth docutils literal notranslate"><span class="pre">download_local()</span></code></a> and <a class="reference internal" href="#sgtk.descriptor.FrameworkDescriptor.find_latest_version" title="sgtk.descriptor.FrameworkDescriptor.find_latest_version"><code class="xref py py-meth docutils literal notranslate"><span class="pre">find_latest_version()</span></code></a>
 can be expected to succeed.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2294,7 +2318,7 @@ can be expected to succeed.</p>
 This is true for most descriptors as they represent a particular
 version, tag or commit of an item. Examples of non-immutable
 descriptors include path and dev descriptors, where the
-descriptor points at a &#8220;live&#8221; location on disk where a user
+descriptor points at a “live” location on disk where a user
 can make changes at any time.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2311,7 +2335,7 @@ can make changes at any time.</p>
 <code class="descname">required_context</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.required_context" title="Permalink to this definition">¶</a></dt>
 <dd><p>The required context, if there is one defined, for a bundle.
 This is a list of strings, something along the lines of
-[&#8220;user&#8221;, &#8220;task&#8221;, &#8220;step&#8221;] for an app that requires a context with
+[“user”, “task”, “step”] for an app that requires a context with
 user task and step defined.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2328,7 +2352,7 @@ user task and step defined.</p>
 <code class="descname">required_frameworks</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.required_frameworks" title="Permalink to this definition">¶</a></dt>
 <dd><p>A list of required frameworks for this item.</p>
 <p>Always returns a list - for example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;v0.1.0&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;tk-framework-widget&#39;</span><span class="p">}]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="s1">&#39;v0.1.0&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;tk-framework-widget&#39;</span><span class="p">}]</span>
 </pre></div>
 </div>
 <p>Each item contains a name and a version key.</p>
@@ -2346,7 +2370,7 @@ user task and step defined.</p>
 <dt id="sgtk.descriptor.FrameworkDescriptor.run_post_install">
 <code class="descname">run_post_install</code><span class="sig-paren">(</span><em>tk=None</em><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.run_post_install" title="Permalink to this definition">¶</a></dt>
 <dd><p>If a post install hook exists in a descriptor, execute it. In the
-hooks directory for an app or engine, if a &#8216;post_install.py&#8217; hook
+hooks directory for an app or engine, if a ‘post_install.py’ hook
 exists, the hook will be executed upon each installation.</p>
 <p>Errors reported in the post install hook will be reported to the error
 log but execution will continue.</p>
@@ -2361,8 +2385,8 @@ their shotgun and system permissions.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> &#8211; Core API instance to use for post install execution. This value
-defaults to <code class="docutils literal"><span class="pre">None</span></code> for backwards compatibility reasons and in
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tk</strong> – Core API instance to use for post install execution. This value
+defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code> for backwards compatibility reasons and in
 the case a None value is passed in, the hook will not execute.</td>
 </tr>
 </tbody>
@@ -2373,7 +2397,7 @@ the case a None value is passed in, the hook will not execute.</td>
 <dt id="sgtk.descriptor.FrameworkDescriptor.support_url">
 <code class="descname">support_url</code><a class="headerlink" href="#sgtk.descriptor.FrameworkDescriptor.support_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>A url that points at a support web page associated with this item.
-If not url has been defined, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
+If not url has been defined, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -2383,8 +2407,8 @@ If not url has been defined, <code class="docutils literal"><span class="pre">No
 of return values:</p>
 <blockquote>
 <div><ul class="simple">
-<li><code class="docutils literal"><span class="pre">None</span></code> - Works in all engines.</li>
-<li><code class="docutils literal"><span class="pre">[&quot;tk-maya&quot;,</span> <span class="pre">&quot;tk-nuke&quot;]</span></code> - Works in Maya and Nuke.</li>
+<li><code class="docutils literal notranslate"><span class="pre">None</span></code> - Works in all engines.</li>
+<li><code class="docutils literal notranslate"><span class="pre">[&quot;tk-maya&quot;,</span> <span class="pre">&quot;tk-nuke&quot;]</span></code> - Works in Maya and Nuke.</li>
 </ul>
 </div></blockquote>
 </dd></dl>
@@ -2396,7 +2420,7 @@ of return values:</p>
 are windows, linux and mac.</p>
 <p>Always returns a list, returns an empty list if there is
 no constraint in place.</p>
-<p>example: [&#8220;windows&#8221;, &#8220;linux&#8221;]
+<p>example: [“windows”, “linux”]
 example: []</p>
 </dd></dl>
 
@@ -2440,7 +2464,7 @@ min_engine and min_desktop</td>
 <dd><p>Descriptor that describes a Toolkit Configuration</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Use the factory method <a class="reference internal" href="#sgtk.descriptor.create_descriptor" title="sgtk.descriptor.create_descriptor"><code class="xref py py-meth docutils literal"><span class="pre">create_descriptor()</span></code></a> when
+<p class="last">Use the factory method <a class="reference internal" href="#sgtk.descriptor.create_descriptor" title="sgtk.descriptor.create_descriptor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create_descriptor()</span></code></a> when
 creating new descriptor objects.</p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -2448,11 +2472,11 @@ creating new descriptor objects.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>sg_connection</strong> &#8211; Connection to the current site.</li>
-<li><strong>io_descriptor</strong> &#8211; Associated IO descriptor.</li>
-<li><strong>bundle_cache_root_override</strong> &#8211; Override for root path to where
+<li><strong>sg_connection</strong> – Connection to the current site.</li>
+<li><strong>io_descriptor</strong> – Associated IO descriptor.</li>
+<li><strong>bundle_cache_root_override</strong> – Override for root path to where
 downloaded apps are cached.</li>
-<li><strong>fallback_roots</strong> &#8211; List of immutable fallback cache locations where
+<li><strong>fallback_roots</strong> – List of immutable fallback cache locations where
 apps will be searched for.</li>
 </ul>
 </td>
@@ -2462,12 +2486,12 @@ apps will be searched for.</li>
 <dl class="attribute">
 <dt id="sgtk.descriptor.ConfigDescriptor.associated_core_descriptor">
 <code class="descname">associated_core_descriptor</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.associated_core_descriptor" title="Permalink to this definition">¶</a></dt>
-<dd><p>The descriptor dict or url required for this core or <code class="docutils literal"><span class="pre">None</span></code> if not defined.</p>
+<dd><p>The descriptor dict or url required for this core or <code class="docutils literal notranslate"><span class="pre">None</span></code> if not defined.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Core descriptor dict or uri or <code class="docutils literal"><span class="pre">None</span></code> if not defined</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Core descriptor dict or uri or <code class="docutils literal notranslate"><span class="pre">None</span></code> if not defined</td>
 </tr>
 </tbody>
 </table>
@@ -2481,16 +2505,16 @@ apps will be searched for.</li>
 <p class="first admonition-title">Note</p>
 <p class="last">Most runtime environments (Nuke, Maya, Houdini, etc.) provide their
 own python interpreter that needs to used when executing code. This property
-is useful if the engine you are running (e.g. <code class="docutils literal"><span class="pre">tk-shell</span></code>) does not have
+is useful if the engine you are running (e.g. <code class="docutils literal notranslate"><span class="pre">tk-shell</span></code>) does not have
 an explicit interpreter associated.</p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">TankFileDoesNotExistError</span></code> If the interpreter file is missing.</td>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankFileDoesNotExistError</span></code> If the interpreter file is missing.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="#sgtk.descriptor.TankInvalidInterpreterLocationError" title="sgtk.descriptor.TankInvalidInterpreterLocationError"><code class="xref py py-class docutils literal"><span class="pre">TankInvalidInterpreterLocationError</span></code></a> If the interpreter can&#8217;t be found on disk.</td>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="#sgtk.descriptor.TankInvalidInterpreterLocationError" title="sgtk.descriptor.TankInvalidInterpreterLocationError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankInvalidInterpreterLocationError</span></code></a> If the interpreter can’t be found on disk.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path value stored in the interpreter file.</td>
 </tr>
@@ -2503,7 +2527,7 @@ an explicit interpreter associated.</p>
 <code class="descname">get_associated_core_feature_info</code><span class="sig-paren">(</span><em>feature_name</em>, <em>default_value=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_config.html#ConfigDescriptor.get_associated_core_feature_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.get_associated_core_feature_info" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves information for a given feature in the manifest of the core.</p>
 <dl class="docutils">
-<dt>The <code class="docutils literal"><span class="pre">default_value</span></code> will be returned in the following cases:</dt>
+<dt>The <code class="docutils literal notranslate"><span class="pre">default_value</span></code> will be returned in the following cases:</dt>
 <dd><ul class="first last simple">
 <li>a feature is missing from the manifest</li>
 <li>the manifest is empty</li>
@@ -2517,12 +2541,12 @@ an explicit interpreter associated.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>feature_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the feature to retrieve from the manifest.</li>
-<li><strong>default_value</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) &#8211; Value to return if the feature is missing.</li>
+<li><strong>feature_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Name of the feature to retrieve from the manifest.</li>
+<li><strong>default_value</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) – Value to return if the feature is missing.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The value for the feature if present, <code class="docutils literal"><span class="pre">default_value</span></code> otherwise.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The value for the feature if present, <code class="docutils literal notranslate"><span class="pre">default_value</span></code> otherwise.</p>
 </td>
 </tr>
 </tbody>
@@ -2568,12 +2592,12 @@ If not readme exists, an empty list is returned</p>
 a given version. Returning True means that the associated core
 version is less than the given one, however returning False
 does not guarantee that the associated version is higher, it may
-also be an indication that a version number couldn&#8217;t be determined.</p>
+also be an indication that a version number couldn’t be determined.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>version_str</strong> &#8211; Version string, e.g. &#8216;0.18.123&#8217;</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>version_str</strong> – Version string, e.g. ‘0.18.123’</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">true if core version is less, false otherwise</td>
 </tr>
@@ -2585,7 +2609,7 @@ also be an indication that a version number couldn&#8217;t be determined.</p>
 <dt id="sgtk.descriptor.ConfigDescriptor.required_storages">
 <code class="descname">required_storages</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.required_storages" title="Permalink to this definition">¶</a></dt>
 <dd><p>A list of storage names needed for this config.
-This may be an empty list if the configuration doesn&#8217;t
+This may be an empty list if the configuration doesn’t
 make use of the file system.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2600,7 +2624,7 @@ make use of the file system.</p>
 <dl class="attribute">
 <dt id="sgtk.descriptor.ConfigDescriptor.storage_roots">
 <code class="descname">storage_roots</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.storage_roots" title="Permalink to this definition">¶</a></dt>
-<dd><p>A <code class="docutils literal"><span class="pre">StorageRoots</span></code> instance for this config descriptor.</p>
+<dd><p>A <code class="docutils literal notranslate"><span class="pre">StorageRoots</span></code> instance for this config descriptor.</p>
 <p>Returns None if the config does not define any storage roots.</p>
 </dd></dl>
 
@@ -2612,7 +2636,7 @@ make use of the file system.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be <code class="docutils literal"><span class="pre">None</span></code>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be <code class="docutils literal notranslate"><span class="pre">None</span></code>
 to indicate that no changelog exists.</td>
 </tr>
 </tbody>
@@ -2629,12 +2653,12 @@ should go and look for cached items.</p>
 <p>This is an advanced method that helps in cases where a user wishes to
 administer such a setup, allowing a cached payload to be copied from
 its current location into a new cache structure.</p>
-<p>If the descriptor&#8217;s payload doesn&#8217;t exist on disk, it will be downloaded.</p>
+<p>If the descriptor’s payload doesn’t exist on disk, it will be downloaded.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_root</strong> &#8211; Root point of the cache location to copy to.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_root</strong> – Root point of the cache location to copy to.</td>
 </tr>
 </tbody>
 </table>
@@ -2648,7 +2672,7 @@ its current location into a new cache structure.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target_folder</strong> &#8211; Folder to copy the descriptor to</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target_folder</strong> – Folder to copy the descriptor to</td>
 </tr>
 </tbody>
 </table>
@@ -2719,14 +2743,14 @@ but general good practice is to follow the semantic version numbering
 standard for any versions used in conjunction with toolkit. This ensures
 that toolkit can track and correctly determine not just the latest version
 but also apply constraint pattern matching such as looking for the latest
-version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+version matching the pattern <code class="docutils literal notranslate"><span class="pre">v1.x.x</span></code>. You can read more about semantic
 versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> – <p>If this is specified, the query will be constrained
 by the given pattern. Version patterns are on the following forms:</p>
 <blockquote>
 <div><ul class="simple">
@@ -2737,7 +2761,7 @@ by the given pattern. Version patterns are on the following forms:</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or <code class="docutils literal"><span class="pre">None</span></code> if no cached version
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal notranslate"><span class="pre">Descriptor</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code> if no cached version
 is available.</td>
 </tr>
 </tbody>
@@ -2755,14 +2779,14 @@ but general good practice is to follow the semantic version numbering
 standard for any versions used in conjunction with toolkit. This ensures
 that toolkit can track and correctly determine not just the latest version
 but also apply constraint pattern matching such as looking for the latest
-version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+version matching the pattern <code class="docutils literal notranslate"><span class="pre">v1.x.x</span></code>. You can read more about semantic
 versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> – <p>If this is specified, the query will be constrained
 by the given pattern. Version patterns are on the following forms:</p>
 <blockquote>
 <div><ul class="simple">
@@ -2773,7 +2797,7 @@ by the given pattern. Version patterns are on the following forms:</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code></td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">instance derived from <code class="xref py py-class docutils literal notranslate"><span class="pre">Descriptor</span></code></td>
 </tr>
 </tbody>
 </table>
@@ -2814,12 +2838,12 @@ by the given pattern. Version patterns are on the following forms:</p>
 <p>When locating the item, any bundle cache fallback paths
 will first be searched in the order they have been defined,
 and lastly the main bundle cached will be checked.</p>
-<p>If the item is not locally cached, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
+<p>If the item is not locally cached, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path string or <code class="docutils literal"><span class="pre">None</span></code> if not cached.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path string or <code class="docutils literal notranslate"><span class="pre">None</span></code> if not cached.</td>
 </tr>
 </tbody>
 </table>
@@ -2846,7 +2870,7 @@ descriptor dictionary returned by the get_dict() method.</p>
 <code class="descname">has_remote_access</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.has_remote_access" title="Permalink to this definition">¶</a></dt>
 <dd><p>Probes if the current descriptor is able to handle
 remote requests. If this method returns, true, operations
-such as <a class="reference internal" href="#sgtk.descriptor.ConfigDescriptor.download_local" title="sgtk.descriptor.ConfigDescriptor.download_local"><code class="xref py py-meth docutils literal"><span class="pre">download_local()</span></code></a> and <a class="reference internal" href="#sgtk.descriptor.ConfigDescriptor.find_latest_version" title="sgtk.descriptor.ConfigDescriptor.find_latest_version"><code class="xref py py-meth docutils literal"><span class="pre">find_latest_version()</span></code></a>
+such as <a class="reference internal" href="#sgtk.descriptor.ConfigDescriptor.download_local" title="sgtk.descriptor.ConfigDescriptor.download_local"><code class="xref py py-meth docutils literal notranslate"><span class="pre">download_local()</span></code></a> and <a class="reference internal" href="#sgtk.descriptor.ConfigDescriptor.find_latest_version" title="sgtk.descriptor.ConfigDescriptor.find_latest_version"><code class="xref py py-meth docutils literal notranslate"><span class="pre">find_latest_version()</span></code></a>
 can be expected to succeed.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2885,7 +2909,7 @@ can be expected to succeed.</p>
 This is true for most descriptors as they represent a particular
 version, tag or commit of an item. Examples of non-immutable
 descriptors include path and dev descriptors, where the
-descriptor points at a &#8220;live&#8221; location on disk where a user
+descriptor points at a “live” location on disk where a user
 can make changes at any time.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2901,7 +2925,7 @@ can make changes at any time.</p>
 <dt id="sgtk.descriptor.ConfigDescriptor.support_url">
 <code class="descname">support_url</code><a class="headerlink" href="#sgtk.descriptor.ConfigDescriptor.support_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>A url that points at a support web page associated with this item.
-If not url has been defined, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
+If not url has been defined, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -2927,7 +2951,7 @@ If not url has been defined, <code class="docutils literal"><span class="pre">No
 <dd><p>Descriptor object which describes a Toolkit Core API version.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Use the factory method <a class="reference internal" href="#sgtk.descriptor.create_descriptor" title="sgtk.descriptor.create_descriptor"><code class="xref py py-meth docutils literal"><span class="pre">create_descriptor()</span></code></a> when
+<p class="last">Use the factory method <a class="reference internal" href="#sgtk.descriptor.create_descriptor" title="sgtk.descriptor.create_descriptor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create_descriptor()</span></code></a> when
 creating new descriptor objects.</p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -2935,11 +2959,11 @@ creating new descriptor objects.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>sg_connection</strong> &#8211; Connection to the current site.</li>
-<li><strong>io_descriptor</strong> &#8211; Associated IO descriptor.</li>
-<li><strong>bundle_cache_root_override</strong> &#8211; Override for root path to where
+<li><strong>sg_connection</strong> – Connection to the current site.</li>
+<li><strong>io_descriptor</strong> – Associated IO descriptor.</li>
+<li><strong>bundle_cache_root_override</strong> – Override for root path to where
 downloaded apps are cached.</li>
-<li><strong>fallback_roots</strong> &#8211; List of immutable fallback cache locations where
+<li><strong>fallback_roots</strong> – List of immutable fallback cache locations where
 apps will be searched for.</li>
 </ul>
 </td>
@@ -2968,7 +2992,7 @@ min_engine, min_desktop</td>
 <code class="descname">get_feature_info</code><span class="sig-paren">(</span><em>feature_name</em>, <em>default_value=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/descriptor_core.html#CoreDescriptor.get_feature_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.get_feature_info" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves information for a given feature in the manifest.</p>
 <dl class="docutils">
-<dt>The <code class="docutils literal"><span class="pre">default_value</span></code> will be returned in the following cases:</dt>
+<dt>The <code class="docutils literal notranslate"><span class="pre">default_value</span></code> will be returned in the following cases:</dt>
 <dd><ul class="first last simple">
 <li>a feature is missing from the manifest</li>
 <li>the manifest is empty</li>
@@ -2981,12 +3005,12 @@ min_engine, min_desktop</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>feature_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the feature to retrieve from the manifest.</li>
-<li><strong>default_value</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) &#8211; Value to return if the feature is missing.</li>
+<li><strong>feature_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Name of the feature to retrieve from the manifest.</li>
+<li><strong>default_value</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) – Value to return if the feature is missing.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The value for the feature if present, <code class="docutils literal"><span class="pre">default_value</span></code> otherwise.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The value for the feature if present, <code class="docutils literal notranslate"><span class="pre">default_value</span></code> otherwise.</p>
 </td>
 </tr>
 </tbody>
@@ -3001,7 +3025,7 @@ min_engine, min_desktop</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target_folder</strong> &#8211; Folder to copy the descriptor to</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target_folder</strong> – Folder to copy the descriptor to</td>
 </tr>
 </tbody>
 </table>
@@ -3015,7 +3039,7 @@ min_engine, min_desktop</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be <code class="docutils literal"><span class="pre">None</span></code>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A tuple (changelog_summary, changelog_url). Values may be <code class="docutils literal notranslate"><span class="pre">None</span></code>
 to indicate that no changelog exists.</td>
 </tr>
 </tbody>
@@ -3032,12 +3056,12 @@ should go and look for cached items.</p>
 <p>This is an advanced method that helps in cases where a user wishes to
 administer such a setup, allowing a cached payload to be copied from
 its current location into a new cache structure.</p>
-<p>If the descriptor&#8217;s payload doesn&#8217;t exist on disk, it will be downloaded.</p>
+<p>If the descriptor’s payload doesn’t exist on disk, it will be downloaded.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_root</strong> &#8211; Root point of the cache location to copy to.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cache_root</strong> – Root point of the cache location to copy to.</td>
 </tr>
 </tbody>
 </table>
@@ -3108,14 +3132,14 @@ but general good practice is to follow the semantic version numbering
 standard for any versions used in conjunction with toolkit. This ensures
 that toolkit can track and correctly determine not just the latest version
 but also apply constraint pattern matching such as looking for the latest
-version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+version matching the pattern <code class="docutils literal notranslate"><span class="pre">v1.x.x</span></code>. You can read more about semantic
 versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> – <p>If this is specified, the query will be constrained
 by the given pattern. Version patterns are on the following forms:</p>
 <blockquote>
 <div><ul class="simple">
@@ -3126,7 +3150,7 @@ by the given pattern. Version patterns are on the following forms:</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> or <code class="docutils literal"><span class="pre">None</span></code> if no cached version
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance derived from <code class="xref py py-class docutils literal notranslate"><span class="pre">Descriptor</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code> if no cached version
 is available.</td>
 </tr>
 </tbody>
@@ -3144,14 +3168,14 @@ but general good practice is to follow the semantic version numbering
 standard for any versions used in conjunction with toolkit. This ensures
 that toolkit can track and correctly determine not just the latest version
 but also apply constraint pattern matching such as looking for the latest
-version matching the pattern <code class="docutils literal"><span class="pre">v1.x.x</span></code>. You can read more about semantic
+version matching the pattern <code class="docutils literal notranslate"><span class="pre">v1.x.x</span></code>. You can read more about semantic
 versioning here: <a class="reference external" href="http://semver.org/">http://semver.org/</a></p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> &#8211; <p>If this is specified, the query will be constrained
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constraint_pattern</strong> – <p>If this is specified, the query will be constrained
 by the given pattern. Version patterns are on the following forms:</p>
 <blockquote>
 <div><ul class="simple">
@@ -3162,7 +3186,7 @@ by the given pattern. Version patterns are on the following forms:</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">instance derived from <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code></td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">instance derived from <code class="xref py py-class docutils literal notranslate"><span class="pre">Descriptor</span></code></td>
 </tr>
 </tbody>
 </table>
@@ -3203,12 +3227,12 @@ by the given pattern. Version patterns are on the following forms:</p>
 <p>When locating the item, any bundle cache fallback paths
 will first be searched in the order they have been defined,
 and lastly the main bundle cached will be checked.</p>
-<p>If the item is not locally cached, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
+<p>If the item is not locally cached, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path string or <code class="docutils literal"><span class="pre">None</span></code> if not cached.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Path string or <code class="docutils literal notranslate"><span class="pre">None</span></code> if not cached.</td>
 </tr>
 </tbody>
 </table>
@@ -3235,7 +3259,7 @@ descriptor dictionary returned by the get_dict() method.</p>
 <code class="descname">has_remote_access</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.has_remote_access" title="Permalink to this definition">¶</a></dt>
 <dd><p>Probes if the current descriptor is able to handle
 remote requests. If this method returns, true, operations
-such as <a class="reference internal" href="#sgtk.descriptor.CoreDescriptor.download_local" title="sgtk.descriptor.CoreDescriptor.download_local"><code class="xref py py-meth docutils literal"><span class="pre">download_local()</span></code></a> and <a class="reference internal" href="#sgtk.descriptor.CoreDescriptor.find_latest_version" title="sgtk.descriptor.CoreDescriptor.find_latest_version"><code class="xref py py-meth docutils literal"><span class="pre">find_latest_version()</span></code></a>
+such as <a class="reference internal" href="#sgtk.descriptor.CoreDescriptor.download_local" title="sgtk.descriptor.CoreDescriptor.download_local"><code class="xref py py-meth docutils literal notranslate"><span class="pre">download_local()</span></code></a> and <a class="reference internal" href="#sgtk.descriptor.CoreDescriptor.find_latest_version" title="sgtk.descriptor.CoreDescriptor.find_latest_version"><code class="xref py py-meth docutils literal notranslate"><span class="pre">find_latest_version()</span></code></a>
 can be expected to succeed.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3274,7 +3298,7 @@ can be expected to succeed.</p>
 This is true for most descriptors as they represent a particular
 version, tag or commit of an item. Examples of non-immutable
 descriptors include path and dev descriptors, where the
-descriptor points at a &#8220;live&#8221; location on disk where a user
+descriptor points at a “live” location on disk where a user
 can make changes at any time.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3290,7 +3314,7 @@ can make changes at any time.</p>
 <dt id="sgtk.descriptor.CoreDescriptor.support_url">
 <code class="descname">support_url</code><a class="headerlink" href="#sgtk.descriptor.CoreDescriptor.support_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>A url that points at a support web page associated with this item.
-If not url has been defined, <code class="docutils literal"><span class="pre">None</span></code> is returned.</p>
+If not url has been defined, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -3313,48 +3337,48 @@ If not url has been defined, <code class="docutils literal"><span class="pre">No
 <dl class="class">
 <dt id="sgtk.descriptor.TankDescriptorError">
 <em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">TankDescriptorError</code><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankDescriptorError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.TankDescriptorError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.errors.TankError</span></code></p>
 <p>Base class for all descriptor related errors.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sgtk.descriptor.TankAppStoreError">
 <em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">TankAppStoreError</code><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankAppStoreError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.TankAppStoreError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.descriptor.errors.TankDescriptorError</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.descriptor.errors.TankDescriptorError</span></code></p>
 <p>Errors relating to the Toolkit App Store app store.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sgtk.descriptor.TankAppStoreConnectionError">
 <em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">TankAppStoreConnectionError</code><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankAppStoreConnectionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.TankAppStoreConnectionError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.descriptor.errors.TankAppStoreError</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.descriptor.errors.TankAppStoreError</span></code></p>
 <p>Errors indicating an error connecting to the Toolkit App Store.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sgtk.descriptor.TankInvalidAppStoreCredentialsError">
 <em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">TankInvalidAppStoreCredentialsError</code><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankInvalidAppStoreCredentialsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.TankInvalidAppStoreCredentialsError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.descriptor.errors.TankAppStoreConnectionError</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.descriptor.errors.TankAppStoreConnectionError</span></code></p>
 <p>Error indicating no credentials for the Toolkit App Store were found in Shotgun.</p>
 </dd></dl>
 
 <dl class="class">
 <dt>
 <em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">TankInvalidAppStoreCredentialsError</code><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankInvalidAppStoreCredentialsError"><span class="viewcode-link">[source]</span></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.descriptor.errors.TankAppStoreConnectionError</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.descriptor.errors.TankAppStoreConnectionError</span></code></p>
 <p>Error indicating no credentials for the Toolkit App Store were found in Shotgun.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sgtk.descriptor.TankCheckVersionConstraintsError">
 <em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">TankCheckVersionConstraintsError</code><span class="sig-paren">(</span><em>reasons</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankCheckVersionConstraintsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.TankCheckVersionConstraintsError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.descriptor.errors.TankDescriptorError</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.descriptor.errors.TankDescriptorError</span></code></p>
 <p>Error throw when one or more version constraints checks failed.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>reasons</strong> (<em>list(str)</em>) &#8211; List of reasons why the check failed.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>reasons</strong> (<em>list</em><em>(</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a><em>)</em>) – List of reasons why the check failed.</td>
 </tr>
 </tbody>
 </table>
@@ -3369,14 +3393,14 @@ If not url has been defined, <code class="docutils literal"><span class="pre">No
 <dl class="class">
 <dt id="sgtk.descriptor.TankInvalidInterpreterLocationError">
 <em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">TankInvalidInterpreterLocationError</code><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankInvalidInterpreterLocationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.TankInvalidInterpreterLocationError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.descriptor.errors.TankDescriptorError</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.descriptor.errors.TankDescriptorError</span></code></p>
 <p>Exception that indicates that the interpreter specified in a file was not found.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sgtk.descriptor.TankMissingManifestError">
 <em class="property">class </em><code class="descclassname">sgtk.descriptor.</code><code class="descname">TankMissingManifestError</code><a class="reference internal" href="_modules/tank/descriptor/errors.html#TankMissingManifestError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.descriptor.TankMissingManifestError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.descriptor.errors.TankDescriptorError</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.descriptor.errors.TankDescriptorError</span></code></p>
 <p>Exception that indicates that the manifest file is missing.</p>
 </dd></dl>
 
@@ -3386,15 +3410,16 @@ If not url has been defined, <code class="docutils literal"><span class="pre">No
 
 
            </div>
+           
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="authentication.html" class="btn btn-neutral float-right" title="Authentication" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="authentication.html" class="btn btn-neutral float-right" title="Authentication" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="utils.html" class="btn btn-neutral" title="Utilities" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="utils.html" class="btn btn-neutral float-left" title="Utilities" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -3403,7 +3428,7 @@ If not url has been defined, <code class="docutils literal"><span class="pre">No
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Autodesk.
+        &copy; Copyright 2021, Autodesk
 
     </p>
   </div> 
@@ -3419,35 +3444,15 @@ If not url has been defined, <code class="docutils literal"><span class="pre">No
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'v0.19.18',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
+
+  
+  
+    
   
  
 

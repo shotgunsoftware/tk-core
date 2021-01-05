@@ -15,47 +15,48 @@
 
   
   
+  
+  
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="tk-core v0.19.18 documentation" href="index.html"/>
-        <link rel="prev" title="Descriptors" href="descriptor.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Descriptors" href="descriptor.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
+   
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
     <a href='http://developer.shotgunsoftware.com'>
     
         <img style='width: 191px;
-                height: 60px; 
+                height: 60px;
                 margin: 2px;
-                border-radius: 0px; 
-                padding: 0px;' 
+                border-radius: 0px;
+                padding: 0px;'
             src='_static/logo@2x.png'/>
     
     </a>
@@ -88,7 +89,10 @@
     
             
             
-                <ul class="current">
+              
+            
+            
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="initializing.html">Initialization and startup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core</a></li>
@@ -117,16 +121,16 @@
     <div style='margin-top: 50px;
                 margin-left: 10px;
                 margin-right: 10px;
-                padding: 10px; 
-                color: #b3b3b3; 
+                padding: 10px;
+                color: #b3b3b3;
                 font-size: 70%;
                 border-radius: 3px;
                 background-color: #444;
                 line-height: 18px;
-                '>    
+                '>
     <style>
-        a.custom_post_menu { display: inline; 
-                             padding: 0px; 
+        a.custom_post_menu { display: inline;
+                             padding: 0px;
                              text-decoration: underline; }
     </style>
 
@@ -136,7 +140,7 @@
     
     For more information, please visit
     <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
-    The code associated with this documentation can be found 
+    The code associated with this documentation can be found
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
     </div>
@@ -150,32 +154,52 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">tk-core</a>
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">tk-core</a>
+        
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Authentication</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Authentication</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
+            
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -193,45 +217,45 @@ need to make sure the current user is authenticated so that a connection with th
 <p class="first admonition-title">Note</p>
 <p class="last">The Toolkit authentication API does not require an installed or
 bootstrapped instance of the Toolkit Core platform. You can use it
-simply by importing <code class="docutils literal"><span class="pre">sgtk</span></code> and calling its methods.</p>
+simply by importing <code class="docutils literal notranslate"><span class="pre">sgtk</span></code> and calling its methods.</p>
 </div>
 <p>Toolkit uses session tokens for authentication. These are unique identifiers which are generated by the Shotgun server.
 Whenever a Shotgun API request comes in from Toolkit, this session token is passed along so that the server can
 validate it and grant access to the request. These session tokens time out after a certain period of inactivity,
 usually 24 hours, and whenever this happens, the user is typically prompted to enter their password again in order
 for Toolkit to retrieve a new session token.</p>
-<p>This <code class="docutils literal"><span class="pre">sgtk.authentication</span></code> API handles the notion of the current user and wraps around the Shotgun API to ensure that
+<p>This <code class="docutils literal notranslate"><span class="pre">sgtk.authentication</span></code> API handles the notion of the current user and wraps around the Shotgun API to ensure that
 if a session times out, the user is prompted to re-enter their credentials. The API and process for
 authentication can be summarized as follows:</p>
 <ul class="simple">
-<li>A <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal"><span class="pre">ShotgunAuthenticator</span></code></a> class is used to handle the actual authentication process. This can be called
-in various ways and also wraps around storing authenticated sessions so that the user doesn&#8217;t have to keep
+<li>A <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunAuthenticator</span></code></a> class is used to handle the actual authentication process. This can be called
+in various ways and also wraps around storing authenticated sessions so that the user doesn’t have to keep
 typing their password in.</li>
-<li>After a successful authentication operation, the <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal"><span class="pre">ShotgunAuthenticator</span></code></a> returns a <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> object.
+<li>After a successful authentication operation, the <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunAuthenticator</span></code></a> returns a <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunUser</span></code></a> object.
 This object represents the user and can be used to generate a Shotgun API instance which belongs to the user. The
 generated API instance is subclassed from the normal Shotgun API and gracefully traps when the user credentials are
 no longer valid (which usually happens after a certain period of inactivity). In this case it will automatically
 present the user with a password prompt.</li>
-<li><a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> objects can be serialized via the <a class="reference internal" href="#sgtk.authentication.serialize_user" title="sgtk.authentication.serialize_user"><code class="xref py py-meth docutils literal"><span class="pre">serialize_user()</span></code></a> and <a class="reference internal" href="#sgtk.authentication.deserialize_user" title="sgtk.authentication.deserialize_user"><code class="xref py py-meth docutils literal"><span class="pre">deserialize_user()</span></code></a> methods
+<li><a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunUser</span></code></a> objects can be serialized via the <a class="reference internal" href="#sgtk.authentication.serialize_user" title="sgtk.authentication.serialize_user"><code class="xref py py-meth docutils literal notranslate"><span class="pre">serialize_user()</span></code></a> and <a class="reference internal" href="#sgtk.authentication.deserialize_user" title="sgtk.authentication.deserialize_user"><code class="xref py py-meth docutils literal notranslate"><span class="pre">deserialize_user()</span></code></a> methods
 and can be passed between multiple sessions, say for example when a DCC is launched or when a job
 is sent to the render farm.</li>
 <li>Toolkit core does not have a built-in notion of the current user so this needs to be explicitly set via the
-<a class="reference internal" href="core.html#sgtk.set_authenticated_user" title="sgtk.set_authenticated_user"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.set_authenticated_user()</span></code></a> method. If you are using the Bootstrap process to start up Toolkit, you
-pass a <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> directly to the <a class="reference internal" href="initializing.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a> constructor.</li>
-<li>If you want to control how the <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal"><span class="pre">ShotgunAuthenticator</span></code></a> creates a user object and caches session data
-inbetween invocations, you can subclass the <a class="reference internal" href="#sgtk.authentication.DefaultsManager" title="sgtk.authentication.DefaultsManager"><code class="xref py py-class docutils literal"><span class="pre">DefaultsManager</span></code></a>.</li>
+<a class="reference internal" href="core.html#sgtk.set_authenticated_user" title="sgtk.set_authenticated_user"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sgtk.set_authenticated_user()</span></code></a> method. If you are using the Bootstrap process to start up Toolkit, you
+pass a <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunUser</span></code></a> directly to the <a class="reference internal" href="initializing.html#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ToolkitManager</span></code></a> constructor.</li>
+<li>If you want to control how the <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunAuthenticator</span></code></a> creates a user object and caches session data
+inbetween invocations, you can subclass the <a class="reference internal" href="#sgtk.authentication.DefaultsManager" title="sgtk.authentication.DefaultsManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultsManager</span></code></a>.</li>
 </ul>
-<p>Normally, the tk session is created automatically as part of the DCC launch process, <code class="docutils literal"><span class="pre">tank</span></code> command or Shotgun
+<p>Normally, the tk session is created automatically as part of the DCC launch process, <code class="docutils literal notranslate"><span class="pre">tank</span></code> command or Shotgun
 Desktop, so there is little to worry about. There are some use cases where controlling the authentication directly
 may be useful:</p>
 <ul>
 <li><p class="first">If you are dispatching jobs to the render farm, you can serialize and deserialize the user object from the
-dispatching DCC. Use the <a class="reference internal" href="core.html#sgtk.get_authenticated_user" title="sgtk.get_authenticated_user"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.get_authenticated_user()</span></code></a> to extract the user object from your current
-session and <a class="reference internal" href="core.html#sgtk.set_authenticated_user" title="sgtk.set_authenticated_user"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.set_authenticated_user()</span></code></a> to set it on your remote session.</p>
+dispatching DCC. Use the <a class="reference internal" href="core.html#sgtk.get_authenticated_user" title="sgtk.get_authenticated_user"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sgtk.get_authenticated_user()</span></code></a> to extract the user object from your current
+session and <a class="reference internal" href="core.html#sgtk.set_authenticated_user" title="sgtk.set_authenticated_user"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sgtk.set_authenticated_user()</span></code></a> to set it on your remote session.</p>
 </li>
-<li><p class="first">If you want to use an explicit script user, use <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator.create_script_user" title="sgtk.authentication.ShotgunAuthenticator.create_script_user"><code class="xref py py-meth docutils literal"><span class="pre">ShotgunAuthenticator.create_script_user()</span></code></a> to create
-a <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> object representing a script. This may look like this:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
+<li><p class="first">If you want to use an explicit script user, use <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator.create_script_user" title="sgtk.authentication.ShotgunAuthenticator.create_script_user"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ShotgunAuthenticator.create_script_user()</span></code></a> to create
+a <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunUser</span></code></a> object representing a script. This may look like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
 
 <span class="c1"># create an authenticator object. This is the main object which</span>
 <span class="c1"># handles all authentication</span>
@@ -263,10 +287,10 @@ a <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="s
 <dd><p>The ShotgunAuthenticator is the central object in the Shotgun authentication
 module. It helps you with authentication and login and makes it easy to
 create and maintain a shotgun connection so that it belongs to a given user.
-It also helps store who the current user is, so that users don&#8217;t have to log
+It also helps store who the current user is, so that users don’t have to log
 in over and over again, but only when needed.</p>
 <p>A simple use case scenario would look something like this:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># create an authenticator</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># create an authenticator</span>
 <span class="n">sa</span> <span class="o">=</span> <span class="n">ShotgunAuthenticator</span><span class="p">()</span>
 
 <span class="c1"># Get a user object. If the authenticator system has already</span>
@@ -310,7 +334,7 @@ to work in different scenarios.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>defaults_manager</strong> &#8211; A DefaultsManager object that defines the basic
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>defaults_manager</strong> – A DefaultsManager object that defines the basic
 behavior of this authenticator. If omitted,
 the default, built-in DefaultsManager will be
 used.</td>
@@ -320,7 +344,7 @@ used.</td>
 <dl class="method">
 <dt id="sgtk.authentication.ShotgunAuthenticator.clear_default_user">
 <code class="descname">clear_default_user</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/shotgun_authenticator.html#ShotgunAuthenticator.clear_default_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticator.clear_default_user" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes the default user&#8217;s credentials from disk for the default host. The
+<dd><p>Removes the default user’s credentials from disk for the default host. The
 next time the ShotgunAuthenticator.get_default_user() method is called,
 None will be returned.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -342,7 +366,7 @@ None will be returned.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><strong>AuthenticationCancelled</strong> &#8211; If the user cancels the authentication process,
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="#sgtk.authentication.AuthenticationCancelled" title="sgtk.authentication.AuthenticationCancelled"><strong>AuthenticationCancelled</strong></a> – If the user cancels the authentication process,
 an AuthenticationCancelled is thrown.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The SessionUser based on the login information provided.</td>
@@ -354,7 +378,7 @@ an AuthenticationCancelled is thrown.</td>
 <dl class="method">
 <dt id="sgtk.authentication.ShotgunAuthenticator.create_session_user">
 <code class="descname">create_session_user</code><span class="sig-paren">(</span><em>login</em>, <em>session_token=None</em>, <em>password=None</em>, <em>host=None</em>, <em>http_proxy=None</em>, <em>session_metadata=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/shotgun_authenticator.html#ShotgunAuthenticator.create_session_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticator.create_session_user" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> given a set of human user credentials.
+<dd><p>Create a <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunUser</span></code></a> given a set of human user credentials.
 Either a password or session token must be supplied. If a password is supplied,
 a session token will be generated for security reasons.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -362,16 +386,16 @@ a session token will be generated for security reasons.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>login</strong> &#8211; Shotgun user login</li>
-<li><strong>session_token</strong> &#8211; Shotgun session token</li>
-<li><strong>password</strong> &#8211; Shotgun password</li>
-<li><strong>host</strong> &#8211; Shotgun host to log in to. If None, the default host will be used.</li>
-<li><strong>http_proxy</strong> &#8211; Shotgun proxy to use. If None, the default http proxy will be used.</li>
-<li><strong>session_metadata</strong> &#8211; When using Web/SSO, b64encoded browser cookies.</li>
+<li><strong>login</strong> – Shotgun user login</li>
+<li><strong>session_token</strong> – Shotgun session token</li>
+<li><strong>password</strong> – Shotgun password</li>
+<li><strong>host</strong> – Shotgun host to log in to. If None, the default host will be used.</li>
+<li><strong>http_proxy</strong> – Shotgun proxy to use. If None, the default http proxy will be used.</li>
+<li><strong>session_metadata</strong> – When using Web/SSO, b64encoded browser cookies.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> instance.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunUser</span></code></a> instance.</p>
 </td>
 </tr>
 </tbody>
@@ -387,16 +411,16 @@ a session token will be generated for security reasons.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>api_script</strong> &#8211; Shotgun script user</li>
-<li><strong>api_key</strong> &#8211; Shotgun script key</li>
-<li><strong>host</strong> &#8211; Shotgun host to log in to. If None, the default host will
+<li><strong>api_script</strong> – Shotgun script user</li>
+<li><strong>api_key</strong> – Shotgun script key</li>
+<li><strong>host</strong> – Shotgun host to log in to. If None, the default host will
 be used.</li>
-<li><strong>http_proxy</strong> &#8211; Shotgun proxy to use. If None, the default http proxy
+<li><strong>http_proxy</strong> – Shotgun proxy to use. If None, the default http proxy
 will be used.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> derived instance.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunUser</span></code></a> derived instance.</p>
 </td>
 </tr>
 </tbody>
@@ -439,7 +463,7 @@ will be used.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> derived instance if available, None otherwise.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunUser</span></code></a> derived instance if available, None otherwise.</td>
 </tr>
 </tbody>
 </table>
@@ -457,10 +481,10 @@ updated with these.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a> derived instance matching the credentials
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A <a class="reference internal" href="#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunUser</span></code></a> derived instance matching the credentials
 provided.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="#sgtk.authentication.AuthenticationCancelled" title="sgtk.authentication.AuthenticationCancelled"><code class="xref py py-class docutils literal"><span class="pre">AuthenticationCancelled</span></code></a> is raised
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="#sgtk.authentication.AuthenticationCancelled" title="sgtk.authentication.AuthenticationCancelled"><code class="xref py py-class docutils literal notranslate"><span class="pre">AuthenticationCancelled</span></code></a> is raised
 if the user cancelled the authentication.</td>
 </tr>
 </tbody>
@@ -477,12 +501,12 @@ if the user cancelled the authentication.</td>
 <em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">ShotgunUser</code><span class="sig-paren">(</span><em>impl</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/user.html#ShotgunUser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunUser" title="Permalink to this definition">¶</a></dt>
 <dd><p>Represents a Shotgun user, either a script or a person and provides an entry point
 into the authentication system.</p>
-<p>User objects are created via the <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal"><span class="pre">ShotgunAuthenticator</span></code></a> object, which will handle
+<p>User objects are created via the <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunAuthenticator</span></code></a> object, which will handle
 caching user objects on disk, prompting the user for their credentials etc.</p>
 <p>Once you have retrieved one of the user objects below, this can be used to access
-Shotgun in a seamless way. The <a class="reference internal" href="#sgtk.authentication.ShotgunUser.create_sg_connection" title="sgtk.authentication.ShotgunUser.create_sg_connection"><code class="xref py py-meth docutils literal"><span class="pre">create_sg_connection()</span></code></a> will return a Shotgun API handle
+Shotgun in a seamless way. The <a class="reference internal" href="#sgtk.authentication.ShotgunUser.create_sg_connection" title="sgtk.authentication.ShotgunUser.create_sg_connection"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create_sg_connection()</span></code></a> will return a Shotgun API handle
 which is associated with the current user. This API handle is also monitored for
-authentication timeouts, so if the user&#8217;s session times out (typically due to periods
+authentication timeouts, so if the user’s session times out (typically due to periods
 of inactivity), the user may be prompted (via a QT UI or stdin/stdout if only
 console is accessible) to refresh their Shotgun session by typing in their password.</p>
 <p>If you need to persist the user object, this is possible via the serialization
@@ -492,7 +516,7 @@ process to another, for example when launching a DCC such as Maya or Nuke.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>impl</strong> &#8211; Internal user implementation class this class proxies.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>impl</strong> – Internal user implementation class this class proxies.</td>
 </tr>
 </tbody>
 </table>
@@ -527,7 +551,7 @@ process to another, for example when launching a DCC such as Maya or Nuke.</p>
 <dl class="attribute">
 <dt id="sgtk.authentication.ShotgunUser.login">
 <code class="descname">login</code><a class="headerlink" href="#sgtk.authentication.ShotgunUser.login" title="Permalink to this definition">¶</a></dt>
-<dd><p>The login for this current user. For Shotgun user types that don&#8217;t have a concept
+<dd><p>The login for this current user. For Shotgun user types that don’t have a concept
 of a login (like API scripts), None is returned.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -547,7 +571,7 @@ of a login (like API scripts), None is returned.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A dictionary with <code class="docutils literal"><span class="pre">type</span></code> and <code class="docutils literal"><span class="pre">id</span></code> values.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A dictionary with <code class="docutils literal notranslate"><span class="pre">type</span></code> and <code class="docutils literal notranslate"><span class="pre">id</span></code> values.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)">dict</a></td>
 </tr>
@@ -586,8 +610,8 @@ of a login (like API scripts), None is returned.</p>
 <dl class="method">
 <dt id="sgtk.authentication.ShotgunUser.refresh_credentials">
 <code class="descname">refresh_credentials</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/user.html#ShotgunUser.refresh_credentials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunUser.refresh_credentials" title="Permalink to this definition">¶</a></dt>
-<dd><p>Refreshes the credentials of this user so that they don&#8217;t expire.
-If they are expired, you will be prompted for the user&#8217;s password.</p>
+<dd><p>Refreshes the credentials of this user so that they don’t expire.
+If they are expired, you will be prompted for the user’s password.</p>
 </dd></dl>
 
 </dd></dl>
@@ -600,22 +624,22 @@ If they are expired, you will be prompted for the user&#8217;s password.</p>
 <em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">DefaultsManager</code><span class="sig-paren">(</span><em>fixed_host=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/defaults_manager.html#DefaultsManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.DefaultsManager" title="Permalink to this definition">¶</a></dt>
 <dd><p>The defaults manager allows a client of the Shotgun Authenticator class
 to customize various behaviors around data storage and settings.</p>
-<p>By default, when you construct a <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal"><span class="pre">ShotgunAuthenticator</span></code></a> object, it will be
+<p>By default, when you construct a <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunAuthenticator</span></code></a> object, it will be
 instantiated with a standard defaults manager implementation. This will
 work for most cases - user session credentials will be stored in a file
 on disk and the system maintains a concept of a current user and a current
 host.</p>
-<p>If a setting isn&#8217;t found, the DefaultsManager will fall back to the value stored inside
-<code class="docutils literal"><span class="pre">toolkit.ini</span></code> See <a class="reference internal" href="utils.html#centralizing-settings"><span class="std std-ref">Centralizing your settings</span></a> for more information.</p>
+<p>If a setting isn’t found, the DefaultsManager will fall back to the value stored inside
+<code class="docutils literal notranslate"><span class="pre">toolkit.ini</span></code> See <a class="reference internal" href="utils.html#centralizing-settings"><span class="std std-ref">Centralizing your settings</span></a> for more information.</p>
 <p>If, however, you want to implement a custom behavior around how defaults
 are managed, simply derive from this class and pass your custom instance
-to the <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal"><span class="pre">ShotgunAuthenticator</span></code></a> object when you construct it.</p>
+to the <a class="reference internal" href="#sgtk.authentication.ShotgunAuthenticator" title="sgtk.authentication.ShotgunAuthenticator"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunAuthenticator</span></code></a> object when you construct it.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fixed_host</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Allows to specify the host that will be used for authentication.
-Defaults to <code class="docutils literal"><span class="pre">None</span></code>.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fixed_host</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Allows to specify the host that will be used for authentication.
+Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>.</td>
 </tr>
 </tbody>
 </table>
@@ -623,11 +647,11 @@ Defaults to <code class="docutils literal"><span class="pre">None</span></code>.
 <dt id="sgtk.authentication.DefaultsManager.is_host_fixed">
 <code class="descname">is_host_fixed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/defaults_manager.html#DefaultsManager.is_host_fixed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.DefaultsManager.is_host_fixed" title="Permalink to this definition">¶</a></dt>
 <dd><p>When doing an interactive login, this indicates if the user can decide
-the host to connect to. In its default implementation, the <a class="reference internal" href="#sgtk.authentication.DefaultsManager" title="sgtk.authentication.DefaultsManager"><code class="xref py py-class docutils literal"><span class="pre">DefaultsManager</span></code></a>
+the host to connect to. In its default implementation, the <a class="reference internal" href="#sgtk.authentication.DefaultsManager" title="sgtk.authentication.DefaultsManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultsManager</span></code></a>
 will indicate that the host is not fixed, meaning that the user will be
 presented with an option to pick a site at login time, unless a default
 host was provided during initialization. If that is the case, then this
-method will return <code class="docutils literal"><span class="pre">True</span></code>.</p>
+method will return <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
 <p>With something like Toolkit, where each project already have a specific
 site association, you typically want to override this to return True,
 indicating to the authenticator not to ask the user which site they want
@@ -649,12 +673,12 @@ be changed by the user.</td>
 <code class="descname">get_host</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/defaults_manager.html#DefaultsManager.get_host"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.DefaultsManager.get_host" title="Permalink to this definition">¶</a></dt>
 <dd><p>The default host is used as a useful starting point when doing
 interactive authentication. When the host is not fixed (see the
-<a class="reference internal" href="#sgtk.authentication.DefaultsManager.is_host_fixed" title="sgtk.authentication.DefaultsManager.is_host_fixed"><code class="xref py py-meth docutils literal"><span class="pre">is_host_fixed()</span></code></a> method), the return value of get_host is what is
+<a class="reference internal" href="#sgtk.authentication.DefaultsManager.is_host_fixed" title="sgtk.authentication.DefaultsManager.is_host_fixed"><code class="xref py py-meth docutils literal notranslate"><span class="pre">is_host_fixed()</span></code></a> method), the return value of get_host is what is
 used to implement single sign-on between all Toolkit desktop
 applications (at the moment, tank and Shotgun Desktop).</p>
 <p>The default implementation will return the fixed host if one was provided
 during the initialization. If fixed host was provided, the default
-implementation maintains a concept of a &#8220;current host&#8221; which will be
+implementation maintains a concept of a “current host” which will be
 presented as a default to users when they are logging in.</p>
 <p>When the host is fixed, this must return a value and this value will
 be used as an absolute rather than a default suggested to the user.</p>
@@ -676,7 +700,7 @@ be used as an absolute rather than a default suggested to the user.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>host</strong> &#8211; The new default host.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>host</strong> – The new default host.</td>
 </tr>
 </tbody>
 </table>
@@ -690,7 +714,7 @@ proxy settings to use for a Shotgun connection.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p>If the centralized settings do not specify an HTTP proxy, Toolkit will rely on
-Python&#8217;s <a class="reference external" href="https://docs.python.org/2/library/urllib.html#urllib.getproxies">urllib.getproxies</a>
+Python’s <a class="reference external" href="https://docs.python.org/2/library/urllib.html#urllib.getproxies">urllib.getproxies</a>
 to find an HTTP proxy.</p>
 <p class="last">There is a restriction when looking for proxy information from Mac OS X System Configuration or
 Windows Systems Registry: in these cases, Toolkit does not support the use of proxies
@@ -736,9 +760,9 @@ authenticated user and its session token and tries to return this if possible,
 effectively meaning that the user will be automatically logged in without having
 to be prompted.</p>
 <p>This is typically subclassed if you want to track the notion of a current
-user in an alternative way or maintain a separate notion of the &#8220;current&#8221; user,
+user in an alternative way or maintain a separate notion of the “current” user,
 separate from the default user maintained by the default implementation.</p>
-<p>Toolkit uses the default implementation and will therefore remember the user&#8217;s
+<p>Toolkit uses the default implementation and will therefore remember the user’s
 credentials across all DCCs and tools.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -763,7 +787,7 @@ via this method, the default user will change to be this login instead.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>login</strong> &#8211; login as string</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>login</strong> – login as string</td>
 </tr>
 </tbody>
 </table>
@@ -783,7 +807,7 @@ derived instance.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>payload</strong> &#8211; Pickled dictionary of values</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>payload</strong> – Pickled dictionary of values</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A ShotgunUser derived instance.</td>
 </tr>
@@ -800,8 +824,8 @@ derived instance.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>user</strong> &#8211; User object that needs to be serialized.</li>
-<li><strong>use_json</strong> &#8211; If <code class="docutils literal"><span class="pre">True</span></code>, a <code class="docutils literal"><span class="pre">json</span></code> representation will be generated.
+<li><strong>user</strong> – User object that needs to be serialized.</li>
+<li><strong>use_json</strong> – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, a <code class="docutils literal notranslate"><span class="pre">json</span></code> representation will be generated.
 A pickled representation will be generated otherwise.</li>
 </ul>
 </td>
@@ -819,27 +843,27 @@ A pickled representation will be generated otherwise.</li>
 <dl class="class">
 <dt id="sgtk.authentication.ShotgunAuthenticationError">
 <em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">ShotgunAuthenticationError</code><a class="reference internal" href="_modules/tank/authentication/errors.html#ShotgunAuthenticationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ShotgunAuthenticationError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">exceptions.Exception</span></code></a></p>
 <p>Base class for all exceptions coming out from this module.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sgtk.authentication.AuthenticationError">
 <em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">AuthenticationError</code><a class="reference internal" href="_modules/tank/authentication/errors.html#AuthenticationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.AuthenticationError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.authentication.errors.ShotgunAuthenticationError</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.authentication.errors.ShotgunAuthenticationError</span></code></p>
 <p>Thrown when credentials are rejected by the server.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sgtk.authentication.IncompleteCredentials">
 <em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">IncompleteCredentials</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/errors.html#IncompleteCredentials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.IncompleteCredentials" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.authentication.errors.ShotgunAuthenticationError</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.authentication.errors.ShotgunAuthenticationError</span></code></p>
 <p>Thrown when credentials are provided but are incomplete.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Reason why the credentials are incomplete.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>msg</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Reason why the credentials are incomplete.</td>
 </tr>
 </tbody>
 </table>
@@ -848,14 +872,14 @@ A pickled representation will be generated otherwise.</li>
 <dl class="class">
 <dt id="sgtk.authentication.AuthenticationCancelled">
 <em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">AuthenticationCancelled</code><a class="reference internal" href="_modules/tank/authentication/errors.html#AuthenticationCancelled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.AuthenticationCancelled" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.authentication.errors.ShotgunAuthenticationError</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.authentication.errors.ShotgunAuthenticationError</span></code></p>
 <p>Thrown when the user cancels authentication or session renewal.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sgtk.authentication.ConsoleLoginNotSupportedError">
 <em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">ConsoleLoginNotSupportedError</code><span class="sig-paren">(</span><em>url</em>, <em>site_auth_type='Single Sign-On'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/errors.html#ConsoleLoginNotSupportedError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.ConsoleLoginNotSupportedError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.authentication.errors.ShotgunAuthenticationError</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.authentication.errors.ShotgunAuthenticationError</span></code></p>
 <p>Thrown when attempting to use Username/Password pair to login onto
 an SSO-enabled site.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -863,8 +887,8 @@ an SSO-enabled site.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>url</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Url of the site where login was attempted.</li>
-<li><strong>site_auth_type</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; type of authentication, e.g. SSO, Identity.
+<li><strong>url</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Url of the site where login was attempted.</li>
+<li><strong>site_auth_type</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – type of authentication, e.g. SSO, Identity.
 The default value is for backward compatibility.</li>
 </ul>
 </td>
@@ -876,13 +900,13 @@ The default value is for backward compatibility.</li>
 <dl class="class">
 <dt id="sgtk.authentication.UnresolvableHumanUser">
 <em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">UnresolvableHumanUser</code><span class="sig-paren">(</span><em>login</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/errors.html#UnresolvableHumanUser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.UnresolvableHumanUser" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.authentication.errors.UnresolvableUser</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.authentication.errors.UnresolvableUser</span></code></p>
 <p>Thrown when Toolkit is not able to resolve a human user.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>login</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; <code class="docutils literal"><span class="pre">login</span></code> field value of the <code class="docutils literal"><span class="pre">HumanUser</span></code> that could not be resolved.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>login</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – <code class="docutils literal notranslate"><span class="pre">login</span></code> field value of the <code class="docutils literal notranslate"><span class="pre">HumanUser</span></code> that could not be resolved.</td>
 </tr>
 </tbody>
 </table>
@@ -891,13 +915,13 @@ The default value is for backward compatibility.</li>
 <dl class="class">
 <dt id="sgtk.authentication.UnresolvableScriptUser">
 <em class="property">class </em><code class="descclassname">sgtk.authentication.</code><code class="descname">UnresolvableScriptUser</code><span class="sig-paren">(</span><em>script_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/authentication/errors.html#UnresolvableScriptUser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.authentication.UnresolvableScriptUser" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.authentication.errors.UnresolvableUser</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.authentication.errors.UnresolvableUser</span></code></p>
 <p>Thrown when Toolkit is not able to resolve a human user.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>script_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; <code class="docutils literal"><span class="pre">firstname</span></code> field value of the <code class="docutils literal"><span class="pre">ApiUser</span></code> that could not be resolved.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>script_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – <code class="docutils literal notranslate"><span class="pre">firstname</span></code> field value of the <code class="docutils literal notranslate"><span class="pre">ApiUser</span></code> that could not be resolved.</td>
 </tr>
 </tbody>
 </table>
@@ -909,13 +933,14 @@ The default value is for backward compatibility.</li>
 
 
            </div>
+           
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
       
-        <a href="descriptor.html" class="btn btn-neutral" title="Descriptors" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="descriptor.html" class="btn btn-neutral float-left" title="Descriptors" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -924,7 +949,7 @@ The default value is for backward compatibility.</li>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Autodesk.
+        &copy; Copyright 2021, Autodesk
 
     </p>
   </div> 
@@ -940,35 +965,15 @@ The default value is for backward compatibility.</li>
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'v0.19.18',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
+
+  
+  
+    
   
  
 

@@ -15,48 +15,49 @@
 
   
   
+  
+  
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-    <link rel="top" title="tk-core v0.19.18 documentation" href="index.html"/>
-        <link rel="next" title="Core" href="core.html"/>
-        <link rel="prev" title="Overview" href="overview.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Core" href="core.html" />
+    <link rel="prev" title="Overview" href="overview.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
+   
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
     <a href='http://developer.shotgunsoftware.com'>
     
         <img style='width: 191px;
-                height: 60px; 
+                height: 60px;
                 margin: 2px;
-                border-radius: 0px; 
-                padding: 0px;' 
+                border-radius: 0px;
+                padding: 0px;'
             src='_static/logo@2x.png'/>
     
     </a>
@@ -89,7 +90,10 @@
     
             
             
-                <ul class="current">
+              
+            
+            
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Initialization and startup</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
@@ -157,16 +161,16 @@
     <div style='margin-top: 50px;
                 margin-left: 10px;
                 margin-right: 10px;
-                padding: 10px; 
-                color: #b3b3b3; 
+                padding: 10px;
+                color: #b3b3b3;
                 font-size: 70%;
                 border-radius: 3px;
                 background-color: #444;
                 line-height: 18px;
-                '>    
+                '>
     <style>
-        a.custom_post_menu { display: inline; 
-                             padding: 0px; 
+        a.custom_post_menu { display: inline;
+                             padding: 0px;
                              text-decoration: underline; }
     </style>
 
@@ -176,7 +180,7 @@
     
     For more information, please visit
     <a class=custom_post_menu href='https://support.shotgunsoftware.com/home'>Shotgun Support</a>.
-    The code associated with this documentation can be found 
+    The code associated with this documentation can be found
     <a class=custom_post_menu href='https://github.com/shotgunsoftware/tk-core'>here</a>.
 
     </div>
@@ -190,32 +194,52 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">tk-core</a>
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">tk-core</a>
+        
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Initialization and startup</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Initialization and startup</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
+            
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -240,13 +264,13 @@ is referred to as a <em>Pipeline Configuration</em>.</p>
 <li>Configuration files - all the the details that define the configuration:
 app and engine settings, naming convention and file system templates.</li>
 <li>An installed version of the Toolkit Core API as required by the configuration.</li>
-<li>A <code class="docutils literal"><span class="pre">tank</span></code> command which gives access to admin and maintenance commands to
+<li>A <code class="docutils literal notranslate"><span class="pre">tank</span></code> command which gives access to admin and maintenance commands to
 make it easy to upgrade and configure the configuration. It also gives
 access to the shell engine environment.</li>
-<li>A so called bundle cache, contained inside an <code class="docutils literal"><span class="pre">install</span></code> folder, containing
+<li>A so called bundle cache, contained inside an <code class="docutils literal notranslate"><span class="pre">install</span></code> folder, containing
 downloaded apps, frameworks and engines defined by the configuration.
 This cache is downloaded from locations such as the Shotgun App Store,
-git or from your Shotgun site, all handled by Toolkit&#8217;s
+git or from your Shotgun site, all handled by Toolkit’s
 <a class="reference internal" href="descriptor.html#descriptor"><span class="std std-ref">Descriptor</span></a> system.</li>
 </ul>
 <p>By default, each pipeline configuration in Toolkit has its own
@@ -254,7 +278,7 @@ independent API and configuration, making it easy to customize different
 projects independently and evolve the pipeline over time without breaking older
 projects. However, it is possible to arrange your configuration in several
 different other ways, all explained below.</p>
-<p>In Shotgun, the main Pipeline Configuration Entity for a project is always named <code class="docutils literal"><span class="pre">Primary</span></code>.
+<p>In Shotgun, the main Pipeline Configuration Entity for a project is always named <code class="docutils literal notranslate"><span class="pre">Primary</span></code>.
 In addition to this, additional pipeline configurations entities can
 be set up. Typically, these are used as test areas or <strong>developer sandboxes</strong>, where you
 want to run with special configuration settings. These developer sandboxes can be associated
@@ -269,7 +293,7 @@ the <a class="reference external" href="https://support.shotgunsoftware.com/hc/e
 <div class="section" id="the-toolkit-startup">
 <h2>The Toolkit startup<a class="headerlink" href="#the-toolkit-startup" title="Permalink to this headline">¶</a></h2>
 <p>In order to understand how the Toolkit startup APIs operate,
-let&#8217;s begin by taking a look at how the default Toolkit configuration
+let’s begin by taking a look at how the default Toolkit configuration
 operates at a high level:</p>
 <a class="reference internal image-reference" href="_images/launch.png"><img alt="_images/launch.png" class="align-center" src="_images/launch.png" style="width: 400px;" /></a>
 <p>This design is repeated everywhere and is a pattern which can be easily extended.
@@ -287,7 +311,7 @@ suitable for that software environment.</p>
 to a site. Next, it will connect to the Shotgun Site to determine if any Pipeline Configuration Entities
 exist associated with the project. If so, these are used to configure the Toolkit session.
 If not, the default plugins running in Shotgun Desktop will fall back on looking for the
-latest release of the <code class="docutils literal"><span class="pre">tk-config-basic</span></code> configuration in the Shotgun App Store.</p>
+latest release of the <code class="docutils literal notranslate"><span class="pre">tk-config-basic</span></code> configuration in the Shotgun App Store.</p>
 <p>The bootstrap API will make the necessary preparations and then launch a Toolkit <a class="reference internal" href="platform.html#engines"><span class="std std-ref">Engine</span></a>,
 as well as the apps defined in the configuration.</p>
 <a class="reference internal image-reference" href="_images/launch2.png"><img alt="_images/launch2.png" class="align-center" src="_images/launch2.png" style="width: 700px;" /></a>
@@ -331,9 +355,9 @@ see <a class="reference internal" href="#automatically-managed-pcs"><span class=
 and accessed by all users. All users who want to access to the configuration need to be able to
 access its shared location on disk.</p>
 <a class="reference internal image-reference" href="_images/shared_config.png"><img alt="_images/shared_config.png" class="align-center" src="_images/shared_config.png" style="width: 700px;" /></a>
-<p>These configurations are created using Toolkit&#8217;s <strong>project setup</strong> system (either the Shotgun Desktop project
-setup wizard or the <code class="docutils literal"><span class="pre">tank</span> <span class="pre">setup_project</span></code> command). After project setup, the configuration is manually
-managed, typically via the <code class="docutils literal"><span class="pre">tank</span></code> command.</p>
+<p>These configurations are created using Toolkit’s <strong>project setup</strong> system (either the Shotgun Desktop project
+setup wizard or the <code class="docutils literal notranslate"><span class="pre">tank</span> <span class="pre">setup_project</span></code> command). After project setup, the configuration is manually
+managed, typically via the <code class="docutils literal notranslate"><span class="pre">tank</span></code> command.</p>
 </div>
 </div>
 <div class="section" id="uploading-a-configuration-to-shotgun">
@@ -347,11 +371,11 @@ of distribution and setup.</p>
 <a class="reference internal image-reference" href="_images/zip_config.png"><img alt="_images/zip_config.png" class="align-center" src="_images/zip_config.png" style="width: 700px;" /></a>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>For backwards compatibility, configurations uploaded to the custom <code class="docutils literal"><span class="pre">sg_uploaded_config</span></code> field
+<p>For backwards compatibility, configurations uploaded to the custom <code class="docutils literal notranslate"><span class="pre">sg_uploaded_config</span></code> field
 are also supported.</p>
 <p class="last">Older versions of Shotgun may not have an <strong>Uploaded Config</strong> field enabled by
 default, and in this case it may be necessary to create a custom field. Naming it <strong>Uploaded Config</strong>
-will generate a field with the API name <code class="docutils literal"><span class="pre">sg_uploaded_config</span></code> and thus will be recognized by Toolkit.</p>
+will generate a field with the API name <code class="docutils literal notranslate"><span class="pre">sg_uploaded_config</span></code> and thus will be recognized by Toolkit.</p>
 </div>
 <p>Once a configuration is uploaded, it will be detected and used at bootstrap.
 If a new configuration is uploaded to Shotgun, users will pick it up the
@@ -366,13 +390,13 @@ github as a zip and upload it as an attachment from Shotgun:
 <div class="section" id="managing-distributed-configurations">
 <span id="automatically-managed-pcs"></span><h2>Managing distributed configurations<a class="headerlink" href="#managing-distributed-configurations" title="Permalink to this headline">¶</a></h2>
 <p>In order to configure an automatically managed configuration, create an
-entity in Shotgun to represent a <code class="docutils literal"><span class="pre">Primary</span></code> configuration:</p>
+entity in Shotgun to represent a <code class="docutils literal notranslate"><span class="pre">Primary</span></code> configuration:</p>
 <img alt="_images/pipeline_config.png" class="align-center" src="_images/pipeline_config.png" />
 <p>The descriptor field contains a <a class="reference internal" href="descriptor.html#descriptor"><span class="std std-ref">Descriptor URI</span></a> pointing at a
 configuration. The bootstrap API will detect this and use it as it starts up
 Toolkit for this particular project. This is a decentralized workflow; every
 user will have a copy of the configuration, meaning that you
-don&#8217;t need a central storage.</p>
+don’t need a central storage.</p>
 <p>When the bootstrap API starts up, it goes through a series of steps:</p>
 <a class="reference internal image-reference" href="_images/bootstrap.png"><img alt="_images/bootstrap.png" class="align-center" src="_images/bootstrap.png" style="width: 700px;" /></a>
 <p>First, the Shotgun Pipeline Configuration will be determined. The bootstrap
@@ -380,11 +404,11 @@ will search for a configuration in the following order:</p>
 <ul class="simple">
 <li>A Pipeline Config for the current project, associated with the current user. These are
 typically dev or test sandboxes.</li>
-<li>A <code class="docutils literal"><span class="pre">Primary</span></code> Pipeline Config associated with the current project.</li>
+<li>A <code class="docutils literal notranslate"><span class="pre">Primary</span></code> Pipeline Config associated with the current project.</li>
 <li>A site-wide Pipeline Config (e.g. with the Project field blank) associated with the user.</li>
-<li>A site-wide <code class="docutils literal"><span class="pre">Primary</span></code> Pipeline Config</li>
+<li>A site-wide <code class="docutils literal notranslate"><span class="pre">Primary</span></code> Pipeline Config</li>
 <li>If none of the above is found a <em>base config fallback</em>, hardcoded in the plugin, will be used.
-(In the bootstrap API, this is defined via the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="sgtk.bootstrap.ToolkitManager.base_configuration"><code class="xref py py-meth docutils literal"><span class="pre">base_configuration()</span></code></a> property).</li>
+(In the bootstrap API, this is defined via the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="sgtk.bootstrap.ToolkitManager.base_configuration"><code class="xref py py-meth docutils literal notranslate"><span class="pre">base_configuration()</span></code></a> property).</li>
 </ul>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -393,33 +417,33 @@ to all projects. This makes it possible to have a single configuration that is
 used by all your Shotgun projects.</p>
 </div>
 <p>Once the Pipeline Configuration has been determined, its descriptor is resolved, downloaded and
-all its dependencies (Apps, Engines, Core, Frameworks) are checked and the ones that aren&#8217;t already
+all its dependencies (Apps, Engines, Core, Frameworks) are checked and the ones that aren’t already
 locally cached are downloaded. All these items
-are downloaded into a global bundle cache which by default resides locally on a user&#8217;s machine
+are downloaded into a global bundle cache which by default resides locally on a user’s machine
 but is shared between all pipeline configurations.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p>By default, files are downloaded to the following locations:</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">%APPDATA%\Shotgun</span></code> (Windows)</li>
-<li><code class="docutils literal"><span class="pre">~/Library/Caches/Shotgun</span></code> (Mac)</li>
-<li><code class="docutils literal"><span class="pre">~/.shotgun</span></code> (Linux)</li>
+<li><code class="docutils literal notranslate"><span class="pre">%APPDATA%\Shotgun</span></code> (Windows)</li>
+<li><code class="docutils literal notranslate"><span class="pre">~/Library/Caches/Shotgun</span></code> (Mac)</li>
+<li><code class="docutils literal notranslate"><span class="pre">~/.shotgun</span></code> (Linux)</li>
 </ul>
-<p class="last">These locations can be customized by setting a <code class="docutils literal"><span class="pre">SHOTGUN_HOME</span></code>
+<p class="last">These locations can be customized by setting a <code class="docutils literal notranslate"><span class="pre">SHOTGUN_HOME</span></code>
 <a class="reference internal" href="#environment-variables"><span class="std std-ref">environment variable</span></a>.</p>
 </div>
 <div class="admonition note" id="local-bundle-caches">
 <p class="first admonition-title">Note</p>
-<p>You can include a local <code class="docutils literal"><span class="pre">bundle_cache</span></code> folder within your configuration to make it self contained.</p>
+<p>You can include a local <code class="docutils literal notranslate"><span class="pre">bundle_cache</span></code> folder within your configuration to make it self contained.</p>
 <img alt="_images/bundle_cache_in_config.png" class="align-center" src="_images/bundle_cache_in_config.png" />
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
-<p>The structure of this folder is identical to the global <code class="docutils literal"><span class="pre">bundle_cache</span></code>
+<p>The structure of this folder is identical to the global <code class="docutils literal notranslate"><span class="pre">bundle_cache</span></code>
 folder found in the locations listed above and can contain all of the
 apps, engines, and frameworks required by your configuration.</p>
 <p class="last">If the folder exists within the config, then the folder is added to the list
-of <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.bundle_cache_fallback_paths" title="sgtk.bootstrap.ToolkitManager.bundle_cache_fallback_paths"><code class="xref py py-attr docutils literal"><span class="pre">bundle_cache_fallback_paths</span></code></a>
+of <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.bundle_cache_fallback_paths" title="sgtk.bootstrap.ToolkitManager.bundle_cache_fallback_paths"><code class="xref py py-attr docutils literal notranslate"><span class="pre">bundle_cache_fallback_paths</span></code></a>
 used by the bootstrap logic. If a bundle exists in this local cache, Toolkit
 will use it from this location rather than downloading it or using the
 global bundle cache.</p>
@@ -433,9 +457,9 @@ configuration should be downloaded from. For full technical details, see the
 Descriptor documentation.</p>
 <div class="section" id="fixing-a-version-for-a-project">
 <h4>Fixing a version for a project<a class="headerlink" href="#fixing-a-version-for-a-project" title="Permalink to this headline">¶</a></h4>
-<p>All users in the current project will be using a fixed version of the <code class="docutils literal"><span class="pre">tk-config-basic</span></code> configuration
-from the Shotgun App Store. This can be useful if you don&#8217;t want a project to auto update. Omitting
-the version number, e.g. <code class="docutils literal"><span class="pre">sgtk:descriptor:app_store?name=tk-config-basic</span></code> will resolve to the most
+<p>All users in the current project will be using a fixed version of the <code class="docutils literal notranslate"><span class="pre">tk-config-basic</span></code> configuration
+from the Shotgun App Store. This can be useful if you don’t want a project to auto update. Omitting
+the version number, e.g. <code class="docutils literal notranslate"><span class="pre">sgtk:descriptor:app_store?name=tk-config-basic</span></code> will resolve to the most
 recent version number.</p>
 <a class="reference internal image-reference" href="_images/pipeline_config.png"><img alt="_images/pipeline_config.png" class="align-center" src="_images/pipeline_config.png" style="width: 700px;" /></a>
 <table border="1" class="docutils">
@@ -448,10 +472,10 @@ recent version number.</p>
 <td>Primary</td>
 </tr>
 <tr class="row-even"><td>Plugin Ids</td>
-<td><code class="docutils literal"><span class="pre">basic.*</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">basic.*</span></code></td>
 </tr>
 <tr class="row-odd"><td>Descriptor</td>
-<td><code class="docutils literal"><span class="pre">sgtk:descriptor:app_store?name=tk-config-basic&amp;version=v1.2.3</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">sgtk:descriptor:app_store?name=tk-config-basic&amp;version=v1.2.3</span></code></td>
 </tr>
 </tbody>
 </table>
@@ -473,33 +497,33 @@ git repository, whereas all other projects will use the tag with the highest ver
 <td>Primary</td>
 </tr>
 <tr class="row-even"><td>Plugin Ids</td>
-<td><code class="docutils literal"><span class="pre">basic.*</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">basic.*</span></code></td>
 </tr>
 <tr class="row-odd"><td>Descriptor</td>
-<td><code class="docutils literal"><span class="pre">sgtk:descriptor:git?path=user&#64;host:/path/to/config.git</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">sgtk:descriptor:git?path=user&#64;host:/path/to/config.git</span></code></td>
 </tr>
 </tbody>
 </table>
 <p>Below are additional examples of how git repositories can be specified:</p>
 <ul class="simple">
-<li>Highest tag in a git repository: <code class="docutils literal"><span class="pre">sgtk:descriptor:git?path=user&#64;host:/path/to/config.git</span></code></li>
-<li>Specific tag in a git repository: <code class="docutils literal"><span class="pre">sgtk:descriptor:git?path=user&#64;host:/path/to/config.git&amp;version=v1.2.3</span></code></li>
+<li>Highest tag in a git repository: <code class="docutils literal notranslate"><span class="pre">sgtk:descriptor:git?path=user&#64;host:/path/to/config.git</span></code></li>
+<li>Specific tag in a git repository: <code class="docutils literal notranslate"><span class="pre">sgtk:descriptor:git?path=user&#64;host:/path/to/config.git&amp;version=v1.2.3</span></code></li>
 <li>Latest commit in a git branch:
-<code class="docutils literal"><span class="pre">sgtk:descriptor:git_branch?path=user&#64;host:/path/to/config.git&amp;branch=master</span></code></li>
+<code class="docutils literal notranslate"><span class="pre">sgtk:descriptor:git_branch?path=user&#64;host:/path/to/config.git&amp;branch=master</span></code></li>
 <li>Specific commit in a git branch:
-<code class="docutils literal"><span class="pre">sgtk:descriptor:git_branch?path=user&#64;host:/path/to/config.git&amp;branch=master&amp;version=17fedd8</span></code></li>
+<code class="docutils literal notranslate"><span class="pre">sgtk:descriptor:git_branch?path=user&#64;host:/path/to/config.git&amp;branch=master&amp;version=17fedd8</span></code></li>
 </ul>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">For <code class="docutils literal"><span class="pre">git</span></code> based workflows, all users need to have git installed.</p>
+<p class="last">For <code class="docutils literal notranslate"><span class="pre">git</span></code> based workflows, all users need to have git installed.</p>
 </div>
 </div>
 <div class="section" id="developer-sandbox">
 <h4>Developer sandbox<a class="headerlink" href="#developer-sandbox" title="Permalink to this headline">¶</a></h4>
 <p>This example shows a typical development/test setup - alongside the Primary configuraton for the project
 there is a dev sandbox. All user associated with that dev sandbox will pick that up instead of the
-default one, making it easy to &#8216;invite&#8217; users in for testing. (In Shotgun Desktop, a dropdown will appear,
-allowing a user to choose which config to use). A <code class="docutils literal"><span class="pre">dev</span></code> descriptor is used to point at a local dev area on disk.</p>
+default one, making it easy to ‘invite’ users in for testing. (In Shotgun Desktop, a dropdown will appear,
+allowing a user to choose which config to use). A <code class="docutils literal notranslate"><span class="pre">dev</span></code> descriptor is used to point at a local dev area on disk.</p>
 <a class="reference internal image-reference" href="_images/dev_sandbox.png"><img alt="_images/dev_sandbox.png" class="align-center" src="_images/dev_sandbox.png" style="width: 700px;" /></a>
 <table border="1" class="docutils">
 <colgroup>
@@ -511,10 +535,10 @@ allowing a user to choose which config to use). A <code class="docutils literal"
 <td>Dev Sandbox</td>
 </tr>
 <tr class="row-even"><td>Plugin Ids</td>
-<td><code class="docutils literal"><span class="pre">basic.*</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">basic.*</span></code></td>
 </tr>
 <tr class="row-odd"><td>Descriptor</td>
-<td><code class="docutils literal"><span class="pre">sgtk:descriptor:dev?path=/path/to/my_dev_area/config</span></code></td>
+<td><code class="docutils literal notranslate"><span class="pre">sgtk:descriptor:dev?path=/path/to/my_dev_area/config</span></code></td>
 </tr>
 </tbody>
 </table>
@@ -522,31 +546,31 @@ allowing a user to choose which config to use). A <code class="docutils literal"
 </div>
 <div class="section" id="plugins-and-plugin-ids">
 <span id="id3"></span><h3>Plugins and plugin ids<a class="headerlink" href="#plugins-and-plugin-ids" title="Permalink to this headline">¶</a></h3>
-<p>In each of the examples shown above, there is a <strong>Plugin Ids</strong> field set to <code class="docutils literal"><span class="pre">basic.*</span></code>:</p>
+<p>In each of the examples shown above, there is a <strong>Plugin Ids</strong> field set to <code class="docutils literal notranslate"><span class="pre">basic.*</span></code>:</p>
 <a class="reference internal image-reference" href="_images/pipeline_config.png"><img alt="_images/pipeline_config.png" class="align-center" src="_images/pipeline_config.png" style="width: 700px;" /></a>
 <p>This field is used to specify the <em>scope</em> where the configuration should be used. Each Toolkit plugin and
-script using the <a class="reference internal" href="#bootstrap-api"><span class="std std-ref">Bootstrap API</span></a> specifies a <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.plugin_id" title="sgtk.bootstrap.ToolkitManager.plugin_id"><code class="xref py py-meth docutils literal"><span class="pre">plugin_id()</span></code></a>.
-All default Toolkit engines and integrations are using a <code class="docutils literal"><span class="pre">basic</span></code> prefix, e.g. the Maya engine has got
-a plugin id of <code class="docutils literal"><span class="pre">basic.maya</span></code>, Nuke is <code class="docutils literal"><span class="pre">basic.nuke</span></code> etc.</p>
-<p>By specifying <code class="docutils literal"><span class="pre">basic.*</span></code> in the <em>plugin Ids</em> field on the Pipeline Configuration, that configuration will be
+script using the <a class="reference internal" href="#bootstrap-api"><span class="std std-ref">Bootstrap API</span></a> specifies a <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.plugin_id" title="sgtk.bootstrap.ToolkitManager.plugin_id"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plugin_id()</span></code></a>.
+All default Toolkit engines and integrations are using a <code class="docutils literal notranslate"><span class="pre">basic</span></code> prefix, e.g. the Maya engine has got
+a plugin id of <code class="docutils literal notranslate"><span class="pre">basic.maya</span></code>, Nuke is <code class="docutils literal notranslate"><span class="pre">basic.nuke</span></code> etc.</p>
+<p>By specifying <code class="docutils literal notranslate"><span class="pre">basic.*</span></code> in the <em>plugin Ids</em> field on the Pipeline Configuration, that configuration will be
 used by all the default (basic) Toolkit integrations. If you wanted a special configuration to only apply
 to certain software integrations, you can specify this:</p>
 <a class="reference internal image-reference" href="_images/plugin_ids.png"><img alt="_images/plugin_ids.png" class="align-center" src="_images/plugin_ids.png" style="width: 700px;" /></a>
 <p>The above configuration will only be used when the Maya and Nuke plugins bootstrap.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
-<p class="last">If you don&#8217;t specify a plugin id for your Pipeline Configuration, it will be ignored
-by the boostrap. We recommend using <code class="docutils literal"><span class="pre">basic.*</span></code> as a default.</p>
+<p class="last">If you don’t specify a plugin id for your Pipeline Configuration, it will be ignored
+by the boostrap. We recommend using <code class="docutils literal notranslate"><span class="pre">basic.*</span></code> as a default.</p>
 </div>
 </div>
 <div class="section" id="self-contained-configurations">
 <h3>Self contained configurations<a class="headerlink" href="#self-contained-configurations" title="Permalink to this headline">¶</a></h3>
-<p>If you include a <code class="docutils literal"><span class="pre">bundle_cache</span></code> folder in your Toolkit configuration, it will be automatically
+<p>If you include a <code class="docutils literal notranslate"><span class="pre">bundle_cache</span></code> folder in your Toolkit configuration, it will be automatically
 detected and added to the bundle cache search path. This makes it possible to distribute a complete
 Toolkit setup in a single package without any external dependencies.</p>
-<p>This can be useful when deploying a configuration to a network infrastructure that doesn&#8217;t allow
+<p>This can be useful when deploying a configuration to a network infrastructure that doesn’t allow
 for an external Internet access and has a local site install of Shotgun.
-Create your configuration, manually add a <code class="docutils literal"><span class="pre">bundle_cache</span></code> folder
+Create your configuration, manually add a <code class="docutils literal notranslate"><span class="pre">bundle_cache</span></code> folder
 containing the necessary app, engine, core and framework payload, zip it and
 <a class="reference internal" href="#upload-config-to-shotgun"><span class="std std-ref">upload it to Shotgun</span></a>.</p>
 </div>
@@ -555,13 +579,13 @@ containing the necessary app, engine, core and framework payload, zip it and
 <p>If the configuration you have specified in the descriptor field (or have uploaded to Shotgun) is using
 the Toolkit folder schema and templates system, you need to manually configure a series of settings
 related to file storage locations.</p>
-<p>A toolkit configuration contains a <code class="docutils literal"><span class="pre">roots.yml</span></code> file which defines the file storages required by
+<p>A toolkit configuration contains a <code class="docutils literal notranslate"><span class="pre">roots.yml</span></code> file which defines the file storages required by
 that configuration. See for example the <a class="reference external" href="https://github.com/shotgunsoftware/tk-config-default2/blob/master/core/roots.yml">Toolkit default configuration</a>.
 All storages defined here need to have a corresponding Local File Storage defined in Shotgun.
-These settings can be found in Shotgun&#8217;s site preferences.</p>
+These settings can be found in Shotgun’s site preferences.</p>
 <p>In addition to this, a project folder name needs to be defined. This will be the name which is given
 to the root folder on disk when the folder structure starts getting populated. The project name
-is defined in a field named <code class="docutils literal"><span class="pre">tank_name</span></code> on the Shotgun Project entity.</p>
+is defined in a field named <code class="docutils literal notranslate"><span class="pre">tank_name</span></code> on the Shotgun Project entity.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">When using a  <a class="reference internal" href="#centralized-configs"><span class="std std-ref">centralized configuration</span></a>, this process
@@ -574,16 +598,16 @@ do it manually.</p>
 <p>If you want to cache custom application code that may only be accessible for
 users on your local network or from developers who have access keys to the Git
 repositories, you can upload  individual bundles to Shotgun and then take over the
-<a class="reference internal" href="core.html#bootstrap.Bootstrap.populate_bundle_cache_entry" title="bootstrap.Bootstrap.populate_bundle_cache_entry"><code class="xref py py-meth docutils literal"><span class="pre">populate_bundle_cache_entry()</span></code></a> and
-<a class="reference internal" href="core.html#bootstrap.Bootstrap.can_cache_bundle" title="bootstrap.Bootstrap.can_cache_bundle"><code class="xref py py-meth docutils literal"><span class="pre">can_cache_bundle()</span></code></a> methods of the
-<a class="reference internal" href="core.html#bootstrap.Bootstrap" title="bootstrap.Bootstrap"><code class="xref py py-class docutils literal"><span class="pre">Bootstrap</span></code></a> hook.</p>
+<a class="reference internal" href="core.html#bootstrap.Bootstrap.populate_bundle_cache_entry" title="bootstrap.Bootstrap.populate_bundle_cache_entry"><code class="xref py py-meth docutils literal notranslate"><span class="pre">populate_bundle_cache_entry()</span></code></a> and
+<a class="reference internal" href="core.html#bootstrap.Bootstrap.can_cache_bundle" title="bootstrap.Bootstrap.can_cache_bundle"><code class="xref py py-meth docutils literal notranslate"><span class="pre">can_cache_bundle()</span></code></a> methods of the
+<a class="reference internal" href="core.html#bootstrap.Bootstrap" title="bootstrap.Bootstrap"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bootstrap</span></code></a> hook.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This workflow isn&#8217;t limited to custom applications stored in git. You can also use it
+<p class="last">This workflow isn’t limited to custom applications stored in git. You can also use it
 to distribute applications downloaded from the Toolkit AppStore if your users do not
 have access to the Internet.</p>
 </div>
-<p>Here&#8217;s a suggested setup:</p>
+<p>Here’s a suggested setup:</p>
 <img alt="_images/bundle_custom_entity.png" src="_images/bundle_custom_entity.png" />
 <p>As you can see, a non project custom entity has been configured to cache Toolkit bundles. The
 most important column here is Descriptor, which is the field the bootstrap hook will use
@@ -594,8 +618,8 @@ to determine if a bundle is available in Shotgun or not.</p>
 items locally based on the version number inside the descriptor URI. For every change to
 a bundle, always create a new version number.</p>
 </div>
-<p>Once the bundles have been uploaded, you can implement the <code class="docutils literal"><span class="pre">core/bootstrap.py</span></code> hook.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sgtk</span> <span class="kn">import</span> <span class="n">get_hook_baseclass</span>
+<p>Once the bundles have been uploaded, you can implement the <code class="docutils literal notranslate"><span class="pre">core/bootstrap.py</span></code> hook.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sgtk</span> <span class="kn">import</span> <span class="n">get_hook_baseclass</span>
 <span class="kn">from</span> <span class="nn">sgtk.util.shotgun</span> <span class="kn">import</span> <span class="n">download_and_unpack_attachment</span>
 
 
@@ -679,42 +703,42 @@ a bundle, always create a new version number.</p>
 </pre></div>
 </div>
 <p>Once you are done, you can zip your configuration and its custom bootstrap and upload it to a
-<code class="docutils literal"><span class="pre">PipelineConfiguration</span></code> entity in Shotgun. Now every time a user bootstraps into this pipeline
+<code class="docutils literal notranslate"><span class="pre">PipelineConfiguration</span></code> entity in Shotgun. Now every time a user bootstraps into this pipeline
 configuration, they will download the configuration and cache the Toolkit core and all application
 bundles through the hook.</p>
 </div>
 </div>
 <div class="section" id="managing-centralized-configurations">
 <span id="centralized-configs"></span><h2>Managing centralized configurations<a class="headerlink" href="#managing-centralized-configurations" title="Permalink to this headline">¶</a></h2>
-<p>A manual project is either done via the Shotgun Desktop Project Setup Wizard or through the <code class="docutils literal"><span class="pre">tank</span> <span class="pre">setup_project</span></code>
+<p>A manual project is either done via the Shotgun Desktop Project Setup Wizard or through the <code class="docutils literal notranslate"><span class="pre">tank</span> <span class="pre">setup_project</span></code>
 command. During this process, you will choose a location on disk for your configuration. Make sure you
 choose a location on disk which is accessible by all users who need access to the configuration (e.g.
 typically on a fast, shared storage). The figure below illustrates the process:</p>
 <a class="reference internal image-reference" href="_images/manual_install.png"><img alt="_images/manual_install.png" class="align-center" src="_images/manual_install.png" style="width: 700px;" /></a>
-<p>The <code class="docutils literal"><span class="pre">tank</span> <span class="pre">setup_project</span></code> command will automatically create a <code class="docutils literal"><span class="pre">Primary</span></code> pipeline configuration
+<p>The <code class="docutils literal notranslate"><span class="pre">tank</span> <span class="pre">setup_project</span></code> command will automatically create a <code class="docutils literal notranslate"><span class="pre">Primary</span></code> pipeline configuration
 entity in Shotgun and a full configuration on disk. App, Engine and other payloads are downloaded
-into the <em>bundle cache</em> contained by the config. The three fields <code class="docutils literal"><span class="pre">PipelineConfiguration.windows_path</span></code>,
-<code class="docutils literal"><span class="pre">PipelineConfiguration.mac_path</span></code> and <code class="docutils literal"><span class="pre">PipelineConfiguration.linux_path</span></code> are populated with
+into the <em>bundle cache</em> contained by the config. The three fields <code class="docutils literal notranslate"><span class="pre">PipelineConfiguration.windows_path</span></code>,
+<code class="docutils literal notranslate"><span class="pre">PipelineConfiguration.mac_path</span></code> and <code class="docutils literal notranslate"><span class="pre">PipelineConfiguration.linux_path</span></code> are populated with
 paths to the configuration on disk.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This is the workflow that was exclusively used by all Toolkit versions prior to
 core v0.18, when the bootstrap API was introduced. It will continue to be supported,
 however it is less flexible than the more automatic workflows and can be especially
-challenging when you have a setup which doesn&#8217;t have a centralized storage. We
+challenging when you have a setup which doesn’t have a centralized storage. We
 recommend using <a class="reference internal" href="#automatically-managed-pcs"><span class="std std-ref">distributed configurations</span></a> whenever possible.</p>
 </div>
 <div class="section" id="configuration-maintenance">
 <h3>Configuration Maintenance<a class="headerlink" href="#configuration-maintenance" title="Permalink to this headline">¶</a></h3>
 <p>Once the project has been set up, you have to manually manage it. This is typically done
-via the <code class="docutils literal"><span class="pre">tank</span></code> command:</p>
+via the <code class="docutils literal notranslate"><span class="pre">tank</span></code> command:</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">tank</span> <span class="pre">core</span></code> will update the Core API version associated with a project.</li>
-<li><code class="docutils literal"><span class="pre">tank</span> <span class="pre">updates</span></code> checks for App and Engine updates.</li>
+<li><code class="docutils literal notranslate"><span class="pre">tank</span> <span class="pre">core</span></code> will update the Core API version associated with a project.</li>
+<li><code class="docutils literal notranslate"><span class="pre">tank</span> <span class="pre">updates</span></code> checks for App and Engine updates.</li>
 <li>By default, new projects are created in <strong>localized</strong> mode, meaning that they keeps their own core and
 bundle cache. It is also possible to share the core and the bundle cache
 between several different project by creating a <em>shared core</em>.</li>
-<li>In order to create additional configurations beyond the <code class="docutils literal"><span class="pre">Primary</span></code> one (for example for
+<li>In order to create additional configurations beyond the <code class="docutils literal notranslate"><span class="pre">Primary</span></code> one (for example for
 development or testing), right click on the configuration in Shotgun and choose
 the <strong>Clone Configuration</strong> option.</li>
 </ul>
@@ -723,9 +747,9 @@ the <strong>Clone Configuration</strong> option.</li>
 <h3>Starting a Toolkit engine from a centralized project<a class="headerlink" href="#starting-a-toolkit-engine-from-a-centralized-project" title="Permalink to this headline">¶</a></h3>
 <p>In this case, when a known location exists for your core API, you are not required to use the
 bootstrap API. Given that the location of the configuration is known on beforehand, factory methods
-such as <a class="reference internal" href="#sgtk.sgtk_from_path" title="sgtk.sgtk_from_path"><code class="xref py py-meth docutils literal"><span class="pre">sgtk.sgtk_from_path()</span></code></a> can also be used, however when doing so you need
+such as <a class="reference internal" href="#sgtk.sgtk_from_path" title="sgtk.sgtk_from_path"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sgtk.sgtk_from_path()</span></code></a> can also be used, however when doing so you need
 to make sure you always use the core associated with the configuration:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># for our hidden forest project the configuration is</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># for our hidden forest project the configuration is</span>
 <span class="c1"># installed in /mnt/toolkit/configs/hidden_forest</span>
 <span class="c1"># add the tk-core of the project to the pythonpath</span>
 <span class="kn">import</span> <span class="nn">sys</span>
@@ -747,7 +771,7 @@ to make sure you always use the core associated with the configuration:</p>
 </pre></div>
 </div>
 <p>If you want, you can also use the bootstrap API to launch a centralized configuration:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># here, we can use any tk-core we want - it doesn&#39;t even have to be connected</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># here, we can use any tk-core we want - it doesn&#39;t even have to be connected</span>
 <span class="c1"># to a project - the bootstrap API will swap out the core for the right version</span>
 <span class="c1"># as it starts things up.</span>
 <span class="c1">#</span>
@@ -766,7 +790,7 @@ to make sure you always use the core associated with the configuration:</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">When using boostrap, any <code class="docutils literal"><span class="pre">tk-core</span></code> API can be used for the initial <code class="docutils literal"><span class="pre">import</span> <span class="pre">sgtk</span></code>.
+<p class="last">When using boostrap, any <code class="docutils literal notranslate"><span class="pre">tk-core</span></code> API can be used for the initial <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">sgtk</span></code>.
 The bootstrap API will automatically determine which version is required for the project
 we are bootstrapping into, and potentially swap the core at runtime if the project
 requires a more recent version than the one used to bootstrap with.</p>
@@ -784,11 +808,11 @@ or a path to any file inside a project root location. This factory
 method will do the following two things:</p>
 <p><strong>When the path points at a configuration</strong></p>
 <p>If the given path is determined to be pointing at a pipeline configuration,
-checks will be made to determine that the currently imported <code class="docutils literal"><span class="pre">sgtk</span></code> module
+checks will be made to determine that the currently imported <code class="docutils literal notranslate"><span class="pre">sgtk</span></code> module
 is the same version that the configuration requires.</p>
 <p><strong>When the path points at a project file</strong></p>
 <p>If the given path is to a file (e.g. a maya file for example), the method will
-retrieve all projects from Shotgun, including their <code class="docutils literal"><span class="pre">Project.tank_name</span></code>
+retrieve all projects from Shotgun, including their <code class="docutils literal notranslate"><span class="pre">Project.tank_name</span></code>
 project root folder fields and associated pipeline configurations. It will then
 walk up the path hierarchy of the given path until one of the project roots are
 matching the path. For that project, all pipeline configurations are then retrieved.</p>
@@ -799,9 +823,9 @@ primary one will take precendence.</p>
 </div>
 <p><strong>Shared cores and localized cores</strong></p>
 <p>If you have a shared core for all your projects, you can follow a pattern where
-you add this shared core to the <code class="docutils literal"><span class="pre">PYTHONPATH</span></code> and you can launch Toolkit for any
+you add this shared core to the <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> and you can launch Toolkit for any
 project file on disk (or Shotgun entity) on your entire site easily:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># add the shared core to the pythonpath</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># add the shared core to the pythonpath</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;/mnt/toolkit/shared_core&quot;</span><span class="p">)</span>
 
@@ -821,9 +845,9 @@ for building a pattern that can launch an engine for any given entity on a site.
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> &#8211; Path to pipeline configuration or to a folder associated with a project.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> – Path to pipeline configuration or to a folder associated with a project.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> instance</td>
 </tr>
 </tbody>
 </table>
@@ -834,20 +858,20 @@ for building a pattern that can launch an engine for any given entity on a site.
 <code class="descclassname">sgtk.</code><code class="descname">sgtk_from_entity</code><span class="sig-paren">(</span><em>entity_type</em>, <em>entity_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/api.html#sgtk_from_entity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.sgtk_from_entity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a Toolkit Core API instance given an entity in Shotgun.</p>
 <p>The given object will be looked up in Shotgun, its associated pipeline configurations
-will be determined, and compared against the currently imported <code class="xref py py-class docutils literal"><span class="pre">sgtk</span></code> module.
-The logic is identical to the one outlined in <a class="reference internal" href="#sgtk.sgtk_from_path" title="sgtk.sgtk_from_path"><code class="xref py py-meth docutils literal"><span class="pre">sgtk_from_path()</span></code></a>, but for
-a Shotgun entity rather than a path. For more details, see <a class="reference internal" href="#sgtk.sgtk_from_path" title="sgtk.sgtk_from_path"><code class="xref py py-meth docutils literal"><span class="pre">sgtk_from_path()</span></code></a>.</p>
+will be determined, and compared against the currently imported <code class="xref py py-class docutils literal notranslate"><span class="pre">sgtk</span></code> module.
+The logic is identical to the one outlined in <a class="reference internal" href="#sgtk.sgtk_from_path" title="sgtk.sgtk_from_path"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sgtk_from_path()</span></code></a>, but for
+a Shotgun entity rather than a path. For more details, see <a class="reference internal" href="#sgtk.sgtk_from_path" title="sgtk.sgtk_from_path"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sgtk_from_path()</span></code></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>entity_type</strong> &#8211; Shotgun entity type, e.g. <code class="docutils literal"><span class="pre">Shot</span></code></li>
-<li><strong>entity_id</strong> &#8211; Shotgun entity id</li>
+<li><strong>entity_type</strong> – Shotgun entity type, e.g. <code class="docutils literal notranslate"><span class="pre">Shot</span></code></li>
+<li><strong>entity_id</strong> – Shotgun entity id</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> instance</p>
 </td>
 </tr>
 </tbody>
@@ -858,7 +882,7 @@ a Shotgun entity rather than a path. For more details, see <a class="reference i
 </div>
 <div class="section" id="bootstrap-api">
 <span id="id4"></span><h2>Bootstrap API<a class="headerlink" href="#bootstrap-api" title="Permalink to this headline">¶</a></h2>
-<p>The <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a> class allows for run-time handling of Toolkit configurations
+<p>The <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ToolkitManager</span></code></a> class allows for run-time handling of Toolkit configurations
 and removes the traditional step of a project setup. Instead, you can launch an engine
 directly based on a configuration <a class="reference internal" href="descriptor.html#descriptor"><span class="std std-ref">Descriptor URI</span></a>. The manager encapsulates
 the configuration setup process and makes it easy to create a running instance of
@@ -870,8 +894,8 @@ set up or configured in Shotgun. No Toolkit project setup step is required.</li>
 Toolkit to act as a distribution platform.</li>
 </ul>
 <p>The following example code can for example run inside maya in order
-to launch Toolkit&#8217;s default config for an Shotgun Asset:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
+to launch Toolkit’s default config for an Shotgun Asset:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sgtk</span>
 
 <span class="c1"># Start up a Toolkit Manager</span>
 <span class="n">mgr</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">bootstrap</span><span class="o">.</span><span class="n">ToolkitManager</span><span class="p">()</span>
@@ -890,8 +914,8 @@ to launch Toolkit&#8217;s default config for an Shotgun Asset:</p>
 <span class="n">e</span> <span class="o">=</span> <span class="n">mgr</span><span class="o">.</span><span class="n">bootstrap_engine</span><span class="p">(</span><span class="s2">&quot;tk-maya&quot;</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Asset&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">1234</span><span class="p">})</span>
 </pre></div>
 </div>
-<p>In this example, there is no need to construct any <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">sgtk.Sgtk</span></code></a>
-instance or run a <code class="docutils literal"><span class="pre">tank</span></code> command - the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a> instead becomes the entry
+<p>In this example, there is no need to construct any <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">sgtk.Sgtk</span></code></a>
+instance or run a <code class="docutils literal notranslate"><span class="pre">tank</span></code> command - the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ToolkitManager</span></code></a> instead becomes the entry
 point into the system. It will handle the setup and initialization of the configuration behind the scenes
 and start up a Toolkit session once all the required pieces have been initialized and set up.</p>
 <div class="section" id="environment-variables">
@@ -927,7 +951,7 @@ that you want the bootstrap API to pick up bundles from.</td>
 API should load up. Useful in complex workflow development scenarios.</td>
 </tr>
 <tr class="row-even"><td>SHOTGUN_DISABLE_APPSTORE_ACCESS</td>
-<td>Setting this to <code class="docutils literal"><span class="pre">1</span></code> will disable any Shotgun Appstore access. No attempts
+<td>Setting this to <code class="docutils literal notranslate"><span class="pre">1</span></code> will disable any Shotgun Appstore access. No attempts
 to connect will be carried out. This option can be useful in cases where
 complex proxy setups is preventing Toolkit to correctly operate.</td>
 </tr>
@@ -936,7 +960,7 @@ complex proxy setups is preventing Toolkit to correctly operate.</td>
 </div>
 <div class="section" id="toolkitmanager">
 <h3>ToolkitManager<a class="headerlink" href="#toolkitmanager" title="Permalink to this headline">¶</a></h3>
-<p>Below follows the full API reference for the <code class="docutils literal"><span class="pre">ToolkitManager</span></code> bootstrap API.</p>
+<p>Below follows the full API reference for the <code class="docutils literal notranslate"><span class="pre">ToolkitManager</span></code> bootstrap API.</p>
 <p class="rubric">Properties</p>
 <table border="1" class="longtable docutils">
 <colgroup>
@@ -944,22 +968,22 @@ complex proxy setups is preventing Toolkit to correctly operate.</td>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="sgtk.bootstrap.ToolkitManager.base_configuration"><code class="xref py py-obj docutils literal"><span class="pre">ToolkitManager.base_configuration</span></code></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="sgtk.bootstrap.ToolkitManager.base_configuration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToolkitManager.base_configuration</span></code></a></td>
 <td>The fallback configuration to use.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.plugin_id" title="sgtk.bootstrap.ToolkitManager.plugin_id"><code class="xref py py-obj docutils literal"><span class="pre">ToolkitManager.plugin_id</span></code></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.plugin_id" title="sgtk.bootstrap.ToolkitManager.plugin_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToolkitManager.plugin_id</span></code></a></td>
 <td>The associated plugin id.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.bundle_cache_fallback_paths" title="sgtk.bootstrap.ToolkitManager.bundle_cache_fallback_paths"><code class="xref py py-obj docutils literal"><span class="pre">ToolkitManager.bundle_cache_fallback_paths</span></code></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.bundle_cache_fallback_paths" title="sgtk.bootstrap.ToolkitManager.bundle_cache_fallback_paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToolkitManager.bundle_cache_fallback_paths</span></code></a></td>
 <td>A list of fallback paths where toolkit will look for cached bundles.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.pipeline_configuration" title="sgtk.bootstrap.ToolkitManager.pipeline_configuration"><code class="xref py py-obj docutils literal"><span class="pre">ToolkitManager.pipeline_configuration</span></code></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.pipeline_configuration" title="sgtk.bootstrap.ToolkitManager.pipeline_configuration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToolkitManager.pipeline_configuration</span></code></a></td>
 <td>The pipeline configuration that should be operated on.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup" title="sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup"><code class="xref py py-obj docutils literal"><span class="pre">ToolkitManager.do_shotgun_config_lookup</span></code></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup" title="sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToolkitManager.do_shotgun_config_lookup</span></code></a></td>
 <td>Controls the Shotgun override behaviour.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.caching_policy" title="sgtk.bootstrap.ToolkitManager.caching_policy"><code class="xref py py-obj docutils literal"><span class="pre">ToolkitManager.caching_policy</span></code></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.caching_policy" title="sgtk.bootstrap.ToolkitManager.caching_policy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToolkitManager.caching_policy</span></code></a></td>
 <td>Specifies the config caching policy to use when bootstrapping.</td>
 </tr>
 </tbody>
@@ -971,19 +995,19 @@ complex proxy setups is preventing Toolkit to correctly operate.</td>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.bootstrap_engine" title="sgtk.bootstrap.ToolkitManager.bootstrap_engine"><code class="xref py py-obj docutils literal"><span class="pre">ToolkitManager.bootstrap_engine</span></code></a></td>
-<td>Create an <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance for the given engine and entity, then launch into the given engine.</td>
+<tr class="row-odd"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.bootstrap_engine" title="sgtk.bootstrap.ToolkitManager.bootstrap_engine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToolkitManager.bootstrap_engine</span></code></a></td>
+<td>Create an <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> instance for the given engine and entity, then launch into the given engine.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.bootstrap_engine_async" title="sgtk.bootstrap.ToolkitManager.bootstrap_engine_async"><code class="xref py py-obj docutils literal"><span class="pre">ToolkitManager.bootstrap_engine_async</span></code></a></td>
-<td>Asynchronous version of <code class="xref py py-meth docutils literal"><span class="pre">bootstrap_engine()</span></code>.</td>
+<tr class="row-even"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.bootstrap_engine_async" title="sgtk.bootstrap.ToolkitManager.bootstrap_engine_async"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToolkitManager.bootstrap_engine_async</span></code></a></td>
+<td>Asynchronous version of <code class="xref py py-meth docutils literal notranslate"><span class="pre">bootstrap_engine()</span></code>.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.pre_engine_start_callback" title="sgtk.bootstrap.ToolkitManager.pre_engine_start_callback"><code class="xref py py-obj docutils literal"><span class="pre">ToolkitManager.pre_engine_start_callback</span></code></a></td>
-<td>Callback invoked after the <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance has been created.</td>
+<tr class="row-odd"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.pre_engine_start_callback" title="sgtk.bootstrap.ToolkitManager.pre_engine_start_callback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToolkitManager.pre_engine_start_callback</span></code></a></td>
+<td>Callback invoked after the <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> instance has been created.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.progress_callback" title="sgtk.bootstrap.ToolkitManager.progress_callback"><code class="xref py py-obj docutils literal"><span class="pre">ToolkitManager.progress_callback</span></code></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.progress_callback" title="sgtk.bootstrap.ToolkitManager.progress_callback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToolkitManager.progress_callback</span></code></a></td>
 <td>Callback that gets called whenever progress should be reported.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.prepare_engine" title="sgtk.bootstrap.ToolkitManager.prepare_engine"><code class="xref py py-obj docutils literal"><span class="pre">ToolkitManager.prepare_engine</span></code></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.prepare_engine" title="sgtk.bootstrap.ToolkitManager.prepare_engine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToolkitManager.prepare_engine</span></code></a></td>
 <td>Updates and caches a configuration on disk for a given project.</td>
 </tr>
 </tbody>
@@ -995,10 +1019,10 @@ complex proxy setups is preventing Toolkit to correctly operate.</td>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.extract_settings" title="sgtk.bootstrap.ToolkitManager.extract_settings"><code class="xref py py-obj docutils literal"><span class="pre">ToolkitManager.extract_settings</span></code></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.extract_settings" title="sgtk.bootstrap.ToolkitManager.extract_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToolkitManager.extract_settings</span></code></a></td>
 <td>Serializes the state of the class.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.restore_settings" title="sgtk.bootstrap.ToolkitManager.restore_settings"><code class="xref py py-obj docutils literal"><span class="pre">ToolkitManager.restore_settings</span></code></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.restore_settings" title="sgtk.bootstrap.ToolkitManager.restore_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToolkitManager.restore_settings</span></code></a></td>
 <td>Restores serialized state.</td>
 </tr>
 </tbody>
@@ -1010,16 +1034,16 @@ complex proxy setups is preventing Toolkit to correctly operate.</td>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.get_pipeline_configurations" title="sgtk.bootstrap.ToolkitManager.get_pipeline_configurations"><code class="xref py py-obj docutils literal"><span class="pre">ToolkitManager.get_pipeline_configurations</span></code></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.get_pipeline_configurations" title="sgtk.bootstrap.ToolkitManager.get_pipeline_configurations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToolkitManager.get_pipeline_configurations</span></code></a></td>
 <td>Retrieves the pipeline configurations available for a given project.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.get_entity_from_environment" title="sgtk.bootstrap.ToolkitManager.get_entity_from_environment"><code class="xref py py-obj docutils literal"><span class="pre">ToolkitManager.get_entity_from_environment</span></code></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.get_entity_from_environment" title="sgtk.bootstrap.ToolkitManager.get_entity_from_environment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToolkitManager.get_entity_from_environment</span></code></a></td>
 <td>Standardized environment variable retrieval.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.resolve_descriptor" title="sgtk.bootstrap.ToolkitManager.resolve_descriptor"><code class="xref py py-obj docutils literal"><span class="pre">ToolkitManager.resolve_descriptor</span></code></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.resolve_descriptor" title="sgtk.bootstrap.ToolkitManager.resolve_descriptor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToolkitManager.resolve_descriptor</span></code></a></td>
 <td>Resolves a pipeline configuration and returns its associated descriptor object.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.get_core_python_path" title="sgtk.bootstrap.ToolkitManager.get_core_python_path"><code class="xref py py-obj docutils literal"><span class="pre">ToolkitManager.get_core_python_path</span></code></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.get_core_python_path" title="sgtk.bootstrap.ToolkitManager.get_core_python_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToolkitManager.get_core_python_path</span></code></a></td>
 <td>Computes the path to the current Toolkit core.</td>
 </tr>
 </tbody>
@@ -1033,7 +1057,7 @@ and installations.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sg_user</strong> (<a class="reference internal" href="authentication.html#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal"><span class="pre">ShotgunUser</span></code></a>) &#8211; Authenticated Shotgun User object. If you pass in None,
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sg_user</strong> (<a class="reference internal" href="authentication.html#sgtk.authentication.ShotgunUser" title="sgtk.authentication.ShotgunUser"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShotgunUser</span></code></a>) – Authenticated Shotgun User object. If you pass in None,
 the manager will provide a standard authentication for you
 via the shotgun authentication module and prompting the user
 if necessary. If you have special requirements around
@@ -1051,7 +1075,7 @@ object and returns it to the user.</p>
 <p>This can be useful when a process is used to enumerate pipeline configurations and another
 process will be bootstrapping an engine. Calling this method ensures the manager is
 configured the same across processes.</p>
-<p>Those settings can be restored with <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.restore_settings" title="sgtk.bootstrap.ToolkitManager.restore_settings"><code class="xref py py-meth docutils literal"><span class="pre">ToolkitManager.restore_settings()</span></code></a>.</p>
+<p>Those settings can be restored with <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.restore_settings" title="sgtk.bootstrap.ToolkitManager.restore_settings"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ToolkitManager.restore_settings()</span></code></a>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Note that the extracted settings should be treated as opaque data and not something
@@ -1073,10 +1097,10 @@ that should be manipulated. Their content can be changed at any time.</p>
 <dt id="sgtk.bootstrap.ToolkitManager.restore_settings">
 <code class="descname">restore_settings</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/bootstrap/manager.html#ToolkitManager.restore_settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.restore_settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Restores serialized state.</p>
-<p>This will restores the state user defined with <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.extract_settings" title="sgtk.bootstrap.ToolkitManager.extract_settings"><code class="xref py py-meth docutils literal"><span class="pre">ToolkitManager.extract_settings()</span></code></a>.</p>
+<p>This will restores the state user defined with <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.extract_settings" title="sgtk.bootstrap.ToolkitManager.extract_settings"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ToolkitManager.extract_settings()</span></code></a>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Always use <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.extract_settings" title="sgtk.bootstrap.ToolkitManager.extract_settings"><code class="xref py py-meth docutils literal"><span class="pre">ToolkitManager.extract_settings()</span></code></a> to extract settings when you
+<p class="last">Always use <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.extract_settings" title="sgtk.bootstrap.ToolkitManager.extract_settings"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ToolkitManager.extract_settings()</span></code></a> to extract settings when you
 plan on calling this method. The content of the settings should be treated as opaque
 data.</p>
 </div>
@@ -1084,7 +1108,7 @@ data.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) &#8211; Settings obtained from <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.extract_settings" title="sgtk.bootstrap.ToolkitManager.extract_settings"><code class="xref py py-meth docutils literal"><span class="pre">ToolkitManager.extract_settings()</span></code></a></td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) – Settings obtained from <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.extract_settings" title="sgtk.bootstrap.ToolkitManager.extract_settings"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ToolkitManager.extract_settings()</span></code></a></td>
 </tr>
 </tbody>
 </table>
@@ -1093,10 +1117,10 @@ data.</p>
 <dl class="attribute">
 <dt id="sgtk.bootstrap.ToolkitManager.pre_engine_start_callback">
 <code class="descname">pre_engine_start_callback</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.pre_engine_start_callback" title="Permalink to this definition">¶</a></dt>
-<dd><p>Callback invoked after the <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance has been
+<dd><p>Callback invoked after the <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> instance has been
 created.</p>
 <p>This function should have the following signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pre_engine_start_callback</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pre_engine_start_callback</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Called before the engine is started.</span>
 
@@ -1112,19 +1136,19 @@ created.</p>
 <dt id="sgtk.bootstrap.ToolkitManager.pipeline_configuration">
 <code class="descname">pipeline_configuration</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.pipeline_configuration" title="Permalink to this definition">¶</a></dt>
 <dd><p>The pipeline configuration that should be operated on.</p>
-<p>By default, this value is set to <code class="docutils literal"><span class="pre">None</span></code>, indicating to the Manager
+<p>By default, this value is set to <code class="docutils literal notranslate"><span class="pre">None</span></code>, indicating to the Manager
 that it should attempt to automatically find the most suitable pipeline
 configuration entry in Shotgun given the project and plugin id.
 In this case, it will look at all pipeline configurations stored in Shotgun
 associated with the project who are associated with the current
 user. If no user-tagged pipeline configuration exists, it will look for
 the primary configuration, and in case this is not found, it will fall back on the
-<a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="sgtk.bootstrap.ToolkitManager.base_configuration"><code class="xref py py-meth docutils literal"><span class="pre">base_configuration()</span></code></a>. If you don&#8217;t want this check to be carried out in
-Shotgun, please set <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup" title="sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup"><code class="xref py py-meth docutils literal"><span class="pre">do_shotgun_config_lookup()</span></code></a> to False.</p>
+<a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="sgtk.bootstrap.ToolkitManager.base_configuration"><code class="xref py py-meth docutils literal notranslate"><span class="pre">base_configuration()</span></code></a>. If you don’t want this check to be carried out in
+Shotgun, please set <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup" title="sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup"><code class="xref py py-meth docutils literal notranslate"><span class="pre">do_shotgun_config_lookup()</span></code></a> to False.</p>
 <p>Alternatively, you can set this to a specific pipeline configuration. In that
 case, the Manager will look for a pipeline configuration that matches that name or id
 and the associated project and plugin id. If such a config cannot be found in
-Shotgun, it falls back on the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="sgtk.bootstrap.ToolkitManager.base_configuration"><code class="xref py py-meth docutils literal"><span class="pre">base_configuration()</span></code></a>.</p>
+Shotgun, it falls back on the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="sgtk.bootstrap.ToolkitManager.base_configuration"><code class="xref py py-meth docutils literal notranslate"><span class="pre">base_configuration()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1132,14 +1156,14 @@ Shotgun, it falls back on the <a class="reference internal" href="#sgtk.bootstra
 <code class="descname">do_shotgun_config_lookup</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.do_shotgun_config_lookup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Controls the Shotgun override behaviour.</p>
 <p>Boolean property to indicate if the bootstrap process should connect to
-Shotgun and attempt to resolve a config. Defaults to <code class="docutils literal"><span class="pre">True</span></code>.</p>
-<p>If <code class="docutils literal"><span class="pre">True</span></code>, the bootstrap process will connect to Shotgun as part
+Shotgun and attempt to resolve a config. Defaults to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the bootstrap process will connect to Shotgun as part
 of the startup, look for a pipeline configuration and attempt
 to resolve a toolkit environment to bootstrap into via the
 Pipeline configuration data. Failing this, it will fall back on
-the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="sgtk.bootstrap.ToolkitManager.base_configuration"><code class="xref py py-meth docutils literal"><span class="pre">base_configuration()</span></code></a>.</p>
-<p>If <code class="docutils literal"><span class="pre">False</span></code>, no Shotgun lookup will happen. Instead, whatever config
-is defined via <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="sgtk.bootstrap.ToolkitManager.base_configuration"><code class="xref py py-meth docutils literal"><span class="pre">base_configuration()</span></code></a> will always be used.</p>
+the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="sgtk.bootstrap.ToolkitManager.base_configuration"><code class="xref py py-meth docutils literal notranslate"><span class="pre">base_configuration()</span></code></a>.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">False</span></code>, no Shotgun lookup will happen. Instead, whatever config
+is defined via <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.base_configuration" title="sgtk.bootstrap.ToolkitManager.base_configuration"><code class="xref py py-meth docutils literal notranslate"><span class="pre">base_configuration()</span></code></a> will always be used.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1157,9 +1181,9 @@ should be considered:</p>
 <li>Plugin Ids should uniquely identify the plugin.</li>
 <li>The name should be short and descriptive.</li>
 </ul>
-<p>The basic toolkit integration uses a <code class="docutils literal"><span class="pre">basic</span></code> prefix, e.g.
-<code class="docutils literal"><span class="pre">basic.maya</span></code>, <code class="docutils literal"><span class="pre">basic.nuke</span></code>. We recommend using the
-<code class="docutils literal"><span class="pre">basic</span></code> prefix for standard workflows.</p>
+<p>The basic toolkit integration uses a <code class="docutils literal notranslate"><span class="pre">basic</span></code> prefix, e.g.
+<code class="docutils literal notranslate"><span class="pre">basic.maya</span></code>, <code class="docutils literal notranslate"><span class="pre">basic.nuke</span></code>. We recommend using the
+<code class="docutils literal notranslate"><span class="pre">basic</span></code> prefix for standard workflows.</p>
 <p>For more information, see <a class="reference internal" href="#plugins-and-plugin-ids"><span class="std std-ref">Plugins and plugin ids</span></a>.</p>
 </dd></dl>
 
@@ -1169,7 +1193,7 @@ should be considered:</p>
 <dd><p>The fallback configuration to use.</p>
 <p>The descriptor (string or dict) for the
 configuration that should be used as a base fallback
-to be used if an override configuration isn&#8217;t set in Shotgun.</p>
+to be used if an override configuration isn’t set in Shotgun.</p>
 <p>For</p>
 </dd></dl>
 
@@ -1190,10 +1214,10 @@ the global bundle cache.</p>
 <dt id="sgtk.bootstrap.ToolkitManager.caching_policy">
 <code class="descname">caching_policy</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.caching_policy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Specifies the config caching policy to use when bootstrapping.</p>
-<p><code class="docutils literal"><span class="pre">ToolkitManager.CACHE_SPARSE</span></code> will make the manager download and cache
+<p><code class="docutils literal notranslate"><span class="pre">ToolkitManager.CACHE_SPARSE</span></code> will make the manager download and cache
 the sole config dependencies needed to run the engine being started.
 This is the default caching policy.</p>
-<p><code class="docutils literal"><span class="pre">ToolkitManager.CACHE_FULL</span></code> will make the manager download and cache
+<p><code class="docutils literal notranslate"><span class="pre">ToolkitManager.CACHE_FULL</span></code> will make the manager download and cache
 all the config dependencies.</p>
 </dd></dl>
 
@@ -1202,7 +1226,7 @@ all the config dependencies.</p>
 <code class="descname">progress_callback</code><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.progress_callback" title="Permalink to this definition">¶</a></dt>
 <dd><p>Callback that gets called whenever progress should be reported.</p>
 <p>This function should have the following signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">progress_callback</span><span class="p">(</span><span class="n">progress_value</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">progress_callback</span><span class="p">(</span><span class="n">progress_value</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Called whenever toolkit reports progress.</span>
 
@@ -1224,7 +1248,7 @@ main thread.</p>
 <dl class="method">
 <dt id="sgtk.bootstrap.ToolkitManager.bootstrap_engine">
 <code class="descname">bootstrap_engine</code><span class="sig-paren">(</span><em>engine_name</em>, <em>entity=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/bootstrap/manager.html#ToolkitManager.bootstrap_engine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.bootstrap_engine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create an <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance for the given engine and entity,
+<dd><p>Create an <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> instance for the given engine and entity,
 then launch into the given engine.</p>
 <p>The whole engine bootstrap logic will be executed synchronously in the main application thread.</p>
 <p>If entity is None, the method will bootstrap into the site
@@ -1240,12 +1264,12 @@ executed during the bootstrap.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>engine_name</strong> &#8211; Name of engine to launch (e.g. <code class="docutils literal"><span class="pre">tk-nuke</span></code>).</li>
-<li><strong>entity</strong> (Dictionary with keys <code class="docutils literal"><span class="pre">type</span></code> and <code class="docutils literal"><span class="pre">id</span></code>, or <code class="docutils literal"><span class="pre">None</span></code> for the site.) &#8211; Shotgun entity to launch engine for.</li>
+<li><strong>engine_name</strong> – Name of engine to launch (e.g. <code class="docutils literal notranslate"><span class="pre">tk-nuke</span></code>).</li>
+<li><strong>entity</strong> (Dictionary with keys <code class="docutils literal notranslate"><span class="pre">type</span></code> and <code class="docutils literal notranslate"><span class="pre">id</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the site.) – Shotgun entity to launch engine for.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal"><span class="pre">Engine</span></code></a> instance.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal notranslate"><span class="pre">Engine</span></code></a> instance.</p>
 </td>
 </tr>
 </tbody>
@@ -1255,11 +1279,11 @@ executed during the bootstrap.</p>
 <dl class="method">
 <dt id="sgtk.bootstrap.ToolkitManager.bootstrap_engine_async">
 <code class="descname">bootstrap_engine_async</code><span class="sig-paren">(</span><em>engine_name</em>, <em>entity=None</em>, <em>completed_callback=None</em>, <em>failed_callback=None</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/bootstrap/manager.html#ToolkitManager.bootstrap_engine_async"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.bootstrap_engine_async" title="Permalink to this definition">¶</a></dt>
-<dd><p>Asynchronous version of <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.bootstrap_engine" title="sgtk.bootstrap.ToolkitManager.bootstrap_engine"><code class="xref py py-meth docutils literal"><span class="pre">bootstrap_engine()</span></code></a>.</p>
-<p>Create an <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance for the given engine and entity,
+<dd><p>Asynchronous version of <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.bootstrap_engine" title="sgtk.bootstrap.ToolkitManager.bootstrap_engine"><code class="xref py py-meth docutils literal notranslate"><span class="pre">bootstrap_engine()</span></code></a>.</p>
+<p>Create an <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> instance for the given engine and entity,
 then launch into the given engine.</p>
 <p>This method launches the bootstrap process and returns immediately.
-The <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance will be bootstrapped asynchronously in a background thread,
+The <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> instance will be bootstrapped asynchronously in a background thread,
 followed by launching the engine synchronously in the main application thread.
 This will allow the main application to continue its execution and
 remain responsive when bootstrapping the toolkit involves downloading files and
@@ -1272,7 +1296,7 @@ apps from the toolkit app store and installing files on disk.</p>
 <p>Two callback functions can be provided.</p>
 <p>A callback function that handles cleanup after successful completion of the bootstrap
 with the following signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">completed_callback</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">completed_callback</span><span class="p">(</span><span class="n">engine</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Called by the asynchronous bootstrap upon completion.</span>
 
@@ -1283,7 +1307,7 @@ with the following signature:</p>
 </div>
 <p>A callback function that handles cleanup after failed completion of the bootstrap
 with the following signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">failed_callback</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">exception</span><span class="p">):</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">failed_callback</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">exception</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Called by the asynchronous bootstrap if an exception is raised.</span>
 
@@ -1307,11 +1331,11 @@ with the following signature:</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>engine_name</strong> &#8211; Name of engine to launch (e.g. <code class="docutils literal"><span class="pre">tk-nuke</span></code>).</li>
-<li><strong>entity</strong> (Dictionary with keys <code class="docutils literal"><span class="pre">type</span></code> and <code class="docutils literal"><span class="pre">id</span></code>, or <code class="docutils literal"><span class="pre">None</span></code> for the site.) &#8211; Shotgun entity to launch engine for.</li>
-<li><strong>completed_callback</strong> &#8211; Callback function that handles cleanup after successful completion of the bootstrap.</li>
-<li><strong>failed_callback</strong> &#8211; Callback function that handles cleanup after failed completion of the bootstrap.</li>
-<li><strong>parent</strong> &#8211; The parent object used for the async bootstrapper. This will be necessary
+<li><strong>engine_name</strong> – Name of engine to launch (e.g. <code class="docutils literal notranslate"><span class="pre">tk-nuke</span></code>).</li>
+<li><strong>entity</strong> (Dictionary with keys <code class="docutils literal notranslate"><span class="pre">type</span></code> and <code class="docutils literal notranslate"><span class="pre">id</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for the site.) – Shotgun entity to launch engine for.</li>
+<li><strong>completed_callback</strong> – Callback function that handles cleanup after successful completion of the bootstrap.</li>
+<li><strong>failed_callback</strong> – Callback function that handles cleanup after failed completion of the bootstrap.</li>
+<li><strong>parent</strong> – The parent object used for the async bootstrapper. This will be necessary
 in some environments, as it will prevent the thread used to bootstrap from being
 garbage collected before it completes its work. An example input for this argument would
 be to provide a reference to the main window of the parent application being integrated
@@ -1328,16 +1352,16 @@ bootstrap process.</li>
 <dt id="sgtk.bootstrap.ToolkitManager.prepare_engine">
 <code class="descname">prepare_engine</code><span class="sig-paren">(</span><em>engine_name</em>, <em>entity</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/bootstrap/manager.html#ToolkitManager.prepare_engine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.prepare_engine" title="Permalink to this definition">¶</a></dt>
 <dd><p>Updates and caches a configuration on disk for a given project. The resolution of the pipeline
-configuration will follow the same rules as the method <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.bootstrap_engine" title="sgtk.bootstrap.ToolkitManager.bootstrap_engine"><code class="xref py py-meth docutils literal"><span class="pre">ToolkitManager.bootstrap_engine()</span></code></a>,
+configuration will follow the same rules as the method <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.bootstrap_engine" title="sgtk.bootstrap.ToolkitManager.bootstrap_engine"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ToolkitManager.bootstrap_engine()</span></code></a>,
 but it simply caches all the bundles for later use instead of bootstrapping directly into it.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>engine_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the engine instance to cache if using sparse caching. If <code class="docutils literal"><span class="pre">None</span></code>,
+<li><strong>engine_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Name of the engine instance to cache if using sparse caching. If <code class="docutils literal notranslate"><span class="pre">None</span></code>,
 all engine instances will be cached.</li>
-<li><strong>entity</strong> &#8211; An entity link. If the entity is not a project, the project for that entity will be resolved.</li>
+<li><strong>entity</strong> – An entity link. If the entity is not a project, the project for that entity will be resolved.</li>
 </ul>
 </td>
 </tr>
@@ -1345,7 +1369,7 @@ all engine instances will be cached.</li>
 spawned it.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">(str, <a class="reference internal" href="descriptor.html#sgtk.descriptor.ConfigDescriptor" title="sgtk.descriptor.ConfigDescriptor"><code class="xref py py-class docutils literal"><span class="pre">sgtk.descriptor.ConfigDescriptor</span></code></a>)</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">(str, <a class="reference internal" href="descriptor.html#sgtk.descriptor.ConfigDescriptor" title="sgtk.descriptor.ConfigDescriptor"><code class="xref py py-class docutils literal notranslate"><span class="pre">sgtk.descriptor.ConfigDescriptor</span></code></a>)</p>
 </td>
 </tr>
 </tbody>
@@ -1367,7 +1391,7 @@ primary is not available.</li>
 only the one with the lowest id is available, unless one or more of them is a Toolkit
 Centralized Primary, in which case the Toolkit Centralized Primary with the lowest id will
 be returned.</li>
-<li>A <code class="xref py py-class docutils literal"><span class="pre">Descriptor</span></code> object must be able to be created from the
+<li>A <code class="xref py py-class docutils literal notranslate"><span class="pre">Descriptor</span></code> object must be able to be created from the
 pipeline configuration.</li>
 <li>All sandboxes are available.</li>
 </ul>
@@ -1375,15 +1399,15 @@ pipeline configuration.</li>
 <p>In practice, this means that if there are 3 primaries, two of them using plugin ids and
 one of them not using them, the one not using a plugin id will always be used.</p>
 <p>This filtering also takes into account the current user and optional pipeline
-configuration name or id. If the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.pipeline_configuration" title="sgtk.bootstrap.ToolkitManager.pipeline_configuration"><code class="xref py py-meth docutils literal"><span class="pre">pipeline_configuration()</span></code></a> property has been
+configuration name or id. If the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.pipeline_configuration" title="sgtk.bootstrap.ToolkitManager.pipeline_configuration"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pipeline_configuration()</span></code></a> property has been
 set to a string, it will look for pipeline configurations with that specific name.
-If it has been set to <code class="docutils literal"><span class="pre">None</span></code>, any pipeline that can be applied for the current
+If it has been set to <code class="docutils literal notranslate"><span class="pre">None</span></code>, any pipeline that can be applied for the current
 user and project will be retrieved. Note that this method does not support
-<a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.pipeline_configuration" title="sgtk.bootstrap.ToolkitManager.pipeline_configuration"><code class="xref py py-meth docutils literal"><span class="pre">pipeline_configuration()</span></code></a> being an integer.</p>
+<a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.pipeline_configuration" title="sgtk.bootstrap.ToolkitManager.pipeline_configuration"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pipeline_configuration()</span></code></a> being an integer.</p>
 <p><strong>Return value</strong></p>
 <p>The data structure returned is a dictionary with several keys to
 describe the configuration, for example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>{&#39;descriptor&#39;: &lt;CachedConfigDescriptor &lt;IODescriptorAppStore sgtk:descriptor:app_store?name=tk-config-basic&amp;version=v1.1.6&gt;&gt;,
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>{&#39;descriptor&#39;: &lt;CachedConfigDescriptor &lt;IODescriptorAppStore sgtk:descriptor:app_store?name=tk-config-basic&amp;version=v1.1.6&gt;&gt;,
  &#39;descriptor_source_uri&#39;: &#39;sgtk:descriptor:app_store?name=tk-config-basic&#39;,
  &#39;id&#39;: 500,
  &#39;name&#39;: &#39;Primary&#39;,
@@ -1392,31 +1416,31 @@ describe the configuration, for example:</p>
 </pre></div>
 </div>
 <p>The returned dictionary mimics the result of a Shotgun API query, including
-standard fields for <code class="docutils literal"><span class="pre">type</span></code>, <code class="docutils literal"><span class="pre">id</span></code>, <code class="docutils literal"><span class="pre">name</span></code> and <code class="docutils literal"><span class="pre">project</span></code>. In addition,
-the resolved descriptor object is returned in a <code class="docutils literal"><span class="pre">descriptor</span></code> key.</p>
+standard fields for <code class="docutils literal notranslate"><span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">project</span></code>. In addition,
+the resolved descriptor object is returned in a <code class="docutils literal notranslate"><span class="pre">descriptor</span></code> key.</p>
 <p>For pipeline configurations which are defined in Shotgun via their <strong>descriptor</strong> field,
-this field is returned in a <code class="docutils literal"><span class="pre">descriptor_source_uri</span></code> key. For pipeline configurations
-defined via an uploaded attachment or explicit path fields, the <code class="docutils literal"><span class="pre">descriptor_source_uri</span></code>
-key will return <code class="docutils literal"><span class="pre">None</span></code>.</p>
+this field is returned in a <code class="docutils literal notranslate"><span class="pre">descriptor_source_uri</span></code> key. For pipeline configurations
+defined via an uploaded attachment or explicit path fields, the <code class="docutils literal notranslate"><span class="pre">descriptor_source_uri</span></code>
+key will return <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Note as per the example above how the <code class="docutils literal"><span class="pre">descriptor_source_uri</span></code>
+<p class="last">Note as per the example above how the <code class="docutils literal notranslate"><span class="pre">descriptor_source_uri</span></code>
 value can be different than the uri of the resolved descriptor;
 this happens in the case when a descriptor uri is omitting
 the version number and tracking against the latest version
 number available.
-In that case, the <code class="docutils literal"><span class="pre">descriptor</span></code> key will contain the
+In that case, the <code class="docutils literal notranslate"><span class="pre">descriptor</span></code> key will contain the
 fully resolved descriptor object, representing the
 latest descriptor version as of right now, where as the
-<code class="docutils literal"><span class="pre">descriptor_source_uri</span></code> key contains the versionless descriptor
+<code class="docutils literal notranslate"><span class="pre">descriptor_source_uri</span></code> key contains the versionless descriptor
 uri string as it is defined in Shotgun.</p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>project</strong> (Dictionary with keys <code class="docutils literal"><span class="pre">type</span></code> and <code class="docutils literal"><span class="pre">id</span></code>.) &#8211; Project entity link to enumerate pipeline configurations for.
-If <code class="docutils literal"><span class="pre">None</span></code>, this will enumerate the pipeline configurations
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>project</strong> (Dictionary with keys <code class="docutils literal notranslate"><span class="pre">type</span></code> and <code class="docutils literal notranslate"><span class="pre">id</span></code>.) – Project entity link to enumerate pipeline configurations for.
+If <code class="docutils literal notranslate"><span class="pre">None</span></code>, this will enumerate the pipeline configurations
 for the site configuration.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of pipeline configurations.</td>
@@ -1424,7 +1448,7 @@ for the site configuration.</td>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">List of dictionaries with syntax described above.
 The pipeline configurations will always be sorted such as the primary pipeline configuration,
 if available, will be first. Then the remaining pipeline configurations will be sorted by
-<code class="docutils literal"><span class="pre">name</span></code> field (case insensitive), then the <code class="docutils literal"><span class="pre">project</span></code> field and finally then <code class="docutils literal"><span class="pre">id</span></code> field.</td>
+<code class="docutils literal notranslate"><span class="pre">name</span></code> field (case insensitive), then the <code class="docutils literal notranslate"><span class="pre">project</span></code> field and finally then <code class="docutils literal notranslate"><span class="pre">id</span></code> field.</td>
 </tr>
 </tbody>
 </table>
@@ -1435,11 +1459,11 @@ if available, will be first. Then the remaining pipeline configurations will be 
 <code class="descname">get_entity_from_environment</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/bootstrap/manager.html#ToolkitManager.get_entity_from_environment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.get_entity_from_environment" title="Permalink to this definition">¶</a></dt>
 <dd><p>Standardized environment variable retrieval.</p>
 <p>Helper method that looks for the standard environment variables
-<code class="docutils literal"><span class="pre">SHOTGUN_SITE</span></code>, <code class="docutils literal"><span class="pre">SHOTGUN_ENTITY_TYPE</span></code> and
-<code class="docutils literal"><span class="pre">SHOTGUN_ENTITY_ID</span></code> and attempts to extract and validate them.
-This is typically used in conjunction with <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.bootstrap_engine" title="sgtk.bootstrap.ToolkitManager.bootstrap_engine"><code class="xref py py-meth docutils literal"><span class="pre">bootstrap_engine()</span></code></a>.
+<code class="docutils literal notranslate"><span class="pre">SHOTGUN_SITE</span></code>, <code class="docutils literal notranslate"><span class="pre">SHOTGUN_ENTITY_TYPE</span></code> and
+<code class="docutils literal notranslate"><span class="pre">SHOTGUN_ENTITY_ID</span></code> and attempts to extract and validate them.
+This is typically used in conjunction with <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager.bootstrap_engine" title="sgtk.bootstrap.ToolkitManager.bootstrap_engine"><code class="xref py py-meth docutils literal notranslate"><span class="pre">bootstrap_engine()</span></code></a>.
 The standard environment variables read by this method can be
-generated by <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.get_standard_plugin_environment" title="sgtk.platform.SoftwareLauncher.get_standard_plugin_environment"><code class="xref py py-meth docutils literal"><span class="pre">get_standard_plugin_environment()</span></code></a>.</p>
+generated by <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.get_standard_plugin_environment" title="sgtk.platform.SoftwareLauncher.get_standard_plugin_environment"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_standard_plugin_environment()</span></code></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1459,7 +1483,7 @@ None if not defined.</td>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>project</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; The project entity, or None.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>project</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) – The project entity, or None.</td>
 </tr>
 </tbody>
 </table>
@@ -1470,11 +1494,11 @@ None if not defined.</td>
 <em class="property">static </em><code class="descname">get_core_python_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/bootstrap/manager.html#ToolkitManager.get_core_python_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.ToolkitManager.get_core_python_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the path to the current Toolkit core.</p>
 <p>The current Toolkit core is defined as the core that gets imported when you type
-<code class="docutils literal"><span class="pre">import</span> <span class="pre">sgtk</span></code> and the python path is derived from that module.</p>
-<p>For example, if the <code class="docutils literal"><span class="pre">sgtk</span></code> module was found at <code class="docutils literal"><span class="pre">/path/to/config/install/core/python/sgtk</span></code>,
-the return path would be <code class="docutils literal"><span class="pre">/path/to/config/install/core/python</span></code></p>
+<code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">sgtk</span></code> and the python path is derived from that module.</p>
+<p>For example, if the <code class="docutils literal notranslate"><span class="pre">sgtk</span></code> module was found at <code class="docutils literal notranslate"><span class="pre">/path/to/config/install/core/python/sgtk</span></code>,
+the return path would be <code class="docutils literal notranslate"><span class="pre">/path/to/config/install/core/python</span></code></p>
 <p>This can be useful if you want to hand down to a subprocess the location of the current
-process&#8217;s core, since <code class="docutils literal"><span class="pre">sys.path</span></code> and the <code class="docutils literal"><span class="pre">PYTHONPATH</span></code> are not updated after
+process’s core, since <code class="docutils literal notranslate"><span class="pre">sys.path</span></code> and the <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> are not updated after
 bootstrapping.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1496,38 +1520,38 @@ bootstrapping.</p>
 <dl class="class">
 <dt id="sgtk.bootstrap.TankBootstrapError">
 <em class="property">class </em><code class="descclassname">sgtk.bootstrap.</code><code class="descname">TankBootstrapError</code><a class="reference internal" href="_modules/tank/bootstrap/errors.html#TankBootstrapError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.TankBootstrapError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.errors.TankError</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.errors.TankError</span></code></p>
 <p>Base class for all bootstrap related errors</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="sgtk.bootstrap.TankMissingTankNameError">
 <em class="property">class </em><code class="descclassname">sgtk.bootstrap.</code><code class="descname">TankMissingTankNameError</code><a class="reference internal" href="_modules/tank/bootstrap/errors.html#TankMissingTankNameError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.bootstrap.TankMissingTankNameError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tank.bootstrap.errors.TankBootstrapError</span></code></p>
-<p>Raised when a project&#8217;s <code class="docutils literal"><span class="pre">tank_name</span></code> field is not set.</p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tank.bootstrap.errors.TankBootstrapError</span></code></p>
+<p>Raised when a project’s <code class="docutils literal notranslate"><span class="pre">tank_name</span></code> field is not set.</p>
 </dd></dl>
 
 </div>
 </div>
 <div class="section" id="installing-the-sgtk-module-using-pip">
 <h2>Installing the sgtk module using pip<a class="headerlink" href="#installing-the-sgtk-module-using-pip" title="Permalink to this headline">¶</a></h2>
-<p>When running Toolkit using the bootstrap API above, you need access to the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">ToolkitManager</span></code></a>
+<p>When running Toolkit using the bootstrap API above, you need access to the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ToolkitManager</span></code></a>
 class in order to kickstart the bootstrap process. Once you have started the bootstrap, Toolkit will
 download all the necessary components for the given configuration you are bootstrapping into,
 potentially even including a different version of the core API than you are using to bootstrap with.</p>
-<p>In order to fully automate this process programatically, you need an <code class="docutils literal"><span class="pre">sgtk</span></code> instance to begin with.
-One way to accomplish this is to use <code class="docutils literal"><span class="pre">pip</span></code> (see <a class="reference external" href="https://pip.pypa.io/">https://pip.pypa.io/</a>). Use the following syntax:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">shotgunsoftware</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="n">core</span><span class="nd">@VERSION</span>
+<p>In order to fully automate this process programatically, you need an <code class="docutils literal notranslate"><span class="pre">sgtk</span></code> instance to begin with.
+One way to accomplish this is to use <code class="docutils literal notranslate"><span class="pre">pip</span></code> (see <a class="reference external" href="https://pip.pypa.io/">https://pip.pypa.io/</a>). Use the following syntax:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">shotgunsoftware</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="n">core</span><span class="nd">@VERSION</span>
 </pre></div>
 </div>
-<p>Where you swap the <code class="docutils literal"><span class="pre">VERSION</span></code> text with the latest version in the format of <code class="docutils literal"><span class="pre">vx.x.x</span></code>.
-If you want to add an sgtk core to a <code class="docutils literal"><span class="pre">requirements.txt</span></code> file, use the following syntax:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">shotgunsoftware</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="n">core</span><span class="nd">@VERSION</span>
+<p>Where you swap the <code class="docutils literal notranslate"><span class="pre">VERSION</span></code> text with the latest version in the format of <code class="docutils literal notranslate"><span class="pre">vx.x.x</span></code>.
+If you want to add an sgtk core to a <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> file, use the following syntax:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">shotgunsoftware</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="n">core</span><span class="nd">@VERSION</span>
 </pre></div>
 </div>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
-<p class="last">In order to use <code class="docutils literal"><span class="pre">pip</span></code>, you currently need to have the git executable installed
+<p class="last">In order to use <code class="docutils literal notranslate"><span class="pre">pip</span></code>, you currently need to have the git executable installed
 on the system that you are deploying to.</p>
 </div>
 <div class="admonition warning">
@@ -1540,7 +1564,7 @@ likely to contain changes which have not yet been full tested.</p>
 </div>
 <div class="section" id="launching-software">
 <span id="id6"></span><h2>Launching Software<a class="headerlink" href="#launching-software" title="Permalink to this headline">¶</a></h2>
-<p>In order to run software integrations in the form of a Toolkit <a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal"><span class="pre">Engine</span></code></a>,
+<p>In order to run software integrations in the form of a Toolkit <a class="reference internal" href="platform.html#sgtk.platform.Engine" title="sgtk.platform.Engine"><code class="xref py py-class docutils literal notranslate"><span class="pre">Engine</span></code></a>,
 it is necessary to be able to easily launch the software and initialize Toolkit once
 the software environment.</p>
 <p>Toolkit offers a centralized set of APIs to make this task straight forward. Each engine
@@ -1553,22 +1577,22 @@ implements the following:</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">These APIs can be wrapped inside a Toolkit app or simliar in order
-to create a centralized launcher experience. The <code class="docutils literal"><span class="pre">tk-multi-launchapp</span></code> is
+to create a centralized launcher experience. The <code class="docutils literal notranslate"><span class="pre">tk-multi-launchapp</span></code> is
 an example of such an implementation.</p>
 </div>
 <div class="section" id="a-simple-launch-application">
 <h3>A Simple Launch Application<a class="headerlink" href="#a-simple-launch-application" title="Permalink to this headline">¶</a></h3>
 <p>The Toolkit core API provides an interface that custom applications can use to implement the business
 logic for launching DCC software related to a particular Toolkit engine. This interface is comprised
-of a factory method <a class="reference internal" href="#sgtk.platform.create_engine_launcher" title="sgtk.platform.create_engine_launcher"><code class="xref py py-meth docutils literal"><span class="pre">create_engine_launcher()</span></code></a> and classes <a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a>,
-<a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a>, and <a class="reference internal" href="#sgtk.platform.LaunchInformation" title="sgtk.platform.LaunchInformation"><code class="xref py py-class docutils literal"><span class="pre">LaunchInformation</span></code></a>. The factory method is called for a specific
+of a factory method <a class="reference internal" href="#sgtk.platform.create_engine_launcher" title="sgtk.platform.create_engine_launcher"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create_engine_launcher()</span></code></a> and classes <a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoftwareLauncher</span></code></a>,
+<a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoftwareVersion</span></code></a>, and <a class="reference internal" href="#sgtk.platform.LaunchInformation" title="sgtk.platform.LaunchInformation"><code class="xref py py-class docutils literal notranslate"><span class="pre">LaunchInformation</span></code></a>. The factory method is called for a specific
 engine in the environment configuration and returns a SoftwareLauncher subclass instance implemented
 by that engine.</p>
 <p>Methods on the launcher instance can be used to determine which versions of the DCC
 are installed on the local filesystem and the proper environment, including command line arguments,
 required for a successful launch.</p>
 <p>The following lines of python code demonstrate how to launch Maya using the core interface:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">subprocess</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">import</span> <span class="nn">sgtk</span>
 
 <span class="c1"># Create a Toolkit Core API instance based on a project path or</span>
@@ -1600,23 +1624,23 @@ required for a successful launch.</p>
 <h3>Engine Implementation<a class="headerlink" href="#engine-implementation" title="Permalink to this headline">¶</a></h3>
 <p>If you are writing a Toolkit software integration (an Engine), you should include logic for
 how the software is being launched and how Toolkit should initialize after launch. This is
-done by providing a subclass of <a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a>. This class should be
-located in a <code class="docutils literal"><span class="pre">startup.py</span></code> file at the engine root level, analogous to the
-<code class="docutils literal"><span class="pre">engine.py</span></code> file.</p>
+done by providing a subclass of <a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoftwareLauncher</span></code></a>. This class should be
+located in a <code class="docutils literal notranslate"><span class="pre">startup.py</span></code> file at the engine root level, analogous to the
+<code class="docutils literal notranslate"><span class="pre">engine.py</span></code> file.</p>
 <p>In addition to this, we recommend a convention where the startup scripts that launch Toolkit
-once the software is running are located in a <code class="docutils literal"><span class="pre">startup</span></code> folder.</p>
+once the software is running are located in a <code class="docutils literal notranslate"><span class="pre">startup</span></code> folder.</p>
 <img alt="_images/engine_files.png" src="_images/engine_files.png" />
-<p>Two methods should be implemented in the <code class="docutils literal"><span class="pre">startup.py</span></code> file:</p>
+<p>Two methods should be implemented in the <code class="docutils literal notranslate"><span class="pre">startup.py</span></code> file:</p>
 <ul class="simple">
-<li>The <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.scan_software" title="sgtk.platform.SoftwareLauncher.scan_software"><code class="xref py py-meth docutils literal"><span class="pre">SoftwareLauncher.scan_software()</span></code></a> method is responsible for discovering the executable
+<li>The <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.scan_software" title="sgtk.platform.SoftwareLauncher.scan_software"><code class="xref py py-meth docutils literal notranslate"><span class="pre">SoftwareLauncher.scan_software()</span></code></a> method is responsible for discovering the executable
 paths for the related software installed on the local filesystem and returns a list of
-<a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a> instances representing the executables found.</li>
-<li>The <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.prepare_launch" title="sgtk.platform.SoftwareLauncher.prepare_launch"><code class="xref py py-meth docutils literal"><span class="pre">SoftwareLauncher.prepare_launch()</span></code></a> method will be called before launch. It should return a
-<a class="reference internal" href="#sgtk.platform.LaunchInformation" title="sgtk.platform.LaunchInformation"><code class="xref py py-class docutils literal"><span class="pre">LaunchInformation</span></code></a> instance that contains all information required to successfully launch the
+<a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoftwareVersion</span></code></a> instances representing the executables found.</li>
+<li>The <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.prepare_launch" title="sgtk.platform.SoftwareLauncher.prepare_launch"><code class="xref py py-meth docutils literal notranslate"><span class="pre">SoftwareLauncher.prepare_launch()</span></code></a> method will be called before launch. It should return a
+<a class="reference internal" href="#sgtk.platform.LaunchInformation" title="sgtk.platform.LaunchInformation"><code class="xref py py-class docutils literal notranslate"><span class="pre">LaunchInformation</span></code></a> instance that contains all information required to successfully launch the
 DCC and startup the engine integration.</li>
 </ul>
-<p>A basic <code class="docutils literal"><span class="pre">startup.py</span></code> file for the Maya engine would contain the following:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sgtk.platform</span> <span class="kn">import</span> <span class="n">SoftwareLauncher</span><span class="p">,</span> <span class="n">SoftwareVersion</span><span class="p">,</span> <span class="n">LaunchInformation</span>
+<p>A basic <code class="docutils literal notranslate"><span class="pre">startup.py</span></code> file for the Maya engine would contain the following:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sgtk.platform</span> <span class="kn">import</span> <span class="n">SoftwareLauncher</span><span class="p">,</span> <span class="n">SoftwareVersion</span><span class="p">,</span> <span class="n">LaunchInformation</span>
 
 <span class="k">class</span> <span class="nc">MayaLauncher</span><span class="p">(</span><span class="n">SoftwareLauncher</span><span class="p">):</span>
 
@@ -1657,30 +1681,30 @@ DCC and startup the engine integration.</li>
 </div>
 <div class="section" id="after-software-launch">
 <h4>After software launch<a class="headerlink" href="#after-software-launch" title="Permalink to this headline">¶</a></h4>
-<p>Note how the <code class="docutils literal"><span class="pre">prepare_launch()</span></code> method in the example above modifies
-the <code class="docutils literal"><span class="pre">PYTHONPATH</span></code>. Later on as Maya is launching, it will look for a
-<code class="docutils literal"><span class="pre">userSetup.py</span></code> file in the <code class="docutils literal"><span class="pre">startup</span></code> folder. This file can then launch
-the actual Toolkit integration, typically using the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal"><span class="pre">sgtk.bootstrap.ToolkitManager</span></code></a>
+<p>Note how the <code class="docutils literal notranslate"><span class="pre">prepare_launch()</span></code> method in the example above modifies
+the <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code>. Later on as Maya is launching, it will look for a
+<code class="docutils literal notranslate"><span class="pre">userSetup.py</span></code> file in the <code class="docutils literal notranslate"><span class="pre">startup</span></code> folder. This file can then launch
+the actual Toolkit integration, typically using the <a class="reference internal" href="#sgtk.bootstrap.ToolkitManager" title="sgtk.bootstrap.ToolkitManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">sgtk.bootstrap.ToolkitManager</span></code></a>
 interfaces.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">How to initialize and run code at startup will vary from DCC to DCC.
 The supported Toolkit engines for Maya, Nuke, and Houdini are good reference implementations.</p>
 </div>
-<p>Also note how the example code above calls <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.get_standard_plugin_environment" title="sgtk.platform.SoftwareLauncher.get_standard_plugin_environment"><code class="xref py py-meth docutils literal"><span class="pre">get_standard_plugin_environment()</span></code></a>.
+<p>Also note how the example code above calls <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.get_standard_plugin_environment" title="sgtk.platform.SoftwareLauncher.get_standard_plugin_environment"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_standard_plugin_environment()</span></code></a>.
 This will include a set of default environment variables which can be picked up by the startup script
 and initialize Toolkit with the correct site, context etc.</p>
 </div>
 <div class="section" id="settings-and-configuration">
 <h4>Settings and configuration<a class="headerlink" href="#settings-and-configuration" title="Permalink to this headline">¶</a></h4>
 <p>You can access any engine settings defined in the environment using the
-<a class="reference internal" href="#sgtk.platform.SoftwareLauncher.get_setting" title="sgtk.platform.SoftwareLauncher.get_setting"><code class="xref py py-meth docutils literal"><span class="pre">SoftwareLauncher.get_setting()</span></code></a> method. This means that you can create
+<a class="reference internal" href="#sgtk.platform.SoftwareLauncher.get_setting" title="sgtk.platform.SoftwareLauncher.get_setting"><code class="xref py py-meth docutils literal notranslate"><span class="pre">SoftwareLauncher.get_setting()</span></code></a> method. This means that you can create
 a configurable launcher setup, following the exact same patterns that are used
 for engine settings.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">If you need to pass a setting into your startup script, read it in using the
-<a class="reference internal" href="#sgtk.platform.SoftwareLauncher.get_setting" title="sgtk.platform.SoftwareLauncher.get_setting"><code class="xref py py-meth docutils literal"><span class="pre">get_setting()</span></code></a> during <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.prepare_launch" title="sgtk.platform.SoftwareLauncher.prepare_launch"><code class="xref py py-meth docutils literal"><span class="pre">prepare_launch()</span></code></a> and
+<a class="reference internal" href="#sgtk.platform.SoftwareLauncher.get_setting" title="sgtk.platform.SoftwareLauncher.get_setting"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_setting()</span></code></a> during <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.prepare_launch" title="sgtk.platform.SoftwareLauncher.prepare_launch"><code class="xref py py-meth docutils literal notranslate"><span class="pre">prepare_launch()</span></code></a> and
 pass it as an environment variable into your startup script.</p>
 </div>
 </div>
@@ -1692,14 +1716,14 @@ pass it as an environment variable into your startup script.</p>
 <dl class="function">
 <dt id="sgtk.platform.create_engine_launcher">
 <code class="descclassname">sgtk.platform.</code><code class="descname">create_engine_launcher</code><span class="sig-paren">(</span><em>tk</em>, <em>context</em>, <em>engine_name</em>, <em>versions=None</em>, <em>products=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#create_engine_launcher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.create_engine_launcher" title="Permalink to this definition">¶</a></dt>
-<dd><p>Factory method that creates a <a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a> subclass
+<dd><p>Factory method that creates a <a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoftwareLauncher</span></code></a> subclass
 instance implemented by a toolkit engine in the environment config
 that can be used by a custom script or toolkit app. The engine
 subclass manages the business logic for DCC executable path
 discovery and the environmental requirements for launching the DCC.
-Toolkit is automatically started up during the DCC&#8217;s launch phase.
+Toolkit is automatically started up during the DCC’s launch phase.
 A very simple example of how this works is demonstrated here:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">subprocess</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sgtk</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tk</span> <span class="o">=</span> <span class="n">sgtk</span><span class="o">.</span><span class="n">sgtk_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">context</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">context_from_path</span><span class="p">(</span><span class="s2">&quot;/studio/project_root/sequences/AAA/ABC/Light/work&quot;</span><span class="p">)</span>
@@ -1713,8 +1737,8 @@ A very simple example of how this works is demonstrated here:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="n">launch_info</span><span class="o">.</span><span class="n">path</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">launch_info</span><span class="o">.</span><span class="n">args</span><span class="p">],</span> <span class="n">env</span><span class="o">=</span><span class="n">launch_info</span><span class="o">.</span><span class="n">environment</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>where <code class="docutils literal"><span class="pre">software_versions</span></code> is a list of <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a>
-instances and <code class="docutils literal"><span class="pre">launch_info</span></code> is a <a class="reference internal" href="#sgtk.platform.LaunchInformation" title="sgtk.platform.LaunchInformation"><code class="xref py py-class docutils literal"><span class="pre">LaunchInformation</span></code></a>
+<p>where <code class="docutils literal notranslate"><span class="pre">software_versions</span></code> is a list of <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoftwareVersion</span></code></a>
+instances and <code class="docutils literal notranslate"><span class="pre">launch_info</span></code> is a <a class="reference internal" href="#sgtk.platform.LaunchInformation" title="sgtk.platform.LaunchInformation"><code class="xref py py-class docutils literal notranslate"><span class="pre">LaunchInformation</span></code></a>
 instance. This example will launch the first version of Maya
 found installed on the local filesystem, automatically start
 the tk-maya engine for that Maya session, and open
@@ -1724,22 +1748,22 @@ the tk-maya engine for that Maya session, and open
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> Toolkit instance.</li>
-<li><strong>context</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> Context to launch the DCC in.</li>
-<li><strong>engine_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the Toolkit engine associated with
+<li><strong>tk</strong> – <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> Toolkit instance.</li>
+<li><strong>context</strong> – <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></a> Context to launch the DCC in.</li>
+<li><strong>engine_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Name of the Toolkit engine associated with
 the DCC(s) to launch.</li>
-<li><strong>versions</strong> (<em>list</em>) &#8211; A list of version strings for filtering software
-versions. See the <a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a> for more info.</li>
-<li><strong>products</strong> (<em>list</em>) &#8211; A list of product strings for filtering software
-versions. See the <a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a> for more info.</li>
+<li><strong>versions</strong> (<em>list</em>) – A list of version strings for filtering software
+versions. See the <a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoftwareLauncher</span></code></a> for more info.</li>
+<li><strong>products</strong> (<em>list</em>) – A list of product strings for filtering software
+versions. See the <a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoftwareLauncher</span></code></a> for more info.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal"><span class="pre">SoftwareLauncher</span></code></a> instance or <code class="docutils literal"><span class="pre">None</span></code> if the
-engine can be found on disk, but no <code class="docutils literal"><span class="pre">startup.py</span></code> file exists.</p>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference internal" href="#sgtk.platform.SoftwareLauncher" title="sgtk.platform.SoftwareLauncher"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoftwareLauncher</span></code></a> instance or <code class="docutils literal notranslate"><span class="pre">None</span></code> if the
+engine can be found on disk, but no <code class="docutils literal notranslate"><span class="pre">startup.py</span></code> file exists.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">TankError</span></code> if the specified engine cannot be found
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal notranslate"><span class="pre">TankError</span></code> if the specified engine cannot be found
 on disk.</p>
 </td>
 </tr>
@@ -1753,73 +1777,73 @@ on disk.</p>
 <dt id="sgtk.platform.SoftwareLauncher">
 <em class="property">class </em><code class="descclassname">sgtk.platform.</code><code class="descname">SoftwareLauncher</code><span class="sig-paren">(</span><em>tk</em>, <em>context</em>, <em>engine_name</em>, <em>env</em>, <em>versions=None</em>, <em>products=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareLauncher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.SoftwareLauncher" title="Permalink to this definition">¶</a></dt>
 <dd><p>Functionality related to the discovery and launch of a DCC. This class
-should only be constructed through the <a class="reference internal" href="#sgtk.platform.create_engine_launcher" title="sgtk.platform.create_engine_launcher"><code class="xref py py-meth docutils literal"><span class="pre">create_engine_launcher()</span></code></a>
+should only be constructed through the <a class="reference internal" href="#sgtk.platform.create_engine_launcher" title="sgtk.platform.create_engine_launcher"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create_engine_launcher()</span></code></a>
 factory method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>tk</strong> &#8211; <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> Toolkit instance</li>
-<li><strong>context</strong> &#8211; A <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> object to define the
+<li><strong>tk</strong> – <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> Toolkit instance</li>
+<li><strong>context</strong> – A <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></a> object to define the
 context on disk where the engine is operating.</li>
-<li><strong>engine_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Name of the Toolkit engine associated
+<li><strong>engine_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Name of the Toolkit engine associated
 with the DCC(s) to launch.</li>
-<li><strong>env</strong> &#8211; An <code class="xref py py-class docutils literal"><span class="pre">Environment</span></code> object to
+<li><strong>env</strong> – An <code class="xref py py-class docutils literal notranslate"><span class="pre">Environment</span></code> object to
 associate with this launcher.</li>
-<li><strong>versions</strong> (<em>list</em>) &#8211; List of strings representing versions to search
-for. If set to <code class="docutils literal"><span class="pre">None</span></code> or <code class="docutils literal"><span class="pre">[]</span></code>, search for all versions. A version string
-is DCC-specific but could be something like &#8220;2017&#8221;, &#8220;6.3v7&#8221; or
-&#8220;1.2.3.52&#8221;</li>
-<li><strong>products</strong> (<em>list</em>) &#8211; List of strings representing product names to
-search for. If set to <code class="docutils literal"><span class="pre">None</span></code> or <code class="docutils literal"><span class="pre">[]</span></code>, search for all products. A product
-string is DCC-specific but could be something like &#8220;Houdini FX&#8221;,
-&#8220;Houdini Core&#8221; or &#8220;Houdini&#8221;</li>
+<li><strong>versions</strong> (<em>list</em>) – List of strings representing versions to search
+for. If set to <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">[]</span></code>, search for all versions. A version string
+is DCC-specific but could be something like “2017”, “6.3v7” or
+“1.2.3.52”</li>
+<li><strong>products</strong> (<em>list</em>) – List of strings representing product names to
+search for. If set to <code class="docutils literal notranslate"><span class="pre">None</span></code> or <code class="docutils literal notranslate"><span class="pre">[]</span></code>, search for all products. A product
+string is DCC-specific but could be something like “Houdini FX”,
+“Houdini Core” or “Houdini”</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>The following methods can be used by subclasses to help implement <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.scan_software" title="sgtk.platform.SoftwareLauncher.scan_software"><code class="xref py py-meth docutils literal"><span class="pre">scan_software()</span></code></a>.</p>
+<p>The following methods can be used by subclasses to help implement <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.scan_software" title="sgtk.platform.SoftwareLauncher.scan_software"><code class="xref py py-meth docutils literal notranslate"><span class="pre">scan_software()</span></code></a>.</p>
 <dl class="method">
 <dt id="sgtk.platform.SoftwareLauncher._is_supported">
 <code class="descname">_is_supported</code><span class="sig-paren">(</span><em>sw_version</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareLauncher._is_supported"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.SoftwareLauncher._is_supported" title="Permalink to this definition">¶</a></dt>
-<dd><p>Inspects the supplied <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a> object to see if it
-aligns with this launcher&#8217;s known product and version limitations. Will
-check the <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.minimum_supported_version" title="sgtk.platform.SoftwareLauncher.minimum_supported_version"><code class="xref py py-meth docutils literal"><span class="pre">minimum_supported_version()</span></code></a> as well as the list of
+<dd><p>Inspects the supplied <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoftwareVersion</span></code></a> object to see if it
+aligns with this launcher’s known product and version limitations. Will
+check the <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.minimum_supported_version" title="sgtk.platform.SoftwareLauncher.minimum_supported_version"><code class="xref py py-meth docutils literal notranslate"><span class="pre">minimum_supported_version()</span></code></a> as well as the list of
 product and version filters.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sw_version</strong> &#8211; <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a> object to test against the
-launcher&#8217;s product and version limitations.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sw_version</strong> – <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoftwareVersion</span></code></a> object to test against the
+launcher’s product and version limitations.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A tuple of the form: <code class="docutils literal"><span class="pre">(bool,</span> <span class="pre">str)</span></code> where the first item
-is a boolean indicating whether the supplied <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a> is
-supported or not. The second argument is <code class="docutils literal"><span class="pre">&quot;&quot;</span></code> if supported, but if
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A tuple of the form: <code class="docutils literal notranslate"><span class="pre">(bool,</span> <span class="pre">str)</span></code> where the first item
+is a boolean indicating whether the supplied <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoftwareVersion</span></code></a> is
+supported or not. The second argument is <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> if supported, but if
 not supported will be a string representing the reason the support
 check failed.</td>
 </tr>
 </tbody>
 </table>
-<p>This helper method can be used by subclasses in the <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.scan_software" title="sgtk.platform.SoftwareLauncher.scan_software"><code class="xref py py-meth docutils literal"><span class="pre">scan_software()</span></code></a>
+<p>This helper method can be used by subclasses in the <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.scan_software" title="sgtk.platform.SoftwareLauncher.scan_software"><code class="xref py py-meth docutils literal notranslate"><span class="pre">scan_software()</span></code></a>
 method.</p>
 <p>The method can be overridden by subclasses that require more
-sophisticated <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a> support checks.</p>
+sophisticated <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoftwareVersion</span></code></a> support checks.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="sgtk.platform.SoftwareLauncher._glob_and_match">
 <code class="descname">_glob_and_match</code><span class="sig-paren">(</span><em>match_template</em>, <em>template_key_expressions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareLauncher._glob_and_match"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.SoftwareLauncher._glob_and_match" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is a helper method that can be invoked in an implementation of <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.scan_software" title="sgtk.platform.SoftwareLauncher.scan_software"><code class="xref py py-meth docutils literal"><span class="pre">scan_software()</span></code></a>.</p>
-<p>The <code class="docutils literal"><span class="pre">match_template</span></code> argument provides a template to use both for globbing files and then pattern
-matching them using regular expressions provided by the <code class="docutils literal"><span class="pre">tokens_expressions</span></code> dictionary.</p>
-<p>The method will first substitute every token surrounded by <code class="docutils literal"><span class="pre">{}</span></code> from the template with a <code class="docutils literal"><span class="pre">*</span></code>
+<dd><p>This is a helper method that can be invoked in an implementation of <a class="reference internal" href="#sgtk.platform.SoftwareLauncher.scan_software" title="sgtk.platform.SoftwareLauncher.scan_software"><code class="xref py py-meth docutils literal notranslate"><span class="pre">scan_software()</span></code></a>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">match_template</span></code> argument provides a template to use both for globbing files and then pattern
+matching them using regular expressions provided by the <code class="docutils literal notranslate"><span class="pre">tokens_expressions</span></code> dictionary.</p>
+<p>The method will first substitute every token surrounded by <code class="docutils literal notranslate"><span class="pre">{}</span></code> from the template with a <code class="docutils literal notranslate"><span class="pre">*</span></code>
 for globbing files. It will then replace the tokens in the template with the regular expressions
 that were provided.</p>
 <p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_glob_and_match</span><span class="p">(</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_glob_and_match</span><span class="p">(</span>
     <span class="s2">&quot;C:</span><span class="se">\\</span><span class="s2">Program Files</span><span class="se">\\</span><span class="s2">Nuke</span><span class="si">{full_version}</span><span class="se">\\</span><span class="s2">Nuke</span><span class="si">{major_minor_version}</span><span class="s2">.exe&quot;</span><span class="p">,</span>
     <span class="p">{</span>
         <span class="s2">&quot;full_version&quot;</span><span class="p">:</span> <span class="sa">r</span><span class="s2">&quot;[\d.v]+&quot;</span><span class="p">,</span>
@@ -1828,11 +1852,11 @@ that were provided.</p>
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>The example above would look for every file matching the glob <code class="docutils literal"><span class="pre">C:\Program</span> <span class="pre">Files\softwares\Nuke*\Nuke*.exe</span></code>
-and then run the regular expression <code class="docutils literal"><span class="pre">C:\\Program</span> <span class="pre">Files\\Nuke([\d.v]+)\\Nuke([\d.]+).exe</span></code>
-on each match. Each match will be comprised of a path and a dictionary with they token&#8217;s value.</p>
+<p>The example above would look for every file matching the glob <code class="docutils literal notranslate"><span class="pre">C:\Program</span> <span class="pre">Files\softwares\Nuke*\Nuke*.exe</span></code>
+and then run the regular expression <code class="docutils literal notranslate"><span class="pre">C:\\Program</span> <span class="pre">Files\\Nuke([\d.v]+)\\Nuke([\d.]+).exe</span></code>
+on each match. Each match will be comprised of a path and a dictionary with they token’s value.</p>
 <p>For example, if Nuke 10.0v1 was installed, the following would have been returned:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[(</span><span class="s2">&quot;C:</span><span class="se">\\</span><span class="s2">Program Files</span><span class="se">\\</span><span class="s2">Nuke10.0v1</span><span class="se">\\</span><span class="s2">Nuke10.1.exe&quot;</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[(</span><span class="s2">&quot;C:</span><span class="se">\\</span><span class="s2">Program Files</span><span class="se">\\</span><span class="s2">Nuke10.0v1</span><span class="se">\\</span><span class="s2">Nuke10.1.exe&quot;</span><span class="p">,</span>
   <span class="p">{</span><span class="s2">&quot;full_version&quot;</span><span class="p">:</span> <span class="s2">&quot;10.0v1&quot;</span><span class="p">,</span> <span class="s2">&quot;major_minor_version&quot;</span><span class="o">=</span><span class="s2">&quot;10.0&quot;</span><span class="p">})]</span>
 </pre></div>
 </div>
@@ -1841,14 +1865,14 @@ on each match. Each match will be comprised of a path and a dictionary with they
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>match_template</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; String template that will be used both for globbing and performing
+<li><strong>match_template</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – String template that will be used both for globbing and performing
 a regular expression.</li>
-<li><strong>template_key_expressions</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; Dictionary of regular expressions that can be substituted
+<li><strong>template_key_expressions</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) – Dictionary of regular expressions that can be substituted
 in the template. The key should be the name of the token to substitute.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A list of tuples containing the path and a dictionary with each token&#8217;s value.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A list of tuples containing the path and a dictionary with each token’s value.</p>
 </td>
 </tr>
 </tbody>
@@ -1858,13 +1882,13 @@ in the template. The key should be the name of the token to substitute.</li>
 <dl class="attribute">
 <dt id="sgtk.platform.SoftwareLauncher.context">
 <code class="descname">context</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.context" title="Permalink to this definition">¶</a></dt>
-<dd><p>The <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal"><span class="pre">Context</span></code></a> associated with this launcher.</p>
+<dd><p>The <a class="reference internal" href="core.html#sgtk.Context" title="sgtk.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">Context</span></code></a> associated with this launcher.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="sgtk.platform.SoftwareLauncher.sgtk">
 <code class="descname">sgtk</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.sgtk" title="Permalink to this definition">¶</a></dt>
-<dd><p>The <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal"><span class="pre">Sgtk</span></code></a> instance associated with this item</p>
+<dd><p>The <a class="reference internal" href="core.html#sgtk.Sgtk" title="sgtk.Sgtk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sgtk</span></code></a> instance associated with this item</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1873,7 +1897,7 @@ in the template. The key should be the name of the token to substitute.</li>
 <dd><p>The folder on disk where this item is located.
 This can be useful if you want to write app code
 to retrieve a local resource:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">app_font</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">&quot;resources&quot;</span><span class="p">,</span> <span class="s2">&quot;font.fnt&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">app_font</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">disk_location</span><span class="p">,</span> <span class="s2">&quot;resources&quot;</span><span class="p">,</span> <span class="s2">&quot;font.fnt&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1882,7 +1906,7 @@ to retrieve a local resource:</p>
 <dt id="sgtk.platform.SoftwareLauncher.display_name">
 <code class="descname">display_name</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.display_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>The display name for the item. Automatically
-appends &#8216;Startup&#8217; to the end of the display
+appends ‘Startup’ to the end of the display
 name if that string is missing from the display
 name (e.g. Maya Engine Startup)</p>
 </dd></dl>
@@ -1890,21 +1914,21 @@ name (e.g. Maya Engine Startup)</p>
 <dl class="attribute">
 <dt id="sgtk.platform.SoftwareLauncher.engine_name">
 <code class="descname">engine_name</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.engine_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the toolkit engine name this launcher is based on as a <code class="docutils literal"><span class="pre">str</span></code>.</p>
+<dd><p>Returns the toolkit engine name this launcher is based on as a <code class="docutils literal notranslate"><span class="pre">str</span></code>.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="sgtk.platform.SoftwareLauncher.logger">
 <code class="descname">logger</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.logger" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="https://docs.python.org/2/library/logging.html#logging.Logger" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">Logger</span></code></a> for this launcher. Use this whenever you want to emit or process log messages.</p>
+<dd><p><a class="reference external" href="https://docs.python.org/2/library/logging.html#logging.Logger" title="(in Python v2.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Logger</span></code></a> for this launcher. Use this whenever you want to emit or process log messages.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="sgtk.platform.SoftwareLauncher.shotgun">
 <code class="descname">shotgun</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.shotgun" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="xref py py-class docutils literal"><span class="pre">shotgun_api3.Shotgun</span></code> handle associated with the currently running
+<dd><p><code class="xref py py-class docutils literal notranslate"><span class="pre">shotgun_api3.Shotgun</span></code> handle associated with the currently running
 environment. This method is a convenience method that calls out
-to <code class="xref py py-meth docutils literal"><span class="pre">shotgun()</span></code>.</p>
+to <code class="xref py py-meth docutils literal notranslate"><span class="pre">shotgun()</span></code>.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1912,7 +1936,7 @@ to <code class="xref py py-meth docutils literal"><span class="pre">shotgun()</s
 <code class="descname">minimum_supported_version</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.minimum_supported_version" title="Permalink to this definition">¶</a></dt>
 <dd><p>The minimum software version that is supported by the launcher.
 Returned as a string, for example <cite>2015</cite> or <cite>2015.3.sp3</cite>.
-Returns <code class="docutils literal"><span class="pre">None</span></code> if no constraint has been set.</p>
+Returns <code class="docutils literal notranslate"><span class="pre">None</span></code> if no constraint has been set.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1920,7 +1944,7 @@ Returns <code class="docutils literal"><span class="pre">None</span></code> if n
 <code class="descname">products</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.products" title="Permalink to this definition">¶</a></dt>
 <dd><p>A list of product names limiting executable discovery.</p>
 <p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;Houdini&quot;</span><span class="p">,</span> <span class="s2">&quot;Houdini Core&quot;</span><span class="p">,</span> <span class="s2">&quot;Houdini FX&quot;</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;Houdini&quot;</span><span class="p">,</span> <span class="s2">&quot;Houdini Core&quot;</span><span class="p">,</span> <span class="s2">&quot;Houdini FX&quot;</span><span class="p">]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1930,7 +1954,7 @@ Returns <code class="docutils literal"><span class="pre">None</span></code> if n
 <code class="descname">versions</code><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.versions" title="Permalink to this definition">¶</a></dt>
 <dd><p>A list of versions limiting executable discovery.</p>
 <p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;15.5.324&quot;</span><span class="p">,</span> <span class="s2">&quot;16.0.1.322&quot;</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">&quot;15.5.324&quot;</span><span class="p">,</span> <span class="s2">&quot;16.0.1.322&quot;</span><span class="p">]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1956,14 +1980,14 @@ args.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>exec_path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Path to DCC executable to launch</li>
-<li><strong>args</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Command line arguments as strings</li>
-<li><strong>file_to_open</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; (optional) Full path name of a file to open on
+<li><strong>exec_path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Path to DCC executable to launch</li>
+<li><strong>args</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Command line arguments as strings</li>
+<li><strong>file_to_open</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – (optional) Full path name of a file to open on
 launch</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.platform.LaunchInformation" title="sgtk.platform.LaunchInformation"><code class="xref py py-class docutils literal"><span class="pre">LaunchInformation</span></code></a> instance</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#sgtk.platform.LaunchInformation" title="sgtk.platform.LaunchInformation"><code class="xref py py-class docutils literal notranslate"><span class="pre">LaunchInformation</span></code></a> instance</p>
 </td>
 </tr>
 </tbody>
@@ -1973,8 +1997,8 @@ launch</li>
 <dl class="method">
 <dt id="sgtk.platform.SoftwareLauncher.get_setting">
 <code class="descname">get_setting</code><span class="sig-paren">(</span><em>key</em>, <em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareLauncher.get_setting"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.get_setting" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get a value from the item&#8217;s settings:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">app</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s1">&#39;entity_types&#39;</span><span class="p">)</span>
+<dd><p>Get a value from the item’s settings:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">app</span><span class="o">.</span><span class="n">get_setting</span><span class="p">(</span><span class="s1">&#39;entity_types&#39;</span><span class="p">)</span>
 <span class="go">[&#39;Sequence&#39;, &#39;Shot&#39;, &#39;Asset&#39;, &#39;Task&#39;]</span>
 </pre></div>
 </div>
@@ -1983,8 +2007,8 @@ launch</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>key</strong> &#8211; config name</li>
-<li><strong>default</strong> &#8211; default value to return</li>
+<li><strong>key</strong> – config name</li>
+<li><strong>default</strong> – default value to return</li>
 </ul>
 </td>
 </tr>
@@ -2002,11 +2026,11 @@ launch</li>
 plugins to utilize. This will compute the following
 environment variables:</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">SHOTGUN_SITE</span></code>: Derived from the Toolkit instance&#8217;s site url</li>
-<li><code class="docutils literal"><span class="pre">SHOTGUN_ENTITY_TYPE</span></code>: Derived from the current context</li>
-<li><code class="docutils literal"><span class="pre">SHOTGUN_ENTITY_ID</span></code>: Derived from the current context</li>
-<li><code class="docutils literal"><span class="pre">SHOTGUN_PIPELINE_CONFIGURATION_ID</span></code>: Derived from the current pipeline config id</li>
-<li><code class="docutils literal"><span class="pre">SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS</span></code>: Derived from the curent pipeline configuration&#8217;s list of bundle cache fallback paths.</li>
+<li><code class="docutils literal notranslate"><span class="pre">SHOTGUN_SITE</span></code>: Derived from the Toolkit instance’s site url</li>
+<li><code class="docutils literal notranslate"><span class="pre">SHOTGUN_ENTITY_TYPE</span></code>: Derived from the current context</li>
+<li><code class="docutils literal notranslate"><span class="pre">SHOTGUN_ENTITY_ID</span></code>: Derived from the current context</li>
+<li><code class="docutils literal notranslate"><span class="pre">SHOTGUN_PIPELINE_CONFIGURATION_ID</span></code>: Derived from the current pipeline config id</li>
+<li><code class="docutils literal notranslate"><span class="pre">SHOTGUN_BUNDLE_CACHE_FALLBACK_PATHS</span></code>: Derived from the curent pipeline configuration’s list of bundle cache fallback paths.</li>
 </ul>
 <p>These environment variables are set when launching a new process to capture the state of
 Toolkit so we can launch in the same environment. It ensures subprocesses have access to the
@@ -2025,15 +2049,15 @@ same bundle caches, which allows to reuse already cached bundles.</p>
 <dt id="sgtk.platform.SoftwareLauncher.scan_software">
 <code class="descname">scan_software</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tank/platform/software_launcher.html#SoftwareLauncher.scan_software"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sgtk.platform.SoftwareLauncher.scan_software" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs a search for supported software installations.</p>
-<p>Typical implementations will use functionality such as <a class="reference internal" href="#sgtk.platform.SoftwareLauncher._glob_and_match" title="sgtk.platform.SoftwareLauncher._glob_and_match"><code class="xref py py-meth docutils literal"><span class="pre">_glob_and_match()</span></code></a>
-or <code class="xref py py-meth docutils literal"><span class="pre">glob.glob()</span></code> to locate all versions and variations of executables on disk
-and then create <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a> objects for each executable and check against the launcher&#8217;s
-lists of supported version and product variations via the <a class="reference internal" href="#sgtk.platform.SoftwareLauncher._is_supported" title="sgtk.platform.SoftwareLauncher._is_supported"><code class="xref py py-meth docutils literal"><span class="pre">_is_supported()</span></code></a> method.</p>
+<p>Typical implementations will use functionality such as <a class="reference internal" href="#sgtk.platform.SoftwareLauncher._glob_and_match" title="sgtk.platform.SoftwareLauncher._glob_and_match"><code class="xref py py-meth docutils literal notranslate"><span class="pre">_glob_and_match()</span></code></a>
+or <code class="xref py py-meth docutils literal notranslate"><span class="pre">glob.glob()</span></code> to locate all versions and variations of executables on disk
+and then create <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoftwareVersion</span></code></a> objects for each executable and check against the launcher’s
+lists of supported version and product variations via the <a class="reference internal" href="#sgtk.platform.SoftwareLauncher._is_supported" title="sgtk.platform.SoftwareLauncher._is_supported"><code class="xref py py-meth docutils literal notranslate"><span class="pre">_is_supported()</span></code></a> method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a> supported by this launcher.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoftwareVersion</span></code></a> supported by this launcher.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
@@ -2056,15 +2080,15 @@ are useful for Toolkit Engine Startup functionality.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Explicit version of the DCC represented
+<li><strong>version</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Explicit version of the DCC represented
 (e.g. 2017)</li>
-<li><strong>product</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Explicit product name of the DCC represented
-(e.g. &#8220;Houdini Apprentice&#8221;)</li>
-<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Full path to the DCC executable.</li>
-<li><strong>icon</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; (optional) Full path to a 256x256 (or smaller)
-<code class="docutils literal"><span class="pre">png</span></code> file to use for graphical displays of
-this <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a>.</li>
-<li><strong>args</strong> (<em>list</em>) &#8211; (optional) List of command line arguments
+<li><strong>product</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Explicit product name of the DCC represented
+(e.g. “Houdini Apprentice”)</li>
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Full path to the DCC executable.</li>
+<li><strong>icon</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – (optional) Full path to a 256x256 (or smaller)
+<code class="docutils literal notranslate"><span class="pre">png</span></code> file to use for graphical displays of
+this <a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoftwareVersion</span></code></a>.</li>
+<li><strong>args</strong> (<em>list</em>) – (optional) List of command line arguments
 that need to be passed down to the DCC.</li>
 </ul>
 </td>
@@ -2089,7 +2113,7 @@ that need to be passed down to the DCC.</li>
 <dt id="sgtk.platform.SoftwareVersion.product">
 <code class="descname">product</code><a class="headerlink" href="#sgtk.platform.SoftwareVersion.product" title="Permalink to this definition">¶</a></dt>
 <dd><p>An explicit product name for the DCC represented by this
-:class`SoftwareVersion`. Example: &#8220;Houdini FX&#8221;</p>
+:class`SoftwareVersion`. Example: “Houdini FX”</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2132,7 +2156,7 @@ that need to be passed down to the DCC.</li>
 <dt id="sgtk.platform.SoftwareVersion.icon">
 <code class="descname">icon</code><a class="headerlink" href="#sgtk.platform.SoftwareVersion.icon" title="Permalink to this definition">¶</a></dt>
 <dd><p>Path to the icon to use for graphical displays of this
-<a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal"><span class="pre">SoftwareVersion</span></code></a>. Expected to be a 256x256 (or smaller)
+<a class="reference internal" href="#sgtk.platform.SoftwareVersion" title="sgtk.platform.SoftwareVersion"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoftwareVersion</span></code></a>. Expected to be a 256x256 (or smaller)
 <cite>png</cite> file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2169,23 +2193,23 @@ that need to be passed down to the DCC.</li>
 <dd><p>Stores blueprints for how to launch a specific DCC which includes
 required environment variables, the executable path, and command
 line arguments to pass when launching the DCC. For example, given
-a LaunchInformation instance <code class="docutils literal"><span class="pre">launch_info</span></code>, open a DCC using
-<code class="docutils literal"><span class="pre">subprocess</span></code>:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">launch_cmd</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">launch_info</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">launch_info</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+a LaunchInformation instance <code class="docutils literal notranslate"><span class="pre">launch_info</span></code>, open a DCC using
+<code class="docutils literal notranslate"><span class="pre">subprocess</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">launch_cmd</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">launch_info</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">launch_info</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="n">launch_cmd</span><span class="p">],</span> <span class="n">env</span><span class="o">=</span><span class="n">launch_info</span><span class="o">.</span><span class="n">environment</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>A LaunchInformation instance is generally obtained from an engine&#8217;s
-subclass implementation of <code class="xref py py-meth docutils literal"><span class="pre">SoftwareLauncher.prepare_launch`()</span></code></p>
+<p>A LaunchInformation instance is generally obtained from an engine’s
+subclass implementation of <code class="xref py py-meth docutils literal notranslate"><span class="pre">SoftwareLauncher.prepare_launch`()</span></code></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Resolved path to DCC</li>
-<li><strong>args</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Args to pass on the command line
+<li><strong>path</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Resolved path to DCC</li>
+<li><strong>args</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) – Args to pass on the command line
 when launching the DCC</li>
-<li><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; Environment variables that
+<li><strong>environ</strong> (<a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) – Environment variables that
 must be set to successfully
 launch the DCC.</li>
 </ul>
@@ -2245,15 +2269,16 @@ launching DCC.</p>
 
 
            </div>
+           
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="core.html" class="btn btn-neutral float-right" title="Core" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="core.html" class="btn btn-neutral float-right" title="Core" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="overview.html" class="btn btn-neutral" title="Overview" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="overview.html" class="btn btn-neutral float-left" title="Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -2262,7 +2287,7 @@ launching DCC.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Autodesk.
+        &copy; Copyright 2021, Autodesk
 
     </p>
   </div> 
@@ -2278,35 +2303,15 @@ launching DCC.</p>
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'v0.19.18',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
+
+  
+  
+    
   
  
 
