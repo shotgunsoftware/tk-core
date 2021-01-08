@@ -490,7 +490,7 @@ class TankTestBase(unittest.TestCase):
             self.pipeline_config_root,
             self.project_config,
             self.tk,
-        ) = self.create_pipeline_configuration(self.project)
+        ) = self.create_pipeline_configuration(self.project, {"code": "Primary"})
 
         if self._do_io:
             # add the project root to the production path (once self.tk is initialized)
@@ -860,7 +860,7 @@ class TankTestBase(unittest.TestCase):
         )
         print("")
 
-    def create_pipeline_configuration(self, project):
+    def create_pipeline_configuration(self, project, pipeline_config_properties):
         """
         Convenience method to create a new pipeline configuration object.
         """
@@ -905,6 +905,7 @@ class TankTestBase(unittest.TestCase):
             "mac_path": pipeline_config_root,
             "linux_path": pipeline_config_root,
         }
+        sg_pc_entity.update(pipeline_config_properties)
         self.add_to_sg_mock_db(sg_pc_entity)
 
         # add files needed by the pipeline config
