@@ -49,6 +49,7 @@ class TestShotgunFindPublish(TankTestBase):
         to pass in as callbacks to Schema.create_folders. The mock objects are
         then queried to see what paths the code attempted to create.
         """
+
         super(TestShotgunFindPublish, self).setUp()
 
         project_name = os.path.basename(self.project_root)
@@ -90,13 +91,64 @@ class TestShotgunFindPublish(TankTestBase):
             "created_at": datetime.datetime(2012, 10, 13, 12, 2),
             "path_cache_storage": self.primary_storage,
         }
-        # Add these to mocked shotgun
-        self.add_to_sg_mock_db([self.pub_1, self.pub_2, self.pub_3, self.pub_4])
+
+        # Create another project and add it to the mock database to test
+        # finding publishes across multiple projects.
+        self.proj_2, self.proj_2_root = self.create_project({"name": "second project"})
+        self.proj_2_name = os.path.basename(self.proj_2_root)
+
+        # Add publishes to the project that was just created.
+        self.proj_2_pub_1 = {
+            "type": "PublishedFile",
+            "code": "hello",
+            "path_cache": "%s/foo/bar" % self.proj_2_name,
+            "created_at": datetime.datetime(2012, 10, 12, 12, 1),
+            "path_cache_storage": self.primary_storage,
+        }
+
+        # publish matching older publish
+        self.proj_2_pub_2 = {
+            "type": "PublishedFile",
+            "code": "more recent",
+            "path_cache": "%s/foo/bar" % self.proj_2_name,
+            "created_at": datetime.datetime(2012, 10, 13, 12, 1),
+            "path_cache_storage": self.primary_storage,
+        }
+
+        self.proj_2_pub_3 = {
+            "type": "PublishedFile",
+            "code": "world",
+            "path_cache": "%s/foo/baz" % self.proj_2_name,
+            "created_at": datetime.datetime(2012, 10, 13, 12, 2),
+            "path_cache_storage": self.primary_storage,
+        }
+
+        self.proj_2_pub_4 = {
+            "type": "PublishedFile",
+            "code": "sequence_file",
+            "path_cache": "%s/foo/seq_%%03d.ext" % self.proj_2_name,
+            "created_at": datetime.datetime(2012, 10, 13, 12, 2),
+            "path_cache_storage": self.primary_storage,
+        }
+
+        # Add all the publishes to mocked shotgun
+        self.add_to_sg_mock_db(
+            [
+                self.pub_1,
+                self.pub_2,
+                self.pub_3,
+                self.pub_4,
+                self.proj_2_pub_1,
+                self.proj_2_pub_2,
+                self.proj_2_pub_3,
+                self.proj_2_pub_4,
+            ]
+        )
 
     def test_find(self):
         paths = [os.path.join(self.project_root, "foo", "bar")]
         d = tank.util.find_publish(self.tk, paths)
-        self.assertEqual(len(d), 1)
+        self.assertEqual(len(d), len(paths))
         self.assertEqual(set(d.keys()), set(paths))
         # make sure we got the latest matching publish
         sg_data = d.get(paths[0])
@@ -201,6 +253,46 @@ class TestShotgunFindPublish(TankTestBase):
             ),
         )
 
+    def test_find_paths_from_multiple_projects(self):
+        paths = [
+            os.path.join(self.project_root, "foo", "bar"),
+            os.path.join(self.proj_2_root, "foo", "bar"),
+        ]
+        d = tank.util.find_publish(self.tk, paths)
+        d2 = tank.util.find_publish(self.tk, paths, only_current_project=True)
+        # make sure passing no value for param 'only_current_project' behaves the
+        # same as passing only_current_project=True
+        assert d == d2
+        # publishes are found only from current project, so we expect the result
+        # to be the same as in `test_find`
+        assert len(d) == 1
+        assert set(d.keys()) == set(paths[:1])
+        # make sure we got the latest matching publish
+        sg_data = d.get(paths[0])
+        assert sg_data["id"] == self.pub_2["id"]
+        assert sg_data["type"] == self.pub_2["type"]
+        # make sure we are only getting the ID back.
+        assert set(sg_data.keys()) == set(("type", "id"))
+
+    def test_find_not_only_current_project(self):
+        paths = [
+            os.path.join(self.project_root, "foo", "bar"),
+            os.path.join(self.proj_2_root, "foo", "bar"),
+        ]
+        d = tank.util.find_publish(self.tk, paths, only_current_project=False)
+        # make sure we found both publishes from two different projects
+        assert len(d) == len(paths)
+        assert set(d.keys()) == set(paths)
+        # make sure we got the latest matching publish
+        sg_data = d.get(paths[0])
+        assert sg_data["id"] == self.pub_2["id"]
+        assert sg_data["type"] == self.pub_2["type"]
+        sg_data = d.get(paths[1])
+        assert sg_data["id"] == self.proj_2_pub_2["id"]
+        assert sg_data["type"] == self.proj_2_pub_2["type"]
+        # make sure we are only getting the ID back.
+        assert set(sg_data.keys()) == set(("type", "id"))
+
 
 class TestMultiRoot(TankTestBase):
     def setUp(self):
@@ -208,57 +300,44 @@ class TestMultiRoot(TankTestBase):
         self.setup_multi_root_fixtures()
 
     def test_multi_root(self):
-
         project_name = os.path.basename(self.project_root)
-
-        self.pub_5 = {
+        publish = {
             "type": "PublishedFile",
-            "id": 5,
             "code": "other storage",
             "path_cache": "%s/foo/bar" % project_name,
             "created_at": datetime.datetime(2012, 10, 12, 12, 1),
             "path_cache_storage": self.alt_storage_1,
         }
-
         # Add these to mocked shotgun
-        self.add_to_sg_mock_db([self.pub_5])
-
+        self.add_to_sg_mock_db([publish])
         paths = [os.path.join(self.alt_root_1, "foo", "bar")]
         d = tank.util.find_publish(self.tk, paths)
         self.assertEqual(len(d), 1)
         self.assertEqual(set(d.keys()), set(paths))
-
         # make sure we got the latest matching publish
         sg_data = d.get(paths[0])
-        self.assertEqual(sg_data["id"], self.pub_5["id"])
-
+        self.assertEqual(sg_data["id"], publish["id"])
         # make sure we are only getting the ID back.
         self.assertEqual(set(sg_data.keys()), set(("type", "id")))
 
     def test_storage_misdirection(self):
-
         project_name = os.path.basename(self.project_root)
-
         # define 2 publishes with the same path, different storages
-        self.pub_6 = {
+        publish = {
             "type": "PublishedFile",
-            "id": 6,
             "code": "storage misdirection",
             "path_cache": "%s/foo/bar" % project_name,
             "created_at": datetime.datetime(2012, 10, 12, 12, 1),
             "path_cache_storage": self.alt_storage_3,
         }
-
-        self.pub_7 = {
+        publish2 = {
             "type": "PublishedFile",
-            "id": 7,
             "code": "storage misdirection2",
             "path_cache": "%s/foo/bar" % project_name,
             "created_at": datetime.datetime(2012, 10, 12, 12, 1),
             "path_cache_storage": self.alt_storage_4,
         }
-
-        self.add_to_sg_mock_db([self.pub_6, self.pub_7])
+        self.add_to_sg_mock_db([publish, publish2])
 
         # querying root 3 path which is used by the "alternate_4" root in
         # roots.yml. the returned data should point to local storage 3 which
@@ -281,6 +360,50 @@ class TestMultiRoot(TankTestBase):
         self.assertEqual(
             pub_data[paths[0]]["path_cache_storage"]["id"], self.alt_storage_4["id"]
         )
+
+    def test_multi_root_multi_project(self):
+        project_name = os.path.basename(self.project_root)
+        proj_1_pub = {
+            "type": "PublishedFile",
+            "code": "another storage",
+            "path_cache": "%s/foo/bar" % project_name,
+            "created_at": datetime.datetime(2012, 10, 12, 12, 1),
+            "path_cache_storage": self.alt_storage_1,
+        }
+        self.add_to_sg_mock_db([proj_1_pub])
+
+        _, proj_2_root = self.create_project({"name": "second project"})
+        proj_2_name = os.path.basename(proj_2_root)
+        (proj_2_alt_root, proj_2_alt_storage) = self.create_storage_root(
+            proj_2_name, "second_alternate_1", True
+        )
+        proj_2_pub = {
+            "type": "PublishedFile",
+            "code": "other storage",
+            "path_cache": "%s/foo/bar" % proj_2_name,
+            "created_at": datetime.datetime(2021, 10, 12, 12, 1),
+            "path_cache_storage": proj_2_alt_storage,
+        }
+        self.add_to_sg_mock_db([proj_2_pub])
+        self.reload_pipeline_config()
+        self.add_production_path(proj_2_alt_root)
+
+        paths = [
+            os.path.join(self.alt_root_1, "foo", "bar"),
+            os.path.join(proj_2_alt_root, "foo", "bar"),
+        ]
+        d = tank.util.find_publish(self.tk, paths, only_current_project=False)
+        assert len(d) == len(paths)
+        assert set(d.keys()) == set(paths)
+        # make sure we got the latest matching publish
+        sg_data = d.get(paths[0])
+        assert sg_data["id"] == proj_1_pub["id"]
+        # make sure we are only getting the ID back.
+        assert set(sg_data.keys()) == set(("type", "id"))
+        sg_data = d.get(paths[1])
+        assert sg_data["id"] == proj_2_pub["id"]
+        # make sure we are only getting the ID back.
+        assert set(sg_data.keys()) == set(("type", "id"))
 
 
 class TestShotgunDownloadUrl(ShotgunTestBase):

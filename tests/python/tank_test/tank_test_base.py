@@ -490,7 +490,12 @@ class TankTestBase(unittest.TestCase):
             self.pipeline_config_root,
             self.project_config,
             self.tk,
-        ) = self.create_pipeline_configuration(self.project, self.project_root)
+        ) = self.create_pipeline_configuration(self.project)
+
+        if self._do_io:
+            # add the project root to the production path (once self.tk is initialized)
+            self.add_production_path(self.project_root, self.project)
+
         # keep track of storage root names to clean up in tear down
         self.root_names = [self.project_root, self.pipeline_config_root]
 
@@ -855,7 +860,7 @@ class TankTestBase(unittest.TestCase):
         )
         print("")
 
-    def create_pipeline_configuration(self, project, project_root):
+    def create_pipeline_configuration(self, project):
         """
         Convenience method to create a new pipeline configuration object.
         """
@@ -951,9 +956,6 @@ class TankTestBase(unittest.TestCase):
                 pipeline_config_root
             )
             tk = tank.Tank(pipeline_configuration)
-
-            # add project to mock sg and path cache db
-            self.add_production_path(project_root, project)
 
         return (
             sg_pc_entity,

@@ -486,8 +486,8 @@ class TestCalcPathCache(TankTestBase):
         root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
             self.tk, input_path
         )
-        self.assertEqual("primary", root_name)
-        self.assertEqual(expected, path_cache)
+        assert root_name == "primary"
+        assert path_cache == expected
 
     @only_run_on_windows
     @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
@@ -560,6 +560,92 @@ class TestCalcPathCache(TankTestBase):
             )
             self.assertEqual("primary", root_name)
             self.assertEqual("project_code/3d/Assets", path_cache)
+
+    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    def test_param_project_names_backward_compatibility(self, get_local_storage_roots):
+        """
+        Test backward compatibility for param `project_names`. The result
+        from passing no `project_names` should be the same as if we pass a
+        single values list of the current project name.
+        """
+        project_names = [self.tk.pipeline_configuration.get_project_disk_name()]
+        get_local_storage_roots.return_value = {"primary": self.tank_temp}
+
+        relative_path = os.path.join("Some", "Path")
+        wrong_case_root = self.project_root.swapcase()
+        expected = os.path.join(
+            os.path.basename(wrong_case_root), relative_path
+        ).replace(os.sep, "/")
+
+        input_path = os.path.join(wrong_case_root, relative_path)
+        root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
+            self.tk, input_path
+        )
+        root_name2, path_cache2 = tank.util.shotgun.publish_creation._calc_path_cache(
+            self.tk, input_path, project_names=project_names
+        )
+        assert root_name == root_name2
+        assert path_cache == path_cache2
+        # make sure the results are correct
+        assert root_name == "primary"
+        assert path_cache == expected
+
+    @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
+    def test_param_project_names(self, get_local_storage_roots):
+        """
+        Test param `project_names` with multiple values and multiple projects.
+        """
+
+        # create and add a second project to the mock db
+        _, proj_2_root = self.create_project({"name": "second project"})
+        proj_2_name = os.path.basename(proj_2_root)
+        current_project_name = self.tk.pipeline_configuration.get_project_disk_name()
+
+        get_local_storage_roots.return_value = {"primary": self.tank_temp}
+        relative_path = os.path.join("Some", "Path")
+
+        # input and expected values for current project
+        current_project_root = self.project_root.swapcase()
+        current_project_expected = os.path.join(
+            os.path.basename(current_project_root), relative_path
+        ).replace(os.sep, "/")
+        current_project_input_path = os.path.join(current_project_root, relative_path)
+
+        # input and expected values for second project
+        proj_2_expected = os.path.join(
+            os.path.basename(proj_2_name), relative_path
+        ).replace(os.sep, "/")
+        proj_2_input_path = os.path.join(proj_2_root, relative_path)
+
+        # exclude the project name associated with this input path
+        root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
+            self.tk, current_project_input_path, project_names=[proj_2_name]
+        )
+        assert root_name is None
+        assert path_cache is None
+        # do the same for the second project
+        root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
+            self.tk, proj_2_input_path, project_names=[current_project_name]
+        )
+        assert root_name is None
+        assert path_cache is None
+
+        # include the project name associated with the input path
+        root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
+            self.tk,
+            current_project_input_path,
+            project_names=[proj_2_name, current_project_name],
+        )
+        assert root_name == "primary"
+        assert path_cache == current_project_expected
+        # do the same for the second project
+        root_name, path_cache = tank.util.shotgun.publish_creation._calc_path_cache(
+            self.tk,
+            proj_2_input_path,
+            project_names=[proj_2_name, current_project_name],
+        )
+        assert root_name == "primary"
+        assert path_cache == proj_2_expected
 
 
 class TestCalcPathCacheProjectWithSlash(TankTestBase):
