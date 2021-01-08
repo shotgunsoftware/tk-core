@@ -764,7 +764,7 @@ def _create_dependencies(tk, publish_entity, dependency_paths, dependency_ids):
         tk.shotgun.batch(sg_batch_data)
 
 
-def _calc_path_cache(tk, path, project_names=[]):
+def _calc_path_cache(tk, path, project_names=None):
     r"""
     Calculates root path name and relative path (including project directory).
     returns (root_name, path_cache). The relative path is always using forward
