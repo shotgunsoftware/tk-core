@@ -97,6 +97,10 @@ def find_publish(
     If you want to retrieve additional fields, you can specify these using
     the fields parameter.
 
+    By default, only publishes in the current project will be found. If you
+    want to retreive publishes from any active project in the pipeline config,
+    you can specify the only_current_project param to False.
+
     The method will return a dictionary, keyed by path. The value will be
     a standard shotgun query result dictionary, for example::
 
@@ -113,6 +117,9 @@ def find_publish(
     :param filters: Optional list of shotgun filters to apply.
     :param fields: Optional list of fields from the matched entities to
                    return. Defaults to id and type.
+    :param only_current_project: Optional boolean to find publishes in Shotgun only from the
+                                 current project (True) or from any active project (False).
+                                 Defaults to True.
     :returns: dictionary keyed by path
     """
     # avoid cyclic references

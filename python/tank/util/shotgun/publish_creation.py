@@ -787,6 +787,10 @@ def _calc_path_cache(tk, path, project_names=None):
 
     :param tk: Toolkit API instance
     :param str path: Path to normalize.
+    :param list project_names: A list of project names used to find a matching
+                               storage to calculate the path cache. If a list is
+                               not provided, only the current project name will
+                               be used.
     :returns: (root_name, path_cache)
     """
     # Note: paths may be c:/foo in Maya on Windows - don't rely on os.sep here!
@@ -839,6 +843,10 @@ def group_by_storage(tk, list_of_paths, only_current_project=True):
     Given a list of paths on disk, groups them into a data structure suitable for
     shotgun. In shotgun, the path_cache field contains an abstracted representation
     of the publish field, with a normalized path and the storage chopped off.
+
+    By default, paths are grouped only by storages matching the current project.
+    Set only_current_project to False to group by storages matching any current
+    active project in the pipeline config.
 
     This method aims to process the paths to make them useful for later shotgun processing.
 
