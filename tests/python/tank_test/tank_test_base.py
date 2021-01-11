@@ -318,6 +318,11 @@ class TankTestBase(unittest.TestCase):
         # project level config directories
         self.project_config = None
 
+        # Keep track of any sgtk instances  and project storage roots created
+        # to clean up on tear down
+        self.tks = []
+        self.project_root_names = []
+
         # path to the tk-core repo root point
         self.tank_source_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "..", "..", "..")
@@ -496,9 +501,6 @@ class TankTestBase(unittest.TestCase):
             # add the project root to the production path (once self.tk is initialized)
             self.add_production_path(self.project_root, self.project)
 
-        # keep track of storage root names to clean up in tear down
-        self.root_names = [self.project_root, self.pipeline_config_root]
-
         # add local storage
         self.primary_storage = {
             "type": "LocalStorage",
@@ -553,19 +555,21 @@ class TankTestBase(unittest.TestCase):
 
             # get rid of path cache from local ~/.shotgun storage
             if self._do_io:
-                pc = path_cache.PathCache(self.tk)
-                path_cache_file = pc._get_path_cache_location()
-                pc.close()
-                if os.path.exists(path_cache_file):
-                    os.remove(path_cache_file)
+                for tk in self.tks:
+                    pc = path_cache.PathCache(tk)
+                    path_cache_file = pc._get_path_cache_location()
+                    pc.close()
+                    if os.path.exists(path_cache_file):
+                        os.remove(path_cache_file)
 
-                # get rid of init cache
-                if os.path.exists(pipelineconfig_factory._get_cache_location()):
-                    os.remove(pipelineconfig_factory._get_cache_location())
+                    # get rid of init cache
+                    if os.path.exists(pipelineconfig_factory._get_cache_location()):
+                        os.remove(pipelineconfig_factory._get_cache_location())
 
-                self._move_project_data(self.root_names)
-                # important to delete this to free memory
-                self.tk = None
+                # move project scaffold out of the way
+                self._move_project_data()
+                # important tot delete to free memory
+                del self.tks[:]
 
             # clear global shotgun accessor
             tank.util.shotgun.connection._g_sg_cached_connections = threading.local()
@@ -716,10 +720,10 @@ class TankTestBase(unittest.TestCase):
             project_name, "alternate_2", False
         )
         (self.alt_root_3, self.alt_storage_3) = self.create_storage_root(
-            project_name, "alternate_3", False
+            project_name, "alternate_3", False, False
         )
         (self.alt_root_4, self.alt_storage_4) = self.create_storage_root(
-            project_name, "alternate_4", False
+            project_name, "alternate_4", False, False
         )
 
         if not self.roots:
@@ -860,11 +864,12 @@ class TankTestBase(unittest.TestCase):
         )
         print("")
 
-    def create_pipeline_configuration(self, project, pipeline_config_properties):
+    def create_pipeline_configuration(self, project, pipeline_config_properties=None):
         """
         Convenience method to create a new pipeline configuration object.
         """
 
+        pipeline_config_properties = pipeline_config_properties or {}
         pipeline_configuration = None
         tk = None
         tank_name = project["tank_name"]
@@ -872,11 +877,14 @@ class TankTestBase(unittest.TestCase):
         pipeline_config_root = os.path.join(
             self.tank_temp, "%s_pipeline_configuration" % tank_name
         )
+        # track config root to clean up on tear down
+        self.project_root_names.append(pipeline_config_root)
+
         project_config = os.path.join(pipeline_config_root, "config")
         project_cache_dir = os.path.join(pipeline_config_root, "cache")
 
         if self._do_io:
-            self._move_project_data([pipeline_config_root])
+            _move_data(pipeline_config_root)
 
             # create new structure
             os.makedirs(pipeline_config_root)
@@ -946,6 +954,10 @@ class TankTestBase(unittest.TestCase):
             self.create_file(localize_token_file, "foo bar")
 
             # Write roots to file
+            if self.roots is None:
+                # Use the default roots if none provided
+                self.roots = {}
+
             roots_path = os.path.join(
                 pipeline_config_root, "config", "core", "roots.yml"
             )
@@ -957,6 +969,9 @@ class TankTestBase(unittest.TestCase):
                 pipeline_config_root
             )
             tk = tank.Tank(pipeline_configuration)
+
+            # track tk instance to clean up on tear down
+            self.tks.append(tk)
 
         return (
             sg_pc_entity,
@@ -984,22 +999,28 @@ class TankTestBase(unittest.TestCase):
         }
         project_entity.update(project_properties)
         tank_name = project_entity["tank_name"]
+
         project_root = os.path.join(self.tank_temp, tank_name.replace("/", os.path.sep))
+        # track project root to clean up on tear down
+        self.project_root_names.append(project_root)
 
         if self._do_io:
-            self._move_project_data([project_root])
+            _move_data(project_root)
             os.makedirs(project_root)
 
         self.add_to_sg_mock_db(project_entity)
         return (project_entity, project_root)
 
-    def create_storage_root(self, project_name, root_name, update_roots_file):
+    def create_storage_root(
+        self, project_name, root_name, update_roots_file=True, track_storage=True
+    ):
         """
         Convenience method to create a storage root (e.g. an alternate project root)
         """
 
         storage_root_name = os.path.join(self.tank_temp, root_name, project_name)
-        self.root_names.append(storage_root_name)
+        if track_storage:
+            self.project_root_names.append(storage_root_name)
 
         storage_entity_type = "LocalStorage"
         storage = {
@@ -1012,9 +1033,9 @@ class TankTestBase(unittest.TestCase):
         self.add_to_sg_mock_db(storage)
 
         if self._do_io and update_roots_file:
-            # Add new storage root and rewrite the roots file
             if not self.roots:
                 self.roots = {}
+
             self.roots[root_name] = {}
             for os_name in ["windows_path", "linux_path", "mac_path"]:
                 self.roots[root_name][os_name] = os.path.dirname(storage_root_name)
@@ -1166,19 +1187,11 @@ class TankTestBase(unittest.TestCase):
 
         return ini_file_location
 
-    def _move_project_data(self, project_data=None):
+    def _move_project_data(self):
         """
         Calls _move_data for all project roots.
         """
-        if not project_data:
-            project_data = [
-                self.pipeline_config_root,
-                self.project_root,
-                self.alt_root_1,
-                self.alt_root_2,
-            ]
-
-        for data in project_data:
+        for data in self.project_root_names:
             _move_data(data)
 
     def _copy_folder(self, src, dst):
