@@ -115,22 +115,6 @@ class TestShotgunFindPublish(TankTestBase):
             "path_cache_storage": self.primary_storage,
         }
 
-        self.proj_2_pub_3 = {
-            "type": "PublishedFile",
-            "code": "world",
-            "path_cache": "%s/foo/baz" % self.proj_2_name,
-            "created_at": datetime.datetime(2012, 10, 13, 12, 2),
-            "path_cache_storage": self.primary_storage,
-        }
-
-        self.proj_2_pub_4 = {
-            "type": "PublishedFile",
-            "code": "sequence_file",
-            "path_cache": "%s/foo/seq_%%03d.ext" % self.proj_2_name,
-            "created_at": datetime.datetime(2012, 10, 13, 12, 2),
-            "path_cache_storage": self.primary_storage,
-        }
-
         # Add all the publishes to mocked shotgun
         self.add_to_sg_mock_db(
             [
@@ -140,8 +124,6 @@ class TestShotgunFindPublish(TankTestBase):
                 self.pub_4,
                 self.proj_2_pub_1,
                 self.proj_2_pub_2,
-                self.proj_2_pub_3,
-                self.proj_2_pub_4,
             ]
         )
 
@@ -325,7 +307,7 @@ class TestShotgunFindPublish(TankTestBase):
         # Create a new project and pipeline configuration, and set the new project
         # as the current project of the new pipeline configuraiton
         other_proj, other_proj_root = self.create_project({"name": "other project"})
-        _, _, _, _, other_tk = self.create_pipeline_configuration(other_proj)
+        (_, _, _, _, other_tk,) = self.create_pipeline_configuration(other_proj)
         other_proj_name = os.path.basename(other_proj_root)
         other_pub = {
             "type": "PublishedFile",
@@ -509,7 +491,6 @@ class TestMultiRoot(TankTestBase):
         }
         self.add_to_sg_mock_db([proj_2_pub])
         self.reload_pipeline_config()
-        self.add_production_path(proj_2_alt_root)
 
         project_alternate_root = os.path.join(self.alt_root_1, "a", "project", "path")
         project_2_alternate_root = os.path.join(

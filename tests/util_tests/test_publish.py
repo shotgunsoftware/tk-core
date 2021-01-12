@@ -562,12 +562,12 @@ class TestCalcPathCache(TankTestBase):
             self.assertEqual("project_code/3d/Assets", path_cache)
 
     @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
-    def test_param_project_names_backward_compatibility(self, get_local_storage_roots):
+    def test_project_names_only_current_project(self, get_local_storage_roots):
         """
-        Test backward compatibility for param `project_names`. The result
-        from passing no `project_names` should be the same as if we pass a
-        single values list of the current project name.
+        Test _calc_path_cache with project_names as a single list containing the
+        current project. The result shoudl be the as when not passing any project_names.
         """
+
         project_names = [self.tk.pipeline_configuration.get_project_disk_name()]
         get_local_storage_roots.return_value = {"primary": self.tank_temp}
 
@@ -591,9 +591,9 @@ class TestCalcPathCache(TankTestBase):
         assert path_cache == expected
 
     @patch("tank.pipelineconfig.PipelineConfiguration.get_local_storage_roots")
-    def test_param_project_names(self, get_local_storage_roots):
+    def test_project_names_multiple(self, get_local_storage_roots):
         """
-        Test param `project_names` with multiple values and multiple projects.
+        Test _calc_path_cache with project_names as a list of more than one.
         """
 
         # create and add a second project to the mock db
