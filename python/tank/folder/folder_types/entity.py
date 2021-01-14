@@ -240,7 +240,7 @@ class Entity(Folder):
             if entity.get('type') == 'Step' and entity.get('code') == 'Production':
                 if entity not in entities_to_remove:
                     entities_to_remove.append(entity)
-            if entity.get('type') == 'Task' and entity.get('step').get('name') == 'Production':
+            if entity.get('type') == 'Task' and entity.get('sg_type') != 'Production':
                 if entity not in entities_to_remove:
                     entities_to_remove.append(entity)
             if entity.get('milestone'):
