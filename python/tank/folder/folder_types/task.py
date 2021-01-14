@@ -193,7 +193,7 @@ class ShotgunTask(Entity):
         :returns: List of shotgun fields to retrieve in addition to those
                   specified in the configuration files.
         """
-        return ["step", "milestone"]
+        return ["step", "milestone", "sg_type"]
 
     def _register_secondary_entities(self, io_receiver, path, entity):
         """
