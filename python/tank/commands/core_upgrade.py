@@ -68,11 +68,13 @@ class CoreUpdateAction(Action):
         """
         Constructor.
         """
-        Action.__init__(self,
-                        "core",
-                        Action.GLOBAL,
-                        "Updates your Toolkit Core API to a different version.",
-                        "Configuration")
+        Action.__init__(
+            self,
+            "core",
+            Action.GLOBAL,
+            "Updates your Toolkit Core API to a different version.",
+            "Configuration",
+        )
 
         # this method can be executed via the API
         self.supports_api = True
@@ -84,7 +86,7 @@ class CoreUpdateAction(Action):
         ret_val_doc += "number of the core that was updated to. "
         ret_val_doc += "For the 'update_blocked' status, data will contain a reason key containing an explanation."
 
-        self.parameters = {"return_value": {"description": ret_val_doc, "type": "dict" }}
+        self.parameters = {"return_value": {"description": ret_val_doc, "type": "dict"}}
 
     def _parse_arguments(self, parameters):
         """
@@ -144,20 +146,27 @@ class CoreUpdateAction(Action):
         log.info("")
         log.info("")
 
-        log.info("Please note that if this is a shared Toolkit Core used by more than one project, "
-                 "this will affect all of the projects that use it. If you want to test a Core API "
-                 "update in isolation, prior to rolling it out to multiple projects, we recommend "
-                 "creating a special *localized* pipeline configuration.")
+        log.info(
+            "Please note that if this is a shared Toolkit Core used by more than one project, "
+            "this will affect all of the projects that use it. If you want to test a Core API "
+            "update in isolation, prior to rolling it out to multiple projects, we recommend "
+            "creating a special *localized* pipeline configuration."
+        )
         log.info("")
         log.info("For more information, please see the Toolkit documentation:")
         log.info("https://support.shotgunsoftware.com/entries/96141707")
         log.info("https://support.shotgunsoftware.com/entries/96142347")
         log.info("")
 
-        installer = TankCoreUpdater(code_install_root, log, core_version)
+        config_desc = self.tk.configuration_descriptor if self.tk is not None else None
+
+        installer = TankCoreUpdater(code_install_root, log, core_version, config_desc)
         current_version = installer.get_current_version_number()
         new_version = installer.get_update_version_number()
-        log.info("You are currently running version %s of the Shotgun Pipeline Toolkit" % current_version)
+        log.info(
+            "You are currently running version %s of the Shotgun Pipeline Toolkit"
+            % current_version
+        )
 
         status = installer.get_update_status()
 
@@ -168,10 +177,19 @@ class CoreUpdateAction(Action):
         elif status == TankCoreUpdater.UPDATE_BLOCKED_BY_SG:
             req_sg = installer.get_required_sg_version_for_update()
             msg = (
-                "%s version of core requires a more recent version (%s) of Shotgun!" % (
-                    "The newest" if core_version is None else "The requested",
-                    req_sg
-                )
+                "%s version of core requires a more recent version (%s) of Shotgun!"
+                % ("The newest" if core_version is None else "The requested", req_sg)
+            )
+            log.error(msg)
+            return_status = {"status": "update_blocked", "reason": msg}
+
+        elif status == TankCoreUpdater.UPDATE_BLOCKED_BY_CONFIG:
+            # The config is immutable so can't be updated.
+            descriptor_type = config_desc.get_dict().get("type", "type unknown.")
+            msg = (
+                "The core on this config can't be updated using this method,"
+                ' as the config is using a "%s" type descriptor.'
+                " Please update the source configuration." % descriptor_type
             )
             log.error(msg)
             return_status = {"status": "update_blocked", "reason": msg}
@@ -190,30 +208,40 @@ class CoreUpdateAction(Action):
             log.info("Detailed Release Notes:")
             log.info("%s" % url)
             log.info("")
-            log.info("Please note that if this is a shared core used by more than one project, "
-                     "this will affect the other projects as well.")
+            log.info(
+                "Please note that if this is a shared core used by more than one project, "
+                "this will affect the other projects as well."
+            )
             log.info("")
 
-            if self._interaction_interface.ask_yn_question("Update to %s of the Core API?" % new_version):
+            if self._interaction_interface.ask_yn_question(
+                "Update to %s of the Core API?" % new_version
+            ):
                 # install it!
                 installer.do_install()
 
                 log.info("")
                 log.info("")
-                log.info("----------------------------------------------------------------")
+                log.info(
+                    "----------------------------------------------------------------"
+                )
                 log.info("The Toolkit Core API has been updated!")
                 log.info("")
                 log.info("")
                 log.info("Please note the following:")
                 log.info("")
-                log.info("- You need to restart any applications (such as Maya or Nuke)")
+                log.info(
+                    "- You need to restart any applications (such as Maya or Nuke)"
+                )
                 log.info("  in order for them to pick up the API update.")
                 log.info("")
                 log.info("- Please close this shell, as the update process")
                 log.info("  has replaced the folder that this script resides in")
                 log.info("  with a more recent version. ")
                 log.info("")
-                log.info("----------------------------------------------------------------")
+                log.info(
+                    "----------------------------------------------------------------"
+                )
                 log.info("")
                 return_status = {"status": "updated", "new_version": new_version}
 
@@ -233,12 +261,15 @@ class TankCoreUpdater(object):
 
     # possible update status states
     (
-        UP_TO_DATE,                   # all good, no update necessary
-        UPDATE_POSSIBLE,              # more recent version exists
-        UPDATE_BLOCKED_BY_SG          # more recent version exists but SG version is too low.
-    ) = range(3)
+        UP_TO_DATE,  # all good, no update necessary
+        UPDATE_POSSIBLE,  # more recent version exists
+        UPDATE_BLOCKED_BY_SG,  # more recent version exists but SG version is too low.
+        UPDATE_BLOCKED_BY_CONFIG,  # The config descriptor is not suitable for updating.
+    ) = range(4)
 
-    def __init__(self, install_folder_root, logger, core_version=None):
+    def __init__(
+        self, install_folder_root, logger, core_version=None, config_desc=None
+    ):
         """
         Constructor
 
@@ -252,6 +283,7 @@ class TankCoreUpdater(object):
                              version. Defaults to None.
         """
         self._log = logger
+        self._configuration_descriptor = config_desc
 
         from ..descriptor import Descriptor, create_descriptor
 
@@ -260,20 +292,21 @@ class TankCoreUpdater(object):
         if not core_version:
             uri = "sgtk:descriptor:app_store?name=tk-core"
             self._new_core_descriptor = create_descriptor(
-                self._local_sg,
-                Descriptor.CORE,
-                uri,
-                resolve_latest=True
+                self._local_sg, Descriptor.CORE, uri, resolve_latest=True
             )
         else:
             uri = "sgtk:descriptor:app_store?name=tk-core&version=%s" % core_version
-            self._new_core_descriptor = create_descriptor(self._local_sg, Descriptor.CORE, uri)
+            self._new_core_descriptor = create_descriptor(
+                self._local_sg, Descriptor.CORE, uri
+            )
 
         self._install_root = os.path.join(install_folder_root, "install")
 
         # now also extract the version of shotgun currently running
         try:
-            self._sg_studio_version = ".".join([ str(x) for x in self._local_sg.server_info["version"]])
+            self._sg_studio_version = ".".join(
+                [str(x) for x in self._local_sg.server_info["version"]]
+            )
         except Exception as e:
             raise TankError("Could not extract version number for shotgun: %s" % e)
 
@@ -314,7 +347,7 @@ class TankCoreUpdater(object):
         get the required Shotgun version.
         """
         if is_version_head(self.get_current_version_number()):
-            # head is the verison number which is stored in tank core trunk
+            # head is the version number which is stored in tank core trunk
             # getting this as a result means that we are not actually running
             # a version of tank that came from the app store, but some sort
             # of dev version
@@ -323,12 +356,22 @@ class TankCoreUpdater(object):
         elif self.get_current_version_number() == self._new_core_descriptor.version:
             # running updated version already
             return self.UP_TO_DATE
+        elif (
+            self._configuration_descriptor
+            and self._configuration_descriptor.is_immutable()
+        ):
+            # The config is immutable so we should not try updating it.
+            return TankCoreUpdater.UPDATE_BLOCKED_BY_CONFIG
         else:
+
             # FIXME: We should cache info.yml on the appstore so we don't have
-            # to download the whole bundle just to see the file.
+            #  to download the whole bundle just to see the file.
             if not self._new_core_descriptor.exists_local():
                 self._log.info("")
-                self._log.info("Downloading Toolkit Core API %s from the App Store..." % self._new_core_descriptor.version)
+                self._log.info(
+                    "Downloading Toolkit Core API %s from the App Store..."
+                    % self._new_core_descriptor.version
+                )
                 self._new_core_descriptor.download_local()
                 self._log.info("Download completed.")
 
@@ -348,8 +391,20 @@ class TankCoreUpdater(object):
         """
         Installs the requested core and updates core_api.yml.
         """
-        self._install_core()
-        self._update_core_api_descriptor()
+
+        # We should check to see if the config is using a dev descriptor
+        # because if we are we don't want to update the cached version of the config,
+        # instead we want to update the core_api.yml in the dev config location.
+        if self._configuration_descriptor and self._configuration_descriptor.is_dev():
+            # We shouldn't try to install the core, a reload will be required to re cache things,
+            # just update the core_api.yml instead.
+            root = self._configuration_descriptor.get_path()
+            self._update_core_api_descriptor(root)
+
+        else:
+            self._install_core()
+            root = os.path.join(os.path.dirname(self._install_root), "config")
+            self._update_core_api_descriptor(root)
 
     def _install_core(self):
         """
@@ -360,24 +415,27 @@ class TankCoreUpdater(object):
         sys.path.insert(0, self._new_core_descriptor.get_path())
         try:
             import _core_upgrader
+
             _core_upgrader.upgrade_tank(self._install_root, self._log)
         except Exception as e:
             self._log.exception(e)
             raise Exception("Could not run update script! Error reported: %s" % e)
 
-    def _update_core_api_descriptor(self):
+    def _update_core_api_descriptor(self, config_root):
         """
         Updates the core_api.yml descriptor file.
         """
-        core_api_yaml_path = os.path.join(
-            os.path.dirname(self._install_root), "config", "core", "core_api.yml"
-        )
 
-        message = "# Shotgun Pipeline Toolkit configuration file. This file was automatically\n"\
-                  "# created during the latest core update.\n"
+        core_api_yaml_path = os.path.join(config_root, "core", "core_api.yml")
+
+        message = (
+            "# Shotgun Pipeline Toolkit configuration file. This file was automatically\n"
+            "# created during the latest core update.\n"
+        )
         with open(core_api_yaml_path, "w") as f:
             f.writelines(message)
             yaml.safe_dump(
-                {"location": self._new_core_descriptor.get_dict()}, f,
-                default_flow_style=False
+                {"location": self._new_core_descriptor.get_dict()},
+                f,
+                default_flow_style=False,
             )

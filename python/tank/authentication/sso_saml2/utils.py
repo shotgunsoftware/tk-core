@@ -11,6 +11,8 @@
 SSO/SAML2 Utility functions.
 """
 
+# pylint: disable=unused-import
+
 import time
 
 from tank_vendor import shotgun_api3
@@ -65,21 +67,28 @@ def _get_site_infos(url, http_proxy=None):
                 "Using HTTP proxy to connect to the Shotgun server: %s", http_proxy
             )
         # Checks if the information is in the cache, is missing or out of date.
-        if url not in INFOS_CACHE or ((time.time() - INFOS_CACHE[url][0]) > INFOS_CACHE_TIMEOUT):
+        if url not in INFOS_CACHE or (
+            (time.time() - INFOS_CACHE[url][0]) > INFOS_CACHE_TIMEOUT
+        ):
             get_logger().info("Infos for site '%s' not in cache or expired", url)
-            infos = shotgun_api3.Shotgun(
-                url,
-                session_token="dummy",
-                connect=False,
-                http_proxy=http_proxy
-            ).info()
+            sg = shotgun_api3.Shotgun(
+                url, session_token="dummy", connect=False, http_proxy=http_proxy
+            )
+            # Remove delay between attempts at getting the site info.  Since
+            # this is called in situations where blocking during multiple
+            # attempts can make UIs less responsive, we'll avoid sleeping.
+            # This change was introduced after delayed retries were added in
+            # python-api v3.0.41
+            sg.config.rpc_attempt_interval = 0
+            infos = sg.info()
             INFOS_CACHE[url] = (time.time(), infos)
         else:
             get_logger().info("Infos for site '%s' found in cache", url)
             infos = INFOS_CACHE[url][1]
-    except Exception as e:
+    # pylint: disable=broad-except
+    except Exception as exc:
         # Silently ignore exceptions
-        get_logger().debug("Unable to connect with %s, got exception '%s'", url, e)
+        get_logger().debug("Unable to connect with %s, got exception '%s'", url, exc)
 
     return infos
 
@@ -100,12 +109,13 @@ def _get_user_authentication_method(url, http_proxy=None):
         get_logger().debug(
             "User authentication method for %s: %s",
             url,
-            infos["user_authentication_method"]
+            infos["user_authentication_method"],
         )
         user_authentication_method = infos["user_authentication_method"]
     return user_authentication_method
 
 
+# pylint: disable=invalid-name
 def is_unified_login_flow_enabled_on_site(url, http_proxy=None):
     """
     Check to see if the web site uses the unified login flow.
@@ -123,7 +133,7 @@ def is_unified_login_flow_enabled_on_site(url, http_proxy=None):
         get_logger().debug(
             "unified_login_flow_enabled for %s: %s",
             url,
-            infos["unified_login_flow_enabled"]
+            infos["unified_login_flow_enabled"],
         )
         return infos["unified_login_flow_enabled"]
     return False
@@ -141,6 +151,7 @@ def is_sso_enabled_on_site(url, http_proxy=None):
     return _get_user_authentication_method(url, http_proxy) == "saml2"
 
 
+# pylint: disable=invalid-name
 def is_autodesk_identity_enabled_on_site(url, http_proxy=None):
     """
     Check to see if the web site uses Autodesk Identity.

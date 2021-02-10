@@ -22,6 +22,7 @@ class BundleDownloader(object):
     It is written as a separate file that cab be reimported by the bootstrapper
     after the core swap.
     """
+
     def __init__(self, connection, pipeline_config_id, descriptor):
         """
         :param connection: Connection to Shotgun.
@@ -33,12 +34,12 @@ class BundleDownloader(object):
         # First put our base hook implementation into the array.
         base_class_path = os.path.normpath(
             os.path.join(
-                os.path.dirname(__file__), # ./python/tank/bootstrap
-                "..",                      # ./python/tank
-                "..",                      # ./python
-                "..",                      # ./
-                "hooks",                   # ./hooks
-                "bootstrap.py"             # ./hooks/bootstrap.py
+                os.path.dirname(__file__),  # ./python/tank/bootstrap
+                "..",  # ./python/tank
+                "..",  # ./python
+                "..",  # ./
+                "hooks",  # ./hooks
+                "bootstrap.py",  # ./hooks/bootstrap.py
             )
         )
         hook_inheritance_chain = [base_class_path]
@@ -52,9 +53,7 @@ class BundleDownloader(object):
         self._hook_instance = hook.create_hook_instance(
             hook_inheritance_chain, parent=None
         )
-        self._hook_instance.init(
-            connection, pipeline_config_id, descriptor
-        )
+        self._hook_instance.init(connection, pipeline_config_id, descriptor)
 
     def download_bundle(self, descriptor):
         """
@@ -67,6 +66,8 @@ class BundleDownloader(object):
         """
         if self._hook_instance.can_cache_bundle(descriptor):
             with descriptor._io_descriptor.open_write_location() as temporary_folder:
-                self._hook_instance.populate_bundle_cache_entry(temporary_folder, descriptor)
+                self._hook_instance.populate_bundle_cache_entry(
+                    temporary_folder, descriptor
+                )
         else:
             descriptor.download_local()

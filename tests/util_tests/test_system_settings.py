@@ -13,7 +13,7 @@ from __future__ import with_statement
 import os
 
 from tank_test.tank_test_base import ShotgunTestBase
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 
 from mock import patch
 

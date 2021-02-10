@@ -8,6 +8,7 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+from __future__ import print_function
 from functools import reduce
 import multiprocessing
 import os
@@ -18,12 +19,16 @@ import time
 import uuid
 import shutil
 import zipfile
+import contextlib
+import pytest
 
 from tank_test.tank_test_base import ShotgunTestBase, skip_if_git_missing, temp_env_var
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 
 import sgtk
 import tank
+from tank.util import is_windows
+from tank_vendor.six import b
 
 
 def _raise_exception(placeholder_a="default_a", placeholder_b="default_b"):
@@ -41,6 +46,91 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
     """
     Tests the ability of the descriptor to download to a path on disk.
     """
+
+    # In Python 3.8+, the TestCase class cannot be serialized due to a regression.
+    # It appears an argument parser is reachable from the TestCase instance. The
+    # multiprocessing module serializes both the test method and the instance
+    # associated to it (which makes sense, since we need the test data on the
+    # instance!). This becomes an issue, because ArgumentParser is not picklable
+    # in Python 3.8 (due to a regression it seems). The cleanest way to avoid
+    # this serialization issue without mucking around with the TestCase internals
+    # and that generates the smallest diff is to create a new Implementation
+    # class defined below that reimplements the necessary interface from
+    # ShotgunTestBase and have the TestDownloadableIODescriptors call the test
+    # methods on that new clean instance that is serializable.
+    def setUp(self):
+        """
+        Instantiate the actual test class that is are pickle-able by multiprocessing
+        and pass any information required for the test to function.
+        """
+        super(TestDownloadableIODescriptors, self).setUp()
+        self.imp = Implementation(
+            self.tank_temp, self.project_root, self.mockgun, self.fixtures_root
+        )
+
+    def test_appstore_downloads(self):
+        self.imp.test_appstore_downloads()
+
+    def test_shotgun_entity_downloads(self):
+        self.imp.test_shotgun_entity_downloads()
+
+    @skip_if_git_missing
+    def test_git_tag_downloads(self):
+        self.imp.test_git_tag_downloads()
+
+    @skip_if_git_missing
+    def test_git_branch_downloads(self):
+        self.imp.test_git_branch_downloads()
+
+    def test_descriptor_download_error_throws_exception(self):
+        self.imp.test_descriptor_download_error_throws_exception()
+
+    def test_descriptor_rename_error_fallbacks(self):
+        self.imp.test_descriptor_rename_error_fallbacks()
+
+    def test_descriptor_rename_fallback_failure(self):
+        self.imp.test_descriptor_rename_fallback_failure()
+
+    def test_partial_download_handling(self):
+        self.imp.test_partial_download_handling()
+
+
+class Implementation(object):
+    """
+    Class that actually contains the test and its data.
+    """
+
+    def __init__(self, tank_temp, project_root, mockgun, fixtures_root):
+        """
+        :param str tank_temp: Temporary folder where the test will write its files.
+        :param str project_root: Root of the project
+        :param mockgun: Mockgun instance with the test data.
+        :param fixtures_root: Absolute path to the tests/fixtures folder.
+        """
+        self.tank_temp = tank_temp
+        self.project_root = project_root
+        self.mockgun = mockgun
+        self.fixtures_root = fixtures_root
+
+    # Implements some methods from TestCase, which will avoid
+    # us having to modify the tests below and keep the history clean.
+    def assertTrue(self, test, msg=""):
+        assert not not test, msg
+
+    def assertFalse(self, test, msg=""):
+        assert not test, msg
+
+    def assertEqual(self, lhs, rhs, msg=""):
+        assert lhs == rhs, msg
+
+    def assertNotEqual(self, lhs, rhs, msg=""):
+        assert lhs != rhs, msg
+
+    @contextlib.contextmanager
+    def assertRaises(self, exception_type):
+        with pytest.raises(exception_type):
+            yield
+
     ###############################################################################################
     # Helper methods
 
@@ -54,18 +144,16 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
 
         # the metadata identifying the descriptor's payload in shotgun.
         self._metadata = {
-            'sg_version_data':
-                {
-                    'sg_payload':
-                        {
-                            'name': 'attachment-17922.zip',
-                            'content_type': 'application/zip',
-                            'type': 'Attachment',
-                            'id': 17922,
-                            'link_type': 'upload',
-                        }
-                },
-            'sg_bundle_data': {},
+            "sg_version_data": {
+                "sg_payload": {
+                    "name": "attachment-17922.zip",
+                    "content_type": "application/zip",
+                    "type": "Attachment",
+                    "id": 17922,
+                    "link_type": "upload",
+                }
+            },
+            "sg_bundle_data": {},
         }
 
     def _setup_git_data(self):
@@ -74,10 +162,14 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         """
         # bare repo cloned from our official default config
         # multiple branches and tags
-        self.git_repo_uri = os.path.join(self.fixtures_root, "misc", "tk-config-default.git")
+        self.git_repo_uri = os.path.join(
+            self.fixtures_root, "misc", "tk-config-default.git"
+        )
 
         # Bare-minimum repo with both annotated and lightweight tags
-        self.git_tag_repo_uri = os.path.join(self.fixtures_root, "misc", "tag-test-repo.git")
+        self.git_tag_repo_uri = os.path.join(
+            self.fixtures_root, "misc", "tag-test-repo.git"
+        )
 
         self.bundle_cache = os.path.join(self.project_root, "bundle_cache")
 
@@ -91,7 +183,9 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
             content = f.read()
         return content
 
-    def _download_and_unpack_attachment(self, sg, attachment_id, target, retries=5, auto_detect_bundle=False):
+    def _download_and_unpack_attachment(
+        self, sg, attachment_id, target, retries=5, auto_detect_bundle=False
+    ):
         """
         Mock implementation of the tank.util.shotgun.download_and_unpack_attachment() that
         reads a pre-generated zip file and unpacks it to the target.
@@ -111,7 +205,9 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
 
         while not done and attempt < retries:
 
-            zip_tmp = os.path.join(tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex)
+            zip_tmp = os.path.join(
+                tempfile.gettempdir(), "%s_tank.zip" % uuid.uuid4().hex
+            )
             try:
                 bundle_content = self._get_attachment_data(self._attachment_zip_path)
                 with open(zip_tmp, "wb") as fh:
@@ -120,7 +216,7 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
                 tank.util.filesystem.ensure_folder_exists(target)
                 tank.util.zip.unzip_file(zip_tmp, target, auto_detect_bundle)
             except Exception as e:
-                print("Attempt %s: Attachment download failed: %s" % (attempt, e))
+                print(("Attempt %s: Attachment download failed: %s" % (attempt, e)))
                 attempt += 1
                 # sleep 500ms before we retry
                 time.sleep(0.5)
@@ -138,32 +234,38 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         Generates a zip file containing a single binary file of `size` Megabytes.
         :return: The path of the zip file
         """
-        text_file_path = os.path.join(tempfile.gettempdir(), "%s_tank_content" % uuid.uuid4().hex)
+        text_file_path = os.path.join(
+            tempfile.gettempdir(), "%s_tank_content" % uuid.uuid4().hex
+        )
         # write 10 MB of data into the text file
         with open(text_file_path, "wb") as f:
             f.seek((1024 * 1024 * size) - 1)
-            f.write("\0")
+            f.write(b("\0"))
 
-        zip_file_path = os.path.join(tempfile.gettempdir(), "%s_tank_source.zip" % uuid.uuid4().hex)
+        zip_file_path = os.path.join(
+            tempfile.gettempdir(), "%s_tank_source.zip" % uuid.uuid4().hex
+        )
         try:
             zf = zipfile.ZipFile(zip_file_path, "w")
             zf.write(text_file_path, arcname="large_binary_file")
         except Exception as e:
-            print("Failed to create the temporary zip package at %s." % zip_file_path)
+            print(("Failed to create the temporary zip package at %s." % zip_file_path))
             raise e
         finally:
             zf.close()
         return zip_file_path
 
-    def _create_desc(self, location, resolve_latest=False, desc_type=sgtk.descriptor.Descriptor.CONFIG):
+    def _create_desc(
+        self,
+        location,
+        resolve_latest=False,
+        desc_type=sgtk.descriptor.Descriptor.CONFIG,
+    ):
         """
         Helper method around create_descriptor.
         """
         return sgtk.descriptor.create_descriptor(
-            self.mockgun,
-            desc_type,
-            location,
-            resolve_latest=resolve_latest
+            self.mockgun, desc_type, location, resolve_latest=resolve_latest
         )
 
     def _download_app_store_bundle(self, target=None):
@@ -176,26 +278,33 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
                 desc = sgtk.descriptor.create_descriptor(
                     None,
                     sgtk.descriptor.Descriptor.FRAMEWORK,
-                    {"name": "tk-test-bundle2", "version": "v1.0.0", "type": "app_store"}
+                    {
+                        "name": "tk-test-bundle2",
+                        "version": "v1.0.0",
+                        "type": "app_store",
+                    },
                 )
         else:
             desc = sgtk.descriptor.create_descriptor(
                 None,
                 sgtk.descriptor.Descriptor.FRAMEWORK,
-                {"name": "tk-test-bundle2", "version": "v1.0.0", "type": "app_store"}
+                {"name": "tk-test-bundle2", "version": "v1.0.0", "type": "app_store"},
             )
-        io_descriptor_app_store = "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
+        io_descriptor_app_store = (
+            "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore"
+        )
         with patch(
-            "%s._IODescriptorAppStore__create_sg_app_store_connection" % io_descriptor_app_store,
-            return_value=(self.mockgun, None)
+            "%s._IODescriptorAppStore__create_sg_app_store_connection"
+            % io_descriptor_app_store,
+            return_value=(self.mockgun, None),
         ):
             with patch(
                 "%s._IODescriptorAppStore__refresh_metadata" % io_descriptor_app_store,
-                return_value=self._metadata
+                return_value=self._metadata,
             ):
                 with patch(
                     "tank.util.shotgun.download_and_unpack_attachment",
-                    side_effect=self._download_and_unpack_attachment
+                    side_effect=self._download_and_unpack_attachment,
                 ):
                     desc.download_local()
 
@@ -210,7 +319,7 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
             "name": "primary",
             "project_id": 123,
             "field": "sg_config",
-            "version": 456
+            "version": 456,
         }
         if target:
             with temp_env_var(SHOTGUN_BUNDLE_CACHE_PATH=target):
@@ -218,8 +327,9 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         else:
             desc = self._create_desc(location)
         with patch(
-                "tank.util.shotgun.download_and_unpack_attachment",
-                side_effect=self._download_and_unpack_attachment):
+            "tank.util.shotgun.download_and_unpack_attachment",
+            side_effect=self._download_and_unpack_attachment,
+        ):
             desc.download_local()
 
     def _download_git_branch_bundle(self, target=None):
@@ -231,7 +341,7 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         location_dict_branch = {
             "type": "git_branch",
             "path": self.git_repo_uri,
-            "branch": "33014_nuke_studio"
+            "branch": "33014_nuke_studio",
         }
         if target:
             with temp_env_var(SHOTGUN_BUNDLE_CACHE_PATH=target):
@@ -250,7 +360,7 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         location_dict_tag = {
             "type": "git",
             "path": self.git_repo_uri,
-            "version": "v0.15.0"
+            "version": "v0.15.0",
         }
         if target:
             with temp_env_var(SHOTGUN_BUNDLE_CACHE_PATH=target):
@@ -259,7 +369,9 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
             desc_git_tag = self._create_desc(location_dict_tag)
         desc_git_tag.download_local()
 
-    def _test_multiprocess_download_to_shared_bundle_cache(self, func, shared_dir, expected_path):
+    def _test_multiprocess_download_to_shared_bundle_cache(
+        self, func, shared_dir, expected_path
+    ):
         """
         Spawns 10 processes and attempts to run the download function simultaneously. It verifies
         that the process completes without errors, and the expected path of download exists.
@@ -270,7 +382,7 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         """
         # skip this test on windows or py2.5 where multiprocessing isn't available
         # TODO: Test with subprocess instead of multiprocessing.
-        if sys.platform == "win32" or sys.version_info < (2, 6):
+        if is_windows() or sys.version_info < (2, 6):
             return
 
         processes = []
@@ -290,28 +402,32 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         while not all_processes_finished:
             time.sleep(0.1)
             sys.stderr.write(".")
-            all_processes_finished = all(not (process.is_alive()) for process in processes)
+            all_processes_finished = all(
+                not (process.is_alive()) for process in processes
+            )
 
         # Make sure the number of processes forked are as expected.
-        self.assertEqual(len(processes), 10, "Failed to spawn the expected number of processes.")
+        self.assertEqual(
+            len(processes), 10, "Failed to spawn the expected number of processes."
+        )
 
         # make sure the expected local path exists.
         self.assertTrue(
             os.path.exists(expected_path),
-            "Failed to find the shared bundle cache directory for the descriptor on disk."
+            "Failed to find the shared bundle cache directory for the descriptor on disk.",
         )
 
         # bit-wise OR the exit codes of all processes.
         all_processes_exit_code = reduce(
-            lambda x, y: x | y,
-            [proc.exitcode for proc in processes]
+            lambda x, y: x | y, [proc.exitcode for proc in processes]
         )
 
         # Make sure none of the child processes had non-zero exit statuses.
         self.assertEqual(
             all_processes_exit_code,
             0,
-            "Failed to write concurrently to shared bundle cache: %s" % ",".join(errors)
+            "Failed to write concurrently to shared bundle cache: %s"
+            % ",".join(errors),
         )
 
     ###############################################################################################
@@ -327,16 +443,32 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         self._download_app_store_bundle()
 
         # make sure the expected local path exists.
-        self.assertTrue(os.path.exists(
-            os.path.join(self.tank_temp, "bundle_cache", "app_store", "tk-test-bundle2", "v1.0.0", "large_binary_file")
-        ), "Failed to find the default bundle cache directory for the app store descriptor on disk.")
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(
+                    self.tank_temp,
+                    "bundle_cache",
+                    "app_store",
+                    "tk-test-bundle2",
+                    "v1.0.0",
+                    "large_binary_file",
+                )
+            ),
+            "Failed to find the default bundle cache directory for the app store descriptor on disk.",
+        )
 
         # now test concurrent downloads to a shared bundle cache
         self._test_multiprocess_download_to_shared_bundle_cache(
             self._download_app_store_bundle,
             os.path.join(self.tank_temp, "shared_bundle_cache"),
-            os.path.join(self.tank_temp, "shared_bundle_cache", "app_store",
-                         "tk-test-bundle2", "v1.0.0", "large_binary_file")
+            os.path.join(
+                self.tank_temp,
+                "shared_bundle_cache",
+                "app_store",
+                "tk-test-bundle2",
+                "v1.0.0",
+                "large_binary_file",
+            ),
         )
 
     def test_shotgun_entity_downloads(self):
@@ -350,15 +482,32 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         self._download_shotgun_bundle()
 
         # make sure the expected local path exists.
-        self.assertTrue(os.path.exists(
-            os.path.join(self.tank_temp, "bundle_cache", "sg", "unit_test_mock_sg", "v456", "large_binary_file")
-        ), "Failed to find the default bundle cache directory for the shotgun entity descriptor on disk.")
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(
+                    self.tank_temp,
+                    "bundle_cache",
+                    "sg",
+                    "unit_test_mock_sg",
+                    "v456",
+                    "large_binary_file",
+                )
+            ),
+            "Failed to find the default bundle cache directory for the shotgun entity descriptor on disk.",
+        )
 
         # now test concurrent downloads to a shared bundle cache
         self._test_multiprocess_download_to_shared_bundle_cache(
             self._download_shotgun_bundle,
             os.path.join(self.tank_temp, "shared_bundle_cache"),
-            os.path.join(self.tank_temp, "shared_bundle_cache", "sg", "unit_test_mock_sg", "v456", "large_binary_file")
+            os.path.join(
+                self.tank_temp,
+                "shared_bundle_cache",
+                "sg",
+                "unit_test_mock_sg",
+                "v456",
+                "large_binary_file",
+            ),
         )
 
     @skip_if_git_missing
@@ -372,16 +521,30 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         self._download_git_tag_bundle()
 
         # make sure the expected local path exists.
-        self.assertTrue(os.path.exists(
-            os.path.join(self.tank_temp, "bundle_cache", "git", "tk-config-default.git", "v0.15.0")
-        ), "Failed to find the default bundle cache directory for the app store descriptor on disk.")
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(
+                    self.tank_temp,
+                    "bundle_cache",
+                    "git",
+                    "tk-config-default.git",
+                    "v0.15.0",
+                )
+            ),
+            "Failed to find the default bundle cache directory for the app store descriptor on disk.",
+        )
 
         # now test concurrent downloads to a shared bundle cache
         self._test_multiprocess_download_to_shared_bundle_cache(
             self._download_git_tag_bundle,
             os.path.join(self.tank_temp, "shared_bundle_cache"),
-            os.path.join(self.tank_temp, "shared_bundle_cache", "git",
-                         "tk-config-default.git", "v0.15.0")
+            os.path.join(
+                self.tank_temp,
+                "shared_bundle_cache",
+                "git",
+                "tk-config-default.git",
+                "v0.15.0",
+            ),
         )
 
     @skip_if_git_missing
@@ -390,7 +553,13 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         Tests git branch descriptor downloads to the bundle cache.
         """
         # make sure there is nothing in the bundle cache
-        git_location = os.path.join(self.tank_temp, "bundle_cache", "gitbranch", "tk-config-default.git", "e1c03fa")
+        git_location = os.path.join(
+            self.tank_temp,
+            "bundle_cache",
+            "gitbranch",
+            "tk-config-default.git",
+            "e1c03fa",
+        )
         if os.path.exists(git_location):
             os.rename(git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex))
 
@@ -405,15 +574,20 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         # make sure the expected local path exists.
         self.assertTrue(
             os.path.exists(git_location),
-            "Failed to find the default bundle cache directory for the app store descriptor on disk."
+            "Failed to find the default bundle cache directory for the app store descriptor on disk.",
         )
 
         # now test concurrent downloads to a shared bundle cache
         self._test_multiprocess_download_to_shared_bundle_cache(
             self._download_git_branch_bundle,
             os.path.join(self.tank_temp, "shared_bundle_cache"),
-            os.path.join(self.tank_temp, "shared_bundle_cache", "gitbranch",
-                         "tk-config-default.git", "e1c03fa")
+            os.path.join(
+                self.tank_temp,
+                "shared_bundle_cache",
+                "gitbranch",
+                "tk-config-default.git",
+                "e1c03fa",
+            ),
         )
 
     def test_descriptor_download_error_throws_exception(self):
@@ -427,7 +601,7 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         # temporary folder will raise a TankDescriptorError
         with patch(
             "tank.descriptor.io_descriptor.git_branch.IODescriptorGitBranch._download_local",
-            side_effect=_raise_exception
+            side_effect=_raise_exception,
         ):
             with self.assertRaises(tank.descriptor.errors.TankDescriptorIOError):
                 self._download_git_branch_bundle()
@@ -438,7 +612,13 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         Tests that an error during the rename operation kicks in various fallbacks.
         """
         # make sure there is nothing in the bundle cache
-        git_location = os.path.join(self.tank_temp, "bundle_cache", "gitbranch", "tk-config-default.git", "e1c03fa")
+        git_location = os.path.join(
+            self.tank_temp,
+            "bundle_cache",
+            "gitbranch",
+            "tk-config-default.git",
+            "e1c03fa",
+        )
         if os.path.exists(git_location):
             shutil.move(git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex))
 
@@ -457,7 +637,7 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         # make sure the expected local path exists despite the rename failing
         self.assertTrue(
             os.path.exists(git_location),
-            "Failed to find the default bundle cache directory for the app store descriptor on disk."
+            "Failed to find the default bundle cache directory for the app store descriptor on disk.",
         )
 
         # make sure we cleaned up the temp location
@@ -480,10 +660,17 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
             with open(os.path.join(dst, "some_file.foo"), "wt") as fh:
                 fh.write("file contents")
             raise OSError("Something went wrong half way")
+
         move_mock.side_effect = our_move_mock
 
         # make sure there is nothing in the bundle cache
-        git_location = os.path.join(self.tank_temp, "bundle_cache", "gitbranch", "tk-config-default.git", "e1c03fa")
+        git_location = os.path.join(
+            self.tank_temp,
+            "bundle_cache",
+            "gitbranch",
+            "tk-config-default.git",
+            "e1c03fa",
+        )
         if os.path.exists(git_location):
             shutil.move(git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex))
 
@@ -513,7 +700,13 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         Tests the case where for some reason a partial bundle was written to the bundle cache
         """
         # make sure there is nothing in the bundle cache
-        git_location = os.path.join(self.tank_temp, "bundle_cache", "gitbranch", "tk-config-default.git", "e1c03fa")
+        git_location = os.path.join(
+            self.tank_temp,
+            "bundle_cache",
+            "gitbranch",
+            "tk-config-default.git",
+            "e1c03fa",
+        )
         if os.path.exists(git_location):
             shutil.move(git_location, "%s.bak.%s" % (git_location, uuid.uuid4().hex))
 
@@ -535,6 +728,10 @@ class TestDownloadableIODescriptors(ShotgunTestBase):
         desc2 = self._download_git_branch_bundle()
 
         self.assertTrue(os.path.exists(os.path.join(git_location, "info.yml")))
-        self.assertTrue(os.path.exists(os.path.join(git_location, "tk-metadata", "install_complete")))
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(git_location, "tk-metadata", "install_complete")
+            )
+        )
         self.assertTrue(desc.exists_local())
         self.assertTrue(desc2.exists_local())

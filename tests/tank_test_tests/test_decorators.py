@@ -13,7 +13,7 @@ import uuid
 import os
 
 from tank_test.tank_test_base import ShotgunTestBase, temp_env_var
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 
 
 class TestDecorators(ShotgunTestBase):

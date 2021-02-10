@@ -15,9 +15,10 @@ Unit tests tank updates.
 from __future__ import with_statement
 
 import os
+import sys
 import logging
 
-from tank_test.tank_test_base import TankTestBase, setUpModule # noqa
+from tank_test.tank_test_base import TankTestBase, setUpModule  # noqa
 
 from tank.platform.environment import InstalledEnvironment
 
@@ -54,13 +55,20 @@ class TestSimpleUpdates(TankTestBase):
         """
         Make sure we can instantiate an environment and get information about the installed apps and their descriptors.
         """
-        env = InstalledEnvironment(os.path.join(self.project_config, "env", "simple.yml"), self.pipeline_configuration)
+        env = InstalledEnvironment(
+            os.path.join(self.project_config, "env", "simple.yml"),
+            self.pipeline_configuration,
+        )
 
         self.assertListEqual(env.get_engines(), ["tk-test"])
         self.assertListEqual(env.get_apps("tk-test"), ["tk-multi-nodep"])
         self.assertListEqual(
             env.get_frameworks(),
-            ["tk-framework-test_v1.0.0", "tk-framework-test_v1.0.x", "tk-framework-test_v1.x.x"]
+            [
+                "tk-framework-test_v1.0.0",
+                "tk-framework-test_v1.0.x",
+                "tk-framework-test_v1.x.x",
+            ],
         )
 
         desc = env.get_framework_descriptor("tk-framework-test_v1.0.0")
@@ -82,10 +90,60 @@ class TestSimpleUpdates(TankTestBase):
         # Run appstore updates.
         command = self.tk.get_command("updates")
         command.set_logger(logging.getLogger("/dev/null"))
-        command.execute({"environment_filter": "simple"})
+        results = command.execute({"environment_filter": "simple"})
+
+        # The expected results in this situation are the same between python 2 and 3,
+        # but if the environment is changed with future updates, then this may not be the
+        # case. See `test_update_include` for more details.
+        expected_results = [
+            {
+                "environment": "simple",
+                "app_instance": None,
+                "updated": False,
+                "engine_instance": "tk-test",
+                "framework_name": None,
+            },
+            {
+                "app_instance": "tk-multi-nodep",
+                "updated": True,
+                "engine_instance": "tk-test",
+                "new_version": "v2.0.0",
+                "framework_name": None,
+                "environment": "simple",
+            },
+            {
+                "environment": "simple",
+                "app_instance": None,
+                "updated": False,
+                "engine_instance": None,
+                "framework_name": "tk-framework-test_v1.0.0",
+            },
+            {
+                "app_instance": None,
+                "updated": True,
+                "engine_instance": None,
+                "new_version": "v1.0.1",
+                "framework_name": "tk-framework-test_v1.0.x",
+                "environment": "simple",
+            },
+            {
+                "app_instance": None,
+                "updated": True,
+                "engine_instance": None,
+                "new_version": "v1.1.0",
+                "framework_name": "tk-framework-test_v1.x.x",
+                "environment": "simple",
+            },
+        ]
+
+        # Check the results returned by the update command
+        self.assertListEqual(results, expected_results)
 
         # Make sure we are v2.
-        env = InstalledEnvironment(os.path.join(self.project_config, "env", "simple.yml"), self.pipeline_configuration)
+        env = InstalledEnvironment(
+            os.path.join(self.project_config, "env", "simple.yml"),
+            self.pipeline_configuration,
+        )
 
         desc = env.get_app_descriptor("tk-test", "tk-multi-nodep")
         self.assertEqual(desc.version, "v2.0.0")
@@ -120,7 +178,9 @@ class TestIncludeUpdates(TankTestBase):
 
         self._engine_bundle = self._mock_store.add_engine("tk-engine", "v1.0.0")
         self._app_bundle = self._mock_store.add_application("tk-multi-app", "v1.0.0")
-        self._2nd_level_dep_bundle = self._mock_store.add_framework("tk-framework-2nd-level-dep", "v1.0.0")
+        self._2nd_level_dep_bundle = self._mock_store.add_framework(
+            "tk-framework-2nd-level-dep", "v1.0.0"
+        )
 
         self._update_cmd = self.tk.get_command("updates")
         self._update_cmd.set_logger(logging.getLogger("/dev/null"))
@@ -130,7 +190,8 @@ class TestIncludeUpdates(TankTestBase):
         Retrieves the environment file specified.
         """
         return InstalledEnvironment(
-            os.path.join(self.project_config, "env", "%s.yml" % env_name), self.pipeline_configuration
+            os.path.join(self.project_config, "env", "%s.yml" % env_name),
+            self.pipeline_configuration,
         )
 
     def _update_env(self, env_name):
@@ -139,7 +200,7 @@ class TestIncludeUpdates(TankTestBase):
 
         :param name: Name of the environment to update.
         """
-        self._update_cmd.execute({"environment_filter": env_name})
+        return self._update_cmd.execute({"environment_filter": env_name})
 
     def test_update_include(self):
         """
@@ -147,7 +208,101 @@ class TestIncludeUpdates(TankTestBase):
         """
         # Create a new version of the app that is included and update.
         self._mock_store.add_application("tk-multi-app", "v2.0.0")
-        self._update_env("updating_included_app")
+        results = self._update_env("updating_included_app")
+        print("results", results)
+
+        # Check the results returned by the update.
+        # Note that when bundles share location descriptors, the first instance that is found
+        # will be updated and then all further instances will be marked as not updated
+        # since they were updated when the first on was found.
+
+        # The expected results are actually different between Python versions.
+        # This is because of the order in which the items are read during the update process
+        # being different. Ultimately all items should be updated just the same, but the
+        # reported results will be different since it only reports the first instance
+        # it comes across as being updated, which can be different between Python versions.
+        if sys.version_info.major == 2:
+            expected_results = [
+                {
+                    "environment": "updating_included_app",
+                    "app_instance": None,
+                    "updated": False,
+                    "engine_instance": "tk-engine",
+                    "framework_name": None,
+                },
+                {
+                    "app_instance": "tk-multi-app2",
+                    "updated": True,
+                    "engine_instance": "tk-engine",
+                    "new_version": "v2.0.0",
+                    "framework_name": None,
+                    "environment": "updating_included_app",
+                },
+                {
+                    "environment": "updating_included_app",
+                    "app_instance": "tk-multi-app",
+                    "updated": False,
+                    "engine_instance": "tk-engine",
+                    "framework_name": None,
+                },
+                {
+                    "app_instance": "tk-multi-app3",
+                    "updated": True,
+                    "engine_instance": "tk-engine",
+                    "new_version": "v2.0.0",
+                    "framework_name": None,
+                    "environment": "updating_included_app",
+                },
+                {
+                    "environment": "updating_included_app",
+                    "app_instance": None,
+                    "updated": False,
+                    "engine_instance": None,
+                    "framework_name": "tk-framework-2nd-level-dep_v1.x.x",
+                },
+            ]
+        elif sys.version_info.major == 3:
+            expected_results = [
+                {
+                    "engine_instance": "tk-engine",
+                    "app_instance": None,
+                    "framework_name": None,
+                    "environment": "updating_included_app",
+                    "updated": False,
+                },
+                {
+                    "engine_instance": "tk-engine",
+                    "app_instance": "tk-multi-app",
+                    "framework_name": None,
+                    "environment": "updating_included_app",
+                    "updated": True,
+                    "new_version": "v2.0.0",
+                },
+                {
+                    "engine_instance": "tk-engine",
+                    "app_instance": "tk-multi-app2",
+                    "framework_name": None,
+                    "environment": "updating_included_app",
+                    "updated": False,
+                },
+                {
+                    "engine_instance": "tk-engine",
+                    "app_instance": "tk-multi-app3",
+                    "framework_name": None,
+                    "environment": "updating_included_app",
+                    "updated": True,
+                    "new_version": "v2.0.0",
+                },
+                {
+                    "engine_instance": None,
+                    "app_instance": None,
+                    "framework_name": "tk-framework-2nd-level-dep_v1.x.x",
+                    "environment": "updating_included_app",
+                    "updated": False,
+                },
+            ]
+
+        self.assertListEqual(results, expected_results)
 
         # Reload env
         env = self._get_env("updating_included_app")
@@ -158,11 +313,17 @@ class TestIncludeUpdates(TankTestBase):
 
         self.assertDictEqual(
             env.get_app_descriptor("tk-engine", "tk-multi-app").get_location(),
-            {
-                "name": "tk-multi-app",
-                "version": "v2.0.0",
-                "type": "app_store"
-            }
+            {"name": "tk-multi-app", "version": "v2.0.0", "type": "app_store"},
+        )
+
+        self.assertDictEqual(
+            env.get_app_descriptor("tk-engine", "tk-multi-app2").get_location(),
+            {"name": "tk-multi-app", "version": "v2.0.0", "type": "app_store"},
+        )
+
+        self.assertDictEqual(
+            env.get_app_descriptor("tk-engine", "tk-multi-app3").get_location(),
+            {"name": "tk-multi-app", "version": "v2.0.0", "type": "app_store"},
         )
 
     def test_update_include_with_new_framework(self):
@@ -178,17 +339,19 @@ class TestIncludeUpdates(TankTestBase):
         in them. In other words, new frameworks that are installed need to be added as close
         as possible as the bundles that depend on them. This is what this test ensures.
         """
-        # The 2nd level dependency is initialially available from the main environment file.
+        # The 2nd level dependency is initially available from the main environment file.
         env = self._get_env("updating_included_app")
-        _, file_path = env.find_location_for_framework("tk-framework-2nd-level-dep_v1.x.x")
+        _, file_path = env.find_location_for_framework(
+            "tk-framework-2nd-level-dep_v1.x.x"
+        )
         self.assertEqual(os.path.basename(file_path), "updating_included_app.yml")
 
         # Create a new framework that we've never seen before.
         fwk = self._mock_store.add_framework("tk-framework-test", "v1.0.0")
         # Add a new version of the app and add give it a dependency on the new framework.
-        self._mock_store.add_application("tk-multi-app", "v2.0.0").required_frameworks = [
-            fwk.get_major_dependency_descriptor()
-        ]
+        self._mock_store.add_application(
+            "tk-multi-app", "v2.0.0"
+        ).required_frameworks = [fwk.get_major_dependency_descriptor()]
         self._update_env("updating_included_app")
 
         # Reload env
@@ -198,14 +361,14 @@ class TestIncludeUpdates(TankTestBase):
         _, file_path = env.find_location_for_framework("tk-framework-test_v1.x.x")
         self.assertEqual(os.path.basename(file_path), "common_apps.yml")
         desc = env.get_framework_descriptor("tk-framework-test_v1.x.x")
-        self.assertEqual(
-            desc.get_location()["version"], "v1.0.0"
-        )
+        self.assertEqual(desc.get_location()["version"], "v1.0.0")
 
         # Add another version, which this time will bring in a new framework
         # that is already being used in the environment file.
         fwk = self._mock_store.add_framework("tk-framework-test", "v1.0.1")
-        fwk.required_frameworks = [self._2nd_level_dep_bundle.get_major_dependency_descriptor()]
+        fwk.required_frameworks = [
+            self._2nd_level_dep_bundle.get_major_dependency_descriptor()
+        ]
 
         self._update_env("updating_included_app")
 
@@ -217,5 +380,7 @@ class TestIncludeUpdates(TankTestBase):
         self.assertEqual(os.path.basename(file_path), "common_apps.yml")
 
         # Also, its dependency should now be picked up from the common_apps.yml file.
-        _, file_path = env.find_location_for_framework("tk-framework-2nd-level-dep_v1.x.x")
+        _, file_path = env.find_location_for_framework(
+            "tk-framework-2nd-level-dep_v1.x.x"
+        )
         self.assertEqual(os.path.basename(file_path), "common_apps.yml")

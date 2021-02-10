@@ -33,8 +33,12 @@ from sgtk.util import filesystem
 from sgtk.descriptor import Descriptor, create_descriptor, is_descriptor_version_missing
 
 from utils import (
-    cache_apps, authenticate, add_authentication_options, OptionParserLineBreakingEpilog, cleanup_bundle_cache,
-    automated_setup_documentation
+    cache_apps,
+    authenticate,
+    add_authentication_options,
+    OptionParserLineBreakingEpilog,
+    cleanup_bundle_cache,
+    automated_setup_documentation,
 )
 
 # set up logging
@@ -68,7 +72,7 @@ def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri):
         Descriptor.CONFIG,
         config_descriptor_uri,
         # If the user hasn't specified the version to retrieve, resolve the latest from Shotgun.
-        resolve_latest=is_descriptor_version_missing(config_descriptor_uri)
+        resolve_latest=is_descriptor_version_missing(config_descriptor_uri),
     )
 
     logger.info("Resolved config %r" % cfg_descriptor)
@@ -88,12 +92,15 @@ def _build_bundle_cache(sg_connection, target_path, config_descriptor_uri):
     if cfg_descriptor.associated_core_descriptor:
         logger.info("Config is specifying a custom core in config/core/core_api.yml.")
         logger.info("This will be used when the config is executing.")
-        logger.info("Ensuring this core (%s) is cached..." % cfg_descriptor.associated_core_descriptor)
+        logger.info(
+            "Ensuring this core (%s) is cached..."
+            % cfg_descriptor.associated_core_descriptor
+        )
         bootstrap_core_desc = create_descriptor(
             sg_connection,
             Descriptor.CORE,
             cfg_descriptor.associated_core_descriptor,
-            bundle_cache_root_override=bundle_cache_root
+            bundle_cache_root_override=bundle_cache_root,
         )
         # cache it
         bootstrap_core_desc.ensure_local()
@@ -141,15 +148,17 @@ For information about the various descriptors that can be used, see
 http://developer.shotgunsoftware.com/tk-core/descriptor
 
 
-""".format(automated_setup_documentation=automated_setup_documentation)
-    parser = OptionParserLineBreakingEpilog(usage=usage, description=desc, epilog=epilog)
+""".format(
+        automated_setup_documentation=automated_setup_documentation
+    ).format(
+        script_name="populate_bundle_cache.py"
+    )
+    parser = OptionParserLineBreakingEpilog(
+        usage=usage, description=desc, epilog=epilog
+    )
 
     parser.add_option(
-        "-d",
-        "--debug",
-        default=False,
-        action="store_true",
-        help="Enable debug logging"
+        "-d", "--debug", default=False, action="store_true", help="Enable debug logging"
     )
 
     add_authentication_options(parser)
@@ -179,11 +188,7 @@ http://developer.shotgunsoftware.com/tk-core/descriptor
     sg_connection = sg_user.create_sg_connection()
 
     # we are all set.
-    _build_bundle_cache(
-        sg_connection,
-        target_path,
-        config_descriptor_str
-    )
+    _build_bundle_cache(sg_connection, target_path, config_descriptor_str)
 
     # all good!
     return 0
@@ -200,7 +205,7 @@ if __name__ == "__main__":
     exit_code = 1
     try:
         exit_code = main()
-    except Exception, e:
+    except Exception as e:
         logger.exception("An exception was raised: %s" % e)
 
     sys.exit(exit_code)

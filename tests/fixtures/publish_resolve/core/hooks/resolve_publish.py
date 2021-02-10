@@ -33,6 +33,3 @@ class PublishResolver(Hook):
             return "/supported/from/core/hook"
         if sg_publish_data["path"]["url"].startswith("file://"):
             return "/file/from/core/hook"
-
-
-

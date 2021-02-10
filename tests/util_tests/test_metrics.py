@@ -24,7 +24,7 @@ from tank.util.metrics import (
 from tank.util.constants import TANK_LOG_METRICS_HOOK_NAME
 
 import tank
-from tank_test.tank_test_base import setUpModule # noqa
+from tank_test.tank_test_base import setUpModule  # noqa
 from tank_test.tank_test_base import TankTestBase, ShotgunTestBase
 from tank.authentication import ShotgunAuthenticator
 
@@ -32,9 +32,15 @@ import os
 import json
 import time
 import threading
-import urllib2
-import time
 import unittest2
+from tank_vendor import six
+from tank_vendor.six.moves import urllib
+
+
+if six.PY2:
+    LINUX_DISTRIBUTION_FUNCTION = "platform.linux_distribution"
+else:
+    LINUX_DISTRIBUTION_FUNCTION = "tank_vendor.distro.linux_distribution"
 
 
 class TestEventMetric(ShotgunTestBase):
@@ -44,7 +50,7 @@ class TestEventMetric(ShotgunTestBase):
         """Object has a data dictionary that matches args."""
 
         obj = EventMetric("App", "Testing Data Property")
-        self.assertTrue(hasattr(obj, 'data'))
+        self.assertTrue(hasattr(obj, "data"))
         self.assertIsInstance(obj.data, dict)
         metric = obj.data
         self.assertTrue("event_group" in metric)
@@ -83,13 +89,15 @@ class TestEventMetric(ShotgunTestBase):
 
             EventMetric("App", "Test Log Metric without additional properties")
 
-            EventMetric("App", "Test Log Metric with additional properties",
+            EventMetric(
+                "App",
+                "Test Log Metric with additional properties",
                 properties={
                     "IntProp": 2,
                     "BoolProp": True,
                     "StringProp": "This is a test string",
-                    "DictProp": {"Key1": "value1", "Key2": "Value2"}
-                }
+                    "DictProp": {"Key1": "value1", "Key2": "Value2"},
+                },
             )
 
         except Exception as e:
@@ -109,8 +117,8 @@ class TestEventMetric(ShotgunTestBase):
                 "BoolProp": True,
                 "StringProp": "This is a test string",
                 "DictProp": {"Key1": "value1", "Key2": "Value2"},
-                "ListProp": [1, 2, 3, 4, 5]
-            }
+                "ListProp": [1, 2, 3, 4, 5],
+            },
         )
 
     def test_group_definition_exists(self):
@@ -147,7 +155,9 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         Helper test init method for setting up a bogus context
         just so we can run the engine.
         """
-        some_path = os.path.join(self.project_root, "sequences", "Seq", "shot_code", "step_name")
+        some_path = os.path.join(
+            self.project_root, "sequences", "Seq", "shot_code", "step_name"
+        )
         self.context = self.tk.context_from_path(some_path)
 
     def _authenticate(self):
@@ -170,7 +180,9 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
         # The environment is defined <tk-core>/tests/fixtures/config/env/test.yml
         engine_name = "test_engine"
-        self._cur_engine = tank.platform.start_engine(engine_name, self.tk, self.context)
+        self._cur_engine = tank.platform.start_engine(
+            engine_name, self.tk, self.context
+        )
 
         self.addCleanup(self._destroy_engine)
 
@@ -202,7 +214,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # Avoids crash because we're not in a pipeline configuration.
         self._get_api_core_config_location_mock = patch(
             "tank.util.shotgun.connection.__get_api_core_config_location",
-            return_value="unused_path_location"
+            return_value="unused_path_location",
         )
         self._get_api_core_config_location_mock.start()
         self.addCleanup(self._get_api_core_config_location_mock.stop)
@@ -210,7 +222,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # Mocks app store script user credentials retrieval
         self._get_app_store_key_from_shotgun_mock = patch(
             "tank.descriptor.io_descriptor.appstore.IODescriptorAppStore._IODescriptorAppStore__get_app_store_key_from_shotgun",
-            return_value=("abc", "123")
+            return_value=("abc", "123"),
         )
         self._get_app_store_key_from_shotgun_mock.start()
         self.addCleanup(self._get_app_store_key_from_shotgun_mock.stop)
@@ -219,7 +231,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._create_engine()
 
         # Patch & Mock the `urlopen` method
-        self._urlopen_mock = patch("urllib2.urlopen")
+        self._urlopen_mock = patch("tank_vendor.six.moves.urllib.request.urlopen")
         self._mocked_method = self._urlopen_mock.start()
 
     def setUp(self):
@@ -247,11 +259,11 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # important to call base class so it can clean up memory
         super(TestMetricsDispatchWorkerThread, self).tearDown()
 
-    def _get_urllib2_request_calls(self, return_only_calls_after_reset=False):
+    def _get_urllib_request_calls(self, return_only_calls_after_reset=False):
         """
-        Helper test method that traverses `mock_calls` and return a list of `urllib2.Request` specific calls
+        Helper test method that traverses `mock_calls` and return a list of `urllib.Request` specific calls
 
-        :return: a list a `urllib2.Request` specific calls
+        :return: a list a `urllib.Request` specific calls
         """
 
         mocked_request_calls = []
@@ -269,12 +281,16 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                 if "call.reset()" in str(mocked_call):
                     found_reset = True
 
-            if found_reset and "urllib2.Request" in str(mocked_call):
+            # Quick sanity check to ensure that the mocked call includes a
+            # Request call.  Don't use the full module name since it varies from
+            # Python 2 to 3.  The isinstance check below will prevent any false
+            # positives.
+            if found_reset and "Request" in str(mocked_call):
                 # TODO: find out what class type is 'something'
-                for something in mocked_call:
-                    for instance in something:
-                        if isinstance(instance, urllib2.Request):
-                            mocked_request_calls.append(instance)
+                for args in mocked_call:
+                    for arg in args:
+                        if isinstance(arg, urllib.request.Request):
+                            mocked_request_calls.append(arg)
 
         return mocked_request_calls
 
@@ -288,8 +304,16 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         :return: a list a metric dictionaries
         """
         metrics = []
-        for mocked_request in self._get_urllib2_request_calls(return_only_calls_after_reset):
-            data = json.loads(mocked_request.get_data())
+        for mocked_request in self._get_urllib_request_calls(
+            return_only_calls_after_reset
+        ):
+            # get_data was removed in Python 3.4. since we're testing against 3.6 and
+            # 3.7, this should be sufficient.
+            if six.PY3:
+                data = mocked_request.data
+            else:
+                data = mocked_request.get_data()
+            data = json.loads(data)
             # Now that we have request data
             # Traverse the metrics to find the one we've logged above
             if "metrics" in data:
@@ -318,7 +342,10 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
         # Save a few values for comparing on the other side
         expected_event_name = name
-        if EventMetric.EVENT_NAME_FORMAT % (group, name) not in EventMetric.SUPPORTED_EVENTS:
+        if (
+            EventMetric.EVENT_NAME_FORMAT % (group, name)
+            not in EventMetric.SUPPORTED_EVENTS
+        ):
             expected_event_name = "Unknown Event"
 
         # Make at least one metric related call!
@@ -330,14 +357,20 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # Simple flag just to differenciate one of two conditions:
         # a) didn't even find a mocked request call
         # b) a + didn't find expected metric
-        found_urllib2_request_call = False
+        found_urllib_request_call = False
 
         while time.time() < timeout:
             time.sleep(TestMetricsDispatchWorkerThread.SLEEP_INTERVAL)
 
-            for mocked_request in self._get_urllib2_request_calls():
-                found_urllib2_request_call = True
-                data = json.loads(mocked_request.get_data())
+            for mocked_request in self._get_urllib_request_calls():
+                found_urllib_request_call = True
+                # get_data was removed in Python 3.4. since we're testing against 3.6 and
+                # 3.7, this should be sufficient.
+                if six.PY3:
+                    data = mocked_request.data
+                else:
+                    data = mocked_request.get_data()
+                data = json.loads(data)
                 # Now that we have request data
                 # Traverse the metrics to find the one we've logged above
                 if "metrics" in data:
@@ -347,20 +380,21 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                     url = mocked_request.get_full_url()
                     self.assertTrue(
                         TestMetricsDispatchWorkerThread.METRIC_ENDPOINT in url,
-                        "Not using the latest metric '%s' endpoint" % (
-                            TestMetricsDispatchWorkerThread.METRIC_ENDPOINT
-                        )
+                        "Not using the latest metric '%s' endpoint"
+                        % (TestMetricsDispatchWorkerThread.METRIC_ENDPOINT),
                     )
 
                     for metric in data["metrics"]:
-                        if ("event_name" in metric) and (expected_event_name == metric["event_name"]):
+                        if ("event_name" in metric) and (
+                            expected_event_name == metric["event_name"]
+                        ):
                             # Nothing else FOR NOW to test, we can report success by bypassing
                             # timeout failure down below.
 
                             # Tests all of the received metric properties that went through two conversions
                             return metric
 
-        if(found_urllib2_request_call):
+        if found_urllib_request_call:
             self.fail("Timed out waiting for expected metric.")
         else:
             self.fail("Timed out waiting for a mocked urlopen request call.")
@@ -382,55 +416,93 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
                 "IntProp": 2,
                 "BoolProp": True,
                 "DictProp": {"Key1": "value1", "Key2": "Value2"},
-                "ListProp": [1, 2, 3, 4, 5]
-            }
+                "ListProp": [1, 2, 3, 4, 5],
+            },
         )
 
         # Test the metric that was encoded and transmitted to the mock server
         self.assertEqual(
-            server_received_metric["event_group"],
-            EventMetric.GROUP_TOOLKIT
+            server_received_metric["event_group"], EventMetric.GROUP_TOOLKIT
         )
-        self.assertEqual(
-            server_received_metric["event_name"],
-            "Launched Action"
-        )
+        self.assertEqual(server_received_metric["event_name"], "Launched Action")
         self.assertTrue("event_properties" in server_received_metric)
 
-        self.assertTrue(EventMetric.KEY_HOST_APP in server_received_metric["event_properties"])
-        self.assertTrue(EventMetric.KEY_HOST_APP_VERSION in server_received_metric["event_properties"])
-        self.assertTrue(EventMetric.KEY_APP in server_received_metric["event_properties"])
-        self.assertTrue(EventMetric.KEY_APP_VERSION in server_received_metric["event_properties"])
+        self.assertTrue(
+            EventMetric.KEY_HOST_APP in server_received_metric["event_properties"]
+        )
+        self.assertTrue(
+            EventMetric.KEY_HOST_APP_VERSION
+            in server_received_metric["event_properties"]
+        )
+        self.assertTrue(
+            EventMetric.KEY_APP in server_received_metric["event_properties"]
+        )
+        self.assertTrue(
+            EventMetric.KEY_APP_VERSION in server_received_metric["event_properties"]
+        )
 
         self.assertTrue("IntProp" in server_received_metric["event_properties"])
         self.assertTrue("BoolProp" in server_received_metric["event_properties"])
         self.assertTrue("DictProp" in server_received_metric["event_properties"])
         self.assertTrue("ListProp" in server_received_metric["event_properties"])
 
-        self.assertTrue(isinstance(server_received_metric["event_group"], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_name"], unicode))
+        self.assertTrue(
+            isinstance(server_received_metric["event_group"], six.text_type)
+        )
+        self.assertTrue(isinstance(server_received_metric["event_name"], six.text_type))
         self.assertTrue(isinstance(server_received_metric["event_properties"], dict))
 
-        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_HOST_APP], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_HOST_APP_VERSION], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_APP], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_APP_VERSION], unicode))
+        self.assertTrue(
+            isinstance(
+                server_received_metric["event_properties"][EventMetric.KEY_HOST_APP],
+                six.text_type,
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                server_received_metric["event_properties"][
+                    EventMetric.KEY_HOST_APP_VERSION
+                ],
+                six.text_type,
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                server_received_metric["event_properties"][EventMetric.KEY_APP],
+                six.text_type,
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                server_received_metric["event_properties"][EventMetric.KEY_APP_VERSION],
+                six.text_type,
+            )
+        )
 
-        self.assertTrue(isinstance(server_received_metric["event_properties"]["IntProp"], int))
-        self.assertTrue(isinstance(server_received_metric["event_properties"]["IntProp"], int))
-        self.assertTrue(isinstance(server_received_metric["event_properties"]["BoolProp"], bool))
-        self.assertTrue(isinstance(server_received_metric["event_properties"]["DictProp"], dict))
-        self.assertTrue(isinstance(server_received_metric["event_properties"]["ListProp"], list))
+        self.assertTrue(
+            isinstance(server_received_metric["event_properties"]["IntProp"], int)
+        )
+        self.assertTrue(
+            isinstance(server_received_metric["event_properties"]["IntProp"], int)
+        )
+        self.assertTrue(
+            isinstance(server_received_metric["event_properties"]["BoolProp"], bool)
+        )
+        self.assertTrue(
+            isinstance(server_received_metric["event_properties"]["DictProp"], dict)
+        )
+        self.assertTrue(
+            isinstance(server_received_metric["event_properties"]["ListProp"], list)
+        )
 
-    def helper_test_event_whitelist(self, event_group, event_name, expecting_unknown=False, setup_shotgun=False):
+    def helper_test_event_whitelist(
+        self, event_group, event_name, expecting_unknown=False, setup_shotgun=False
+    ):
         """
         Helper method for the 'test_event_whitelist' test
         """
         server_received_metric = self._helper_test_end_to_end(
-            event_group,
-            event_name,
-            {},
-            setup_shotgun
+            event_group, event_name, {}, setup_shotgun
         )
 
         # Test the metric that was encoded and transmitted to the mock server
@@ -485,7 +557,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
             "IntProp": 2,
             "BoolProp": True,
             "DictProp": {"Key1": "value1", "Key2": "Value2"},
-            "ListProp": [1, 2, 3, 4, 5]
+            "ListProp": [1, 2, 3, 4, 5],
         }
         server_received_metric = self._helper_test_end_to_end(
             EventMetric.GROUP_TOOLKIT,
@@ -499,10 +571,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue("event_group" in server_received_metric)
         self.assertTrue("event_name" in server_received_metric)
         # Our un-supported event name should have been changed
-        self.assertEqual(
-            server_received_metric["event_name"],
-            "Unknown Event"
-        )
+        self.assertEqual(server_received_metric["event_name"], "Unknown Event")
         self.assertTrue("event_properties" in server_received_metric)
         # The original un-supported event name should be available as a property
         self.assertEqual(
@@ -516,8 +585,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
             EventMetric.KEY_APP_VERSION,
         ]:
             self.assertEqual(
-                server_received_metric["event_properties"][k],
-                properties[k],
+                server_received_metric["event_properties"][k], properties[k]
             )
 
         preserved_properties = server_received_metric["event_properties"]["Event Data"]
@@ -526,14 +594,38 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self.assertTrue("DictProp" in preserved_properties)
         self.assertTrue("ListProp" in preserved_properties)
 
-        self.assertTrue(isinstance(server_received_metric["event_group"], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_name"], unicode))
+        self.assertTrue(
+            isinstance(server_received_metric["event_group"], six.text_type)
+        )
+        self.assertTrue(isinstance(server_received_metric["event_name"], six.text_type))
         self.assertTrue(isinstance(server_received_metric["event_properties"], dict))
 
-        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_HOST_APP], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_HOST_APP_VERSION], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_APP], unicode))
-        self.assertTrue(isinstance(server_received_metric["event_properties"][EventMetric.KEY_APP_VERSION], unicode))
+        self.assertTrue(
+            isinstance(
+                server_received_metric["event_properties"][EventMetric.KEY_HOST_APP],
+                six.text_type,
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                server_received_metric["event_properties"][
+                    EventMetric.KEY_HOST_APP_VERSION
+                ],
+                six.text_type,
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                server_received_metric["event_properties"][EventMetric.KEY_APP],
+                six.text_type,
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                server_received_metric["event_properties"][EventMetric.KEY_APP_VERSION],
+                six.text_type,
+            )
+        )
 
         self.assertTrue(isinstance(preserved_properties["IntProp"], int))
         self.assertTrue(isinstance(preserved_properties["IntProp"], int))
@@ -551,16 +643,16 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
             EventMetric.GROUP_TOOLKIT,
             "Test test_end_to_end",
             properties={
-                "Name with accents": "Éric Hébert",
-                "String with tricky characters": "''\"\\//%%$$?&?$^^,¨¨`"
-            }
+                "Name with accents": "Ã‰ric HÃ©bert",
+                "String with tricky characters": "''\"\\//%%$$?&?$^^,Â¨Â¨`",
+            },
         )
 
     def test_not_logging_older_tookit(self):
         """
         Test that logging metrics is not possible from an older version
         of toolkit as it can't even pass metric version check and therefore
-        won't call urllib2.urlopen mock calls
+        won't call urllib.urlopen mock calls
         """
 
         # Define a local server caps mock locally since it only
@@ -584,17 +676,22 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
             time.sleep(TestMetricsDispatchWorkerThread.SLEEP_INTERVAL)
 
             for metric in self._get_metrics():
-                self.fail("Was not expecting any request mock calls since code in metrics.py "
-                          "should have been filtered out based on server caps. version.")
+                self.fail(
+                    "Was not expecting any request mock calls since code in metrics.py "
+                    "should have been filtered out based on server caps. version."
+                )
 
         #
-        # If we get here, this is SUCCESS as we didn't receive urllib2.Request calls
+        # If we get here, this is SUCCESS as we didn't receive urllib.Request calls
         #
 
     def test_misc_constants(self):
 
         # Verify that the endpoint was indeed updated
-        self.assertEqual(TestMetricsDispatchWorkerThread.METRIC_ENDPOINT, MetricsDispatchWorkerThread.API_ENDPOINT)
+        self.assertEqual(
+            TestMetricsDispatchWorkerThread.METRIC_ENDPOINT,
+            MetricsDispatchWorkerThread.API_ENDPOINT,
+        )
         # Verify that process interval is adequate. This is currently arbitrary but
         # 5 seconds does seems to be reasonable for now.
         # This is subject to change as we start receiving metrics again.
@@ -623,7 +720,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
             EventMetric.log(
                 "App",
                 "Testing maximum queue size %d" % (i),
-                properties={"Metric id": i}
+                properties={"Metric id": i},
             )
 
         queue = MetricsQueueSingleton()._queue
@@ -633,7 +730,9 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # Where N is TEST_SIZE minus size of queue
         oldest_metric = queue.popleft()
         metric_index = oldest_metric.data["event_properties"]["Metric id"]
-        self.assertEqual(metric_index, TEST_SIZE - MetricsQueueSingleton.MAXIMUM_QUEUE_SIZE)
+        self.assertEqual(
+            metric_index, TEST_SIZE - MetricsQueueSingleton.MAXIMUM_QUEUE_SIZE
+        )
 
         # Finally, test that the newest item
         newest_metric = queue.pop()
@@ -657,7 +756,9 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
 
         EXPECTED_MAXIMUM_SIZE = 10
         if batch_size > EXPECTED_MAXIMUM_SIZE:
-            test_instance.batch_size_too_large_failure_count = test_instance.batch_size_too_large_failure_count + 1
+            test_instance.batch_size_too_large_failure_count = (
+                test_instance.batch_size_too_large_failure_count + 1
+            )
 
     def test_maximum_batch_size(self):
         """
@@ -679,7 +780,10 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         # For this test, we need to override that to something more specific.
         self._urlopen_mock.stop()
         self._urlopen_mock = None
-        self._urlopen_mock = patch("urllib2.urlopen", side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size)
+        self._urlopen_mock = patch(
+            "tank_vendor.six.moves.urllib.request.urlopen",
+            side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size,
+        )
         self._mocked_method = self._urlopen_mock.start()
 
         # We add 10 time the maximum number of events in the queue.
@@ -688,7 +792,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
             EventMetric.log(
                 "App",
                 "Testing maximum queue size %d" % (i),
-                properties={"Metric id": i}
+                properties={"Metric id": i},
             )
 
         queue = MetricsQueueSingleton()._queue
@@ -741,8 +845,8 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         self._urlopen_mock.stop()
         self._urlopen_mock = None
         self._urlopen_mock = patch(
-            "urllib2.urlopen",
-            side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size
+            "tank_vendor.six.moves.urllib.request.urlopen",
+            side_effect=TestMetricsDispatchWorkerThread._mocked_urlopen_for_test_maximum_batch_size,
         )
         self._mocked_method = self._urlopen_mock.start()
 
@@ -752,7 +856,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
             EventMetric.log(
                 EventMetric.GROUP_TOOLKIT,
                 "Testing maximum queue size %d" % (i),
-                properties={"Metric id": i}
+                properties={"Metric id": i},
             )
 
         queue = MetricsQueueSingleton()._queue
@@ -776,7 +880,7 @@ class TestMetricsDispatchWorkerThread(TankTestBase):
         max_interval = MetricsDispatchWorkerThread.DISPATCH_INTERVAL * 1000
         count = len(self.mock_calls_timestamp)
         first_timestamp_ms = self.mock_calls_timestamp[0]
-        last_timestamp_ms = self.mock_calls_timestamp[count-1]
+        last_timestamp_ms = self.mock_calls_timestamp[count - 1]
         avg_time_ms = (last_timestamp_ms - first_timestamp_ms) / count
         self.assertTrue(avg_time_ms < max_interval)
 
@@ -809,7 +913,9 @@ class TestMetricsDeprecatedFunctions(ShotgunTestBase):
         super(TestMetricsDeprecatedFunctions, self).setUp()
 
         # Setting up the mocked method
-        self._metrics_queue_singleton_log_mock = patch("tank.util.metrics.MetricsQueueSingleton.log")
+        self._metrics_queue_singleton_log_mock = patch(
+            "tank.util.metrics.MetricsQueueSingleton.log"
+        )
         self._mocked_method = self._metrics_queue_singleton_log_mock.start()
 
     def tearDown(self):
@@ -838,35 +944,49 @@ class TestMetricsDeprecatedFunctions(ShotgunTestBase):
         # Self testing that the mock setup is correct
         # by trying out a non-deprecated method.
         EventMetric.log("App", "Testing Own Test Mock")
-        self.assertTrue(self._mocked_method.called, "Was expecting a call to the "
-                                                    "`MetricsQueueSingleton.log`"
-                                                    "method from the non-deprecated "
-                                                    "`log_event_metric` method.")
+        self.assertTrue(
+            self._mocked_method.called,
+            "Was expecting a call to the "
+            "`MetricsQueueSingleton.log`"
+            "method from the non-deprecated "
+            "`log_event_metric` method.",
+        )
 
     def test_log_metric(self):
         # It is ok to provide an empty metric dictionary since we just want to
         # check that the `MetricsQueueSingleton.log` is called or not.
         log_metric({})
-        self.assertFalse(self._mocked_method.called, "Was not expecting a call to the "
-                                                     "`MetricsQueueSingleton.log` "
-                                                     "method from the deprecated "
-                                                     "`log_metric` method.")
+        self.assertFalse(
+            self._mocked_method.called,
+            "Was not expecting a call to the "
+            "`MetricsQueueSingleton.log` "
+            "method from the deprecated "
+            "`log_metric` method.",
+        )
 
     def test_log_user_attribute_metric(self):
 
-        log_user_attribute_metric(attr_name="Some attr. name", attr_value="Some attr. value")
-        self.assertFalse(self._mocked_method.called, "Was not expecting a call to the "
-                                                     "`MetricsQueueSingleton.log` "
-                                                     "method from the deprecated "
-                                                     "`log_user_attribute_metric` method.")
+        log_user_attribute_metric(
+            attr_name="Some attr. name", attr_value="Some attr. value"
+        )
+        self.assertFalse(
+            self._mocked_method.called,
+            "Was not expecting a call to the "
+            "`MetricsQueueSingleton.log` "
+            "method from the deprecated "
+            "`log_user_attribute_metric` method.",
+        )
 
     def test_log_user_activity_metric(self):
 
         log_user_activity_metric(module="Some some name", action="Some action")
-        self.assertFalse(self._mocked_method.called, "Was not expecting a call to the "
-                                                     "`MetricsQueueSingleton.log` "
-                                                     "method from the deprecated "
-                                                     "`log_user_activity_metric` method.")
+        self.assertFalse(
+            self._mocked_method.called,
+            "Was not expecting a call to the "
+            "`MetricsQueueSingleton.log` "
+            "method from the deprecated "
+            "`log_user_activity_metric` method.",
+        )
 
 
 class TestMetricsFunctions(ShotgunTestBase):
@@ -890,13 +1010,15 @@ class TestMetricsFunctions(ShotgunTestBase):
         # make sure no exceptions on good metrics
         try:
             EventMetric.log("App", "Testing Log Metric without additional properties")
-            EventMetric.log("App", "Testing Log Metric with additional properties",
+            EventMetric.log(
+                "App",
+                "Testing Log Metric with additional properties",
                 properties={
-                     "IntProp": 2,
-                     "BoolProp": True,
-                     "StringProp": "This is a test string",
-                     "DictProp": {"Key1": "value1", "Key2": "Value2"}
-                 }
+                    "IntProp": 2,
+                    "BoolProp": True,
+                    "StringProp": "This is a test string",
+                    "DictProp": {"Key1": "value1", "Key2": "Value2"},
+                },
             )
         except Exception as e:
             self.fail("EventMetric.log() failed unexpectedly on good metric: %s" % (e))
@@ -910,21 +1032,29 @@ class TestBundleMetrics(TankTestBase):
     def setUp(self):
         super(TestBundleMetrics, self).setUp()
         self.setup_fixtures()
-        
+
         # setup shot
         seq = {"type": "Sequence", "code": "seq_name", "id": 3}
         seq_path = os.path.join(self.project_root, "sequences", "seq_name")
         self.add_production_path(seq_path, seq)
-        
-        shot = {"type": "Shot", "code": "shot_name", "id": 2, "sg_sequence": seq, "project": self.project}
+
+        shot = {
+            "type": "Shot",
+            "code": "shot_name",
+            "id": 2,
+            "sg_sequence": seq,
+            "project": self.project,
+        }
         shot_path = os.path.join(seq_path, "shot_name")
         self.add_production_path(shot_path, shot)
-        
+
         step = {"type": "Step", "code": "step_name", "id": 4}
         self.shot_step_path = os.path.join(shot_path, "step_name")
         self.add_production_path(self.shot_step_path, step)
 
-        self.test_resource = os.path.join(self.pipeline_config_root, "config", "foo", "bar.png")
+        self.test_resource = os.path.join(
+            self.pipeline_config_root, "config", "foo", "bar.png"
+        )
         os.makedirs(os.path.dirname(self.test_resource))
         fh = open(self.test_resource, "wt")
         fh.write("test")
@@ -980,9 +1110,13 @@ class TestBundleMetrics(TankTestBase):
         self.assertEqual(data["event_group"], EventMetric.GROUP_TOOLKIT)
         self.assertEqual(data["event_name"], "Engine test")
         self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP], "unknown")
-        self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP_VERSION], "unknown")
+        self.assertEqual(
+            data["event_properties"][EventMetric.KEY_HOST_APP_VERSION], "unknown"
+        )
         self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE], engine.name)
-        self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE_VERSION], engine.version)
+        self.assertEqual(
+            data["event_properties"][EventMetric.KEY_ENGINE_VERSION], engine.version
+        )
         self.assertFalse(EventMetric.KEY_APP in data["event_properties"])
         self.assertFalse(EventMetric.KEY_APP_VERSION in data["event_properties"])
         self.assertFalse(EventMetric.KEY_COMMAND in data["event_properties"])
@@ -990,19 +1124,29 @@ class TestBundleMetrics(TankTestBase):
         # after the loops
         able_to_test_a_framework = False
         # Check metrics logged from apps
-        for app in engine.apps.itervalues():
+        for app in six.itervalues(engine.apps):
             app.log_metric("App test")
             metrics = metrics_queue.get_metrics()
             self.assertEqual(len(metrics), 1)
             data = metrics[0].data
             self.assertEqual(data["event_group"], EventMetric.GROUP_TOOLKIT)
             self.assertEqual(data["event_name"], "App test")
-            self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP], "unknown")
-            self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP_VERSION], "unknown")
-            self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE], engine.name)
-            self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE_VERSION], engine.version)
+            self.assertEqual(
+                data["event_properties"][EventMetric.KEY_HOST_APP], "unknown"
+            )
+            self.assertEqual(
+                data["event_properties"][EventMetric.KEY_HOST_APP_VERSION], "unknown"
+            )
+            self.assertEqual(
+                data["event_properties"][EventMetric.KEY_ENGINE], engine.name
+            )
+            self.assertEqual(
+                data["event_properties"][EventMetric.KEY_ENGINE_VERSION], engine.version
+            )
             self.assertEqual(data["event_properties"][EventMetric.KEY_APP], app.name)
-            self.assertEqual(data["event_properties"][EventMetric.KEY_APP_VERSION], app.version)
+            self.assertEqual(
+                data["event_properties"][EventMetric.KEY_APP_VERSION], app.version
+            )
             self.assertFalse(EventMetric.KEY_COMMAND in data["event_properties"])
             app.log_metric("App test", command_name="Blah")
             metrics = metrics_queue.get_metrics()
@@ -1010,14 +1154,24 @@ class TestBundleMetrics(TankTestBase):
             data = metrics[0].data
             self.assertEqual(data["event_group"], EventMetric.GROUP_TOOLKIT)
             self.assertEqual(data["event_name"], "App test")
-            self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP], "unknown")
-            self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP_VERSION], "unknown")
-            self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE], engine.name)
-            self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE_VERSION], engine.version)
+            self.assertEqual(
+                data["event_properties"][EventMetric.KEY_HOST_APP], "unknown"
+            )
+            self.assertEqual(
+                data["event_properties"][EventMetric.KEY_HOST_APP_VERSION], "unknown"
+            )
+            self.assertEqual(
+                data["event_properties"][EventMetric.KEY_ENGINE], engine.name
+            )
+            self.assertEqual(
+                data["event_properties"][EventMetric.KEY_ENGINE_VERSION], engine.version
+            )
             self.assertEqual(data["event_properties"][EventMetric.KEY_APP], app.name)
-            self.assertEqual(data["event_properties"][EventMetric.KEY_APP_VERSION], app.version)
+            self.assertEqual(
+                data["event_properties"][EventMetric.KEY_APP_VERSION], app.version
+            )
             self.assertEqual(data["event_properties"][EventMetric.KEY_COMMAND], "Blah")
-            for fw in app.frameworks.itervalues():
+            for fw in six.itervalues(app.frameworks):
                 able_to_test_a_framework = True
                 fw.log_metric("Framework test")
                 metrics = metrics_queue.get_metrics()
@@ -1025,19 +1179,31 @@ class TestBundleMetrics(TankTestBase):
                 data = metrics[0].data
                 self.assertEqual(data["event_group"], EventMetric.GROUP_TOOLKIT)
                 self.assertEqual(data["event_name"], "Framework test")
-                self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP], "unknown")
-                self.assertEqual(data["event_properties"][EventMetric.KEY_HOST_APP_VERSION], "unknown")
-                self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE], engine.name)
-                self.assertEqual(data["event_properties"][EventMetric.KEY_ENGINE_VERSION], engine.version)
+                self.assertEqual(
+                    data["event_properties"][EventMetric.KEY_HOST_APP], "unknown"
+                )
+                self.assertEqual(
+                    data["event_properties"][EventMetric.KEY_HOST_APP_VERSION],
+                    "unknown",
+                )
+                self.assertEqual(
+                    data["event_properties"][EventMetric.KEY_ENGINE], engine.name
+                )
+                self.assertEqual(
+                    data["event_properties"][EventMetric.KEY_ENGINE_VERSION],
+                    engine.version,
+                )
                 # The app is unknwown within a framework so shouldn't be part of
                 # properties
                 self.assertFalse(EventMetric.KEY_APP in data["event_properties"])
-                self.assertFalse(EventMetric.KEY_APP_VERSION in data["event_properties"])
+                self.assertFalse(
+                    EventMetric.KEY_APP_VERSION in data["event_properties"]
+                )
                 self.assertFalse(EventMetric.KEY_COMMAND in data["event_properties"])
         # Make sure we tested at least one app with a framework
         self.assertTrue(able_to_test_a_framework)
 
-    @patch("urllib2.open")
+    @patch("urllib.open")
     def test_log_metrics_hook(self, patched):
         """
         Test the log_metric hook is fired when logging metrics
@@ -1057,7 +1223,7 @@ class TestBundleMetrics(TankTestBase):
             if hook_name == TANK_LOG_METRICS_HOOK_NAME:
                 hook_calls.append(kwargs)
             # Call the original hook
-            return(exec_core_hook(hook_name, hook_method, **kwargs))
+            return exec_core_hook(hook_name, hook_method, **kwargs)
 
         with patch("tank.api.Sgtk.execute_core_hook_method") as mocked:
             mocked.side_effect = log_hook
@@ -1077,7 +1243,6 @@ from tank.util.metrics import PlatformInfo
 
 
 class TestPlatformInfo(unittest2.TestCase):
-
     def setUp(self):
         super(TestPlatformInfo, self).setUp()
         # reset un-cache PlatformInfo cached value
@@ -1110,7 +1275,7 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_mac_ver.called)
 
     @patch("platform.system", return_value="Linux")
-    @patch("platform.linux_distribution", return_value=("debian", "7.7", ""))
+    @patch(LINUX_DISTRIBUTION_FUNCTION, return_value=("debian", "7.7", ""))
     def test_as_linux(self, mocked_system, mocked_linux_distribution):
         """
         Tests as a Linux Debian system
@@ -1123,7 +1288,7 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertTrue(mocked_linux_distribution.called)
 
     @patch("platform.system", return_value="BSD")
-    @patch("platform.linux_distribution", side_effect=Exception)
+    @patch(LINUX_DISTRIBUTION_FUNCTION, side_effect=Exception)
     def test_as_unsupported_system(self, mocked_linux_distribution, mocked_system):
         """
         Tests a fake unsupported system
@@ -1137,8 +1302,10 @@ class TestPlatformInfo(unittest2.TestCase):
         self.assertFalse(mocked_linux_distribution.called)
 
     @patch("platform.system", return_value="Linux")
-    @patch("platform.linux_distribution", side_effect=Exception)
-    def test_as_linux_without_distribution(self, mocked_linux_distribution, mocked_system):
+    @patch(LINUX_DISTRIBUTION_FUNCTION, side_effect=Exception)
+    def test_as_linux_without_distribution(
+        self, mocked_linux_distribution, mocked_system
+    ):
         """
         Tests handling of an exception caused by the 'linux_distribution' method.
         """

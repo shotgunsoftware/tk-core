@@ -48,12 +48,21 @@ class IODescriptorPath(IODescriptorBase):
         :return: Descriptor instance
         """
 
-        super(IODescriptorPath, self).__init__(descriptor_dict, sg_connection, bundle_type)
+        super(IODescriptorPath, self).__init__(
+            descriptor_dict, sg_connection, bundle_type
+        )
 
         self._validate_descriptor(
             descriptor_dict,
             required=["type"],
-            optional=["name", "linux_path", "mac_path", "path", "windows_path", "version"]
+            optional=[
+                "name",
+                "linux_path",
+                "mac_path",
+                "path",
+                "windows_path",
+                "version",
+            ],
         )
 
         # platform specific location support
@@ -82,6 +91,9 @@ class IODescriptorPath(IODescriptorBase):
         # (this is handy when doing framework development, but totally
         #  non-required for finding the code)
         self._version = descriptor_dict.get("version") or "Undefined"
+
+        # Resolve environment variables in the version
+        self._version = os.path.expandvars(self._version)
 
         # if there is a name defined in the descriptor dict then lets use
         # this, otherwise we'll fall back to the folder name:
@@ -133,7 +145,9 @@ class IODescriptorPath(IODescriptorBase):
         """
         # ensure that this exists on disk
         if not self.exists_local():
-            raise TankDescriptorError("%s does not point at a valid bundle on disk!" % self)
+            raise TankDescriptorError(
+                "%s does not point at a valid bundle on disk!" % self
+            )
 
     def is_immutable(self):
         """

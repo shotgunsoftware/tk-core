@@ -19,7 +19,12 @@ import contextlib
 import sys
 
 from tank_test.tank_test_base import setUpModule  # noqa
-from tank_test.tank_test_base import ShotgunTestBase, skip_if_pyside_missing, skip_if_on_travis_ci, interactive
+from tank_test.tank_test_base import (
+    ShotgunTestBase,
+    skip_if_pyside_missing,
+    interactive,
+    suppress_generated_code_qt_warnings,
+)
 from mock import patch
 from tank.authentication import (
     console_authentication,
@@ -43,17 +48,22 @@ class InteractiveTests(ShotgunTestBase):
         """
         Adds Qt modules to tank.platform.qt and initializes QApplication
         """
-        from PySide import QtGui
-        # Only configure qApp once, it's a singleton.
-        if QtGui.qApp is None:
+        from tank.authentication.ui.qt_abstraction import QtGui
+
+        # See if a QApplication instance exists, and if not create one.  Use the
+        # QApplication.instance() method, since qApp can contain a non-None
+        # value even if no QApplication has been constructed on PySide2.
+        if not QtGui.QApplication.instance():
             self._app = QtGui.QApplication(sys.argv)
         super(InteractiveTests, self).setUp()
 
     def tearDown(self):
         super(InteractiveTests, self).tearDown()
-        from PySide import QtGui
+        from tank.authentication.ui.qt_abstraction import QtGui
+
         QtGui.QApplication.processEvents()
 
+    @suppress_generated_code_qt_warnings
     def test_site_and_user_disabled_on_session_renewal(self):
         """
         Make sure that the site and user fields are disabled when doing session renewal
@@ -67,25 +77,29 @@ class InteractiveTests(ShotgunTestBase):
         Prepares the dialog so the events get processed and focus is attributed to the right
         widget.
         """
-        from PySide.QtGui import QApplication
+        from tank.authentication.ui.qt_abstraction import QtGui
 
         ld.show()
         ld.raise_()
         ld.activateWindow()
 
-        QApplication.processEvents()
+        QtGui.QApplication.processEvents()
 
     @contextlib.contextmanager
     def _login_dialog(self, is_session_renewal, login=None, hostname=None):
         # Import locally since login_dialog has a dependency on Qt and it might be missing
         from tank.authentication import login_dialog
-        with contextlib.closing(login_dialog.LoginDialog(is_session_renewal=is_session_renewal)) as ld:
-            # SSO module and threading causes issues with unit tests, so disable it.
-            ld._saml2_sso = None
-            self._prepare_window(ld)
-            yield ld
 
-    @skip_if_on_travis_ci("Offscreen XServer doesn't do focus changes.")
+        # Patch out the SsoSaml2Toolkit class to avoid threads being created, which cause
+        # issues with tests.
+        with patch("tank.authentication.login_dialog.SsoSaml2Toolkit"):
+            with contextlib.closing(
+                login_dialog.LoginDialog(is_session_renewal=is_session_renewal)
+            ) as ld:
+                self._prepare_window(ld)
+                yield ld
+
+    @suppress_generated_code_qt_warnings
     def test_focus(self):
         """
         Make sure that the site and user fields are disabled when doing session renewal
@@ -102,26 +116,23 @@ class InteractiveTests(ShotgunTestBase):
             # window needs to be activated to get focus.
             self.assertTrue(ld.ui.password.hasFocus())
 
-        with self._login_dialog(is_session_renewal=False, hostname="host", login="login") as ld:
+        with self._login_dialog(
+            is_session_renewal=False, hostname="host", login="login"
+        ) as ld:
             self.assertTrue(ld.ui.password.hasFocus())
 
     def _test_login(self, console):
         self._print_message(
             "We're about to test authentication. Simply enter valid credentials.",
-            console
+            console,
         )
         interactive_authentication.authenticate(
-            "https://.shotgunstudio.com",
-            "",
-            "",
-            fixed_host=False
+            "https://.shotgunstudio.com", "", "", fixed_host=False
         )
-        self._print_message(
-            "Test successful",
-            console
-        )
+        self._print_message("Test successful", console)
 
     @interactive
+    @suppress_generated_code_qt_warnings
     def test_login_ui(self):
         """
         Pops the ui and lets the user authenticate.
@@ -131,6 +142,7 @@ class InteractiveTests(ShotgunTestBase):
 
     @patch("tank.authentication.interactive_authentication._get_ui_state")
     @interactive
+    @suppress_generated_code_qt_warnings
     def test_login_console(self, _get_ui_state_mock):
         """
         Pops the ui and lets the user authenticate.
@@ -146,7 +158,8 @@ class InteractiveTests(ShotgunTestBase):
             print(text)
             print("=" * len(text))
         else:
-            from PySide import QtGui
+            from tank.authentication.ui.qt_abstraction import QtGui
+
             mb = QtGui.QMessageBox()
             mb.setText(text)
             mb.exec_()
@@ -160,26 +173,33 @@ class InteractiveTests(ShotgunTestBase):
         self._print_message(
             "We're about to test session renewal. We'll first prompt you for your "
             "credentials and then we'll fake a session that is expired.\nYou will then have to "
-            "re-enter your password.", test_console
+            "re-enter your password.",
+            test_console,
         )
         # Get the basic user credentials.
-        host, login, session_token, session_metadata = interactive_authentication.authenticate(
+        (
+            host,
+            login,
+            session_token,
+            session_metadata,
+        ) = interactive_authentication.authenticate(
             "https://enter_your_host_name_here.shotgunstudio.com",
             "enter_your_username_here",
             "",
-            fixed_host=False
+            fixed_host=False,
         )
         sg_user = user_impl.SessionUser(
             host=host, login=login, session_token=session_token, http_proxy=None
         )
-        self._print_message("We're about to fake an expired session. Hang tight!", test_console)
-        # Test the session renewal code.
-        tank.authentication.interactive_authentication.renew_session(
-            sg_user
+        self._print_message(
+            "We're about to fake an expired session. Hang tight!", test_console
         )
+        # Test the session renewal code.
+        tank.authentication.interactive_authentication.renew_session(sg_user)
         self._print_message("Test successful", test_console)
 
     @interactive
+    @suppress_generated_code_qt_warnings
     def test_session_renewal_ui(self):
         """
         Interactively test session renewal.
@@ -188,6 +208,7 @@ class InteractiveTests(ShotgunTestBase):
 
     @patch("tank.authentication.interactive_authentication._get_ui_state")
     @interactive
+    @suppress_generated_code_qt_warnings
     def test_session_renewal_console(self, _get_ui_state_mock):
         """
         Interactively test for session renewal with the GUI.
@@ -196,6 +217,7 @@ class InteractiveTests(ShotgunTestBase):
         _get_ui_state_mock.return_value = False
         self._test_session_renewal(test_console=True)
 
+    @suppress_generated_code_qt_warnings
     def test_invoker_rethrows_exception(self):
         """
         Makes sure that the invoker will carry the exception back to the calling thread.
@@ -209,6 +231,7 @@ class InteractiveTests(ShotgunTestBase):
         main thread calls wait it will assert that the exception that was thrown was coming
         from the thrower function.
         """
+
         class FromMainThreadException(Exception):
             """
             Exception that will be thrown from the main thead.
@@ -216,7 +239,7 @@ class InteractiveTests(ShotgunTestBase):
 
             pass
 
-        from PySide import QtCore, QtGui
+        from tank.authentication.ui.qt_abstraction import QtCore, QtGui
 
         # Create a QApplication instance.
         if not QtGui.QApplication.instance():
@@ -254,11 +277,15 @@ class InteractiveTests(ShotgunTestBase):
                     if not isinstance(invoker_obj, QtCore.QObject):
                         raise Exception("Invoker is not a QObject")
                     if invoker_obj.thread() != QtGui.QApplication.instance().thread():
-                        raise Exception("Invoker should be of the same thread as the QApplication.")
+                        raise Exception(
+                            "Invoker should be of the same thread as the QApplication."
+                        )
                     if QtCore.QThread.currentThread() != self:
                         raise Exception("Current thread not self.")
                     if QtGui.QApplication.instance().thread == self:
-                        raise Exception("QApplication should be in the main thread, not self.")
+                        raise Exception(
+                            "QApplication should be in the main thread, not self."
+                        )
                     invoker_obj(thrower)
                 except Exception as e:
                     self._exception = e
@@ -285,13 +312,18 @@ class InteractiveTests(ShotgunTestBase):
             bg.wait()
 
     @patch(
-        "__builtin__.raw_input",
-        side_effect=["  https://test.shotgunstudio.com ", "  username   ", " 2fa code "]
+        "tank.authentication.console_authentication.input",
+        side_effect=[
+            "  https://test.shotgunstudio.com ",
+            "  username   ",
+            " 2fa code ",
+        ],
     )
     @patch(
         "tank.authentication.console_authentication.ConsoleLoginHandler._get_password",
-        return_value=" password "
+        return_value=" password ",
     )
+    @suppress_generated_code_qt_warnings
     def test_console_auth_with_whitespace(self, *mocks):
         """
         Makes sure that authentication strips whitespaces on the command line.
@@ -299,21 +331,19 @@ class InteractiveTests(ShotgunTestBase):
         handler = console_authentication.ConsoleLoginHandler(fixed_host=False)
         self.assertEqual(
             handler._get_user_credentials(None, None, None),
-            ("https://test.shotgunstudio.com", "username", " password ")
+            ("https://test.shotgunstudio.com", "username", " password "),
         )
-        self.assertEqual(
-            handler._get_2fa_code(),
-            "2fa code"
-        )
+        self.assertEqual(handler._get_2fa_code(), "2fa code")
 
     @patch(
-        "__builtin__.raw_input",
-        side_effect=["  https://test-sso.shotgunstudio.com "]
+        "tank.authentication.console_authentication.input",
+        side_effect=["  https://test-sso.shotgunstudio.com "],
     )
     @patch(
         "tank.authentication.console_authentication.is_sso_enabled_on_site",
-        return_value=True
+        return_value=True,
     )
+    @suppress_generated_code_qt_warnings
     def test_sso_enabled_site_with_legacy_exception_name(self, *mocks):
         """
         Ensure that an exception is thrown should we attempt console authentication
@@ -325,13 +355,14 @@ class InteractiveTests(ShotgunTestBase):
             handler._get_user_credentials(None, None, None)
 
     @patch(
-        "__builtin__.raw_input",
-        side_effect=["  https://test-sso.shotgunstudio.com "]
+        "tank.authentication.console_authentication.input",
+        side_effect=["  https://test-sso.shotgunstudio.com "],
     )
     @patch(
         "tank.authentication.console_authentication.is_sso_enabled_on_site",
-        return_value=True
+        return_value=True,
     )
+    @suppress_generated_code_qt_warnings
     def test_sso_enabled_site(self, *mocks):
         """
         Ensure that an exception is thrown should we attempt console authentication
@@ -342,13 +373,14 @@ class InteractiveTests(ShotgunTestBase):
             handler._get_user_credentials(None, None, None)
 
     @patch(
-        "__builtin__.raw_input",
-        side_effect=["  https://test-identity.shotgunstudio.com "]
+        "tank.authentication.console_authentication.input",
+        side_effect=["  https://test-identity.shotgunstudio.com "],
     )
     @patch(
         "tank.authentication.console_authentication.is_autodesk_identity_enabled_on_site",
-        return_value=True
+        return_value=True,
     )
+    @suppress_generated_code_qt_warnings
     def test_identity_enabled_site(self, *mocks):
         """
         Ensure that an exception is thrown should we attempt console authentication
@@ -358,13 +390,13 @@ class InteractiveTests(ShotgunTestBase):
         with self.assertRaises(ConsoleLoginNotSupportedError):
             handler._get_user_credentials(None, None, None)
 
-    @skip_if_on_travis_ci("Offscreen XServer doesn't do focus changes.")
+    @suppress_generated_code_qt_warnings
     def test_ui_auth_with_whitespace(self):
         """
         Makes sure that the ui strips out whitespaces.
         """
         # Import locally since login_dialog has a dependency on Qt and it might be missing
-        from PySide import QtGui
+        from tank.authentication.ui.qt_abstraction import QtGui
 
         with self._login_dialog(is_session_renewal=False) as ld:
             # For each widget in the ui, make sure that the text is properly cleaned

@@ -11,27 +11,16 @@
 Integration with Shotgun Toolkit API.
 """
 
-from .sso_saml2 import (  # noqa
-    SsoSaml2,
-)
+# pylint: disable=line-too-long
+# pylint: disable=protected-access
+
+from .sso_saml2 import SsoSaml2  # noqa
 
 
 class SsoSaml2Toolkit(SsoSaml2):
     """
     This class provides a minimal interface to support SSO authentication.
     """
-
-    def __init__(self, window_title=None, qt_modules=None):
-        """
-        Create a SSO login dialog, using a Web-browser like environment.
-
-        :param window_title: Title to use for the window.
-        :param qt_modules:   a dictionnary of required Qt modules.
-                             For Qt4/PySide, we require modules QtCore, QtGui, QtNetwork and QtWebKit
-
-        :returns: The SsoSaml2 oject.
-        """
-        super(SsoSaml2Toolkit, self).__init__(window_title, qt_modules)
 
     def get_session_data(self):
         """
@@ -43,5 +32,5 @@ class SsoSaml2Toolkit(SsoSaml2):
             self._core._session.host,
             self._core._session.user_id,
             self._core._session.session_id,
-            self._core._session.cookies
+            self._core._session.cookies,
         )

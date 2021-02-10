@@ -15,7 +15,6 @@ from tank import Hook
 
 
 class LogMetrics(Hook):
-
     def execute(self, metrics):
         """
         .. warning::

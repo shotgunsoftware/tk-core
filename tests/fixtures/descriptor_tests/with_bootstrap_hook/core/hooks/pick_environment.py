@@ -18,7 +18,6 @@ from tank import Hook
 
 
 class PickEnvironment(Hook):
-
     def execute(self, context, **kwargs):
         # Test project has a single environment file, project.yml
         return "project"
