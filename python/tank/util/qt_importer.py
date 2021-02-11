@@ -55,35 +55,35 @@ class QtImporter(object):
         """
         :returns: QtCore module, if available.
         """
-        return self._modules["QtCore"] if self._modules else None
+        return self._modules.get("QtCore")
 
     @property
     def QtGui(self):
         """
         :returns: QtGui module, if available.
         """
-        return self._modules["QtGui"] if self._modules else None
+        return self._modules.get("QtGui")
 
     @property
     def QtWebKit(self):
         """
         :returns: QtWebKit module, if available.
         """
-        return self._modules["QtWebKit"] if self._modules else None
+        return self._modules.get("QtWebKit")
 
     @property
     def QtNetwork(self):
         """
         :returns: QtNetwork module, if available.
         """
-        return self._modules["QtNetwork"] if self._modules else None
+        return self._modules.get("QtNetwork")
 
     @property
     def QtWebEngineWidgets(self):
         """
         :returns: QtWebEngineWidgets module, if available.
         """
-        return self._modules["QtWebEngineWidgets"] if self._modules else None
+        return self._modules.get("QtWebEngineWidgets")
 
     @property
     def binding(self):
