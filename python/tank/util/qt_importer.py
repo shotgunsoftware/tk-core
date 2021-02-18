@@ -50,6 +50,8 @@ class QtImporter(object):
             self._qt_version_tuple,
         ) = self._import_modules(interface_version_requested)
 
+        self._modules = self._modules or {}
+
     @property
     def QtCore(self):
         """
