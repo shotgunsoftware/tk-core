@@ -225,12 +225,38 @@ import logging
 from logging.handlers import RotatingFileHandler
 import os
 import sys
+import re
 import time
 import weakref
 import uuid
 from functools import wraps
 from . import constants
 from tank_vendor import six
+
+
+class ProductNameAdapter(logging.LoggerAdapter):
+    """
+    A LoggerAdapter class that implements custom log message processing that
+    replaces a {PRODUCT} token in log message strings with the value of the
+    PRODUCT constant.
+
+    .. note:: This class also acts as a decorator for the given logger that
+              it is acting as the adapter for. This means any attributes not
+              implemented by the adapter will be passed through to the logger
+              that it's wrapping.
+    """
+
+    _RE = re.compile(r"[{]PRODUCT[}]")
+
+    def __init__(self, logger, *args, **kwargs):
+        logging.LoggerAdapter.__init__(self, logger, *args, **kwargs)
+        self._logger = logger
+
+    def process(self, msg, kwargs):
+        return re.sub(self._RE, constants.PRODUCT, msg), kwargs
+
+    def __getattr__(self, name):
+        return getattr(self._logger, name)
 
 
 class LogManager(object):
@@ -478,7 +504,7 @@ class LogManager(object):
             # some external script or tool
             log_name = "%s.ext.%s" % (constants.ROOT_LOGGER_NAME, log_name)
 
-        return logging.getLogger(log_name)
+        return ProductNameAdapter(logging.getLogger(log_name), dict())
 
     @staticmethod
     def log_timing(func):

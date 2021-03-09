@@ -8,6 +8,8 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+PRODUCT = "Shotgun"
+
 # the name of the file that contains the storage root definitions
 STORAGE_ROOTS_FILE = "roots.yml"
 
