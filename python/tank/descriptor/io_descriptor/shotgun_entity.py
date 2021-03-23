@@ -102,7 +102,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
 
             if "name" in descriptor_dict:
                 raise TankDescriptorError(
-                    "Shotgun descriptor cannot contain both name and id tokens: %s"
+                    "SG descriptor cannot contain both name and id tokens: %s"
                     % descriptor_dict
                 )
 
@@ -342,7 +342,7 @@ class IODescriptorShotgunEntity(IODescriptorDownloadable):
         can_connect = True
         try:
             log.debug(
-                "%r: Probing if a connection to Shotgun can be established..." % self
+                "%r: Probing if a connection to SG can be established..." % self
             )
             self._sg_connection.connect()
             log.debug("...connection established!")

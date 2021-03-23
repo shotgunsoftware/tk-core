@@ -179,7 +179,7 @@ class BundleDescriptor(Descriptor):
                     )
 
         self._test_version_constraint(
-            "min_desktop", desktop_version, "Shotgun Desktop", reasons
+            "min_desktop", desktop_version, "SG Desktop", reasons
         )
 
         if len(reasons) > 0:
