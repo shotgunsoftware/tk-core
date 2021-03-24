@@ -206,8 +206,7 @@ class LoginDialog(QtGui.QDialog):
         # If the host is fixed, disable the site textbox.
         if fixed_host:
             self._disable_text_widget(
-                self.ui.site,
-                "The SG site has been predefined and cannot be modified.",
+                self.ui.site, "The SG site has been predefined and cannot be modified.",
             )
 
         # Disable keyboard input in the site and login boxes if we are simply renewing the session.

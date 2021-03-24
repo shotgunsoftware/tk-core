@@ -332,8 +332,7 @@ class TankQDialog(TankDialogBase):
             tooltip += "<b>System Information</b>"
             tooltip += "<hr>"
             tooltip += (
-                "<b>SG Pipeline Toolkit Version: </b>%s<br>"
-                % self._bundle.tank.version
+                "<b>SG Pipeline Toolkit Version: </b>%s<br>" % self._bundle.tank.version
             )
             tooltip += "<b>Pipeline Config: </b>%s<br>" % pc.get_name()
             tooltip += "<b>Config Path: </b>%s<br>" % pc.get_path()

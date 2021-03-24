@@ -185,8 +185,7 @@ def _from_path(path, force_reread_shotgun_cache):
         pc_registered_path = pipelineconfig_utils.get_config_install_location(path)
 
         log.debug(
-            "Resolved the official path registered in SG to be %s."
-            % pc_registered_path
+            "Resolved the official path registered in SG to be %s." % pc_registered_path
         )
 
         if pc_registered_path is None:

@@ -314,9 +314,7 @@ class SessionUser(ShotgunUserImpl):
 
         :returns: True if the credentials are expired, False otherwise.
         """
-        logger.debug(
-            "Connecting to SG to determine if credentials have expired..."
-        )
+        logger.debug("Connecting to SG to determine if credentials have expired...")
         sg = Shotgun(
             self.get_host(),
             session_token=self.get_session_token(),

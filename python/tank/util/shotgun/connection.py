@@ -441,9 +441,7 @@ def create_sg_connection(user="default"):
                 "via legacy configuration files failed. Details: %s" % e
             )
 
-        log.debug(
-            "Creating SG connection based on details in %s" % config_file_path
-        )
+        log.debug("Creating SG connection based on details in %s" % config_file_path)
         config_data = __get_sg_config_data_with_script_user(config_file_path, user)
 
         # Credentials were passed in, so let's run the legacy authentication

@@ -244,9 +244,7 @@ class UnregisterFoldersAction(Action):
             for p in paths:
                 sg_id = pc.get_shotgun_id_from_path(p)
                 if sg_id is None:
-                    log.warning(
-                        "Path '%s' is not registered in SG - ignoring." % p
-                    )
+                    log.warning("Path '%s' is not registered in SG - ignoring." % p)
                 else:
                     log.debug(
                         "The path '%s' matches FilesystemLocation id: %s" % (p, sg_id)

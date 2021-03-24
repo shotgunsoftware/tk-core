@@ -587,9 +587,7 @@ def _create_published_file(
                 if local_storage_path and path.lower().startswith(
                     local_storage_path.lower()
                 ):
-                    log.debug(
-                        "Path matches SG local storage '%s'" % storage["code"]
-                    )
+                    log.debug("Path matches SG local storage '%s'" % storage["code"])
                     matching_local_storage = True
                     break
 

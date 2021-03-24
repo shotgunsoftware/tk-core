@@ -267,9 +267,7 @@ class ConfigurationWriter(object):
         if current_interpreter:
             log.debug("Current OS interpreter will be %s.", current_interpreter)
         else:
-            log.debug(
-                "Current OS interpreter will be the default SG Desktop location."
-            )
+            log.debug("Current OS interpreter will be the default SG Desktop location.")
 
         config_root_path = self._path.current_os
 
