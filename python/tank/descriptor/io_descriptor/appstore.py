@@ -779,8 +779,7 @@ class IODescriptorAppStore(IODescriptorDownloadable):
                 )
             except shotgun_api3.AuthenticationFault:
                 raise InvalidAppStoreCredentialsError(
-                    "The Toolkit App Store credentials found in SG are invalid.
-"
+                    "The Toolkit App Store credentials found in SG are invalid.\n"
                     "Please contact support at %s to resolve this issue." % SUPPORT_URL
                 )
             # Connection errors can occur for a variety of reasons. For example, there is no
