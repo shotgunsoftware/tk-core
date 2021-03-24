@@ -113,7 +113,7 @@ def _run_distributed_project_setup(log, sg, setup_params):
         sg_project_link = None
 
     if project_id:
-        log.info("Registering Toolkit project with Shotgun Project...")
+        log.info("Registering Toolkit project with SG Project...")
         project_name = setup_params.get_project_disk_name()
         log.debug("Shotgun: Setting Project.tank_name to %s" % project_name)
         sg.update("Project", project_id, {"tank_name": project_name})
@@ -248,7 +248,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
         os.chmod(sg_code_location, 0o666)
 
     fh = open(sg_code_location, "wt")
-    fh.write("# Shotgun Pipeline Toolkit configuration file\n")
+    fh.write("# SG Pipeline Toolkit configuration file\n")
     fh.write("# This file was automatically created by setup_project\n")
     fh.write("# This file reflects the paths in the primary pipeline\n")
     fh.write("# configuration defined for this project.\n")
@@ -323,7 +323,7 @@ def _run_centralized_project_setup(log, sg, setup_params):
                 if data["tank_name"] != project_name:
                     log.warning(
                         "You have supplied the project disk name '%s' as part of the project setup "
-                        "parameters, however the name '%s' has already been registered in Shotgun for "
+                        "parameters, however the name '%s' has already been registered in SG for "
                         "this project. This name will be used instead of the suggested disk "
                         "name." % (project_name, data["tank_name"])
                     )
@@ -522,7 +522,7 @@ def _get_published_file_entity_type(log, sg):
               been enabled, otherwise returns 'TankPublishedFile'
     """
     log.debug(
-        "Retrieving schema from Shotgun to determine entity type "
+        "Retrieving schema from SG to determine entity type "
         "to use for published files"
     )
 
@@ -536,7 +536,7 @@ def _get_published_file_entity_type(log, sg):
         ):
             pf_entity_type = "PublishedFile"
     except Exception as e:
-        raise TankError("Could not retrieve the Shotgun schema: %s" % e)
+        raise TankError("Could not retrieve the SG schema: %s" % e)
 
     log.debug(" > Using %s entity type for published files" % pf_entity_type)
 

@@ -79,8 +79,8 @@ class Static(Folder):
             if not isinstance(resolved_constrain_node, Entity):
                 raise TankError(
                     "Configuration error in %s: constrain_by_entity points "
-                    "at a node which is not associated with any Shotgun data. "
-                    "You can only constrain based on nodes which have a Shotgun "
+                    "at a node which is not associated with any SG data. "
+                    "You can only constrain based on nodes which have a SG "
                     "representation." % full_path
                 )
 

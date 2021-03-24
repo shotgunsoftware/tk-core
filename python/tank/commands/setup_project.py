@@ -47,7 +47,7 @@ class SetupProjectAction(Action):
             self,
             "setup_project",
             Action.GLOBAL,
-            "Sets up a new project with the Shotgun Pipeline Toolkit.",
+            "Sets up a new project with the SG Pipeline Toolkit.",
             "Configuration",
         )
 
@@ -81,7 +81,7 @@ class SetupProjectAction(Action):
         }
 
         self.parameters["project_id"] = {
-            "description": "Shotgun id for the project you want to set up.",
+            "description": "SG id for the project you want to set up.",
             "default": None,
             "type": "int",
         }
@@ -146,7 +146,7 @@ class SetupProjectAction(Action):
         self.parameters["auto_path"] = {
             "description": "Deprecated. Do not use this! --- "
             "Expert setting. Setting this to true means that a blank "
-            "path entry is written to the shotgun site pipeline "
+            "path entry is written to the SG site pipeline "
             "configuration. This can be used in conjunction with "
             "a localized core to create a site configuration which "
             "can have different locations on different machines. It "
@@ -364,9 +364,9 @@ class SetupProjectAction(Action):
             log.info("Connecting to Shotgun...")
             sg = shotgun.create_sg_connection()
             sg_version = ".".join([str(x) for x in sg.server_info["version"]])
-            log.debug("Connected to target Shotgun server! (v%s)" % sg_version)
+            log.debug("Connected to target SG server! (v%s)" % sg_version)
         except Exception as e:
-            raise TankError("Could not connect to Shotgun server: %s" % e)
+            raise TankError("Could not connect to SG server: %s" % e)
 
         return sg
 
@@ -445,7 +445,7 @@ class SetupProjectAction(Action):
         log.info(
             "You can use the Default Configuration for your new project.  "
             "The default configuration is a good sample config, demonstrating "
-            "a typical basic setup of the Shotgun Pipeline Toolkit using the "
+            "a typical basic setup of the SG Pipeline Toolkit using the "
             "latest apps and engines. This will be used by default if you just "
             "hit enter below."
         )
@@ -497,7 +497,7 @@ class SetupProjectAction(Action):
         if len(projs) == 0:
             raise TankError(
                 "Sorry, no projects found! All projects seem to have already been "
-                "set up with the Shotgun Pipeline Toolkit. If you are an expert "
+                "set up with the SG Pipeline Toolkit. If you are an expert "
                 "user and want to run the setup on a project which already has been "
                 "set up, run the setup_project command with a --force option."
             )
@@ -581,7 +581,7 @@ class SetupProjectAction(Action):
         log.info(
             "The selected Toolkit config utilizes the following Local Storages, as "
         )
-        log.info("defined in the Shotgun Site Preferences:")
+        log.info("defined in the SG Site Preferences:")
         log.info("")
         for storage_name in params.get_required_storages():
             current_os_path = params.get_storage_path(storage_name, sgsix.platform)
@@ -880,13 +880,13 @@ class SetupProjectAction(Action):
         log.info("-------------------------")
         log.info("")
         log.info(
-            "You are about to set up the Shotgun Pipeline Toolkit "
+            "You are about to set up the SG Pipeline Toolkit "
             "for Project %s - %s "
             % (params.get_project_id(), params.get_project_disk_name())
         )
         log.info("The following items will be created:")
         log.info("")
-        log.info("* A Shotgun Pipeline configuration will be created:")
+        log.info("* A SG Pipeline configuration will be created:")
         log.info("  - on Macosx:  '%s'" % params.get_configuration_location("darwin"))
         log.info("  - on Linux:   '%s'" % params.get_configuration_location("linux2"))
         log.info("  - on Windows: '%s'" % params.get_configuration_location("win32"))

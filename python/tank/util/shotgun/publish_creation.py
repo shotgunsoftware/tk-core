@@ -547,7 +547,7 @@ def _create_published_file(
                     # issue a warning and fall back on the server-side functionality
                     log.warning(
                         "Could not find the expected storage for required root "
-                        "'%s' in Shotgun to associate publish '%s' with. "
+                        "'%s' in SG to associate publish '%s' with. "
                         "Falling back to Shotgun's built-in storage resolution "
                         "logic. It is recommended that you explicitly map a "
                         "local storage to required root '%s'."
@@ -578,7 +578,7 @@ def _create_published_file(
             # 1. look for storages in Shotgun and see if we can create a local path
             # 2. failing that, just register the entry as a file:// resource.
             log.debug("Path '%s' does not have an associated config root." % path)
-            log.debug("Will check shotgun local storages to see if there is a match.")
+            log.debug("Will check SG local storages to see if there is a match.")
 
             matching_local_storage = False
             for storage in get_cached_local_storages(tk):
@@ -588,7 +588,7 @@ def _create_published_file(
                     local_storage_path.lower()
                 ):
                     log.debug(
-                        "Path matches Shotgun local storage '%s'" % storage["code"]
+                        "Path matches SG local storage '%s'" % storage["code"]
                     )
                     matching_local_storage = True
                     break

@@ -765,7 +765,7 @@ class ConfigurationResolver(object):
         :return: :class:`Configuration` instance
         """
         log.debug(
-            "%s resolving configuration from Shotgun Pipeline Configuration %s"
+            "%s resolving configuration from SG Pipeline Configuration %s"
             % (self, pipeline_config_identifier)
         )
 
@@ -864,7 +864,7 @@ class ConfigurationResolver(object):
                     pipeline_config["id"],
                 )
                 raise TankBootstrapError(
-                    "The Shotgun pipeline configuration with id %s has no source location specified for "
+                    "The SG pipeline configuration with id %s has no source location specified for "
                     "your operating system." % pipeline_config["id"]
                 )
             config_descriptor = pipeline_config["config_descriptor"]

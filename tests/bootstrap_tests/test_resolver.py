@@ -1120,7 +1120,7 @@ class TestErrorHandling(TestResolverBase):
 
         with self.assertRaisesRegex(
             sgtk.bootstrap.TankBootstrapError,
-            "The Shotgun pipeline configuration with id %s has no source location specified for "
+            "The SG pipeline configuration with id %s has no source location specified for "
             "your operating system." % pc_id,
         ):
             self.resolver.resolve_shotgun_configuration(

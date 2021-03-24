@@ -27,7 +27,7 @@ class ClearCacheAction(Action):
             "clear_shotgun_menu_cache",
             Action.TK_INSTANCE,
             (
-                "Clears the Shotgun Menu Cache associated with this Configuration. "
+                "Clears the SG Menu Cache associated with this Configuration. "
                 "This is sometimes useful after complex configuration changes if new "
                 "or modified Toolkit menu items are not appearing inside Shotgun."
             ),
@@ -73,7 +73,7 @@ class ClearCacheAction(Action):
                 except:
                     log.warning("Could not delete cache file '%s'!" % full_path)
 
-        log.info("The Shotgun menu cache has been cleared.")
+        log.info("The SG menu cache has been cleared.")
 
 
 class InteractiveShellAction(Action):
@@ -99,7 +99,7 @@ class InteractiveShellAction(Action):
             raise TankError("This command takes no arguments!")
 
         msg = []
-        msg.append("Welcome to Shotgun Pipeline Toolkit Python!")
+        msg.append("Welcome to SG Pipeline Toolkit Python!")
         msg.append(sys.version)
         msg.append("Running on %s" % sys.platform)
         msg.append("")
@@ -116,7 +116,7 @@ class InteractiveShellAction(Action):
             tk_locals["tk"] = self.tk
             tk_locals["shotgun"] = self.tk.shotgun
             msg.append("- A tk API handle is available via the tk variable")
-            msg.append("- A Shotgun API handle is available via the shotgun variable")
+            msg.append("- A Shotgun API handle is available via the SG variable")
 
         if self.context:
             tk_locals["context"] = self.context

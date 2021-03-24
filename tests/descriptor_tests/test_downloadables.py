@@ -493,7 +493,7 @@ class Implementation(object):
                     "large_binary_file",
                 )
             ),
-            "Failed to find the default bundle cache directory for the shotgun entity descriptor on disk.",
+            "Failed to find the default bundle cache directory for the SG entity descriptor on disk.",
         )
 
         # now test concurrent downloads to a shared bundle cache
