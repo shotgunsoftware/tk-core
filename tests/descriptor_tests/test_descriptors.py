@@ -713,7 +713,7 @@ class TestConstraintValidation(unittest2.TestCase):
         self.assertEqual(len(ctx.exception.reasons), 1)
         self.assertRegex(
             ctx.exception.reasons[0],
-            r"Requires at least SG .* but currently installed version is .*\.",
+            r"Requires at least Shotgun .* but currently installed version is .*\.",
         )
 
     def test_min_core_constraint_pass(self):
