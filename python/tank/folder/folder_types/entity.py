@@ -363,7 +363,7 @@ class Entity(Folder):
                 # check if it is a missing id or just a filtered out thing
                 if sg.find_one(self._entity_type, [["id", "is", my_id]]) is None:
                     raise TankError(
-                        "Could not find Shotgun %s with id %s as required by "
+                        "Could not find SG %s with id %s as required by "
                         "the folder creation setup." % (self._entity_type, my_id)
                     )
                 else:

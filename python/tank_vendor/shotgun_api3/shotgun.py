@@ -219,10 +219,10 @@ class ServerCapabilities(object):
         except AttributeError:
             self.version = None
         if not self.version:
-            raise ShotgunError("The Shotgun Server didn't respond with a version number. "
+            raise ShotgunError("The SG Server didn't respond with a version number. "
                                "This may be because you are running an older version of "
-                               "Shotgun against a more recent version of the Shotgun API. "
-                               "For more information, please contact Shotgun Support.")
+                               "SG against a more recent version of the SG API. "
+                               "For more information, please contact SG Support.")
 
         if len(self.version) > 3 and self.version[3] == "Dev":
             self.is_dev = True
@@ -3550,7 +3550,7 @@ class Shotgun(object):
         if status[0] >= 300:
             headers = "HTTP error from server"
             if status[0] == 503:
-                errmsg = "Shotgun is currently down for maintenance or too busy to reply. Please try again later."
+                errmsg = "SG is currently down for maintenance or too busy to reply. Please try again later."
             raise ProtocolError(self.config.server,
                                 error_code,
                                 errmsg,
@@ -3636,12 +3636,12 @@ class Shotgun(object):
                 raise UserCredentialsNotAllowedForSSOAuthenticationFault(
                     sg_response.get("message",
                                     "Authentication using username/password is not "
-                                    "allowed for an SSO-enabled Shotgun site")
+                                    "allowed for an SSO-enabled SG site")
                 )
             elif sg_response.get("error_code") == ERR_OXYG:
                 raise UserCredentialsNotAllowedForOxygenAuthenticationFault(
                     sg_response.get("message", "Authentication using username/password is not "
-                                    "allowed for an Autodesk Identity enabled Shotgun site")
+                                    "allowed for an Autodesk Identity enabled SG site")
                 )
             else:
                 # raise general Fault

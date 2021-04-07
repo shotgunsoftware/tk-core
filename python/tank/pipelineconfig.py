@@ -487,7 +487,7 @@ class PipelineConfiguration(object):
 
         if data is None:
             raise TankError(
-                "Cannot find a Pipeline configuration in Shotgun "
+                "Cannot find a Pipeline configuration in SG "
                 "that has id %s." % self.get_shotgun_id()
             )
 
@@ -600,7 +600,7 @@ class PipelineConfiguration(object):
         """
 
         if self.get_shotgun_path_cache_enabled():
-            raise TankError("Shotgun based path cache already turned on!")
+            raise TankError("SG based path cache already turned on!")
 
         self._update_metadata({"use_shotgun_path_cache": True})
         self._use_shotgun_path_cache = True

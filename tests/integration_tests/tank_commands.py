@@ -321,7 +321,7 @@ class TankCommands(SgtkIntegrationTest):
         # Since we are using a core branch we can't do a core update.
         self.assertRegex(
             output,
-            r"You are currently running version HEAD of the Shotgun Pipeline Toolkit",
+            r"You are currently running version HEAD of the SG Pipeline Toolkit",
         )
         self.assertRegex(
             output, r"No need to update the Toolkit Core API at this time!"

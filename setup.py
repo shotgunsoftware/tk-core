@@ -65,9 +65,9 @@ finally:
 setup(
     name="sgtk",
     version=get_version(),
-    description="Shotgun Pipeline Toolkit Core API",
+    description="SG Toolkit Core API",
     long_description=readme,
-    author="Shotgun Software",
+    author="Autodesk, Inc",
     url="https://github.com/shotgunsoftware/tk-core",
     license=license,
     # Recursively discover all packages in python folder, excluding any tests

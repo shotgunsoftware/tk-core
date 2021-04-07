@@ -228,13 +228,13 @@ class ProjectSetupParameters(object):
             if not storage_data[storage_name]["defined_in_shotgun"]:
                 raise TankError(
                     "The storage '%s' required by the configuration has not been defined in Shotgun. "
-                    "In order to fix this, please navigate to the Site Preferences in Shotgun "
+                    "In order to fix this, please navigate to the Site Preferences in SG "
                     "and set up a new local file storage." % storage_name
                 )
 
             elif storage_data[storage_name][sgsix.platform] is None:
                 raise TankError(
-                    "The Shotgun Local File Storage '%s' does not have a path defined "
+                    "The SG Local File Storage '%s' does not have a path defined "
                     "for the current operating system!" % storage_name
                 )
 
@@ -243,7 +243,7 @@ class ProjectSetupParameters(object):
             ):
                 local_path = storage_data[storage_name][sgsix.platform]
                 raise TankError(
-                    "The path on disk '%s' defined in the Shotgun Local File Storage '%s' does "
+                    "The path on disk '%s' defined in the SG Local File Storage '%s' does "
                     "not exist!" % (local_path, storage_name)
                 )
 
@@ -919,7 +919,7 @@ class ProjectSetupParameters(object):
             field_data = self._sg.schema_field_read("PipelineConfiguration")
             if "uploaded_config" not in field_data:
                 raise TankError(
-                    "Shotgun site is missing a PipelineConfiguration.uploaded_config "
+                    "SG site is missing a PipelineConfiguration.uploaded_config "
                     "field, required for distributed configs to work correctly. Please update to "
                     "a more recent version of Shotgun."
                 )
@@ -1090,13 +1090,13 @@ class TemplateConfiguration(object):
 
                 if is_version_newer(required_version, sg_version_str):
                     raise TankError(
-                        "This configuration requires Shotgun version %s "
+                        "This configuration requires SG version %s "
                         "but you are running version %s"
                         % (required_version, sg_version_str)
                     )
                 else:
                     self._log.debug(
-                        "Config requires shotgun %s. "
+                        "Config requires SG %s. "
                         "You are running %s which is fine."
                         % (required_version, sg_version_str)
                     )

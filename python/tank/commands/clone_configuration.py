@@ -51,7 +51,7 @@ class CloneConfigAction(Action):
         }
 
         self.parameters["user_id"] = {
-            "description": "Shotgun user id to associate the cloned configuration with.",
+            "description": "SG user id to associate the cloned configuration with.",
             "default": None,
             "type": "int",
         }
@@ -163,7 +163,7 @@ def clone_pipeline_configuration_html(
             "This means that when you make an upgrade to that shared API, all "
             "the different projects that share it will be upgraded. This makes the upgrade "
             "process quick and easy. However, sometimes you also want to break out of a shared "
-            "environment, for example if you want to test a new version of the Shotgun Pipeline Toolkit. "
+            "environment, for example if you want to test a new version of the SG Pipeline Toolkit. "
         )
         log.info("")
         log.info(
@@ -268,7 +268,7 @@ def _do_clone(
             os.chmod(sg_code_location, 0o666)
             os.remove(sg_code_location)
         fh = open(sg_code_location, "wt")
-        fh.write("# Shotgun Pipeline Toolkit configuration file\n")
+        fh.write("# SG Pipeline Toolkit configuration file\n")
         fh.write("# This file was automatically created by tank clone\n")
         fh.write("# This file reflects the paths in the pipeline configuration\n")
         fh.write("# entity which is associated with this location (%s).\n" % new_name)

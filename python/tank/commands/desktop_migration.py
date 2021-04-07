@@ -13,13 +13,13 @@ from . import console_utils
 from . import constants
 
 _MESSAGE = (
-    "This command will migrate the Shotgun site configuration used by the Desktop app so "
+    "This command will migrate the SG site configuration used by the Desktop app so "
     "it is no longer associated with the 'Template Project'. Before proceeding, make sure "
-    "all your users are running version 1.2.0 or greater of the Shotgun Desktop Startup "
-    "framework. You can see which version you are running in the Shotgun Desktop's About "
+    "all your users are running version 1.2.0 or greater of the SG Desktop Startup "
+    "framework. You can see which version you are running in the SG Desktop's About "
     "Box. If you don't see the Startup version mentionned in the About Box, you must "
-    "install the latest release of the Shotgun Desktop.\n"
-    "WARNING: If there are people using older versions of the Shotgun Desktop with your "
+    "install the latest release of the SG Desktop.\n"
+    "WARNING: If there are people using older versions of the SG Desktop with your "
     "site, they will get an error when starting Desktop after the migration.."
 )
 
@@ -37,7 +37,7 @@ class DesktopMigration(Action):
             self,
             "migrate_desktop",
             Action.TK_INSTANCE,
-            "Migrates Shotgun Desktop away from the Template Project.",
+            "Migrates SG Desktop away from the Template Project.",
             "Admin",
         )
 

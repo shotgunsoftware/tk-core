@@ -294,7 +294,7 @@ def _download_and_unpack(
         # the attachment in shotgun could not be unpacked
         if attachment_id:
             raise ShotgunAttachmentDownloadError(
-                "Shotgun attachment with id %s is not a zip file!" % attachment_id
+                "SG attachment with id %s is not a zip file!" % attachment_id
             )
         else:
             raise ShotgunAttachmentDownloadError(

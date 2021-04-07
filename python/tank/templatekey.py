@@ -106,9 +106,7 @@ class TemplateKey(object):
 
         # Validation
         if self.shotgun_field_name and not self.shotgun_entity_type:
-            raise TankError(
-                "%s: Shotgun field requires a shotgun entity be set." % self
-            )
+            raise TankError("%s: SG field requires a SG entity be set." % self)
 
         if self.is_abstract and self.default is None:
             raise TankError(

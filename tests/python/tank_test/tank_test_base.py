@@ -951,7 +951,7 @@ class TankTestBase(unittest.TestCase):
         print(
             "-----------------------------------------------------------------------------"
         )
-        print(" Shotgun contents:")
+        print(" SG contents:")
 
         print(pprint.pformat(self.mockgun._db))
         print("")
