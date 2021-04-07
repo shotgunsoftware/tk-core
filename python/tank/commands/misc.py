@@ -116,7 +116,7 @@ class InteractiveShellAction(Action):
             tk_locals["tk"] = self.tk
             tk_locals["shotgun"] = self.tk.shotgun
             msg.append("- A tk API handle is available via the tk variable")
-            msg.append("- A Shotgun API handle is available via the SG variable")
+            msg.append("- A Shotgun API handle is available via the shotgun variable")
 
         if self.context:
             tk_locals["context"] = self.context
