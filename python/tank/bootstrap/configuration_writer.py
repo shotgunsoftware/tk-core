@@ -241,7 +241,7 @@ class ConfigurationWriter(object):
         # Figures out which is the current Python interpreter.
         # If we're in the Shotgun Desktop
         if os.path.split(executable)[1].lower().startswith("shotgun"):
-            log.debug("Shotgun Desktop process detected.")
+            log.debug("SG Desktop process detected.")
             # We'll use the builtin Python.
             if is_macos():
                 current_interpreter = os.path.join(prefix, "bin", "python")
@@ -267,9 +267,7 @@ class ConfigurationWriter(object):
         if current_interpreter:
             log.debug("Current OS interpreter will be %s.", current_interpreter)
         else:
-            log.debug(
-                "Current OS interpreter will be the default Shotgun Desktop location."
-            )
+            log.debug("Current OS interpreter will be the default SG Desktop location.")
 
         config_root_path = self._path.current_os
 

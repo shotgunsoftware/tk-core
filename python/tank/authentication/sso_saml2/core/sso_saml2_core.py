@@ -51,14 +51,14 @@ except ImportError:
 
 
 # Error messages for events.
-HTTP_CANT_CONNECT_TO_SHOTGUN = "Cannot Connect To Shotgun site."
+HTTP_CANT_CONNECT_TO_SHOTGUN = "Cannot Connect To SG site."
 HTTP_AUTHENTICATE_REQUIRED = "Valid credentials are required."
 HTTP_AUTHENTICATE_SSO_NOT_UPPORTED = "SSO not supported or enabled on that site."
 HTTP_CANT_AUTHENTICATE_SSO_TIMEOUT = (
     "Time out attempting to authenticate to SSO service."
 )
 HTTP_CANT_AUTHENTICATE_SSO_NO_ACCESS = (
-    "You have not been granted access to the Shotgun site."
+    "You have not been granted access to the SG site."
 )
 
 # Timer related values.
@@ -119,7 +119,7 @@ FUNCTION_PROTOTYPE_BIND_POLYFILL = """
 
 
 class SsoSaml2Core(object):
-    """Performs Shotgun Web login and pre-emptive renewal for SSO sessions."""
+    """Performs SG Web login and pre-emptive renewal for SSO sessions."""
 
     # login paths, used by the Unified Login Flow.
     renew_path = "/auth/renew"
@@ -868,7 +868,7 @@ class SsoSaml2Core(object):
         # pop an authentication dialog.
         if sys.platform != "win32" and UsernamePasswordDialog is not None:
             message = (
-                "<p>Your company has configured Single Sign-On (SSO) for the Shotgun site %s"
+                "<p>Your company has configured Single Sign-On (SSO) for the SG site %s"
                 "<p>Please authenticate with your computer login and password to log into Shotgun."
                 "<p>"
             )

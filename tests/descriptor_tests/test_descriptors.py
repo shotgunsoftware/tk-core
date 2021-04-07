@@ -829,7 +829,7 @@ class TestConstraintValidation(unittest2.TestCase):
         self.assertEqual(len(ctx.exception.reasons), 1)
         self.assertRegex(
             ctx.exception.reasons[0],
-            r"Requires at least Shotgun Desktop.* but currently installed version is .*\.",
+            r"Requires at least SG Desktop.* but currently installed version is .*\.",
         )
 
     @patch(
@@ -890,7 +890,7 @@ class TestConstraintValidation(unittest2.TestCase):
         )
         self.assertRegex(
             ctx.exception.reasons[2],
-            "Requires at least Shotgun Desktop v3.3.4 but no version was specified",
+            "Requires at least SG Desktop v3.3.4 but no version was specified",
         )
 
 

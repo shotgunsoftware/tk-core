@@ -419,7 +419,7 @@ def create_sg_connection(user="default"):
     if sg_user is None:
         log.debug(
             "This tk session has no associated authenticated user. Falling back to "
-            "creating a shotgun API instance based on script based credentials in the "
+            "creating a SG API instance based on script based credentials in the "
             "shotgun.yml configuration file."
         )
 
@@ -428,22 +428,20 @@ def create_sg_connection(user="default"):
             config_file_path = __get_sg_config()
         except TankError as e:
             log.error(
-                "Trying to create a shotgun connection but this tk session does not have "
+                "Trying to create a SG connection but this tk session does not have "
                 "an associated authenticated user. Therefore attempted to fall back on "
                 "a legacy authentication method where script based credentials are "
                 "located in a file relative to the location of the core API code. This "
                 "lookup in turn failed. No credentials can be determined and no connection "
-                "to Shotgun can be made. Details: %s" % e
+                "to SG can be made. Details: %s" % e
             )
             raise TankError(
-                "Cannot connect to Shotgun - this tk session does not have "
-                "an associated user and attempts to determine a valid shotgun "
+                "Cannot connect to SG - this tk session does not have "
+                "an associated user and attempts to determine a valid SG "
                 "via legacy configuration files failed. Details: %s" % e
             )
 
-        log.debug(
-            "Creating shotgun connection based on details in %s" % config_file_path
-        )
+        log.debug("Creating SG connection based on details in %s" % config_file_path)
         config_data = __get_sg_config_data_with_script_user(config_file_path, user)
 
         # Credentials were passed in, so let's run the legacy authentication
@@ -458,7 +456,7 @@ def create_sg_connection(user="default"):
 
     else:
         # Otherwise use the authenticated user to create the connection.
-        log.debug("Creating shotgun connection from %r..." % sg_user)
+        log.debug("Creating SG connection from %r..." % sg_user)
         api_handle = sg_user.create_sg_connection()
 
     # bolt on our custom user agent manager so that we can
