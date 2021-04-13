@@ -32,6 +32,7 @@ from .. import hook
 from ..errors import TankError
 from .errors import (
     TankEngineInitError,
+    TankUnresolvedEnvironmentError,
     TankContextChangeNotSupportedError,
     TankEngineEventError,
     TankMissingEngineError,
@@ -3418,7 +3419,7 @@ def __pick_environment(engine_name, tk, context):
         # this may be because an incomplete Context was passed.
         # without an environment, engine creation cannot succeed.
         # raise an exception with a message
-        raise TankEngineInitError(
+        raise TankUnresolvedEnvironmentError(
             "Engine %s cannot initialize - the pick environment hook was not "
             "able to return an environment to use, given the context %s. "
             "Usually this is because the context contains insufficient information "
