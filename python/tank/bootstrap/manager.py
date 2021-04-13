@@ -1175,12 +1175,12 @@ class ToolkitManager(object):
                     "start_engine routine..."
                 )
                 engine = tank.platform.start_engine(engine_name, tk, ctx)
-            except Exception as exc:
+            except Exception as outer_exc:
                 log.debug(
                     "SG engine failed to start using start_engine. An "
                     "attempt will now be made to start it using an legacy "
                     "shotgun_xxx.yml environment. The start_engine exception "
-                    "was the following: %r" % exc
+                    "was the following: %r" % outer_exc
                 )
                 try:
                     engine = self._legacy_start_shotgun_engine(
@@ -1189,6 +1189,23 @@ class ToolkitManager(object):
                     log.debug(
                         "SG engine started using a legacy shotgun_xxx.yml environment."
                     )
+                except tank.platform.TankMissingEnvironmentFile as exc:
+                    # If the reason the new style bootstrap failed was that no environment was returned by the
+                    # pick_environment hook and the old style bootstrap failed because the env file is missing,
+                    # we're likely in a new style setup but trying to bootstrap using an entity that is not supported.
+                    if isinstance(
+                        outer_exc, tank.platform.TankUnresolvedEnvironmentError
+                    ):
+                        msg = (
+                            "No environment was found for the context {}. The pick_environment hook was "
+                            "unable to provide one, and the fallback was not successful. {}".format(
+                                ctx, exc
+                            )
+                        )
+                        log.warning(msg)
+                        raise tank.platform.TankUnresolvedEnvironmentError(msg)
+                    raise
+
                 except Exception as exc:
                     log.debug(
                         "SG engine failed to start using the legacy "
