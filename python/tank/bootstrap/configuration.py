@@ -347,8 +347,8 @@ class Configuration(object):
                 )
                 log.error(
                     "Startup will continue, but you should look into what caused this issue and fix it. "
-                    "Please contact %s to troubleshoot this issue.",
-                    constants.SUPPORT_EMAIL,
+                    "Please contact support at %s to troubleshoot this issue.",
+                    constants.SUPPORT_URL,
                 )
                 project_user = bootstrap_user
 

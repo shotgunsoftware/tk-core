@@ -32,6 +32,7 @@ from .. import hook
 from ..errors import TankError
 from .errors import (
     TankEngineInitError,
+    TankUnresolvedEnvironmentError,
     TankContextChangeNotSupportedError,
     TankEngineEventError,
     TankMissingEngineError,
@@ -2427,7 +2428,7 @@ class Engine(TankBundle):
             file_in.__rshift__(self._dark_palette)
             fh.close()
 
-            # set the std selection bg color to be 'shotgun blue'
+            # set the std selection bg color to be 'SG blue'
             highlight_color = QtGui.QBrush(
                 QtGui.QColor(constants.SG_STYLESHEET_CONSTANTS["SG_HIGHLIGHT_COLOR"])
             )
@@ -3287,7 +3288,7 @@ def start_shotgun_engine(tk, entity_type, context):
     # get the location for our engine
     if constants.SHOTGUN_ENGINE_NAME not in env.get_engines():
         raise TankMissingEngineError(
-            "Cannot find a shotgun engine in %s. Please contact support." % env
+            "Cannot find a SG engine in %s. Please contact support." % env
         )
 
     engine_descriptor = env.get_engine_descriptor(constants.SHOTGUN_ENGINE_NAME)
@@ -3418,7 +3419,7 @@ def __pick_environment(engine_name, tk, context):
         # this may be because an incomplete Context was passed.
         # without an environment, engine creation cannot succeed.
         # raise an exception with a message
-        raise TankEngineInitError(
+        raise TankUnresolvedEnvironmentError(
             "Engine %s cannot initialize - the pick environment hook was not "
             "able to return an environment to use, given the context %s. "
             "Usually this is because the context contains insufficient information "

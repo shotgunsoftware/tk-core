@@ -227,10 +227,10 @@ class TankQDialog(TankDialogBase):
             # set up the title bar and configuration panel
 
             self.ui.tank_logo.setToolTip(
-                "This is part of the Shotgun App %s" % self._bundle.name
+                "This is part of the SG App %s" % self._bundle.name
             )
             self.ui.label.setToolTip(
-                "This is part of the Shotgun App %s" % self._bundle.name
+                "This is part of the SG App %s" % self._bundle.name
             )
 
             # Add our context to the header
@@ -332,8 +332,7 @@ class TankQDialog(TankDialogBase):
             tooltip += "<b>System Information</b>"
             tooltip += "<hr>"
             tooltip += (
-                "<b>Shotgun Pipeline Toolkit Version: </b>%s<br>"
-                % self._bundle.tank.version
+                "<b>SG Pipeline Toolkit Version: </b>%s<br>" % self._bundle.tank.version
             )
             tooltip += "<b>Pipeline Config: </b>%s<br>" % pc.get_name()
             tooltip += "<b>Config Path: </b>%s<br>" % pc.get_path()

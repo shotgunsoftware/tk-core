@@ -105,9 +105,9 @@ class SetupProjectFactoryAction(Action):
             log.info("Connecting to Shotgun...")
             sg = shotgun.create_sg_connection()
             sg_version = ".".join([str(x) for x in sg.server_info["version"]])
-            log.debug("Connected to target Shotgun server! (v%s)" % sg_version)
+            log.debug("Connected to target SG server! (v%s)" % sg_version)
         except Exception as e:
-            raise TankError("Could not connect to Shotgun server: %s" % e)
+            raise TankError("Could not connect to SG server: %s" % e)
 
         return sg
 
@@ -461,8 +461,7 @@ class SetupProjectWizard(object):
             # now take the pipeline config paths, and try to replace the current project name
             # in these paths by the new project name
             self._log.debug(
-                "Basing config values on the following shotgun pipeline config: %s"
-                % data
+                "Basing config values on the following SG pipeline config: %s" % data
             )
 
             # get the project path for this project

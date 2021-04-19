@@ -314,9 +314,7 @@ class SessionUser(ShotgunUserImpl):
 
         :returns: True if the credentials are expired, False otherwise.
         """
-        logger.debug(
-            "Connecting to shotgun to determine if credentials have expired..."
-        )
+        logger.debug("Connecting to SG to determine if credentials have expired...")
         sg = Shotgun(
             self.get_host(),
             session_token=self.get_session_token(),
@@ -612,7 +610,7 @@ def deserialize_user(payload):
     # Unknown type, something is wrong. Maybe backward compatible code broke?
     if not factory:
         raise Exception(
-            "Could not deserialize Shotgun user. Invalid user type: %s" % user_dict
+            "Could not deserialize SG user. Invalid user type: %s" % user_dict
         )
     # Instantiate the user object.
     return factory(user_dict["data"])

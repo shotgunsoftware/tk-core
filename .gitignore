@@ -46,3 +46,6 @@ htmlcov
 
 # pyenv
 .python-version
+
+# venv
+venv

@@ -161,10 +161,18 @@ QComboBox::disabled {
            <number>0</number>
           </property>
           <item>
-           <widget class="RecentBox" name="site"/>
+           <widget class="RecentBox" name="site">
+            <property name="accessibleName">
+             <string>site</string>
+            </property>
+           </widget>
           </item>
           <item>
-           <widget class="RecentBox" name="login"/>
+           <widget class="RecentBox" name="login">
+            <property name="accessibleName">
+             <string>login</string>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="Qt5LikeLineEdit" name="password">
@@ -173,6 +181,9 @@ QComboBox::disabled {
               <width>308</width>
               <height>0</height>
              </size>
+            </property>
+            <property name="accessibleName">
+             <string>password</string>
             </property>
             <property name="echoMode">
              <enum>QLineEdit::Password</enum>
@@ -373,6 +384,9 @@ background-color: rgb(35, 165, 225);</string>
              </item>
              <item>
               <widget class="Qt5LikeLineEdit" name="_2fa_code">
+               <property name="accessibleName">
+                <string>2fa code</string>
+               </property>
                <property name="placeholderText">
                 <string>Enter code</string>
                </property>
@@ -544,6 +558,9 @@ background-color: rgb(35, 165, 225);</string>
              </item>
              <item>
               <widget class="Qt5LikeLineEdit" name="backup_code">
+               <property name="accessibleName">
+                <string>backup code</string>
+               </property>
                <property name="text">
                 <string/>
                </property>

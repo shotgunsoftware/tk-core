@@ -16,8 +16,7 @@ Hook which provides advanced customization of context creation.
     doesn't do what you think it does and it will likely be removed in a future
     release.
 
-    Email support@shotgunsoftware.com if you have any questions about how to
-    migrate away from this hook.
+    Contact support if you have any questions about how to migrate away from this hook.
 """
 from tank import Hook
 

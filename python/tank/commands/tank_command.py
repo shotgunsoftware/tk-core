@@ -272,8 +272,8 @@ class SgtkSystemCommand(object):
         if self.__internal_action_obj.mode not in (Action.GLOBAL, Action.TK_INSTANCE):
             raise TankError(
                 "The command %r is not of a type which is supported by Toolkit. "
-                "Please contact %s."
-                % (self.__internal_action_obj, constants_global.SUPPORT_EMAIL)
+                "Please contact support at %s."
+                % (self.__internal_action_obj, constants_global.SUPPORT_URL)
             )
 
         # make sure we pass a tk api for actions that require it
